@@ -424,7 +424,11 @@ export default function Dashboard() {
                 <div className="space-y-4">
                   {inProgressCourses.length > 0 ? (
                     inProgressCourses.map(course => (
-                      <div className="border border-neutral-200 rounded-lg p-4 hover:border-primary transition cursor-pointer" key={course.id}>
+                      <div
+                        onClick={() => handleModuleSelect(course.id)}
+                        className="border border-neutral-200 rounded-lg p-4 hover:border-primary transition cursor-pointer" 
+                        key={course.id}
+                      >
                         <div className="flex justify-between">
                           <div>
                             <h3 className="font-heading font-semibold">{course.title}</h3>
@@ -442,11 +446,15 @@ export default function Dashboard() {
                               </span>
                             </div>
                           </div>
-                          <Link href={`/modules/${course.id}`}>
-                            <button className="bg-primary text-white rounded-lg px-3 py-1 text-sm font-semibold hover:bg-opacity-90 transition">
-                              Resume
-                            </button>
-                          </Link>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleModuleSelect(course.id);
+                            }}
+                            className="bg-primary text-white rounded-lg px-3 py-1 text-sm font-semibold hover:bg-opacity-90 transition"
+                          >
+                            Resume
+                          </button>
                         </div>
                       </div>
                     ))
@@ -620,12 +628,14 @@ export default function Dashboard() {
                   </div>
                   <ul className="space-y-3">
                     {mindfulMorningsModules.map((module) => (
-                      <li key={module.id} className="flex items-center bg-neutral-50 p-2 rounded-md border-l-4 border-primary">
-                        <Link href={`/modules/${module.id}`} className="w-full">
-                          <span className="text-sm hover:text-primary font-medium cursor-pointer transition">
-                            {module.title}
-                          </span>
-                        </Link>
+                      <li 
+                        key={module.id} 
+                        className="flex items-center bg-neutral-50 p-2 rounded-md border-l-4 border-primary"
+                        onClick={() => handleModuleSelect(module.id)}
+                      >
+                        <span className="text-sm hover:text-primary font-medium cursor-pointer transition w-full">
+                          {module.title}
+                        </span>
                       </li>
                     ))}
                   </ul>
