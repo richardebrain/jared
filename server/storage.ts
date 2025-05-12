@@ -12,7 +12,9 @@ export interface IStorage {
   // User operations
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, userData: Partial<InsertUser>): Promise<User>;
   getAllUsers(): Promise<User[]>;
   
   // Learning modules operations
@@ -310,6 +312,28 @@ export class MemStorage implements IStorage {
     );
   }
   
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.email === email
+    );
+  }
+  
+  async updateUser(id: number, userData: Partial<InsertUser>): Promise<User> {
+    const existingUser = this.users.get(id);
+    
+    if (!existingUser) {
+      throw new Error("User not found");
+    }
+    
+    const updatedUser: User = {
+      ...existingUser,
+      ...userData
+    };
+    
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+  
   async getAllUsers(): Promise<User[]> {
     return Array.from(this.users.values());
   }
@@ -489,6 +513,25 @@ export class DatabaseStorage implements IStorage {
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
     return user || undefined;
+  }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
+  }
+  
+  async updateUser(id: number, userData: Partial<InsertUser>): Promise<User> {
+    const [updatedUser] = await db
+      .update(users)
+      .set(userData)
+      .where(eq(users.id, id))
+      .returning();
+      
+    if (!updatedUser) {
+      throw new Error("User not found");
+    }
+    
+    return updatedUser;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {

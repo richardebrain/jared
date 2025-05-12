@@ -123,76 +123,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
   
-  // Google Authentication routes
-  app.post("/api/auth/register-google", async (req, res) => {
-    try {
-      const userData = req.body;
-      
-      // Check if a user with this email already exists
-      // This would need an additional method to lookup users by email
-      const existingUser = await storage.getUserByUsername(userData.username);
-      if (existingUser) {
-        // User exists, login instead
-        req.session.userId = existingUser.id;
-        
-        // Don't return password in response
-        const { password: _, ...userWithoutPassword } = existingUser;
-        
-        return res.status(200).json(userWithoutPassword);
+  // Setup Passport.js with Google OAuth
+  app.use(passport.initialize());
+  app.use(passport.session());
+  
+  // Configure Google OAuth strategy
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: process.env.GOOGLE_CLIENT_ID || "",
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+        callbackURL: "/api/auth/google/callback",
+        scope: ["profile", "email"],
+      },
+      async (accessToken, refreshToken, profile, done) => {
+        try {
+          // Check if user exists by email
+          const email = profile.emails?.[0]?.value;
+          if (!email) {
+            return done(new Error("No email found in Google profile"));
+          }
+          
+          let user = await storage.getUserByEmail(email);
+          
+          if (!user) {
+            // Create new user if not exists
+            const newUser = {
+              username: profile.displayName.replace(/\s+/g, "").toLowerCase() + Math.floor(Math.random() * 1000),
+              password: "", // No password for OAuth users
+              firstName: profile.name?.givenName || "",
+              lastName: profile.name?.familyName || "",
+              email: email,
+              language: "en",
+              nativeLanguage: "en",
+              timeZone: "America/Phoenix",
+              profilePicture: profile.photos?.[0]?.value || null,
+              points: 0,
+              level: "New Teacher",
+              joinDate: new Date(),
+              lastActive: new Date(),
+              notification: false,
+              completedOnboarding: false,
+            };
+            
+            user = await storage.createUser(newUser);
+          } else if (!user.profilePicture && profile.photos?.[0]?.value) {
+            // Update profile picture if not present
+            user = await storage.updateUser(user.id, {
+              profilePicture: profile.photos[0].value
+            });
+          }
+          
+          return done(null, user);
+        } catch (error) {
+          return done(error);
+        }
       }
-      
-      // Generate a secure random password for the user (they'll login with Google, not password)
-      const randomPassword = Array(20)
-        .fill('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*')
-        .map(x => x[Math.floor(Math.random() * x.length)])
-        .join('');
-      
-      // Create new user with Google profile data
-      const newUser = await storage.createUser({
-        ...userData,
-        password: randomPassword // This will be hashed by the storage implementation
-      });
-      
-      // Set session
-      req.session.userId = newUser.id;
-      
-      // Don't return password in response
-      const { password: _, ...userWithoutPassword } = newUser;
-      
-      res.status(201).json(userWithoutPassword);
+    )
+  );
+  
+  // Serialize user for the session
+  passport.serializeUser((user: any, done) => {
+    done(null, user.id);
+  });
+  
+  // Deserialize user from the session
+  passport.deserializeUser(async (id: number, done) => {
+    try {
+      const user = await storage.getUser(id);
+      done(null, user);
     } catch (error) {
-      console.error('Google registration error:', error);
-      res.status(500).json({ message: "Failed to register with Google" });
+      done(error);
     }
   });
   
-  app.post("/api/auth/login-google", async (req, res) => {
-    try {
-      const { email, username } = req.body;
-      
-      // Try to find user by username or email
-      let user = await storage.getUserByUsername(username);
-      
-      if (!user) {
-        // User doesn't exist, register them
-        return res.status(404).json({ 
-          message: "No account found. Please sign up with Google first.",
-          needsRegistration: true
-        });
+  // Google OAuth routes
+  app.get('/api/auth/google', 
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+  );
+  
+  app.get('/api/auth/google/callback', 
+    passport.authenticate('google', { 
+      failureRedirect: '/login',
+      session: true
+    }),
+    (req, res) => {
+      // Successful authentication
+      if (req.user) {
+        req.session.userId = (req.user as User).id;
       }
-      
-      // User exists, set session
-      req.session.userId = user.id;
-      
-      // Don't return password in response
-      const { password: _, ...userWithoutPassword } = user;
-      
-      res.status(200).json(userWithoutPassword);
-    } catch (error) {
-      console.error('Google login error:', error);
-      res.status(500).json({ message: "Failed to login with Google" });
+      res.redirect('/');
     }
-  });
+  );
 
   app.get("/api/auth/me", requireAuth, async (req, res) => {
     try {
