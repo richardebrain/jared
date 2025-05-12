@@ -35,10 +35,10 @@ async function seedDatabase() {
 
     // Seed learning modules
     const moduleData: InsertLearningModule[] = [
-      // Core Teaching Modules
+      // Core ECE Teaching Modules
       {
-        title: "Early Childhood Development Basics",
-        description: "Understand the fundamental principles of early childhood development and how to apply them in your classroom.",
+        title: "Child Development Milestones (0-5 years)",
+        description: "Master the critical developmental milestones for children ages 0-5, including cognitive, physical, social, and emotional benchmarks that inform your teaching approach.",
         duration: 90,
         imageUrl: null,
         featured: true,
@@ -46,13 +46,58 @@ async function seedDatabase() {
         category: "foundations"
       },
       {
-        title: "Classroom Management",
-        description: "Learn effective techniques for managing a preschool classroom and creating a positive learning environment.",
+        title: "Play-Based Learning Strategies",
+        description: "Learn how to design and implement play-based learning activities that support cognitive development while keeping children engaged and excited about learning.",
+        duration: 75,
+        imageUrl: null,
+        featured: true,
+        difficulty: "beginner",
+        category: "teaching-methods"
+      },
+      {
+        title: "Preschool Classroom Management",
+        description: "Master effective techniques for managing a preschool classroom, including positive discipline approaches, daily routines, and creating a structured environment that supports learning.",
         duration: 120,
+        imageUrl: null,
+        featured: true,
+        difficulty: "intermediate",
+        category: "management"
+      },
+      {
+        title: "Language Development in Early Childhood",
+        description: "Explore proven techniques to foster language acquisition in young children, including storytelling methods, vocabulary building activities, and supporting bilingual learners.",
+        duration: 90,
         imageUrl: null,
         featured: false,
         difficulty: "intermediate",
-        category: "management"
+        category: "language"
+      },
+      {
+        title: "Positive Behavior Support in Preschool",
+        description: "Learn strategies to encourage positive behavior, prevent challenging behaviors, and create a supportive emotional environment. Can you find the hidden code word 'Sunshine' in this module? Tell your director to receive a special recognition!",
+        duration: 105,
+        imageUrl: null,
+        featured: false,
+        difficulty: "advanced",
+        category: "behavior"
+      },
+      {
+        title: "Building Math Foundations for Preschoolers",
+        description: "Discover how to introduce mathematical concepts through everyday activities, games, and hands-on experiences appropriate for young learners.",
+        duration: 85,
+        imageUrl: null,
+        featured: false,
+        difficulty: "intermediate",
+        category: "stem"
+      },
+      {
+        title: "Sensory Play in Early Childhood",
+        description: "Learn how to create engaging sensory experiences that support brain development, improve motor skills, and encourage scientific thinking in young children.",
+        duration: 60,
+        imageUrl: null,
+        featured: true,
+        difficulty: "beginner",
+        category: "teaching-methods"
       },
       // Mindful Mornings Modules
       {
@@ -81,6 +126,26 @@ async function seedDatabase() {
         featured: true,
         difficulty: "beginner",
         category: "mindful-mornings"
+      },
+      // Family Engagement
+      {
+        title: "Effective Parent-Teacher Communication",
+        description: "Learn best practices for communicating with families, conducting parent conferences, and building collaborative relationships that support child development.",
+        duration: 75,
+        imageUrl: null,
+        featured: false,
+        difficulty: "intermediate",
+        category: "family-engagement"
+      },
+      // Special Needs
+      {
+        title: "Inclusive Practices for Diverse Learners",
+        description: "Develop skills to create an inclusive classroom environment that meets the needs of all children, including those with developmental differences or disabilities.",
+        duration: 120,
+        imageUrl: null,
+        featured: false,
+        difficulty: "advanced",
+        category: "inclusion"
       }
     ];
 
