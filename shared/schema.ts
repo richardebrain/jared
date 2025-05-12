@@ -22,6 +22,12 @@ export const users = pgTable("users", {
     kinesthetic: number,
     preferred: 'visual' | 'auditory' | 'reading' | 'kinesthetic' | null
   }>(),
+  bearBucks: integer("bear_bucks").default(0),
+  points: integer("points").default(0),
+  level: integer("level").default(1),
+  streak: integer("streak").default(0),
+  lastActive: timestamp("last_active"),
+  achievementCount: integer("achievement_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -56,6 +62,7 @@ export const userProgress = pgTable("user_progress", {
   progress: integer("progress").notNull().default(0), // percentage complete
   completed: boolean("completed").default(false),
   recommended: boolean("recommended").default(false), // added for personalized recommendations
+  pointsEarned: integer("points_earned").default(0), // points earned from this module
   lastAccessed: timestamp("last_accessed").defaultNow(),
 });
 
@@ -111,7 +118,10 @@ export const usersRelations = relations(users, ({ many }) => ({
   progress: many(userProgress),
   meetings: many(meetings, { relationName: "host" }),
   guestMeetings: many(meetings, { relationName: "guest" }),
-  assessments: many(assessments)
+  assessments: many(assessments),
+  userAchievements: many(userAchievements),
+  userItems: many(userItems),
+  spinGameRewards: many(spinGameRewards)
 }));
 
 export const learningModulesRelations = relations(learningModules, ({ many }) => ({
@@ -142,11 +152,145 @@ export const meetingsRelations = relations(meetings, ({ one }) => ({
   })
 }));
 
+// Achievements schema
+export const achievements = pgTable("achievements", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  icon: text("icon").notNull(),
+  category: text("category").notNull(),
+  requiredPoints: integer("required_points"),
+  requiredModules: integer("required_modules"),
+  level: integer("level").default(1),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertAchievementSchema = createInsertSchema(achievements).omit({
+  id: true,
+  createdAt: true,
+});
+
+// User achievements schema
+export const userAchievements = pgTable("user_achievements", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  achievementId: integer("achievement_id").notNull().references(() => achievements.id),
+  earnedAt: timestamp("earned_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertUserAchievementSchema = createInsertSchema(userAchievements).omit({
+  id: true,
+  earnedAt: true,
+  createdAt: true,
+});
+
+// Store items schema
+export const storeItems = pgTable("store_items", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  icon: text("icon").notNull(), 
+  category: text("category").notNull(),
+  bearBucksCost: integer("bear_bucks_cost").notNull(),
+  levelRequired: integer("level_required").default(1),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertStoreItemSchema = createInsertSchema(storeItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+// User items inventory schema
+export const userItems = pgTable("user_items", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  itemId: integer("item_id").notNull().references(() => storeItems.id),
+  acquired: timestamp("acquired").defaultNow(),
+  used: boolean("used").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertUserItemSchema = createInsertSchema(userItems).omit({
+  id: true,
+  acquired: true,
+  createdAt: true,
+});
+
+// Spin game rewards history
+export const spinGameRewards = pgTable("spin_game_rewards", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  rewardType: text("reward_type").notNull(), // points, bearBucks, item, etc.
+  rewardAmount: integer("reward_amount"),
+  itemId: integer("item_id").references(() => storeItems.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertSpinGameRewardSchema = createInsertSchema(spinGameRewards).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const assessmentsRelations = relations(assessments, ({ one }) => ({
   user: one(users, {
     fields: [assessments.userId],
     references: [users.id]
   })
+}));
+
+export const achievementsRelations = relations(achievements, ({ many }) => ({
+  userAchievements: many(userAchievements)
+}));
+
+export const userAchievementsRelations = relations(userAchievements, ({ one }) => ({
+  user: one(users, {
+    fields: [userAchievements.userId],
+    references: [users.id]
+  }),
+  achievement: one(achievements, {
+    fields: [userAchievements.achievementId],
+    references: [achievements.id]
+  })
+}));
+
+export const storeItemsRelations = relations(storeItems, ({ many }) => ({
+  userItems: many(userItems),
+  spinGameRewards: many(spinGameRewards)
+}));
+
+export const userItemsRelations = relations(userItems, ({ one }) => ({
+  user: one(users, {
+    fields: [userItems.userId],
+    references: [users.id]
+  }),
+  storeItem: one(storeItems, {
+    fields: [userItems.itemId],
+    references: [storeItems.id]
+  })
+}));
+
+export const spinGameRewardsRelations = relations(spinGameRewards, ({ one }) => ({
+  user: one(users, {
+    fields: [spinGameRewards.userId],
+    references: [users.id]
+  }),
+  storeItem: one(storeItems, {
+    fields: [spinGameRewards.itemId],
+    references: [storeItems.id]
+  })
+}));
+
+// Update user relations to include new entities
+export const usersRelationsUpdate = relations(users, ({ many }) => ({
+  progress: many(userProgress),
+  meetings: many(meetings, { relationName: "host" }),
+  guestMeetings: many(meetings, { relationName: "guest" }),
+  assessments: many(assessments),
+  userAchievements: many(userAchievements),
+  userItems: many(userItems),
+  spinGameRewards: many(spinGameRewards)
 }));
 
 // Types
@@ -164,3 +308,18 @@ export type InsertMeeting = z.infer<typeof insertMeetingSchema>;
 
 export type Assessment = typeof assessments.$inferSelect;
 export type InsertAssessment = z.infer<typeof insertAssessmentSchema>;
+
+export type Achievement = typeof achievements.$inferSelect;
+export type InsertAchievement = z.infer<typeof insertAchievementSchema>;
+
+export type UserAchievement = typeof userAchievements.$inferSelect;
+export type InsertUserAchievement = z.infer<typeof insertUserAchievementSchema>;
+
+export type StoreItem = typeof storeItems.$inferSelect;
+export type InsertStoreItem = z.infer<typeof insertStoreItemSchema>;
+
+export type UserItem = typeof userItems.$inferSelect;
+export type InsertUserItem = z.infer<typeof insertUserItemSchema>;
+
+export type SpinGameReward = typeof spinGameRewards.$inferSelect;
+export type InsertSpinGameReward = z.infer<typeof insertSpinGameRewardSchema>;
