@@ -154,17 +154,19 @@ export default function Register() {
           
           {/* Google Sign Up Button */}
           <div className="mb-6">
-            <GoogleAuthButton 
-              mode="signup"
-              onSuccess={() => setLocation('/dashboard')}
-              onError={(error) => {
-                toast({
-                  title: "Registration Failed",
-                  description: "Could not sign up with Google. Please try again or use the form below.",
-                  variant: "destructive"
-                });
-              }}
-            />
+            <div className="animate-pop">
+              <GoogleAuthButton 
+                mode="signup"
+                onSuccess={() => setLocation('/dashboard')}
+                onError={(error) => {
+                  toast({
+                    title: "Registration Failed",
+                    description: "Could not sign up with Google. Please try again or use the form below.",
+                    variant: "destructive"
+                  });
+                }}
+              />
+            </div>
             
             <div className="relative mt-6">
               <div className="absolute inset-0 flex items-center">
@@ -338,7 +340,7 @@ export default function Register() {
                 )}
               />
               
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={isPending}>
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 hover-pop hover-glow" disabled={isPending}>
                 {isPending ? (
                   <div className="flex items-center justify-center">
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
@@ -353,7 +355,7 @@ export default function Register() {
           
           <div className="mt-4 text-center">
             <p className="text-sm text-neutral-800">
-              Already have an account? <Link href="/" className="text-primary hover:underline">Log in</Link>
+              Already have an account? <Link href="/" className="text-primary hover:underline hover-rotate font-bold">Log in</Link>
             </p>
           </div>
         </div>
