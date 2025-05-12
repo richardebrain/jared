@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signInWithPopup, signOut } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -19,16 +19,46 @@ googleProvider.setCustomParameters({
   prompt: 'select_account'
 });
 
-// Google Sign In
+// Google Sign In - try both redirect and popup methods
 export const signInWithGoogle = async () => {
   try {
-    const result = await signInWithPopup(auth, googleProvider);
-    return {
-      success: true,
-      user: result.user,
-      credential: GoogleAuthProvider.credentialFromResult(result)
-    };
+    // First, check if we're coming back from a redirect
+    const redirectResult = await getRedirectResult(auth);
+    
+    if (redirectResult && redirectResult.user) {
+      // We just came back from a redirect sign-in
+      return {
+        success: true,
+        user: redirectResult.user,
+        credential: GoogleAuthProvider.credentialFromResult(redirectResult)
+      };
+    }
+    
+    // If we're on mobile or have popup issues, use redirect
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+        window.innerWidth < 768) {
+      // Use redirect for mobile
+      await signInWithRedirect(auth, googleProvider);
+      // This will redirect the page, so we don't return anything here
+      return { success: false, redirecting: true };
+    } else {
+      // Try popup for desktop
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        return {
+          success: true,
+          user: result.user,
+          credential: GoogleAuthProvider.credentialFromResult(result)
+        };
+      } catch (popupError) {
+        console.error("Popup failed, trying redirect", popupError);
+        // Fallback to redirect if popup fails
+        await signInWithRedirect(auth, googleProvider);
+        return { success: false, redirecting: true };
+      }
+    }
   } catch (error) {
+    console.error("Google auth error:", error);
     return {
       success: false,
       error

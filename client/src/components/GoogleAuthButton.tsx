@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { signInWithGoogle } from '@/lib/firebase';
+import { signInWithGoogle, auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
 
 interface GoogleAuthButtonProps {
   onSuccess?: () => void;
@@ -18,21 +19,30 @@ export default function GoogleAuthButton({
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleGoogleAuth = async () => {
+  // Check for redirect result when component mounts
+  useEffect(() => {
+    const checkRedirectResult = async () => {
+      try {
+        setIsLoading(true);
+        const result = await getRedirectResult(auth);
+        
+        if (result && result.user) {
+          await processGoogleUser(result.user);
+        }
+      } catch (error) {
+        console.error('Google redirect result error:', error);
+        if (onError) onError(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkRedirectResult();
+  }, []);
+
+  // Process Google user data and send to backend
+  const processGoogleUser = async (user: any) => {
     try {
-      setIsLoading(true);
-      const result = await signInWithGoogle();
-      
-      if (!result.success) {
-        throw new Error('Google authentication failed');
-      }
-      
-      const user = result.user;
-      
-      if (!user) {
-        throw new Error('No user information returned from Google');
-      }
-      
       // Extract user info from Google profile
       const userInfo = {
         email: user.email || '',
@@ -64,6 +74,46 @@ export default function GoogleAuthButton({
       });
       
       if (onSuccess) onSuccess();
+      return true;
+    } catch (error: any) {
+      console.error('Process Google user error:', error);
+      toast({
+        title: 'Authentication failed',
+        description: error.message || 'Please try again later.',
+        variant: 'destructive',
+      });
+      
+      if (onError) onError(error);
+      return false;
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    try {
+      setIsLoading(true);
+      const result = await signInWithGoogle();
+      
+      // If redirecting, just show loading and return
+      if (result.redirecting) {
+        // Toast to let user know we're redirecting
+        toast({
+          title: 'Redirecting to Google',
+          description: 'Please continue in the Google authentication window.',
+        });
+        return;
+      }
+      
+      if (!result.success) {
+        throw new Error('Google authentication failed');
+      }
+      
+      const user = result.user;
+      
+      if (!user) {
+        throw new Error('No user information returned from Google');
+      }
+      
+      await processGoogleUser(user);
       
     } catch (error: any) {
       console.error('Google auth error:', error);
