@@ -47,10 +47,16 @@ export default function Login() {
   // Login mutation
   const { mutate: login, isPending } = useMutation({
     mutationFn: async (data: z.infer<typeof loginSchema>) => {
+      console.log("Attempting login with:", { username: data.username, password: "***" });
+      
       const response = await apiRequest("POST", "/api/auth/login", data);
-      return await response.json();
+      const responseData = await response.json();
+      console.log("Login response:", responseData);
+      return responseData;
     },
     onSuccess: (data) => {
+      console.log("Login successful, user data:", data);
+      
       // Update the auth cache with the new user data
       queryClient.setQueryData(["/api/auth/me"], data);
       
@@ -59,10 +65,12 @@ export default function Login() {
         description: `Welcome back${data.firstName ? ", " + data.firstName : ""}!`,
       });
       
-      // Redirect to dashboard
-      setLocation("/dashboard");
+      // Redirect to dashboard using direct window location for more reliable navigation
+      window.location.href = "/dashboard";
     },
     onError: (error: Error) => {
+      console.error("Login error:", error);
+      
       toast({
         title: "Login failed",
         description: error.message || "Please check your credentials and try again.",
