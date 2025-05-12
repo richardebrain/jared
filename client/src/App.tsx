@@ -34,6 +34,7 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={Login} />
+          <Route path="/dashboard" component={Login} />
           <Route path="/register" component={Register} />
         </>
       )}
