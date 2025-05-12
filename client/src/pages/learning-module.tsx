@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
-import { LearningModule, UserProgress } from "@shared/schema";
+import { LearningModule as LearningModuleType, UserProgress } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import Header from "@/components/Header";
@@ -59,7 +59,7 @@ const lessons = [
   },
 ];
 
-export default function LearningModule() {
+export default function LearningModulePage() {
   const { id } = useParams<{ id: string }>();
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
@@ -70,7 +70,7 @@ export default function LearningModule() {
   const [currentProgress, setCurrentProgress] = useState(0);
   
   // Get module data
-  const { data: module, isLoading: isModuleLoading } = useQuery<LearningModule>({
+  const { data: module, isLoading: isModuleLoading } = useQuery<LearningModuleType>({
     queryKey: [`/api/modules/${moduleId}`],
     enabled: !!moduleId && !isNaN(moduleId),
   });

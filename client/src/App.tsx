@@ -7,7 +7,7 @@ import Login from "@/pages/login";
 import Register from "@/pages/register";
 import Schedule from "@/pages/schedule";
 import Assessment from "@/pages/assessment";
-import LearningModule from "@/pages/learning-module";
+import LearningModulePage from "@/pages/learning-module";
 import { useAuth } from "@/hooks/use-auth";
 
 function Router() {
@@ -28,7 +28,7 @@ function Router() {
           <Route path="/" component={Dashboard} />
           <Route path="/schedule" component={Schedule} />
           <Route path="/assessment" component={Assessment} />
-          <Route path="/modules/:id" component={LearningModule} />
+          <Route path="/modules/:id" component={LearningModulePage} />
         </>
       ) : (
         <>
