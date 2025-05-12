@@ -225,6 +225,125 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Internal server error" });
     }
   });
+  
+  // Get user achievements and stats
+  app.get("/api/achievements", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const progress = await storage.getUserProgressByUserId(userId);
+      const modules = await storage.getAllModules();
+      const assessments = await storage.getAssessmentsByUserId(userId);
+      
+      // Calculate total points based on module completion and progress
+      let totalPoints = 0;
+      let completedModules = 0;
+      
+      progress.forEach(p => {
+        const module = modules.find(m => m.id === p.moduleId);
+        if (module) {
+          // Calculate points based on difficulty and progress
+          const difficulty = module.difficulty;
+          const basePoints = 
+            difficulty === 'beginner' ? 50 : 
+            difficulty === 'intermediate' ? 100 : 
+            difficulty === 'advanced' ? 150 : 75;
+          
+          // Award partial points for progress
+          const progressPoints = Math.floor((p.progress / 100) * basePoints);
+          
+          // Additional bonus for completion
+          const completionBonus = p.completed ? Math.floor(basePoints * 0.5) : 0;
+          
+          totalPoints += progressPoints + completionBonus;
+          
+          if (p.completed) {
+            completedModules++;
+          }
+        }
+      });
+      
+      // Add points from assessments
+      assessments.forEach(assessment => {
+        if (assessment.completed && assessment.overallScore) {
+          // Award points based on assessment score
+          const assessmentPoints = Math.floor(assessment.overallScore * 10);
+          totalPoints += assessmentPoints;
+        }
+      });
+      
+      // Determine teacher level based on points
+      let teacherLevel = "Teacher in Training";
+      if (totalPoints >= 3500) teacherLevel = "Mentor Teacher";
+      else if (totalPoints >= 2500) teacherLevel = "Master Lead Teacher";
+      else if (totalPoints >= 1500) teacherLevel = "Lead Teacher";
+      else if (totalPoints >= 800) teacherLevel = "Associate Teacher";
+      else if (totalPoints >= 300) teacherLevel = "Assistant Teacher";
+      
+      // Create achievements list
+      const achievements = [
+        {
+          id: 1,
+          name: "First Steps",
+          description: "Started your first module",
+          awarded: progress.length > 0,
+          points: 50,
+          category: "module"
+        },
+        {
+          id: 2,
+          name: "Eager Learner",
+          description: "Completed your first module",
+          awarded: completedModules > 0,
+          points: 100,
+          category: "module"
+        },
+        {
+          id: 3,
+          name: "Dedicated Teacher",
+          description: "Completed 5 modules",
+          awarded: completedModules >= 5,
+          points: 250,
+          category: "module"
+        },
+        {
+          id: 4,
+          name: "Master Teacher",
+          description: "Completed 10 modules",
+          awarded: completedModules >= 10,
+          points: 500,
+          category: "module"
+        },
+        {
+          id: 5,
+          name: "Assessment Champion",
+          description: "Scored over 80% on an assessment",
+          awarded: assessments.some(a => a.overallScore && a.overallScore >= 80),
+          points: 200,
+          category: "assessment"
+        }
+      ];
+      
+      res.status(200).json({
+        totalPoints,
+        completedModules,
+        teacherLevel,
+        nextLevelPoints: teacherLevel === "Mentor Teacher" ? null : 
+                         teacherLevel === "Master Lead Teacher" ? 3500 :
+                         teacherLevel === "Lead Teacher" ? 2500 :
+                         teacherLevel === "Associate Teacher" ? 1500 :
+                         teacherLevel === "Assistant Teacher" ? 800 : 300,
+        achievements: achievements.filter(a => a.awarded),
+        stats: {
+          totalModules: modules.length,
+          modulesInProgress: progress.filter(p => p.progress > 0 && !p.completed).length,
+          assessmentsCompleted: assessments.filter(a => a.completed).length
+        }
+      });
+    } catch (error) {
+      console.error("Achievement error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
 
   app.post("/api/progress", requireAuth, async (req, res) => {
     try {

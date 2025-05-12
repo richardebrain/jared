@@ -83,7 +83,7 @@ export default function Login() {
             />
           </div>
           <h1 className="text-4xl font-accent bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent mb-2 animate-pulse-slow">MentorMe</h1>
-          <p className="text-neutral-800 animate-pop">Welcome to Raising Arizona's teacher training platform! Log in to continue your professional development journey.</p>
+          <p className="text-neutral-800 animate-pop font-bold">School sucks, mentors rule</p>
         </div>
         
         <div className="bg-white p-8 rounded-lg shadow-md">
