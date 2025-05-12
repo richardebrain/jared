@@ -221,14 +221,14 @@ export default function Register() {
                   name="language"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>I want to learn</FormLabel>
+                      <FormLabel>Teaching Language</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a language" />
+                            <SelectValue placeholder="Select teaching language" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -249,14 +249,14 @@ export default function Register() {
                   name="nativeLanguage"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>My native language is</FormLabel>
+                      <FormLabel>Primary Language</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select your native language" />
+                            <SelectValue placeholder="Select your primary language" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>

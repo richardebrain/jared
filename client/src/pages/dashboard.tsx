@@ -352,6 +352,44 @@ export default function Dashboard() {
                 </div>
               </div>
               
+              <div className="bg-neutral-50 rounded-xl p-6 mb-6 border-2 border-[#ff8c24] border-opacity-30">
+                <h3 className="font-heading font-bold text-lg mb-4 text-[#ff8c24]">Achievement Level</h3>
+                <div className="flex flex-col items-center">
+                  <div className="h-24 w-24 flex items-center justify-center rounded-full bg-gradient-to-r from-[#ff8c24] to-[#0030b8] mb-4">
+                    <div className="h-20 w-20 rounded-full bg-white flex items-center justify-center">
+                      <span className="text-3xl font-bold text-[#0030b8]">
+                        {Math.round(overallProgress/20) || 1}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <h4 className="font-bold text-lg mb-1">
+                      {overallProgress >= 80 ? "Master Lead Teacher" :
+                       overallProgress >= 60 ? "Lead Teacher" :
+                       overallProgress >= 40 ? "Associate Teacher" :
+                       overallProgress >= 20 ? "Assistant Teacher" : 
+                       "Teacher in Training"}
+                    </h4>
+                    <p className="text-sm text-neutral-600 mb-3">
+                      {overallProgress >= 80 ? "Amazing! You've mastered the content." :
+                       overallProgress >= 60 ? "Great progress! Almost at master level." :
+                       overallProgress >= 40 ? "Good progress! Keep learning." :
+                       overallProgress >= 20 ? "You're on your way! Keep going." : 
+                       "Just getting started. Welcome!"}
+                    </p>
+                    <div className="w-full bg-neutral-200 rounded-full h-3 mb-1">
+                      <div 
+                        className="bg-gradient-to-r from-[#ff8c24] to-[#0030b8] h-3 rounded-full" 
+                        style={{ width: `${overallProgress}%` }}
+                      ></div>
+                    </div>
+                    <span className="text-xs text-neutral-500">
+                      {overallProgress}% to next level
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
               <div className="bg-neutral-100 rounded-xl p-6">
                 <h3 className="font-heading font-bold text-lg mb-4">Learning Stats</h3>
                 <div className="space-y-4">
