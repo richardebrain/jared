@@ -73,7 +73,7 @@ export default function Login() {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-accent text-primary mb-2">MentorMe</h1>
-          <p className="text-neutral-800">Welcome back! Log in to continue your language learning journey.</p>
+          <p className="text-neutral-800">Welcome to Raising Arizona's teacher training platform! Log in to continue your professional development journey.</p>
         </div>
         
         <div className="bg-white p-8 rounded-lg shadow-md">

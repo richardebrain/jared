@@ -43,7 +43,7 @@ const registerSchema = z.object({
     message: "Please enter a valid email address.",
   }),
   language: z.string().min(1, {
-    message: "Please select a language you want to learn.",
+    message: "Please select your preferred teaching language.",
   }),
   nativeLanguage: z.string().min(1, {
     message: "Please select your native language.",
@@ -53,11 +53,9 @@ const registerSchema = z.object({
   }),
 });
 
-// Languages array
+// Teaching languages array
 const languages = [
-  "English", "Spanish", "French", "German", "Italian", 
-  "Portuguese", "Russian", "Japanese", "Korean", "Chinese", 
-  "Arabic", "Hindi", "Turkish"
+  "English", "Spanish", "English/Spanish Bilingual"
 ];
 
 // Timezones array (simplified)
@@ -137,7 +135,7 @@ export default function Register() {
       <div className="max-w-2xl mx-auto">
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-accent text-primary mb-2">MentorMe</h1>
-          <p className="text-neutral-800">Create your account and start learning a new language today!</p>
+          <p className="text-neutral-800">Create your Raising Arizona teacher account and begin your professional development journey today!</p>
         </div>
         
         <div className="bg-white p-8 rounded-lg shadow-md">
