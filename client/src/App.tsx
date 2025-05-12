@@ -12,8 +12,7 @@ import { useAuth } from "@/hooks/use-auth";
 
 function Router() {
   const { isLoading, isAuthenticated } = useAuth();
-  console.log("Authentication state:", { isAuthenticated, isLoading });
-
+  
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -22,84 +21,35 @@ function Router() {
     );
   }
 
-  // Simple routing solution - if authenticated, show appropriate component; if not, redirect to login
+  // Much simpler routing approach to avoid redirection loops
   return (
     <Switch>
       <Route path="/login">
-        {isAuthenticated ? 
-          (() => { 
-            console.log("Redirecting to dashboard from /login");
-            window.location.replace("/dashboard");
-            return <div>Redirecting to dashboard...</div>;
-          })() : 
-          <Login />
-        }
+        {isAuthenticated ? <Dashboard /> : <Login />}
       </Route>
       
       <Route path="/register">
-        {isAuthenticated ? 
-          (() => { 
-            console.log("Redirecting to dashboard from /register");
-            window.location.replace("/dashboard");
-            return <div>Redirecting to dashboard...</div>;
-          })() : 
-          <Register />
-        }
+        {isAuthenticated ? <Dashboard /> : <Register />}
       </Route>
       
       <Route path="/dashboard">
-        {isAuthenticated ? 
-          <Dashboard /> : 
-          (() => { 
-            console.log("Redirecting to login from /dashboard");
-            window.location.replace("/login");
-            return <div>Redirecting to login...</div>;
-          })()
-        }
+        {isAuthenticated ? <Dashboard /> : <Login />}
       </Route>
       
       <Route path="/schedule">
-        {isAuthenticated ? 
-          <Schedule /> : 
-          (() => { 
-            console.log("Redirecting to login from /schedule");
-            window.location.replace("/login");
-            return <div>Redirecting to login...</div>;
-          })()
-        }
+        {isAuthenticated ? <Schedule /> : <Login />}
       </Route>
       
       <Route path="/assessment">
-        {isAuthenticated ? 
-          <Assessment /> : 
-          (() => { 
-            console.log("Redirecting to login from /assessment");
-            window.location.replace("/login");
-            return <div>Redirecting to login...</div>;
-          })()
-        }
+        {isAuthenticated ? <Assessment /> : <Login />}
       </Route>
       
       <Route path="/modules/:id">
-        {isAuthenticated ? 
-          <LearningModulePage /> : 
-          (() => { 
-            console.log("Redirecting to login from /modules/:id");
-            window.location.replace("/login");
-            return <div>Redirecting to login...</div>;
-          })()
-        }
+        {isAuthenticated ? <LearningModulePage /> : <Login />}
       </Route>
       
-      <Route path="/" exact>
-        {isAuthenticated ? 
-          (() => { 
-            console.log("Redirecting to dashboard from /");
-            window.location.replace("/dashboard");
-            return <div>Redirecting to dashboard...</div>;
-          })() : 
-          <Login />
-        }
+      <Route path="/">
+        {isAuthenticated ? <Dashboard /> : <Login />}
       </Route>
       
       <Route>

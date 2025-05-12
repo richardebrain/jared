@@ -74,24 +74,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { username, password } = req.body;
       
+      console.log(`Login attempt for username: "${username}"`);
+      
       if (!username || !password) {
+        console.log("Login failed: Missing username or password");
         return res.status(400).json({ message: "Username and password are required" });
       }
       
       const user = await storage.getUserByUsername(username);
       
-      if (!user || user.password !== password) {
+      if (!user) {
+        console.log(`Login failed: User not found for username: "${username}"`);
         return res.status(401).json({ message: "Invalid username or password" });
       }
       
+      // In a real app, we'd use bcrypt to compare password hash
+      if (user.password !== password) {
+        console.log(`Login failed: Password mismatch for user: "${username}"`);
+        return res.status(401).json({ message: "Invalid username or password" });
+      }
+      
+      // Ensure session is set up properly
+      req.session.cookie.maxAge = 24 * 60 * 60 * 1000; // 24 hours
+      
       // Set the user session
       req.session.userId = user.id;
+      
+      console.log(`Login successful for user: "${username}" (ID: ${user.id})`);
       
       // Don't return password in response
       const { password: _, ...userWithoutPassword } = user;
       
       res.status(200).json(userWithoutPassword);
     } catch (error) {
+      console.error("Login error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
