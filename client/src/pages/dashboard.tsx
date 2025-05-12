@@ -36,6 +36,18 @@ export default function Dashboard() {
     retry: 3
   });
   
+  // Query the user's assessment status
+  const { data: assessments } = useQuery({
+    queryKey: ["/api/assessments"],
+    enabled: !!user,
+    retry: 3
+  });
+  
+  // Check if user has completed at least one assessment
+  const hasCompletedAssessment = Array.isArray(assessments) && assessments.some(
+    assessment => assessment.completed
+  );
+  
   // Debug logging for authentication issues
   console.log("[Dashboard] Authentication state:", { 
     user, 
@@ -43,7 +55,9 @@ export default function Dashboard() {
     isUserError,
     userProgress,
     modules,
-    meetings
+    meetings,
+    assessments,
+    hasCompletedAssessment
   });
 
   // Calculate overall progress
@@ -89,6 +103,43 @@ export default function Dashboard() {
       <Header />
       
       <main className="container mx-auto px-4 py-8">
+        {/* Assessment Required Notification - Only shown if user hasn't completed an assessment */}
+        {user && !hasCompletedAssessment && (
+          <section className="mb-8 animate-pulse">
+            <div className="bg-destructive text-destructive-foreground rounded-xl px-6 py-4 shadow-lg relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 opacity-10">
+                <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
+                  <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
+                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              
+              <div className="flex items-center justify-between relative z-10">
+                <div className="flex items-center">
+                  <div className="mr-4 text-4xl">⚠️</div>
+                  <div>
+                    <h2 className="text-xl md:text-2xl font-bold">Assessment Required!</h2>
+                    <p className="text-sm md:text-base max-w-2xl">
+                      Welcome to MentorMe! To provide you with personalized training, please complete
+                      your initial assessment questionnaire. This will help identify your strengths and
+                      areas for growth based on ITERS/ECERS and CLASS standards.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="mt-3 md:mt-0 flex-shrink-0">
+                  <Link to="/assessment">
+                    <button className="px-4 py-2 bg-background text-foreground font-semibold rounded-md border-2 
+                      border-background hover:bg-transparent hover:text-background transition-all duration-200">
+                      Start Assessment
+                    </button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+        
         {/* Banner with School Motto */}
         <section className="mb-8">
           <div className="bg-gradient-to-r from-primary to-secondary rounded-xl px-6 py-5 shadow-lg relative overflow-hidden">

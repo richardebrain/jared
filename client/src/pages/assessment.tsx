@@ -1,498 +1,348 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { User } from "@shared/schema";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import Header from "@/components/Header";
-import ChatbotSupport from "@/components/ChatbotSupport";
 import { useLocation } from "wouter";
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { User } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import Header from "@/components/Header";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
+import { AlertCircle, Award, Check, ChevronRight, ClipboardList, Star } from "lucide-react";
 
-// Define assessment domains based on ITERS/ECERS and CLASS frameworks
-const DOMAINS = {
-  ITERS_ECERS: "iters-ecers",
-  CLASS: "class",
-  KNOWLEDGE: "knowledge",
-  EXPERIENCE: "experience"
-};
+// Define assessment question types
+type QuestionType = 'multiple-choice' | 'rating' | 'yes-no' | 'checkbox' | 'open-ended';
 
-// Assessment questions organized by framework
-const questions = {
-  [DOMAINS.ITERS_ECERS]: [
-    {
-      id: "ie1",
-      question: "How would you rate your understanding of creating safe and healthy learning environments for young children?",
-      options: [
-        { id: "a", text: "I have minimal knowledge about safety guidelines" },
-        { id: "b", text: "I understand basic health and safety requirements" },
-        { id: "c", text: "I can effectively implement health and safety protocols" },
-        { id: "d", text: "I can design comprehensive safety plans and procedures" },
-        { id: "e", text: "I can teach others about creating optimal health and safety systems" }
-      ],
-      category: "Space and Furnishings"
-    },
-    {
-      id: "ie2",
-      question: "How would you rate your skill in arranging classroom space to promote learning?",
-      options: [
-        { id: "a", text: "I struggle to organize classroom spaces effectively" },
-        { id: "b", text: "I can create basic learning centers" },
-        { id: "c", text: "I can design purposeful learning environments" },
-        { id: "d", text: "I can create innovative spaces that maximize engagement" },
-        { id: "e", text: "I can design transformative environments that inspire creativity" }
-      ],
-      category: "Space and Furnishings"
-    },
-    {
-      id: "ie3",
-      question: "How comfortable are you with implementing appropriate personal care routines?",
-      options: [
-        { id: "a", text: "I need significant guidance with care routines" },
-        { id: "b", text: "I understand basic care procedures but need supervision" },
-        { id: "c", text: "I can independently manage care routines" },
-        { id: "d", text: "I can teach others how to implement care routines" },
-        { id: "e", text: "I can develop new systems that improve care quality" }
-      ],
-      category: "Personal Care Routines"
-    },
-    {
-      id: "ie4",
-      question: "How would you rate your ability to facilitate language development in the classroom?",
-      options: [
-        { id: "a", text: "I have limited strategies for language development" },
-        { id: "b", text: "I use basic language development techniques" },
-        { id: "c", text: "I regularly implement effective language activities" },
-        { id: "d", text: "I can design comprehensive language development plans" },
-        { id: "e", text: "I can mentor others in advanced language facilitation" }
-      ],
-      category: "Language-Reasoning"
-    },
-    {
-      id: "ie5",
-      question: "How skilled are you at implementing developmentally appropriate activities?",
-      options: [
-        { id: "a", text: "I struggle to identify age-appropriate activities" },
-        { id: "b", text: "I can select basic activities suited to children's ages" },
-        { id: "c", text: "I regularly implement varied developmentally appropriate activities" },
-        { id: "d", text: "I can design innovative curriculum aligned with development" },
-        { id: "e", text: "I can lead others in creating exemplary developmentally aligned programs" }
-      ],
-      category: "Activities"
-    }
-  ],
-  [DOMAINS.CLASS]: [
-    {
-      id: "cl1",
-      question: "How would you rate your emotional support skills in the classroom?",
-      options: [
-        { id: "a", text: "I struggle to create positive emotional climate" },
-        { id: "b", text: "I can maintain basic positive interactions" },
-        { id: "c", text: "I effectively support children's emotional needs" },
-        { id: "d", text: "I excel at creating nurturing emotional environments" },
-        { id: "e", text: "I can train others in creating optimal emotional support" }
-      ],
-      category: "Emotional Support"
-    },
-    {
-      id: "cl2",
-      question: "How would you rate your classroom organization skills?",
-      options: [
-        { id: "a", text: "I struggle with behavior management and transitions" },
-        { id: "b", text: "I can maintain basic classroom organization" },
-        { id: "c", text: "I effectively organize classroom flow and activities" },
-        { id: "d", text: "I create highly productive learning environments" },
-        { id: "e", text: "I can mentor others in advanced classroom organization" }
-      ],
-      category: "Classroom Organization"
-    },
-    {
-      id: "cl3",
-      question: "How comfortable are you with providing instructional support?",
-      options: [
-        { id: "a", text: "I provide minimal instructional guidance" },
-        { id: "b", text: "I offer basic instructional support" },
-        { id: "c", text: "I provide effective concept development support" },
-        { id: "d", text: "I excel at fostering higher-order thinking" },
-        { id: "e", text: "I can train others in advanced instructional techniques" }
-      ],
-      category: "Instructional Support"
-    },
-    {
-      id: "cl4",
-      question: "How would you rate your ability to provide quality feedback to children?",
-      options: [
-        { id: "a", text: "I provide minimal feedback to children" },
-        { id: "b", text: "I give basic positive and corrective feedback" },
-        { id: "c", text: "I regularly provide specific, growth-oriented feedback" },
-        { id: "d", text: "I excel at scaffolding learning through feedback" },
-        { id: "e", text: "I can mentor others in advanced feedback techniques" }
-      ],
-      category: "Instructional Support"
-    },
-    {
-      id: "cl5",
-      question: "How skilled are you at facilitating language modeling in the classroom?",
-      options: [
-        { id: "a", text: "I use limited language modeling techniques" },
-        { id: "b", text: "I employ basic language modeling strategies" },
-        { id: "c", text: "I regularly implement effective language modeling" },
-        { id: "d", text: "I excel at advanced language development facilitation" },
-        { id: "e", text: "I can train others in optimal language modeling techniques" }
-      ],
-      category: "Instructional Support"
-    }
-  ],
-  [DOMAINS.KNOWLEDGE]: [
-    {
-      id: "kn1",
-      question: "How would you rate your knowledge of child development milestones?",
-      options: [
-        { id: "a", text: "I have minimal knowledge of developmental milestones" },
-        { id: "b", text: "I understand basic developmental stages" },
-        { id: "c", text: "I have solid knowledge of developmental progression" },
-        { id: "d", text: "I have advanced understanding of development variations" },
-        { id: "e", text: "I have expert knowledge that allows me to train others" }
-      ],
-      category: "Child Development"
-    },
-    {
-      id: "kn2",
-      question: "How familiar are you with play-based learning approaches?",
-      options: [
-        { id: "a", text: "I have minimal understanding of play-based learning" },
-        { id: "b", text: "I understand basic principles of learning through play" },
-        { id: "c", text: "I effectively implement play-based curriculum" },
-        { id: "d", text: "I can design innovative play-based learning experiences" },
-        { id: "e", text: "I can mentor others in advanced play-based pedagogies" }
-      ],
-      category: "Curriculum"
-    },
-    {
-      id: "kn3",
-      question: "How would you rate your understanding of positive behavior guidance?",
-      options: [
-        { id: "a", text: "I have limited knowledge of behavior guidance" },
-        { id: "b", text: "I understand basic positive discipline techniques" },
-        { id: "c", text: "I effectively implement positive guidance strategies" },
-        { id: "d", text: "I excel at managing challenging behaviors" },
-        { id: "e", text: "I can train others in advanced behavior management" }
-      ],
-      category: "Behavior Management"
-    },
-    {
-      id: "kn4",
-      question: "How familiar are you with early literacy development?",
-      options: [
-        { id: "a", text: "I have minimal knowledge about early literacy" },
-        { id: "b", text: "I understand basic early reading and writing concepts" },
-        { id: "c", text: "I effectively support literacy development" },
-        { id: "d", text: "I excel at implementing comprehensive literacy programs" },
-        { id: "e", text: "I can mentor others in advanced literacy approaches" }
-      ],
-      category: "Literacy"
-    },
-    {
-      id: "kn5",
-      question: "How would you rate your understanding of mindfulness practices for children?",
-      options: [
-        { id: "a", text: "I have minimal knowledge about mindfulness for children" },
-        { id: "b", text: "I understand basic mindfulness techniques" },
-        { id: "c", text: "I regularly implement mindfulness activities" },
-        { id: "d", text: "I excel at integrating mindfulness throughout the day" },
-        { id: "e", text: "I can train others in comprehensive mindfulness approaches" }
-      ],
-      category: "Social-Emotional"
-    }
-  ],
-  [DOMAINS.EXPERIENCE]: [
-    {
-      id: "ex1",
-      question: "How much experience do you have working with young children?",
-      options: [
-        { id: "a", text: "Less than 1 year" },
-        { id: "b", text: "1-2 years" },
-        { id: "c", text: "3-5 years" },
-        { id: "d", text: "6-10 years" },
-        { id: "e", text: "More than 10 years" }
-      ],
-      category: "Experience Level"
-    },
-    {
-      id: "ex2",
-      question: "What is your educational background in early childhood education?",
-      options: [
-        { id: "a", text: "No formal ECE education" },
-        { id: "b", text: "Some coursework or certificates" },
-        { id: "c", text: "Associate's degree in ECE or related field" },
-        { id: "d", text: "Bachelor's degree in ECE or related field" },
-        { id: "e", text: "Master's degree or higher in ECE or related field" }
-      ],
-      category: "Education"
-    },
-    {
-      id: "ex3",
-      question: "How much professional development have you completed in the past year?",
-      options: [
-        { id: "a", text: "None" },
-        { id: "b", text: "1-5 hours" },
-        { id: "c", text: "6-15 hours" },
-        { id: "d", text: "16-30 hours" },
-        { id: "e", text: "More than 30 hours" }
-      ],
-      category: "Professional Development"
-    },
-    {
-      id: "ex4",
-      question: "What age groups do you have the most experience working with?",
-      options: [
-        { id: "a", text: "Infants (0-12 months)" },
-        { id: "b", text: "Toddlers (1-2 years)" },
-        { id: "c", text: "Preschool (3-4 years)" },
-        { id: "d", text: "Pre-K (4-5 years)" },
-        { id: "e", text: "Mixed age groups" }
-      ],
-      category: "Age Group Experience"
-    },
-    {
-      id: "ex5",
-      question: "What area of professional growth are you most interested in?",
-      options: [
-        { id: "a", text: "Classroom management and organization" },
-        { id: "b", text: "Curriculum development and implementation" },
-        { id: "c", text: "Child development and assessment" },
-        { id: "d", text: "Family engagement and communication" },
-        { id: "e", text: "Leadership and administrative skills" }
-      ],
-      category: "Professional Goals"
-    }
-  ]
-};
+interface Question {
+  id: string;
+  text: string;
+  domain: string;
+  type: QuestionType;
+  options?: string[];
+  required?: boolean;
+}
 
-export default function Assessment() {
+// Early childhood education domains
+const domains = [
+  { id: 'classroom-organization', name: 'Classroom Organization', icon: ClipboardList },
+  { id: 'instructional-support', name: 'Instructional Support', icon: Award },
+  { id: 'emotional-support', name: 'Emotional Support', icon: Star },
+  { id: 'health-safety', name: 'Health & Safety', icon: AlertCircle },
+];
+
+// Define the ITERS/ECERS and CLASS-based assessment questions
+const assessmentQuestions: Question[] = [
+  // ITERS/ECERS Questions - Classroom Organization
+  {
+    id: 'co-1',
+    text: 'How often do you create clearly defined learning centers in your classroom?',
+    domain: 'classroom-organization',
+    type: 'rating',
+    options: ['Never', 'Rarely', 'Sometimes', 'Often', 'Always'],
+    required: true
+  },
+  {
+    id: 'co-2',
+    text: 'Do you have a consistent daily schedule with minimal transitions?',
+    domain: 'classroom-organization',
+    type: 'yes-no',
+    required: true
+  },
+  {
+    id: 'co-3',
+    text: 'Which of the following learning centers do you regularly maintain in your classroom?',
+    domain: 'classroom-organization',
+    type: 'checkbox',
+    options: ['Dramatic play', 'Blocks', 'Art', 'Sensory/sand-water', 'Science/discovery', 'Math/manipulatives', 'Language/literacy', 'Music'],
+    required: true
+  },
+  
+  // CLASS Questions - Instructional Support
+  {
+    id: 'is-1',
+    text: 'How confident are you in your ability to use open-ended questions to extend children\'s thinking?',
+    domain: 'instructional-support',
+    type: 'rating',
+    options: ['Not confident', 'Slightly confident', 'Moderately confident', 'Very confident', 'Extremely confident'],
+    required: true
+  },
+  {
+    id: 'is-2',
+    text: 'How often do you provide specific feedback on children\'s work and ideas?',
+    domain: 'instructional-support',
+    type: 'rating',
+    options: ['Never', 'Rarely', 'Sometimes', 'Often', 'Always'],
+    required: true
+  },
+  {
+    id: 'is-3',
+    text: 'Which concept development strategies do you regularly use?',
+    domain: 'instructional-support',
+    type: 'checkbox',
+    options: ['Making connections to previous learning', 'Relating concepts to children\'s lives', 'Using why and how questions', 'Creating opportunities for analysis and reasoning', 'Planning hands-on experiences'],
+    required: true
+  },
+  
+  // CLASS Questions - Emotional Support
+  {
+    id: 'es-1',
+    text: 'How would you rate your ability to create a positive classroom climate?',
+    domain: 'emotional-support',
+    type: 'rating',
+    options: ['Needs significant improvement', 'Needs some improvement', 'Adequate', 'Good', 'Excellent'],
+    required: true
+  },
+  {
+    id: 'es-2',
+    text: 'How often do you get down to children\'s eye level when interacting with them?',
+    domain: 'emotional-support',
+    type: 'rating',
+    options: ['Never', 'Rarely', 'Sometimes', 'Often', 'Always'],
+    required: true
+  },
+  {
+    id: 'es-3',
+    text: 'Which strategies do you use to acknowledge children\'s feelings?',
+    domain: 'emotional-support',
+    type: 'checkbox',
+    options: ['Labeling emotions', 'Validating feelings', 'Providing comfort', 'Teaching emotional regulation', 'Using books to discuss feelings', 'Role-playing emotional situations'],
+    required: true
+  },
+  
+  // ITERS/ECERS Questions - Health & Safety
+  {
+    id: 'hs-1',
+    text: 'How confident are you in implementing proper handwashing procedures for children and staff?',
+    domain: 'health-safety',
+    type: 'rating',
+    options: ['Not confident', 'Slightly confident', 'Moderately confident', 'Very confident', 'Extremely confident'],
+    required: true
+  },
+  {
+    id: 'hs-2',
+    text: 'Do you regularly check your classroom for safety hazards?',
+    domain: 'health-safety',
+    type: 'yes-no',
+    required: true
+  },
+  {
+    id: 'hs-3',
+    text: 'Which health and safety practices do you implement daily?',
+    domain: 'health-safety',
+    type: 'checkbox',
+    options: ['Disinfecting surfaces', 'Monitoring children\'s handwashing', 'Conducting safety checks', 'Practicing emergency drills', 'Following food safety guidelines', 'Documenting incidents/accidents'],
+    required: true
+  }
+];
+
+export default function AssessmentPage() {
+  const navigate = useNavigate();
   const { toast } = useToast();
-  const [_, setLocation] = useLocation();
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [completed, setCompleted] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>(DOMAINS.ITERS_ECERS);
-  const [activeQuestionIndex, setActiveQuestionIndex] = useState<number>(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [currentDomain, setCurrentDomain] = useState(domains[0].id);
   
-  // Flatten questions for progress calculation
-  const allQuestions = [
-    ...questions[DOMAINS.ITERS_ECERS],
-    ...questions[DOMAINS.CLASS],
-    ...questions[DOMAINS.KNOWLEDGE],
-    ...questions[DOMAINS.EXPERIENCE]
-  ];
-  
-  // Get current user data
-  const { data: user } = useQuery<User>({
+  // Get the currently authenticated user
+  const { data: user } = useQuery<User>({ 
     queryKey: ["/api/auth/me"]
   });
   
+  // Filter questions by current domain
+  const domainQuestions = assessmentQuestions.filter(q => q.domain === currentDomain);
+  
+  // Calculate overall progress
+  const overallProgress = Math.round(
+    (Object.keys(answers).length / assessmentQuestions.length) * 100
+  );
+  
+  // Handle answer changes
+  const handleAnswerChange = (questionId: string, value: any) => {
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: value
+    }));
+  };
+  
+  // Handle checkbox answers
+  const handleCheckboxChange = (questionId: string, option: string, checked: boolean) => {
+    setAnswers(prev => {
+      const currentSelections = prev[questionId] || [];
+      
+      if (checked) {
+        return {
+          ...prev,
+          [questionId]: [...currentSelections, option]
+        };
+      } else {
+        return {
+          ...prev,
+          [questionId]: currentSelections.filter((item: string) => item !== option)
+        };
+      }
+    });
+  };
+  
+  // Handle domain navigation
+  const handleDomainChange = (domainId: string) => {
+    setCurrentDomain(domainId);
+    setCurrentQuestionIndex(0);
+  };
+  
+  // Calculate domain progress
+  const calculateDomainProgress = (domainId: string) => {
+    const domainQs = assessmentQuestions.filter(q => q.domain === domainId);
+    const answeredQs = domainQs.filter(q => answers[q.id] !== undefined);
+    return Math.round((answeredQs.length / domainQs.length) * 100);
+  };
+  
+  // Check if the current question has been answered
+  const isCurrentQuestionAnswered = () => {
+    const currentQuestion = domainQuestions[currentQuestionIndex];
+    return answers[currentQuestion.id] !== undefined;
+  };
+  
   // Submit assessment mutation
-  const { mutate: submitAssessment, isPending } = useMutation({
-    mutationFn: async (data: { 
-      userId: number; 
-      results: Record<string, string>; 
-      domainScores: Record<string, number>;
-      overallScore: number;
-      strengthAreas: string[];
-      growthAreas: string[];
-    }) => {
-      const response = await apiRequest("POST", "/api/assessments", {
-        userId: data.userId,
-        results: data.results,
-        domainScores: data.domainScores,
-        overallScore: data.overallScore,
-        strengthAreas: data.strengthAreas,
-        growthAreas: data.growthAreas,
-        completed: true
-      });
-      return await response.json();
+  const submitAssessmentMutation = useMutation({
+    mutationFn: async (assessmentData: any) => {
+      const response = await apiRequest("POST", "/api/assessments", assessmentData);
+      return response.json();
     },
     onSuccess: () => {
       toast({
-        title: "Assessment completed",
-        description: "Your personalized learning path is ready!",
+        title: "Assessment Completed",
+        description: "Thank you for completing your assessment. Your personalized learning path is now available.",
       });
-      setCompleted(true);
+      navigate("/dashboard");
     },
     onError: (error: Error) => {
       toast({
-        title: "Error saving assessment",
-        description: error.message || "There was an error saving your assessment results.",
+        title: "Error",
+        description: `Failed to submit assessment: ${error.message}`,
         variant: "destructive",
       });
-    },
+    }
   });
   
-  // Get current domain questions
-  const currentDomainQuestions = questions[activeTab as keyof typeof DOMAINS];
-  const currentQuestion = currentDomainQuestions[activeQuestionIndex];
-  
-  // Handle option selection
-  const handleOptionSelect = (value: string) => {
-    setAnswers({
-      ...answers,
-      [currentQuestion.id]: value
-    });
-  };
-  
-  // Navigate to next question within a domain
-  const handleNext = () => {
-    if (activeQuestionIndex < currentDomainQuestions.length - 1) {
-      setActiveQuestionIndex(activeQuestionIndex + 1);
-    } else {
-      // Move to next domain or complete assessment
-      const domains = Object.values(DOMAINS);
-      const currentDomainIndex = domains.indexOf(activeTab);
-      
-      if (currentDomainIndex < domains.length - 1) {
-        setActiveTab(domains[currentDomainIndex + 1]);
-        setActiveQuestionIndex(0);
-      } else {
-        // All domains completed, submit assessment
-        submitCompletedAssessment();
-      }
-    }
-  };
-  
-  // Navigate to previous question
-  const handlePrevious = () => {
-    if (activeQuestionIndex > 0) {
-      setActiveQuestionIndex(activeQuestionIndex - 1);
-    } else {
-      // Move to previous domain if at first question
-      const domains = Object.values(DOMAINS);
-      const currentDomainIndex = domains.indexOf(activeTab);
-      
-      if (currentDomainIndex > 0) {
-        setActiveTab(domains[currentDomainIndex - 1]);
-        const prevDomainQuestions = questions[domains[currentDomainIndex - 1] as keyof typeof DOMAINS];
-        setActiveQuestionIndex(prevDomainQuestions.length - 1);
-      }
-    }
-  };
-  
-  // Calculate scores and submit assessment
-  const submitCompletedAssessment = () => {
-    if (!user) {
-      toast({
-        title: "User not found",
-        description: "Please log in to save your assessment results.",
-        variant: "destructive",
-      });
-      return;
-    }
+  // Submit assessment
+  const handleSubmitAssessment = () => {
+    if (!user) return;
     
-    const valueMap: Record<string, number> = { a: 1, b: 2, c: 3, d: 4, e: 5 };
-    
-    // Calculate domain scores
+    // Calculate strength areas and growth areas based on answers
     const domainScores: Record<string, number> = {};
-    const categoryScores: Record<string, { total: number, count: number }> = {};
+    const allDomainQuestions = domains.map(d => d.id);
     
-    Object.keys(DOMAINS).forEach(domainKey => {
-      const domain = DOMAINS[domainKey as keyof typeof DOMAINS];
-      let domainTotal = 0;
-      let domainCount = 0;
-      
-      questions[domain].forEach(q => {
-        if (answers[q.id]) {
-          const score = valueMap[answers[q.id]] || 0;
-          domainTotal += score;
-          domainCount++;
-          
-          // Track category scores
-          if (!categoryScores[q.category]) {
-            categoryScores[q.category] = { total: 0, count: 0 };
-          }
-          categoryScores[q.category].total += score;
-          categoryScores[q.category].count++;
-        }
-      });
-      
-      domainScores[domain] = domainCount > 0 
-        ? Math.round((domainTotal / (domainCount * 5)) * 100) 
-        : 0;
+    allDomainQuestions.forEach(domain => {
+      const domainQs = assessmentQuestions.filter(q => q.domain === domain);
+      const domainProgress = calculateDomainProgress(domain);
+      domainScores[domain] = domainProgress;
     });
+    
+    // Determine strengths and growth areas
+    const strengthThreshold = 80;
+    const strengthAreas = Object.keys(domainScores).filter(
+      domain => domainScores[domain] >= strengthThreshold
+    );
+    
+    const growthAreas = Object.keys(domainScores).filter(
+      domain => domainScores[domain] < strengthThreshold
+    );
     
     // Calculate overall score
-    const totalAnswered = Object.keys(answers).length;
-    const overallScore = totalAnswered > 0
-      ? Math.round(Object.values(domainScores).reduce((sum, score) => sum + score, 0) / Object.keys(domainScores).length)
-      : 0;
+    const overallScore = Math.round(
+      Object.values(domainScores).reduce((sum, score) => sum + score, 0) / 
+      Object.values(domainScores).length
+    );
     
-    // Identify strength and growth areas based on category scores
-    const categoryAverages = Object.entries(categoryScores).map(([category, data]) => ({
-      category,
-      average: data.count > 0 ? data.total / data.count : 0
-    }));
-    
-    // Sort by score to find top and bottom categories
-    categoryAverages.sort((a, b) => b.average - a.average);
-    
-    const strengthAreas = categoryAverages
-      .slice(0, 3)
-      .map(item => item.category);
-      
-    const growthAreas = categoryAverages
-      .slice(-3)
-      .map(item => item.category);
-    
-    // Submit assessment with detailed results
-    submitAssessment({
+    submitAssessmentMutation.mutate({
       userId: user.id,
+      overallScore,
+      completed: true,
       results: answers,
       domainScores,
-      overallScore,
       strengthAreas,
-      growthAreas
+      growthAreas,
+      assessmentType: "ITERS_ECERS_CLASS"
     });
   };
   
-  // Calculate overall progress percentage
-  const totalQuestions = allQuestions.length;
-  const answeredQuestions = Object.keys(answers).length;
-  const progressPercentage = ((answeredQuestions + (completed ? 1 : 0)) / totalQuestions) * 100;
+  // Check if all required questions have been answered
+  const canSubmitAssessment = assessmentQuestions
+    .filter(q => q.required)
+    .every(q => answers[q.id] !== undefined);
   
-  // Calculate domain-specific progress
-  const getDomainProgress = (domain: string) => {
-    const domainQuestions = questions[domain as keyof typeof DOMAINS];
-    let answered = 0;
+  // Render the current question
+  const renderQuestion = () => {
+    if (domainQuestions.length === 0) return null;
     
-    domainQuestions.forEach(q => {
-      if (answers[q.id]) answered++;
-    });
+    const question = domainQuestions[currentQuestionIndex];
     
-    return (answered / domainQuestions.length) * 100;
-  };
-  
-  // Format domain name for display
-  const formatDomainName = (domainKey: string) => {
-    switch(domainKey) {
-      case DOMAINS.ITERS_ECERS:
-        return "ITERS/ECERS";
-      case DOMAINS.CLASS:
-        return "CLASS";
-      case DOMAINS.KNOWLEDGE:
-        return "ECE Knowledge";
-      case DOMAINS.EXPERIENCE:
-        return "Experience";
+    switch (question.type) {
+      case 'multiple-choice':
+      case 'rating':
+        return (
+          <RadioGroup 
+            value={answers[question.id] || ""} 
+            onValueChange={(value) => handleAnswerChange(question.id, value)}
+          >
+            <div className="grid gap-3">
+              {question.options?.map((option, i) => (
+                <div key={i} className="flex items-center space-x-2">
+                  <RadioGroupItem id={`option-${i}`} value={option} />
+                  <Label htmlFor={`option-${i}`}>{option}</Label>
+                </div>
+              ))}
+            </div>
+          </RadioGroup>
+        );
+        
+      case 'yes-no':
+        return (
+          <RadioGroup 
+            value={answers[question.id] || ""} 
+            onValueChange={(value) => handleAnswerChange(question.id, value === "yes")}
+          >
+            <div className="flex space-x-6">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem id="yes" value="yes" />
+                <Label htmlFor="yes">Yes</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem id="no" value="no" />
+                <Label htmlFor="no">No</Label>
+              </div>
+            </div>
+          </RadioGroup>
+        );
+        
+      case 'checkbox':
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {question.options?.map((option, i) => {
+              const isChecked = Array.isArray(answers[question.id]) && 
+                answers[question.id]?.includes(option);
+                
+              return (
+                <div key={i} className="flex items-start space-x-2">
+                  <Checkbox 
+                    id={`option-${i}`} 
+                    checked={isChecked}
+                    onCheckedChange={(checked) => 
+                      handleCheckboxChange(question.id, option, checked === true)
+                    }
+                  />
+                  <Label className="leading-tight" htmlFor={`option-${i}`}>{option}</Label>
+                </div>
+              );
+            })}
+          </div>
+        );
+        
       default:
-        return domainKey;
+        return null;
     }
   };
   
@@ -501,177 +351,138 @@ export default function Assessment() {
       <Header />
       
       <main className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl md:text-4xl font-heading font-bold text-neutral-800 mb-2">
-            Teacher Development Assessment
-          </h1>
-          <p className="text-neutral-700 mb-6">
-            This comprehensive assessment based on ITERS/ECERS and CLASS frameworks will help us create a personalized professional development path for you.
-          </p>
-          
-          <Progress value={progressPercentage} className="mb-6" />
-          
-          {!completed ? (
-            <Card className="mb-6">
+        <h1 className="text-3xl font-bold text-center mb-2">Teacher Skills Assessment</h1>
+        <p className="text-center text-muted-foreground mb-8">
+          Based on ITERS/ECERS and CLASS standards for early childhood educators
+        </p>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Domain Navigation */}
+          <div className="lg:col-span-1">
+            <Card>
               <CardHeader>
-                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-                  <div>
-                    <CardTitle>Professional Development Assessment</CardTitle>
-                    <CardDescription>
-                      Complete all four sections to receive your personalized learning path
-                    </CardDescription>
-                  </div>
-                  <div className="flex items-center space-x-2 text-sm">
-                    <span className="font-medium">{answeredQuestions}/{totalQuestions}</span>
-                    <span className="text-muted-foreground">questions answered</span>
-                  </div>
-                </div>
-              </CardHeader>
-              
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <div className="px-6">
-                  <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-2 w-full">
-                    {Object.values(DOMAINS).map(domain => (
-                      <TabsTrigger 
-                        key={domain} 
-                        value={domain}
-                        className="relative"
-                        onClick={() => setActiveQuestionIndex(0)}
-                      >
-                        {formatDomainName(domain)}
-                        <span 
-                          className="absolute -bottom-1 left-0 h-1 bg-primary rounded-full transition-all" 
-                          style={{ width: `${getDomainProgress(domain)}%` }}
-                        ></span>
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                </div>
-                
-                {Object.values(DOMAINS).map(domain => (
-                  <TabsContent key={domain} value={domain} className="p-0">
-                    <CardContent className="pt-6">
-                      <div className="mb-6">
-                        <div className="flex justify-between items-center mb-2">
-                          <h2 className="text-xl font-heading font-semibold">
-                            {activeQuestionIndex + 1} of {currentDomainQuestions.length}
-                          </h2>
-                          <div className="text-sm text-muted-foreground">
-                            {questions[domain as keyof typeof DOMAINS][activeQuestionIndex]?.category}
-                          </div>
-                        </div>
-                        
-                        <h3 className="text-lg font-heading font-medium mb-6">
-                          {questions[domain as keyof typeof DOMAINS][activeQuestionIndex]?.question}
-                        </h3>
-                        
-                        <RadioGroup
-                          value={answers[questions[domain as keyof typeof DOMAINS][activeQuestionIndex]?.id] || ""}
-                          onValueChange={handleOptionSelect}
-                          className="space-y-3"
-                        >
-                          {questions[domain as keyof typeof DOMAINS][activeQuestionIndex]?.options.map((option) => (
-                            <div 
-                              key={option.id} 
-                              className={`flex items-center space-x-3 border rounded-lg p-4 hover:border-primary transition ${
-                                answers[questions[domain as keyof typeof DOMAINS][activeQuestionIndex]?.id] === option.id 
-                                  ? 'border-primary bg-primary/5' 
-                                  : 'border-gray-200'
-                              }`}
-                            >
-                              <RadioGroupItem value={option.id} id={`${domain}-${option.id}`} />
-                              <Label 
-                                htmlFor={`${domain}-${option.id}`} 
-                                className="flex-1 cursor-pointer"
-                              >
-                                {option.text}
-                              </Label>
-                            </div>
-                          ))}
-                        </RadioGroup>
-                      </div>
-                    </CardContent>
-                    
-                    <CardFooter className="flex justify-between pb-6">
-                      <Button 
-                        variant="outline" 
-                        onClick={handlePrevious}
-                        disabled={activeQuestionIndex === 0 && Object.values(DOMAINS).indexOf(domain) === 0}
-                      >
-                        Previous
-                      </Button>
-                      <Button 
-                        onClick={handleNext}
-                        disabled={!answers[questions[domain as keyof typeof DOMAINS][activeQuestionIndex]?.id] || isPending}
-                      >
-                        {activeQuestionIndex < questions[domain as keyof typeof DOMAINS].length - 1 
-                          ? "Next Question" 
-                          : Object.values(DOMAINS).indexOf(domain) < Object.values(DOMAINS).length - 1
-                            ? "Next Section"
-                            : "Complete Assessment"
-                        }
-                      </Button>
-                    </CardFooter>
-                  </TabsContent>
-                ))}
-              </Tabs>
-            </Card>
-          ) : (
-            <Card className="text-center">
-              <CardHeader>
-                <CardTitle>Assessment Complete!</CardTitle>
+                <CardTitle>Assessment Areas</CardTitle>
                 <CardDescription>
-                  Thank you for completing the teacher development assessment
+                  Progress: {overallProgress}%
                 </CardDescription>
+                <Progress value={overallProgress} className="h-2" />
               </CardHeader>
               <CardContent>
-                <div className="mb-6">
-                  <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i className="ri-check-line text-4xl text-primary"></i>
-                  </div>
-                  
-                  <h3 className="text-xl font-heading font-bold mb-2">
-                    Your personalized professional development path is ready
-                  </h3>
-                  
-                  <p className="text-muted-foreground mb-6">
-                    Based on your assessment, we've created a customized learning plan focusing on your growth areas while building on your strengths.
-                  </p>
-                  
-                  <div className="bg-neutral-50 p-4 rounded-lg text-left mb-6">
-                    <h4 className="font-medium text-primary mb-2">Your Assessment Insights:</h4>
-                    <ul className="space-y-2 text-sm">
-                      <li className="flex items-start">
-                        <span className="text-green-500 mr-2">✓</span>
-                        <span>Your learning modules have been personalized based on your assessment results</span>
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-green-500 mr-2">✓</span>
-                        <span>Your dashboard shows your strengths and areas for growth</span>
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-green-500 mr-2">✓</span>
-                        <span>Unlock achievement levels as you progress through your customized path</span>
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-green-500 mr-2">✓</span>
-                        <span>Look for the "Mindful Mornings" module which includes breathing exercises, self-affirmations, and gratitude practices</span>
-                      </li>
-                    </ul>
-                  </div>
+                <div className="space-y-1">
+                  {domains.map((domain, index) => {
+                    const DomainIcon = domain.icon;
+                    const domainProgress = calculateDomainProgress(domain.id);
+                    const isActive = currentDomain === domain.id;
+                    const isComplete = domainProgress === 100;
+                    
+                    return (
+                      <button
+                        key={index}
+                        className={`w-full flex items-center justify-between p-3 rounded-md transition-colors
+                          ${isActive 
+                            ? 'bg-primary text-primary-foreground' 
+                            : 'hover:bg-muted'
+                          }`}
+                        onClick={() => handleDomainChange(domain.id)}
+                      >
+                        <div className="flex items-center">
+                          <DomainIcon className="mr-2 h-4 w-4" />
+                          <span>{domain.name}</span>
+                        </div>
+                        <div className="flex items-center">
+                          {isComplete && <Check className="h-4 w-4 mr-1" />}
+                          <span className="text-xs">{domainProgress}%</span>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </CardContent>
-              <CardFooter className="flex justify-center">
-                <Button onClick={() => setLocation("/")} className="px-8">
-                  Go to My Dashboard
+            </Card>
+          </div>
+          
+          {/* Question Area */}
+          <div className="lg:col-span-3">
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  {domains.find(d => d.id === currentDomain)?.name}
+                </CardTitle>
+                <CardDescription>
+                  Question {currentQuestionIndex + 1} of {domainQuestions.length}
+                </CardDescription>
+                <Progress 
+                  value={((currentQuestionIndex + 1) / domainQuestions.length) * 100} 
+                  className="h-2" 
+                />
+              </CardHeader>
+              
+              <CardContent>
+                {domainQuestions.length > 0 && (
+                  <div className="space-y-6">
+                    <div className="text-lg font-medium">
+                      {domainQuestions[currentQuestionIndex].text}
+                      {domainQuestions[currentQuestionIndex].required && (
+                        <span className="text-destructive ml-1">*</span>
+                      )}
+                    </div>
+                    
+                    {renderQuestion()}
+                  </div>
+                )}
+              </CardContent>
+              
+              <CardFooter className="flex justify-between">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentQuestionIndex(i => Math.max(0, i - 1))}
+                  disabled={currentQuestionIndex === 0}
+                >
+                  Previous
                 </Button>
+                
+                <div>
+                  {currentQuestionIndex === domainQuestions.length - 1 && 
+                   calculateDomainProgress(currentDomain) === 100 && (
+                    <Button
+                      variant="default"
+                      className="ml-2"
+                      onClick={handleSubmitAssessment}
+                      disabled={!canSubmitAssessment || submitAssessmentMutation.isPending}
+                    >
+                      {submitAssessmentMutation.isPending ? "Submitting..." : "Submit Assessment"}
+                    </Button>
+                  )}
+                  
+                  {currentQuestionIndex < domainQuestions.length - 1 && (
+                    <Button
+                      variant="default"
+                      onClick={() => setCurrentQuestionIndex(i => i + 1)}
+                      disabled={!isCurrentQuestionAnswered() && domainQuestions[currentQuestionIndex].required}
+                    >
+                      Next <ChevronRight className="ml-1 h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </CardFooter>
             </Card>
-          )}
+            
+            {/* Assessment Completion Info */}
+            {canSubmitAssessment && (
+              <div className="mt-4 bg-accent/20 rounded-lg p-4 flex items-start">
+                <div className="mr-2 mt-1 text-2xl">🎉</div>
+                <div>
+                  <h3 className="font-semibold">Ready to Complete Your Assessment?</h3>
+                  <p className="text-sm text-muted-foreground">
+                    You've answered all required questions! Navigate through all domains to review your answers, 
+                    then click "Submit Assessment" on the final question to receive your personalized learning path.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </main>
-      
-      <ChatbotSupport />
     </div>
   );
 }
