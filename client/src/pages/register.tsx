@@ -138,15 +138,15 @@ export default function Register() {
     <div className="min-h-screen bg-gradient-to-b from-background to-background/90 py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="mb-8 text-center">
-          <div className="mx-auto w-48 h-48 mb-4">
+          <div className="mx-auto w-48 h-48 mb-4 animate-float">
             <img 
               src={raisingArizonaLogo} 
               alt="Raising Arizona Preschool" 
               className="w-full h-full object-contain mix-blend-multiply"
             />
           </div>
-          <h1 className="text-4xl font-accent bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent mb-2">MentorMe</h1>
-          <p className="text-neutral-800">Create your Raising Arizona teacher account and begin your professional development journey today!</p>
+          <h1 className="text-4xl font-accent bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent mb-2 animate-pulse-slow">MentorMe</h1>
+          <p className="text-neutral-800 animate-pop">Create your Raising Arizona teacher account and begin your professional development journey today!</p>
         </div>
         
         <div className="bg-white p-8 rounded-lg shadow-md">

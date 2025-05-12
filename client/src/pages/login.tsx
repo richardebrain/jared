@@ -77,15 +77,15 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-background/90 px-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="mx-auto w-48 h-48 mb-4">
+          <div className="mx-auto w-48 h-48 mb-4 animate-float">
             <img 
               src={raisingArizonaLogo} 
               alt="Raising Arizona Preschool" 
               className="w-full h-full object-contain mix-blend-multiply"
             />
           </div>
-          <h1 className="text-4xl font-accent bg-gradient-to-br from-primary to-primary-foreground bg-clip-text text-transparent mb-2">MentorMe</h1>
-          <p className="text-neutral-800">Welcome to Raising Arizona's teacher training platform! Log in to continue your professional development journey.</p>
+          <h1 className="text-4xl font-accent bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent mb-2 animate-pulse-slow">MentorMe</h1>
+          <p className="text-neutral-800 animate-pop">Welcome to Raising Arizona's teacher training platform! Log in to continue your professional development journey.</p>
         </div>
         
         <div className="bg-white p-8 rounded-lg shadow-md">
@@ -121,7 +121,7 @@ export default function Login() {
                 )}
               />
               
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={isPending}>
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 hover-pop hover-glow" disabled={isPending}>
                 {isPending ? (
                   <div className="flex items-center justify-center">
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
@@ -146,16 +146,18 @@ export default function Login() {
           </div>
 
           <div className="mt-6">
-            <GoogleAuthButton 
-              onSuccess={() => setLocation('/dashboard')}
-              onError={(error) => {
-                toast({
-                  title: "Authentication Failed",
-                  description: "Could not sign in with Google. Please try again.",
-                  variant: "destructive"
-                });
-              }}
-            />
+            <div className="animate-pop">
+              <GoogleAuthButton 
+                onSuccess={() => setLocation('/dashboard')}
+                onError={(error) => {
+                  toast({
+                    title: "Authentication Failed",
+                    description: "Could not sign in with Google. Please try again.",
+                    variant: "destructive"
+                  });
+                }}
+              />
+            </div>
           </div>
           
           <div className="mt-4 text-center">
