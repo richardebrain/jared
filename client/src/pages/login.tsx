@@ -77,11 +77,11 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-background/90 px-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="mx-auto w-48 h-48 mb-4 overflow-hidden">
+          <div className="mx-auto w-48 h-48 mb-4">
             <img 
               src={raisingArizonaLogo} 
               alt="Raising Arizona Preschool" 
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain mix-blend-multiply"
             />
           </div>
           <h1 className="text-4xl font-accent bg-gradient-to-br from-primary to-primary-foreground bg-clip-text text-transparent mb-2">MentorMe</h1>

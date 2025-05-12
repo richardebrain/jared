@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import GoogleAuthButton from "@/components/GoogleAuthButton";
+import raisingArizonaLogo from "../assets/images/raising-arizona-logo.jpg";
 
 import {
   Form,
@@ -24,6 +26,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+
 
 // Form schema for registration
 const registerSchema = z.object({
@@ -131,15 +135,48 @@ export default function Register() {
   });
 
   return (
-    <div className="min-h-screen bg-neutral-100 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-background to-background/90 py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-accent text-primary mb-2">MentorMe</h1>
+          <div className="mx-auto w-48 h-48 mb-4">
+            <img 
+              src={raisingArizonaLogo} 
+              alt="Raising Arizona Preschool" 
+              className="w-full h-full object-contain mix-blend-multiply"
+            />
+          </div>
+          <h1 className="text-4xl font-accent bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent mb-2">MentorMe</h1>
           <p className="text-neutral-800">Create your Raising Arizona teacher account and begin your professional development journey today!</p>
         </div>
         
         <div className="bg-white p-8 rounded-lg shadow-md">
-          <h2 className="text-2xl font-heading font-bold mb-6">Sign Up</h2>
+          <h2 className="text-2xl font-heading font-bold mb-6 text-center">Sign Up</h2>
+          
+          {/* Google Sign Up Button */}
+          <div className="mb-6">
+            <GoogleAuthButton 
+              mode="signup"
+              onSuccess={() => setLocation('/dashboard')}
+              onError={(error) => {
+                toast({
+                  title: "Registration Failed",
+                  description: "Could not sign up with Google. Please try again or use the form below.",
+                  variant: "destructive"
+                });
+              }}
+            />
+            
+            <div className="relative mt-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-muted-foreground">
+                  Or sign up with email
+                </span>
+              </div>
+            </div>
+          </div>
           
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
