@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { User } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import raisingArizonaLogo from "@assets/raising-arizona-logo.jpg";
 
 import {
   DropdownMenu,
@@ -64,9 +65,11 @@ export default function Header() {
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <div className="flex items-center">
           <Link href="/">
-            <div className="text-3xl font-accent text-primary mr-2 cursor-pointer">LinguaMeet</div>
+            <div className="flex items-center">
+              <img src={raisingArizonaLogo} alt="Raising Arizona Preschool" className="h-12 mr-3" />
+              <div className="text-lg md:text-xl font-semibold text-[#532A18]">Teacher Training</div>
+            </div>
           </Link>
-          <div className="hidden md:block text-sm text-neutral-800">Language Learning</div>
         </div>
         
         <nav className="hidden md:flex space-x-6 items-center">
@@ -99,7 +102,7 @@ export default function Header() {
             <DropdownMenuTrigger asChild>
               <div className="relative cursor-pointer">
                 <Avatar>
-                  <AvatarImage src={user?.profilePicture} alt={user?.firstName} />
+                  <AvatarImage src={user?.profilePicture ? user.profilePicture : ""} alt={user?.firstName || ""} />
                   <AvatarFallback className="bg-primary text-primary-foreground">
                     {userInitials}
                   </AvatarFallback>
