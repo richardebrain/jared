@@ -11,7 +11,7 @@ interface Message {
 const INITIAL_MESSAGE: Message = {
   id: "welcome",
   isBot: true,
-  text: "👋 Hi there! I'm your LinguaMeet Assistant. How can I help you with your language learning today?"
+  text: "👋 Hi there! I'm your MentorMe Assistant. How can I help you with your teacher training today?"
 };
 
 export default function ChatbotSupport() {
@@ -98,7 +98,7 @@ export default function ChatbotSupport() {
                   <i className="ri-robot-line"></i>
                 </div>
                 <div>
-                  <h3 className="font-heading font-bold">LinguaMeet Assistant</h3>
+                  <h3 className="font-heading font-bold">MentorMe Assistant</h3>
                   <div className="flex items-center">
                     <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
                     <span className="text-xs">Online</span>

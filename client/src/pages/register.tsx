@@ -97,7 +97,7 @@ export default function Register() {
     onSuccess: () => {
       toast({
         title: "Registration successful!",
-        description: "Welcome to LinguaMeet. Let's start learning!",
+        description: "Welcome to MentorMe. Let's start your teacher training journey!",
       });
       setLocation("/");
     },
@@ -136,7 +136,7 @@ export default function Register() {
     <div className="min-h-screen bg-neutral-100 py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-accent text-primary mb-2">LinguaMeet</h1>
+          <h1 className="text-4xl font-accent text-primary mb-2">MentorMe</h1>
           <p className="text-neutral-800">Create your account and start learning a new language today!</p>
         </div>
         

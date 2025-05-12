@@ -50,7 +50,7 @@ export default function Login() {
     onSuccess: () => {
       toast({
         title: "Login successful!",
-        description: "Welcome back to LinguaMeet.",
+        description: "Welcome back to MentorMe.",
       });
       setLocation("/");
     },
@@ -72,7 +72,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-neutral-100 px-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-accent text-primary mb-2">LinguaMeet</h1>
+          <h1 className="text-4xl font-accent text-primary mb-2">MentorMe</h1>
           <p className="text-neutral-800">Welcome back! Log in to continue your language learning journey.</p>
         </div>
         

@@ -69,7 +69,7 @@ export function useAuth(): UseAuthReturn {
       setIsAuthenticated(true);
       toast({
         title: "Registration successful",
-        description: `Welcome to LinguaMeet, ${data.firstName}!`,
+        description: `Welcome to MentorMe, ${data.firstName}!`,
       });
     },
     onError: (error: Error) => {

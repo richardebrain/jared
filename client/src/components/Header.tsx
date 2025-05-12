@@ -66,8 +66,11 @@ export default function Header() {
         <div className="flex items-center">
           <Link href="/">
             <div className="flex items-center">
-              <img src={raisingArizonaLogo} alt="Raising Arizona Preschool" className="h-12 mr-3" />
-              <div className="text-lg md:text-xl font-semibold text-[#532A18]">Teacher Training</div>
+              <img src={raisingArizonaLogo} alt="Raising Arizona Preschool" className="h-14 mr-3" />
+              <div>
+                <div className="text-xl md:text-2xl font-bold text-[#532A18]">MentorMe</div>
+                <div className="text-xs text-[#532A18]">Raising Arizona Teacher Training</div>
+              </div>
             </div>
           </Link>
         </div>
