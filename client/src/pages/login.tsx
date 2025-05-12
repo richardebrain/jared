@@ -50,11 +50,16 @@ export default function Login() {
       const response = await apiRequest("POST", "/api/auth/login", data);
       return await response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Update the auth cache with the new user data
+      queryClient.setQueryData(["/api/auth/me"], data);
+      
       toast({
         title: "Login successful!",
-        description: "Welcome back to MentorMe.",
+        description: `Welcome back${data.firstName ? ", " + data.firstName : ""}!`,
       });
+      
+      // Redirect to dashboard
       setLocation("/dashboard");
     },
     onError: (error: Error) => {

@@ -309,6 +309,10 @@ export class MemStorage implements IStorage {
       (user) => user.username === username
     );
   }
+  
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userIdCounter++;
