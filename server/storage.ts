@@ -285,8 +285,14 @@ export class MemStorage implements IStorage {
       id,
       createdAt: now,
       results: insertAssessment.results || {},
+      domainScores: insertAssessment.domainScores || {},
+      strengthAreas: insertAssessment.strengthAreas || [],
+      growthAreas: insertAssessment.growthAreas || [],
+      recommendedModules: insertAssessment.recommendedModules || [],
+      assessmentType: insertAssessment.assessmentType || 'ITERS_ECERS_CLASS',
+      notes: insertAssessment.notes || null,
       completed: insertAssessment.completed || null,
-      score: insertAssessment.score || null
+      overallScore: insertAssessment.overallScore || null
     };
     this.assessments.set(id, assessment);
     return assessment;
