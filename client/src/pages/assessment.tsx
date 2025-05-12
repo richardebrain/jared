@@ -598,9 +598,18 @@ export default function AssessmentPage() {
       return response.json();
     },
     onSuccess: () => {
+      // Calculate total correct answers
+      const totalAnswers = Object.keys(answers).length;
+      const correctAnswers = Object.keys(answers).filter(qId => {
+        const question = assessmentQuestions.find(q => q.id === qId);
+        return question && answers[qId] === question.correctAnswer;
+      }).length;
+      
+      // Show feedback with correct answer count
       toast({
         title: "Assessment Completed",
-        description: "Thank you for completing your assessment. Your personalized learning path is now available.",
+        description: `Great job! You answered ${correctAnswers} out of ${totalAnswers} questions correctly. Your personalized learning path is now available.`,
+        duration: 6000,
       });
       setLocation("/dashboard");
     },

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { User } from "@shared/schema";
 import { Link } from "wouter";
@@ -12,6 +12,16 @@ import AchievementsSection from "@/components/AchievementsSection";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import mindfulMorningsLogo from "../assets/images/mindful-mornings-logo.jpg";
 import raisingArizonaLogo from "../assets/images/raising-arizona-logo.jpg";
+
+// Define assessment domains for display purposes
+const domains = [
+  { id: 'classroom-management', name: 'Classroom Management' },
+  { id: 'social-emotional', name: 'Social-Emotional Development' },
+  { id: 'health-safety', name: 'Health & Safety Practices' },
+  { id: 'cognitive-language', name: 'Cognitive & Language Development' },
+  { id: 'family-engagement', name: 'Family Engagement' },
+  { id: 'curriculum-planning', name: 'Curriculum Planning' }
+];
 
 export default function Dashboard() {
   const { data: user, isLoading: isLoadingUser, isError: isUserError } = useQuery<User>({ 
@@ -48,6 +58,61 @@ export default function Dashboard() {
   const hasCompletedAssessment = Array.isArray(assessments) && assessments.some(
     assessment => assessment.completed
   );
+  
+  // Find recommended lessons based on assessment results
+  const recommendedLessons = useMemo(() => {
+    if (!hasCompletedAssessment || !modules || !assessments || assessments.length === 0) {
+      return [];
+    }
+    
+    // Get the most recent assessment
+    const latestAssessment = assessments[assessments.length - 1];
+    
+    // Extract incorrect answers
+    const incorrectAnswers: {questionId: string; domain: string}[] = [];
+    
+    // Check if there are results
+    if (latestAssessment.results) {
+      Object.entries(latestAssessment.results).forEach(([questionId, answer]) => {
+        // Extract domain from question ID (assuming format like "domain-difficulty-number")
+        const domain = questionId.split('-')[0];
+        
+        // Check if this answer was incorrect (based on the assessment scoring logic)
+        // We don't have the question data here, so we use the domainScores to infer
+        if (latestAssessment.domainScores && 
+            latestAssessment.domainScores[domain] && 
+            latestAssessment.domainScores[domain].score < 100) {
+          incorrectAnswers.push({ questionId, domain });
+        }
+      });
+    }
+    
+    // Count domains with incorrect answers
+    const domainCounts: Record<string, number> = {};
+    incorrectAnswers.forEach(({ domain }) => {
+      domainCounts[domain] = (domainCounts[domain] || 0) + 1;
+    });
+    
+    // Sort domains by number of incorrect answers (descending)
+    const sortedDomains = Object.entries(domainCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([domain]) => domain);
+    
+    // Find modules related to the domains with most incorrect answers
+    const recommendedModules = modules.filter(module => {
+      // Match modules to domains based on keywords in title or description
+      const moduleText = `${module.title.toLowerCase()} ${module.description.toLowerCase()}`;
+      
+      // Check if module matches any of the top domains with incorrect answers
+      return sortedDomains.some(domain => {
+        const domainInfo = domains.find(d => d.id === domain);
+        return domainInfo && moduleText.includes(domainInfo.name.toLowerCase());
+      });
+    });
+    
+    // Return top 3 recommended modules
+    return recommendedModules.slice(0, 3);
+  }, [hasCompletedAssessment, modules, assessments]);
   
   // Debug logging for authentication issues
   console.log("[Dashboard] Authentication state:", { 
@@ -104,40 +169,106 @@ export default function Dashboard() {
       <Header />
       
       <main className="container mx-auto px-4 py-8">
-        {/* Assessment Required Notification - Only shown if user hasn't completed an assessment */}
-        {user && !hasCompletedAssessment && (
-          <section className="mb-8 animate-pulse">
-            <div className="bg-destructive text-destructive-foreground rounded-xl px-6 py-4 shadow-lg relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 opacity-10">
-                <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
-                  <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
-                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+        {/* Assessment Required Notification OR Personalized Recommendations */}
+        {user && (
+          <section className="mb-8">
+            {!hasCompletedAssessment ? (
+              <div className="bg-destructive text-destructive-foreground rounded-xl px-6 py-4 shadow-lg relative overflow-hidden animate-pulse">
+                <div className="absolute top-0 right-0 w-32 h-32 opacity-10">
+                  <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
+                    <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
+                      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                
+                <div className="flex items-center justify-between relative z-10">
+                  <div className="flex items-center">
+                    <div className="mr-4 text-4xl">⚠️</div>
+                    <div>
+                      <h2 className="text-xl md:text-2xl font-bold">Assessment Required!</h2>
+                      <p className="text-sm md:text-base max-w-2xl">
+                        Welcome to MentorMe! To provide you with personalized training, please complete
+                        your initial assessment questionnaire. This will help identify your strengths and
+                        areas for growth based on ITERS/ECERS and CLASS standards.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-3 md:mt-0 flex-shrink-0">
+                    <Link to="/assessment">
+                      <button className="px-4 py-2 bg-background text-foreground font-semibold rounded-md border-2 
+                        border-background hover:bg-transparent hover:text-background transition-all duration-200">
+                        Start Assessment
+                      </button>
+                    </Link>
+                  </div>
+                </div>
               </div>
-              
-              <div className="flex items-center justify-between relative z-10">
-                <div className="flex items-center">
-                  <div className="mr-4 text-4xl">⚠️</div>
+            ) : (
+              <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-primary">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mr-4">
+                    <svg className="w-7 h-7 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                  </div>
                   <div>
-                    <h2 className="text-xl md:text-2xl font-bold">Assessment Required!</h2>
-                    <p className="text-sm md:text-base max-w-2xl">
-                      Welcome to MentorMe! To provide you with personalized training, please complete
-                      your initial assessment questionnaire. This will help identify your strengths and
-                      areas for growth based on ITERS/ECERS and CLASS standards.
-                    </p>
+                    <h2 className="text-xl md:text-2xl font-bold text-neutral-800">Your Personalized Learning Path</h2>
+                    <p className="text-neutral-600">Based on your assessment results, here are your recommended lessons</p>
                   </div>
                 </div>
                 
-                <div className="mt-3 md:mt-0 flex-shrink-0">
-                  <Link to="/assessment">
-                    <button className="px-4 py-2 bg-background text-foreground font-semibold rounded-md border-2 
-                      border-background hover:bg-transparent hover:text-background transition-all duration-200">
-                      Start Assessment
-                    </button>
-                  </Link>
-                </div>
+                {recommendedLessons && recommendedLessons.length > 0 ? (
+                  <div className="mt-6 space-y-4">
+                    <h3 className="text-lg font-semibold text-primary">Top 3 Recommended Lessons</h3>
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                      {recommendedLessons.map((module, index) => (
+                        <div key={module.id} className="bg-neutral-50 rounded-lg p-4 border border-neutral-200 hover:border-primary transition shadow-sm">
+                          <div className="flex items-center mb-3">
+                            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold mr-3">
+                              {index + 1}
+                            </div>
+                            <h4 className="font-semibold">{module.title}</h4>
+                          </div>
+                          <p className="text-sm text-neutral-600 line-clamp-2 mb-3">{module.description}</p>
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                              {module.difficulty}
+                            </span>
+                            <Link to={`/modules/${module.id}`}>
+                              <button className="text-sm bg-primary text-white rounded-lg px-3 py-1.5 font-semibold hover:bg-opacity-90 transition">
+                                Start Now
+                              </button>
+                            </Link>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="flex justify-end mt-4">
+                      <Link to="/modules">
+                        <button className="flex items-center text-primary hover:underline">
+                          View all modules
+                          <svg className="ml-1 w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-neutral-50 p-6 rounded-lg text-center">
+                    <p>Great job on your assessment! Explore our available modules to continue your learning journey.</p>
+                    <Link to="/modules">
+                      <button className="mt-4 bg-primary text-white rounded-lg px-4 py-2 font-semibold hover:bg-opacity-90 transition">
+                        Browse Modules
+                      </button>
+                    </Link>
+                  </div>
+                )}
               </div>
-            </div>
+            )}
           </section>
         )}
         
@@ -173,7 +304,7 @@ export default function Dashboard() {
               </div>
               <div className="mt-2 md:mt-0 bg-white/10 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/20">
                 <p className="text-white italic font-bold text-base md:text-xl">
-                  "School sucks, but mentors rule!"
+                  "Every Genius that ever was had a Mentor."
                 </p>
               </div>
             </div>
@@ -632,7 +763,7 @@ export default function Dashboard() {
                 <div className="inline-block bg-gradient-to-r from-primary to-secondary p-[2px] rounded-lg mb-2">
                   <div className="bg-white px-4 py-2 rounded-[6px]">
                     <p className="font-heading font-bold text-lg italic bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                      "School sucks, but mentors rule!"
+                      "Every Genius that ever was had a Mentor."
                     </p>
                   </div>
                 </div>
