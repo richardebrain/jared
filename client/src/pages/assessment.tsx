@@ -689,6 +689,19 @@ export default function AssessmentPage() {
       Object.values(domainScores).length
     );
     
+    // Identify incorrect answers for each domain to help with recommendations
+    const incorrectAnswers: Record<string, string[]> = {};
+    Object.entries(answers).forEach(([questionId, answer]) => {
+      const question = assessmentQuestions.find(q => q.id === questionId);
+      if (question && answer !== question.correctAnswer) {
+        const domain = question.domain;
+        if (!incorrectAnswers[domain]) {
+          incorrectAnswers[domain] = [];
+        }
+        incorrectAnswers[domain].push(questionId);
+      }
+    });
+    
     submitAssessmentMutation.mutate({
       userId: user.id,
       overallScore,
@@ -697,6 +710,7 @@ export default function AssessmentPage() {
       domainScores,
       strengthAreas,
       growthAreas,
+      incorrectAnswers,
       assessmentType: "ITERS_ECERS_CLASS"
     });
   };

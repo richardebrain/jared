@@ -68,37 +68,54 @@ export default function Dashboard() {
     // Get the most recent assessment
     const latestAssessment = assessments[assessments.length - 1];
     
-    // Extract incorrect answers
-    const incorrectAnswers: {questionId: string; domain: string}[] = [];
+    // Extract domain priorities from incorrectAnswers field if available
+    let sortedDomains: string[] = [];
     
-    // Check if there are results
-    if (latestAssessment.results) {
+    if (latestAssessment.incorrectAnswers) {
+      // Use the precomputed incorrect answers by domain
+      const domainCounts: Record<string, number> = {};
+      
+      // Count number of incorrect answers per domain
+      Object.entries(latestAssessment.incorrectAnswers as Record<string, string[]>).forEach(([domain, questions]) => {
+        domainCounts[domain] = questions.length;
+      });
+      
+      // Sort domains by number of incorrect answers (descending)
+      sortedDomains = Object.entries(domainCounts)
+        .sort((a, b) => b[1] - a[1])
+        .map(([domain]) => domain);
+    } else if (latestAssessment.growthAreas && latestAssessment.growthAreas.length > 0) {
+      // Fallback to growth areas if incorrectAnswers not available
+      sortedDomains = latestAssessment.growthAreas;
+    } else if (latestAssessment.results) {
+      // Legacy fallback: analyze results manually if incorrectAnswers not available
+      const incorrectAnswersList: {questionId: string; domain: string}[] = [];
+      
+      // Extract domain from question ID pattern (like "classroom-management-beginner-1")
       Object.entries(latestAssessment.results).forEach(([questionId, answer]) => {
-        // Extract domain from question ID (assuming format like "domain-difficulty-number")
         const domain = questionId.split('-')[0];
         
-        // Check if this answer was incorrect (based on the assessment scoring logic)
-        // We don't have the question data here, so we use the domainScores to infer
+        // Check if domain score indicates incorrect answers
         if (latestAssessment.domainScores && 
             latestAssessment.domainScores[domain] && 
             latestAssessment.domainScores[domain].score < 100) {
-          incorrectAnswers.push({ questionId, domain });
+          incorrectAnswersList.push({ questionId, domain });
         }
       });
+      
+      // Count domains with incorrect answers
+      const domainCounts: Record<string, number> = {};
+      incorrectAnswersList.forEach(({ domain }) => {
+        domainCounts[domain] = (domainCounts[domain] || 0) + 1;
+      });
+      
+      // Sort domains by number of incorrect answers (descending)
+      sortedDomains = Object.entries(domainCounts)
+        .sort((a, b) => b[1] - a[1])
+        .map(([domain]) => domain);
     }
     
-    // Count domains with incorrect answers
-    const domainCounts: Record<string, number> = {};
-    incorrectAnswers.forEach(({ domain }) => {
-      domainCounts[domain] = (domainCounts[domain] || 0) + 1;
-    });
-    
-    // Sort domains by number of incorrect answers (descending)
-    const sortedDomains = Object.entries(domainCounts)
-      .sort((a, b) => b[1] - a[1])
-      .map(([domain]) => domain);
-    
-    // Find modules related to the domains with most incorrect answers
+    // Find modules related to the priority domains
     const recommendedModules = modules.filter(module => {
       // Match modules to domains based on keywords in title or description
       const moduleText = `${module.title.toLowerCase()} ${module.description.toLowerCase()}`;
@@ -109,6 +126,14 @@ export default function Dashboard() {
         return domainInfo && moduleText.includes(domainInfo.name.toLowerCase());
       });
     });
+    
+    // If there are no direct domain matches, use difficulty-based recommendations
+    if (recommendedModules.length === 0 && modules.length > 0) {
+      return modules
+        .filter(module => module.difficulty === 'beginner')
+        .sort((a, b) => a.id - b.id)
+        .slice(0, 3);
+    }
     
     // Return top 3 recommended modules
     return recommendedModules.slice(0, 3);
