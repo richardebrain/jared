@@ -19,10 +19,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const MemoryStoreSession = MemoryStore(session);
   app.use(
     session({
-      secret: process.env.SESSION_SECRET || "language-learning-secret",
+      secret: process.env.SESSION_SECRET || "mentor-me-secret",
       resave: false,
       saveUninitialized: false,
-      cookie: { secure: process.env.NODE_ENV === "production", maxAge: 24 * 60 * 60 * 1000 }, // 24 hours
+      cookie: { 
+        secure: false, // Set to false for development to work over HTTP
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        httpOnly: true,
+        sameSite: 'lax'
+      }, 
       store: new MemoryStoreSession({
         checkPeriod: 86400000, // prune expired entries every 24h
       }),
