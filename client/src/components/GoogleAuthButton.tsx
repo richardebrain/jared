@@ -29,14 +29,18 @@ export default function GoogleAuthButton({
       
       const user = result.user;
       
+      if (!user) {
+        throw new Error('No user information returned from Google');
+      }
+      
       // Extract user info from Google profile
       const userInfo = {
-        email: user.email,
+        email: user.email || '',
         firstName: user.displayName ? user.displayName.split(' ')[0] : '',
         lastName: user.displayName ? user.displayName.split(' ').slice(1).join(' ') : '',
-        profilePicture: user.photoURL,
+        profilePicture: user.photoURL || null,
         // These would require input from user, providing defaults
-        username: user.email?.split('@')[0] || '',
+        username: user.email ? user.email.split('@')[0] : '',
         password: '', // Will be set by backend
         language: 'English',
         nativeLanguage: 'English',
@@ -48,7 +52,7 @@ export default function GoogleAuthButton({
       const response = await apiRequest(endpoint, {
         method: 'POST',
         body: JSON.stringify(userInfo)
-      });
+      } as RequestInit);
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -64,7 +68,7 @@ export default function GoogleAuthButton({
       
       if (onSuccess) onSuccess();
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Google auth error:', error);
       toast({
         title: 'Authentication failed',

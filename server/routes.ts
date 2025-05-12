@@ -99,6 +99,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(200).json({ message: "Logged out successfully" });
     });
   });
+  
+  // Google Authentication routes
+  app.post("/api/auth/register-google", async (req, res) => {
+    try {
+      const userData = req.body;
+      
+      // Check if a user with this email already exists
+      // This would need an additional method to lookup users by email
+      const existingUser = await storage.getUserByUsername(userData.username);
+      if (existingUser) {
+        // User exists, login instead
+        req.session.userId = existingUser.id;
+        
+        // Don't return password in response
+        const { password: _, ...userWithoutPassword } = existingUser;
+        
+        return res.status(200).json(userWithoutPassword);
+      }
+      
+      // Generate a secure random password for the user (they'll login with Google, not password)
+      const randomPassword = Array(20)
+        .fill('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*')
+        .map(x => x[Math.floor(Math.random() * x.length)])
+        .join('');
+      
+      // Create new user with Google profile data
+      const newUser = await storage.createUser({
+        ...userData,
+        password: randomPassword // This will be hashed by the storage implementation
+      });
+      
+      // Set session
+      req.session.userId = newUser.id;
+      
+      // Don't return password in response
+      const { password: _, ...userWithoutPassword } = newUser;
+      
+      res.status(201).json(userWithoutPassword);
+    } catch (error) {
+      console.error('Google registration error:', error);
+      res.status(500).json({ message: "Failed to register with Google" });
+    }
+  });
+  
+  app.post("/api/auth/login-google", async (req, res) => {
+    try {
+      const { email, username } = req.body;
+      
+      // Try to find user by username or email
+      let user = await storage.getUserByUsername(username);
+      
+      if (!user) {
+        // User doesn't exist, register them
+        return res.status(404).json({ 
+          message: "No account found. Please sign up with Google first.",
+          needsRegistration: true
+        });
+      }
+      
+      // User exists, set session
+      req.session.userId = user.id;
+      
+      // Don't return password in response
+      const { password: _, ...userWithoutPassword } = user;
+      
+      res.status(200).json(userWithoutPassword);
+    } catch (error) {
+      console.error('Google login error:', error);
+      res.status(500).json({ message: "Failed to login with Google" });
+    }
+  });
 
   app.get("/api/auth/me", requireAuth, async (req, res) => {
     try {
