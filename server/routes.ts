@@ -8,6 +8,7 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { z } from "zod";
 import MemoryStore from "memorystore";
+import { generateLessonPrompt, generateLessonContent } from "./lessonGenerator";
 
 // Define our session data structure
 declare module 'express-session' {
@@ -571,6 +572,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error("Assessment error:", error);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Dynamic Lesson Generation endpoint
+  app.post('/api/lesson/generate', requireAuth, async (req, res) => {
+    try {
+      const { moduleId, challenge, learningStyle } = req.body;
+      const userId = req.session.userId as number;
+      
+      if (!moduleId || !challenge) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
+      // Get user and module
+      const user = await storage.getUser(userId);
+      const module = await storage.getModule(moduleId);
+      
+      if (!user || !module) {
+        return res.status(404).json({ message: "User or module not found" });
+      }
+      
+      // Generate personalized lesson
+      const prompt = generateLessonPrompt(user, module, challenge);
+      const lessonContent = await generateLessonContent(prompt);
+      
+      res.status(200).json(lessonContent);
+    } catch (error) {
+      console.error("Lesson generation error:", error);
+      res.status(500).json({ message: "Error generating lesson content" });
+    }
+  });
+  
+  // Chat with Bear Assistant API endpoint
+  app.post('/api/chat/bear-assistant', requireAuth, async (req, res) => {
+    try {
+      const { message } = req.body;
+      const userId = req.session.userId as number;
+      
+      if (!message) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+      
+      // Get user for personalization
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Call Perplexity API
+      const response = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-sonar-small-128k-online",
+          messages: [
+            {
+              role: "system",
+              content: `You are Berry, the friendly Early Childhood Education (ECE) assistant bear at Raising Arizona Preschool. 
+              Your personality is warm, supportive, and slightly playful. You love to help preschool teachers with their questions
+              about ECE, classroom management, child development, and teaching strategies. 
+              
+              When responding:
+              1. Use simple, friendly language with occasional bear-related phrases like "Bear in mind..." or "I can bearly wait to help!"
+              2. Format your responses with clear headings, bullet points, and short paragraphs when appropriate
+              3. Always stay positive and encouraging
+              4. Refer to evidence-based practices and Arizona Early Learning Standards when relevant
+              5. Remember that you're speaking to a teacher named ${user.firstName} who teaches at Raising Arizona Preschool
+              
+              Always end your response with an open-ended question to encourage further conversation.`
+            },
+            {
+              role: "user",
+              content: message
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 1000,
+          stream: false
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      res.status(200).json({
+        message: data.choices[0].message.content,
+        citations: data.citations || []
+      });
+      
+    } catch (error) {
+      console.error("Bear Assistant chat error:", error);
+      res.status(500).json({ 
+        message: "I'm having trouble connecting right now. Please try again in a few moments." 
+      });
     }
   });
 
