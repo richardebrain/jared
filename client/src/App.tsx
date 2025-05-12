@@ -30,11 +30,29 @@ function Router() {
           <Route path="/schedule" component={Schedule} />
           <Route path="/assessment" component={Assessment} />
           <Route path="/modules/:id" component={LearningModulePage} />
+          <Route path="/login">
+            {() => {
+              window.location.href = "/dashboard";
+              return null;
+            }}
+          </Route>
+          <Route path="/register">
+            {() => {
+              window.location.href = "/dashboard";
+              return null;
+            }}
+          </Route>
         </>
       ) : (
         <>
           <Route path="/" component={Login} />
-          <Route path="/dashboard" component={Login} />
+          <Route path="/dashboard">
+            {() => {
+              window.location.href = "/login";
+              return null;
+            }}
+          </Route>
+          <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
         </>
       )}
