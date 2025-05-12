@@ -7,6 +7,7 @@ import ProgressCircle from "@/components/ProgressCircle";
 import ChatbotSupport from "@/components/ChatbotSupport";
 import ModuleCard from "@/components/ModuleCard";
 import CourseCard from "@/components/CourseCard";
+import MediaSidebar from "@/components/MediaSidebar";
 import AchievementsSection from "@/components/AchievementsSection";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import mindfulMorningsLogo from "../assets/images/mindful-mornings-logo.jpg";
@@ -529,6 +530,11 @@ export default function Dashboard() {
                     </span>
                   </div>
                 </div>
+              </div>
+              
+              {/* Media Resources Section */}
+              <div className="bg-white rounded-xl overflow-hidden mb-6 shadow-md">
+                <MediaSidebar />
               </div>
               
               <div className="bg-neutral-100 rounded-xl p-6">

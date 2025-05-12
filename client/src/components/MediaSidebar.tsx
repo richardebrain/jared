@@ -7,8 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Volume2, Play, Pause, SkipForward, SkipBack, Video, Music } from "lucide-react";
 
 // Import media assets
-import raisingArizonaVideo from "@assets/media/raising-arizona-preschool.mp4";
-import sunriseAudio from "@assets/media/sunrise-paints-glendale-sky-gold.mp3";
+import raisingArizonaVideo from "../assets/media/raising-arizona-preschool.mp4";
+import sunriseAudio from "../assets/media/sunrise-paints-glendale-sky-gold.mp3";
 
 export default function MediaSidebar() {
   const [activeTab, setActiveTab] = useState<string>("video");
