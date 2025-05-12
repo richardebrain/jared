@@ -7,6 +7,8 @@ import ProgressCircle from "@/components/ProgressCircle";
 import ChatbotSupport from "@/components/ChatbotSupport";
 import ModuleCard from "@/components/ModuleCard";
 import CourseCard from "@/components/CourseCard";
+import AchievementsSection from "@/components/AchievementsSection";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import mindfulMorningsLogo from "../assets/images/mindful-mornings-logo.jpg";
 import raisingArizonaLogo from "../assets/images/raising-arizona-logo.jpg";
 
