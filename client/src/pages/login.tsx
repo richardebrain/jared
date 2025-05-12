@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import GoogleAuthButton from "@/components/GoogleAuthButton";
 
 // Import logo
 import raisingArizonaLogo from '../assets/images/raising-arizona-logo.jpg';
@@ -150,7 +152,27 @@ export default function Login() {
             </form>
           </Form>
           
-          {/* Google authentication removed while we resolve configuration issues */}
+          <div className="my-6 flex items-center">
+            <div className="flex-grow h-px bg-gray-300"></div>
+            <span className="px-3 text-sm text-gray-500">OR</span>
+            <div className="flex-grow h-px bg-gray-300"></div>
+          </div>
+          
+          <GoogleAuthButton 
+            mode="signin"
+            onSuccess={() => {
+              // Redirect will happen automatically from the server
+              console.log("Google authentication successful");
+            }}
+            onError={(error) => {
+              console.error("Google auth error:", error);
+              toast({
+                title: "Authentication failed",
+                description: "Google authentication failed. Please try again.",
+                variant: "destructive",
+              });
+            }}
+          />
           
           <div className="mt-4 text-center">
             <p className="text-sm text-neutral-800">

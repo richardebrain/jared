@@ -16,6 +16,13 @@ declare module 'express-session' {
   }
 }
 
+// Extend the Express.User interface to avoid TypeScript errors
+declare global {
+  namespace Express {
+    interface User extends Record<string, any> {}
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session middleware
   const MemoryStoreSession = MemoryStore(session);
@@ -183,12 +190,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
   
   // Serialize user for the session
-  passport.serializeUser((user: User, done: any) => {
-    done(null, user.id);
+  passport.serializeUser((user: Express.User, done) => {
+    // We know our user has an id property, cast to access it
+    done(null, (user as unknown as User).id);
   });
   
   // Deserialize user from the session
-  passport.deserializeUser(async (id: number, done: any) => {
+  passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
       done(null, user);
@@ -202,6 +210,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     passport.authenticate('google', { scope: ['profile', 'email'] })
   );
   
+  // Google OAuth callback route
   app.get('/api/auth/google/callback', 
     passport.authenticate('google', { 
       failureRedirect: '/login',
@@ -212,7 +221,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.user) {
         req.session.userId = (req.user as User).id;
       }
-      res.redirect('/');
+      res.redirect('/dashboard');
     }
   );
 

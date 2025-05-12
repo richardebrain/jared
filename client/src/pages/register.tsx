@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import GoogleAuthButton from "@/components/GoogleAuthButton";
 
 
 // Form schema for registration - simplified for ease of use
@@ -112,13 +114,29 @@ export default function Register() {
           
           {/* Direct email signup is the preferred method */}
           <div className="mb-6">
-            <div className="relative mb-6">
+            <GoogleAuthButton 
+              mode="signup"
+              onSuccess={() => {
+                console.log("Google signup successful");
+                // Redirect will happen from server
+              }}
+              onError={(error) => {
+                console.error("Google signup error:", error);
+                toast({
+                  title: "Signup failed",
+                  description: "Google authentication failed. Please try again or use the form below.",
+                  variant: "destructive",
+                });
+              }}
+            />
+            
+            <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-white px-2 text-primary font-bold">
-                  Create your account
+                  Or create account with email
                 </span>
               </div>
             </div>
