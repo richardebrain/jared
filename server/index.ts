@@ -67,5 +67,10 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    
+    // Seed the database with initial data
+    seedDatabase().catch(err => {
+      console.error("Error seeding database:", err);
+    });
   });
 })();
