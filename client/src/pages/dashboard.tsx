@@ -286,11 +286,12 @@ export default function Dashboard() {
                             <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
                               {module.difficulty}
                             </span>
-                            <Link to={`/modules/${module.id}`}>
-                              <button className="text-sm bg-primary text-white rounded-lg px-3 py-1.5 font-semibold hover:bg-opacity-90 transition">
-                                Start Now
-                              </button>
-                            </Link>
+                            <button 
+                              onClick={() => handleModuleSelect(module.id)}
+                              className="text-sm bg-primary text-white rounded-lg px-3 py-1.5 font-semibold hover:bg-opacity-90 transition"
+                            >
+                              Start Now
+                            </button>
                           </div>
                         </div>
                       ))}
@@ -593,11 +594,12 @@ export default function Dashboard() {
                 <p className="mb-6 text-[#333]">Start each day with purpose and calm. Our Mindful Mornings program helps teachers develop emotional regulation, positive self-image, and gratitude practices to share with children.</p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   {mindfulMorningsModules.length > 0 && (
-                    <Link href={`/modules/${mindfulMorningsModules[0].id}`}>
-                      <button className="bg-gradient-to-r from-primary to-[#ff8c24] text-white rounded-lg px-6 py-3 font-semibold hover:opacity-90 transition shadow-md">
-                        Start Training
-                      </button>
-                    </Link>
+                    <button 
+                      onClick={() => handleModuleSelect(mindfulMorningsModules[0].id)}
+                      className="bg-gradient-to-r from-primary to-[#ff8c24] text-white rounded-lg px-6 py-3 font-semibold hover:opacity-90 transition shadow-md"
+                    >
+                      Start Training
+                    </button>
                   )}
                   <button className="border-2 border-primary text-primary rounded-lg px-6 py-3 font-semibold hover:bg-primary/10 transition">
                     Program Details
