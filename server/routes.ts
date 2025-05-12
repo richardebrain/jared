@@ -265,17 +265,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/assessments", requireAuth, async (req, res) => {
     try {
       const userId = req.session.userId as number;
+      
+      // Get all modules to generate recommendations
+      const allModules = await storage.getAllModules();
+      
+      // Process and enhance the assessment data with recommendations
+      const { strengthAreas, growthAreas, overallScore, ...otherData } = req.body;
+      
+      // Import assessment utility
+      const { generateModuleRecommendations } = await import("./assessmentUtils");
+      
+      // Generate module recommendations based on assessment results
+      const recommendedModules = generateModuleRecommendations(
+        strengthAreas || [], 
+        growthAreas || [],
+        allModules
+      );
+      
+      // Create enhanced assessment data
       const assessmentData = insertAssessmentSchema.parse({
-        ...req.body,
-        userId
+        ...otherData,
+        userId,
+        strengthAreas: strengthAreas || [],
+        growthAreas: growthAreas || [],
+        overallScore: overallScore || 0,
+        recommendedModules
       });
       
       const assessment = await storage.createAssessment(assessmentData);
-      res.status(201).json(assessment);
+      
+      // Update user progress to mark custom modules as recommended
+      if (recommendedModules.length > 0) {
+        // Create progress entries for recommended modules if they don't exist
+        for (const moduleId of recommendedModules) {
+          const existingProgress = await storage.getUserProgressByModuleId(moduleId);
+          const userHasProgress = existingProgress.some(p => p.userId === userId);
+          
+          if (!userHasProgress) {
+            await storage.updateUserProgress({
+              userId,
+              moduleId,
+              progress: 0,
+              completed: false,
+              lastUpdated: new Date(),
+              recommended: true
+            });
+          }
+        }
+      }
+      
+      res.status(201).json({
+        ...assessment,
+        teacherLevel: overallScore >= 80 ? "Master Lead Teacher" :
+                      overallScore >= 60 ? "Lead Teacher" :
+                      overallScore >= 40 ? "Associate Teacher" :
+                      overallScore >= 20 ? "Assistant Teacher" : 
+                      "Teacher in Training"
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Validation error", errors: error.errors });
       }
+      console.error("Assessment error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

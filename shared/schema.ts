@@ -80,10 +80,16 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
 export const assessments = pgTable("assessments", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
-  score: integer("score"),
+  overallScore: integer("overall_score"),
   completed: boolean("completed").default(false),
-  results: json("results"),
+  results: json("results").$type<Record<string, string>>(),
+  domainScores: json("domain_scores").$type<Record<string, number>>(),
+  strengthAreas: json("strength_areas").$type<string[]>(),
+  growthAreas: json("growth_areas").$type<string[]>(),
+  recommendedModules: json("recommended_modules").$type<number[]>(),
   createdAt: timestamp("created_at").defaultNow(),
+  assessmentType: text("assessment_type").default("ITERS_ECERS_CLASS"),
+  notes: text("notes"),
 });
 
 export const insertAssessmentSchema = createInsertSchema(assessments).omit({
