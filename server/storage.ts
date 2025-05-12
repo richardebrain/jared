@@ -198,6 +198,7 @@ export class MemStorage implements IStorage {
         ...existingProgress,
         progress: insertProgress.progress || 0,
         completed: insertProgress.completed || null,
+        recommended: insertProgress.recommended || false,
         lastAccessed: new Date()
       };
       
@@ -213,6 +214,7 @@ export class MemStorage implements IStorage {
         moduleId: insertProgress.moduleId,
         progress: insertProgress.progress || 0,
         completed: insertProgress.completed || null,
+        recommended: insertProgress.recommended || false,
         lastAccessed: now
       };
       

@@ -307,7 +307,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
               moduleId,
               progress: 0,
               completed: false,
-              lastUpdated: new Date(),
               recommended: true
             });
           }

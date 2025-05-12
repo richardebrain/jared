@@ -48,6 +48,7 @@ export const userProgress = pgTable("user_progress", {
   moduleId: integer("module_id").notNull().references(() => learningModules.id),
   progress: integer("progress").notNull().default(0), // percentage complete
   completed: boolean("completed").default(false),
+  recommended: boolean("recommended").default(false), // added for personalized recommendations
   lastAccessed: timestamp("last_accessed").defaultNow(),
 });
 
