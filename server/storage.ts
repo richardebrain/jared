@@ -67,41 +67,52 @@ export class MemStorage implements IStorage {
   // Initialize sample learning modules
   private initializeModules() {
     const moduleData: InsertLearningModule[] = [
+      // Core Teaching Modules
       {
-        title: "Basic Greetings and Introductions",
-        description: "Learn how to introduce yourself and greet others in a new language.",
-        duration: 60,
-        imageUrl: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b",
-        featured: true,
-        difficulty: "beginner",
-        category: "speaking"
-      },
-      {
-        title: "Essential Vocabulary",
-        description: "Build your core vocabulary with the most commonly used words and phrases.",
+        title: "Early Childhood Development Basics",
+        description: "Understand the fundamental principles of early childhood development and how to apply them in your classroom.",
         duration: 90,
-        imageUrl: "https://images.unsplash.com/photo-1609220136736-443140cffec6",
-        featured: false,
-        difficulty: "beginner",
-        category: "vocabulary"
-      },
-      {
-        title: "Grammar Fundamentals",
-        description: "Master the basic grammar rules needed for constructing simple sentences.",
-        duration: 120,
-        imageUrl: "https://images.unsplash.com/photo-1607453998774-d533f65dac99",
-        featured: false,
-        difficulty: "intermediate",
-        category: "grammar"
-      },
-      {
-        title: "Conversation Practice",
-        description: "Practice real-world conversations with guided dialogues and scenarios.",
-        duration: 60,
-        imageUrl: "https://images.unsplash.com/photo-1531482615713-2afd69097998",
+        imageUrl: null,
         featured: true,
+        difficulty: "beginner",
+        category: "foundations"
+      },
+      {
+        title: "Classroom Management",
+        description: "Learn effective techniques for managing a preschool classroom and creating a positive learning environment.",
+        duration: 120,
+        imageUrl: null,
+        featured: false,
         difficulty: "intermediate",
-        category: "speaking"
+        category: "management"
+      },
+      // Mindful Mornings Modules
+      {
+        title: "Mindful Mornings: Breathing Exercises",
+        description: "Learn how to teach simple breathing techniques to help children regulate emotions and increase focus. If you memorize the phrase 'Breathe, Smile, Be Present' and tell it to your director, you'll receive a special lunch reward!",
+        duration: 45,
+        imageUrl: null,
+        featured: true,
+        difficulty: "beginner",
+        category: "mindful-mornings"
+      },
+      {
+        title: "Mindful Mornings: Self-Affirmations",
+        description: "Discover effective self-affirmation techniques to teach children positive self-talk and build confidence in the classroom.",
+        duration: 45,
+        imageUrl: null,
+        featured: true,
+        difficulty: "beginner",
+        category: "mindful-mornings"
+      },
+      {
+        title: "Mindful Mornings: Gratitude Practices",
+        description: "Explore activities that foster gratitude and appreciation in young children, creating a positive classroom culture. Hidden challenge: Find the three gratitude statements in this module to unlock a special reward.",
+        duration: 45,
+        imageUrl: null,
+        featured: true,
+        difficulty: "beginner",
+        category: "mindful-mornings"
       }
     ];
     
@@ -146,7 +157,13 @@ export class MemStorage implements IStorage {
   async createModule(insertModule: InsertLearningModule): Promise<LearningModule> {
     const id = this.moduleIdCounter++;
     const now = new Date();
-    const module: LearningModule = { ...insertModule, id, createdAt: now };
+    const module: LearningModule = {
+      ...insertModule,
+      id,
+      createdAt: now,
+      imageUrl: insertModule.imageUrl || null,
+      featured: insertModule.featured || null
+    };
     this.learningModules.set(id, module);
     return module;
   }
@@ -177,8 +194,8 @@ export class MemStorage implements IStorage {
       // Update existing progress
       const updatedProgress: UserProgress = {
         ...existingProgress,
-        progress: insertProgress.progress,
-        completed: insertProgress.completed,
+        progress: insertProgress.progress || 0,
+        completed: insertProgress.completed || null,
         lastAccessed: new Date()
       };
       
@@ -189,8 +206,11 @@ export class MemStorage implements IStorage {
       const id = this.progressIdCounter++;
       const now = new Date();
       const progress: UserProgress = {
-        ...insertProgress,
         id,
+        userId: insertProgress.userId,
+        moduleId: insertProgress.moduleId,
+        progress: insertProgress.progress || 0,
+        completed: insertProgress.completed || null,
         lastAccessed: now
       };
       
@@ -213,7 +233,15 @@ export class MemStorage implements IStorage {
   async createMeeting(insertMeeting: InsertMeeting): Promise<Meeting> {
     const id = this.meetingIdCounter++;
     const now = new Date();
-    const meeting: Meeting = { ...insertMeeting, id, createdAt: now };
+    const meeting: Meeting = {
+      ...insertMeeting,
+      id,
+      createdAt: now,
+      status: insertMeeting.status || "scheduled",
+      description: insertMeeting.description || null,
+      guestId: insertMeeting.guestId || null,
+      meetingLink: insertMeeting.meetingLink || null
+    };
     this.meetings.set(id, meeting);
     return meeting;
   }
@@ -248,7 +276,14 @@ export class MemStorage implements IStorage {
   async createAssessment(insertAssessment: InsertAssessment): Promise<Assessment> {
     const id = this.assessmentIdCounter++;
     const now = new Date();
-    const assessment: Assessment = { ...insertAssessment, id, createdAt: now };
+    const assessment: Assessment = {
+      ...insertAssessment,
+      id,
+      createdAt: now,
+      results: insertAssessment.results || {},
+      completed: insertAssessment.completed || null,
+      score: insertAssessment.score || null
+    };
     this.assessments.set(id, assessment);
     return assessment;
   }
