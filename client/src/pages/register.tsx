@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import GoogleAuthButton from "@/components/GoogleAuthButton";
 import raisingArizonaLogo from "../assets/images/raising-arizona-logo.jpg";
 
 import {
@@ -19,7 +18,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 
 
 // Form schema for registration - simplified for ease of use
@@ -112,29 +110,15 @@ export default function Register() {
         <div className="bg-white p-8 rounded-lg shadow-md">
           <h2 className="text-2xl font-heading font-bold mb-6 text-center">Sign Up</h2>
           
-          {/* Google Sign Up Button */}
+          {/* Direct email signup is the preferred method */}
           <div className="mb-6">
-            <div className="animate-pop">
-              <GoogleAuthButton 
-                mode="signup"
-                onSuccess={() => setLocation('/dashboard')}
-                onError={(error) => {
-                  toast({
-                    title: "Registration Failed",
-                    description: "Could not sign up with Google. Please try again or use the form below.",
-                    variant: "destructive"
-                  });
-                }}
-              />
-            </div>
-            
-            <div className="relative mt-6">
+            <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-muted-foreground">
-                  Or sign up with email
+                <span className="bg-white px-2 text-primary font-bold">
+                  Create your account
                 </span>
               </div>
             </div>
