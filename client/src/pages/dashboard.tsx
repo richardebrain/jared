@@ -7,6 +7,7 @@ import ProgressCircle from "@/components/ProgressCircle";
 import ChatbotSupport from "@/components/ChatbotSupport";
 import ModuleCard from "@/components/ModuleCard";
 import CourseCard from "@/components/CourseCard";
+import mindfulMorningsLogo from "@assets/mindful-mornings-logo.jpg";
 
 export default function Dashboard() {
   const { data: user } = useQuery<User>({ 
@@ -51,6 +52,11 @@ export default function Dashboard() {
       progress.moduleId === module.id
     )
   ).slice(0, 3) || [];
+  
+  // Get Mindful Mornings modules
+  const mindfulMorningsModules = modules?.filter(module => 
+    module.category === 'mindful-mornings'
+  ) || [];
 
   // Get upcoming deadlines
   const upcomingMeetings = meetings?.filter(meeting => 
@@ -153,43 +159,47 @@ export default function Dashboard() {
             
             <div className="w-full md:w-80 space-y-6">
               <div className="bg-white rounded-xl shadow-md p-6">
-                <h2 className="text-xl font-heading font-bold mb-4">Your Achievements</h2>
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="text-center">
-                    <div className="w-14 h-14 rounded-full bg-primary bg-opacity-10 mx-auto flex items-center justify-center">
-                      <i className="ri-trophy-line text-xl text-primary"></i>
-                    </div>
-                    <p className="text-xs mt-1">First Quiz</p>
+                <h2 className="text-xl font-heading font-bold mb-4">Your Teacher Level</h2>
+                <div className="flex items-center justify-center mb-4">
+                  <div className="w-20 h-20 rounded-full bg-[#e6ecff] mx-auto flex items-center justify-center border-4 border-[#0030b8]">
+                    <i className="ri-award-line text-2xl text-[#0030b8]"></i>
                   </div>
-                  <div className="text-center">
-                    <div className="w-14 h-14 rounded-full bg-accent bg-opacity-10 mx-auto flex items-center justify-center">
-                      <i className="ri-book-open-line text-xl text-accent"></i>
+                </div>
+                <div className="text-center mb-4">
+                  <p className="font-bold text-lg text-[#0030b8]">Assistant Teacher</p>
+                  <p className="text-sm text-gray-600">Level 1 of 4</p>
+                </div>
+                
+                <div className="w-full bg-neutral-200 rounded-full h-2 mb-6">
+                  <div className="bg-[#0030b8] h-2 rounded-full" style={{ width: "25%" }}></div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 rounded-full bg-[#e6ecff] flex items-center justify-center mr-3">
+                      <i className="ri-checkbox-circle-fill text-[#0030b8]"></i>
                     </div>
-                    <p className="text-xs mt-1">5 Modules</p>
+                    <span className="text-sm">Assistant Teacher</span>
+                    <span className="ml-auto text-xs bg-[#e6ecff] text-[#0030b8] px-2 py-1 rounded-full">Current</span>
                   </div>
-                  <div className="text-center">
-                    <div className="w-14 h-14 rounded-full bg-secondary bg-opacity-10 mx-auto flex items-center justify-center">
-                      <i className="ri-calendar-check-line text-xl text-secondary"></i>
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center mr-3">
+                      <span className="text-xs font-bold">2</span>
                     </div>
-                    <p className="text-xs mt-1">Streak: 5</p>
+                    <span className="text-sm text-neutral-600">Lead Teacher</span>
                   </div>
-                  <div className="text-center opacity-40">
-                    <div className="w-14 h-14 rounded-full bg-neutral-200 mx-auto flex items-center justify-center">
-                      <i className="ri-lock-line text-xl text-neutral-800"></i>
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center mr-3">
+                      <span className="text-xs font-bold">3</span>
                     </div>
-                    <p className="text-xs mt-1">Locked</p>
+                    <span className="text-sm text-neutral-600">Senior Teacher</span>
                   </div>
-                  <div className="text-center opacity-40">
-                    <div className="w-14 h-14 rounded-full bg-neutral-200 mx-auto flex items-center justify-center">
-                      <i className="ri-lock-line text-xl text-neutral-800"></i>
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center mr-3">
+                      <span className="text-xs font-bold">4</span>
                     </div>
-                    <p className="text-xs mt-1">Locked</p>
-                  </div>
-                  <div className="text-center opacity-40">
-                    <div className="w-14 h-14 rounded-full bg-neutral-200 mx-auto flex items-center justify-center">
-                      <i className="ri-lock-line text-xl text-neutral-800"></i>
-                    </div>
-                    <p className="text-xs mt-1">Locked</p>
+                    <span className="text-sm text-neutral-600">Master Lead Teacher</span>
+                    <span className="ml-auto text-xs bg-neutral-200 text-neutral-600 px-2 py-1 rounded-full">Top Level</span>
                   </div>
                 </div>
               </div>
@@ -251,31 +261,50 @@ export default function Dashboard() {
           </div>
         </section>
         
-        {/* Assessment Promo */}
+        {/* Mindful Mornings Section */}
         <section className="mb-12">
-          <div className="bg-primary bg-opacity-5 rounded-xl p-8">
+          <div className="bg-[#f5f8ff] rounded-xl p-8">
             <div className="flex flex-col md:flex-row items-center">
               <div className="flex-1 mb-6 md:mb-0 md:mr-8">
-                <h2 className="text-2xl font-heading font-bold mb-3">Ready to enhance your language skills?</h2>
-                <p className="mb-6">Take our personalized assessment to identify your strengths and areas for growth. We'll create a customized learning path just for you!</p>
+                <div className="flex items-center mb-4">
+                  <img 
+                    src={mindfulMorningsLogo} 
+                    alt="Mindful Mornings" 
+                    className="h-16 mr-4"
+                  />
+                  <h2 className="text-2xl font-heading font-bold text-[#0030b8]">Mindful Mornings</h2>
+                </div>
+                <p className="mb-6 text-[#333]">Start each day with purpose and calm. Our Mindful Mornings program helps children develop emotional regulation, positive self-image, and gratitude practices.</p>
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <Link href="/assessment">
-                    <button className="bg-primary text-white rounded-lg px-6 py-3 font-semibold hover:bg-opacity-90 transition">
-                      Start Assessment
-                    </button>
-                  </Link>
-                  <button className="border border-primary text-primary rounded-lg px-6 py-3 font-semibold hover:bg-primary hover:bg-opacity-5 transition">
-                    Learn More
+                  {mindfulMorningsModules.length > 0 && (
+                    <Link href={`/modules/${mindfulMorningsModules[0].id}`}>
+                      <button className="bg-[#0030b8] text-white rounded-lg px-6 py-3 font-semibold hover:bg-opacity-90 transition">
+                        Start Training
+                      </button>
+                    </Link>
+                  )}
+                  <button className="border border-[#0030b8] text-[#0030b8] rounded-lg px-6 py-3 font-semibold hover:bg-[#e6ecff] transition">
+                    Program Details
                   </button>
                 </div>
               </div>
               
               <div className="w-full md:w-1/3">
-                <img 
-                  src="https://images.unsplash.com/photo-1531482615713-2afd69097998?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&h=400" 
-                  alt="Language learner engaged in practice" 
-                  className="w-full h-auto rounded-lg shadow-lg object-cover"
-                />
+                <div className="bg-white p-4 rounded-lg shadow-md">
+                  <h3 className="font-semibold text-[#0030b8] mb-3">Training Modules:</h3>
+                  <ul className="space-y-2">
+                    {mindfulMorningsModules.map((module) => (
+                      <li key={module.id} className="flex items-center">
+                        <div className="w-2 h-2 rounded-full bg-[#ff8c24] mr-2"></div>
+                        <Link href={`/modules/${module.id}`}>
+                          <span className="text-sm hover:text-[#0030b8] cursor-pointer transition">
+                            {module.title}
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             </div>
           </div>

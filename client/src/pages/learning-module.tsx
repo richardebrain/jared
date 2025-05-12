@@ -257,14 +257,71 @@ export default function LearningModulePage() {
                           <div className="mb-8">
                             <h4 className="font-heading font-semibold mb-3">Lesson Content</h4>
                             <p className="mb-4">
-                              This is where the specific lesson content would be displayed, 
-                              including text explanations, interactive elements, and practice exercises.
+                              {module.category === 'mindful-mornings' ? (
+                                module.title.includes('Breathing') ? (
+                                  <>
+                                    <p className="mb-4">In this module, you'll learn how to effectively teach breathing exercises to children that can help them regulate their emotions and increase focus in the classroom.</p>
+                                    
+                                    <h5 className="font-semibold mt-6 mb-2">Key Benefits of Breathing Exercises</h5>
+                                    <ul className="list-disc pl-5 mb-4 space-y-1">
+                                      <li>Helps children develop self-regulation skills</li>
+                                      <li>Reduces anxiety and stress responses</li>
+                                      <li>Improves focus and attention</li>
+                                      <li>Can be used as a transitional activity between lessons</li>
+                                    </ul>
+                                    
+                                    <div className="p-4 bg-[#e6ecff] border border-[#0030b8] rounded-lg mb-6">
+                                      <p className="font-semibold text-[#0030b8]">🌟 Easter Egg Alert!</p>
+                                      <p className="text-[#333]">If you memorize the phrase "<span className="font-bold">Breathe, Smile, Be Present</span>" and share it with your director, you'll receive a special lunch reward!</p>
+                                    </div>
+                                  </>
+                                ) : module.title.includes('Self-Affirmations') ? (
+                                  <>
+                                    <p className="mb-4">This module explores how to teach children positive self-talk and affirmations that build confidence and resilience in the classroom setting.</p>
+                                    
+                                    <h5 className="font-semibold mt-6 mb-2">Benefits of Self-Affirmations for Children</h5>
+                                    <ul className="list-disc pl-5 mb-4 space-y-1">
+                                      <li>Builds a positive self-image and self-esteem</li>
+                                      <li>Encourages resilience when facing challenges</li>
+                                      <li>Helps develop a growth mindset approach to learning</li>
+                                      <li>Creates a supportive classroom environment</li>
+                                    </ul>
+                                    
+                                    <div className="p-4 bg-[#e6ecff] border border-[#0030b8] rounded-lg mb-6">
+                                      <p className="font-semibold text-[#0030b8]">💫 Activity Challenge!</p>
+                                      <p className="text-[#333]">Create your own classroom affirmation and send it to your director to receive special recognition in the next staff meeting!</p>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <>
+                                    <p className="mb-4">The gratitude module will help you incorporate thankfulness and appreciation practices into your daily classroom routines.</p>
+                                    
+                                    <h5 className="font-semibold mt-6 mb-2">Why Teaching Gratitude Matters</h5>
+                                    <ul className="list-disc pl-5 mb-4 space-y-1">
+                                      <li>Improves classroom climate and student well-being</li>
+                                      <li>Helps children develop emotional intelligence</li>
+                                      <li>Reduces conflicts and promotes empathy</li>
+                                      <li>Creates a positive learning environment</li>
+                                    </ul>
+                                    
+                                    <div className="p-4 bg-[#e6ecff] border border-[#0030b8] rounded-lg mb-6">
+                                      <p className="font-semibold text-[#0030b8]">🎁 Hidden Challenge!</p>
+                                      <p className="text-[#333]">Find the three gratitude statements embedded in this module. When you find all three, share them with your director to unlock a special reward!</p>
+                                    </div>
+                                  </>
+                                )
+                              ) : (
+                                <>
+                                  This is where the specific lesson content would be displayed, 
+                                  including text explanations, interactive elements, and practice exercises.
+                                  <div className="p-4 bg-muted rounded-lg mt-4">
+                                    <p className="text-center text-muted-foreground">
+                                      Lesson content is loaded dynamically based on the selected module and lesson.
+                                    </p>
+                                  </div>
+                                </>
+                              )}
                             </p>
-                            <div className="p-4 bg-muted rounded-lg">
-                              <p className="text-center text-muted-foreground">
-                                Lesson content is loaded dynamically based on the selected module and lesson.
-                              </p>
-                            </div>
                           </div>
                           
                           <Button 
