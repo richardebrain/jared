@@ -5,6 +5,8 @@ import {
   meetings, type Meeting, type InsertMeeting,
   assessments, type Assessment, type InsertAssessment
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, and, desc } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -289,4 +291,129 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Create a DatabaseStorage class that implements the IStorage interface
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+  
+  async getAllModules(): Promise<LearningModule[]> {
+    return await db.select().from(learningModules);
+  }
+  
+  async getModule(id: number): Promise<LearningModule | undefined> {
+    const [module] = await db.select().from(learningModules).where(eq(learningModules.id, id));
+    return module || undefined;
+  }
+  
+  async createModule(module: InsertLearningModule): Promise<LearningModule> {
+    const [newModule] = await db
+      .insert(learningModules)
+      .values(module)
+      .returning();
+    return newModule;
+  }
+  
+  async getUserProgressByUserId(userId: number): Promise<UserProgress[]> {
+    return await db.select().from(userProgress).where(eq(userProgress.userId, userId));
+  }
+  
+  async getUserProgressByModuleId(moduleId: number): Promise<UserProgress[]> {
+    return await db.select().from(userProgress).where(eq(userProgress.moduleId, moduleId));
+  }
+  
+  async updateUserProgress(progress: InsertUserProgress): Promise<UserProgress> {
+    // Check if progress already exists
+    const [existingProgress] = await db
+      .select()
+      .from(userProgress)
+      .where(and(
+        eq(userProgress.userId, progress.userId),
+        eq(userProgress.moduleId, progress.moduleId)
+      ));
+    
+    if (existingProgress) {
+      // Update existing progress
+      const [updatedProgress] = await db
+        .update(userProgress)
+        .set(progress)
+        .where(eq(userProgress.id, existingProgress.id))
+        .returning();
+      return updatedProgress;
+    } else {
+      // Create new progress
+      const [newProgress] = await db
+        .insert(userProgress)
+        .values(progress)
+        .returning();
+      return newProgress;
+    }
+  }
+  
+  async getMeetingsByUserId(userId: number): Promise<Meeting[]> {
+    return await db
+      .select()
+      .from(meetings)
+      .where(eq(meetings.userId, userId))
+      .orderBy(meetings.startTime);
+  }
+  
+  async getMeeting(id: number): Promise<Meeting | undefined> {
+    const [meeting] = await db.select().from(meetings).where(eq(meetings.id, id));
+    return meeting || undefined;
+  }
+  
+  async createMeeting(meeting: InsertMeeting): Promise<Meeting> {
+    const [newMeeting] = await db
+      .insert(meetings)
+      .values(meeting)
+      .returning();
+    return newMeeting;
+  }
+  
+  async updateMeeting(id: number, updateData: Partial<InsertMeeting>): Promise<Meeting> {
+    const [updatedMeeting] = await db
+      .update(meetings)
+      .set(updateData)
+      .where(eq(meetings.id, id))
+      .returning();
+    return updatedMeeting;
+  }
+  
+  async deleteMeeting(id: number): Promise<void> {
+    await db.delete(meetings).where(eq(meetings.id, id));
+  }
+  
+  async getAssessmentsByUserId(userId: number): Promise<Assessment[]> {
+    return await db
+      .select()
+      .from(assessments)
+      .where(eq(assessments.userId, userId))
+      .orderBy(desc(assessments.createdAt));
+  }
+  
+  async createAssessment(assessment: InsertAssessment): Promise<Assessment> {
+    const [newAssessment] = await db
+      .insert(assessments)
+      .values(assessment)
+      .returning();
+    return newAssessment;
+  }
+}
+
+// Export a new instance of DatabaseStorage
+export const storage = new DatabaseStorage();
