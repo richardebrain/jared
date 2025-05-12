@@ -15,6 +15,13 @@ export const users = pgTable("users", {
   nativeLanguage: text("native_language").notNull(),
   timeZone: text("time_zone").notNull(),
   profilePicture: text("profile_picture"),
+  learningStyle: json("learning_style").$type<{
+    visual: number,
+    auditory: number,
+    reading: number,
+    kinesthetic: number,
+    preferred: 'visual' | 'auditory' | 'reading' | 'kinesthetic' | null
+  }>(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
