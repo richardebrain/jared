@@ -88,6 +88,7 @@ export class MemStorage implements IStorage {
         difficulty: "intermediate",
         category: "management"
       },
+      
       // Mindful Mornings Modules
       {
         title: "Mindful Mornings: Breathing Exercises",
@@ -115,6 +116,180 @@ export class MemStorage implements IStorage {
         featured: true,
         difficulty: "beginner",
         category: "mindful-mornings"
+      },
+      
+      // Child Development & Theories
+      {
+        title: "Piaget's Cognitive Development Theory",
+        description: "Understand how children's thinking develops through Piaget's four stages and apply this knowledge to create developmentally appropriate activities.",
+        duration: 75,
+        imageUrl: null,
+        featured: false,
+        difficulty: "intermediate",
+        category: "child-development"
+      },
+      {
+        title: "Vygotsky's Sociocultural Theory",
+        description: "Learn about the Zone of Proximal Development and scaffolding techniques to support children's learning through social interactions.",
+        duration: 60,
+        imageUrl: null,
+        featured: false,
+        difficulty: "intermediate",
+        category: "child-development"
+      },
+      {
+        title: "Attachment Theory in Early Childhood",
+        description: "Explore how secure attachments form and their importance in children's emotional development and future relationships.",
+        duration: 90,
+        imageUrl: null,
+        featured: true,
+        difficulty: "intermediate",
+        category: "child-development"
+      },
+      
+      // Curriculum & Instruction
+      {
+        title: "Play-Based Learning Fundamentals",
+        description: "Discover the science behind play-based learning and how to design intentional play experiences that promote learning across all developmental domains.",
+        duration: 120,
+        imageUrl: null,
+        featured: true,
+        difficulty: "beginner",
+        category: "curriculum"
+      },
+      {
+        title: "Emergent Curriculum Design",
+        description: "Learn to develop curriculum based on children's interests and inquiries while still meeting educational standards and goals.",
+        duration: 90,
+        imageUrl: null,
+        featured: false,
+        difficulty: "advanced",
+        category: "curriculum"
+      },
+      {
+        title: "STEM in Early Childhood",
+        description: "Explore age-appropriate science, technology, engineering, and math activities that foster curiosity and problem-solving skills.",
+        duration: 75,
+        imageUrl: null,
+        featured: true,
+        difficulty: "intermediate",
+        category: "curriculum"
+      },
+      
+      // Observation & Assessment
+      {
+        title: "Authentic Assessment Methods",
+        description: "Learn effective observation techniques and documentation methods to track children's development and inform your teaching practices.",
+        duration: 60,
+        imageUrl: null,
+        featured: false,
+        difficulty: "intermediate",
+        category: "assessment"
+      },
+      {
+        title: "Understanding the ECERS/ITERS Framework",
+        description: "Deep dive into the Environmental Rating Scales and how to use them to evaluate and improve your classroom environment.",
+        duration: 120,
+        imageUrl: null,
+        featured: true,
+        difficulty: "advanced",
+        category: "assessment"
+      },
+      {
+        title: "CLASS Assessment Overview",
+        description: "Understand the Classroom Assessment Scoring System (CLASS) and how it measures teacher-child interactions across emotional support, classroom organization, and instructional support domains.",
+        duration: 90,
+        imageUrl: null,
+        featured: true,
+        difficulty: "intermediate",
+        category: "assessment"
+      },
+      
+      // Special Needs & Inclusion
+      {
+        title: "Inclusive Classroom Practices",
+        description: "Learn strategies to create an inclusive environment that supports children with diverse abilities and needs.",
+        duration: 75,
+        imageUrl: null,
+        featured: true,
+        difficulty: "intermediate",
+        category: "inclusion"
+      },
+      {
+        title: "Understanding IEPs and IFSPs",
+        description: "Navigate the process of Individualized Education Programs and Individualized Family Service Plans to support children with special needs.",
+        duration: 60,
+        imageUrl: null,
+        featured: false,
+        difficulty: "intermediate",
+        category: "inclusion"
+      },
+      {
+        title: "Sensory Processing in Early Childhood",
+        description: "Understand sensory processing differences and implement supportive strategies in your classroom environment and activities.",
+        duration: 90,
+        imageUrl: null,
+        featured: false,
+        difficulty: "intermediate",
+        category: "inclusion"
+      },
+      
+      // Communication & Family Engagement
+      {
+        title: "Effective Parent-Teacher Communication",
+        description: "Develop skills to build strong relationships with families through various communication strategies and tools.",
+        duration: 60,
+        imageUrl: null,
+        featured: true,
+        difficulty: "beginner",
+        category: "family-engagement"
+      },
+      {
+        title: "Family Engagement Strategies",
+        description: "Learn innovative approaches to involve families in their children's learning and the classroom community.",
+        duration: 75,
+        imageUrl: null,
+        featured: false,
+        difficulty: "intermediate",
+        category: "family-engagement"
+      },
+      {
+        title: "Cultural Competence in Early Childhood Settings",
+        description: "Develop awareness and skills to respect and celebrate cultural diversity in your classroom community.",
+        duration: 90,
+        imageUrl: null,
+        featured: true,
+        difficulty: "intermediate",
+        category: "family-engagement"
+      },
+      
+      // Teacher Wellness & Professional Development
+      {
+        title: "Teacher Self-Care Strategies",
+        description: "Learn practical techniques to manage stress and prevent burnout while working in the demanding field of early childhood education.",
+        duration: 60,
+        imageUrl: null,
+        featured: true,
+        difficulty: "beginner",
+        category: "teacher-wellness"
+      },
+      {
+        title: "Reflective Teaching Practice",
+        description: "Develop skills to critically reflect on your teaching practices and use these insights to continuously improve your effectiveness.",
+        duration: 75,
+        imageUrl: null,
+        featured: false,
+        difficulty: "intermediate",
+        category: "teacher-wellness"
+      },
+      {
+        title: "Building Your Professional Learning Network",
+        description: "Discover resources and strategies to connect with other early childhood professionals for ongoing learning and support.",
+        duration: 45,
+        imageUrl: null,
+        featured: false,
+        difficulty: "beginner",
+        category: "teacher-wellness"
       }
     ];
     
