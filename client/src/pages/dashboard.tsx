@@ -13,20 +13,37 @@ import mindfulMorningsLogo from "../assets/images/mindful-mornings-logo.jpg";
 import raisingArizonaLogo from "../assets/images/raising-arizona-logo.jpg";
 
 export default function Dashboard() {
-  const { data: user } = useQuery<User>({ 
-    queryKey: ["/api/auth/me"] 
+  const { data: user, isLoading: isLoadingUser, isError: isUserError } = useQuery<User>({ 
+    queryKey: ["/api/auth/me"],
+    retry: 3 // Try a few times to fetch the user data
   });
   
+  // Only fetch these resources if we have a user
   const { data: userProgress } = useQuery({ 
-    queryKey: ["/api/progress"] 
+    queryKey: ["/api/progress"],
+    enabled: !!user,
+    retry: 3
   });
   
   const { data: modules } = useQuery({
-    queryKey: ["/api/modules"]
+    queryKey: ["/api/modules"],
+    retry: 3
   });
   
   const { data: meetings } = useQuery({
-    queryKey: ["/api/meetings"]
+    queryKey: ["/api/meetings"],
+    enabled: !!user,
+    retry: 3
+  });
+  
+  // Debug logging for authentication issues
+  console.log("[Dashboard] Authentication state:", { 
+    user, 
+    isLoadingUser, 
+    isUserError,
+    userProgress,
+    modules,
+    meetings
   });
 
   // Calculate overall progress

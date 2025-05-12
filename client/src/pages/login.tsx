@@ -82,6 +82,11 @@ export default function Login() {
   // Form submission handler
   function onSubmit(values: z.infer<typeof loginSchema>) {
     login(values);
+    // Directly navigate to dashboard after 1 second to make sure state has time to update
+    setTimeout(() => {
+      console.log("Forcing navigation to dashboard");
+      window.location.href = "/dashboard";
+    }, 1000);
   }
 
   return (
