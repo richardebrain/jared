@@ -55,7 +55,7 @@ export default function Login() {
         title: "Login successful!",
         description: "Welcome back to MentorMe.",
       });
-      setLocation("/");
+      setLocation("/dashboard");
     },
     onError: (error: Error) => {
       toast({

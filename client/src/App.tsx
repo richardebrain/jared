@@ -26,6 +26,7 @@ function Router() {
       {isAuthenticated ? (
         <>
           <Route path="/" component={Dashboard} />
+          <Route path="/dashboard" component={Dashboard} />
           <Route path="/schedule" component={Schedule} />
           <Route path="/assessment" component={Assessment} />
           <Route path="/modules/:id" component={LearningModulePage} />
