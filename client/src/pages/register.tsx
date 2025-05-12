@@ -19,17 +19,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 
 
-// Form schema for registration
+// Form schema for registration - simplified for ease of use
 const registerSchema = z.object({
   username: z.string().min(3, {
     message: "Username must be at least 3 characters.",
@@ -46,36 +39,17 @@ const registerSchema = z.object({
   email: z.string().email({
     message: "Please enter a valid email address.",
   }),
-  language: z.string().min(1, {
-    message: "Please select your preferred teaching language.",
-  }),
-  nativeLanguage: z.string().min(1, {
-    message: "Please select your native language.",
-  }),
-  timeZone: z.string().min(1, {
-    message: "Please select your time zone.",
-  }),
+  // Using defaults for removed fields to maintain compatibility with backend
+  language: z.string().default("English"),
+  nativeLanguage: z.string().default("English"),
+  timeZone: z.string().default("UTC-05:00"), // Default to Eastern Time
 });
-
-// Teaching languages array
-const languages = [
-  "English", "Spanish", "English/Spanish Bilingual"
-];
-
-// Timezones array (simplified)
-const timeZones = [
-  "UTC-12:00", "UTC-11:00", "UTC-10:00", "UTC-09:00", "UTC-08:00", 
-  "UTC-07:00", "UTC-06:00", "UTC-05:00", "UTC-04:00", "UTC-03:00", 
-  "UTC-02:00", "UTC-01:00", "UTC+00:00", "UTC+01:00", "UTC+02:00", 
-  "UTC+03:00", "UTC+04:00", "UTC+05:00", "UTC+06:00", "UTC+07:00", 
-  "UTC+08:00", "UTC+09:00", "UTC+10:00", "UTC+11:00", "UTC+12:00"
-];
 
 export default function Register() {
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
 
-  // Create form
+  // Create form with simplified fields
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -84,9 +58,10 @@ export default function Register() {
       firstName: "",
       lastName: "",
       email: "",
-      language: "",
-      nativeLanguage: "",
-      timeZone: "",
+      // Default values for removed fields
+      language: "English",
+      nativeLanguage: "English",
+      timeZone: "UTC-05:00",
     },
   });
 
@@ -117,22 +92,7 @@ export default function Register() {
     register(values);
   }
 
-  // Detect user's timezone
-  const getUserTimeZone = () => {
-    const offset = -new Date().getTimezoneOffset() / 60;
-    const sign = offset >= 0 ? "+" : "-";
-    const absOffset = Math.abs(offset);
-    const hours = Math.floor(absOffset).toString().padStart(2, "0");
-    const minutes = ((absOffset - Math.floor(absOffset)) * 60).toString().padStart(2, "0");
-    return `UTC${sign}${hours}:${minutes}`;
-  };
-
-  // Set default timezone on component mount
-  useState(() => {
-    const userTimeZone = getUserTimeZone();
-    const closestTimeZone = timeZones.find(tz => tz.includes(userTimeZone.split(":")[0])) || "UTC+00:00";
-    form.setValue("timeZone", closestTimeZone);
-  });
+  // No need to manually set defaults anymore as we're using default values
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-background/90 py-12 px-4">
@@ -254,91 +214,7 @@ export default function Register() {
                 )}
               />
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="language"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Teaching Language</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select teaching language" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {languages.map(language => (
-                            <SelectItem key={language} value={language}>
-                              {language}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="nativeLanguage"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Primary Language</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select your primary language" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {languages.map(language => (
-                            <SelectItem key={language} value={language}>
-                              {language}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <FormField
-                control={form.control}
-                name="timeZone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Your Time Zone</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select your time zone" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {timeZones.map(timeZone => (
-                          <SelectItem key={timeZone} value={timeZone}>
-                            {timeZone}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Language and timezone fields removed for simplicity */}
               
               <Button type="submit" className="w-full bg-primary hover:bg-primary/90 hover-pop hover-glow" disabled={isPending}>
                 {isPending ? (
