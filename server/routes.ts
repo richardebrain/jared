@@ -4,6 +4,8 @@ import { storage } from "./storage";
 import { insertUserSchema, insertLearningModuleSchema, insertUserProgressSchema, insertMeetingSchema, insertAssessmentSchema } from "@shared/schema";
 import express from "express";
 import session from "express-session";
+import passport from "passport";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { z } from "zod";
 import MemoryStore from "memorystore";
 
