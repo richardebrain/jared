@@ -1,0 +1,107 @@
+import { pgTable, text, serial, integer, boolean, timestamp, json } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
+
+// User schema
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull().unique(),
+  language: text("language").notNull(),
+  nativeLanguage: text("native_language").notNull(),
+  timeZone: text("time_zone").notNull(),
+  profilePicture: text("profile_picture"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Learning Modules schema
+export const learningModules = pgTable("learning_modules", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  duration: integer("duration").notNull(), // in minutes
+  imageUrl: text("image_url"),
+  featured: boolean("featured").default(false),
+  difficulty: text("difficulty").notNull(), // beginner, intermediate, advanced
+  category: text("category").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertLearningModuleSchema = createInsertSchema(learningModules).omit({
+  id: true,
+  createdAt: true,
+});
+
+// User Progress schema
+export const userProgress = pgTable("user_progress", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  moduleId: integer("module_id").notNull().references(() => learningModules.id),
+  progress: integer("progress").notNull().default(0), // percentage complete
+  completed: boolean("completed").default(false),
+  lastAccessed: timestamp("last_accessed").defaultNow(),
+});
+
+export const insertUserProgressSchema = createInsertSchema(userProgress).omit({
+  id: true,
+  lastAccessed: true,
+});
+
+// Meetings schema
+export const meetings = pgTable("meetings", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time").notNull(),
+  hostId: integer("host_id").notNull().references(() => users.id),
+  guestId: integer("guest_id").references(() => users.id),
+  timeZone: text("time_zone").notNull(),
+  status: text("status").notNull().default("scheduled"), // scheduled, completed, cancelled
+  meetingLink: text("meeting_link"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertMeetingSchema = createInsertSchema(meetings).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Assessment schema
+export const assessments = pgTable("assessments", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  score: integer("score"),
+  completed: boolean("completed").default(false),
+  results: json("results"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertAssessmentSchema = createInsertSchema(assessments).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Types
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+
+export type LearningModule = typeof learningModules.$inferSelect;
+export type InsertLearningModule = z.infer<typeof insertLearningModuleSchema>;
+
+export type UserProgress = typeof userProgress.$inferSelect;
+export type InsertUserProgress = z.infer<typeof insertUserProgressSchema>;
+
+export type Meeting = typeof meetings.$inferSelect;
+export type InsertMeeting = z.infer<typeof insertMeetingSchema>;
+
+export type Assessment = typeof assessments.$inferSelect;
+export type InsertAssessment = z.infer<typeof insertAssessmentSchema>;
