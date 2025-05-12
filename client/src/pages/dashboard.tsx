@@ -4,11 +4,12 @@ import { User } from "@shared/schema";
 import { Link } from "wouter";
 import Header from "@/components/Header";
 import ProgressCircle from "@/components/ProgressCircle";
-import ChatbotSupport from "@/components/ChatbotSupport";
 import ModuleCard from "@/components/ModuleCard";
 import CourseCard from "@/components/CourseCard";
 import MediaSidebar from "@/components/MediaSidebar";
 import AchievementsSection from "@/components/AchievementsSection";
+import BearAssistant from "@/components/BearAssistant";
+import ModuleView from "@/components/ModuleView";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import mindfulMorningsLogo from "../assets/images/mindful-mornings-logo.jpg";
 import raisingArizonaLogo from "../assets/images/raising-arizona-logo.jpg";
@@ -24,6 +25,8 @@ const domains = [
 ];
 
 export default function Dashboard() {
+  const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
+  
   const { data: user, isLoading: isLoadingUser, isError: isUserError } = useQuery<User>({ 
     queryKey: ["/api/auth/me"],
     retry: 3 // Try a few times to fetch the user data
@@ -189,6 +192,28 @@ export default function Dashboard() {
   ).sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
   .slice(0, 3) || [];
 
+  // Handle module selection for dynamic lessons
+  const handleModuleSelect = (moduleId: number) => {
+    setSelectedModuleId(moduleId);
+  };
+  
+  // If a module is selected, show the module view
+  if (selectedModuleId !== null && user) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Header />
+        <main className="flex-1 container mx-auto px-4 py-6">
+          <ModuleView 
+            moduleId={selectedModuleId} 
+            user={user} 
+            onBack={() => setSelectedModuleId(null)} 
+          />
+        </main>
+        <BearAssistant user={user} />
+      </div>
+    );
+  }
+  
   return (
     <div className="min-h-screen bg-neutral-100">
       <Header />
@@ -827,7 +852,7 @@ export default function Dashboard() {
         </div>
       </footer>
       
-      <ChatbotSupport />
+      <BearAssistant user={user} />
     </div>
   );
 }
