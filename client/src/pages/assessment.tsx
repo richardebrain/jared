@@ -140,7 +140,7 @@ const assessmentQuestions: Question[] = [
 ];
 
 export default function AssessmentPage() {
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
@@ -216,7 +216,7 @@ export default function AssessmentPage() {
         title: "Assessment Completed",
         description: "Thank you for completing your assessment. Your personalized learning path is now available.",
       });
-      navigate("/dashboard");
+      setLocation("/dashboard");
     },
     onError: (error: Error) => {
       toast({
