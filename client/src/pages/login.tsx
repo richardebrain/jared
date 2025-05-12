@@ -21,7 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import GoogleAuthButton from "@/components/GoogleAuthButton";
 
 // Import logo
-import raisingArizonaLogo from '@assets/images/raising-arizona-logo.jpg';
+import raisingArizonaLogo from '../assets/images/raising-arizona-logo.jpg';
 
 // Form schema for login
 const loginSchema = z.object({
@@ -74,10 +74,17 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-background/90 px-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-accent text-primary mb-2">MentorMe</h1>
+          <div className="mx-auto w-48 h-48 mb-4 overflow-hidden">
+            <img 
+              src={raisingArizonaLogo} 
+              alt="Raising Arizona Preschool" 
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <h1 className="text-4xl font-accent bg-gradient-to-br from-primary to-primary-foreground bg-clip-text text-transparent mb-2">MentorMe</h1>
           <p className="text-neutral-800">Welcome to Raising Arizona's teacher training platform! Log in to continue your professional development journey.</p>
         </div>
         
@@ -126,6 +133,30 @@ export default function Login() {
               </Button>
             </form>
           </Form>
+          
+          <div className="mt-6 relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <GoogleAuthButton 
+              onSuccess={() => setLocation('/dashboard')}
+              onError={(error) => {
+                toast({
+                  title: "Authentication Failed",
+                  description: "Could not sign in with Google. Please try again.",
+                  variant: "destructive"
+                });
+              }}
+            />
+          </div>
           
           <div className="mt-4 text-center">
             <p className="text-sm text-neutral-800">

@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Lightbulb, Smile, CloudSun, Heart, StarIcon } from "lucide-react";
-import mindfulMorningsLogo from '@assets/images/mindful-mornings-logo.jpg';
+import mindfulMorningsLogo from '../assets/images/mindful-mornings-logo.jpg';
 
 export default function MindfulnessTraining() {
   return (

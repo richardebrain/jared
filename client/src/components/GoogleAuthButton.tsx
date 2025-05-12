@@ -49,10 +49,7 @@ export default function GoogleAuthButton({
       
       // Send user data to our backend to register or login
       const endpoint = mode === 'signup' ? '/api/auth/register-google' : '/api/auth/login-google';
-      const response = await apiRequest(endpoint, {
-        method: 'POST',
-        body: JSON.stringify(userInfo)
-      } as RequestInit);
+      const response = await apiRequest('POST', endpoint, userInfo);
       
       if (!response.ok) {
         const errorData = await response.json();
