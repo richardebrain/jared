@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertLearningModuleSchema, insertUserProgressSchema, insertMeetingSchema, insertAssessmentSchema } from "@shared/schema";
+import { insertUserSchema, insertLearningModuleSchema, insertUserProgressSchema, insertMeetingSchema, insertAssessmentSchema, type User } from "@shared/schema";
 import express from "express";
 import session from "express-session";
 import passport from "passport";
@@ -136,7 +136,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         callbackURL: "/api/auth/google/callback",
         scope: ["profile", "email"],
       },
-      async (accessToken, refreshToken, profile, done) => {
+      async (accessToken: string, refreshToken: string, profile: any, done: any) => {
         try {
           // Check if user exists by email
           const email = profile.emails?.[0]?.value;
@@ -159,7 +159,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               timeZone: "America/Phoenix",
               profilePicture: profile.photos?.[0]?.value || null,
               points: 0,
-              level: "New Teacher",
+              level: 1, // Start at level 1
               joinDate: new Date(),
               lastActive: new Date(),
               notification: false,
@@ -183,12 +183,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
   
   // Serialize user for the session
-  passport.serializeUser((user: any, done) => {
+  passport.serializeUser((user: User, done: any) => {
     done(null, user.id);
   });
   
   // Deserialize user from the session
-  passport.deserializeUser(async (id: number, done) => {
+  passport.deserializeUser(async (id: number, done: any) => {
     try {
       const user = await storage.getUser(id);
       done(null, user);

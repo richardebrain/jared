@@ -1,9 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { signInWithGoogle, auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
-import { getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
 
 interface GoogleAuthButtonProps {
   onSuccess?: () => void;
@@ -19,101 +16,18 @@ export default function GoogleAuthButton({
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Check for redirect result when component mounts
-  useEffect(() => {
-    const checkRedirectResult = async () => {
-      try {
-        setIsLoading(true);
-        const result = await getRedirectResult(auth);
-        
-        if (result && result.user) {
-          await processGoogleUser(result.user);
-        }
-      } catch (error) {
-        console.error('Google redirect result error:', error);
-        if (onError) onError(error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    checkRedirectResult();
-  }, []);
-
-  // Process Google user data and send to backend
-  const processGoogleUser = async (user: any) => {
-    try {
-      // Extract user info from Google profile
-      const userInfo = {
-        email: user.email || '',
-        firstName: user.displayName ? user.displayName.split(' ')[0] : '',
-        lastName: user.displayName ? user.displayName.split(' ').slice(1).join(' ') : '',
-        profilePicture: user.photoURL || null,
-        // These would require input from user, providing defaults
-        username: user.email ? user.email.split('@')[0] : '',
-        password: '', // Will be set by backend
-        language: 'English',
-        nativeLanguage: 'English',
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Phoenix'
-      };
-      
-      // Send user data to our backend to register or login
-      const endpoint = mode === 'signup' ? '/api/auth/register-google' : '/api/auth/login-google';
-      const response = await apiRequest('POST', endpoint, userInfo);
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Authentication failed');
-      }
-      
-      toast({
-        title: mode === 'signup' ? 'Account created!' : 'Welcome back!',
-        description: mode === 'signup' 
-          ? 'Your account has been created successfully.'
-          : 'You have been signed in successfully.',
-      });
-      
-      if (onSuccess) onSuccess();
-      return true;
-    } catch (error: any) {
-      console.error('Process Google user error:', error);
-      toast({
-        title: 'Authentication failed',
-        description: error.message || 'Please try again later.',
-        variant: 'destructive',
-      });
-      
-      if (onError) onError(error);
-      return false;
-    }
-  };
-
-  const handleGoogleAuth = async () => {
+  const handleGoogleAuth = () => {
     try {
       setIsLoading(true);
-      const result = await signInWithGoogle();
       
-      // If redirecting, just show loading and return
-      if (result.redirecting) {
-        // Toast to let user know we're redirecting
-        toast({
-          title: 'Redirecting to Google',
-          description: 'Please continue in the Google authentication window.',
-        });
-        return;
-      }
+      // Redirect to our server's Google OAuth endpoint
+      // The server will handle the OAuth flow and redirect back to our app
+      window.location.href = '/api/auth/google';
       
-      if (!result.success) {
-        throw new Error('Google authentication failed');
-      }
-      
-      const user = result.user;
-      
-      if (!user) {
-        throw new Error('No user information returned from Google');
-      }
-      
-      await processGoogleUser(user);
+      toast({
+        title: 'Redirecting to Google',
+        description: 'Please continue in the Google authentication window.',
+      });
       
     } catch (error: any) {
       console.error('Google auth error:', error);
@@ -124,7 +38,6 @@ export default function GoogleAuthButton({
       });
       
       if (onError) onError(error);
-    } finally {
       setIsLoading(false);
     }
   };
