@@ -368,7 +368,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(meetings)
-      .where(eq(meetings.userId, userId))
+      .where(eq(meetings.hostId, userId))
       .orderBy(meetings.startTime);
   }
   

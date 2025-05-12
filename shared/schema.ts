@@ -91,6 +91,49 @@ export const insertAssessmentSchema = createInsertSchema(assessments).omit({
   createdAt: true,
 });
 
+// Relations definitions
+export const usersRelations = relations(users, ({ many }) => ({
+  progress: many(userProgress),
+  meetings: many(meetings, { relationName: "host" }),
+  guestMeetings: many(meetings, { relationName: "guest" }),
+  assessments: many(assessments)
+}));
+
+export const learningModulesRelations = relations(learningModules, ({ many }) => ({
+  progress: many(userProgress)
+}));
+
+export const userProgressRelations = relations(userProgress, ({ one }) => ({
+  user: one(users, {
+    fields: [userProgress.userId],
+    references: [users.id]
+  }),
+  module: one(learningModules, {
+    fields: [userProgress.moduleId],
+    references: [learningModules.id]
+  })
+}));
+
+export const meetingsRelations = relations(meetings, ({ one }) => ({
+  host: one(users, {
+    fields: [meetings.hostId],
+    references: [users.id],
+    relationName: "host"
+  }),
+  guest: one(users, {
+    fields: [meetings.guestId],
+    references: [users.id],
+    relationName: "guest"
+  })
+}));
+
+export const assessmentsRelations = relations(assessments, ({ one }) => ({
+  user: one(users, {
+    fields: [assessments.userId],
+    references: [users.id]
+  })
+}));
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
