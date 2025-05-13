@@ -146,6 +146,16 @@ async function seedDatabase() {
         featured: false,
         difficulty: "advanced",
         category: "inclusion"
+      },
+      // LEGO-themed module on building a child's story
+      {
+        title: "Building a Child: Block by Block",
+        description: "Using the LEGO metaphor, learn how each interaction with a child adds another 'block' to their life story. Discover how positive words, actions, and experiences build a beautiful first chapter in a child's life, while negative experiences can create an unstable foundation.",
+        duration: 60,
+        imageUrl: null,
+        featured: true,
+        difficulty: "beginner",
+        category: "core-values"
       }
     ];
 
