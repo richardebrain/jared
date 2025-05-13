@@ -740,8 +740,11 @@ export default function AssessmentPage() {
     const incorrect = incorrectByDomain[domain];
     const currentDifficulty = domainDifficulty[domain];
     
-    // After 2 correct answers at beginner level, move to intermediate
+    // More aggressive difficulty progression logic
+    
+    // Move to intermediate after 1 correct answer at beginner level
     if (currentDifficulty === 'beginner' && correct >= 1) {
+      console.log(`Advancing ${domain} from beginner to intermediate`);
       setDomainDifficulty(prev => ({
         ...prev,
         [domain]: 'intermediate'
@@ -750,11 +753,14 @@ export default function AssessmentPage() {
         ...prev,
         [domain]: 0
       }));
+      // Load questions for the new difficulty level
+      updateDomainQuestions(domain, 'intermediate');
       return;
     }
     
-    // After 2 correct answers at intermediate level, move to advanced
+    // Move to advanced after 1 correct answer at intermediate level
     if (currentDifficulty === 'intermediate' && correct >= 1) {
+      console.log(`Advancing ${domain} from intermediate to advanced`);
       setDomainDifficulty(prev => ({
         ...prev,
         [domain]: 'advanced'
@@ -763,7 +769,14 @@ export default function AssessmentPage() {
         ...prev,
         [domain]: 0
       }));
+      // Load questions for the new difficulty level
+      updateDomainQuestions(domain, 'advanced');
       return;
+    }
+    
+    // Track performance at advanced level for final assessment report
+    if (currentDifficulty === 'advanced') {
+      console.log(`Tracking advanced performance in ${domain}: ${correct} correct, ${incorrect} incorrect`);
     }
     
     // After 2 incorrect answers at advanced level, move to intermediate
