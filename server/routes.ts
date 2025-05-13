@@ -858,9 +858,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       switch (rewardType) {
         case "points":
+          // Update points
+          const newPoints = (user.points || 0) + (rewardAmount || 0);
+          
+          // Calculate level based on total points (the same logic used for module progress)
+          let newLevel = 1;
+          if (newPoints >= 3500) newLevel = 6; // Mentor Teacher
+          else if (newPoints >= 2500) newLevel = 5; // Master Lead Teacher
+          else if (newPoints >= 1500) newLevel = 4; // Lead Teacher
+          else if (newPoints >= 800) newLevel = 3; // Associate Teacher
+          else if (newPoints >= 300) newLevel = 2; // Assistant Teacher
+          
+          // Update user with both points and potentially a new level
           updatedUser = await storage.updateUser(userId, {
-            points: (user.points || 0) + (rewardAmount || 0)
+            points: newPoints,
+            level: Math.max(newLevel, user.level || 1) // Only increase level, never decrease
           });
+          
+          // Log level changes
+          if (newLevel > (user.level || 1)) {
+            console.log(`User ${userId} advanced to level ${newLevel} via spin game reward!`);
+          }
           break;
           
         case "bearBucks":
@@ -1269,16 +1287,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let updatedUser = user;
 
       if (rewardType === 'points') {
+        // Calculate new points total
         const currentPoints = user.points || 0;
+        const newPointsTotal = currentPoints + parseInt(rewardAmount);
+        
+        // Calculate level based on total points (same logic used for module progress)
+        let newLevel = 1;
+        if (newPointsTotal >= 3500) newLevel = 6; // Mentor Teacher
+        else if (newPointsTotal >= 2500) newLevel = 5; // Master Lead Teacher
+        else if (newPointsTotal >= 1500) newLevel = 4; // Lead Teacher
+        else if (newPointsTotal >= 800) newLevel = 3; // Associate Teacher
+        else if (newPointsTotal >= 300) newLevel = 2; // Assistant Teacher
+        
+        // Update user with both points and potentially a new level
         updatedUser = await storage.updateUser(userId, {
-          points: currentPoints + parseInt(rewardAmount)
+          points: newPointsTotal,
+          level: Math.max(newLevel, user.level || 1) // Only increase level, never decrease
         });
         
+        // Enhanced response with level information
+        const levelUp = newLevel > (user.level || 1);
+        
         res.status(200).json({
-          message: "Reward claimed successfully",
+          message: levelUp ? "Reward claimed successfully! You've reached a new teacher level!" : "Reward claimed successfully",
           reward: newReward,
           pointsAdded: parseInt(rewardAmount),
-          totalPoints: updatedUser.points
+          totalPoints: updatedUser.points,
+          level: updatedUser.level,
+          levelUp: levelUp
         });
       } else if (rewardType === 'bearBucks') {
         // Update bear bucks
