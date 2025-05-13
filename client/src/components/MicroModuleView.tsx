@@ -129,10 +129,27 @@ export default function MicroModuleView() {
   }>({
     coreConcept: "",
     practicalApplication: "",
-    videoResources: [],
+    videoResources: [
+      "https://www.youtube.com/embed/ckZt33Ymbpg",  // Vanderbilt IRIS Center on Positive Behavior Support
+      "https://www.youtube.com/embed/4PSRP98mtJY",  // PBS Teachers video on positive classroom environments
+      "https://www.youtube.com/embed/HQT6u-tFKZ4"   // Head Start video on Positive Teacher-Child Interactions
+    ],
     interactiveElement: "",
+    quizQuestion: {
+      question: "What is one benefit of maintaining a positive attitude in the classroom?",
+      options: [
+        "It reduces the need for planning activities",
+        "It creates a supportive environment that fosters learning",
+        "It eliminates all behavioral challenges",
+        "It replaces the need for structured routines"
+      ],
+      correctAnswer: 1
+    },
     isLoading: false
   });
+  
+  // Add state for the active step in the lesson
+  const [currentStep, setCurrentStep] = useState(0);
 
   // Get module-specific prompts based on ID
   const getModulePrompts = (moduleId: number): { conceptPrompt: string, applicationPrompt: string } => {
