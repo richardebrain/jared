@@ -517,8 +517,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set points earned in progress data
       progressData.pointsEarned = (previousProgress?.pointsEarned || 0) + pointsEarned;
       
+      // Set pointsEarned in progress data if not set
+      if (!progressData.pointsEarned) {
+        progressData.pointsEarned = pointsEarned;
+      }
+      
       // Update progress first
       const progress = await storage.updateUserProgress(progressData);
+      
+      // Ensure we're adding points to the user's total
+      console.log(`Adding ${pointsEarned} points to user ${userId} (current points: ${user.points || 0})`);
       
       // Update user points
       const updatedUser = await storage.updateUser(userId, {
