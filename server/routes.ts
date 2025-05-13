@@ -518,8 +518,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check for explicit points earned from client (used by micro modules)
       const explicitPointsEarned = req.body.pointsEarned;
       
-      // Is this a micro module (5 min or less)?
-      const isMicroModule = module.duration <= 5;
+      // Is this a micro module (7 min or less)?
+      const isMicroModule = module.duration <= 7;
       
       // Calculate points based on difficulty for regular modules
       const difficulty = module.difficulty;
@@ -536,7 +536,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Using explicit points value: ${explicitPointsEarned} for module ${progressData.moduleId}`);
         pointsEarned = explicitPointsEarned;
       }
-      // For micro-modules, use a simplified approach (1 point per minute)
+      // For micro-modules (7 min or less), use a simplified approach (1 point per minute)
       else if (isMicroModule) {
         // Only award points on completion
         if (progressData.completed && (!previousProgress || !previousProgress.completed)) {
