@@ -322,6 +322,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get specific progress by module ID
+  app.get("/api/progress/:moduleId", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const moduleId = parseInt(req.params.moduleId);
+      
+      if (isNaN(moduleId)) {
+        return res.status(400).json({ message: "Invalid module ID" });
+      }
+      
+      const allProgress = await storage.getUserProgressByUserId(userId);
+      const moduleProgress = allProgress.find(p => p.moduleId === moduleId);
+      
+      if (!moduleProgress) {
+        // Return empty progress object with default values
+        return res.status(200).json({
+          userId,
+          moduleId,
+          progress: 0,
+          completed: false,
+          recommended: false,
+          pointsEarned: 0,
+          lastAccessed: new Date()
+        });
+      }
+      
+      res.status(200).json(moduleProgress);
+    } catch (error) {
+      console.error("Error fetching module progress:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   // Get user achievements and stats
   app.get("/api/achievements", requireAuth, async (req, res) => {
     try {
