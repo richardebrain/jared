@@ -632,7 +632,7 @@ export default function DynamicLessonGenerator({ user, moduleId, onLessonComplet
                     </a>
                   )) || (
                     <div className="col-span-2 p-6 border-2 border-dashed rounded-lg border-primary/20 flex flex-col items-center justify-center text-center">
-                      <Map className="h-12 w-12 text-primary/40 mb-2" />
+                      <Compass className="h-12 w-12 text-primary/40 mb-2" />
                       <p className="text-muted-foreground">The treasure map is empty for this quest. Check back later!</p>
                     </div>
                   )}
