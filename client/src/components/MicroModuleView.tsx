@@ -143,6 +143,8 @@ export default function MicroModuleView() {
   
   // Add state for the active step in the lesson
   const [currentStep, setCurrentStep] = useState(0);
+  const [showFinalAssessment, setShowFinalAssessment] = useState(false);
+  const [finalAssessmentPassed, setFinalAssessmentPassed] = useState(false);
   
   // Function to get default videos based on module type
   const getDefaultVideosForModule = (moduleId: number): string[] => {
@@ -790,10 +792,21 @@ export default function MicroModuleView() {
   }, [module]);
 
   const handleCompleteModule = () => {
+    // Instead of immediately completing the module, show the final assessment
+    setShowFinalAssessment(true);
+  };
+  
+  // Function to handle the final assessment completion
+  const handleFinalAssessmentComplete = (score: number) => {
+    // If they got at least 2 out of 3 questions right (67%), consider it passed
+    const passed = score >= 67;
+    setFinalAssessmentPassed(passed);
+    
     // Add pointsEarned to the progress update
     const pointsToAdd = MICRO_MODULE_POINTS;
     setPointsEarned(pointsToAdd);
     
+    // Always mark as completed, regardless of assessment score
     updateProgressMutation.mutate({ 
       progress: 100, 
       completed: true,
@@ -807,8 +820,10 @@ export default function MicroModuleView() {
           updateUserPointsMutation.mutate(pointsToAdd, {
             onSuccess: () => {
               toast({
-                title: "🎉 Micro Module Completed!",
-                description: `You've earned ${pointsToAdd} points for completing this micro module!`,
+                title: passed ? "🎉 Micro Module Completed!" : "Module Completed",
+                description: passed 
+                  ? `Great job! You've earned ${pointsToAdd} points for completing this micro module!`
+                  : `You've completed this module. Consider reviewing the material again to improve your understanding.`,
                 action: (
                   <Button 
                     onClick={() => setLocation('/dashboard')} 
