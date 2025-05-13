@@ -1725,7 +1725,7 @@ export default function AssessmentPage() {
           setCurrentQuestionIndex(prev => prev + 1);
         } else if (!isLastDomain) {
           // Move to next domain
-          setCurrentDomain(domains[currentDomainIndex + 1].id);
+          setCurrentDomainIndex(currentDomainIndex + 1);
           setCurrentQuestionIndex(0);
         } else {
           // We're at the very end - show a final toast
