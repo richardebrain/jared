@@ -16,7 +16,9 @@ import {
   Repeat,
   Sparkles,
   Star,
-  ThumbsUp
+  ThumbsUp,
+  Loader2,
+  Zap
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +31,7 @@ import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Define mini-lesson types
 interface MiniLesson {
@@ -59,6 +62,9 @@ export function MiniLessons() {
   const [selectedLesson, setSelectedLesson] = useState<MiniLesson | null>(null);
   const [isLessonOpen, setIsLessonOpen] = useState(false);
   const [lessonCompleted, setLessonCompleted] = useState(false);
+  const [aiGeneratedContent, setAiGeneratedContent] = useState<any>(null);
+  const [isGeneratingContent, setIsGeneratingContent] = useState(false);
+  const [activeTab, setActiveTab] = useState('video');
   
   // Get mini modules from the API (short duration modules, ≤ 7 minutes)
   const { data: allModules = [], isLoading: modulesLoading, isError: modulesError } = useQuery({
