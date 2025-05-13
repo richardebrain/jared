@@ -162,15 +162,52 @@ export default function Dashboard() {
     );
   }
   
+  // For demo purposes, we'll use a default user if not logged in
+  let displayUser = user;
+  
   if (isUserError || !user) {
+    // Create a demo user for testing purposes
+    displayUser = {
+      id: 4,
+      username: "demo",
+      password: "",
+      firstName: "Demo",
+      lastName: "Teacher",
+      email: "demo@example.com",
+      points: 750,
+      level: 2,
+      role: "teacher",
+      language: "en",
+      nativeLanguage: "en",
+      timeZone: "America/New_York",
+      profilePicture: null,
+      learningStyle: {
+        visual: 75,
+        auditory: 60,
+        reading: 85,
+        kinesthetic: 70,
+        preferred: "reading"
+      },
+      createdAt: null
+    };
+    
+    // Option to go to login screen
     return (
       <div className="min-h-screen bg-neutral-50 p-6 flex justify-center items-center">
         <div className="text-center max-w-md mx-auto">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">Not Logged In</h1>
-          <p className="mb-6">Please log in to access your personalized dashboard.</p>
-          <Link to="/login">
-            <Button>Log In</Button>
-          </Link>
+          <h1 className="text-2xl font-bold text-amber-600 mb-4">Demo Mode</h1>
+          <p className="mb-6">You're viewing the dashboard in demo mode. To access your personalized dashboard, please log in.</p>
+          <div className="flex gap-4 justify-center">
+            <Link to="/login">
+              <Button>Log In</Button>
+            </Link>
+            <Button 
+              variant="outline" 
+              onClick={() => setLocation("/")}
+            >
+              Continue as Demo User
+            </Button>
+          </div>
         </div>
       </div>
     );
