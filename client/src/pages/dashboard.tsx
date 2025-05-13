@@ -345,9 +345,11 @@ export default function Dashboard() {
                           className="bg-emerald-600 hover:bg-emerald-700"
                           onClick={() => {
                             // Find the mindful mornings module
-                            const mindfulModule = modules.find(m => m.category === 'mindful-mornings');
-                            if (mindfulModule) {
-                              setSelectedModuleId(mindfulModule.id);
+                            if (modules && Array.isArray(modules)) {
+                              const mindfulModule = modules.find(m => m.category === 'mindful-mornings');
+                              if (mindfulModule) {
+                                setSelectedModuleId(mindfulModule.id);
+                              }
                             }
                           }}
                         >
@@ -366,18 +368,39 @@ export default function Dashboard() {
                     </div>
                   </div>
                   {/* Progress indicator if user has started the module */}
-                  {userProgress?.some(p => p.moduleId === modules.find(m => m.category === 'mindful-mornings')?.id) && (
+                  {userProgress && Array.isArray(userProgress) && modules && Array.isArray(modules) && 
+                   userProgress.some(p => {
+                     const mindfulModule = modules.find(m => m.category === 'mindful-mornings');
+                     return mindfulModule && p.moduleId === mindfulModule.id;
+                   }) && (
                     <div className="mt-4">
                       <div className="flex justify-between text-xs text-emerald-700 mb-1">
                         <span>Your progress</span>
                         <span>
-                          {userProgress.find(p => p.moduleId === modules.find(m => m.category === 'mindful-mornings')?.id)?.progress || 0}% complete
+                          {(() => {
+                            if (userProgress && modules) {
+                              const mindfulModule = modules.find(m => m.category === 'mindful-mornings');
+                              if (mindfulModule) {
+                                const progress = userProgress.find(p => p.moduleId === mindfulModule.id);
+                                return progress?.progress || 0;
+                              }
+                            }
+                            return 0;
+                          })()}% complete
                         </span>
                       </div>
                       <Progress 
-                        value={userProgress.find(p => p.moduleId === modules.find(m => m.category === 'mindful-mornings')?.id)?.progress || 0} 
+                        value={(() => {
+                          if (userProgress && modules) {
+                            const mindfulModule = modules.find(m => m.category === 'mindful-mornings');
+                            if (mindfulModule) {
+                              const progress = userProgress.find(p => p.moduleId === mindfulModule.id);
+                              return progress?.progress || 0;
+                            }
+                          }
+                          return 0;
+                        })()} 
                         className="h-2 bg-emerald-100"
-                        indicatorClassName="bg-emerald-500"
                       />
                     </div>
                   )}
