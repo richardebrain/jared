@@ -517,10 +517,15 @@ export function MiniLessons() {
   const handleCompleteMiniLesson = () => {
     if (!selectedLesson) return;
     
+    // Award points equal to the duration plus any bonus points from the quiz
+    const basePoints = selectedLesson.duration;
+    const totalPoints = quizCompleted ? basePoints + bonusPoints : basePoints;
+    
     progressMutation.mutate({
       moduleId: selectedLesson.id,
       progress: 100,
-      completed: true
+      completed: true,
+      pointsEarned: totalPoints // Award points based on duration and quiz performance
     });
   };
 
@@ -991,22 +996,161 @@ export function MiniLessons() {
                 </div>
               </div>
 
-              <DialogFooter>
-                {!lessonCompleted ? (
-                  <Button 
-                    onClick={handleCompleteMiniLesson} 
-                    disabled={progressMutation.isPending}
-                    className="w-full sm:w-auto"
-                  >
-                    {progressMutation.isPending ? 'Saving...' : 'Mark as Completed'}
-                  </Button>
-                ) : (
-                  <div className="flex items-center text-green-600">
-                    <CheckCircle className="h-5 w-5 mr-2" />
-                    <span>You've completed this mini-lesson and earned {progressMap[selectedLesson.id]?.pointsEarned || selectedLesson.duration} points!</span>
-                  </div>
-                )}
-              </DialogFooter>
+              {showGame ? (
+                <div className="mt-4 mb-4">
+                  {!quizCompleted ? (
+                    <div className="space-y-6">
+                      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-6 border border-indigo-100">
+                        <div className="flex justify-between items-center mb-4">
+                          <h3 className="text-lg font-semibold text-indigo-900">Quiz: {selectedLesson.title}</h3>
+                          <Badge variant="outline" className="bg-white">
+                            Question {currentQuestionIndex + 1} of {quizQuestions.length}
+                          </Badge>
+                        </div>
+                        
+                        <div className="mb-6">
+                          <h4 className="text-md font-medium mb-4">{quizQuestions[currentQuestionIndex]?.question}</h4>
+                          
+                          <RadioGroup 
+                            value={selectedAnswers[currentQuestionIndex]?.toString()} 
+                            onValueChange={(value) => handleAnswerSelect(currentQuestionIndex, parseInt(value))}
+                            className="space-y-3"
+                          >
+                            {quizQuestions[currentQuestionIndex]?.options.map((option, index) => (
+                              <div key={index} className="flex items-start">
+                                <RadioGroupItem 
+                                  value={index.toString()} 
+                                  id={`option-${index}`} 
+                                  className="mt-1"
+                                />
+                                <Label htmlFor={`option-${index}`} className="ml-2 cursor-pointer">
+                                  {option}
+                                </Label>
+                              </div>
+                            ))}
+                          </RadioGroup>
+                        </div>
+                        
+                        <div className="flex justify-between">
+                          <Button 
+                            variant="outline" 
+                            onClick={() => setShowGame(false)}
+                          >
+                            Exit Quiz
+                          </Button>
+                          <Button 
+                            onClick={handleNextQuestion}
+                            disabled={selectedAnswers[currentQuestionIndex] === undefined}
+                            className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700"
+                          >
+                            {currentQuestionIndex < quizQuestions.length - 1 ? 'Next Question' : 'Finish Quiz'}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-6 border border-indigo-100 text-center">
+                        <h3 className="text-lg font-semibold text-indigo-900 mb-2">Quiz Complete!</h3>
+                        
+                        <div className="mb-4 flex justify-center">
+                          {quizScore >= 80 ? (
+                            <Trophy className="h-16 w-16 text-yellow-500" />
+                          ) : quizScore >= 60 ? (
+                            <Star className="h-16 w-16 text-indigo-500" />
+                          ) : (
+                            <BookOpen className="h-16 w-16 text-blue-500" />
+                          )}
+                        </div>
+                        
+                        <div className="mb-4">
+                          <h4 className="font-medium mb-2">Your Score: {quizScore}%</h4>
+                          <Progress value={quizScore} className="h-2 w-full" />
+                        </div>
+                        
+                        <div className="mb-6">
+                          {quizScore >= 80 ? (
+                            <p className="text-green-700">Excellent work! You've mastered this topic.</p>
+                          ) : quizScore >= 60 ? (
+                            <p className="text-blue-700">Good job! You understand the key concepts.</p>
+                          ) : (
+                            <p className="text-amber-700">You might want to review the material again.</p>
+                          )}
+                          
+                          {bonusPoints > 0 && (
+                            <p className="mt-2 text-indigo-700 font-medium">
+                              Bonus: +{bonusPoints} extra points for your score!
+                            </p>
+                          )}
+                        </div>
+                        
+                        <div className="flex justify-between">
+                          <Button 
+                            variant="outline" 
+                            onClick={() => {
+                              setShowGame(false);
+                              setQuizCompleted(false);
+                            }}
+                          >
+                            Back to Lesson
+                          </Button>
+                          
+                          <Button 
+                            onClick={handleCompleteMiniLesson}
+                            disabled={progressMutation.isPending || lessonCompleted}
+                            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                          >
+                            {progressMutation.isPending ? 'Saving...' : lessonCompleted ? 'Already Completed' : 'Complete & Earn Points'}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <DialogFooter>
+                  {!lessonCompleted ? (
+                    <div className="flex space-x-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={handleCompleteMiniLesson} 
+                        disabled={progressMutation.isPending}
+                      >
+                        {progressMutation.isPending ? 'Saving...' : 'Skip Quiz & Complete'}
+                      </Button>
+                      <Button 
+                        onClick={() => {
+                          setShowGame(true);
+                          generateQuizQuestions();
+                        }}
+                        className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700"
+                      >
+                        <Gamepad className="mr-2 h-4 w-4" />
+                        Take Quiz
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center text-green-600">
+                        <CheckCircle className="h-5 w-5 mr-2" />
+                        <span>You've completed this mini-lesson and earned {progressMap[selectedLesson.id]?.pointsEarned || selectedLesson.duration} points!</span>
+                      </div>
+                      
+                      <Button 
+                        onClick={() => {
+                          setShowGame(true);
+                          generateQuizQuestions();
+                        }}
+                        variant="outline"
+                        className="ml-4"
+                      >
+                        <Gamepad className="mr-2 h-4 w-4" />
+                        Retake Quiz
+                      </Button>
+                    </div>
+                  )}
+                </DialogFooter>
+              )}
             </>
           )}
         </DialogContent>
