@@ -717,6 +717,30 @@ export default function AssessmentPage() {
   const [completedQuestions, setCompletedQuestions] = useState<string[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   
+  // Function to update domain questions based on difficulty
+  const updateDomainQuestions = (domainId: string, difficulty: DifficultyLevel) => {
+    // Filter questions for the specified domain and difficulty
+    const filteredQuestions = assessmentQuestions.filter(q => 
+      q.domain === domainId && q.difficulty === difficulty
+    );
+    
+    console.log(`Loading ${filteredQuestions.length} ${difficulty} questions for ${domainId}`);
+
+    // Show a toast notification about advancing to a new difficulty level
+    toast({
+      title: `Advancing to ${difficulty} level`,
+      description: `Based on your performance, you're now seeing ${difficulty} level questions in this topic.`,
+      variant: "default",
+      duration: 3000,
+    });
+    
+    // Only update current question index if we're viewing this domain
+    if (currentDomain === domainId) {
+      // Reset to the first question of the new difficulty level
+      setCurrentQuestionIndex(0);
+    }
+  };
+  
   // Get domain questions filtered by current difficulty
   const domainQuestions = assessmentQuestions.filter(
     q => q.domain === currentDomain && q.difficulty === domainDifficulty[currentDomain]
@@ -740,11 +764,16 @@ export default function AssessmentPage() {
     const incorrect = incorrectByDomain[domain];
     const currentDifficulty = domainDifficulty[domain];
     
-    // More aggressive difficulty progression logic
+    // Calculate a performance ratio to determine if we should increase difficulty
+    // Higher weight on correct answers to encourage advancement
+    const totalAnswers = correct + incorrect;
+    const correctRatio = totalAnswers > 0 ? correct / totalAnswers : 0;
     
-    // Move to intermediate after 1 correct answer at beginner level
-    if (currentDifficulty === 'beginner' && correct >= 1) {
-      console.log(`Advancing ${domain} from beginner to intermediate`);
+    // More aggressive difficulty progression logic with safeguards
+    
+    // Move to intermediate after 1 correct answer at beginner level (with high confidence)
+    if (currentDifficulty === 'beginner' && (correct >= 1 && correctRatio >= 0.5)) {
+      console.log(`Advancing ${domain} from beginner to intermediate (ratio: ${correctRatio.toFixed(2)})`);
       setDomainDifficulty(prev => ({
         ...prev,
         [domain]: 'intermediate'
@@ -758,9 +787,9 @@ export default function AssessmentPage() {
       return;
     }
     
-    // Move to advanced after 1 correct answer at intermediate level
-    if (currentDifficulty === 'intermediate' && correct >= 1) {
-      console.log(`Advancing ${domain} from intermediate to advanced`);
+    // Move to advanced after 1 correct answer at intermediate level (with high confidence)
+    if (currentDifficulty === 'intermediate' && (correct >= 1 && correctRatio >= 0.5)) {
+      console.log(`Advancing ${domain} from intermediate to advanced (ratio: ${correctRatio.toFixed(2)})`);
       setDomainDifficulty(prev => ({
         ...prev,
         [domain]: 'advanced'
@@ -771,6 +800,22 @@ export default function AssessmentPage() {
       }));
       // Load questions for the new difficulty level
       updateDomainQuestions(domain, 'advanced');
+      return;
+    }
+    
+    // If too many incorrect answers in advanced, move back to intermediate
+    if (currentDifficulty === 'advanced' && incorrect >= 2) {
+      console.log(`Moving ${domain} back from advanced to intermediate due to incorrect answers`);
+      setDomainDifficulty(prev => ({
+        ...prev,
+        [domain]: 'intermediate'
+      }));
+      setIncorrectByDomain(prev => ({
+        ...prev,
+        [domain]: 0
+      }));
+      // Load questions for the new difficulty level
+      updateDomainQuestions(domain, 'intermediate');
       return;
     }
     
@@ -940,6 +985,75 @@ export default function AssessmentPage() {
       }
     });
     
+    // Generate personalized learning path recommendations based on assessment results
+    const generateLearningPath = () => {
+      const learningPath = [];
+      
+      // First, focus on growth areas (domains with scores below threshold)
+      growthAreas.forEach(domain => {
+        const domainInfo = domains.find(d => d.id === domain);
+        if (!domainInfo) return;
+        
+        // Get the domain difficulty level that was reached
+        const difficulty = domainScores[domain].maxDifficulty;
+        
+        // Add appropriate learning modules based on performance
+        if (difficulty === 'beginner') {
+          // Add foundational modules for this domain
+          learningPath.push({
+            domainId: domain,
+            domainName: domainInfo.name,
+            priority: 'high',
+            recommendation: `Start with foundational content in ${domainInfo.name}`,
+            moduleType: 'foundational',
+            reason: 'Assessment shows this is an opportunity area that needs fundamental work'
+          });
+        } else if (difficulty === 'intermediate') {
+          // Add intermediate modules for this domain
+          learningPath.push({
+            domainId: domain,
+            domainName: domainInfo.name,
+            priority: 'medium',
+            recommendation: `Continue building skills in ${domainInfo.name} with intermediate content`,
+            moduleType: 'intermediate',
+            reason: 'You have basic understanding but need more practice with complex concepts'
+          });
+        } else {
+          // Advanced modules for fine-tuning knowledge
+          learningPath.push({
+            domainId: domain,
+            domainName: domainInfo.name,
+            priority: 'low',
+            recommendation: `Refine your knowledge of ${domainInfo.name} with advanced content`,
+            moduleType: 'advanced',
+            reason: 'You have strong knowledge but missed a few advanced concepts'
+          });
+        }
+      });
+      
+      // Then add recommendations for strength areas for continued growth
+      strengthAreas.forEach(domain => {
+        const domainInfo = domains.find(d => d.id === domain);
+        if (!domainInfo) return;
+        
+        // Add mastery or mentorship modules
+        learningPath.push({
+          domainId: domain,
+          domainName: domainInfo.name,
+          priority: 'suggested',
+          recommendation: `Consider mentor opportunities in ${domainInfo.name}`,
+          moduleType: 'mastery',
+          reason: 'You demonstrated strong understanding in this area'
+        });
+      });
+      
+      return learningPath;
+    };
+    
+    // Generate the personalized learning path
+    const personalizedLearningPath = generateLearningPath();
+    
+    // Submit assessment with personalized learning path
     submitAssessmentMutation.mutate({
       userId: user.id,
       overallScore,
@@ -949,7 +1063,8 @@ export default function AssessmentPage() {
       strengthAreas,
       growthAreas,
       incorrectAnswers,
-      assessmentType: "ITERS_ECERS_CLASS"
+      assessmentType: "ITERS_ECERS_CLASS",
+      personalizedLearningPath // Add the personalized learning path
     });
   };
   
