@@ -36,67 +36,41 @@ export function MonthlyNewsletter() {
       {/* Newsletter Content */}
       <div className="p-4">
         {/* Main Headline */}
-        <div className="mb-4 pb-4 border-b border-neutral-200">
-          <h4 className="font-bold text-lg text-[#006F51] mb-2">New "Mindful Mornings" Curriculum Launched!</h4>
-          <p className="text-sm text-neutral-700 mb-3">
-            We're excited to announce the launch of our new "Mindful Mornings" curriculum, designed to help children develop emotional regulation skills through breathing exercises, self-affirmations, and gratitude practices. The program has already shown remarkable results in our pilot classrooms.
+        <div className="mb-3 pb-3 border-b border-neutral-200">
+          <h4 className="font-bold text-lg text-[#006F51] mb-1">New "Mindful Mornings" Curriculum</h4>
+          <p className="text-xs text-neutral-700">
+            New curriculum helping children develop emotional regulation skills through breathing exercises and gratitude practices.
           </p>
-          <div className="flex items-center text-xs text-neutral-500">
-            <Users className="w-3 h-3 mr-1" />
-            <span>By Lead Teacher Development Team</span>
-          </div>
         </div>
         
-        {/* Teacher of the Month */}
-        <div className="flex items-start mb-4 pb-4 border-b border-neutral-200">
-          <div className="bg-amber-50 p-2 rounded-lg mr-3">
-            <Star className="w-5 h-5 text-amber-500" />
-          </div>
-          <div>
-            <h5 className="font-bold text-neutral-800 mb-1">Teacher of the Month: Sarah Johnson</h5>
-            <p className="text-xs text-neutral-600 mb-2">
-              Congratulations to Ms. Sarah for implementing innovative sensory activities that have significantly improved student engagement in her toddler classroom!
-            </p>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-[#006F51] font-medium">View Achievement →</span>
+        {/* Highlights */}
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <div className="flex items-start">
+            <div className="bg-amber-50 p-1 rounded-lg mr-2 flex-shrink-0">
+              <Star className="w-4 h-4 text-amber-500" />
+            </div>
+            <div>
+              <h5 className="font-bold text-xs text-neutral-800">Teacher of the Month</h5>
+              <p className="text-xs text-neutral-600">Sarah Johnson - Sensory Activities</p>
             </div>
           </div>
-        </div>
-        
-        {/* Upcoming Training */}
-        <div className="flex items-start mb-4 pb-4 border-b border-neutral-200">
-          <div className="bg-blue-50 p-2 rounded-lg mr-3">
-            <Book className="w-5 h-5 text-blue-500" />
-          </div>
-          <div>
-            <h5 className="font-bold text-neutral-800 mb-1">Upcoming ITERS Training</h5>
-            <p className="text-xs text-neutral-600 mb-2">
-              Don't miss our upcoming ITERS-R refresher training session on the 25th. All teachers are encouraged to attend this valuable opportunity to improve classroom quality ratings.
-            </p>
-            <div className="inline-block bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded-full">
-              Register by May 20th
+          
+          <div className="flex items-start">
+            <div className="bg-blue-50 p-1 rounded-lg mr-2 flex-shrink-0">
+              <Book className="w-4 h-4 text-blue-500" />
             </div>
-          </div>
-        </div>
-        
-        {/* Fun Fact */}
-        <div className="flex items-start">
-          <div className="bg-purple-50 p-2 rounded-lg mr-3">
-            <Award className="w-5 h-5 text-purple-500" />
-          </div>
-          <div>
-            <h5 className="font-bold text-neutral-800 mb-1">Raising Arizona Fun Fact</h5>
-            <p className="text-xs text-neutral-600">
-              Did you know? Our preschool's "Bear Buddy" mascot was named by our very first class of preschoolers in 2018 through a school-wide vote. Remember to use "Breathe, Smile, Be Present" with your students!
-            </p>
+            <div>
+              <h5 className="font-bold text-xs text-neutral-800">ITERS Training</h5>
+              <p className="text-xs text-neutral-600">Register by May 20th</p>
+            </div>
           </div>
         </div>
       </div>
       
       {/* Footer */}
-      <div className="bg-neutral-50 p-4 text-center border-t border-neutral-200">
-        <p className="text-xs text-neutral-600 mb-2">View all past newsletters in the Teacher Resources section.</p>
-        <button className="bg-[#006F51] text-white rounded-lg px-4 py-2 text-xs font-medium hover:bg-opacity-90 transition">
+      <div className="bg-neutral-50 p-3 text-center border-t border-neutral-200 flex items-center justify-between">
+        <span className="text-xs text-neutral-600">View archives</span>
+        <button className="bg-[#006F51] text-white rounded-lg px-3 py-1 text-xs font-medium hover:bg-opacity-90 transition">
           Read Full Newsletter
         </button>
       </div>

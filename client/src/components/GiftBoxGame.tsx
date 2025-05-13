@@ -71,7 +71,7 @@ export default function GiftBoxGame({ canOpen = true, onComplete }: GiftBoxGameP
         updateData = { bearBucks: data.value };
       }
       
-      const response = await apiRequest(`/api/users/${user?.id}/add-reward`, {
+      const response = await apiRequest(`/api/users/${user?.id}/rewards`, {
         method: "POST",
         body: {
           type: data.type,
