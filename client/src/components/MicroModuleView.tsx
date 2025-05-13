@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Clock, Check, Heart, Star, Zap, ArrowLeft, Trophy, Award, Coins, ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Confetti } from '@/components/ui/confetti';
-import ConfettiExplosion from 'react-confetti-explosion';
+import { CelebrationOverlay } from '@/components/CelebrationOverlay';
 import { cn } from '@/lib/utils';
 import { Spinner } from '@/components/ui/spinner';
 import { VideoResources } from '@/components/VideoResources';
@@ -589,7 +589,12 @@ export default function MicroModuleView() {
 
   return (
     <div className="container py-6">
-      {showConfetti && <Confetti />}
+      {showConfetti && (
+        <CelebrationOverlay 
+          pointsEarned={pointsEarned} 
+          onClose={() => setShowConfetti(false)} 
+        />
+      )}
       
       {/* Points Tracking Header */}
       <div className="bg-gradient-to-r from-green-50 to-amber-50 p-4 rounded-lg mb-4 shadow-sm border border-amber-100">
