@@ -1195,17 +1195,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Insert the reward into the database
-      const reward = await db.execute(
-        `INSERT INTO spin_game_rewards (user_id, reward_type, reward_amount, is_grand_prize) 
-         VALUES ($1, $2, $3, $4) 
-         RETURNING *`,
-        [
-          session.userId, 
-          rewardType, 
-          parseInt(rewardAmount),
-          rewardType === 'dayOff' || rewardType === 'cash' || (rewardType === 'lunch' && parseInt(rewardAmount) > 1)
-        ]
-      );
+      const isGrandPrize = rewardType === 'dayOff' || rewardType === 'cash' || (rewardType === 'lunch' && parseInt(rewardAmount) > 1);
+      const query = `
+        INSERT INTO spin_game_rewards (user_id, reward_type, reward_amount, is_grand_prize) 
+        VALUES ($1, $2, $3, $4) 
+        RETURNING *
+      `;
+      const reward = await pool.query(query, [session.userId, rewardType, parseInt(rewardAmount), isGrandPrize]);
       
       // If reward is points or bear bucks, update user's balance
       let user = await storage.getUser(session.userId);
