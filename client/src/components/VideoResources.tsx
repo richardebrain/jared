@@ -72,17 +72,17 @@ export function VideoResources({ videoUrls = [], moduleName }: VideoResourcesPro
       return {
         videos: [
           { 
-            url: "https://www.youtube.com/embed/hEgzMURdd7Q", 
+            url: "https://www.youtube.com/embed/1JwYNRYizKk", 
             title: "Smooth Transitions in the Classroom: Building Chapter One",
             source: "Raising Arizona Preschool" 
           },
           { 
-            url: "https://www.youtube.com/embed/fm2RnvbPNvU", 
+            url: "https://www.youtube.com/embed/6eQzT1Dqj5s", 
             title: "Using Songs for Preschool Transitions",
             source: "Early Childhood Education" 
           },
           { 
-            url: "https://www.youtube.com/embed/1i1NnzPPdGI", 
+            url: "https://www.youtube.com/embed/21XaUIOnR-s", 
             title: "Visual Schedules & Transition Strategies",
             source: "Mindful Mornings" 
           }
@@ -129,17 +129,17 @@ export function VideoResources({ videoUrls = [], moduleName }: VideoResourcesPro
       return {
         videos: [
           { 
-            url: "https://www.youtube.com/embed/ZwSHAIb_qO8", 
+            url: "https://www.youtube.com/embed/q3zF1jHlya4", 
             title: "Active Listening Techniques for Preschool",
             source: "Early Childhood Education" 
           },
           { 
-            url: "https://www.youtube.com/embed/5oP2__wXQ9U", 
+            url: "https://www.youtube.com/embed/AxrX8vinxHE", 
             title: "Effective Listening in the Classroom",
             source: "Teaching Channel" 
           },
           { 
-            url: "https://www.youtube.com/embed/3_dAkDsBQyk", 
+            url: "https://www.youtube.com/embed/oWe_ogA5YCU", 
             title: "Communication Skills in Early Childhood",
             source: "Early Years" 
           }
@@ -186,17 +186,17 @@ export function VideoResources({ videoUrls = [], moduleName }: VideoResourcesPro
       return {
         videos: [
           { 
-            url: "https://www.youtube.com/embed/9_1Rt1R4xbM", 
+            url: "https://www.youtube.com/embed/5vhTbkvN4mg", 
             title: "Teaching Empathy to Young Children",
             source: "Early Childhood Education" 
           },
           { 
-            url: "https://www.youtube.com/embed/aU3QfyqvHk8", 
+            url: "https://www.youtube.com/embed/icIlUdTEQnU", 
             title: "Building Empathy in Preschoolers",
             source: "Edutopia" 
           },
           { 
-            url: "https://www.youtube.com/embed/cTOhzcSYMlM", 
+            url: "https://www.youtube.com/embed/Gy-1Y8Hj1cU", 
             title: "Promoting Social-Emotional Skills",
             source: "PBS Kids" 
           }
@@ -243,17 +243,17 @@ export function VideoResources({ videoUrls = [], moduleName }: VideoResourcesPro
       return {
         videos: [
           { 
-            url: "https://www.youtube.com/embed/ckZt33Ymbpg", 
+            url: "https://www.youtube.com/embed/UmWvUAoOQWw", 
             title: "Morning Meeting: Building Community in the Classroom",
             source: "Responsive Classroom" 
           },
           { 
-            url: "https://www.youtube.com/embed/6OQvT41T3xs", 
+            url: "https://www.youtube.com/embed/2n7FOBFMvXg", 
             title: "Mindful Greetings for Preschool Children",
             source: "Early Childhood Education" 
           },
           { 
-            url: "https://www.youtube.com/embed/HQT6u-tFKZ4", 
+            url: "https://www.youtube.com/embed/0vuaCfERSMw", 
             title: "Morning Routines that Build Connection",
             source: "Mindful Mornings" 
           }
