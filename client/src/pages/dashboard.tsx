@@ -326,7 +326,7 @@ export default function Dashboard() {
                     <div>
                       <div className="flex items-center mb-2">
                         <img 
-                          src="/assets/mindful-mornings-logo.jpg" 
+                          src="/attached_assets/mindful-mornings-logo.jpg" 
                           alt="Mindful Mornings" 
                           className="h-7 mr-2 rounded"
                           onError={(e) => {
