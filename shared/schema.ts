@@ -323,3 +323,118 @@ export type InsertUserItem = z.infer<typeof insertUserItemSchema>;
 
 export type SpinGameReward = typeof spinGameRewards.$inferSelect;
 export type InsertSpinGameReward = z.infer<typeof insertSpinGameRewardSchema>;
+
+// Discussion threads
+export const discussionThreads = pgTable("discussion_threads", {
+  id: serial("id").primaryKey(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  authorId: integer("author_id").references(() => users.id).notNull(),
+  category: text("category").notNull(),
+  tags: text("tags").array().notNull(),
+  pinned: boolean("pinned").default(false),
+  viewCount: integer("view_count").default(0),
+  lastActivityAt: timestamp("last_activity_at").defaultNow().notNull(),
+});
+
+export const insertDiscussionThreadSchema = createInsertSchema(discussionThreads).omit({
+  id: true,
+  createdAt: true,
+  lastActivityAt: true,
+  viewCount: true,
+});
+
+// Discussion comments
+export const discussionComments = pgTable("discussion_comments", {
+  id: serial("id").primaryKey(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  content: text("content").notNull(),
+  authorId: integer("author_id").references(() => users.id).notNull(),
+  threadId: integer("thread_id").references(() => discussionThreads.id).notNull(),
+  parentCommentId: integer("parent_comment_id").references(() => discussionComments.id),
+  endorsed: boolean("endorsed").default(false),
+  upvotes: integer("upvotes").default(0),
+  downvotes: integer("downvotes").default(0),
+});
+
+export const insertDiscussionCommentSchema = createInsertSchema(discussionComments).omit({
+  id: true,
+  createdAt: true,
+  upvotes: true,
+  downvotes: true,
+});
+
+// User votes on comments
+export const commentVotes = pgTable("comment_votes", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  commentId: integer("comment_id").references(() => discussionComments.id).notNull(),
+  voteType: text("vote_type").notNull(), // "upvote" or "downvote"
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCommentVoteSchema = createInsertSchema(commentVotes).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Add relationships
+export const discussionThreadsRelations = relations(discussionThreads, ({ one, many }) => ({
+  author: one(users, {
+    fields: [discussionThreads.authorId],
+    references: [users.id],
+  }),
+  comments: many(discussionComments),
+}));
+
+export const discussionCommentsRelations = relations(discussionComments, ({ one, many }) => ({
+  author: one(users, {
+    fields: [discussionComments.authorId],
+    references: [users.id],
+  }),
+  thread: one(discussionThreads, {
+    fields: [discussionComments.threadId],
+    references: [discussionThreads.id],
+  }),
+  parentComment: one(discussionComments, {
+    fields: [discussionComments.parentCommentId],
+    references: [discussionComments.id],
+  }),
+  replies: many(discussionComments, {
+    relationName: "parentChild"
+  }),
+  votes: many(commentVotes),
+}));
+
+export const commentVotesRelations = relations(commentVotes, ({ one }) => ({
+  user: one(users, {
+    fields: [commentVotes.userId],
+    references: [users.id],
+  }),
+  comment: one(discussionComments, {
+    fields: [commentVotes.commentId],
+    references: [discussionComments.id],
+  }),
+}));
+
+// Add discussions to user relations
+export const usersRelationsWithDiscussions = relations(users, ({ many }) => ({
+  progress: many(userProgress),
+  meetings: many(meetings),
+  assessments: many(assessments),
+  userAchievements: many(userAchievements),
+  userItems: many(userItems),
+  threads: many(discussionThreads),
+  comments: many(discussionComments),
+  votes: many(commentVotes),
+}));
+
+export type DiscussionThread = typeof discussionThreads.$inferSelect;
+export type InsertDiscussionThread = z.infer<typeof insertDiscussionThreadSchema>;
+
+export type DiscussionComment = typeof discussionComments.$inferSelect;
+export type InsertDiscussionComment = z.infer<typeof insertDiscussionCommentSchema>;
+
+export type CommentVote = typeof commentVotes.$inferSelect;
+export type InsertCommentVote = z.infer<typeof insertCommentVoteSchema>;

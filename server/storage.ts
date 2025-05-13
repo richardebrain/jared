@@ -3,7 +3,10 @@ import {
   learningModules, type LearningModule, type InsertLearningModule,
   userProgress, type UserProgress, type InsertUserProgress,
   meetings, type Meeting, type InsertMeeting,
-  assessments, type Assessment, type InsertAssessment
+  assessments, type Assessment, type InsertAssessment,
+  discussionThreads, type DiscussionThread, type InsertDiscussionThread,
+  discussionComments, type DiscussionComment, type InsertDiscussionComment,
+  commentVotes, type CommentVote, type InsertCommentVote
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -37,6 +40,30 @@ export interface IStorage {
   // Assessment operations
   getAssessmentsByUserId(userId: number): Promise<Assessment[]>;
   createAssessment(assessment: InsertAssessment): Promise<Assessment>;
+  
+  // Discussion threads operations
+  getAllThreads(options?: { limit?: number, offset?: number, category?: string }): Promise<DiscussionThread[]>;
+  getThreadById(id: number): Promise<DiscussionThread | undefined>;
+  getThreadsByAuthor(authorId: number): Promise<DiscussionThread[]>;
+  createThread(thread: InsertDiscussionThread): Promise<DiscussionThread>;
+  updateThread(id: number, threadData: Partial<InsertDiscussionThread>): Promise<DiscussionThread>;
+  deleteThread(id: number): Promise<void>;
+  incrementThreadViewCount(id: number): Promise<void>;
+  
+  // Discussion comments operations
+  getCommentsByThreadId(threadId: number): Promise<DiscussionComment[]>;
+  getCommentById(id: number): Promise<DiscussionComment | undefined>;
+  getCommentsByAuthor(authorId: number): Promise<DiscussionComment[]>;
+  createComment(comment: InsertDiscussionComment): Promise<DiscussionComment>;
+  updateComment(id: number, commentData: Partial<InsertDiscussionComment>): Promise<DiscussionComment>;
+  deleteComment(id: number): Promise<void>;
+  endorseComment(id: number, endorsed: boolean): Promise<void>;
+  
+  // Comment votes operations
+  getVotesByUser(userId: number): Promise<CommentVote[]>;
+  getVotesByComment(commentId: number): Promise<CommentVote[]>;
+  createOrUpdateVote(vote: InsertCommentVote): Promise<CommentVote>;
+  deleteVote(userId: number, commentId: number): Promise<void>;
 }
 
 export class MemStorage implements IStorage {

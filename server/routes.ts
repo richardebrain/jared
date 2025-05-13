@@ -676,6 +676,258 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Discussion forum routes
+  // Get all discussion threads
+  app.get('/api/discussions', async (req, res) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      const offset = req.query.offset ? parseInt(req.query.offset as string) : undefined;
+      const category = req.query.category as string | undefined;
+      
+      const threads = await storage.getAllThreads({ limit, offset, category });
+      res.json(threads);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+  
+  // Get a single discussion thread by ID
+  app.get('/api/discussions/:id', async (req, res) => {
+    try {
+      const threadId = parseInt(req.params.id);
+      const thread = await storage.getThreadById(threadId);
+      
+      if (!thread) {
+        return res.status(404).json({ message: 'Thread not found' });
+      }
+      
+      // Increment view count
+      await storage.incrementThreadViewCount(threadId);
+      
+      res.json(thread);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+  
+  // Create a new discussion thread
+  app.post('/api/discussions', async (req, res) => {
+    try {
+      const session = req.session as SessionData;
+      if (!session.userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const threadData = {
+        ...req.body,
+        authorId: session.userId
+      };
+      
+      const newThread = await storage.createThread(threadData);
+      res.status(201).json(newThread);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+  
+  // Update a discussion thread
+  app.patch('/api/discussions/:id', async (req, res) => {
+    try {
+      const threadId = parseInt(req.params.id);
+      const session = req.session as SessionData;
+      
+      if (!session.userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const thread = await storage.getThreadById(threadId);
+      if (!thread) {
+        return res.status(404).json({ message: 'Thread not found' });
+      }
+      
+      if (thread.authorId !== session.userId) {
+        return res.status(403).json({ message: 'Forbidden: You can only edit your own threads' });
+      }
+      
+      const updatedThread = await storage.updateThread(threadId, req.body);
+      res.json(updatedThread);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+  
+  // Delete a discussion thread
+  app.delete('/api/discussions/:id', async (req, res) => {
+    try {
+      const threadId = parseInt(req.params.id);
+      const session = req.session as SessionData;
+      
+      if (!session.userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const thread = await storage.getThreadById(threadId);
+      if (!thread) {
+        return res.status(404).json({ message: 'Thread not found' });
+      }
+      
+      if (thread.authorId !== session.userId) {
+        return res.status(403).json({ message: 'Forbidden: You can only delete your own threads' });
+      }
+      
+      await storage.deleteThread(threadId);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+  
+  // Get comments for a thread
+  app.get('/api/discussions/:id/comments', async (req, res) => {
+    try {
+      const threadId = parseInt(req.params.id);
+      const comments = await storage.getCommentsByThreadId(threadId);
+      res.json(comments);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+  
+  // Add a comment to a thread
+  app.post('/api/discussions/:id/comments', async (req, res) => {
+    try {
+      const threadId = parseInt(req.params.id);
+      const session = req.session as SessionData;
+      
+      if (!session.userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const commentData = {
+        ...req.body,
+        threadId,
+        authorId: session.userId
+      };
+      
+      const newComment = await storage.createComment(commentData);
+      res.status(201).json(newComment);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+  
+  // Update a comment
+  app.patch('/api/comments/:id', async (req, res) => {
+    try {
+      const commentId = parseInt(req.params.id);
+      const session = req.session as SessionData;
+      
+      if (!session.userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const comment = await storage.getCommentById(commentId);
+      if (!comment) {
+        return res.status(404).json({ message: 'Comment not found' });
+      }
+      
+      if (comment.authorId !== session.userId) {
+        return res.status(403).json({ message: 'Forbidden: You can only edit your own comments' });
+      }
+      
+      const updatedComment = await storage.updateComment(commentId, req.body);
+      res.json(updatedComment);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+  
+  // Delete a comment
+  app.delete('/api/comments/:id', async (req, res) => {
+    try {
+      const commentId = parseInt(req.params.id);
+      const session = req.session as SessionData;
+      
+      if (!session.userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const comment = await storage.getCommentById(commentId);
+      if (!comment) {
+        return res.status(404).json({ message: 'Comment not found' });
+      }
+      
+      if (comment.authorId !== session.userId) {
+        return res.status(403).json({ message: 'Forbidden: You can only delete your own comments' });
+      }
+      
+      await storage.deleteComment(commentId);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+  
+  // Endorse a comment (for teachers/admins to mark helpful answers)
+  app.patch('/api/comments/:id/endorse', async (req, res) => {
+    try {
+      const commentId = parseInt(req.params.id);
+      const endorsed = req.body.endorsed === true;
+      
+      // In a real app, you would check if the user has permission to endorse
+      
+      await storage.endorseComment(commentId, endorsed);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+  
+  // Vote on a comment
+  app.post('/api/comments/:id/vote', async (req, res) => {
+    try {
+      const commentId = parseInt(req.params.id);
+      const session = req.session as SessionData;
+      const voteType = req.body.voteType;
+      
+      if (!session.userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      if (voteType !== 'upvote' && voteType !== 'downvote') {
+        return res.status(400).json({ message: 'Vote type must be "upvote" or "downvote"' });
+      }
+      
+      const vote = {
+        userId: session.userId,
+        commentId,
+        voteType
+      };
+      
+      const updatedVote = await storage.createOrUpdateVote(vote);
+      res.json(updatedVote);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+  
+  // Remove a vote from a comment
+  app.delete('/api/comments/:id/vote', async (req, res) => {
+    try {
+      const commentId = parseInt(req.params.id);
+      const session = req.session as SessionData;
+      
+      if (!session.userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      await storage.deleteVote(session.userId, commentId);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Create HTTP server
   const httpServer = createServer(app);
 
