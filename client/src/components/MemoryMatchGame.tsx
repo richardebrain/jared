@@ -26,8 +26,20 @@ interface MemoryMatchGameProps {
 const getMemoryPairsByTopic = (moduleName: string = "") => {
   const topicLower = moduleName.toLowerCase();
   
+  // Transition Techniques specific pairs
+  if (topicLower.includes('transition')) {
+    return [
+      { phrase: "Visual timers", response: "5-minute countdown for Chapter One", category: "tool" },
+      { phrase: "Transition songs", response: "Clean-up time is almost here", category: "auditory" },
+      { phrase: "Picture schedules", response: "First centers, then story time", category: "visual" },
+      { phrase: "Movement cues", response: "Tiptoe like a mouse to line up", category: "kinesthetic" },
+      { phrase: "Sensory signals", response: "Bell rings for attention", category: "auditory" },
+      { phrase: "Chapter One phrases", response: "Building your story, one page at a time", category: "language" },
+    ];
+  }
+  
   // Active Listening specific pairs
-  if (topicLower.includes('listen') || topicLower.includes('communication')) {
+  else if (topicLower.includes('listen') || topicLower.includes('communication')) {
     return [
       { phrase: "Ask open-ended questions", response: "Tell me more about that", category: "listening" },
       { phrase: "Reflect feelings", response: "You seem frustrated", category: "listening" },

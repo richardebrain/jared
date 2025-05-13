@@ -68,7 +68,65 @@ export function VideoResources({ videoUrls = [], moduleName }: VideoResourcesPro
     const topicLower = moduleName.toLowerCase();
 
     // Active Listening specific resources
-    if (topicLower.includes('listen') || topicLower.includes('communication')) {
+    // Transition Techniques Module
+    if (topicLower.includes('transition')) {
+      return {
+        videos: [
+          { 
+            url: "https://www.youtube.com/embed/hEgzMURdd7Q", 
+            title: "Smooth Transitions in the Classroom: Building Chapter One",
+            source: "Raising Arizona Preschool" 
+          },
+          { 
+            url: "https://www.youtube.com/embed/fm2RnvbPNvU", 
+            title: "Using Songs for Preschool Transitions",
+            source: "Early Childhood Education" 
+          },
+          { 
+            url: "https://www.youtube.com/embed/1i1NnzPPdGI", 
+            title: "Visual Schedules & Transition Strategies",
+            source: "Mindful Mornings" 
+          }
+        ],
+        articles: [
+          {
+            title: "Transition Strategies for Building Chapter One in Every Child",
+            url: "https://www.naeyc.org/resources/pubs/tyc/oct2017/planning-transitions-prevent-challenging-behavior",
+            source: "NAEYC"
+          },
+          {
+            title: "Supporting Transitions: Using Classroom Routines",
+            url: "https://eclkc.ohs.acf.hhs.gov/transitions/article/transition-resources-teachers-staff",
+            source: "Head Start ECLKC"
+          },
+          {
+            title: "Transition Time Management for Preschool Teachers",
+            url: "https://www.edutopia.org/article/using-transitions-effectively",
+            source: "Edutopia"
+          }
+        ],
+        tools: [
+          {
+            title: "Visual Transition Cards Toolkit",
+            url: "https://csefel.vanderbilt.edu/resources/strategies.html",
+            source: "CSEFEL Vanderbilt"
+          },
+          {
+            title: "Transition Songs and Chants Collection",
+            url: "https://teachingstrategies.com/blog/classroom-transitions/",
+            source: "Teaching Strategies"
+          },
+          {
+            title: "Classroom Timer Tools for Transitions",
+            url: "https://challengingbehavior.cbcs.usf.edu/Implementation/teachers.html",
+            source: "Center on PBIS"
+          }
+        ]
+      };
+    }
+    
+    // Active Listening Module
+    else if (topicLower.includes('listen') || topicLower.includes('communication')) {
       return {
         videos: [
           { 
