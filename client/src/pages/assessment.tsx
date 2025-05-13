@@ -679,6 +679,17 @@ export default function AssessmentPage() {
     'mindful-teaching': 'beginner' // Adding new domain for Raising Arizona mindful teaching approach
   });
   
+  // Feedback for the current answer
+  const [answerFeedback, setAnswerFeedback] = useState<{
+    shown: boolean;
+    correct: boolean;
+    explanation: string;
+  }>({
+    shown: false,
+    correct: false,
+    explanation: ''
+  });
+  
   // Track correct answers by domain
   const [correctByDomain, setCorrectByDomain] = useState<Record<string, number>>({
     'child-development': 0,
@@ -699,16 +710,7 @@ export default function AssessmentPage() {
     'mindful-teaching': 0 // New domain
   });
   
-  // Track feedback for the current question
-  const [answerFeedback, setAnswerFeedback] = useState<{
-    shown: boolean;
-    correct: boolean;
-    explanation: string;
-  }>({
-    shown: false,
-    correct: false,
-    explanation: ''
-  });
+  // State variables for tracking the assessment are declared above
   
   // Track answered questions by ID
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -1066,6 +1068,28 @@ export default function AssessmentPage() {
   return (
     <div className="min-h-screen bg-neutral-100">
       <Header />
+      
+      {/* Answer Feedback Overlay */}
+      {answerFeedback.shown && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className={`bg-white p-6 rounded-lg shadow-lg max-w-md w-full ${
+            answerFeedback.correct ? 'border-l-8 border-green-500' : 'border-l-8 border-red-500'
+          }`}>
+            <h3 className={`text-xl font-bold ${
+              answerFeedback.correct ? 'text-green-600' : 'text-red-600'
+            }`}>
+              {answerFeedback.correct ? 'Correct!' : 'Incorrect'}
+            </h3>
+            <p className="my-4">{answerFeedback.explanation}</p>
+            <Button 
+              className="w-full" 
+              onClick={handleContinueAfterFeedback}
+            >
+              Continue
+            </Button>
+          </div>
+        </div>
+      )}
       
       <main className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-center mb-2">Teacher Skills Assessment</h1>
