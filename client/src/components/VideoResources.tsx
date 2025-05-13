@@ -405,14 +405,44 @@ export function VideoResources({ videoUrls = [], moduleName }: VideoResourcesPro
                 <div key={`video-${index}`} className="space-y-2">
                   <h3 className="text-md font-medium">{video.title}</h3>
                   <p className="text-sm text-muted-foreground mb-1">Source: {video.source}</p>
-                  <div className="aspect-video rounded-md overflow-hidden border bg-muted/20">
+                  <div className="aspect-video rounded-md overflow-hidden border bg-muted/20 relative">
                     <iframe
                       src={video.url}
                       className="w-full h-full"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                       title={video.title}
+                      onError={(e) => {
+                        console.error("Video failed to load:", video.url);
+                        // Set a data attribute to mark this video as failed
+                        e.currentTarget.setAttribute('data-error', 'true');
+                      }}
                     ></iframe>
+                    
+                    {/* Alternative video options if the primary one fails */}
+                    <div className="absolute bottom-0 right-0 p-2 bg-black/70 rounded-tl-md text-white text-xs">
+                      <span className="mr-1">Video options:</span>
+                      <button 
+                        onClick={() => window.open(video.url, '_blank')}
+                        className="px-1 py-0.5 bg-blue-600 rounded mr-1 hover:bg-blue-700 transition"
+                      >
+                        Watch
+                      </button>
+                      {index > 0 && (
+                        <button 
+                          onClick={() => {
+                            // Try previous video if this one fails
+                            const iframe = document.querySelector(`iframe[title="${video.title}"]`);
+                            if (iframe) {
+                              iframe.src = externalResources.videos[Math.max(0, index-1)].url;
+                            }
+                          }}
+                          className="px-1 py-0.5 bg-gray-600 rounded hover:bg-gray-700 transition"
+                        >
+                          Alt
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
