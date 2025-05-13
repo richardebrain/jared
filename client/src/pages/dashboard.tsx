@@ -741,6 +741,143 @@ export default function Dashboard() {
             </div>
           </div>
         </section>
+        
+        {/* Mindful Mornings Section */}
+        <section className="mb-12">
+          <div className="bg-[#f5f8ff] rounded-xl p-8 border-2 border-primary shadow-lg">
+            <div className="flex flex-col md:flex-row items-center">
+              <div className="flex-1 mb-6 md:mb-0 md:mr-8">
+                <div className="flex items-center mb-4">
+                  <div className="relative">
+                    <img 
+                      src={mindfulMorningsLogo} 
+                      alt="Mindful Mornings" 
+                      className="h-20 mr-4 rounded-lg shadow-md"
+                    />
+                    <div className="absolute -top-2 -right-2 bg-[#ff8c24] text-white text-xs px-2 py-1 rounded-full font-bold">
+                      Featured
+                    </div>
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-heading font-bold bg-gradient-to-r from-primary to-[#ff8c24] bg-clip-text text-transparent">
+                      Mindful Mornings
+                    </h2>
+                    <p className="text-sm italic font-medium">A Raising Arizona exclusive program</p>
+                  </div>
+                </div>
+                <p className="mb-6 text-[#333]">Start each day with purpose and calm. Our Mindful Mornings program helps teachers develop emotional regulation, positive self-image, and gratitude practices to share with children.</p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  {mindfulMorningsModules.length > 0 && (
+                    <button 
+                      onClick={() => handleModuleSelect(mindfulMorningsModules[0].id)}
+                      className="bg-gradient-to-r from-primary to-[#ff8c24] text-white rounded-lg px-6 py-3 font-semibold hover:opacity-90 transition shadow-md"
+                    >
+                      Start Training
+                    </button>
+                  )}
+                  <button className="border-2 border-primary text-primary rounded-lg px-6 py-3 font-semibold hover:bg-primary/10 transition">
+                    Program Details
+                  </button>
+                </div>
+              </div>
+              
+              <div className="w-full md:w-1/3">
+                <div className="bg-white p-6 rounded-lg shadow-md border border-primary/20">
+                  <div className="flex items-center mb-4">
+                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center mr-3">
+                      <span className="text-primary font-bold">🌟</span>
+                    </div>
+                    <h3 className="font-semibold text-primary">Training Modules</h3>
+                  </div>
+                  <div className="pl-11">
+                    <p className="text-xs text-neutral-600 mb-4 italic">Memorize "Breathe, Smile, Be Present" for lunch reward!</p>
+                  </div>
+                  <ul className="space-y-3">
+                    {mindfulMorningsModules.map((module) => (
+                      <li 
+                        key={module.id} 
+                        className="flex items-center bg-neutral-50 p-2 rounded-md border-l-4 border-primary"
+                        onClick={() => handleModuleSelect(module.id)}
+                      >
+                        <span className="text-sm hover:text-primary font-medium cursor-pointer transition w-full">
+                          {module.title}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        {/* Building a Child: Block by Block Section */}
+        <section className="mb-12">
+          <div className="bg-[#fff9f0] rounded-xl p-8 border-2 border-[#ff8c24] shadow-lg">
+            <div className="flex flex-col md:flex-row items-center">
+              <div className="flex-1 mb-6 md:mb-0 md:mr-8">
+                <div className="flex items-center mb-4">
+                  <div className="relative">
+                    <div className="h-20 w-20 mr-4 rounded-lg shadow-md bg-[#ff8c24] flex items-center justify-center">
+                      <span className="text-4xl">🧱</span>
+                    </div>
+                    <div className="absolute -top-2 -right-2 bg-primary text-white text-xs px-2 py-1 rounded-full font-bold">
+                      New
+                    </div>
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-heading font-bold bg-gradient-to-r from-[#ff8c24] to-primary bg-clip-text text-transparent">
+                      Building a Child: Block by Block
+                    </h2>
+                    <p className="text-sm italic font-medium">Creating life stories through daily interactions</p>
+                  </div>
+                </div>
+                <p className="mb-6 text-[#333]">Learn how teachers build a child's story block by block through their daily interactions. Each colorful LEGO block represents a different aspect of child development that contributes to their life narrative.</p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  {coreValuesModules.length > 0 && (
+                    <Link to="/building-child">
+                      <button 
+                        className="bg-gradient-to-r from-[#ff8c24] to-primary text-white rounded-lg px-6 py-3 font-semibold hover:opacity-90 transition shadow-md"
+                      >
+                        Start Building
+                      </button>
+                    </Link>
+                  )}
+                  <button className="border-2 border-[#ff8c24] text-[#ff8c24] rounded-lg px-6 py-3 font-semibold hover:bg-[#ff8c24]/10 transition">
+                    Learn More
+                  </button>
+                </div>
+              </div>
+              
+              <div className="w-full md:w-1/3">
+                <div className="bg-white p-6 rounded-lg shadow-md border border-[#ff8c24]/20">
+                  <div className="flex items-center mb-4">
+                    <div className="w-8 h-8 rounded-full bg-[#ff8c24]/20 flex items-center justify-center mr-3">
+                      <span className="text-[#ff8c24] font-bold">🧩</span>
+                    </div>
+                    <h3 className="font-semibold text-[#ff8c24]">Building Blocks</h3>
+                  </div>
+                  <div className="pl-11">
+                    <p className="text-xs text-neutral-600 mb-4 italic">Each block represents a chapter in a child's life story!</p>
+                  </div>
+                  <ul className="space-y-3">
+                    {coreValuesModules.map((module) => (
+                      <li 
+                        key={module.id} 
+                        className="flex items-center bg-neutral-50 p-2 rounded-md border-l-4 border-[#ff8c24]"
+                        onClick={() => handleModuleSelect(module.id)}
+                      >
+                        <span className="text-sm hover:text-[#ff8c24] font-medium cursor-pointer transition w-full">
+                          {module.title}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
       
       {/* Footer with motto */}

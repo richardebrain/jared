@@ -1,11 +1,11 @@
 import React from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { Navigate } from 'wouter';
+import { useLocation } from 'wouter';
 import BuildingChildTraining from '@/components/BuildingChildTraining';
 import Header from '@/components/Header';
 
 export default function BuildingChildPage() {
-  const { isLoggedIn, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -15,8 +15,11 @@ export default function BuildingChildPage() {
     );
   }
 
-  if (!isLoggedIn) {
-    return <Navigate to="/login" />;
+  const [, setLocation] = useLocation();
+  
+  if (!isAuthenticated) {
+    setLocation("/login");
+    return null;
   }
 
   return (
