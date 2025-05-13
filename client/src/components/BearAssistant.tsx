@@ -132,7 +132,7 @@ Just ask me anything related to teaching preschool!`
                   const newMessages = [...prev];
                   newMessages[newMessages.length - 1] = {
                     role: 'assistant',
-                    content: "I don't have specific information about that yet. Please try asking about classroom management, child development, or our teaching philosophy."
+                    content: "I don't have specific information about that yet. Try asking about our 'Building Chapter One' philosophy, Mindful Mornings approach, classroom management techniques, or specific early childhood development questions."
                   };
                   return newMessages;
                 });
@@ -145,7 +145,7 @@ Just ask me anything related to teaching preschool!`
                 const newMessages = [...prev];
                 newMessages[newMessages.length - 1] = {
                   role: 'assistant',
-                  content: "I'm having trouble accessing my knowledge base right now. Let me answer with what I know. In early childhood education, we focus on the whole child - their emotional, social, physical, and cognitive development. Try asking me about specific areas like transitions, behavior management, or our Chapter One philosophy."
+                  content: "I'm having trouble accessing my knowledge base right now. Let me help with what I know. At Raising Arizona Preschool, we focus on 'Building Chapter One' for each child - creating formative experiences that become the foundation of their life story. Try asking me about Mindful Mornings, transitions between activities, behavior management strategies, or how to implement our Chapter One philosophy in specific classroom situations."
                 };
                 return newMessages;
               });
@@ -159,11 +159,11 @@ Just ask me anything related to teaching preschool!`
         } catch (error) {
           console.error("Error using Perplexity:", error);
           setIsUsingPerplexity(false);
-          responseText = "I'm experiencing technical difficulties with my knowledge base. I can still help with questions about our teaching philosophy, classroom management, or activity ideas.";
+          responseText = "I'm experiencing technical difficulties accessing my full knowledge base. I can still help with questions about our 'Building Chapter One' philosophy, Mindful Mornings activities, classroom management strategies, and quick transition techniques. Try asking about these topics!";
         }
       } else if (!matchFound) {
         // Fallback response if no match found
-        responseText = "I don't have specific information about that topic yet. Try asking about our classroom management approaches, child development, teaching strategies, or the 'Building Chapter One' philosophy.";
+        responseText = "I don't have specific information about that topic yet. Try asking about our Mindful Mornings approach, transition techniques, classroom management strategies, or how to implement the 'Building Chapter One' philosophy in different learning activities.";
       }
       
       // Add assistant message after a slight delay to simulate thinking
@@ -177,7 +177,7 @@ Just ask me anything related to teaching preschool!`
       setIsTyping(false);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: "I'm sorry, I encountered an error. Please try again later." 
+        content: "I'm sorry, I encountered an error processing your question. Try asking about our Mindful Mornings approach, quick transition techniques, or strategies for implementing Building Chapter One in your classroom." 
       }]);
     }
   };
