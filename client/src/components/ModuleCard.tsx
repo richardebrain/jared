@@ -45,11 +45,11 @@ export default function ModuleCard({ module, progress }: ModuleCardProps) {
   const strokeDashoffset = circumference * (1 - progress / 100);
   
   return (
-    <div className={`bg-white rounded-xl shadow-sm hover:shadow-md transition p-5 border-l-4 ${getBorderColor()}`}>
+    <div className={`bg-white rounded-xl shadow-sm hover:shadow-md transition p-4 border-l-4 ${getBorderColor()}`}>
       <div className="flex items-start justify-between">
-        <div>
-          <h3 className="font-heading font-bold mb-2">{module.title}</h3>
-          <p className="text-sm text-neutral-800 mb-3">{module.description}</p>
+        <div className="flex-1 mr-3">
+          <h3 className="font-heading font-bold mb-1 line-clamp-1">{module.title}</h3>
+          <p className="text-sm text-neutral-800 mb-2 line-clamp-2 h-10">{module.description}</p>
           <div className="flex items-center text-xs">
             <span className="flex items-center mr-3">
               <i className="ri-time-line mr-1"></i> {module.duration} min
@@ -83,7 +83,7 @@ export default function ModuleCard({ module, progress }: ModuleCardProps) {
         </div>
       </div>
       
-      <div className="flex justify-between items-center mt-4 pt-4 border-t border-neutral-100">
+      <div className="flex justify-between items-center mt-3 pt-3 border-t border-neutral-100">
         <div>
           <span className={`inline-block px-2 py-1 ${
             module.featured 
