@@ -39,6 +39,7 @@ const domains = [
 const POINTS_PER_BEAR_BUCK = 20;
 
 export default function Dashboard() {
+  // We'll calculate Bear Bucks later once we have the user data
   const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
   
   const { data: user, isLoading: isLoadingUser, isError: isUserError } = useQuery<User>({ 
