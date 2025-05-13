@@ -16,6 +16,7 @@ import CoreValuesPage from "@/pages/core-values";
 import MindfulMorningsPage from "@/pages/mindful-mornings";
 import StorytellingDemoPage from "@/pages/storytelling-demo";
 import CoreValuesShoutOutPage from "@/pages/core-values-shout-out";
+import BuildingChildPage from "@/pages/building-child";
 import { useAuth } from "@/hooks/use-auth";
 
 function Router() {
@@ -90,6 +91,10 @@ function Router() {
       
       <Route path="/core-values-shout-out">
         {isAuthenticated ? <CoreValuesShoutOutPage /> : <Login />}
+      </Route>
+      
+      <Route path="/building-child">
+        {isAuthenticated ? <BuildingChildPage /> : <Login />}
       </Route>
       
       <Route path="/">
