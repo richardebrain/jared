@@ -49,6 +49,12 @@ The lesson should be structured in JSON format with the following sections:
 - videoResources: An array of 2-3 videos from reputable ECE sources. Keep descriptions to 1 sentence.
 - interactiveResources: An array of 2-3 simple interactive tools with brief descriptions (1 sentence).
 - printableResources: An array of 1-2 downloadable materials with brief descriptions (1 sentence).
+- quizQuestions: An array of 3 quiz questions about "${module.title}" with these fields for each question:
+  * question: A question about the topic that tests understanding (not memorization)
+  * options: Array of 4 possible answers (one correct, three incorrect but plausible)
+  * correctAnswer: The index of the correct answer (0-3)
+  * correctExplanation: Brief explanation for why the correct answer is right
+  * incorrectExplanation: Brief explanation for why the incorrect answers are wrong
 
 Remember: WRITE AT A 5TH GRADE LEVEL - use simple words that a 10-year-old would understand.
 
