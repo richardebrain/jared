@@ -42,9 +42,9 @@ export default function MicroModuleView() {
   // Update progress mutation with points tracking
   const updateProgressMutation = useMutation({
     mutationFn: async (data: { progress: number, completed: boolean, pointsEarned?: number }) => {
-      return apiRequest(`/api/progress/${moduleId}`, {
+      return apiRequest(`/api/progress`, {
         method: 'POST',
-        data
+        data: { ...data, moduleId }
       });
     },
     onSuccess: () => {

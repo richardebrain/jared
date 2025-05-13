@@ -465,7 +465,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
       
-      // Calculate points based on difficulty
+      // Check for explicit points earned from client (used by micro modules)
+      const explicitPointsEarned = req.body.pointsEarned;
+      
+      // Is this a micro module (5 min or less)?
+      const isMicroModule = module.duration <= 5;
+      
+      // Calculate points based on difficulty for regular modules
       const difficulty = module.difficulty;
       const basePoints = 
         difficulty === 'beginner' ? 50 : 
@@ -475,8 +481,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calculate new points earned in this update
       let pointsEarned = 0;
       
-      // Points for new progress percentage (scaled by difficulty)
-      if (previousProgress) {
+      // If client specified points earned, use that value (for micro modules)
+      if (explicitPointsEarned && typeof explicitPointsEarned === 'number') {
+        console.log(`Using explicit points value: ${explicitPointsEarned} for module ${progressData.moduleId}`);
+        pointsEarned = explicitPointsEarned;
+      }
+      // For micro-modules, use a simplified approach (1 point per minute)
+      else if (isMicroModule) {
+        // Only award points on completion
+        if (progressData.completed && (!previousProgress || !previousProgress.completed)) {
+          pointsEarned = module.duration; // 1 point per minute for micro modules
+          console.log(`Awarding ${pointsEarned} points for micro-module ${progressData.moduleId}`);
+        }
+      }
+      // Regular modules use difficulty-based points
+      else if (previousProgress) {
         // Only award points for new progress
         const progressDifference = Math.max(0, progressData.progress - previousProgress.progress);
         pointsEarned = Math.floor((progressDifference / 100) * basePoints);
