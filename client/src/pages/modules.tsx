@@ -159,8 +159,8 @@ export default function AllModules() {
       </div>
 
       <p className="text-muted-foreground mb-6">
-        Browse all available training modules organized by size. Mini modules can be completed in 15 minutes or less,
-        standard modules take 15-45 minutes, and large modules are more comprehensive learning experiences.
+        Browse all available training modules organized by size. Micro modules take just 5 minutes or less for quick learning on essential topics,
+        mini modules can be completed in 5-15 minutes, standard modules take 15-45 minutes, and large modules are more comprehensive learning experiences.
       </p>
 
       <Tabs defaultValue="all" className="mb-6">
