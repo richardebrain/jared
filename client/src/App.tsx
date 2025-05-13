@@ -12,6 +12,7 @@ import MicroModulePage from "@/pages/micro-module";
 import LearningStylePage from "@/pages/learning-style";
 import DiscussionsPage from "@/pages/discussions";
 import AllModules from "@/pages/modules";
+import CoreValuesPage from "@/pages/core-values";
 import { useAuth } from "@/hooks/use-auth";
 
 function Router() {
@@ -70,6 +71,10 @@ function Router() {
       
       <Route path="/modules">
         {isAuthenticated ? <AllModules /> : <Login />}
+      </Route>
+      
+      <Route path="/core-values">
+        {isAuthenticated ? <CoreValuesPage /> : <Login />}
       </Route>
       
       <Route path="/">

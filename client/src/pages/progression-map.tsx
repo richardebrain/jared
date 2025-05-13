@@ -1,35 +1,40 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/use-auth";
-import Header from "@/components/Header";
 import { 
-  Trophy, 
   Award, 
-  Medal, 
   BookOpen, 
-  GraduationCap,
   Brain, 
-  Sparkles,
-  Star,
-  LucideIcon,
-  CheckCircle2,
-  Lock,
-  Clock,
-  Lightbulb
+  CheckCircle, 
+  Clock, 
+  Crown, 
+  Medal, 
+  Star, 
+  TrendingUp, 
+  Trophy,
+  BookIcon,
+  BadgeCheck,
+  LucideIcon
 } from "lucide-react";
+import Header from "@/components/Header";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { Link } from "wouter";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import BearAssistant from "@/components/BearAssistant";
 
 interface LevelRequirement {
@@ -44,427 +49,572 @@ interface LevelRequirement {
 }
 
 export default function ProgressionMap() {
-  const { user, isLoadingUser } = useAuth();
+  const { user } = useAuth();
+  const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
   
-  // Get user progress data
-  const { data: userProgress } = useQuery({
-    queryKey: ["/api/progress"],
-    enabled: !!user
-  });
-  
-  // Get completed modules data
-  const { data: modules } = useQuery({
-    queryKey: ["/api/modules"]
-  });
-
-  // Get assessment data
-  const { data: assessments } = useQuery({
-    queryKey: ["/api/assessments"],
-    enabled: !!user
-  });
-
-  // Define teacher levels with requirements
-  const levelRequirements: Record<number, LevelRequirement> = {
-    1: {
+  // Define teacher levels and their requirements
+  const teacherLevels: Record<string, LevelRequirement> = {
+    "assistant": {
       points: 0,
       icon: BookOpen,
       color: "bg-blue-500",
-      description: "Begin your journey in early childhood education by completing the orientation modules and your initial assessment.",
+      description: "Entry level position focused on learning the basics of early childhood education while assisting lead teachers.",
       benefits: [
-        "Access to basic learning modules",
-        "Daily free spin on the reward wheel",
-        "Mindful Mornings training access"
+        "Access to all basic training modules",
+        "Mentorship from experienced teachers",
+        "Opportunities to observe different classrooms"
       ]
     },
-    2: {
+    "associate": {
       points: 100,
-      hoursRequired: 5,
-      icon: Lightbulb,
-      color: "bg-green-500",
-      description: "Develop foundational knowledge of classroom practices and child development milestones.",
+      assessmentScore: 60,
+      hoursRequired: 10,
+      icon: Star,
+      color: "bg-yellow-500",
+      description: "Developing teacher who can lead certain activities under supervision and is building core competencies.",
       benefits: [
-        "Unlock beginner classroom management techniques",
-        "Ability to add classroom observations to your portfolio",
-        "Access to the teacher community forum"
+        "Limited classroom leadership opportunities",
+        "Increased responsibility for planning activities",
+        "Access to intermediate training modules",
+        "Eligible for Bear Bucks bonus rewards"
       ]
     },
-    3: {
+    "lead": {
       points: 250,
       assessmentScore: 70,
-      hoursRequired: 12,
-      icon: Brain,
-      color: "bg-yellow-500",
-      description: "Gain deeper understanding of teaching methodologies and enhance your classroom engagement strategies.",
+      hoursRequired: 20,
+      modules: ["classroom-management", "child-development-basics", "curriculum-planning"],
+      icon: Medal,
+      color: "bg-purple-500",
+      description: "Qualified teacher capable of independently managing a classroom and implementing curriculum.",
       benefits: [
-        "Access to interactive lesson planning tools",
-        "Unlock mini-module creation privileges",
-        "Early access to new training materials"
+        "Full classroom leadership",
+        "Curriculum development input",
+        "Mentoring opportunities for assistant teachers",
+        "Access to advanced training modules",
+        "Higher Bear Bucks earning potential"
       ]
     },
-    4: {
+    "senior": {
       points: 500,
       assessmentScore: 80,
-      hoursRequired: 25,
-      icon: Medal,
+      hoursRequired: 40,
+      modules: ["advanced-curriculum", "parent-relations", "behavioral-management"],
+      icon: Trophy,
       color: "bg-orange-500",
-      description: "Lead small groups and plan developmentally appropriate activities for your classroom with confidence.",
+      description: "Experienced educator who demonstrates excellence in teaching and leadership abilities.",
       benefits: [
-        "Lead Teacher certification",
-        "Ability to mentor Trainee and Assistant Teachers",
-        "Access to advanced classroom management training",
-        "Preferred classroom assignment priority"
+        "Leadership role in curriculum planning",
+        "Opportunity to conduct workshops for other teachers",
+        "Input on school policy decisions",
+        "Access to all training modules",
+        "Premium Bear Bucks rewards"
       ]
     },
-    5: {
+    "master": {
       points: 1000,
       assessmentScore: 90,
-      hoursRequired: 50,
-      icon: Trophy,
-      color: "bg-purple-500",
-      description: "Achieve mastery in early childhood education with comprehensive knowledge across all developmental domains.",
-      benefits: [
-        "Master Lead Teacher certification",
-        "Curriculum development privileges",
-        "Leadership opportunities within Raising Arizona",
-        "Professional development stipend eligibility"
-      ]
-    },
-    6: {
-      points: 2000,
-      assessmentScore: 95,
-      hoursRequired: 100,
-      icon: GraduationCap,
+      hoursRequired: 60,
+      modules: ["leadership-in-ece", "advanced-child-development", "evaluation-methods"],
+      icon: Crown,
       color: "bg-red-500",
-      description: "Mentor other teachers while continuing to expand your own expertise in specialized areas of early childhood education.",
+      description: "Highest level of teaching excellence with comprehensive knowledge of early childhood education and exceptional classroom results.",
       benefits: [
-        "Mentor Teacher certification",
-        "Workshop facilitation opportunities",
-        "Regional conference representation eligibility",
-        "Input on organizational training strategies",
-        "Career advancement opportunities"
+        "School-wide leadership role",
+        "Curriculum development authority",
+        "Training and mentoring responsibilities",
+        "Represent school at conferences and events",
+        "Maximum Bear Bucks earning potential",
+        "Recognition as Master Lead Teacher with certificate and pin"
       ]
     }
   };
-
-  // Calculate user progress metrics
-  const currentLevel = user?.level || 1;
-  const totalPoints = user?.points || 0;
-  const highestAssessmentScore = assessments?.length 
-    ? Math.max(...assessments.map(a => a.overallScore || 0)) 
-    : 0;
   
-  // Calculate hours spent (estimate based on module completion)
-  const hoursSpent = userProgress?.reduce((total, progress) => {
-    const module = modules?.find(m => m.id === progress.moduleId);
-    // Assume each percent of progress is roughly 0.01 hours (for illustration)
-    return total + ((progress.progress || 0) / 100) * (module?.duration || 1);
-  }, 0) || 0;
+  // Query to get user progress for all modules
+  const { data: userProgress } = useQuery({
+    queryKey: ["/api/progress/by-user", user?.id],
+    enabled: !!user,
+  });
   
-  // Get next level requirements
-  const nextLevel = levelRequirements[currentLevel + 1];
-  const currentLevelReq = levelRequirements[currentLevel];
-  
-  // Calculate progress to next level
-  const pointsToNextLevel = nextLevel ? nextLevel.points - totalPoints : 0;
-  const pointsProgress = nextLevel ? (totalPoints / nextLevel.points) * 100 : 100;
-  
-  // Calculate assessment progress
-  const assessmentProgress = nextLevel?.assessmentScore 
-    ? (highestAssessmentScore / nextLevel.assessmentScore) * 100 
-    : 100;
+  // Determine user's current level and progress to next level
+  const determineUserLevel = () => {
+    if (!user) return { currentLevel: "assistant", nextLevel: "associate", progress: 0 };
     
-  // Calculate hours progress  
-  const hoursProgress = nextLevel?.hoursRequired 
-    ? (hoursSpent / nextLevel.hoursRequired) * 100 
-    : 100;
-
+    const pointsEarned = user.points || 0;
+    const levelKeys = Object.keys(teacherLevels);
+    
+    for (let i = levelKeys.length - 1; i >= 0; i--) {
+      if (pointsEarned >= teacherLevels[levelKeys[i]].points) {
+        const currentLevel = levelKeys[i];
+        const nextLevel = i < levelKeys.length - 1 ? levelKeys[i + 1] : null;
+        
+        if (!nextLevel) return { currentLevel, nextLevel: null, progress: 100 };
+        
+        const currentLevelPoints = teacherLevels[currentLevel].points;
+        const nextLevelPoints = teacherLevels[nextLevel].points;
+        const pointsRange = nextLevelPoints - currentLevelPoints;
+        const pointsProgress = pointsEarned - currentLevelPoints;
+        const progress = Math.min(Math.round((pointsProgress / pointsRange) * 100), 99);
+        
+        return { currentLevel, nextLevel, progress };
+      }
+    }
+    
+    return { currentLevel: "assistant", nextLevel: "associate", progress: 0 };
+  };
+  
+  const { currentLevel, nextLevel, progress } = determineUserLevel();
+  
+  // Calculate stats for the current user
+  const calculateCompletedModules = () => {
+    if (!userProgress) return 0;
+    return Object.values(userProgress).filter((progress: any) => progress.completed).length;
+  };
+  
+  const calculateTotalHours = () => {
+    if (!userProgress) return 0;
+    // Assuming 1 hour per 3 completed modules as an estimate
+    return Math.round(calculateCompletedModules() / 3);
+  };
+  
+  const getHighestAssessmentScore = () => {
+    if (!user) return 0;
+    // This would normally come from assessment data, using a placeholder for now
+    return user.points ? Math.min(Math.floor(user.points / 10), 100) : 0;
+  };
+  
+  // Check if the master level assessment is unlocked
+  const isMasterAssessmentUnlocked = () => {
+    return currentLevel === "senior" && progress >= 80;
+  };
+  
+  // Helper functions
+  function pointsToNextLevel() {
+    if (!user || !nextLevel) return "0";
+    const pointsEarned = user.points || 0;
+    const nextLevelPoints = teacherLevels[nextLevel].points;
+    return nextLevelPoints - pointsEarned;
+  }
+  
+  function getCompletionStatus(level: string) {
+    if (!user) return "locked";
+    
+    const userPoints = user.points || 0;
+    const levelPoints = teacherLevels[level].points;
+    
+    if (userPoints >= levelPoints) {
+      if (level === currentLevel) return "active";
+      return "completed";
+    }
+    
+    // Check if it's the next level
+    if (level === nextLevel) return "in-progress";
+    
+    return "locked";
+  }
+  
+  function formatModuleName(moduleSlug: string) {
+    return moduleSlug
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+  
+  function isModuleCompleted(moduleSlug: string) {
+    // This would normally check against user progress
+    // Using a simple simulation for now
+    if (!userProgress) return false;
+    return Math.random() > 0.5; // Simulating 50% chance of completion
+  }
+  
   return (
     <div className="min-h-screen bg-neutral-50 flex flex-col">
       <Header />
       
-      <main className="flex-1 container max-w-7xl mx-auto p-4 md:p-6">
+      <main className="flex-1 container mx-auto p-4 md:p-6">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-3 space-y-6">
-            {/* Current level overview */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-2xl font-bold mb-2">Teacher Progression Map</h1>
-                  <p className="text-neutral-600 max-w-2xl">
-                    Track your journey to becoming a Master Lead Teacher with our professional advancement path.
-                    Complete modules, earn points, and pass assessments to level up your teaching career.
-                  </p>
-                </div>
-                
-                <div className="bg-neutral-50 p-4 rounded-lg border border-neutral-200 flex flex-col items-center min-w-[180px]">
-                  <div className={cn(
-                    "w-16 h-16 rounded-full flex items-center justify-center mb-2",
-                    currentLevelReq?.color || "bg-blue-500"
-                  )}>
-                    {currentLevelReq?.icon && (
-                      <currentLevelReq.icon className="h-8 w-8 text-white" />
-                    )}
-                  </div>
-                  <h3 className="font-bold text-lg">
-                    Level {currentLevel}:
-                  </h3>
-                  <p className="font-medium text-neutral-600">
-                    {currentLevel === 1 && "Trainee Teacher"}
-                    {currentLevel === 2 && "Assistant Teacher"}
-                    {currentLevel === 3 && "Associate Teacher"}
-                    {currentLevel === 4 && "Lead Teacher"}
-                    {currentLevel === 5 && "Master Lead Teacher"}
-                    {currentLevel === 6 && "Mentor Teacher"}
-                  </p>
-                  <p className="text-sm text-neutral-500 mt-1">{totalPoints} XP</p>
-                </div>
-              </div>
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Teacher Progression Map</h1>
+              <p className="text-neutral-600 mb-6">
+                Follow your journey from Assistant Teacher to Master Lead Teacher at Raising Arizona Preschool.
+              </p>
               
-              {nextLevel && (
-                <div className="mt-6 bg-neutral-50 p-4 rounded-lg border border-neutral-200">
-                  <h3 className="font-semibold mb-3">Next Level Progress</h3>
-                  
+              {/* Current level card */}
+              <Card className="mb-6 border-2 border-primary/20">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Your Current Level</CardTitle>
+                    <Badge variant="outline" className="text-xs uppercase">
+                      {currentLevel} Teacher
+                    </Badge>
+                  </div>
+                  <CardDescription>
+                    {pointsToNextLevel()} points until {nextLevel ? `${nextLevel} Teacher` : "Maximum level reached"}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
                   <div className="space-y-4">
                     <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium">XP Points: {totalPoints}/{nextLevel.points}</span>
-                        <span className="text-sm font-medium">{Math.round(pointsProgress)}%</span>
+                      <div className="flex items-center justify-between text-sm mb-2">
+                        <span>Progress to next level</span>
+                        <span className="font-semibold">{progress}%</span>
                       </div>
-                      <Progress value={pointsProgress} className="h-2" />
+                      <Progress value={progress} className="h-2" />
                     </div>
                     
-                    {nextLevel.assessmentScore && (
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm font-medium">Assessment Score: {highestAssessmentScore}/{nextLevel.assessmentScore}%</span>
-                          <span className="text-sm font-medium">{Math.round(assessmentProgress)}%</span>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="bg-blue-50 p-3 rounded-lg">
+                        <div className="text-blue-500 mb-1">
+                          <TrendingUp className="h-5 w-5 mx-auto" />
                         </div>
-                        <Progress value={assessmentProgress} className="h-2" />
+                        <div className="text-2xl font-bold">{user?.points || 0}</div>
+                        <div className="text-xs text-neutral-600">Total Points</div>
                       </div>
-                    )}
+                      
+                      <div className="bg-green-50 p-3 rounded-lg">
+                        <div className="text-green-500 mb-1">
+                          <CheckCircle className="h-5 w-5 mx-auto" />
+                        </div>
+                        <div className="text-2xl font-bold">{calculateCompletedModules()}</div>
+                        <div className="text-xs text-neutral-600">Modules Completed</div>
+                      </div>
+                      
+                      <div className="bg-yellow-50 p-3 rounded-lg">
+                        <div className="text-yellow-500 mb-1">
+                          <Clock className="h-5 w-5 mx-auto" />
+                        </div>
+                        <div className="text-2xl font-bold">{calculateTotalHours()}</div>
+                        <div className="text-xs text-neutral-600">Training Hours</div>
+                      </div>
+                    </div>
                     
-                    {nextLevel.hoursRequired && (
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm font-medium">Learning Hours: {Math.round(hoursSpent)}/{nextLevel.hoursRequired}hrs</span>
-                          <span className="text-sm font-medium">{Math.round(hoursProgress)}%</span>
-                        </div>
-                        <Progress value={hoursProgress} className="h-2" />
+                    {currentLevel === "senior" && progress >= 80 && (
+                      <div className="bg-red-50 p-4 rounded-lg border border-red-100 text-center">
+                        <h3 className="text-lg font-bold text-red-800 flex items-center justify-center">
+                          <Crown className="h-5 w-5 mr-2" />
+                          Master Teacher Assessment Available!
+                        </h3>
+                        <p className="text-sm text-red-700 mb-2">
+                          You've earned the right to take the 100-question Master Lead Teacher assessment.
+                          Score 90% or higher to achieve our highest teaching rank!
+                        </p>
+                        <Button className="bg-red-600 hover:bg-red-700">
+                          Start Master Assessment
+                        </Button>
                       </div>
                     )}
                   </div>
-                  
-                  <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100 text-sm text-blue-800">
-                    <p className="flex items-center">
-                      <Sparkles className="h-4 w-4 mr-2 text-blue-500" />
-                      <span>You need <strong>{pointsToNextLevel} more XP</strong> to reach Level {currentLevel + 1}!</span>
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            {/* Level progression map */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
-              <h2 className="text-xl font-bold mb-4">Teacher Advancement Path</h2>
+                </CardContent>
+              </Card>
               
+              {/* Level progression visualization */}
               <div className="relative">
-                {/* Connecting line */}
-                <div className="absolute top-0 bottom-0 left-[39px] md:left-1/2 w-1 bg-neutral-200 -translate-x-1/2 z-0" />
-                
-                {/* Level steps */}
-                <div className="space-y-12 relative z-10">
-                  {Object.entries(levelRequirements).map(([level, req], index) => {
-                    const levelNum = parseInt(level);
-                    const isCurrentLevel = currentLevel === levelNum;
-                    const isCompleted = currentLevel > levelNum;
-                    const isLocked = currentLevel < levelNum;
+                <div className="absolute top-1/2 left-0 right-0 h-1 bg-neutral-200 -translate-y-1/2"></div>
+                <div className="relative flex justify-between px-4 py-10">
+                  {Object.entries(teacherLevels).map(([level, requirements]) => {
+                    const LevelIcon = requirements.icon;
+                    const isActive = level === currentLevel;
+                    const isCompleted = getCompletionStatus(level) === "completed";
+                    const isLocked = getCompletionStatus(level) === "locked";
                     
                     return (
-                      <div key={level} className={cn(
-                        "flex flex-col md:flex-row md:items-center gap-4",
-                        index % 2 === 1 ? "md:flex-row-reverse" : ""
-                      )}>
-                        {/* Level circle */}
-                        <div className={cn(
-                          "w-20 h-20 rounded-full border-4 flex items-center justify-center z-10",
-                          isCurrentLevel ? "border-yellow-400 bg-white" : "border-neutral-200",
-                          isCompleted ? "bg-green-500 border-green-600" : "",
-                          isLocked ? "bg-neutral-100" : "",
-                          req.color
-                        )}>
-                          {isCompleted ? (
-                            <CheckCircle2 className="h-10 w-10 text-white" />
-                          ) : isLocked ? (
-                            <Lock className="h-10 w-10 text-neutral-400" />
-                          ) : (
-                            <req.icon className="h-10 w-10 text-white" />
-                          )}
+                      <div 
+                        key={level} 
+                        className="relative flex flex-col items-center cursor-pointer"
+                        onClick={() => setSelectedLevel(level)}
+                      >
+                        <div 
+                          className={`w-12 h-12 rounded-full flex items-center justify-center z-10 transition-all ${
+                            isActive 
+                              ? "ring-4 ring-primary ring-offset-2" 
+                              : isCompleted 
+                                ? "bg-green-100 text-green-600" 
+                                : isLocked 
+                                  ? "bg-neutral-200 text-neutral-400" 
+                                  : requirements.color + " text-white"
+                          }`}
+                        >
+                          {isCompleted ? <CheckCircle className="h-6 w-6" /> : <LevelIcon className="h-6 w-6" />}
                         </div>
-                        
-                        {/* Level card */}
-                        <Card className={cn(
-                          "flex-1 md:w-[calc(50%-3rem)]",
-                          isCurrentLevel ? "border-yellow-300 bg-yellow-50" : "",
-                          isCompleted ? "border-green-200 bg-green-50" : "",
-                          isLocked ? "opacity-75" : ""
-                        )}>
-                          <CardHeader className="pb-2">
-                            <div className="flex items-center justify-between">
-                              <CardTitle className="text-lg">
-                                Level {level}: {level === "1" ? "Trainee Teacher" : 
-                                              level === "2" ? "Assistant Teacher" : 
-                                              level === "3" ? "Associate Teacher" : 
-                                              level === "4" ? "Lead Teacher" : 
-                                              level === "5" ? "Master Lead Teacher" : 
-                                              "Mentor Teacher"}
-                              </CardTitle>
-                              <Badge variant={isCurrentLevel ? "default" : 
-                                           isCompleted ? "secondary" : 
-                                           "outline"}>
-                                {isCurrentLevel ? "Current" : 
-                                 isCompleted ? "Completed" : 
-                                 "Locked"}
-                              </Badge>
-                            </div>
-                            <CardDescription>{req.description}</CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-2 text-sm text-muted-foreground">
-                              <div className="flex items-center">
-                                <Star className="h-4 w-4 mr-2 text-yellow-500" />
-                                <span>{req.points} XP required</span>
-                              </div>
-                              
-                              {req.assessmentScore && (
-                                <div className="flex items-center">
-                                  <Brain className="h-4 w-4 mr-2 text-purple-500" />
-                                  <span>{req.assessmentScore}% assessment score minimum</span>
-                                </div>
-                              )}
-                              
-                              {req.hoursRequired && (
-                                <div className="flex items-center">
-                                  <Clock className="h-4 w-4 mr-2 text-blue-500" />
-                                  <span>{req.hoursRequired} learning hours required</span>
-                                </div>
-                              )}
-                            </div>
-                            
-                            {req.benefits && req.benefits.length > 0 && (
-                              <div className="mt-4">
-                                <h4 className="text-sm font-medium mb-2">Level Benefits:</h4>
-                                <ul className="text-sm space-y-1">
-                                  {req.benefits.map((benefit, i) => (
-                                    <li key={i} className="flex items-start">
-                                      <span className="text-green-500 mr-2">•</span>
-                                      <span>{benefit}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                          </CardContent>
-                          <CardFooter>
-                            {isCurrentLevel && (
-                              <Button asChild className="w-full">
-                                <Link href="/dashboard">Continue Learning</Link>
-                              </Button>
-                            )}
-                            {isCompleted && (
-                              <div className="w-full text-center text-green-700 font-medium text-sm">
-                                Completed on {new Date(user?.updatedAt || Date.now()).toLocaleDateString()}
-                              </div>
-                            )}
-                          </CardFooter>
-                        </Card>
+                        <div className="absolute -bottom-16 text-center w-24">
+                          <div className={`font-semibold ${isActive ? "text-primary" : isLocked ? "text-neutral-400" : ""}`}>
+                            {level.charAt(0).toUpperCase() + level.slice(1)}
+                          </div>
+                          <div className="text-xs text-neutral-600">
+                            {requirements.points} pts
+                          </div>
+                        </div>
                       </div>
                     );
                   })}
                 </div>
               </div>
             </div>
+            
+            {/* Level details */}
+            {selectedLevel && (
+              <Card className="mt-20 border-2 border-primary/10">
+                <CardHeader className={`${teacherLevels[selectedLevel].color} text-white`}>
+                  <div className="flex items-center">
+                    <div className="p-3 bg-white/10 rounded-lg mr-4">
+                      {React.createElement(teacherLevels[selectedLevel].icon, { className: "h-8 w-8" })}
+                    </div>
+                    <div>
+                      <CardTitle className="text-2xl">{selectedLevel.charAt(0).toUpperCase() + selectedLevel.slice(1)} Teacher</CardTitle>
+                      <CardDescription className="text-white/80 mt-1">
+                        {teacherLevels[selectedLevel].description}
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <Tabs defaultValue="requirements">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="requirements">Requirements</TabsTrigger>
+                      <TabsTrigger value="benefits">Benefits</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="requirements" className="pt-4">
+                      <div className="space-y-4">
+                        <div className="flex items-center p-3 bg-neutral-50 rounded-lg">
+                          <TrendingUp className="h-5 w-5 text-blue-500 mr-3" />
+                          <div>
+                            <div className="font-medium">Points Required</div>
+                            <div className="text-sm text-neutral-600">
+                              {teacherLevels[selectedLevel].points} XP points
+                            </div>
+                          </div>
+                          <div className="ml-auto">
+                            {user && user.points && user.points >= teacherLevels[selectedLevel].points ? (
+                              <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">Achieved</Badge>
+                            ) : (
+                              <Badge variant="outline" className="bg-yellow-50 text-yellow-600 border-yellow-200">
+                                {user ? teacherLevels[selectedLevel].points - (user.points || 0) : teacherLevels[selectedLevel].points} more needed
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {teacherLevels[selectedLevel].assessmentScore && (
+                          <div className="flex items-center p-3 bg-neutral-50 rounded-lg">
+                            <Brain className="h-5 w-5 text-purple-500 mr-3" />
+                            <div>
+                              <div className="font-medium">Assessment Score</div>
+                              <div className="text-sm text-neutral-600">
+                                Minimum {teacherLevels[selectedLevel].assessmentScore}% on level assessment
+                              </div>
+                            </div>
+                            <div className="ml-auto">
+                              {getHighestAssessmentScore() >= (teacherLevels[selectedLevel].assessmentScore || 0) ? (
+                                <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">Achieved</Badge>
+                              ) : (
+                                <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">Required</Badge>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {teacherLevels[selectedLevel].hoursRequired && (
+                          <div className="flex items-center p-3 bg-neutral-50 rounded-lg">
+                            <Clock className="h-5 w-5 text-orange-500 mr-3" />
+                            <div>
+                              <div className="font-medium">Training Hours</div>
+                              <div className="text-sm text-neutral-600">
+                                Complete {teacherLevels[selectedLevel].hoursRequired} hours of training
+                              </div>
+                            </div>
+                            <div className="ml-auto">
+                              {calculateTotalHours() >= (teacherLevels[selectedLevel].hoursRequired || 0) ? (
+                                <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">Achieved</Badge>
+                              ) : (
+                                <Badge variant="outline" className="bg-yellow-50 text-yellow-600 border-yellow-200">
+                                  {calculateTotalHours()}/{teacherLevels[selectedLevel].hoursRequired} hours
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {teacherLevels[selectedLevel].modules && (
+                          <div>
+                            <div className="font-medium mb-2">Required Modules</div>
+                            <div className="grid grid-cols-1 gap-2">
+                              {teacherLevels[selectedLevel].modules.map((module) => (
+                                <div key={module} className="flex items-center p-3 bg-neutral-50 rounded-lg">
+                                  <BookIcon className="h-5 w-5 text-green-500 mr-3" />
+                                  <div className="text-sm">
+                                    {formatModuleName(module)}
+                                  </div>
+                                  <div className="ml-auto">
+                                    {isModuleCompleted(module) ? (
+                                      <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">Completed</Badge>
+                                    ) : (
+                                      <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">Required</Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {selectedLevel === "master" && (
+                          <div className="flex items-center p-3 bg-red-50 rounded-lg border border-red-100">
+                            <Award className="h-5 w-5 text-red-500 mr-3 flex-shrink-0" />
+                            <div>
+                              <div className="font-medium">Final Requirement</div>
+                              <div className="text-sm text-neutral-600">
+                                Pass the 100-question Master Lead Teacher assessment with 90% or higher score
+                              </div>
+                            </div>
+                            <div className="ml-auto">
+                              <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">
+                                {isMasterAssessmentUnlocked() ? "Unlocked" : "Locked"}
+                              </Badge>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </TabsContent>
+                    <TabsContent value="benefits" className="pt-4">
+                      <div className="space-y-4">
+                        {teacherLevels[selectedLevel].benefits.map((benefit, index) => (
+                          <div key={index} className="flex items-start p-3 bg-neutral-50 rounded-lg">
+                            <BadgeCheck className="h-5 w-5 text-green-500 mr-3 mt-0.5" />
+                            <div className="text-sm">{benefit}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
+            )}
+            
+            {/* Additional stats and info */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Points Breakdown</CardTitle>
+                  <CardDescription>How to earn points towards your next level</CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Activity</TableHead>
+                        <TableHead className="text-right">Points</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell>Complete a learning module</TableCell>
+                        <TableCell className="text-right">20-50</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>Complete a micro-module</TableCell>
+                        <TableCell className="text-right">5-15</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>Pass an assessment</TableCell>
+                        <TableCell className="text-right">50-100</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>Daily login streak (per day)</TableCell>
+                        <TableCell className="text-right">1-5</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>Spin game rewards</TableCell>
+                        <TableCell className="text-right">5-20</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>Complete Core Values training</TableCell>
+                        <TableCell className="text-right">30</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>Community discussion participation</TableCell>
+                        <TableCell className="text-right">1-10</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Master Lead Teacher Requirements</CardTitle>
+                  <CardDescription>Special requirements for our highest teaching rank</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="p-3 bg-neutral-50 rounded-lg flex items-start">
+                    <div className="p-2 bg-purple-100 rounded-full mr-3">
+                      <BookOpen className="h-4 w-4 text-purple-500" />
+                    </div>
+                    <div className="text-sm">Complete all required modules across all teaching levels</div>
+                  </div>
+                  
+                  <div className="p-3 bg-neutral-50 rounded-lg flex items-start">
+                    <div className="p-2 bg-blue-100 rounded-full mr-3">
+                      <Brain className="h-4 w-4 text-blue-500" />
+                    </div>
+                    <div className="text-sm">Achieve 1,000 total XP points</div>
+                  </div>
+                  
+                  <div className="p-3 bg-neutral-50 rounded-lg flex items-start">
+                    <div className="p-2 bg-yellow-100 rounded-full mr-3">
+                      <Clock className="h-4 w-4 text-yellow-500" />
+                    </div>
+                    <div className="text-sm">Complete at least 60 hours of training</div>
+                  </div>
+                  
+                  <div className="p-3 bg-neutral-50 rounded-lg flex items-start">
+                    <div className="p-2 bg-red-100 rounded-full mr-3">
+                      <Award className="h-4 w-4 text-red-500" />
+                    </div>
+                    <div className="text-sm">Pass the 100-question Master Assessment with a score of 90% or higher</div>
+                  </div>
+                  
+                  {isMasterAssessmentUnlocked() && (
+                    <Button className="w-full mt-2">
+                      Take Master Teacher Assessment
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </div>
           
-          {/* Right sidebar */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Point scoring summary */}
-            <Card>
+          <div className="lg:col-span-1">
+            <BearAssistant />
+            
+            {/* Motivation card */}
+            <Card className="mt-6">
               <CardHeader>
-                <CardTitle className="text-lg">XP Scoring System</CardTitle>
-                <CardDescription>How to earn points</CardDescription>
+                <CardTitle className="text-lg">Why Progress Matters</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <h4 className="font-medium mb-1">Learning Modules</h4>
-                  <ul className="text-sm space-y-1 text-neutral-600">
-                    <li className="flex justify-between">
-                      <span>Quick Lessons (5 min)</span>
-                      <span className="font-medium">5 XP</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span>Mini Lessons (10 min)</span>
-                      <span className="font-medium">10 XP</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span>Standard Modules (30 min)</span>
-                      <span className="font-medium">30 XP</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span>Advanced Modules (60 min)</span>
-                      <span className="font-medium">60 XP</span>
-                    </li>
-                  </ul>
+                <div className="p-3 bg-neutral-50 rounded-lg">
+                  <blockquote className="border-l-4 border-primary pl-3 italic text-neutral-700">
+                    "Every genius that ever was had a Mentor"
+                  </blockquote>
+                  <p className="text-xs text-right mt-2 text-neutral-500">- Raising Arizona Preschool Motto</p>
                 </div>
                 
-                <div>
-                  <h4 className="font-medium mb-1">Daily Activities</h4>
-                  <ul className="text-sm space-y-1 text-neutral-600">
-                    <li className="flex justify-between">
-                      <span>Daily Login</span>
-                      <span className="font-medium">2 XP</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span>Completing Assessment</span>
-                      <span className="font-medium">50 XP</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span>Forum Participation</span>
-                      <span className="font-medium">3 XP</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span>Spin Game Rewards</span>
-                      <span className="font-medium">5-25 XP</span>
-                    </li>
-                  </ul>
-                </div>
+                <p className="text-sm text-neutral-600">
+                  Your growth as an educator directly impacts the development of the children in your care. 
+                  Each level you achieve represents new skills and knowledge that create better learning 
+                  experiences for our students.
+                </p>
                 
-                <div className="bg-green-50 p-3 rounded border border-green-100">
-                  <h4 className="font-medium text-green-800 mb-1">Streak Bonuses</h4>
-                  <ul className="text-sm space-y-1 text-green-700">
-                    <li className="flex justify-between">
-                      <span>3-Day Streak</span>
-                      <span className="font-medium">+5 XP daily</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span>7-Day Streak</span>
-                      <span className="font-medium">+10 XP daily</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span>14-Day Streak</span>
-                      <span className="font-medium">+15 XP daily</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span>30-Day Streak</span>
-                      <span className="font-medium">+25 XP daily</span>
-                    </li>
-                  </ul>
+                <div className="flex items-center p-3 bg-amber-50 rounded-lg border border-amber-100">
+                  <Award className="h-5 w-5 text-amber-500 mr-3 flex-shrink-0" />
+                  <p className="text-xs text-amber-700">
+                    Did you know? Master Lead Teachers at Raising Arizona earn higher compensation 
+                    and receive special recognition throughout the year!
+                  </p>
                 </div>
               </CardContent>
             </Card>
-            
-            {/* Bear assistant */}
-            <BearAssistant />
           </div>
         </div>
       </main>
