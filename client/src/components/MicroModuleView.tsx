@@ -42,16 +42,31 @@ export default function MicroModuleView() {
   // Update progress mutation with points tracking
   const updateProgressMutation = useMutation({
     mutationFn: async (data: { progress: number, completed: boolean, pointsEarned?: number }) => {
-      return apiRequest(`/api/progress`, {
-        method: 'POST',
-        data: { ...data, moduleId }
-      });
+      console.log("Calling progress API with data:", { ...data, moduleId });
+      try {
+        return await apiRequest(`/api/progress`, {
+          method: 'POST',
+          data: { ...data, moduleId }
+        });
+      } catch (error) {
+        console.error("Error in updateProgressMutation.mutationFn:", error);
+        throw error; // Re-throw to trigger onError
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Update progress success:", data);
       // Invalidate both progress and user queries to refresh points
       queryClient.invalidateQueries({ queryKey: [`/api/progress/${moduleId}`] });
       queryClient.invalidateQueries({ queryKey: ['/api/progress'] });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+    },
+    onError: (error) => {
+      console.error("Error in updateProgressMutation:", error);
+      toast({
+        title: "Progress Update Failed",
+        description: "We couldn't save your progress. Please try again.",
+        variant: "destructive"
+      });
     }
   });
   
@@ -380,34 +395,60 @@ export default function MicroModuleView() {
 
   const handleNextStep = () => {
     if (completedStep < steps.length - 1) {
-      setCompletedStep(completedStep + 1);
-      const progressValue = Math.floor(((completedStep + 1) / steps.length) * 100);
+      // Increment the step first
+      const newStep = completedStep + 1;
+      setCompletedStep(newStep);
+      const progressValue = Math.floor((newStep / steps.length) * 100);
       
+      console.log("Updating progress:", { 
+        step: newStep, 
+        totalSteps: steps.length, 
+        progressValue, 
+        moduleId 
+      });
+      
+      // Safeguard check for moduleId
+      if (!moduleId || isNaN(moduleId)) {
+        console.error("Invalid moduleId:", moduleId);
+        toast({
+          title: "Error Starting Lesson",
+          description: "There was a problem identifying this lesson. Please go back and try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Wrap the mutation in a try-catch to prevent any unhandled errors
       try {
         updateProgressMutation.mutate({ 
           progress: progressValue, 
           completed: progressValue === 100
         }, {
+          onSuccess: (data) => {
+            console.log("Progress update successful:", data);
+          },
           onError: (error) => {
             console.error("Error updating progress:", error);
+            // Revert the step if progress update fails
+            setCompletedStep(completedStep);
+            
             toast({
               title: "Progress Update Failed",
               description: "We couldn't save your progress. Please try again.",
               variant: "destructive"
             });
-            // Revert step if progress update fails
-            setCompletedStep(completedStep);
           }
         });
       } catch (error) {
-        console.error("Error in updateProgressMutation:", error);
+        console.error("Error in handleNextStep:", error);
+        // Revert the step if there's an error
+        setCompletedStep(completedStep);
+        
         toast({
           title: "Progress Update Failed",
-          description: "We couldn't save your progress. Please try again.",
+          description: "An unexpected error occurred. Please try again.",
           variant: "destructive"
         });
-        // Revert step if progress update fails
-        setCompletedStep(completedStep);
       }
     } else {
       handleCompleteModule();
