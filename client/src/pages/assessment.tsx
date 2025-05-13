@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { User } from "@shared/schema";
@@ -14,6 +14,62 @@ import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, Award, Check, ChevronRight, ClipboardList, Star } from "lucide-react";
+
+// Audio feedback functions for game-like experience
+const playLevelUpSound = () => {
+  try {
+    // Just use a beep sound for now as audio files might not be available
+    const context = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const oscillator = context.createOscillator();
+    const gainNode = context.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(context.destination);
+    
+    oscillator.type = 'sine';
+    oscillator.frequency.value = 800; // Value in hertz
+    gainNode.gain.value = 0.1;
+    
+    oscillator.start();
+    setTimeout(() => oscillator.stop(), 300);
+    
+    // Play another higher beep for the level-up effect
+    setTimeout(() => {
+      const oscillator2 = context.createOscillator();
+      oscillator2.connect(gainNode);
+      oscillator2.type = 'sine';
+      oscillator2.frequency.value = 1200;
+      oscillator2.start();
+      setTimeout(() => oscillator2.stop(), 200);
+    }, 300);
+  } catch (error) {
+    console.log('Sound playback error:', error);
+  }
+};
+
+const playMasterLevelSound = () => {
+  try {
+    // Create a more complex sound for master level achievement
+    const context = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const gainNode = context.createGain();
+    gainNode.connect(context.destination);
+    gainNode.gain.value = 0.1;
+    
+    // Play a series of ascending notes like a victory tune
+    [300, 400, 500, 600, 800, 1000].forEach((freq, i) => {
+      setTimeout(() => {
+        const oscillator = context.createOscillator();
+        oscillator.connect(gainNode);
+        oscillator.type = 'sine';
+        oscillator.frequency.value = freq;
+        oscillator.start();
+        setTimeout(() => oscillator.stop(), 150);
+      }, i * 150);
+    });
+  } catch (error) {
+    console.log('Sound playback error:', error);
+  }
+};
 
 // Define assessment question types
 type QuestionType = 'multiple-choice';
