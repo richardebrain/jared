@@ -408,9 +408,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId
       });
       
+      // Get the module to calculate points
+      const module = await storage.getModule(progressData.moduleId);
+      if (!module) {
+        return res.status(404).json({ message: "Module not found" });
+      }
+      
+      // Get previous progress to calculate point difference
+      const existingProgress = await storage.getUserProgressByUserId(userId);
+      const previousProgress = existingProgress.find(p => p.moduleId === progressData.moduleId);
+      
+      // Get user data to update points
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Calculate points based on difficulty
+      const difficulty = module.difficulty;
+      const basePoints = 
+        difficulty === 'beginner' ? 50 : 
+        difficulty === 'intermediate' ? 100 : 
+        difficulty === 'advanced' ? 150 : 75;
+      
+      // Calculate new points earned in this update
+      let pointsEarned = 0;
+      
+      // Points for new progress percentage (scaled by difficulty)
+      if (previousProgress) {
+        // Only award points for new progress
+        const progressDifference = Math.max(0, progressData.progress - previousProgress.progress);
+        pointsEarned = Math.floor((progressDifference / 100) * basePoints);
+        
+        // Add completion bonus if newly completed
+        if (progressData.completed && !previousProgress.completed) {
+          pointsEarned += Math.floor(basePoints * 0.5);
+        }
+      } else {
+        // First time accessing this module
+        pointsEarned = Math.floor((progressData.progress / 100) * basePoints);
+        
+        // Add completion bonus if completed
+        if (progressData.completed) {
+          pointsEarned += Math.floor(basePoints * 0.5);
+        }
+      }
+      
+      // Set points earned in progress data
+      progressData.pointsEarned = (previousProgress?.pointsEarned || 0) + pointsEarned;
+      
+      // Update progress first
       const progress = await storage.updateUserProgress(progressData);
-      res.status(201).json(progress);
+      
+      // Update user points
+      const updatedUser = await storage.updateUser(userId, {
+        points: (user.points || 0) + pointsEarned
+      });
+      
+      // Calculate level based on total points
+      let newLevel = 1;
+      if (updatedUser.points >= 3500) newLevel = 6; // Mentor Teacher
+      else if (updatedUser.points >= 2500) newLevel = 5; // Master Lead Teacher
+      else if (updatedUser.points >= 1500) newLevel = 4; // Lead Teacher
+      else if (updatedUser.points >= 800) newLevel = 3; // Associate Teacher
+      else if (updatedUser.points >= 300) newLevel = 2; // Assistant Teacher
+      
+      // If level has increased, update it
+      if (newLevel > (user.level || 1)) {
+        await storage.updateUser(userId, { level: newLevel });
+      }
+      
+      res.status(201).json({
+        ...progress,
+        pointsEarned: pointsEarned,
+        totalPoints: updatedUser.points,
+        level: Math.max(newLevel, user.level || 1)
+      });
     } catch (error) {
+      console.error("Error updating progress:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Validation error", errors: error.errors });
       }
@@ -492,6 +567,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.deleteMeeting(meetingId);
       res.status(200).json({ message: "Meeting deleted successfully" });
     } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Power-ups and store items routes
+  app.post("/api/power-ups/use", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const { itemId, moduleId } = req.body;
+      
+      if (!itemId) {
+        return res.status(400).json({ message: "Item ID is required" });
+      }
+      
+      // Get the user
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Get the store item to determine its effect
+      const item = await storage.getStoreItem(itemId);
+      if (!item) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+      
+      // Check if user has the item
+      const userItem = await storage.getUserItemById(userId, itemId);
+      if (!userItem || userItem.used) {
+        return res.status(400).json({ message: "Item not available or already used" });
+      }
+      
+      // Apply the power-up effect
+      let pointsAwarded = 0;
+      let bearBucksAwarded = 0;
+      
+      // Different effects based on power-up category
+      switch (item.category) {
+        case "points_booster":
+          pointsAwarded = 50;
+          break;
+        case "bear_bucks_booster":
+          bearBucksAwarded = 25;
+          break;
+        case "module_progress":
+          // If moduleId is provided, boost progress on that module
+          if (moduleId) {
+            const progress = await storage.getUserProgressByModuleId(moduleId);
+            const userProgress = progress.find(p => p.userId === userId);
+            
+            if (userProgress && userProgress.progress < 100) {
+              // Boost progress by 25% up to a maximum of 100%
+              const newProgress = Math.min(100, userProgress.progress + 25);
+              await storage.updateUserProgress({
+                userId,
+                moduleId,
+                progress: newProgress,
+                completed: newProgress === 100
+              });
+              
+              // Award points based on the boost
+              pointsAwarded = Math.floor(25 * 0.5); // 25% progress * 0.5 points per %
+            }
+          }
+          break;
+        default:
+          // Generic point award for other power-ups
+          pointsAwarded = 20;
+      }
+      
+      // Mark the item as used
+      await storage.updateUserItem(userItem.id, { used: true });
+      
+      // Update user points and bear bucks
+      const updatedUser = await storage.updateUser(userId, {
+        points: (user.points || 0) + pointsAwarded,
+        bearBucks: (user.bearBucks || 0) + bearBucksAwarded
+      });
+      
+      // Return the result
+      res.status(200).json({
+        success: true,
+        pointsAwarded,
+        bearBucksAwarded,
+        totalPoints: updatedUser.points,
+        totalBearBucks: updatedUser.bearBucks
+      });
+      
+    } catch (error) {
+      console.error("Error using power-up:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

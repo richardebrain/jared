@@ -41,6 +41,15 @@ export interface IStorage {
   getAssessmentsByUserId(userId: number): Promise<Assessment[]>;
   createAssessment(assessment: InsertAssessment): Promise<Assessment>;
   
+  // Store and items operations
+  getStoreItem(id: number): Promise<StoreItem | undefined>;
+  getAllStoreItems(): Promise<StoreItem[]>;
+  createStoreItem(item: InsertStoreItem): Promise<StoreItem>;
+  getUserItemById(userId: number, itemId: number): Promise<UserItem | undefined>;
+  getUserItems(userId: number): Promise<UserItem[]>;
+  createUserItem(userItem: InsertUserItem): Promise<UserItem>;
+  updateUserItem(id: number, updateData: Partial<InsertUserItem>): Promise<UserItem>;
+  
   // Discussion threads operations
   getAllThreads(options?: { limit?: number, offset?: number, category?: string }): Promise<DiscussionThread[]>;
   getThreadById(id: number): Promise<DiscussionThread | undefined>;
@@ -674,6 +683,67 @@ export class DatabaseStorage implements IStorage {
       .values(assessment)
       .returning();
     return newAssessment;
+  }
+  
+  // Store items methods
+  async getStoreItem(id: number): Promise<StoreItem | undefined> {
+    const [item] = await db
+      .select()
+      .from(storeItems)
+      .where(eq(storeItems.id, id));
+    return item || undefined;
+  }
+
+  async getAllStoreItems(): Promise<StoreItem[]> {
+    return db
+      .select()
+      .from(storeItems)
+      .orderBy(storeItems.levelRequired);
+  }
+
+  async createStoreItem(item: InsertStoreItem): Promise<StoreItem> {
+    const [result] = await db
+      .insert(storeItems)
+      .values(item)
+      .returning();
+    return result;
+  }
+
+  async getUserItemById(userId: number, itemId: number): Promise<UserItem | undefined> {
+    const [userItem] = await db
+      .select()
+      .from(userItems)
+      .where(
+        and(
+          eq(userItems.userId, userId),
+          eq(userItems.itemId, itemId)
+        )
+      );
+    return userItem || undefined;
+  }
+
+  async getUserItems(userId: number): Promise<UserItem[]> {
+    return db
+      .select()
+      .from(userItems)
+      .where(eq(userItems.userId, userId));
+  }
+
+  async createUserItem(userItem: InsertUserItem): Promise<UserItem> {
+    const [result] = await db
+      .insert(userItems)
+      .values(userItem)
+      .returning();
+    return result;
+  }
+
+  async updateUserItem(id: number, updateData: Partial<InsertUserItem>): Promise<UserItem> {
+    const [result] = await db
+      .update(userItems)
+      .set(updateData)
+      .where(eq(userItems.id, id))
+      .returning();
+    return result;
   }
   
   // Discussion threads operations
