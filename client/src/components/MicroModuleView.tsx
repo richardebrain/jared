@@ -438,10 +438,10 @@ export default function MicroModuleView() {
               </div>
               
               <div className="text-lg mb-6">
-                {steps[completedStep].content}
+                {steps[completedStep]?.content || "Loading content..."}
               </div>
               
-              {completedStep === steps.length - 1 && (
+              {completedStep === steps.length - 1 && keyTakeaways.length > 0 && (
                 <Card className="bg-green-50 border-green-200 mb-6">
                   <CardHeader className="py-3">
                     <CardTitle className="text-lg flex items-center">
