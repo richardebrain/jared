@@ -1609,6 +1609,7 @@ export default function AssessmentPage() {
             <div 
               key={i} 
               className={`border rounded-lg p-4 hover:bg-accent/20 transition-colors cursor-pointer float-in ${answers[question.id] === option ? 'answer-selected' : ''}`}
+              style={{ animationDelay: `${i * 0.15}s` }} /* Staggered animation for each option */
               onClick={() => handleAnswerChange(question.id, option)}
             >
               <div className="flex items-center space-x-3">
@@ -1813,6 +1814,7 @@ export default function AssessmentPage() {
                   {(!isLastDomainLastQuestion() || !canSubmitAssessment) && domainQuestions.length > 0 && (
                     <Button
                       variant="default"
+                      className={isCurrentQuestionAnswered() ? "animate-pulse-slow" : ""}
                       onClick={handleNextQuestion}
                       disabled={!isCurrentQuestionAnswered() && domainQuestions[currentQuestionIndex].required}
                     >
