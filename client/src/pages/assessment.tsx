@@ -1766,18 +1766,20 @@ export default function AssessmentPage() {
                 </Button>
                 
                 <div>
-                  {canSubmitAssessment && (
+                  {/* Always show the Submit button on the final question of the last domain */}
+                  {canSubmitAssessment && isLastDomainLastQuestion() && (
                     <Button
                       variant="default"
-                      className="ml-2"
+                      className="ml-2 bg-green-600 hover:bg-green-700"
                       onClick={handleSubmitAssessment}
                       disabled={submitAssessmentMutation.isPending || !isCurrentQuestionAnswered()}
                     >
-                      {submitAssessmentMutation.isPending ? "Submitting..." : "Submit Assessment"}
+                      {submitAssessmentMutation.isPending ? "Submitting..." : "🏁 Finish Assessment"}
                     </Button>
                   )}
                   
-                  {(!canSubmitAssessment || currentQuestionIndex < domainQuestions.length - 1) && domainQuestions.length > 0 && (
+                  {/* Show Next button unless we're on the final question of the last domain */}
+                  {(!isLastDomainLastQuestion() || !canSubmitAssessment) && domainQuestions.length > 0 && (
                     <Button
                       variant="default"
                       onClick={handleNextQuestion}
