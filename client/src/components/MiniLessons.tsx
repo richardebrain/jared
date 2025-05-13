@@ -733,18 +733,93 @@ export function MiniLessons() {
                 
                 {/* Default content for other categories */}
                 {!['quick-transition-techniques', 'active-listening', 'core-values'].includes(selectedLesson.category) && (
-                  <>
-                    <div className="p-4 border rounded-md bg-slate-50">
-                      <h3 className="font-semibold mb-2">Mini Lesson Content</h3>
-                      <p>This mini lesson contains interactive content related to {selectedLesson.title.toLowerCase()}, including:</p>
-                      <ul className="list-disc pl-5 mt-2 space-y-1">
-                        <li>Brief instructional video or animation</li>
-                        <li>Key points and techniques to remember</li>
-                        <li>Quick knowledge check questions</li>
-                        <li>Downloadable resource to use in the classroom</li>
-                      </ul>
+                  <div className="space-y-6">
+                    {/* Video content */}
+                    <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-lg p-5 border border-indigo-100 shadow-sm">
+                      <h3 className="text-lg font-semibold text-indigo-800 mb-3">Video Demonstration</h3>
+                      
+                      <div className="bg-black rounded-md aspect-video flex items-center justify-center mb-4 overflow-hidden relative">
+                        {selectedLesson.category === 'mindful-mornings' ? (
+                          /* Mindful Mornings video */
+                          <video 
+                            controls 
+                            poster="https://placehold.co/600x400/14b8a6/fff?text=Mindful+Mornings+Video"
+                            className="w-full h-full object-cover"
+                          >
+                            <source src="/attached_assets/Raising Arizona Preschool .mp4" type="video/mp4" />
+                            Your browser doesn't support video playback.
+                          </video>
+                        ) : (
+                          /* Placeholder for other categories */
+                          <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
+                            <Play className="h-16 w-16 text-white opacity-80" />
+                            <span className="absolute bottom-4 left-4 text-white text-sm bg-black bg-opacity-50 px-2 py-1 rounded">
+                              {selectedLesson.title} - Training Video
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="bg-white rounded p-4 shadow-sm">
+                        <h4 className="font-medium text-indigo-700 mb-2">Key Points to Remember</h4>
+                        <ul className="list-disc list-inside space-y-2 text-gray-700">
+                          <li>Each technique should be tailored to the developmental level of your students</li>
+                          <li>Consistency is key - practice these techniques daily for best results</li>
+                          <li>Model the behaviors and techniques you want children to learn</li>
+                          <li>Remember that these practices help write "Chapter One" of each child's story</li>
+                        </ul>
+                      </div>
                     </div>
-                  </>
+                    
+                    {/* Knowledge Check Quiz */}
+                    <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-lg p-5 border border-amber-100">
+                      <h3 className="text-lg font-semibold text-amber-800 mb-3">Knowledge Check</h3>
+                      
+                      <div className="space-y-4">
+                        <div className="bg-white p-4 rounded shadow-sm">
+                          <p className="font-medium text-gray-800 mb-3">Question 1: Why is consistency important when implementing these techniques?</p>
+                          <RadioGroup defaultValue="" className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="correct" id="q1-correct" />
+                              <Label htmlFor="q1-correct">It builds reliable routines that help children feel secure</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="incorrect1" id="q1-incorrect1" />
+                              <Label htmlFor="q1-incorrect1">It makes the teacher's job easier</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="incorrect2" id="q1-incorrect2" />
+                              <Label htmlFor="q1-incorrect2">It impresses parents during observations</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                        
+                        <div className="bg-white p-4 rounded shadow-sm">
+                          <p className="font-medium text-gray-800 mb-3">Question 2: How does this technique contribute to "Building Chapter One"?</p>
+                          <RadioGroup defaultValue="" className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="incorrect1" id="q2-incorrect1" />
+                              <Label htmlFor="q2-incorrect1">It makes children remember their preschool years</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="correct" id="q2-correct" />
+                              <Label htmlFor="q2-correct">It builds foundational skills and positive experiences that shape a child's development</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="incorrect2" id="q2-incorrect2" />
+                              <Label htmlFor="q2-incorrect2">It prepares children for kindergarten curriculum</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-4 flex justify-end">
+                        <Button variant="outline" size="sm" className="bg-amber-100 border-amber-300 text-amber-800 hover:bg-amber-200">
+                          Check Answers
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 )}
                 
                 <div className="p-4 border rounded-md bg-blue-50">

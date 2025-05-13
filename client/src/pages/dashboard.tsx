@@ -320,6 +320,69 @@ export default function Dashboard() {
                   </div>
                 </div>
                 
+                {/* Mindful Mornings Training Section */}
+                <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-6 mb-6">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center mb-2">
+                        <img 
+                          src="/assets/mindful-mornings-logo.jpg" 
+                          alt="Mindful Mornings" 
+                          className="h-7 mr-2 rounded"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = "https://placehold.co/200x40/16a34a/fff?text=Mindful+Mornings";
+                          }}
+                        />
+                        <h3 className="font-bold text-emerald-800">Mindful Mornings Training</h3>
+                      </div>
+                      <p className="text-sm text-emerald-700 mb-4">
+                        Start each day with intention. Learn how to implement our signature Mindful Mornings program in your classroom.
+                      </p>
+                      <div className="flex space-x-3">
+                        <Button 
+                          size="sm" 
+                          className="bg-emerald-600 hover:bg-emerald-700"
+                          onClick={() => {
+                            // Find the mindful mornings module
+                            const mindfulModule = modules.find(m => m.category === 'mindful-mornings');
+                            if (mindfulModule) {
+                              setSelectedModuleId(mindfulModule.id);
+                            }
+                          }}
+                        >
+                          Start Training
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="bg-white p-3 rounded-lg shadow-sm border border-emerald-200 flex items-center space-x-3">
+                      <div className="h-12 w-12 bg-emerald-100 rounded-full flex items-center justify-center">
+                        <Clock className="h-7 w-7 text-emerald-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-emerald-700">Completion Earns</p>
+                        <p className="font-bold text-emerald-800">75 Points</p>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Progress indicator if user has started the module */}
+                  {userProgress?.some(p => p.moduleId === modules.find(m => m.category === 'mindful-mornings')?.id) && (
+                    <div className="mt-4">
+                      <div className="flex justify-between text-xs text-emerald-700 mb-1">
+                        <span>Your progress</span>
+                        <span>
+                          {userProgress.find(p => p.moduleId === modules.find(m => m.category === 'mindful-mornings')?.id)?.progress || 0}% complete
+                        </span>
+                      </div>
+                      <Progress 
+                        value={userProgress.find(p => p.moduleId === modules.find(m => m.category === 'mindful-mornings')?.id)?.progress || 0} 
+                        className="h-2 bg-emerald-100"
+                        indicatorClassName="bg-emerald-500"
+                      />
+                    </div>
+                  )}
+                </div>
+                
                 {/* Mini-Lessons Section */}
                 <MiniLessons />
                 
