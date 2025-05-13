@@ -9,48 +9,103 @@ import ConfettiExplosion from 'react-confetti-explosion';
 interface MemoryCard {
   id: number;
   content: string;
+  isPhrase: boolean;
+  pairIndex: number;
   matched: boolean;
   flipped: boolean;
 }
 
 interface MemoryMatchGameProps {
   title?: string;
-  pairs?: { content: string, description: string }[];
+  pairs?: { phrase: string, response: string, category?: string }[];
+  moduleName?: string;
   onComplete?: () => void;
 }
 
-// Default memory pairs for ECE concepts
-const DEFAULT_MEMORY_PAIRS = [
-  { content: "👶", description: "Infant Development" },
-  { content: "🧒", description: "Toddler Care" },
-  { content: "📚", description: "Literacy" },
-  { content: "🧮", description: "Early Math" },
-  { content: "🎨", description: "Creative Arts" },
-  { content: "🌿", description: "Nature Exploration" },
-];
+// Get appropriate memory pairs based on the module topic
+const getMemoryPairsByTopic = (moduleName: string = "") => {
+  const topicLower = moduleName.toLowerCase();
+  
+  // Active Listening specific pairs
+  if (topicLower.includes('listen') || topicLower.includes('communication')) {
+    return [
+      { phrase: "Ask open-ended questions", response: "Tell me more about that", category: "listening" },
+      { phrase: "Reflect feelings", response: "You seem frustrated", category: "listening" },
+      { phrase: "Summarize what's heard", response: "So what I hear you saying is...", category: "listening" },
+      { phrase: "Remove distractions", response: "Let's talk in a quiet area", category: "environment" },
+      { phrase: "Use encouraging sounds", response: "Mmm-hmm, I see", category: "technique" },
+      { phrase: "Maintain eye contact", response: "Getting down at child's level", category: "technique" },
+    ];
+  }
+  
+  // Empathy specific pairs
+  else if (topicLower.includes('empathy') || topicLower.includes('perspective')) {
+    return [
+      { phrase: "Perspective taking", response: "I wonder how they feel", category: "technique" },
+      { phrase: "Validate feelings", response: "It's okay to be sad", category: "technique" },
+      { phrase: "Show compassion", response: "I care about your feelings", category: "technique" },
+      { phrase: "Notice emotions", response: "I see you're feeling upset", category: "observation" },
+      { phrase: "Share similar experiences", response: "That happened to me too", category: "connection" },
+      { phrase: "Offer comfort", response: "Would you like a hug?", category: "support" },
+    ];
+  }
+  
+  // Positive attitude specific pairs
+  else if (topicLower.includes('positive') || topicLower.includes('attitude')) {
+    return [
+      { phrase: "Use positive language", response: "Walking feet please", category: "language" },
+      { phrase: "Reframe challenges", response: "Let's try a different way", category: "mindset" },
+      { phrase: "Celebrate attempts", response: "You worked so hard on that!", category: "encouragement" },
+      { phrase: "Model gratitude", response: "Thank you for helping", category: "gratitude" },
+      { phrase: "Show enthusiasm", response: "I'm excited to learn with you", category: "energy" },
+      { phrase: "Acknowledge feelings", response: "It's okay to feel frustrated", category: "emotion" },
+    ];
+  }
+  
+  // Default to general ECE concept pairs
+  return [
+    { phrase: "Use positive language", response: "Walking feet please", category: "guidance" },
+    { phrase: "Support independence", response: "You can try it yourself", category: "autonomy" },
+    { phrase: "Promote cooperation", response: "Let's work together", category: "social" },
+    { phrase: "Encourage questions", response: "What do you wonder about?", category: "inquiry" },
+    { phrase: "Validate emotions", response: "It's okay to feel sad", category: "emotional" },
+    { phrase: "Model problem-solving", response: "Let's think of solutions", category: "cognitive" },
+  ];
+};
 
 export function MemoryMatchGame({ 
   title = "Match & Learn", 
-  pairs = DEFAULT_MEMORY_PAIRS, 
+  pairs, 
+  moduleName = "",
   onComplete 
 }: MemoryMatchGameProps) {
+  // Get topic-specific pairs or use provided pairs
+  const actualPairs = pairs || getMemoryPairsByTopic(moduleName);
+  
   // Limit to 6 pairs for playability
-  const actualPairs = pairs.slice(0, 6);
+  const gamePairs = actualPairs.slice(0, 6);
   
   // Initialize cards by creating pairs
   const createCards = (): MemoryCard[] => {
     const cards: MemoryCard[] = [];
-    actualPairs.forEach((pair, index) => {
-      // Create two identical cards for each pair
+    
+    gamePairs.forEach((pair, index) => {
+      // Create phrase card
       cards.push({
         id: index * 2,
-        content: pair.content,
+        content: pair.phrase,
+        isPhrase: true,
+        pairIndex: index,
         matched: false,
         flipped: false
       });
+      
+      // Create response card
       cards.push({
         id: index * 2 + 1,
-        content: pair.content,
+        content: pair.response,
+        isPhrase: false,
+        pairIndex: index,
         matched: false,
         flipped: false
       });
@@ -95,9 +150,14 @@ export function MemoryMatchGame({
       setMoves(moves + 1);
       
       const [firstIndex, secondIndex] = newFlippedIndices;
+      const firstCard = cards[firstIndex];
+      const secondCard = cards[secondIndex];
       
-      // Check if the two flipped cards match
-      if (cards[firstIndex].content === cards[secondIndex].content) {
+      // Check if the two cards form a matched pair (same pairIndex but different types)
+      const isMatch = firstCard.pairIndex === secondCard.pairIndex && 
+                      firstCard.isPhrase !== secondCard.isPhrase;
+      
+      if (isMatch) {
         // Mark both cards as matched
         setTimeout(() => {
           const matchedCards = [...cards];
@@ -108,7 +168,7 @@ export function MemoryMatchGame({
           setMatchedPairs(matchedPairs + 1);
           
           // Check if game is complete (all pairs matched)
-          if (matchedPairs + 1 >= actualPairs.length) {
+          if (matchedPairs + 1 >= gamePairs.length) {
             setGameComplete(true);
             setShowConfetti(true);
             if (onComplete) {
@@ -175,17 +235,27 @@ export function MemoryMatchGame({
             <div
               key={card.id}
               className={cn(
-                "aspect-square rounded-md flex items-center justify-center text-2xl md:text-3xl transition-all duration-300 cursor-pointer shadow-sm",
-                card.flipped || card.matched ? "bg-white" : "bg-gray-200",
+                "aspect-square rounded-md flex items-center justify-center p-1 transition-all duration-300 cursor-pointer shadow-sm text-center",
+                card.flipped || card.matched ? (
+                  card.isPhrase ? "bg-primary/10 text-primary-foreground" : "bg-secondary/10 text-secondary-foreground"
+                ) : "bg-gray-200",
                 card.matched ? "ring-2 ring-green-500" : card.flipped ? "ring-2 ring-blue-500" : "",
-                gameComplete ? "pointer-events-none" : ""
+                gameComplete ? "pointer-events-none" : "",
+                "text-sm md:text-md lg:text-lg"
               )}
               onClick={() => handleCardClick(index)}
               style={{ 
                 transform: `rotateY(${card.flipped || card.matched ? '180deg' : '0deg'})` 
               }}
             >
-              {(card.flipped || card.matched) ? card.content : "?"}
+              {(card.flipped || card.matched) ? (
+                <div className={cn(
+                  "w-full h-full flex items-center justify-center overflow-hidden",
+                  card.isPhrase ? "font-medium" : ""
+                )}>
+                  {card.content}
+                </div>
+              ) : "?"}
             </div>
           ))}
         </div>
@@ -221,12 +291,24 @@ export function MemoryMatchGame({
         {/* Concept Descriptions */}
         {gameComplete && (
           <div className="mt-4 pt-4 border-t">
-            <h4 className="font-medium mb-2">Concepts You Matched:</h4>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              {actualPairs.map((pair, index) => (
-                <div key={index} className="p-2 bg-muted rounded-md flex items-center">
-                  <span className="text-lg mr-2">{pair.content}</span>
-                  <span>{pair.description}</span>
+            <h4 className="font-medium mb-2">Learning Concepts You Matched:</h4>
+            <div className="flex flex-col gap-2 text-sm">
+              {gamePairs.map((pair, index) => (
+                <div key={index} className="p-3 bg-muted/50 rounded-md flex flex-col border">
+                  <div className="flex gap-2 mb-1.5">
+                    <div className="flex-1 p-2 bg-primary/10 rounded border border-primary/20 font-medium text-primary-foreground">
+                      {pair.phrase}
+                    </div>
+                    <div className="flex items-center justify-center px-2">→</div>
+                    <div className="flex-1 p-2 bg-secondary/10 rounded border border-secondary/20">
+                      {pair.response}
+                    </div>
+                  </div>
+                  {pair.category && (
+                    <div className="text-xs text-muted-foreground italic">
+                      Category: {pair.category.charAt(0).toUpperCase() + pair.category.slice(1)}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

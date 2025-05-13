@@ -13,33 +13,54 @@ export function VideoResources({ videoUrls = [], moduleName }: VideoResourcesPro
   
   // Helper function to ensure URLs are formatted correctly for embedding
   const formatYouTubeUrl = (url: string): string => {
-    if (!url) return "";
+    if (!url) return "https://www.youtube.com/embed/5oP2__wXQ9U"; // Default video if none provided
     
-    // Handle various YouTube URL formats
-    if (url.includes('youtube.com/embed/')) {
-      return url; // Already in embed format
-    }
-    
-    // Extract video ID from different YouTube URL formats
-    let videoId = '';
-    
-    if (url.includes('youtube.com/watch?v=')) {
-      videoId = url.split('v=')[1]?.split('&')[0];
-    } else if (url.includes('youtu.be/')) {
-      videoId = url.split('youtu.be/')[1]?.split('?')[0];
-    } else if (url.includes('youtube.com/v/')) {
-      videoId = url.split('youtube.com/v/')[1]?.split('?')[0];
-    } else {
-      // If it looks like just a video ID, use it directly
-      if (/^[a-zA-Z0-9_-]{11}$/.test(url)) {
-        videoId = url;
+    try {
+      // Handle various YouTube URL formats
+      if (url.includes('youtube.com/embed/')) {
+        return url; // Already in embed format
       }
+      
+      // Extract video ID from different YouTube URL formats
+      let videoId = '';
+      
+      if (url.includes('youtube.com/watch?v=')) {
+        videoId = url.split('v=')[1]?.split('&')[0];
+      } else if (url.includes('youtu.be/')) {
+        videoId = url.split('youtu.be/')[1]?.split('?')[0];
+      } else if (url.includes('youtube.com/v/')) {
+        videoId = url.split('youtube.com/v/')[1]?.split('?')[0];
+      } else {
+        // If it looks like just a video ID, use it directly
+        if (/^[a-zA-Z0-9_-]{11}$/.test(url)) {
+          videoId = url;
+        }
+      }
+      
+      // If we couldn't extract a valid video ID, return a default
+      if (!videoId || videoId.length !== 11) {
+        console.warn("Invalid YouTube URL detected, using fallback video:", url);
+        return getDefaultVideoForTopic();
+      }
+      
+      return `https://www.youtube.com/embed/${videoId}`;
+    } catch (error) {
+      console.error("Error processing video URL:", url, error);
+      return getDefaultVideoForTopic();
     }
+  };
+  
+  // Get default video based on topic
+  const getDefaultVideoForTopic = (): string => {
+    const topicLower = moduleName.toLowerCase();
     
-    // Return the embed URL or fallback to a default educational video if invalid
-    return videoId 
-      ? `https://www.youtube.com/embed/${videoId}` 
-      : "https://www.youtube.com/embed/5oP2__wXQ9U"; // Preschool educator tips backup video
+    if (topicLower.includes('listen') || topicLower.includes('communication')) {
+      return "https://www.youtube.com/embed/ZwSHAIb_qO8"; // Active Listening video
+    } else if (topicLower.includes('empathy')) {
+      return "https://www.youtube.com/embed/9_1Rt1R4xbM"; // Empathy video
+    } else {
+      return "https://www.youtube.com/embed/5oP2__wXQ9U"; // General ECE video
+    }
   };
 
   // Curated external resources based on module type/name
