@@ -7,9 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Clock, Check, Heart, Star, Zap, ArrowLeft, Trophy, Award, Coins } from 'lucide-react';
+import { Clock, Check, Heart, Star, Zap, ArrowLeft, Trophy, Award, Coins, ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Confetti } from '@/components/ui/confetti';
+import ConfettiExplosion from 'react-confetti-explosion';
+import { cn } from '@/lib/utils';
+import { Spinner } from '@/components/ui/spinner';
+import { VideoResources } from '@/components/VideoResources';
+import { InteractiveQuiz } from '@/components/InteractiveQuiz';
+import { MemoryMatchGame } from '@/components/MemoryMatchGame';
 
 export default function MicroModuleView() {
   const [location, setLocation] = useLocation();
