@@ -841,25 +841,71 @@ export default function AssessmentPage() {
   
   // Function to update domain questions based on difficulty
   const updateDomainQuestions = (domainId: string, difficulty: DifficultyLevel) => {
-    // Filter questions for the specified domain and difficulty
-    const filteredQuestions = assessmentQuestions.filter(q => 
-      q.domain === domainId && q.difficulty === difficulty
-    );
-    
-    console.log(`Loading ${filteredQuestions.length} ${difficulty} questions for ${domainId}`);
+    try {
+      // Filter questions for the specified domain and difficulty
+      const filteredQuestions = assessmentQuestions.filter(q => 
+        q.domain === domainId && q.difficulty === difficulty
+      );
+      
+      // Check if we have enough questions for this difficulty level
+      if (filteredQuestions.length < 3 && difficulty !== 'expert') {
+        console.log(`Warning: Only ${filteredQuestions.length} ${difficulty} questions available for ${domainId}. Adding more questions would improve the experience.`);
+      }
+      
+      // Log for debugging
+      console.log(`Loading ${filteredQuestions.length} ${difficulty} questions for ${domainId}`);
 
-    // Show a toast notification about advancing to a new difficulty level
-    toast({
-      title: `Advancing to ${difficulty} level`,
-      description: `Based on your performance, you're now seeing ${difficulty} level questions in this topic.`,
-      variant: "default",
-      duration: 3000,
-    });
-    
-    // Only update current question index if we're viewing this domain
-    if (currentDomain === domainId) {
-      // Reset to the first question of the new difficulty level
-      setCurrentQuestionIndex(0);
+      // Show a toast notification about advancing to a new difficulty level with appropriate messaging
+      let message = '';
+      switch(difficulty) {
+        case 'beginner':
+          message = 'Starting with basic foundational questions in this topic.';
+          break;
+        case 'intermediate':
+          message = 'Great job! You\'ve unlocked more challenging questions in this topic.';
+          break;
+        case 'advanced':
+          message = 'Impressive! You\'re now seeing advanced questions that require deeper knowledge.';
+          break;
+        case 'expert':
+          message = 'Master level! These questions represent the highest level of expertise.';
+          break;
+      }
+      
+      toast({
+        title: `${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)} Level ${
+          difficulty === 'beginner' ? '1' :
+          difficulty === 'intermediate' ? '2' :
+          difficulty === 'advanced' ? '3' : '4'
+        }`,
+        description: message,
+        variant: "default",
+        duration: 3000,
+      });
+      
+      // Only update current question index if we're viewing this domain
+      if (currentDomain === domainId) {
+        // Reset to the first question of the new difficulty level
+        setCurrentQuestionIndex(0);
+      }
+    } catch (error) {
+      console.error(`Error updating domain questions for ${domainId} to ${difficulty}:`, error);
+      
+      // Fallback to beginner questions if there's an error with higher difficulty
+      if (difficulty !== 'beginner') {
+        toast({
+          title: "Returning to simpler questions",
+          description: "We encountered an issue with higher difficulty questions. Let's continue with more accessible content.",
+          variant: "destructive",
+          duration: 3000,
+        });
+        
+        // If an error occurs with higher difficulties, go back to beginner
+        setDomainDifficulty(prev => ({
+          ...prev,
+          [domainId]: 'beginner'
+        }));
+      }
     }
   };
   
@@ -885,12 +931,17 @@ export default function AssessmentPage() {
     const correct = correctByDomain[domain] || 0;
     const incorrect = incorrectByDomain[domain] || 0;
     const currentDifficulty = domainDifficulty[domain];
+    const totalAttempts = correct + incorrect;
     
-    // Video game style progression - just need 1 correct answer to level up
+    // More gradual progression with additional requirements
     
     // Level 1 to Level 2 (beginner to intermediate)
-    if (currentDifficulty === 'beginner' && correct >= 1) {
-      console.log(`LEVEL UP! ${domain} advanced to intermediate level (correct: ${correct})`);
+    // Require at least 2 correct answers and a minimum of 3 total attempts
+    if (currentDifficulty === 'beginner' && correct >= 2 && totalAttempts >= 3) {
+      console.log(`LEVEL UP! ${domain} advanced to intermediate level (correct: ${correct}, attempts: ${totalAttempts})`);
+      
+      // Track beginner level performance for debugging
+      console.log(`Tracking beginner performance in ${domain}: ${correct} correct, ${incorrect} incorrect`);
       
       toast({
         title: "LEVEL UP! 🎮",
@@ -907,14 +958,33 @@ export default function AssessmentPage() {
         ...prev,
         [domain]: 0
       }));
-      // Load questions for the new difficulty level
-      updateDomainQuestions(domain, 'intermediate');
+      setIncorrectByDomain(prev => ({
+        ...prev,
+        [domain]: 0 
+      }));
+      
+      try {
+        // Load questions for the new difficulty level
+        updateDomainQuestions(domain, 'intermediate');
+      } catch (error) {
+        console.error("Error loading intermediate questions:", error);
+        toast({
+          title: "Something went wrong",
+          description: "We encountered an error loading the next level questions. Staying at current level.",
+          variant: "destructive",
+          duration: 3000,
+        });
+      }
       return;
     }
     
     // Level 2 to Level 3 (intermediate to advanced)
-    if (currentDifficulty === 'intermediate' && correct >= 1) {
-      console.log(`LEVEL UP! ${domain} advanced to advanced level (correct: ${correct})`);
+    // Require at least 2 correct answers and a minimum of 3 total attempts
+    if (currentDifficulty === 'intermediate' && correct >= 2 && totalAttempts >= 3) {
+      console.log(`LEVEL UP! ${domain} advanced to advanced level (correct: ${correct}, attempts: ${totalAttempts})`);
+      
+      // Track intermediate level performance for debugging
+      console.log(`Tracking intermediate performance in ${domain}: ${correct} correct, ${incorrect} incorrect`);
       
       toast({
         title: "LEVEL UP! 🎮",
@@ -931,14 +1001,33 @@ export default function AssessmentPage() {
         ...prev,
         [domain]: 0
       }));
-      // Load questions for the new difficulty level
-      updateDomainQuestions(domain, 'advanced');
+      setIncorrectByDomain(prev => ({
+        ...prev,
+        [domain]: 0 
+      }));
+      
+      try {
+        // Load questions for the new difficulty level
+        updateDomainQuestions(domain, 'advanced');
+      } catch (error) {
+        console.error("Error loading advanced questions:", error);
+        toast({
+          title: "Something went wrong",
+          description: "We encountered an error loading the next level questions. Staying at current level.",
+          variant: "destructive",
+          duration: 3000,
+        });
+      }
       return;
     }
     
     // Level 3 to Level 4 - Master Level (advanced to expert)
-    if (currentDifficulty === 'advanced' && correct >= 1) {
-      console.log(`LEVEL UP TO MASTER! ${domain} advanced to expert/mastery level (correct: ${correct})`);
+    // Require at least 3 correct answers and a minimum of 4 total attempts
+    if (currentDifficulty === 'advanced' && correct >= 3 && totalAttempts >= 4) {
+      console.log(`LEVEL UP TO MASTER! ${domain} advanced to expert/mastery level (correct: ${correct}, attempts: ${totalAttempts})`);
+      
+      // Track advanced level performance for debugging
+      console.log(`Tracking advanced performance in ${domain}: ${correct} correct, ${incorrect} incorrect`);
       
       toast({
         title: "MASTER LEVEL UNLOCKED! 🏆",
@@ -955,8 +1044,23 @@ export default function AssessmentPage() {
         ...prev,
         [domain]: 0
       }));
-      // Load questions for the new difficulty level
-      updateDomainQuestions(domain, 'expert');
+      setIncorrectByDomain(prev => ({
+        ...prev,
+        [domain]: 0 
+      }));
+      
+      try {
+        // Load questions for the new difficulty level
+        updateDomainQuestions(domain, 'expert');
+      } catch (error) {
+        console.error("Error loading expert questions:", error);
+        toast({
+          title: "Something went wrong",
+          description: "We encountered an error loading the next level questions. Staying at current level.",
+          variant: "destructive",
+          duration: 3000,
+        });
+      }
       return;
     }
     
