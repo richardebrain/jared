@@ -1,5 +1,23 @@
-import { useState, useEffect } from "react";
-import { Clock, ArrowRight, CheckCircle, Award } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { 
+  Clock, 
+  ArrowRight, 
+  CheckCircle, 
+  CheckCircle2, 
+  Award,
+  Bell,
+  BookOpen,
+  Eye,
+  Hand,
+  Heart,
+  HelpCircle,
+  Music,
+  Play,
+  Repeat,
+  Sparkles,
+  Star,
+  ThumbsUp
+} from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +27,8 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 // Define mini-lesson types
 interface MiniLesson {
@@ -41,10 +61,92 @@ export function MiniLessons() {
   const [lessonCompleted, setLessonCompleted] = useState(false);
   
   // Get mini modules from the API (short duration modules, ≤ 7 minutes)
-  const { data: modules = [], isLoading } = useQuery({
+  const { data: allModules = [], isLoading } = useQuery({
     queryKey: ['/api/modules'],
     select: (data: any) => data.filter((module: any) => module.duration <= 7)
   });
+  
+  // Get assessments to determine recommended categories
+  const { data: assessmentData } = useQuery({
+    queryKey: ['/api/assessments'],
+  });
+  
+  // Extract recommended categories from the most recent assessment
+  const recentAssessment = Array.isArray(assessmentData?.assessments) ? 
+    assessmentData?.assessments[assessmentData.assessments.length - 1] : null;
+  
+  // Extract growth areas from assessment if available
+  const growthAreas = recentAssessment?.growthAreas || [];
+  
+  // Filter modules to show only three recommended ones
+  const modules = useMemo(() => {
+    // If we have growth areas, prioritize mini-lessons from those categories
+    if (growthAreas.length > 0) {
+      // Create a map of category to its modules
+      const categoryModules: Record<string, MiniLesson[]> = {};
+      
+      // Group modules by category
+      allModules.forEach((module: MiniLesson) => {
+        if (!categoryModules[module.category]) {
+          categoryModules[module.category] = [];
+        }
+        categoryModules[module.category].push(module);
+      });
+      
+      // Select one module from each growth area category if available
+      const selectedModules: MiniLesson[] = [];
+      
+      // Map growth areas to module categories (since they might have slightly different naming)
+      const growthAreaToCategory: Record<string, string> = {
+        'social-emotional': 'social-emotional',
+        'child-development': 'child-development',
+        'curriculum-planning': 'curriculum-planning',
+        'health-safety': 'health-safety',
+        'teaching-methods': 'teaching-methods',
+        'family-engagement': 'family-engagement',
+        'classroom-management': 'classroom-management',
+        'mindfulness': 'mindful-mornings',
+        'inclusion': 'inclusion',
+        'core-values': 'core-values'
+      };
+      
+      // For each growth area, try to find a mini-lesson
+      growthAreas.forEach(area => {
+        const category = growthAreaToCategory[area] || area;
+        if (categoryModules[category] && categoryModules[category].length > 0) {
+          // Get a random module from this category
+          const moduleIndex = Math.floor(Math.random() * categoryModules[category].length);
+          selectedModules.push(categoryModules[category][moduleIndex]);
+          // Remove this module so we don't select it again
+          categoryModules[category].splice(moduleIndex, 1);
+        }
+      });
+      
+      // If we have less than 3 modules, add random modules from other categories
+      if (selectedModules.length < 3) {
+        const remainingModules = allModules.filter(module => 
+          !selectedModules.some(m => m.id === module.id)
+        );
+        
+        // Randomly select remaining modules
+        while (selectedModules.length < 3 && remainingModules.length > 0) {
+          const randomIndex = Math.floor(Math.random() * remainingModules.length);
+          selectedModules.push(remainingModules[randomIndex]);
+          remainingModules.splice(randomIndex, 1);
+        }
+      }
+      
+      // If we have more than 3, take only the first 3
+      return selectedModules.slice(0, 3);
+    }
+    
+    // If no growth areas (no assessment done), just return 3 random modules
+    if (allModules.length <= 3) return allModules;
+    
+    // Select 3 random modules
+    const randomModules = [...allModules].sort(() => 0.5 - Math.random()).slice(0, 3);
+    return randomModules;
+  }, [allModules, growthAreas]);
   
   // Get user progress
   const { data: progress = [] } = useQuery({
@@ -226,17 +328,355 @@ export function MiniLessons() {
               <div className="space-y-4 my-4">
                 <p className="text-base">{selectedLesson.description}</p>
                 
-                {/* Simplified content for the mini lesson */}
-                <div className="p-4 border rounded-md bg-slate-50">
-                  <h3 className="font-semibold mb-2">Mini Lesson Content</h3>
-                  <p>This mini lesson would contain interactive content related to {selectedLesson.title.toLowerCase()}, including:</p>
-                  <ul className="list-disc pl-5 mt-2 space-y-1">
-                    <li>Brief instructional video or animation</li>
-                    <li>Key points and techniques to remember</li>
-                    <li>Quick knowledge check questions</li>
-                    <li>Downloadable resource to use in the classroom</li>
-                  </ul>
-                </div>
+                {/* Interactive content based on the lesson category */}
+                {selectedLesson.category === 'quick-transition-techniques' && (
+                  <div className="space-y-6">
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-5 border border-blue-100 shadow-sm">
+                      <h3 className="text-lg font-semibold text-blue-800 mb-3">5 Transition Techniques</h3>
+                      
+                      <div className="space-y-4">
+                        <div className="bg-white rounded p-3 shadow-sm">
+                          <h4 className="font-medium flex items-center">
+                            <Music className="h-5 w-5 mr-2 text-blue-500" />
+                            Technique 1: Transition Songs
+                          </h4>
+                          <p className="mt-2 text-gray-700">Use simple, catchy songs to signal transition times. For example:</p>
+                          <div className="bg-yellow-50 p-3 rounded mt-2 border-l-4 border-yellow-300">
+                            <p className="italic">"Clean up, clean up, everybody everywhere. Clean up, clean up, everybody do your share!"</p>
+                          </div>
+                          <div className="mt-3">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                            >
+                              <Play className="h-4 w-4 mr-1" /> Listen to example
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-white rounded p-3 shadow-sm">
+                          <h4 className="font-medium flex items-center">
+                            <Clock className="h-5 w-5 mr-2 text-blue-500" />
+                            Technique 2: Visual Timers
+                          </h4>
+                          <p className="mt-2 text-gray-700">Use visual timers like hourglasses or digital timers that children can see. Give 5-minute and 1-minute warnings.</p>
+                          <div className="bg-blue-50 p-2 rounded mt-2 flex justify-center">
+                            <div className="relative w-20 h-24 bg-gradient-to-b from-red-400 to-red-500 rounded-md overflow-hidden">
+                              <div className="absolute top-0 left-0 w-full bg-gray-200 h-1/2"></div>
+                              <div className="absolute top-0 left-0 right-0 h-full flex justify-center items-center text-white font-bold">
+                                Timer
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-white rounded p-3 shadow-sm">
+                          <h4 className="font-medium flex items-center">
+                            <Bell className="h-5 w-5 mr-2 text-blue-500" />
+                            Technique 3: Sound Signals
+                          </h4>
+                          <p className="mt-2 text-gray-700">Use different instruments or sounds to signal different transitions:</p>
+                          <ul className="list-disc list-inside mt-2 space-y-1 text-gray-700">
+                            <li>Xylophone for cleanup time</li>
+                            <li>Bell for circle time</li>
+                            <li>Maraca for lining up</li>
+                          </ul>
+                        </div>
+                        
+                        <div className="bg-white rounded p-3 shadow-sm">
+                          <h4 className="font-medium flex items-center">
+                            <BookOpen className="h-5 w-5 mr-2 text-blue-500" />
+                            Technique 4: Transition Books
+                          </h4>
+                          <p className="mt-2 text-gray-700">Keep special books that are only read during transition times while children are waiting.</p>
+                          <p className="mt-1 text-sm text-gray-500"><i>Hint: Try choosing books that relate to your current learning themes.</i></p>
+                        </div>
+                        
+                        <div className="bg-white rounded p-3 shadow-sm">
+                          <h4 className="font-medium flex items-center">
+                            <Sparkles className="h-5 w-5 mr-2 text-blue-500" />
+                            Technique 5: Transition Tricks
+                          </h4>
+                          <p className="mt-2 text-gray-700">Make transitions fun with movement challenges:</p>
+                          <ul className="list-disc list-inside mt-2 text-gray-700">
+                            <li>"Move like a robot to the bathroom"</li>
+                            <li>"Tiptoe like a mouse to your cubby"</li>
+                            <li>"Hop like a frog to the carpet"</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-gradient-to-br from-green-50 to-teal-50 rounded-lg p-5 border border-green-100">
+                      <h3 className="text-lg font-semibold text-green-800 mb-3">Knowledge Check</h3>
+                      <p className="mb-4">Which transition technique would work best for these situations?</p>
+                      
+                      <div className="space-y-3">
+                        <div className="bg-white p-3 rounded shadow-sm">
+                          <p className="font-medium">Scenario: You need children to quickly clean up after free play</p>
+                          <RadioGroup defaultValue="" className="mt-2">
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="songs" id="songs1" />
+                              <Label htmlFor="songs1">Transition Songs</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="books" id="books1" />
+                              <Label htmlFor="books1">Transition Books</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                        
+                        <div className="bg-white p-3 rounded shadow-sm">
+                          <p className="font-medium">Scenario: Children get distracted when moving from classroom to playground</p>
+                          <RadioGroup defaultValue="" className="mt-2">
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="tricks" id="tricks1" />
+                              <Label htmlFor="tricks1">Transition Tricks</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="timers" id="timers1" />
+                              <Label htmlFor="timers1">Visual Timers</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {selectedLesson.category === 'active-listening' && (
+                  <div className="space-y-6">
+                    <div className="bg-gradient-to-br from-cyan-50 to-sky-50 rounded-lg p-5 border border-cyan-100 shadow-sm">
+                      <h3 className="text-lg font-semibold text-cyan-800 mb-3">Active Listening Techniques</h3>
+                      
+                      <div className="space-y-4">
+                        <div className="bg-white rounded p-3 shadow-sm">
+                          <h4 className="font-medium flex items-center">
+                            <Eye className="h-5 w-5 mr-2 text-cyan-500" />
+                            Technique 1: Eye-Level Engagement
+                          </h4>
+                          <p className="mt-2 text-gray-700">Always kneel or sit to get at a child's eye level when they're speaking to you. This simple act shows respect and full attention.</p>
+                          <div className="bg-cyan-50 p-3 rounded mt-2">
+                            <div className="flex justify-center">
+                              <div className="relative">
+                                <div className="h-16 w-8 bg-purple-300 rounded-t-full"></div>
+                                <div className="h-20 w-16 bg-purple-400 rounded-t-lg absolute -left-4 top-16"></div>
+                                <div className="absolute top-6 left-1 w-6 h-3 bg-pink-200 rounded-full flex justify-center items-center">
+                                  <div className="w-2 h-2 bg-black rounded-full"></div>
+                                </div>
+                              </div>
+                              <div className="h-5"></div>
+                              <div className="relative ml-10 mt-16">
+                                <div className="h-12 w-6 bg-blue-300 rounded-t-full"></div>
+                                <div className="h-12 w-12 bg-blue-400 rounded-t-lg absolute -left-3 top-12"></div>
+                                <div className="absolute top-4 left-1 w-4 h-2 bg-pink-200 rounded-full flex justify-center items-center">
+                                  <div className="w-1.5 h-1.5 bg-black rounded-full"></div>
+                                </div>
+                              </div>
+                            </div>
+                            <p className="text-center text-sm mt-2 italic">Eye-level communication builds trust</p>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-white rounded p-3 shadow-sm">
+                          <h4 className="font-medium flex items-center">
+                            <Repeat className="h-5 w-5 mr-2 text-cyan-500" />
+                            Technique 2: Reflective Listening
+                          </h4>
+                          <p className="mt-2 text-gray-700">Repeat back what the child has said to confirm understanding and show that you value their words.</p>
+                          <div className="bg-yellow-50 p-3 rounded mt-2 border-l-4 border-yellow-300">
+                            <p className="text-sm"><span className="font-medium">Child:</span> "I don't want to play with the blocks today."</p>
+                            <p className="text-sm mt-1"><span className="font-medium">Teacher:</span> "I hear that you're not interested in the blocks today. What would you like to explore instead?"</p>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-white rounded p-3 shadow-sm">
+                          <h4 className="font-medium flex items-center">
+                            <HelpCircle className="h-5 w-5 mr-2 text-cyan-500" />
+                            Technique 3: Open-Ended Questions
+                          </h4>
+                          <p className="mt-2 text-gray-700">Ask questions that cannot be answered with a simple "yes" or "no" to encourage children to express their thoughts more fully.</p>
+                          <div className="mt-3 space-y-2">
+                            <div className="flex">
+                              <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-sm">Instead of:</span>
+                              <span className="ml-2 py-1">"Did you like the story?"</span>
+                            </div>
+                            <div className="flex">
+                              <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">Try:</span>
+                              <span className="ml-2 py-1">"What was your favorite part of the story?"</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-5 border border-blue-100">
+                      <h3 className="text-lg font-semibold text-blue-800 mb-3">Practice Activity</h3>
+                      <p className="mb-4">Try this practice scenario:</p>
+                      
+                      <div className="bg-white p-4 rounded shadow-sm space-y-4">
+                        <p><span className="font-medium">Scenario:</span> A child approaches you during center time looking upset.</p>
+                        <p><span className="font-medium">Child says:</span> "Nobody wants to play with me."</p>
+                        
+                        <div className="pt-2">
+                          <p className="font-medium text-blue-800">What would be the best active listening response?</p>
+                          <RadioGroup defaultValue="" className="mt-2 space-y-2">
+                            <div className="flex items-start space-x-2">
+                              <RadioGroupItem value="option1" id="option1" className="mt-1" />
+                              <div>
+                                <Label htmlFor="option1" className="font-medium">Response 1:</Label>
+                                <p className="text-sm">"Don't worry, I'm sure someone will play with you. Why don't you try the art center?"</p>
+                              </div>
+                            </div>
+                            <div className="flex items-start space-x-2">
+                              <RadioGroupItem value="option2" id="option2" className="mt-1" />
+                              <div>
+                                <Label htmlFor="option2" className="font-medium">Response 2:</Label>
+                                <p className="text-sm">"I can see you're feeling sad because you don't have a friend to play with right now. Can you tell me more about what happened?"</p>
+                              </div>
+                            </div>
+                            <div className="flex items-start space-x-2">
+                              <RadioGroupItem value="option3" id="option3" className="mt-1" />
+                              <div>
+                                <Label htmlFor="option3" className="font-medium">Response 3:</Label>
+                                <p className="text-sm">"You should ask them nicely if you can play. Did you try that?"</p>
+                              </div>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {selectedLesson.category === 'core-values' && (
+                  <div className="space-y-6">
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-5 border border-green-100 shadow-sm">
+                      <h3 className="text-lg font-semibold text-green-800 mb-3">Building Chapter One: Meaningful Greetings</h3>
+                      
+                      <div className="space-y-4">
+                        <div className="bg-white rounded p-4 shadow-sm">
+                          <h4 className="font-medium text-green-700">Why Greetings Matter</h4>
+                          <p className="mt-2 text-gray-700">A meaningful greeting is often the first interaction of a child's day and sets the tone for everything that follows. Each greeting is a "brick" in building Chapter One of a child's life story.</p>
+                          
+                          <div className="mt-4 p-3 bg-yellow-50 rounded-md border-l-4 border-yellow-400">
+                            <p className="text-sm italic">"The way we greet a child communicates whether they are seen, valued, and belong in our classroom community."</p>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-white rounded p-4 shadow-sm">
+                          <h4 className="font-medium text-green-700">4 Elements of a Meaningful Greeting</h4>
+                          
+                          <div className="mt-3 space-y-3">
+                            <div className="flex items-start">
+                              <div className="bg-green-100 text-green-800 h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0">1</div>
+                              <div className="ml-3">
+                                <p className="font-medium">Eye Contact</p>
+                                <p className="text-sm text-gray-600">Get on the child's level and make genuine eye contact to show they have your full attention.</p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-start">
+                              <div className="bg-green-100 text-green-800 h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0">2</div>
+                              <div className="ml-3">
+                                <p className="font-medium">Use Their Name</p>
+                                <p className="text-sm text-gray-600">Always use the child's name in your greeting. This acknowledges their individual identity.</p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-start">
+                              <div className="bg-green-100 text-green-800 h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0">3</div>
+                              <div className="ml-3">
+                                <p className="font-medium">Physical Connection</p>
+                                <p className="text-sm text-gray-600">Offer connection options: a handshake, high-five, fist bump, or gentle touch on the shoulder.</p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-start">
+                              <div className="bg-green-100 text-green-800 h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0">4</div>
+                              <div className="ml-3">
+                                <p className="font-medium">Personal Connection</p>
+                                <p className="text-sm text-gray-600">Include something specific to that child: "I remembered you were excited about your soccer game!"</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-white rounded p-4 shadow-sm">
+                          <h4 className="font-medium text-green-700">Interactive Greeting Chart</h4>
+                          <p className="mt-1 text-sm text-gray-600">Consider creating a greeting choice board for your classroom entrance:</p>
+                          
+                          <div className="grid grid-cols-2 gap-3 mt-3">
+                            <div className="border rounded p-2 text-center bg-blue-50">
+                              <ThumbsUp className="h-6 w-6 mx-auto text-blue-500" />
+                              <p className="text-sm mt-1">High Five</p>
+                            </div>
+                            <div className="border rounded p-2 text-center bg-purple-50">
+                              <Hand className="h-6 w-6 mx-auto text-purple-500" />
+                              <p className="text-sm mt-1">Handshake</p>
+                            </div>
+                            <div className="border rounded p-2 text-center bg-red-50">
+                              <Heart className="h-6 w-6 mx-auto text-red-500" />
+                              <p className="text-sm mt-1">Hug</p>
+                            </div>
+                            <div className="border rounded p-2 text-center bg-amber-50">
+                              <Star className="h-6 w-6 mx-auto text-amber-500" />
+                              <p className="text-sm mt-1">Special Wave</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-5 border border-indigo-100">
+                      <h3 className="text-lg font-semibold text-indigo-800 mb-3">Chapter One Connection</h3>
+                      
+                      <div className="bg-white p-4 rounded shadow-sm space-y-4">
+                        <p className="text-gray-700">Each meaningful greeting adds a positive "sentence" to a child's life story. When children feel truly seen and welcomed each day, they develop:</p>
+                        
+                        <ul className="space-y-2">
+                          <li className="flex items-start">
+                            <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
+                            <span>A sense of belonging and community</span>
+                          </li>
+                          <li className="flex items-start">
+                            <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
+                            <span>Trust in caring adults</span>
+                          </li>
+                          <li className="flex items-start">
+                            <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
+                            <span>A positive self-concept as someone worthy of attention</span>
+                          </li>
+                          <li className="flex items-start">
+                            <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
+                            <span>Social skills for greeting others respectfully</span>
+                          </li>
+                        </ul>
+                        
+                        <div className="bg-purple-50 p-3 rounded-md border border-purple-100 mt-3">
+                          <p className="text-sm italic">"When we invest in meaningful greetings, we're not just starting a day - we're building a foundation for a child's lifelong story."</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Default content for other categories */}
+                {!['quick-transition-techniques', 'active-listening', 'core-values'].includes(selectedLesson.category) && (
+                  <>
+                    <div className="p-4 border rounded-md bg-slate-50">
+                      <h3 className="font-semibold mb-2">Mini Lesson Content</h3>
+                      <p>This mini lesson contains interactive content related to {selectedLesson.title.toLowerCase()}, including:</p>
+                      <ul className="list-disc pl-5 mt-2 space-y-1">
+                        <li>Brief instructional video or animation</li>
+                        <li>Key points and techniques to remember</li>
+                        <li>Quick knowledge check questions</li>
+                        <li>Downloadable resource to use in the classroom</li>
+                      </ul>
+                    </div>
+                  </>
+                )}
                 
                 <div className="p-4 border rounded-md bg-blue-50">
                   <h3 className="font-semibold mb-2">How to Apply This in Your Classroom</h3>
