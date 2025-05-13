@@ -7,7 +7,23 @@ import ModuleView from "@/components/ModuleView";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Lightbulb, Book, Award } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { 
+  Lightbulb, 
+  Book, 
+  Award, 
+  Star, 
+  Trophy, 
+  Medal, 
+  Coins, 
+  Clock, 
+  ArrowRight,
+  CheckCircle
+} from "lucide-react";
+import { MonthlyNewsletter } from "@/components/MonthlyNewsletter";
+import Leaderboard from "@/components/Leaderboard";
+import BearAssistant from "@/components/BearAssistant";
+import { MiniLessons } from "@/components/MiniLessons";
 
 // Define assessment domains for display purposes
 const domains = [
@@ -300,6 +316,79 @@ export default function Dashboard() {
                       </Link>
                     </div>
                     <Book className="h-12 w-12 text-indigo-300" />
+                  </div>
+                </div>
+                
+                {/* Mini-Lessons Section */}
+                <MiniLessons />
+                
+                {/* Dashboard Tools and Stats Section */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                  {/* Left Column (2/3 width) */}
+                  <div className="md:col-span-2 space-y-6">
+                    {/* Points Tracker Card */}
+                    <Card className="overflow-hidden border border-amber-200">
+                      <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-100">
+                        <div className="flex items-center">
+                          <Star className="h-5 w-5 text-amber-500 mr-2" />
+                          <CardTitle className="text-lg">Points & Progress</CardTitle>
+                        </div>
+                        <CardDescription>Track your learning accomplishments</CardDescription>
+                      </CardHeader>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center">
+                            <div className="bg-amber-100 p-2 rounded-full">
+                              <Award className="h-5 w-5 text-amber-600" />
+                            </div>
+                            <div className="ml-3">
+                              <p className="text-sm text-muted-foreground">Your Points</p>
+                              <p className="text-2xl font-bold">{user?.points || 0}</p>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-white px-3 py-2 rounded-lg border border-amber-200 shadow-sm">
+                            <div className="flex items-center">
+                              <img 
+                                src="https://em-content.zobj.net/source/microsoft-teams/363/teddy-bear_1f9f8.png" 
+                                alt="Bear Bucks"
+                                className="w-6 h-6 mr-2"
+                              />
+                              <span className="font-bold">{bearBucks}</span>
+                              <span className="ml-1 text-muted-foreground text-sm">Bear Bucks</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <div className="flex justify-between mb-1 text-sm">
+                              <span>Progress to next level</span>
+                              <span className="font-medium">Level {user?.level || 1}</span>
+                            </div>
+                            <Progress value={(user?.points || 0) % 300 / 300 * 100} className="h-2" />
+                          </div>
+                          
+                          <div className="bg-muted/30 p-3 rounded-lg text-center">
+                            <p className="text-sm text-muted-foreground">
+                              300 more points until Level {(user?.level || 1) + 1}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    {/* Monthly Newsletter */}
+                    <MonthlyNewsletter />
+                  </div>
+                  
+                  {/* Right Column (1/3 width) */}
+                  <div className="md:col-span-1 space-y-6">
+                    {/* Leaderboard */}
+                    <Leaderboard />
+                    
+                    {/* Bear Assistant */}
+                    <BearAssistant user={user} initiallyMinimized={false} />
                   </div>
                 </div>
               </>
