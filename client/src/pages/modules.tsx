@@ -125,7 +125,13 @@ export default function AllModules() {
         </CardContent>
         <CardFooter className="pt-2">
           <Button 
-            onClick={() => setLocation(`/module/${module.id}`)} 
+            onClick={() => {
+              // Route to appropriate module type based on duration
+              const route = module.duration <= 5 
+                ? `/micro-modules/${module.id}` 
+                : `/modules/${module.id}`;
+              setLocation(route);
+            }} 
             variant={isCompleted ? "outline" : "default"} 
             className="w-full"
           >
