@@ -143,6 +143,257 @@ export default function MicroModuleView() {
   
   // Add state for the active step in the lesson
   const [currentStep, setCurrentStep] = useState(0);
+  
+  // Get default quiz questions appropriate for each module topic
+  const getDefaultQuizQuestions = (moduleId: number) => {
+    switch(moduleId) {
+      // Positive Attitude module
+      case 18:
+        return [
+          {
+            question: "What is one benefit of maintaining a positive attitude in the classroom?",
+            options: [
+              "It reduces the need for planning activities",
+              "It creates a supportive environment that fosters learning",
+              "It eliminates all behavioral challenges",
+              "It replaces the need for structured routines"
+            ],
+            correctAnswer: 1,
+            correctExplanation: "You're right! A positive attitude helps create a warm, supportive classroom where children feel safe to learn and grow.",
+            incorrectExplanation: "Actually, a positive attitude creates a supportive learning environment. Children learn better when they feel good about being in class."
+          },
+          {
+            question: "What can you do to show a positive attitude at work?",
+            options: [
+              "Only talk about the good things that happen",
+              "Avoid children who are having a bad day",
+              "Greet each child by name with a smile",
+              "Keep to yourself during challenging moments"
+            ],
+            correctAnswer: 2,
+            correctExplanation: "Great job! Greeting each child with a smile and using their name shows you care about them as individuals.",
+            incorrectExplanation: "The best way to show a positive attitude is by greeting each child by name with a smile. This helps them feel welcome and valued."
+          },
+          {
+            question: "How does a teacher's attitude affect children?",
+            options: [
+              "It has no effect on how children behave",
+              "It only affects children who are paying attention",
+              "Children mirror the emotional tone set by teachers",
+              "It only matters during difficult situations"
+            ],
+            correctAnswer: 2,
+            correctExplanation: "That's correct! Children pick up on and often mirror the emotional tone you set. Your positive attitude creates a positive classroom.",
+            incorrectExplanation: "Children actually mirror the emotional tone set by teachers. Your attitude has a big impact on how children feel and behave."
+          }
+        ];
+      
+      // Active Listening with Children
+      case 19:
+        return [
+          {
+            question: "Why is active listening important for preschool teachers?",
+            options: [
+              "It reduces the need to plan activities",
+              "It helps children feel valued and understood",
+              "It eliminates all behavioral problems",
+              "It's only needed for children with special needs"
+            ],
+            correctAnswer: 1,
+            correctExplanation: "That's right! Active listening shows children that their thoughts and feelings matter, building trust and emotional safety.",
+            incorrectExplanation: "Active listening helps all children feel valued and understood, which builds trust and strengthens your relationships with them."
+          },
+          {
+            question: "Which is an example of active listening with preschoolers?",
+            options: [
+              "Continuing to set up an activity while a child talks to you",
+              "Nodding while thinking about your lunch break",
+              "Getting down to the child's eye level and responding to what they say",
+              "Telling the child you'll listen later when you're not busy"
+            ],
+            correctAnswer: 2,
+            correctExplanation: "Excellent! Getting down to the child's level and engaging with what they're saying shows true active listening.",
+            incorrectExplanation: "Active listening requires your full attention. Getting down to the child's eye level and responding to what they say shows you're truly listening."
+          },
+          {
+            question: "What can happen when teachers consistently practice active listening?",
+            options: [
+              "Children stop trying to talk to teachers",
+              "Children learn that their thoughts and feelings matter",
+              "Children become too dependent on teacher attention",
+              "Classroom management becomes more difficult"
+            ],
+            correctAnswer: 1,
+            correctExplanation: "You got it! When we consistently listen actively to children, they learn that their thoughts and feelings are important.",
+            incorrectExplanation: "When teachers listen actively, children learn that their thoughts and feelings matter, which builds their confidence and communication skills."
+          }
+        ];
+      
+      // Patience in Practice
+      case 20:
+        return [
+          {
+            question: "Why is patience especially important in early childhood education?",
+            options: [
+              "Because it makes the day go faster",
+              "Because young children are still developing self-regulation",
+              "Because it eliminates the need for classroom rules",
+              "Because it's only needed for challenging children"
+            ],
+            correctAnswer: 1,
+            correctExplanation: "That's correct! Young children are still developing self-regulation skills and need patient adults to guide them through this process.",
+            incorrectExplanation: "Patience is crucial because young children are still developing self-regulation skills and learn these skills from watching patient adults."
+          },
+          {
+            question: "What can you do when you feel your patience running low?",
+            options: [
+              "Tell the children they need to behave better",
+              "Take a few deep breaths and remind yourself that learning takes time",
+              "Give the children a worksheet to keep them quiet",
+              "Ask your director to discipline the children"
+            ],
+            correctAnswer: 1,
+            correctExplanation: "Great job! Taking deep breaths and reminding yourself that learning is a process helps restore your patience.",
+            incorrectExplanation: "When your patience is running low, take deep breaths and remind yourself that learning takes time. This helps you reset and respond calmly."
+          },
+          {
+            question: "How does teacher patience affect children's learning?",
+            options: [
+              "It has no effect on learning outcomes",
+              "It only matters for children with special needs",
+              "It creates a safe space where children feel comfortable taking risks",
+              "It makes children dependent on teacher help"
+            ],
+            correctAnswer: 2,
+            correctExplanation: "Exactly! When teachers are patient, children feel safe to try new things and make mistakes, which is essential for learning.",
+            incorrectExplanation: "Teacher patience creates a safe environment where children feel comfortable taking risks and making mistakes, which is how they learn best."
+          }
+        ];
+      
+      // Empathy: Walking in Tiny Shoes
+      case 21:
+        return [
+          {
+            question: "What does it mean to practice empathy with young children?",
+            options: [
+              "Always giving children what they want",
+              "Understanding and respecting children's perspectives and feelings",
+              "Feeling sorry for children when they're upset",
+              "Teaching children to always share their toys"
+            ],
+            correctAnswer: 1,
+            correctExplanation: "That's right! Empathy means trying to understand situations from the child's perspective and respecting their feelings.",
+            incorrectExplanation: "Empathy involves understanding and respecting children's perspectives and feelings, even when their reactions seem different from what we expect."
+          },
+          {
+            question: "Why is teacher empathy important in early childhood education?",
+            options: [
+              "It replaces the need for classroom rules",
+              "It's only necessary for children with behavioral challenges",
+              "It helps children develop their own empathy and emotional skills",
+              "It makes children less emotional"
+            ],
+            correctAnswer: 2,
+            correctExplanation: "Excellent! When teachers model empathy, children learn to recognize and respect others' feelings too.",
+            incorrectExplanation: "Teacher empathy helps children develop their own empathy and emotional intelligence. Children learn these skills by experiencing them from adults."
+          },
+          {
+            question: "Which is an example of showing empathy to a preschooler?",
+            options: [
+              "Telling them to stop crying because they're fine",
+              "Saying \"I understand you're feeling sad about your mom leaving. It's okay to feel sad.\"",
+              "Distracting them with a toy when they're upset",
+              "Explaining that their feelings aren't logical"
+            ],
+            correctAnswer: 1,
+            correctExplanation: "You got it! Acknowledging the child's feelings and validating that it's okay to feel that way shows true empathy.",
+            incorrectExplanation: "Empathy involves acknowledging feelings without judgment. Saying \"I understand you're feeling sad\" validates the child's emotional experience."
+          }
+        ];
+        
+      // Creativity as a Core Value
+      case 22:
+        return [
+          {
+            question: "Why is creativity important in early childhood education?",
+            options: [
+              "It's only important for artistic children",
+              "It develops problem-solving skills and innovative thinking",
+              "It's just for fun and doesn't affect learning",
+              "It's only needed during art time"
+            ],
+            correctAnswer: 1,
+            correctExplanation: "That's correct! Creativity builds crucial skills like problem-solving, critical thinking, and innovation that benefit all learning.",
+            incorrectExplanation: "Creativity is vital for developing problem-solving skills and innovative thinking - abilities that help children in all areas of learning."
+          },
+          {
+            question: "How can teachers nurture creativity in the classroom?",
+            options: [
+              "By providing only one right way to complete activities",
+              "By always showing a perfect model of the finished product",
+              "By asking open-ended questions and providing varied materials",
+              "By focusing only on academic skills"
+            ],
+            correctAnswer: 2,
+            correctExplanation: "Excellent! Open-ended questions and varied materials allow children to explore, experiment, and express their unique ideas.",
+            incorrectExplanation: "Teachers nurture creativity by asking open-ended questions and providing varied materials that allow for exploration and different solutions."
+          },
+          {
+            question: "What happens when teachers value and model creativity?",
+            options: [
+              "Children become less interested in academic subjects",
+              "Children learn there are many ways to solve problems",
+              "Classroom management becomes harder",
+              "Children only want to do art activities"
+            ],
+            correctAnswer: 1,
+            correctExplanation: "You got it! When teachers value creativity, children learn to think flexibly and understand there are multiple approaches to solving problems.",
+            incorrectExplanation: "When teachers value creativity, children learn there are many ways to solve problems, which builds confidence and cognitive flexibility."
+          }
+        ];
+        
+      // Default generic questions as fallback
+      default:
+        return [
+          {
+            question: "What is one key benefit of professional development for early childhood educators?",
+            options: [
+              "It reduces the number of hours teachers need to work",
+              "It helps teachers learn new strategies to support children's development",
+              "It eliminates the need for classroom planning",
+              "It's only important for new teachers"
+            ],
+            correctAnswer: 1,
+            correctExplanation: "That's right! Professional development gives teachers new tools and strategies to better support children's learning and growth.",
+            incorrectExplanation: "Professional development is valuable because it helps teachers learn new strategies to support children's development and stay current with best practices."
+          },
+          {
+            question: "Why is ongoing learning important in early childhood education?",
+            options: [
+              "Because teaching techniques never change",
+              "Because it's only required for certification",
+              "Because research and best practices continue to evolve",
+              "Because it's only important for lead teachers"
+            ],
+            correctAnswer: 2,
+            correctExplanation: "Exactly! The field of early childhood education is always evolving with new research and insights, so ongoing learning keeps your practice current.",
+            incorrectExplanation: "Ongoing learning is important because research and best practices in early childhood education continue to evolve. This helps you provide the best care possible."
+          },
+          {
+            question: "How does teacher growth affect children's experiences?",
+            options: [
+              "It has no direct impact on children",
+              "It only affects children with special needs",
+              "It improves the quality of interactions and learning opportunities",
+              "It only matters for academic subjects"
+            ],
+            correctAnswer: 2,
+            correctExplanation: "You got it! When teachers continue to learn and grow, they provide better quality interactions and more meaningful learning experiences.",
+            incorrectExplanation: "Teacher growth directly improves the quality of interactions and learning opportunities for children. Your development benefits their development!"
+          }
+        ];
+    }
+  };
 
   // Get module-specific prompts based on ID
   const getModulePrompts = (moduleId: number): { conceptPrompt: string, applicationPrompt: string } => {
@@ -273,7 +524,7 @@ export default function MicroModuleView() {
             "https://www.youtube.com/embed/HQT6u-tFKZ4"   // Head Start video on Positive Teacher-Child Interactions
           ],
           interactiveElement: "<div class='interactive-activity'><h4>Reflect and Respond</h4><p>Think about a recent challenging situation with a child. How might you approach it differently with a more positive mindset?</p><textarea placeholder='Type your reflection here...' rows='3' class='w-full p-2 border rounded-md'></textarea><button class='mt-2 px-4 py-2 bg-primary text-white rounded-md'>Save for later</button></div>",
-          quizQuestions: [],
+          quizQuestions: getDefaultQuizQuestions(module.id),
           isLoading: false
         }));
       }
