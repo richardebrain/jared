@@ -45,6 +45,9 @@ export default function SpinGame({ canSpin = true, onSpinComplete }: SpinGamePro
   // References
   const wheelRef = useRef<HTMLDivElement>(null);
   
+  // Track level up info for the reward dialog
+  const [levelUpInfo, setLevelUpInfo] = useState<{levelUp: boolean, level: number} | null>(null);
+  
   // Update reward mutation
   const updateUserReward = useMutation({
     mutationFn: async (data: {
@@ -56,13 +59,30 @@ export default function SpinGame({ canSpin = true, onSpinComplete }: SpinGamePro
     }) => {
       const response = await apiRequest(
         "POST",
-        "/api/rewards/spin-game",
+        "/api/spin-game/reward",
         data
       );
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      
+      // Save level up info for the reward dialog
+      if (data.levelUp) {
+        setLevelUpInfo({
+          levelUp: true,
+          level: data.level
+        });
+        
+        toast({
+          title: "Level Up!",
+          description: `Congratulations! You've advanced to the next teacher level: Level ${data.level}`,
+          variant: "default",
+        });
+      } else {
+        setLevelUpInfo(null);
+      }
+      
       setShowRewardDialog(true);
     },
     onError: (error: Error) => {
@@ -365,6 +385,29 @@ export default function SpinGame({ canSpin = true, onSpinComplete }: SpinGamePro
                   {rewardWon.type === 'hearts' && 'Extra lives will help you in learning activities.'}
                 </p>
               </div>
+              
+              {/* Show level up information if applicable */}
+              {levelUpInfo?.levelUp && rewardWon.type === 'points' && (
+                <div className="bg-gradient-to-r from-green-50 to-amber-50 p-4 rounded-lg border border-amber-100 w-full">
+                  <div className="flex items-center">
+                    <div className="bg-amber-500 p-2 rounded-full">
+                      <Trophy className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="font-bold text-amber-700">Teacher Level Up!</h3>
+                      <p className="text-sm text-amber-700">
+                        You've reached Level {levelUpInfo.level}: {
+                          levelUpInfo.level === 2 ? 'Assistant Teacher' :
+                          levelUpInfo.level === 3 ? 'Associate Teacher' :
+                          levelUpInfo.level === 4 ? 'Lead Teacher' :
+                          levelUpInfo.level === 5 ? 'Master Lead Teacher' :
+                          levelUpInfo.level === 6 ? 'Mentor Teacher' : 'Teacher'
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
               
               <Button onClick={() => setShowRewardDialog(false)} className="w-full">
                 Claim Reward
