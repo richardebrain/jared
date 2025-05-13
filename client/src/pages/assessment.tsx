@@ -1429,6 +1429,7 @@ export default function AssessmentPage() {
           description: "You've unlocked Level 2! Moving to intermediate practice-based questions.",
           variant: "default",
           duration: 3000,
+          className: "level-up-text"
         });
         
         // Audio feedback for level up (like a game)
@@ -1762,7 +1763,7 @@ export default function AssessmentPage() {
               <CardContent>
                 {domainQuestions.length > 0 ? (
                   <div className="space-y-6">
-                    <div className="text-lg font-medium">
+                    <div className="text-lg font-medium float-in">
                       {domainQuestions[currentQuestionIndex].text}
                       {domainQuestions[currentQuestionIndex].required && (
                         <span className="text-destructive ml-1">*</span>
@@ -1797,7 +1798,7 @@ export default function AssessmentPage() {
                   {canSubmitAssessment && isLastDomainLastQuestion() && (
                     <Button
                       variant="default"
-                      className="ml-2 bg-green-600 hover:bg-green-700"
+                      className="ml-2 bg-green-600 hover:bg-green-700 pulse-finish"
                       onClick={handleSubmitAssessment}
                       disabled={submitAssessmentMutation.isPending || !isCurrentQuestionAnswered()}
                     >
