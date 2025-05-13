@@ -68,8 +68,15 @@ export default function Register() {
   // Register mutation
   const { mutate: register, isPending } = useMutation({
     mutationFn: async (data: z.infer<typeof registerSchema>) => {
-      const response = await apiRequest("POST", "/api/auth/register", data);
-      return await response.json();
+      try {
+        return await apiRequest("/api/auth/register", {
+          method: "POST",
+          data: data
+        });
+      } catch (error) {
+        console.error("Registration error:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       toast({
