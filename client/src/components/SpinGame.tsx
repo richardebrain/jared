@@ -221,9 +221,10 @@ export default function SpinGame({ canSpin = true, onSpinComplete }: SpinGamePro
   };
   
   return (
-    <Card className="w-full max-w-md mx-auto overflow-hidden border-2 border-primary/20">
-      <CardHeader className="bg-gradient-to-r from-primary/20 to-primary/5 pb-0">
-        <div className="flex justify-between items-center">
+    <Card className="w-full max-w-md mx-auto overflow-hidden border-2 border-primary/20 shadow-lg">
+      <CardHeader className="bg-gradient-to-r from-yellow-500/20 via-primary/20 to-purple-500/20 pb-0 relative">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48Y2lyY2xlIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIiBjeD0iMTAiIGN5PSIxMCIgcj0iMiIvPjwvZz48L3N2Zz4=')] opacity-60"></div>
+        <div className="flex justify-between items-center relative z-10">
           <div>
             <CardTitle className="text-2xl font-bold flex items-center gap-2">
               <SparklesIcon className="h-6 w-6 text-yellow-500" />
@@ -234,7 +235,7 @@ export default function SpinGame({ canSpin = true, onSpinComplete }: SpinGamePro
             </CardDescription>
           </div>
           
-          <Badge variant="outline" className="font-semibold px-3 py-1">
+          <Badge variant="outline" className="font-semibold px-3 py-1 bg-white/80 backdrop-blur-sm">
             {user?.points || 0} Points
           </Badge>
         </div>
@@ -247,16 +248,29 @@ export default function SpinGame({ canSpin = true, onSpinComplete }: SpinGamePro
           <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 w-8 h-8">
             <div 
               className="w-0 h-0 border-l-[12px] border-r-[12px] border-b-[20px] border-l-transparent border-r-transparent border-b-primary mx-auto"
+              style={{ 
+                filter: 'drop-shadow(0 2px 2px rgba(0, 0, 0, 0.3))',
+                animation: spinning ? 'pointerPulse 0.5s ease infinite alternate' : 'none'
+              }}
             ></div>
           </div>
+          
+          {/* Add CSS animation for pointer pulse */}
+          <style jsx>{`
+            @keyframes pointerPulse {
+              from { transform: scale(1); }
+              to { transform: scale(1.2); }
+            }
+          `}</style>
           
           {/* Wheel */}
           <div 
             ref={wheelRef}
-            className="w-full h-full rounded-full border-4 border-gray-300 relative overflow-hidden transition-transform duration-5000 ease-out"
+            className="w-full h-full rounded-full border-4 border-gray-300 relative overflow-hidden"
             style={{ 
               transform: `rotate(${spinAngle}deg)`,
-              transitionDuration: spinning ? '5s' : '0s',
+              transition: `transform ${spinning ? '5s' : '0s'} cubic-bezier(0.17, 0.67, 0.83, 0.67)`,
+              boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)"
             }}
           >
             {/* Wheel segments */}
@@ -276,14 +290,21 @@ export default function SpinGame({ canSpin = true, onSpinComplete }: SpinGamePro
                     transform: `rotate(${rotation}deg) skewY(${90 - segmentSize}deg)`,
                     transformOrigin: 'bottom right',
                     clipPath: 'polygon(100% 0, 100% 100%, 0 100%)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0))',
                   }}
                 >
                   <div 
                     className="absolute bottom-1/2 right-0 transform translate-x-1/2 rotate-45 text-white font-semibold text-xs flex flex-col items-center justify-center"
-                    style={{ transform: `rotate(${segmentSize/2}deg) translateX(80px)` }}
+                    style={{ 
+                      transform: `rotate(${segmentSize/2}deg) translateX(80px)`,
+                      textShadow: '0px 1px 2px rgba(0, 0, 0, 0.5)'
+                    }}
                   >
-                    {reward.icon}
-                    <span className="mt-1 whitespace-nowrap text-center max-w-[60px] text-[9px]">
+                    <div className="bg-black/30 p-1 rounded-full">
+                      {reward.icon}
+                    </div>
+                    <span className="mt-1 whitespace-nowrap text-center max-w-[70px] text-[10px] font-bold">
                       {reward.label}
                     </span>
                   </div>
@@ -329,11 +350,13 @@ export default function SpinGame({ canSpin = true, onSpinComplete }: SpinGamePro
         )}
       </CardContent>
       
-      <CardFooter className="bg-muted/30 p-4 flex flex-col">
+      <CardFooter className="bg-gradient-to-b from-muted/5 to-muted/30 p-4 flex flex-col relative">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48Y2lyY2xlIGZpbGw9InJnYmEoMCwwLDAsMC4wMikiIGN4PSIyMCIgY3k9IjIwIiByPSIxIi8+PC9nPjwvc3ZnPg==')] opacity-50 z-0"></div>
+        
         <Button 
           onClick={spinWheel} 
           disabled={spinning || !canSpin || (costTier === 'free' && !user?.learningStyle?.preferred)}
-          className="w-full"
+          className="w-full relative z-10 bg-gradient-to-r from-yellow-500 to-primary hover:from-yellow-600 hover:to-primary/90 shadow-md"
           size="lg"
         >
           {spinning ? (
@@ -342,47 +365,59 @@ export default function SpinGame({ canSpin = true, onSpinComplete }: SpinGamePro
               Spinning...
             </>
           ) : (
-            <>Spin ({costTierLabel})</>
+            <div className="flex items-center">
+              <SparklesIcon className="h-5 w-5 mr-2" />
+              <span>Spin ({costTierLabel})</span>
+            </div>
           )}
         </Button>
         
-        <p className="text-xs text-muted-foreground mt-2 text-center">
+        <p className="text-xs text-muted-foreground mt-3 text-center relative z-10 font-medium">
           Each spin gives you a chance to win points, Bear Bucks, or special items!
         </p>
       </CardFooter>
       
       {/* Reward dialog */}
       <Dialog open={showRewardDialog} onOpenChange={setShowRewardDialog}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-center flex items-center justify-center gap-2">
-              <SparklesIcon className="h-5 w-5 text-yellow-500" />
-              Congratulations!
-            </DialogTitle>
-            <DialogDescription className="text-center">
-              You won a reward!
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="max-w-sm overflow-hidden border-2 border-primary/20 shadow-xl p-0">
+          <div className="bg-gradient-to-r from-yellow-500/30 via-primary/20 to-purple-500/20 p-6 relative">
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48Y2lyY2xlIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjIpIiBjeD0iMTAiIGN5PSIxMCIgcj0iMiIvPjwvZz48L3N2Zz4=')] opacity-50"></div>
+            <DialogHeader className="relative z-10">
+              <DialogTitle className="text-center flex flex-col items-center justify-center gap-1">
+                <div className="w-16 h-16 rounded-full bg-yellow-500/20 flex items-center justify-center shadow-inner mb-1">
+                  <SparklesIcon className="h-10 w-10 text-yellow-500" />
+                </div>
+                <span className="text-2xl font-bold bg-gradient-to-r from-yellow-500 to-primary bg-clip-text text-transparent">
+                  Congratulations!
+                </span>
+              </DialogTitle>
+              <DialogDescription className="text-center text-lg font-medium mt-1">
+                You won a reward!
+              </DialogDescription>
+            </DialogHeader>
+          </div>
           
           {rewardWon && (
-            <div className="flex flex-col items-center p-6 space-y-4">
+            <div className="flex flex-col items-center p-6 space-y-5">
               <div className={cn(
-                "w-20 h-20 rounded-full flex items-center justify-center",
+                "w-24 h-24 rounded-full flex items-center justify-center shadow-lg transform transition-transform hover:scale-110 duration-300",
                 rewardWon.color
               )}>
-                <div className="text-white text-3xl">
+                <div className="text-white text-4xl">
                   {rewardWon.icon}
                 </div>
               </div>
               
               <div className="text-center">
-                <h3 className="text-xl font-bold">{rewardWon.label}</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {rewardWon.type === 'points' && 'Points help you level up and unlock special features.'}
-                  {rewardWon.type === 'bearBucks' && 'Bear Bucks can be used to purchase items in the store.'}
-                  {rewardWon.type === 'jackpot' && 'JACKPOT! You won 50 points and 10 Bear Bucks!'}
-                  {rewardWon.type === 'item' && 'You won a special item for your profile!'}
-                  {rewardWon.type === 'hearts' && 'Extra lives will help you in learning activities.'}
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                  {rewardWon.label}
+                </h3>
+                <p className="text-sm text-muted-foreground mt-2 max-w-[250px] mx-auto">
+                  {rewardWon.type === 'points' && 'Points help you level up and unlock special features. Keep earning points to reach the next teacher level!'}
+                  {rewardWon.type === 'bearBucks' && 'Bear Bucks can be used to purchase items in the store. Collect them to unlock exclusive content!'}
+                  {rewardWon.type === 'jackpot' && 'JACKPOT! You won 50 points and 10 Bear Bucks! This is the grand prize - congratulations on your amazing luck!'}
+                  {rewardWon.type === 'item' && 'You won a special item for your profile! Visit your profile page to equip this unique item.'}
+                  {rewardWon.type === 'hearts' && 'Extra lives will help you in learning activities. Use them to retry questions without losing progress!'}
                 </p>
               </div>
               
