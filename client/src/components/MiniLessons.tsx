@@ -61,19 +61,28 @@ export function MiniLessons() {
   const [lessonCompleted, setLessonCompleted] = useState(false);
   
   // Get mini modules from the API (short duration modules, ≤ 7 minutes)
-  const { data: allModules = [], isLoading } = useQuery({
+  const { data: allModules = [], isLoading: modulesLoading, isError: modulesError } = useQuery({
     queryKey: ['/api/modules'],
-    select: (data: any) => data.filter((module: any) => module.duration <= 7)
+    select: (data: any) => {
+      console.log("Modules data:", data);
+      return Array.isArray(data) ? data.filter((module: any) => module.duration <= 7) : [];
+    }
   });
   
   // Get assessments to determine recommended categories
-  const { data: assessmentData } = useQuery({
+  const { data: assessmentData, isLoading: assessmentsLoading } = useQuery({
     queryKey: ['/api/assessments'],
   });
   
+  // Log assessment data for debugging
+  useEffect(() => {
+    console.log("Assessment data received:", assessmentData);
+  }, [assessmentData]);
+  
   // Extract recommended categories from the most recent assessment
-  const recentAssessment = Array.isArray(assessmentData?.assessments) ? 
-    assessmentData?.assessments[assessmentData.assessments.length - 1] : null;
+  const recentAssessment = assessmentData?.assessments && Array.isArray(assessmentData?.assessments) && assessmentData.assessments.length > 0 
+    ? assessmentData.assessments[assessmentData.assessments.length - 1] 
+    : null;
   
   // Extract growth areas from assessment if available
   const growthAreas = recentAssessment?.growthAreas || [];
@@ -228,11 +237,26 @@ export function MiniLessons() {
         </CardHeader>
         
         <CardContent>
-          {isLoading ? (
+          {modulesLoading ? (
             <div className="text-center py-8">Loading mini-lessons...</div>
+          ) : modulesError ? (
+            <div className="text-center py-8 text-red-500">Failed to load mini-lessons. Please try again later.</div>
+          ) : allModules.length === 0 ? (
+            <div className="text-center py-8">No mini-lessons available at this time.</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {modules.map((lesson: MiniLesson) => {
+              {/* Debug info in development */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="col-span-3 p-2 mb-4 bg-gray-100 text-xs rounded overflow-auto max-h-40">
+                  <p>Growth Areas: {growthAreas.join(', ') || 'None'}</p>
+                  <p>Total Modules: {allModules.length}</p>
+                  <p>Selected Modules: {modules.length}</p>
+                  <p>Progress Records: {progress.length}</p>
+                </div>
+              )}
+              
+              {/* Fallback to allModules when modules is empty */}
+              {(modules.length > 0 ? modules : allModules.slice(0, 3)).map((lesson: MiniLesson) => {
                 const userProgress = progressMap[lesson.id];
                 const completed = userProgress?.completed || false;
                 const pointsEarned = userProgress?.pointsEarned || 0;
