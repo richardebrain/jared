@@ -67,7 +67,6 @@ export function VideoResources({ videoUrls = [], moduleName }: VideoResourcesPro
   const getResourcesByTopic = () => {
     const topicLower = moduleName.toLowerCase();
 
-    // Active Listening specific resources
     // Transition Techniques Module
     if (topicLower.includes('transition')) {
       return {
@@ -183,7 +182,7 @@ export function VideoResources({ videoUrls = [], moduleName }: VideoResourcesPro
     }
     
     // Empathy specific resources
-    if (topicLower.includes('empathy') || topicLower.includes('perspective')) {
+    else if (topicLower.includes('empathy') || topicLower.includes('perspective')) {
       return {
         videos: [
           { 
@@ -239,65 +238,122 @@ export function VideoResources({ videoUrls = [], moduleName }: VideoResourcesPro
       };
     }
     
+    // Mindful Morning Greeting module
+    else if (topicLower.includes('morning') || topicLower.includes('greeting')) {
+      return {
+        videos: [
+          { 
+            url: "https://www.youtube.com/embed/ckZt33Ymbpg", 
+            title: "Morning Meeting: Building Community in the Classroom",
+            source: "Responsive Classroom" 
+          },
+          { 
+            url: "https://www.youtube.com/embed/6OQvT41T3xs", 
+            title: "Mindful Greetings for Preschool Children",
+            source: "Early Childhood Education" 
+          },
+          { 
+            url: "https://www.youtube.com/embed/HQT6u-tFKZ4", 
+            title: "Morning Routines that Build Connection",
+            source: "Mindful Mornings" 
+          }
+        ],
+        articles: [
+          {
+            title: "The Power of Mindful Morning Greetings",
+            url: "https://www.naeyc.org/resources/pubs/tyc/feb2018/creating-caring-classroom-community",
+            source: "NAEYC"
+          },
+          {
+            title: "Building Relationships Through Morning Rituals",
+            url: "https://eclkc.ohs.acf.hhs.gov/teaching-practices/article/creating-caring-community-learners",
+            source: "Head Start ECLKC"
+          },
+          {
+            title: "Mindfulness Practices for Morning Meetings",
+            url: "https://www.edutopia.org/article/bringing-mindfulness-classroom",
+            source: "Edutopia"
+          }
+        ],
+        tools: [
+          {
+            title: "Morning Greeting Cards Set",
+            url: "https://csefel.vanderbilt.edu/resources/strategies.html",
+            source: "CSEFEL Vanderbilt"
+          },
+          {
+            title: "Morning Meeting Planning Template",
+            url: "https://www.responsiveclassroom.org/product/morning-meeting-book/",
+            source: "Responsive Classroom"
+          },
+          {
+            title: "Mindful Morning Check-In Chart",
+            url: "https://www.zerotothree.org/resources/series/mindfulness-practices",
+            source: "ZERO TO THREE"
+          }
+        ]
+      };
+    }
+    
     // Default resources (positive behavior/attitude focus)
-    return {
-      videos: [
-        { 
-          url: "https://www.youtube.com/embed/ckZt33Ymbpg", 
-          title: "Positive Behavior Support in ECE",
-          source: "Vanderbilt IRIS Center"
-        },
-        { 
-          url: "https://www.youtube.com/embed/4PSRP98mtJY", 
-          title: "Creating a Positive Classroom Environment",
-          source: "PBS Teachers" 
-        },
-        { 
-          url: "https://www.youtube.com/embed/HQT6u-tFKZ4", 
-          title: "Positive Teacher-Child Interactions",
-          source: "Head Start" 
-        }
-      ],
-    };
+    else {
+      return {
+        videos: [
+          { 
+            url: "https://www.youtube.com/embed/ckZt33Ymbpg", 
+            title: "Positive Behavior Support in ECE",
+            source: "Vanderbilt IRIS Center"
+          },
+          { 
+            url: "https://www.youtube.com/embed/4PSRP98mtJY", 
+            title: "Creating a Positive Classroom Environment",
+            source: "PBS Teachers" 
+          },
+          { 
+            url: "https://www.youtube.com/embed/HQT6u-tFKZ4", 
+            title: "Positive Teacher-Child Interactions",
+            source: "Head Start" 
+          }
+        ],
+        articles: [
+          {
+            title: "The Power of Positive Attitudes in Early Education",
+            url: "https://www.naeyc.org/resources/pubs/tyc/positive-guidance",
+            source: "NAEYC"
+          },
+          {
+            title: "Creating a Positive Classroom Climate",
+            url: "https://eclkc.ohs.acf.hhs.gov/teaching-practices/article/creating-positive-learning-climate",
+            source: "Head Start ECLKC"
+          },
+          {
+            title: "Strategies for Promoting Positive Behavior",
+            url: "https://www.cdc.gov/ncbddd/childdevelopment/positiveparenting/index.html",
+            source: "CDC"
+          }
+        ],
+        tools: [
+          {
+            title: "Positive Behavior Reflection Tool",
+            url: "https://challengingbehavior.cbcs.usf.edu/Implementation/Program/strategies.html",
+            source: "Center for Inclusive Child Care"
+          },
+          {
+            title: "Printable Positive Reinforcement Charts",
+            url: "https://csefel.vanderbilt.edu/resources/strategies.html",
+            source: "CSEFEL Vanderbilt"
+          },
+          {
+            title: "Interactive Social-Emotional Learning Activities",
+            url: "https://www.zerotothree.org/resources/series/developing-social-emotional-skills",
+            source: "ZERO TO THREE"
+          }
+        ]
+      };
+    }
   };
   
-  const externalResources = {
-    ...getResourcesByTopic(),
-    articles: [
-      {
-        title: "The Power of Positive Attitudes in Early Education",
-        url: "https://www.naeyc.org/resources/pubs/tyc/positive-guidance",
-        source: "NAEYC"
-      },
-      {
-        title: "Creating a Positive Classroom Climate",
-        url: "https://eclkc.ohs.acf.hhs.gov/teaching-practices/article/creating-positive-learning-climate",
-        source: "Head Start ECLKC"
-      },
-      {
-        title: "Strategies for Promoting Positive Behavior",
-        url: "https://www.cdc.gov/ncbddd/childdevelopment/positiveparenting/index.html",
-        source: "CDC"
-      }
-    ],
-    tools: [
-      {
-        title: "Positive Behavior Reflection Tool",
-        url: "https://challengingbehavior.cbcs.usf.edu/Implementation/Program/strategies.html",
-        source: "Center for Inclusive Child Care"
-      },
-      {
-        title: "Printable Positive Reinforcement Charts",
-        url: "https://csefel.vanderbilt.edu/resources/strategies.html",
-        source: "CSEFEL Vanderbilt"
-      },
-      {
-        title: "Interactive Social-Emotional Learning Activities",
-        url: "https://www.zerotothree.org/resources/series/developing-social-emotional-skills",
-        source: "ZERO TO THREE"
-      }
-    ]
-  };
+  const externalResources = getResourcesByTopic();
 
   return (
     <Card className="border-t-4 border-t-primary shadow-md">
@@ -333,81 +389,73 @@ export function VideoResources({ videoUrls = [], moduleName }: VideoResourcesPro
                   Enhance your learning
                 </h3>
                 <p className="text-blue-700 text-sm">
-                  We recommend watching at least one video to improve your understanding of this topic. 
-                  Research shows visual learning helps with retention and practical application of concepts.
+                  We recommend watching at least one video to understand key concepts before continuing with this module.
                 </p>
               </div>
               
-              {/* Display recommended videos from topic resources */}
-              <div className="grid gap-6">
-                {externalResources.videos && externalResources.videos.length > 0 ? (
-                  externalResources.videos.map((video, index) => (
-                    <div key={index} className="mb-4">
-                      <div className="relative pb-[56.25%] h-0 rounded-md overflow-hidden border">
-                        <iframe 
-                          src={video.url} 
-                          title={video.title || `Resource ${index + 1}`}
-                          className="absolute top-0 left-0 w-full h-full" 
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                          allowFullScreen
-                        ></iframe>
-                      </div>
-                      <p className="text-sm mt-2 text-muted-foreground flex items-center">
-                        <Youtube className="h-4 w-4 mr-1 text-red-500" />
-                        {video.title || `Video Resource ${index + 1}`}
-                        {video.source && 
-                          <span className="font-medium text-primary ml-1"> • {video.source}</span>
-                        }
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8">
-                    <Youtube className="h-12 w-12 mx-auto text-muted-foreground/50 mb-2" />
-                    <p className="text-muted-foreground">No video resources available</p>
+              {/* Use passed videoUrls if available, otherwise use curated resources */}
+              {(videoUrls && videoUrls.length > 0 ? 
+                videoUrls.map((url, i) => ({ 
+                  url: formatYouTubeUrl(url), 
+                  title: `${moduleName} Video ${i+1}`,
+                  source: "Training Resource"
+                })) : 
+                externalResources.videos
+              ).map((video, index) => (
+                <div key={`video-${index}`} className="space-y-2">
+                  <h3 className="text-md font-medium">{video.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-1">Source: {video.source}</p>
+                  <div className="aspect-video rounded-md overflow-hidden border bg-muted/20">
+                    <iframe
+                      src={video.url}
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      title={video.title}
+                    ></iframe>
                   </div>
-                )}
-              </div>
+                </div>
+              ))}
             </div>
           </TabsContent>
           
           <TabsContent value="articles" className="mt-4">
-            <div className="space-y-3">
-              {externalResources.articles.map((article, index) => (
-                <a 
-                  key={index}
-                  href={article.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block p-3 rounded-md hover:bg-muted transition-colors border flex items-start"
-                >
-                  <BookOpen className="h-5 w-5 mr-3 text-blue-500 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium">{article.title}</p>
-                    <p className="text-sm text-muted-foreground">{article.source}</p>
-                  </div>
-                </a>
-              ))}
+            <div className="space-y-4">
+              <ul className="space-y-3">
+                {externalResources.articles.map((article, index) => (
+                  <li key={`article-${index}`} className="p-3 bg-muted/20 rounded-md hover:bg-muted/30 transition-colors">
+                    <a 
+                      href={article.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex flex-col"
+                    >
+                      <span className="font-medium">{article.title}</span>
+                      <span className="text-sm text-muted-foreground">Source: {article.source}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </div>
           </TabsContent>
           
           <TabsContent value="tools" className="mt-4">
-            <div className="space-y-3">
-              {externalResources.tools.map((tool, index) => (
-                <a 
-                  key={index}
-                  href={tool.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block p-3 rounded-md hover:bg-muted transition-colors border flex items-start"
-                >
-                  <FileText className="h-5 w-5 mr-3 text-green-500 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium">{tool.title}</p>
-                    <p className="text-sm text-muted-foreground">{tool.source}</p>
-                  </div>
-                </a>
-              ))}
+            <div className="space-y-4">
+              <ul className="space-y-3">
+                {externalResources.tools.map((tool, index) => (
+                  <li key={`tool-${index}`} className="p-3 bg-muted/20 rounded-md hover:bg-muted/30 transition-colors">
+                    <a 
+                      href={tool.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex flex-col"
+                    >
+                      <span className="font-medium">{tool.title}</span>
+                      <span className="text-sm text-muted-foreground">Source: {tool.source}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </div>
           </TabsContent>
         </Tabs>
