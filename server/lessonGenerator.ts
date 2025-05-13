@@ -30,34 +30,47 @@ export function generateLessonPrompt(
   
   // Generate the prompt
   return `
-You are an expert early childhood education mentor for preschool teachers who specializes in personalized, FUN instruction. 
-Create a highly engaging, GAME-LIKE lesson on "${module.title}" tailored to a teacher with a ${learningStyle} learning style
+You are an expert early childhood education mentor for preschool teachers who specializes in personalized, HIGHLY INTERACTIVE and FUN instruction. 
+Create an EXTREMELY engaging, GAME-LIKE lesson on "${module.title}" tailored to a teacher with a ${learningStyle} learning style
 who is facing this classroom challenge: "${challenge}".
 
-The lesson should feel like a fun video game rather than traditional learning. It must be entertaining while teaching real ECE concepts.
+The lesson MUST feel like playing an interactive video game rather than traditional learning. It must be entertaining, visually stimulating, and use multimedia elements while teaching real ECE concepts.
 
 The lesson should be structured in JSON format with the following sections:
-- introduction: A brief, upbeat introduction to the topic that connects it to the specific challenge. Include a fun "quest" framing.
-- keyConcepts: An array of 3-5 key concepts related to the topic, each presented as an "achievement" to unlock
-- strategies: An array of 4-6 practical strategies, each with a catchy title and description. Frame these as special "power-ups" or "tools" for their teaching toolkit.
-- activities: An array of 2-3 HIGHLY INTERACTIVE activities with creative title, description, timeEstimate, and steps (array of strings). These MUST be genuinely fun and playful while teaching the concepts.
-- gameElements: An array of 3-4 game-like elements such as points systems, challenges, rewards, or "boss levels" that can make implementing the strategies more engaging
-- reflectionQuestions: An array of 3-4 reflection questions, each with a text field, framed as "level-up" opportunities
-- funFacts: An array of 2-3 surprising or interesting facts about the topic that will help teachers remember key points
-- resources: An array of additional resources with title, description, type (video, article, audio, game), and url
+- introduction: A brief, upbeat introduction to the topic that connects it to the specific challenge. Include a fun "quest" framing and a catchy theme.
+- keyConcepts: An array of 3-5 key concepts related to the topic, each presented as an "achievement" to unlock with playful icons like 🏆, 🌟, 🔑, etc.
+- strategies: An array of 4-6 practical strategies, each with a catchy title and description. Frame these as special "power-ups" or "tools" for their teaching toolkit with emoji icons.
+- activities: An array of 3-4 HIGHLY INTERACTIVE activities with creative title, description, timeEstimate, and steps (array of strings). These MUST be genuinely fun and playful while teaching the concepts. Include at least one activity that uses digital tools or online resources.
+- gameElements: An array of 3-4 game-like elements such as points systems, challenges, rewards, or "boss levels" that make implementing the strategies feel like playing a game
+- reflectionQuestions: An array of 3-4 reflection questions, each with a text field, framed as "level-up" opportunities with fun icons
+- funFacts: An array of 3-4 surprising or interesting facts about the topic that will help teachers remember key points
+- videoResources: An array of 2-3 professional training videos from reputable ECE sources like NAEYC, Head Start, PBS Teachers, or state education departments. Include title, description, videoLength (string), and url.
+- interactiveResources: An array of 2-3 interactive tools, games, or assessments related to the topic with title, description, type (game, tool, assessment), and url.
+- printableResources: An array of 1-2 downloadable materials a teacher could print for their classroom with title, description, and url.
 
 ${styleInstruction}
 
 For ${learningStyle} learners specifically:
-- Create content that fills knowledge gaps in their preferred way of learning
+- Create content that fills knowledge gaps in their preferred way of learning through multiple modalities
 - Include specific "Did You Know?" sections that highlight facts most teachers don't know but should
 - Add "Eureka Moments" where complex concepts suddenly make sense through ${learningStyle} explanations
 - Include Easter eggs like the phrase "Breathe, Smile, Be Present" hidden in the content
+- Use bright, engaging visuals and multimedia content that keeps attention
+
+IMPORTANT: For video resources, ONLY use legitimate sources from professional ECE organizations like:
+- Head Start Early Childhood Learning & Knowledge Center (https://eclkc.ohs.acf.hhs.gov)
+- NAEYC (https://www.naeyc.org)
+- CDC's Learn the Signs. Act Early. (https://www.cdc.gov/ncbddd/actearly/)
+- ZERO TO THREE (https://www.zerotothree.org)
+- Vanderbilt IRIS Center (https://iris.peabody.vanderbilt.edu)
+- PBS Teachers (https://az.pbslearningmedia.org)
+- State education departments
+- Well-established universities with ECE departments
 
 Incorporate Raising Arizona Preschool's motto: "Every Genius that ever was had a Mentor" into your content.
 Include references to developmentally appropriate practices and the Arizona Early Learning Standards where relevant.
 
-BE CREATIVE! The lesson should feel like playing rather than working while still being educational and evidence-based.
+BE SUPER CREATIVE! The lesson should feel like playing an engaging video game rather than working while still being educational and evidence-based.
 Format your response as a JSON object without any additional text before or after.
 `;
 }
@@ -330,15 +343,39 @@ function generateDefaultLessonContent(prompt: string): any {
         url: "https://www.azed.gov/ece/early-learning-standards"
       },
       {
-        title: "Classroom Management Strategies for Early Childhood",
-        description: "Video demonstration of effective management techniques",
+        title: "Head Start Early Childhood Learning & Knowledge Center",
+        description: "Free professional development videos on various ECE topics",
+        type: "video_library",
+        url: "https://eclkc.ohs.acf.hhs.gov/professional-development/article/practice-based-coaching-pbc"
+      },
+      {
+        title: "CDC's Learn the Signs. Act Early.",
+        description: "Free developmental milestone videos and resources",
+        type: "video_library",
+        url: "https://www.cdc.gov/ncbddd/actearly/index.html"
+      },
+      {
+        title: "ZERO TO THREE Professional Development",
+        description: "Research-based training videos for early childhood educators",
         type: "video",
-        url: "https://www.youtube.com/watch?v=5pAXdCQnJ8Y"
+        url: "https://www.zerotothree.org/resource/getting-started-with-mindfulness-a-toolkit-for-early-childhood-organizations/"
+      },
+      {
+        title: "Classroom Management Strategies for Early Childhood",
+        description: "Video demonstration of effective management techniques from Vanderbilt's IRIS Center",
+        type: "video",
+        url: "https://iris.peabody.vanderbilt.edu/module/ecbm/"
+      },
+      {
+        title: "PBS Teacher Professional Development",
+        description: "Educational videos and lesson plans from PBS Teachers",
+        type: "video_library",
+        url: "https://az.pbslearningmedia.org/collection/professional-development/"
       },
       {
         title: "Teacher Learning Styles Quiz",
         description: "Understand more about your own learning style and how it affects your teaching",
-        type: "game",
+        type: "interactive",
         url: "https://www.educationplanner.org/students/self-assessments/learning-styles-quiz.shtml"
       }
     ]
