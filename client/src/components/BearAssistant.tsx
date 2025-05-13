@@ -15,7 +15,17 @@ export default function BearAssistant({ user, initiallyMinimized = true }: BearA
   const [messages, setMessages] = useState<{ role: 'assistant' | 'user', content: string }[]>([
     { 
       role: 'assistant', 
-      content: `Hello ${user?.firstName || 'there'}! I'm BearyAI, your teaching assistant. How can I help you today with early childhood education questions?` 
+      content: `Hello ${user?.firstName || 'there'}! I'm BearyAI, your teaching assistant. 
+      
+I can help you with:
+• Early childhood education questions
+• Classroom management strategies
+• Ideas for activities and transitions
+• Guidance on Raising Arizona's "Building Chapter One" philosophy
+• Information about mindful mornings
+• Questions about your points and Bear Bucks
+
+Just ask me anything related to teaching preschool!` 
     }
   ]);
   const [input, setInput] = useState('');
@@ -64,8 +74,37 @@ export default function BearAssistant({ user, initiallyMinimized = true }: BearA
         }
       }
       
-      // If no match found and using Perplexity is enabled, use the API
+      // Try to find a suitable response based on keywords first
+      if (!matchFound) {
+        // These are more generic keywords that might match more broadly
+        const genericKeywords = {
+          'classroom': 'Effective classroom management strategies include clear routines, visual schedules, and positive reinforcement. Try our "Preschool Classroom Management" module for more details.',
+          'activity': 'Age-appropriate activities help children develop key skills. Consider open-ended art projects, sensory tables, and guided discovery for your classroom.',
+          'behavior': 'When addressing challenging behaviors, use the CALM approach: Connect before correcting, Acknowledge feelings, Listen actively, and Model positive behavior.',
+          'parent': 'Parent partnerships are essential. Regular communication through newsletters, family events, and daily updates helps build strong relationships.',
+          'curriculum': 'Our curriculum focuses on whole-child development with emphasis on social-emotional learning while meeting academic benchmarks.',
+          'development': 'Child development follows predictable patterns but at individual paces. Our "Child Development Milestones" module can help you recognize key indicators.',
+          'routine': 'Consistent routines provide security for young children. Daily schedules with visual cues help children understand expectations and transitions.',
+        };
+        
+        // Check for generic keyword matches
+        for (const [keyword, response] of Object.entries(genericKeywords)) {
+          if (userQuestion.toLowerCase().includes(keyword)) {
+            responseText = response;
+            matchFound = true;
+            break;
+          }
+        }
+      }
+
+      // If still no match found and using Perplexity is enabled, use the API as last resort
       if (!matchFound && isUsingPerplexity) {
+        responseText = "Let me think about that...";
+        
+        // Add temporary thinking message while API request processes
+        setMessages(prev => [...prev, { role: 'assistant', content: responseText }]);
+        setIsTyping(true);
+        
         try {
           // Enhance the question with user context if available
           let enhancedQuestion = userQuestion;
@@ -73,21 +112,58 @@ export default function BearAssistant({ user, initiallyMinimized = true }: BearA
             enhancedQuestion += `\n\nContext: Teacher's preferred learning style is ${user.learningStyle.preferred}.`;
           }
           
-          const aiResponse = await askEceQuestion(enhancedQuestion);
-          if (aiResponse) {
-            responseText = aiResponse;
-          } else {
-            // Fallback if API response is empty
-            responseText = "I'm having trouble connecting to my knowledge base right now. Please try a different question or check back later.";
-          }
+          // Temporarily set a loading message
+          setTimeout(async () => {
+            try {
+              const aiResponse = await askEceQuestion(enhancedQuestion);
+              if (aiResponse && aiResponse.length > 0) {
+                // Replace the temporary message with the real response
+                setMessages(prev => {
+                  const newMessages = [...prev];
+                  newMessages[newMessages.length - 1] = { 
+                    role: 'assistant', 
+                    content: aiResponse 
+                  };
+                  return newMessages;
+                });
+              } else {
+                // Fallback if API response is empty
+                setMessages(prev => {
+                  const newMessages = [...prev];
+                  newMessages[newMessages.length - 1] = {
+                    role: 'assistant',
+                    content: "I don't have specific information about that yet. Please try asking about classroom management, child development, or our teaching philosophy."
+                  };
+                  return newMessages;
+                });
+              }
+              setIsTyping(false);
+            } catch (err) {
+              console.error("Error in async Perplexity request:", err);
+              setIsUsingPerplexity(false);
+              setMessages(prev => {
+                const newMessages = [...prev];
+                newMessages[newMessages.length - 1] = {
+                  role: 'assistant',
+                  content: "I'm having trouble accessing my knowledge base right now. Let me answer with what I know. In early childhood education, we focus on the whole child - their emotional, social, physical, and cognitive development. Try asking me about specific areas like transitions, behavior management, or our Chapter One philosophy."
+                };
+                return newMessages;
+              });
+              setIsTyping(false);
+            }
+          }, 500);
+          
+          // Return early - we're handling the response asynchronously
+          return;
+          
         } catch (error) {
           console.error("Error using Perplexity:", error);
           setIsUsingPerplexity(false);
-          responseText = "I'm experiencing technical difficulties with my advanced knowledge features. I'll use my basic knowledge to help you for now.";
+          responseText = "I'm experiencing technical difficulties with my knowledge base. I can still help with questions about our teaching philosophy, classroom management, or activity ideas.";
         }
       } else if (!matchFound) {
-        // Fallback response if Perplexity is disabled and no keyword match
-        responseText = "I'm sorry, I don't have specific information about that topic yet. Please check the learning modules or try asking about our core teaching philosophy, classroom techniques, or using the app.";
+        // Fallback response if no match found
+        responseText = "I don't have specific information about that topic yet. Try asking about our classroom management approaches, child development, teaching strategies, or the 'Building Chapter One' philosophy.";
       }
       
       // Add assistant message after a slight delay to simulate thinking
