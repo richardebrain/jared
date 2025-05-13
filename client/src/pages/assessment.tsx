@@ -824,29 +824,23 @@ export default function AssessmentPage() {
     }));
   };
   
-  // Function to adjust difficulty based on performance
+  // Function to adjust difficulty based on performance - Video game style
   const adjustDifficulty = (domain: string) => {
-    const correct = correctByDomain[domain];
-    const incorrect = incorrectByDomain[domain];
+    const correct = correctByDomain[domain] || 0;
+    const incorrect = incorrectByDomain[domain] || 0;
     const currentDifficulty = domainDifficulty[domain];
     
-    // Calculate a performance ratio to determine if we should increase difficulty
-    // Higher weight on correct answers to encourage advancement
-    const totalAnswers = correct + incorrect;
-    const correctRatio = totalAnswers > 0 ? correct / totalAnswers : 0;
+    // Video game style progression - just need 1 correct answer to level up
     
-    // Faster progression logic - directly skip to intermediate level with fewer questions
-    
-    // Quickly move to intermediate after just 1-2 correct answers at beginner level
-    if (currentDifficulty === 'beginner' && (correct >= 1 && correctRatio >= 0.5)) {
-      console.log(`Quickly advancing ${domain} to intermediate level (correct: ${correct}, ratio: ${correctRatio.toFixed(2)})`);
+    // Level 1 to Level 2 (beginner to intermediate)
+    if (currentDifficulty === 'beginner' && correct >= 1) {
+      console.log(`LEVEL UP! ${domain} advanced to intermediate level (correct: ${correct})`);
       
-      // Open dialog to ask user if they want to try intermediate questions
       toast({
-        title: "Moving to Intermediate Questions",
-        description: "Based on your answers, we're advancing you to intermediate level questions in this category.",
+        title: "LEVEL UP! 🎮",
+        description: "You've unlocked Level 2 intermediate questions in this category!",
         variant: "default",
-        duration: 5000,
+        duration: 3000,
       });
       
       setDomainDifficulty(prev => ({
@@ -862,15 +856,15 @@ export default function AssessmentPage() {
       return;
     }
     
-    // Quickly move to advanced after 2-3 correct answers at intermediate level
-    if (currentDifficulty === 'intermediate' && (correct >= 2 && correctRatio >= 0.66)) {
-      console.log(`Quickly advancing ${domain} to advanced level (correct: ${correct}, ratio: ${correctRatio.toFixed(2)})`);
+    // Level 2 to Level 3 (intermediate to advanced)
+    if (currentDifficulty === 'intermediate' && correct >= 1) {
+      console.log(`LEVEL UP! ${domain} advanced to advanced level (correct: ${correct})`);
       
       toast({
-        title: "Moving to Advanced Questions",
-        description: "Great job! You're now advancing to advanced level questions in this category.",
+        title: "LEVEL UP! 🎮",
+        description: "You've unlocked Level 3 advanced questions in this category!",
         variant: "default",
-        duration: 5000,
+        duration: 3000,
       });
       
       setDomainDifficulty(prev => ({
@@ -886,15 +880,15 @@ export default function AssessmentPage() {
       return;
     }
     
-    // Move to expert/mastery level after 2-3 correct answers at advanced level
-    if (currentDifficulty === 'advanced' && (correct >= 2 && correctRatio >= 0.66)) {
-      console.log(`Advancing ${domain} to mastery/expert level (correct: ${correct}, ratio: ${correctRatio.toFixed(2)})`);
+    // Level 3 to Level 4 - Master Level (advanced to expert)
+    if (currentDifficulty === 'advanced' && correct >= 1) {
+      console.log(`LEVEL UP TO MASTER! ${domain} advanced to expert/mastery level (correct: ${correct})`);
       
       toast({
-        title: "Ready for Mastery Level?",
-        description: "You've mastered advanced questions. Would you like to try expert-level questions in this category?",
+        title: "MASTER LEVEL UNLOCKED! 🏆",
+        description: "You've reached the highest level! Expert mastery questions are now available.",
         variant: "default",
-        duration: 5000,
+        duration: 3000,
       });
       
       setDomainDifficulty(prev => ({
@@ -910,16 +904,17 @@ export default function AssessmentPage() {
       return;
     }
     
-    // Adjustment logic for handling incorrect answers
+    // Adjustment logic for handling incorrect answers - more forgiving in video game style
     
-    // If struggling with expert level, move back to advanced
-    // Moving users back from expert level if they struggle
+    // Only move back a level if user gets 2 incorrect answers in a row
+    
+    // Level 4 to Level 3 (expert to advanced)
     if (currentDifficulty === 'expert' && incorrect >= 2) {
-      console.log(`Moving ${domain} back from expert/mastery to advanced level due to incorrect answers`);
+      console.log(`Moving ${domain} back to Level 3 (advanced) due to incorrect answers`);
       
       toast({
-        title: "Adjusting Difficulty",
-        description: "We're providing some advanced questions to better match your current knowledge level.",
+        title: "Try Again! ⏪",
+        description: "Let's review some Level 3 advanced questions first.",
         variant: "default",
         duration: 3000,
       });
@@ -937,42 +932,13 @@ export default function AssessmentPage() {
       return;
     }
     
-    // Even track expert level performance for analytics
-    if (currentDifficulty === 'expert') {
-      console.log(`Tracking expert/mastery performance in ${domain}: ${correct} correct, ${incorrect} incorrect`);
-    }
-    
-    // After just 1 incorrect answer at expert level, consider moving back to advanced
-    if (currentDifficulty === 'expert' && incorrect >= 1) {
-      console.log(`Moving ${domain} back from expert to advanced due to incorrect answers`);
-      
-      toast({
-        title: "Adjusting Difficulty",
-        description: "We're providing some advanced questions to better match your current knowledge level.",
-        variant: "default",
-        duration: 3000,
-      });
-      
-      setDomainDifficulty(prev => ({
-        ...prev,
-        [domain]: 'advanced'
-      }));
-      setIncorrectByDomain(prev => ({
-        ...prev,
-        [domain]: 0
-      }));
-      // Load questions for the adjusted difficulty level
-      updateDomainQuestions(domain, 'advanced');
-      return;
-    }
-    
-    // If struggling with advanced, move back to intermediate
+    // Level 3 to Level 2 (advanced to intermediate)
     if (currentDifficulty === 'advanced' && incorrect >= 2) {
-      console.log(`Moving ${domain} back from advanced to intermediate due to incorrect answers`);
+      console.log(`Moving ${domain} back to Level 2 (intermediate) due to incorrect answers`);
       
       toast({
-        title: "Adjusting Difficulty",
-        description: "We're providing some intermediate questions to better match your current knowledge level.",
+        title: "Let's Review! ⏪",
+        description: "Let's practice with some Level 2 intermediate questions.",
         variant: "default",
         duration: 3000,
       });
@@ -990,13 +956,13 @@ export default function AssessmentPage() {
       return;
     }
     
-    // If struggling with intermediate, move back to beginner
+    // Level 2 to Level 1 (intermediate to beginner)
     if (currentDifficulty === 'intermediate' && incorrect >= 2) {
-      console.log(`Moving ${domain} back from intermediate to beginner due to incorrect answers`);
+      console.log(`Moving ${domain} back to Level 1 (beginner) due to incorrect answers`);
       
       toast({
-        title: "Adjusting Difficulty",
-        description: "We're providing some foundational questions to ensure you have the basics covered.",
+        title: "Back to Basics! ⏪",
+        description: "Let's review the fundamentals with Level 1 questions.",
         variant: "default",
         duration: 3000,
       });
@@ -1014,36 +980,8 @@ export default function AssessmentPage() {
       return;
     }
     
-    // Track performance at advanced level for final assessment report
-    if (currentDifficulty === 'advanced') {
-      console.log(`Tracking advanced performance in ${domain}: ${correct} correct, ${incorrect} incorrect`);
-    }
-    
-    // After 2 incorrect answers at advanced level, move to intermediate
-    if (currentDifficulty === 'advanced' && incorrect >= 1) {
-      setDomainDifficulty(prev => ({
-        ...prev,
-        [domain]: 'intermediate'
-      }));
-      setIncorrectByDomain(prev => ({
-        ...prev,
-        [domain]: 0
-      }));
-      return;
-    }
-    
-    // After 2 incorrect answers at intermediate level, move to beginner
-    if (currentDifficulty === 'intermediate' && incorrect >= 1) {
-      setDomainDifficulty(prev => ({
-        ...prev,
-        [domain]: 'beginner'
-      }));
-      setIncorrectByDomain(prev => ({
-        ...prev,
-        [domain]: 0
-      }));
-      return;
-    }
+    // Track performance for analytics
+    console.log(`Tracking ${currentDifficulty} performance in ${domain}: ${correct} correct, ${incorrect} incorrect`);
   };
   
   // Handle domain navigation
