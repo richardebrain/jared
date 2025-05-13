@@ -54,13 +54,21 @@ export default function Dashboard() {
   const bearBucks = user?.points ? Math.floor(user.points / POINTS_PER_BEAR_BUCK) : 0;
   
   // Check if the user has completed at least one assessment
-  const hasCompletedAssessment = assessments && assessments.length > 0 && 
-    assessments.some(assessment => assessment.status === 'completed');
+  // For debug, let's log all assessments to see what we're working with
+  console.log("Raw assessments:", assessments);
+  
+  // Check if assessments are available and not empty
+  const hasCompletedAssessment = assessments && 
+    Array.isArray(assessments) && 
+    assessments.length > 0;
   
   // Get latest assessment
-  const latestAssessmentIndex = assessments ? assessments.length - 1 : -1;
-  const latestAssessmentResults = assessments && latestAssessmentIndex >= 0 ? 
+  const latestAssessmentIndex = (assessments && Array.isArray(assessments)) ? assessments.length - 1 : -1;
+  const latestAssessmentResults = assessments && Array.isArray(assessments) && latestAssessmentIndex >= 0 ? 
     assessments[latestAssessmentIndex].results : null;
+    
+  // Debug assessment
+  console.log("Assessment data:", { assessments, hasCompletedAssessment, latestAssessmentIndex });
   
   // Process assessment data for display
   const assessmentDomains = domains.map(domain => {
