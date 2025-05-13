@@ -23,7 +23,8 @@ export default function AllModules() {
   });
 
   // Group modules by size (duration in minutes)
-  const miniModules = modules.filter(module => module.duration <= 15);
+  const microModules = modules.filter(module => module.duration <= 5);
+  const miniModules = modules.filter(module => module.duration > 5 && module.duration <= 15);
   const standardModules = modules.filter(module => module.duration > 15 && module.duration <= 45);
   const largeModules = modules.filter(module => module.duration > 45);
 
@@ -163,8 +164,9 @@ export default function AllModules() {
       </p>
 
       <Tabs defaultValue="all" className="mb-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="all">All Modules ({modules.length})</TabsTrigger>
+          <TabsTrigger value="micro">Micro ({microModules.length})</TabsTrigger>
           <TabsTrigger value="mini">Mini ({miniModules.length})</TabsTrigger>
           <TabsTrigger value="standard">Standard ({standardModules.length})</TabsTrigger>
           <TabsTrigger value="large">Large ({largeModules.length})</TabsTrigger>
@@ -173,8 +175,18 @@ export default function AllModules() {
         <TabsContent value="all" className="mt-6">
           <div className="mb-8">
             <h2 className="text-xl font-semibold mb-4 flex items-center">
+              <Timer className="mr-2 h-5 w-5 text-rose-500" />
+              Micro Modules <span className="text-sm font-normal ml-2 text-muted-foreground">(5 minutes or less)</span>
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {microModules.map(renderModuleCard)}
+            </div>
+          </div>
+          
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-4 flex items-center">
               <Timer className="mr-2 h-5 w-5 text-green-600" />
-              Mini Modules <span className="text-sm font-normal ml-2 text-muted-foreground">(15 minutes or less)</span>
+              Mini Modules <span className="text-sm font-normal ml-2 text-muted-foreground">(5-15 minutes)</span>
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {miniModules.map(renderModuleCard)}
@@ -199,6 +211,12 @@ export default function AllModules() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {largeModules.map(renderModuleCard)}
             </div>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="micro" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {microModules.map(renderModuleCard)}
           </div>
         </TabsContent>
         

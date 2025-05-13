@@ -258,53 +258,53 @@ export default function Dashboard() {
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-primary">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mr-4">
-                    <svg className="w-7 h-7 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <div className="bg-white rounded-xl shadow-lg p-4 border-l-4 border-primary">
+                <div className="flex items-center mb-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-3">
+                    <svg className="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
                   </div>
                   <div>
-                    <h2 className="text-xl md:text-2xl font-bold text-neutral-800">Your Personalized Learning Path</h2>
-                    <p className="text-neutral-600">Based on your assessment results, here are your recommended lessons</p>
+                    <h2 className="text-lg font-bold text-neutral-800">Your Personalized Learning Path</h2>
+                    <p className="text-sm text-neutral-600">Based on your assessment results</p>
                   </div>
                 </div>
                 
                 {recommendedLessons && recommendedLessons.length > 0 ? (
-                  <div className="mt-6 space-y-4">
-                    <h3 className="text-lg font-semibold text-primary">Top 3 Recommended Lessons</h3>
-                    
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                       {recommendedLessons.map((module, index) => (
-                        <div key={module.id} className="bg-neutral-50 rounded-lg p-4 border border-neutral-200 hover:border-primary transition shadow-sm">
-                          <div className="flex items-center mb-3">
-                            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold mr-3">
+                        <div key={module.id} className="bg-neutral-50 rounded-lg p-3 border border-neutral-200 hover:border-primary transition shadow-sm">
+                          <div className="flex items-start mb-2">
+                            <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white font-bold mr-2 mt-0.5 flex-shrink-0">
                               {index + 1}
                             </div>
-                            <h4 className="font-semibold">{module.title}</h4>
+                            <div>
+                              <h4 className="font-semibold text-sm">{module.title}</h4>
+                              <p className="text-xs text-neutral-600 line-clamp-2 mb-2">{module.description}</p>
+                            </div>
                           </div>
-                          <p className="text-sm text-neutral-600 line-clamp-2 mb-3">{module.description}</p>
                           <div className="flex justify-between items-center">
-                            <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                            <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
                               {module.difficulty}
                             </span>
                             <button 
                               onClick={() => handleModuleSelect(module.id)}
-                              className="text-sm bg-primary text-white rounded-lg px-3 py-1.5 font-semibold hover:bg-opacity-90 transition"
+                              className="text-xs bg-primary text-white rounded-lg px-2 py-1 font-medium hover:bg-opacity-90 transition"
                             >
-                              Start Now
+                              Start
                             </button>
                           </div>
                         </div>
                       ))}
                     </div>
                     
-                    <div className="flex justify-end mt-4">
+                    <div className="flex justify-end">
                       <Link to="/modules">
-                        <button className="flex items-center text-primary hover:underline">
+                        <button className="flex items-center text-xs text-primary hover:underline">
                           View all modules
-                          <svg className="ml-1 w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <svg className="ml-1 w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                           </svg>
                         </button>
@@ -312,10 +312,10 @@ export default function Dashboard() {
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-neutral-50 p-6 rounded-lg text-center">
-                    <p>Great job on your assessment! Explore our available modules to continue your learning journey.</p>
+                  <div className="bg-neutral-50 p-4 rounded-lg text-center">
+                    <p className="text-sm">Great job on your assessment! Explore our modules to continue your learning journey.</p>
                     <Link to="/modules">
-                      <button className="mt-4 bg-primary text-white rounded-lg px-4 py-2 font-semibold hover:bg-opacity-90 transition">
+                      <button className="mt-3 bg-primary text-white rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-opacity-90 transition">
                         Browse Modules
                       </button>
                     </Link>
@@ -697,24 +697,8 @@ export default function Dashboard() {
             
             {/* Right sidebar with featured content */}
             <div className="col-span-1">
-              <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
-                <img 
-                  src="https://images.unsplash.com/photo-1607453998774-d533f65dac99?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&h=300" 
-                  alt="Language exchange group" 
-                  className="w-full h-40 object-cover"
-                />
-                
-                <div className="p-6">
-                  <span className="bg-primary text-white text-xs font-bold rounded-full px-3 py-1 mb-3 inline-block">Featured</span>
-                  <h3 className="font-heading font-bold text-lg mb-2">Weekly Language Exchange</h3>
-                  <p className="text-sm text-neutral-800 mb-4">Join our community language exchange event to practice conversation with native speakers</p>
-                  <div className="flex items-center text-sm mb-4">
-                    <i className="ri-calendar-line mr-2 text-primary"></i>
-                    <span>Fridays • 2:00 PM EST</span>
-                  </div>
-                  <button className="bg-primary text-white rounded-lg px-4 py-2 text-sm font-semibold hover:bg-opacity-90 transition w-full">Register Now</button>
-                </div>
-              </div>
+              {/* Raising Arizona Preschool Monthly Newsletter */}
+              <MonthlyNewsletter />
               
               <div className="bg-neutral-50 rounded-xl p-6 mb-6 border-2 border-[#ff8c24] border-opacity-30">
                 <h3 className="font-heading font-bold text-lg mb-4 text-[#ff8c24]">Achievement Level</h3>
