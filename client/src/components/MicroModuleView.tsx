@@ -211,8 +211,19 @@ export default function MicroModuleView() {
 
   // Simplified content for micro modules - just 3 quick steps
   const getStepContent = (step: number): { title: string, content: string } => {
+    // Default return in case of missing data
+    const defaultContent = { 
+      title: "Loading...", 
+      content: "Content is being prepared. Please wait a moment." 
+    };
+    
+    // Return default if module is not loaded
+    if (!module) {
+      return defaultContent;
+    }
+    
     // Check if we have a micro-module (5 min or less)
-    if (module?.duration && module.duration <= 5) {
+    if (module.duration && module.duration <= 5) {
       let stepTitles = ["Quick Introduction", "Core Concept", "Practical Techniques"];
       
       // Customize step titles for certain module types
@@ -338,12 +349,31 @@ export default function MicroModuleView() {
         setShowConfetti(true);
         
         // Also update user points directly
-        updateUserPointsMutation.mutate(pointsToAdd);
-        
-        toast({
-          title: "🎉 Micro Module Completed!",
-          description: `You've earned ${pointsToAdd} points for completing this micro module!`,
-        });
+        try {
+          updateUserPointsMutation.mutate(pointsToAdd, {
+            onSuccess: () => {
+              toast({
+                title: "🎉 Micro Module Completed!",
+                description: `You've earned ${pointsToAdd} points for completing this micro module!`,
+              });
+            },
+            onError: (error) => {
+              console.error("Failed to update points:", error);
+              toast({
+                title: "Module Completed",
+                description: "Your progress was saved, but we couldn't update your points. Please try again later.",
+                variant: "destructive"
+              });
+            }
+          });
+        } catch (error) {
+          console.error("Error in updateUserPointsMutation:", error);
+          toast({
+            title: "Module Completed",
+            description: "Your progress was saved, but we couldn't update your points. Please try again later.",
+            variant: "destructive"
+          });
+        }
       }
     });
   };
@@ -352,10 +382,33 @@ export default function MicroModuleView() {
     if (completedStep < steps.length - 1) {
       setCompletedStep(completedStep + 1);
       const progressValue = Math.floor(((completedStep + 1) / steps.length) * 100);
-      updateProgressMutation.mutate({ 
-        progress: progressValue, 
-        completed: progressValue === 100
-      });
+      
+      try {
+        updateProgressMutation.mutate({ 
+          progress: progressValue, 
+          completed: progressValue === 100
+        }, {
+          onError: (error) => {
+            console.error("Error updating progress:", error);
+            toast({
+              title: "Progress Update Failed",
+              description: "We couldn't save your progress. Please try again.",
+              variant: "destructive"
+            });
+            // Revert step if progress update fails
+            setCompletedStep(completedStep);
+          }
+        });
+      } catch (error) {
+        console.error("Error in updateProgressMutation:", error);
+        toast({
+          title: "Progress Update Failed",
+          description: "We couldn't save your progress. Please try again.",
+          variant: "destructive"
+        });
+        // Revert step if progress update fails
+        setCompletedStep(completedStep);
+      }
     } else {
       handleCompleteModule();
     }
