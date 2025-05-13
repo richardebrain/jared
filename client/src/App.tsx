@@ -9,6 +9,7 @@ import Schedule from "@/pages/schedule";
 import Assessment from "@/pages/assessment";
 import LearningModulePage from "@/pages/learning-module";
 import LearningStylePage from "@/pages/learning-style";
+import DiscussionsPage from "@/pages/discussions";
 import { useAuth } from "@/hooks/use-auth";
 
 function Router() {
@@ -51,6 +52,14 @@ function Router() {
       
       <Route path="/modules/:id">
         {isAuthenticated ? <LearningModulePage /> : <Login />}
+      </Route>
+      
+      <Route path="/discussions/:id">
+        {isAuthenticated ? <DiscussionsPage /> : <Login />}
+      </Route>
+
+      <Route path="/discussions">
+        {isAuthenticated ? <DiscussionsPage /> : <Login />}
       </Route>
       
       <Route path="/">
