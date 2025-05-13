@@ -400,7 +400,7 @@ export default function Dashboard() {
                           }
                           return 0;
                         })()} 
-                        className="h-2 bg-emerald-100"
+                        className="h-2 bg-emerald-100 [&>[data-indicator]]:bg-emerald-500"
                       />
                     </div>
                   )}
