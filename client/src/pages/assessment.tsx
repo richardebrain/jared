@@ -1604,7 +1604,7 @@ export default function AssessmentPage() {
           {question.options.map((option, i) => (
             <div 
               key={i} 
-              className="border rounded-lg p-4 hover:bg-accent/20 transition-colors cursor-pointer"
+              className={`border rounded-lg p-4 hover:bg-accent/20 transition-colors cursor-pointer float-in ${answers[question.id] === option ? 'answer-selected' : ''}`}
               onClick={() => handleAnswerChange(question.id, option)}
             >
               <div className="flex items-center space-x-3">
