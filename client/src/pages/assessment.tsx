@@ -888,12 +888,54 @@ export default function AssessmentPage() {
         return question && answers[qId] === question.correctAnswer;
       }).length;
       
-      // Show feedback with correct answer count
+      // Generate an encouraging, personalized message based on performance
+      const generateEncouragingMessage = () => {
+        // Calculate percentage correct
+        const percentCorrect = Math.round((correctAnswers / totalAnswers) * 100);
+        
+        let message = '';
+        
+        // First part - always positive regardless of score
+        const positiveReinforcement = [
+          "Your dedication to children's growth is truly inspiring!",
+          "The knowledge you've built so far shows your commitment to excellence.",
+          "Your understanding of early childhood education principles is impressive.",
+          "You're bringing valuable insights and skills to your teaching practice.",
+          "Your passion for Building Chapter One into each child really shines through."
+        ];
+        
+        // Random encouraging introduction
+        message += positiveReinforcement[Math.floor(Math.random() * positiveReinforcement.length)] + " ";
+        
+        // Second part - specific to performance but still encouraging
+        if (percentCorrect >= 80) {
+          message += "Your exceptional grasp of the concepts will help you make a tremendous impact on your students. ";
+        } else if (percentCorrect >= 60) {
+          message += "You have a solid foundation that will serve your students well as you continue to grow. ";
+        } else {
+          message += "You're starting an exciting journey of growth that will transform your teaching practice. ";
+        }
+        
+        // Third part - growth mindset message for everyone
+        message += "Your personalized learning path builds on your unique strengths and helps you focus on areas for continued professional development. Ready to take your teaching to the next level?";
+        
+        return message;
+      };
+      
+      // Show feedback with correct answer count and personalized message
       toast({
         title: "Assessment Completed",
         description: `Great job! You answered ${correctAnswers} out of ${totalAnswers} questions correctly. Your personalized learning path is now available.`,
         duration: 6000,
       });
+      
+      // Create a more detailed success dialog with encouragement
+      toast({
+        title: "Your Raising Arizona Teacher Journey",
+        description: generateEncouragingMessage(),
+        duration: 10000,
+      });
+      
       setLocation("/dashboard");
     },
     onError: (error: Error) => {
