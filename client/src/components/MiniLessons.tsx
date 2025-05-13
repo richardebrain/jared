@@ -223,9 +223,17 @@ export function MiniLessons() {
 
   // Mutation for updating progress
   // Generate personalized lesson content
+  // Get the user's profile data for learning style preferences
+  const { data: userData } = useQuery({
+    queryKey: ['/api/auth/me'],
+  });
+  
   const generateContentMutation = useMutation({
     mutationFn: async () => {
       if (!selectedLesson) return null;
+      
+      // Extract learning style from user preferences or default to visual
+      const learningStyle = userData?.learningStyle?.preferred || 'visual';
       
       // Get personalized content from the API
       return apiRequest(`/api/lesson/generate`, {
@@ -233,7 +241,7 @@ export function MiniLessons() {
         data: {
           moduleId: selectedLesson.id,
           challenge: "Implementing personalized learning strategies for diverse learning styles",
-          learningStyle: "visual" // This would ideally come from user preferences
+          learningStyle
         }
       });
     },

@@ -882,8 +882,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User or module not found" });
       }
       
+      // Get the most recent assessment for strengths and growth areas
+      const assessments = await storage.getAssessmentsByUserId(userId);
+      const recentAssessment = assessments && assessments.length > 0 
+        ? assessments[assessments.length - 1] 
+        : null;
+      
+      // Get current user progress for all modules
+      const userProgress = await storage.getUserProgressByUserId(userId);
+      
       // Generate personalized lesson
-      const prompt = generateLessonPrompt(user, module, challenge);
+      const prompt = generateLessonPrompt(
+        user, 
+        module, 
+        challenge, 
+        recentAssessment,
+        userProgress
+      );
+      
       const lessonContent = await generateLessonContent(prompt);
       
       res.status(200).json(lessonContent);

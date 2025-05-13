@@ -1,10 +1,12 @@
-import { User, LearningModule } from "@shared/schema";
+import { User, LearningModule, Assessment, UserProgress } from "@shared/schema";
 
-// Function to generate a prompt for the AI based on learning style and classroom challenge
+// Function to generate a prompt for the AI based on learning style, assessment data and classroom challenge
 export function generateLessonPrompt(
   user: User,
   module: LearningModule,
-  challenge: string
+  challenge: string,
+  assessment: Assessment | null = null,
+  userProgress: UserProgress[] = []
 ): string {
   const learningStyle = user.learningStyle?.preferred || 'visual';
   
@@ -28,33 +30,85 @@ export function generateLessonPrompt(
       styleInstruction = 'Balance visual elements, discussions, reading materials, and hands-on activities.';
   }
   
+  // Extract key assessment data if available
+  let assessmentData = '';
+  if (assessment) {
+    // Extract strengths and growth areas
+    const strengths = assessment.strengthAreas && assessment.strengthAreas.length > 0 
+      ? assessment.strengthAreas.join(', ') 
+      : 'Not specified';
+      
+    const growthAreas = assessment.growthAreas && assessment.growthAreas.length > 0 
+      ? assessment.growthAreas.join(', ') 
+      : 'Not specified';
+    
+    // Extract domain scores if available
+    let domainScoresText = '';
+    if (assessment.domainScores) {
+      const domainEntries = Object.entries(assessment.domainScores);
+      if (domainEntries.length > 0) {
+        domainScoresText = 'Domain-specific scores: ';
+        domainEntries.forEach(([domain, data]) => {
+          domainScoresText += `${domain}: ${data.score}%, `;
+        });
+        domainScoresText = domainScoresText.slice(0, -2); // Remove trailing comma and space
+      }
+    }
+    
+    // Create a section in the prompt with assessment data
+    assessmentData = `
+ASSESSMENT DATA FOR PERSONALIZATION:
+- Teacher's strength areas: ${strengths}
+- Teacher's growth areas: ${growthAreas}
+- Teacher's overall assessment score: ${assessment.overallScore || 'Not available'}
+${domainScoresText ? '- ' + domainScoresText : ''}
+`;
+  }
+  
+  // Extract progress data for related modules
+  let progressData = '';
+  if (userProgress && userProgress.length > 0) {
+    const completedModulesCount = userProgress.filter(p => p.completed).length;
+    const inProgressModulesCount = userProgress.filter(p => !p.completed && p.progress > 0).length;
+    
+    progressData = `
+TEACHER'S PROGRESS DATA:
+- Completed ${completedModulesCount} modules so far
+- Has ${inProgressModulesCount} modules in progress
+- Experience level: ${completedModulesCount > 10 ? 'Experienced' : completedModulesCount > 5 ? 'Intermediate' : 'Beginner'}
+`;
+  }
+  
   // Generate the prompt
   return `
 You are an expert early childhood education mentor for preschool teachers who specializes in personalized, HIGHLY INTERACTIVE and FUN instruction. 
 Create an EXTREMELY engaging, GAME-LIKE lesson on "${module.title}" tailored to a teacher with a ${learningStyle} learning style
 who is facing this classroom challenge: "${challenge}".
 
+${assessmentData}
+${progressData}
+
 IMPORTANT: Write at a 5th GRADE READING LEVEL (ages 10-11). Use SIMPLE WORDS, SHORT SENTENCES, and MANY BULLET POINTS.
 
 The lesson MUST feel like playing an interactive video game rather than traditional learning. It must be entertaining, visually stimulating, and use multimedia elements while teaching real ECE concepts.
 
 The lesson should be structured in JSON format with the following sections:
-- introduction: A brief, upbeat introduction (2-3 sentences max) that connects the topic to the specific challenge. Include a fun "quest" framing.
-- keyConcepts: An array of 3-5 KEY BULLET POINTS (one sentence each) about the topic, each with a fun emoji.
-- strategies: An array of 4-6 practical strategies, each with a short title and a BULLET-POINT list description (not paragraphs). Keep each bullet to 10 words or less.
-- activities: An array of 3-4 SIMPLE activities with easy-to-follow steps (bulleted list of 3-5 short steps). These MUST be genuinely fun and playful.
-- gameElements: An array of 3-4 game-like elements with short, clear descriptions (1-2 sentences only).
-- reflectionQuestions: An array of 3-4 simple questions framed as "level-up" opportunities with fun icons.
-- funFacts: An array of 3-4 simple, surprising facts (one sentence each) about the topic.
-- videoResources: An array of 2-3 videos from reputable ECE sources. Keep descriptions to 1 sentence.
-- interactiveResources: An array of 2-3 simple interactive tools with brief descriptions (1 sentence).
-- printableResources: An array of 1-2 downloadable materials with brief descriptions (1 sentence).
-- quizQuestions: An array of 3 quiz questions about "${module.title}" with these fields for each question:
-  * question: A question about the topic that tests understanding (not memorization)
-  * options: Array of 4 possible answers (one correct, three incorrect but plausible)
-  * correctAnswer: The index of the correct answer (0-3)
-  * correctExplanation: Brief explanation for why the correct answer is right
-  * incorrectExplanation: Brief explanation for why the incorrect answers are wrong
+- content: The main HTML content with h2, h3, p, ul, and li elements for structured formatting. Make this engaging and interactive. Include images by describing what should be there in [IMAGE: description] format.
+- resources: An array of helpful resources, each with title, url, and short description
+
+For the content section, include these segments:
+- A brief, upbeat introduction (2-3 sentences max) that connects the topic to the specific challenge
+- 3-5 KEY BULLET POINTS (one sentence each) about the topic, each with a fun emoji
+- 4-6 practical strategies, each with a short title and a BULLET-POINT list description (not paragraphs)
+- 3-4 SIMPLE activities with easy-to-follow steps (bulleted list of 3-5 short steps)
+- 3-4 game-like elements with short, clear descriptions (1-2 sentences only)
+- 3-4 simple questions framed as "level-up" opportunities with fun icons
+- 3-4 simple, surprising facts (one sentence each) about the topic
+- 3 quiz questions about "${module.title}" with:
+  * Question text
+  * 4 possible answers (one correct, three incorrect but plausible)
+  * The correct answer index
+  * Brief explanation for why the correct answer is right
 
 Remember: WRITE AT A 5TH GRADE LEVEL - use simple words that a 10-year-old would understand.
 
@@ -67,7 +121,7 @@ For ${learningStyle} learners specifically:
 - Keep paragraphs to a maximum of 2-3 sentences
 - Include the phrase "Breathe, Smile, Be Present" hidden in the content
 
-IMPORTANT: For video resources, ONLY use legitimate sources from professional ECE organizations like:
+IMPORTANT: For video resources, ONLY recommend legitimate sources from professional ECE organizations like:
 - Head Start (https://eclkc.ohs.acf.hhs.gov)
 - NAEYC (https://www.naeyc.org)
 - CDC (https://www.cdc.gov/ncbddd/actearly/)
