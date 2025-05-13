@@ -235,18 +235,16 @@ export function MemoryMatchGame({
             <div
               key={card.id}
               className={cn(
-                "aspect-square rounded-md flex items-center justify-center p-1 transition-all duration-300 cursor-pointer shadow-sm text-center",
+                "aspect-square rounded-md flex items-center justify-center p-1 transition-all duration-500 cursor-pointer shadow-sm text-center",
                 card.flipped || card.matched ? (
-                  card.isPhrase ? "bg-primary/10 text-primary-foreground" : "bg-secondary/10 text-secondary-foreground"
+                  card.isPhrase ? "bg-blue-100 text-blue-800" : "bg-emerald-100 text-emerald-800"
                 ) : "bg-gray-200",
                 card.matched ? "ring-2 ring-green-500" : card.flipped ? "ring-2 ring-blue-500" : "",
                 gameComplete ? "pointer-events-none" : "",
                 "text-sm md:text-md lg:text-lg"
               )}
               onClick={() => handleCardClick(index)}
-              style={{ 
-                transform: `rotateY(${card.flipped || card.matched ? '180deg' : '0deg'})` 
-              }}
+              // Remove the rotation transform to make text readable
             >
               {(card.flipped || card.matched) ? (
                 <div className={cn(
@@ -255,7 +253,9 @@ export function MemoryMatchGame({
                 )}>
                   {card.content}
                 </div>
-              ) : "?"}
+              ) : (
+                <div className="text-2xl font-bold text-gray-500">?</div>
+              )}
             </div>
           ))}
         </div>
@@ -296,11 +296,11 @@ export function MemoryMatchGame({
               {gamePairs.map((pair, index) => (
                 <div key={index} className="p-3 bg-muted/50 rounded-md flex flex-col border">
                   <div className="flex gap-2 mb-1.5">
-                    <div className="flex-1 p-2 bg-primary/10 rounded border border-primary/20 font-medium text-primary-foreground">
+                    <div className="flex-1 p-2 bg-blue-100 rounded border border-blue-200 font-medium text-blue-800">
                       {pair.phrase}
                     </div>
                     <div className="flex items-center justify-center px-2">→</div>
-                    <div className="flex-1 p-2 bg-secondary/10 rounded border border-secondary/20">
+                    <div className="flex-1 p-2 bg-emerald-100 rounded border border-emerald-200 text-emerald-800">
                       {pair.response}
                     </div>
                   </div>
