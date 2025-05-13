@@ -58,13 +58,29 @@ export default function MicroModuleView() {
   // Update user points mutation
   const updateUserPointsMutation = useMutation({
     mutationFn: async (points: number) => {
-      return apiRequest('/api/users/add-points', {
-        method: 'POST',
-        data: { points }
-      });
+      try {
+        return await apiRequest('/api/users/add-points', {
+          method: 'POST',
+          data: { points }
+        });
+      } catch (error) {
+        console.error('Error adding points:', error);
+        // Return a fallback response to prevent unhandled rejections
+        return { success: false, message: 'Could not add points at this time' };
+      }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+    onSuccess: (data) => {
+      if (data.success) {
+        queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      }
+    },
+    onError: (error) => {
+      console.error('Error in points mutation:', error);
+      toast({
+        title: "Could not update points",
+        description: "Your progress was saved, but we couldn't update your points.",
+        variant: "destructive"
+      });
     }
   });
 
