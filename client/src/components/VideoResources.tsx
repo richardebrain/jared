@@ -300,17 +300,17 @@ export function VideoResources({ videoUrls = [], moduleName }: VideoResourcesPro
       return {
         videos: [
           { 
-            url: "https://www.youtube.com/embed/ckZt33Ymbpg", 
+            url: "https://www.youtube.com/embed/BoT7qH_uVNo", 
             title: "Positive Behavior Support in ECE",
             source: "Vanderbilt IRIS Center"
           },
           { 
-            url: "https://www.youtube.com/embed/4PSRP98mtJY", 
+            url: "https://www.youtube.com/embed/E9GrOxhYZdQ", 
             title: "Creating a Positive Classroom Environment",
             source: "PBS Teachers" 
           },
           { 
-            url: "https://www.youtube.com/embed/HQT6u-tFKZ4", 
+            url: "https://www.youtube.com/embed/PVDvONxrSWM", 
             title: "Positive Teacher-Child Interactions",
             source: "Head Start" 
           }

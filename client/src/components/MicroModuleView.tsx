@@ -132,9 +132,9 @@ export default function MicroModuleView() {
     coreConcept: "",
     practicalApplication: "",
     videoResources: [
-      "https://www.youtube.com/embed/ckZt33Ymbpg",  // Vanderbilt IRIS Center on Positive Behavior Support
-      "https://www.youtube.com/embed/4PSRP98mtJY",  // PBS Teachers video on positive classroom environments
-      "https://www.youtube.com/embed/HQT6u-tFKZ4"   // Head Start video on Positive Teacher-Child Interactions
+      "https://www.youtube.com/embed/BoT7qH_uVNo",  // Positive Behavior Support in ECE
+      "https://www.youtube.com/embed/E9GrOxhYZdQ",  // Creating a Positive Classroom Environment
+      "https://www.youtube.com/embed/PVDvONxrSWM"   // Positive Teacher-Child Interactions
     ],
     interactiveElement: "",
     quizQuestions: [],
@@ -154,71 +154,71 @@ export default function MicroModuleView() {
     // Active Listening videos
     if (moduleId === 1 || moduleId === 15 || moduleCategory.includes('listen') || moduleCategory.includes('communication')) {
       return [
-        "https://www.youtube.com/embed/ZwSHAIb_qO8", // Active Listening Techniques
-        "https://www.youtube.com/embed/5oP2__wXQ9U", // Effective Listening in Classroom
-        "https://www.youtube.com/embed/3_dAkDsBQyk"  // Communication Skills
+        "https://www.youtube.com/embed/q3zF1jHlya4", // Active Listening Techniques
+        "https://www.youtube.com/embed/AxrX8vinxHE", // Effective Listening in Classroom
+        "https://www.youtube.com/embed/oWe_ogA5YCU"  // Communication Skills
       ];
     }
     
     // Empathy videos
     if (moduleId === 2 || moduleId === 16 || moduleCategory.includes('empathy') || moduleCategory.includes('emotion')) {
       return [
-        "https://www.youtube.com/embed/9_1Rt1R4xbM", // Teaching Empathy
-        "https://www.youtube.com/embed/aU3QfyqvHk8", // Building Empathy
-        "https://www.youtube.com/embed/cTOhzcSYMlM"  // Social-Emotional Skills
+        "https://www.youtube.com/embed/5vhTbkvN4mg", // Teaching Empathy
+        "https://www.youtube.com/embed/icIlUdTEQnU", // Building Empathy
+        "https://www.youtube.com/embed/Gy-1Y8Hj1cU"  // Social-Emotional Skills
       ];
     }
     
     // Mindfulness videos
     if (moduleCategory.includes('mindful') || moduleCategory.includes('morning')) {
       return [
-        "https://www.youtube.com/embed/O29e4rRMrV4", // Mindfulness for Kids
-        "https://www.youtube.com/embed/2zMbdQU-nQs", // Morning Meditation
-        "https://www.youtube.com/embed/uwWdK887mE0"  // Mindful Mornings
+        "https://www.youtube.com/embed/UmWvUAoOQWw", // Mindfulness for Kids
+        "https://www.youtube.com/embed/2n7FOBFMvXg", // Morning Meeting
+        "https://www.youtube.com/embed/0vuaCfERSMw"  // Mindful Mornings
       ];
     }
     
     // Inclusion videos
     if (moduleCategory.includes('inclus') || moduleCategory.includes('divers')) {
       return [
-        "https://www.youtube.com/embed/AGMLnvVFkOA", // Inclusion in ECE 
-        "https://www.youtube.com/embed/sQuM5e0QGLg", // Diversity in Classroom
-        "https://www.youtube.com/embed/0MF2Qxepoj8"  // Creating Inclusive Environment
+        "https://www.youtube.com/embed/eMbGzA5WYQw", // Inclusion in ECE 
+        "https://www.youtube.com/embed/7H67WySTIhw", // Diversity in Classroom
+        "https://www.youtube.com/embed/GPeeZ6viDgU"  // Creating Inclusive Environment
       ];
     }
     
     // Behavior Management videos
     if (moduleCategory.includes('behav') || moduleCategory.includes('manag')) {
       return [
-        "https://www.youtube.com/embed/ckZt33Ymbpg", // Positive Behavior Support
-        "https://www.youtube.com/embed/4PSRP98mtJY", // Positive Classroom
-        "https://www.youtube.com/embed/HQT6u-tFKZ4"  // Teacher-Child Interactions
+        "https://www.youtube.com/embed/BoT7qH_uVNo", // Positive Behavior Support
+        "https://www.youtube.com/embed/E9GrOxhYZdQ", // Positive Classroom
+        "https://www.youtube.com/embed/PVDvONxrSWM"  // Teacher-Child Interactions
       ];
     }
     
     // STEM videos
     if (moduleCategory.includes('stem') || moduleCategory.includes('science') || moduleCategory.includes('math')) {
       return [
-        "https://www.youtube.com/embed/D8Q8EZ6IryM", // STEM Activities
-        "https://www.youtube.com/embed/6X-vObPOAeE", // Teaching Math Concepts
-        "https://www.youtube.com/embed/RI6_xQqHI94"  // Science Exploration
+        "https://www.youtube.com/embed/p84-_LRw8H0", // STEM Activities
+        "https://www.youtube.com/embed/Frn0F-_-Jq0", // Teaching Math Concepts
+        "https://www.youtube.com/embed/ryWs7xLOJJE"  // Science Exploration
       ];
     }
     
     // Family Engagement videos
     if (moduleCategory.includes('family') || moduleCategory.includes('parent')) {
       return [
-        "https://www.youtube.com/embed/caWIhWtn5vA", // Family Engagement
-        "https://www.youtube.com/embed/EgzJvT5x_vw", // Parent Communication
-        "https://www.youtube.com/embed/nuYt8Kf37OM"  // Family Partnerships
+        "https://www.youtube.com/embed/pKlGYjM1S5I", // Family Engagement
+        "https://www.youtube.com/embed/1YGSgDU5o8c", // Parent Communication
+        "https://www.youtube.com/embed/vCWI2nF5tDA"  // Family Partnerships
       ];
     }
     
     // Default videos for general ECE topics
     return [
-      "https://www.youtube.com/embed/ckZt33Ymbpg", // Positive Behavior Support
-      "https://www.youtube.com/embed/4PSRP98mtJY", // Positive Classroom Environment
-      "https://www.youtube.com/embed/HQT6u-tFKZ4"  // Teacher-Child Interactions
+      "https://www.youtube.com/embed/BoT7qH_uVNo", // Positive Behavior Support
+      "https://www.youtube.com/embed/E9GrOxhYZdQ", // Positive Classroom Environment
+      "https://www.youtube.com/embed/PVDvONxrSWM"  // Teacher-Child Interactions
     ];
   };
   
