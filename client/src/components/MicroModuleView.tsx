@@ -518,8 +518,8 @@ export default function MicroModuleView() {
         
       // Mindful Morning Greeting
       case 24:
-        conceptPrompt = `Create a concise educational paragraph (max 150 words) about starting each day with an intentional, mindful greeting ritual in preschool. Explain how this sets a positive tone for the day and include one practical tip.`;
-        applicationPrompt = `Provide 3 different mindful morning greeting rituals (max 150 words total) for preschool teachers to use with their class. Each ritual should be 1-2 sentences and very simple to implement.`;
+        conceptPrompt = `Create a concise educational paragraph (max 150 words) about starting each day with an intentional, mindful greeting ritual in preschool. Explain how this establishes a positive foundation for "Building Chapter One" in each child's personal story and sets the tone for their day. Include one practical tip that supports this framework.`;
+        applicationPrompt = `Provide 3 different mindful morning greeting rituals (max 150 words total) that support the "Building Chapter One" framework for preschool teachers to use with their class. Each ritual should be 1-2 sentences, very simple to implement, and help children understand they are the main character in their own learning story.`;
         break;
         
       // Safety First: 5-Minute Checklist
@@ -874,6 +874,47 @@ export default function MicroModuleView() {
             correctAnswer: 0,
             correctExplanation: "Correct! When teachers model active listening, children learn to use these skills themselves, improving communication throughout the classroom.",
             incorrectExplanation: "Children learn by example - when teachers demonstrate active listening, children develop these important skills themselves."
+          }
+        ];
+        
+      // Mindful Morning Greeting
+      case 24:
+        return [
+          {
+            question: "How do mindful morning greeting rituals support the 'Building Chapter One' framework?",
+            options: [
+              "They add extra work to a teacher's morning routine",
+              "They help children feel they are the main character in their learning story",
+              "They replace academic instruction time",
+              "They are primarily for teacher preparation"
+            ],
+            correctAnswer: 1,
+            correctExplanation: "Correct! Mindful morning greetings help each child feel valued and recognized as the main character in their own learning story, a key principle of the 'Building Chapter One' framework.",
+            incorrectExplanation: "Mindful morning greetings support the 'Building Chapter One' framework by helping children recognize they are the main character in their own learning story, establishing each day as a new chapter in their development."
+          },
+          {
+            question: "Which greeting approach best supports a child's sense of emotional safety in the 'Building Chapter One' framework?",
+            options: [
+              "Standard group greeting only",
+              "Personalized greeting that recognizes each child individually",
+              "Quick efficient transitions with minimal greeting time",
+              "Teacher-directed activities immediately upon arrival"
+            ],
+            correctAnswer: 1,
+            correctExplanation: "Correct! Personalized greetings that recognize each child individually help establish emotional safety and validate each child's importance in their own learning story - key elements of the 'Building Chapter One' framework.",
+            incorrectExplanation: "The 'Building Chapter One' framework emphasizes making each child feel like the protagonist in their own learning story, which is best achieved through personalized greetings that recognize them as individuals."
+          },
+          {
+            question: "How can morning greetings help establish a child's sense of belonging in their classroom community?",
+            options: [
+              "By setting strict behavioral expectations",
+              "By immediately focusing on academics",
+              "By acknowledging each child and inviting them into the day's story",
+              "By separating children by ability level"
+            ],
+            correctAnswer: 2,
+            correctExplanation: "Correct! Acknowledging each child and inviting them into the day's story establishes their sense of belonging in the classroom community, supporting their role in the collective 'Chapter One' being built together.",
+            incorrectExplanation: "Morning greetings build a sense of belonging by acknowledging each child and explicitly inviting them into the day's story, reinforcing their importance in both their individual and collective classroom narrative."
           }
         ];
         
