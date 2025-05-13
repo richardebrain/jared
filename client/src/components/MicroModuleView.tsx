@@ -1265,12 +1265,34 @@ export default function MicroModuleView() {
         </div>
       </div>
       
-      <div className="flex items-center mb-6">
-        <Button onClick={() => setLocation('/modules')} variant="outline" className="mr-4">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Modules
-        </Button>
-        <h1 className="text-2xl font-bold">{module?.title || 'Loading module...'}</h1>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center">
+          <Button onClick={() => setLocation('/modules')} variant="outline" className="mr-4">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Modules
+          </Button>
+          <h1 className="text-2xl font-bold">{module?.title || 'Loading module...'}</h1>
+        </div>
+        
+        {/* Points tracking display */}
+        <div className="flex items-center gap-3">
+          <div className="px-3 py-1.5 bg-gradient-to-r from-amber-100 to-yellow-100 rounded-full border border-amber-200 flex items-center shadow-sm">
+            <Trophy className="h-4 w-4 mr-1.5 text-amber-500" />
+            <span className="text-sm font-medium text-amber-800">
+              {pointsEarned > 0 ? (
+                <>Points earned: <span className="font-bold">{pointsEarned}</span></>
+              ) : (
+                <>Earn up to <span className="font-bold">{MICRO_MODULE_POINTS + 10}</span> points</>
+              )}
+            </span>
+          </div>
+          <div className="px-3 py-1.5 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-full border border-blue-200 flex items-center shadow-sm">
+            <Coins className="h-4 w-4 mr-1.5 text-blue-500" />
+            <span className="text-sm font-medium text-blue-800">
+              Total: <span className="font-bold">{user?.points || 0}</span>
+            </span>
+          </div>
+        </div>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
