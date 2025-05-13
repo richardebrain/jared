@@ -310,16 +310,32 @@ export default function MicroModuleView() {
             "https://www.youtube.com/embed/HQT6u-tFKZ4"   // Head Start video on Positive Teacher-Child Interactions
           ],
           interactiveElement: "<div class='interactive-activity'><h4>Reflect and Respond</h4><p>Think about a recent challenging situation with a child. How might you approach it differently with a more positive mindset?</p><textarea placeholder='Type your reflection here...' rows='3' class='w-full p-2 border rounded-md'></textarea><button class='mt-2 px-4 py-2 bg-primary text-white rounded-md'>Save for later</button></div>",
-          quizQuestion: {
-            question: "What is one benefit of maintaining a positive attitude in the classroom?",
-            options: [
-              "It reduces the need for planning activities",
-              "It creates a supportive environment that fosters learning",
-              "It eliminates all behavioral challenges",
-              "It replaces the need for structured routines"
-            ],
-            correctAnswer: 1
-          },
+          quizQuestions: [
+            {
+              question: "What is one benefit of maintaining a positive attitude in the classroom?",
+              options: [
+                "It reduces the need for planning activities",
+                "It creates a supportive environment that fosters learning",
+                "It eliminates all behavioral challenges",
+                "It replaces the need for structured routines"
+              ],
+              correctAnswer: 1,
+              correctExplanation: "You're right! A positive attitude helps create a warm, supportive classroom where children feel safe to learn and grow.",
+              incorrectExplanation: "Actually, a positive attitude creates a supportive learning environment. Children learn better when they feel good about being in class."
+            },
+            {
+              question: "What can you do to show a positive attitude at work?",
+              options: [
+                "Only talk about the good things that happen",
+                "Avoid children who are having a bad day",
+                "Greet each child by name with a smile",
+                "Keep to yourself during challenging moments"
+              ],
+              correctAnswer: 2,
+              correctExplanation: "Great job! Greeting each child with a smile and using their name shows you care about them as individuals.",
+              incorrectExplanation: "The best way to show a positive attitude is by greeting each child by name with a smile. This helps them feel welcome and valued."
+            }
+          ],
           isLoading: false
         }));
       }
@@ -697,11 +713,14 @@ export default function MicroModuleView() {
                     {steps[completedStep]?.content || "Loading content..."}
                   </div>
                   
-                  {perplexityContent.quizQuestion && (
+                  {perplexityContent.quizQuestions && perplexityContent.quizQuestions.length > 0 && (
                     <InteractiveQuiz 
-                      question={{
-                        ...perplexityContent.quizQuestion,
-                        explanation: "Understanding key early childhood education concepts helps create effective learning environments."
+                      questions={perplexityContent.quizQuestions}
+                      onComplete={(score) => {
+                        // Add extra points for perfect score
+                        if (score === perplexityContent.quizQuestions.length) {
+                          setPointsEarned(prev => prev + 5);
+                        }
                       }}
                     />
                   )}
