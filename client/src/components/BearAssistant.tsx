@@ -132,11 +132,21 @@ export default function BearAssistant({ user, initiallyMinimized = true }: BearA
             <TooltipTrigger asChild>
               <Button 
                 size="lg" 
-                className="rounded-full w-16 h-16 shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center"
+                className="rounded-full w-16 h-16 shadow-lg bg-gradient-to-r from-amber-500 to-primary hover:from-amber-600 hover:to-primary/90 text-primary-foreground flex items-center justify-center"
                 onClick={toggleMinimized}
               >
                 <div className="relative">
-                  <Bot className="w-7 h-7" />
+                  <div className="flex items-center justify-center">
+                    <svg viewBox="0 0 24 24" className="w-7 h-7" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 2L9.5 4L7 3L5 5L3 7L4 9.5L2 12L4 14.5L3 17L5 19L7 21L9.5 20L12 22L14.5 20L17 21L19 19L21 17L20 14.5L22 12L20 9.5L21 7L19 5L17 3L14.5 4L12 2Z" fill="#FFF8E7" />
+                      <circle cx="8.5" cy="9.5" r="1.5" fill="#4B3621" />
+                      <circle cx="15.5" cy="9.5" r="1.5" fill="#4B3621" />
+                      <path d="M8 15.5C8 15.5 10 17.5 12 17.5C14 17.5 16 15.5 16 15.5" stroke="#4B3621" strokeWidth="1.5" strokeLinecap="round" />
+                      <path d="M5 8C5 8 6 7 7 7C8 7 9 8 9 8" stroke="#4B3621" strokeWidth="1.5" strokeLinecap="round" />
+                      <path d="M15 8C15 8 16 7 17 7C18 7 19 8 19 8" stroke="#4B3621" strokeWidth="1.5" strokeLinecap="round" />
+                      <ellipse cx="12" cy="13" rx="1.5" ry="1" fill="#4B3621" />
+                    </svg>
+                  </div>
                   {messages.length > 0 && (
                     <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground">
                       {messages.length}

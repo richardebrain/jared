@@ -553,24 +553,7 @@ export default function Dashboard() {
                 )}
               </div>
               
-              <div className="bg-primary bg-opacity-10 rounded-xl p-6 mb-4">
-                <div className="flex items-start">
-                  <div className="mr-3 mt-1">
-                    <i className="ri-customer-service-2-line text-xl text-primary"></i>
-                  </div>
-                  <div>
-                    <h3 className="font-heading font-bold">Need help?</h3>
-                    <p className="text-sm my-2">Our support team is ready to assist you with any questions.</p>
-                    <button 
-                      className="bg-primary text-white rounded-lg px-4 py-2 text-sm font-semibold hover:bg-opacity-90 transition mt-2 w-full"
-                      onClick={() => document.getElementById('chatbot')?.classList.remove('hidden')}
-                    >
-                      Chat with Support
-                    </button>
-                  </div>
-                </div>
-              </div>
-              
+
               {/* Spin & Win Game Section */}
               <div className="bg-gradient-to-r from-amber-100 to-yellow-200 rounded-xl p-6">
                 <div className="flex items-start">
