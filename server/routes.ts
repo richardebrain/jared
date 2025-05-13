@@ -1440,6 +1440,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Perplexity API integration for micro-learning modules
+  app.post('/api/perplexity/generate', async (req, res) => {
+    try {
+      const { prompt } = req.body;
+      
+      if (!prompt) {
+        return res.status(400).json({ message: "Prompt is required" });
+      }
+      
+      // Check for API key
+      if (!process.env.PERPLEXITY_API_KEY) {
+        return res.status(500).json({ message: "Perplexity API key not configured" });
+      }
+      
+      // Call Perplexity API
+      const response = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-sonar-small-128k-online",
+          messages: [
+            {
+              role: "system",
+              content: "You are an expert in early childhood education, specializing in teacher training. Provide concise, practical content that teachers can immediately apply in their classrooms. Focus on being encouraging and positive."
+            },
+            {
+              role: "user",
+              content: prompt
+            }
+          ],
+          temperature: 0.2,
+          max_tokens: 200,
+          stream: false
+        })
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Perplexity API error:", errorText);
+        return res.status(response.status).json({ 
+          message: "Error from Perplexity API",
+          error: errorText
+        });
+      }
+      
+      const data = await response.json();
+      
+      return res.status(200).json({ 
+        content: data.choices[0].message.content,
+        citations: data.citations || []
+      });
+    } catch (error) {
+      console.error("Error in Perplexity API:", error);
+      return res.status(500).json({ 
+        message: "Failed to generate content",
+        error: String(error)
+      });
+    }
+  });
+
   // Create HTTP server
   const httpServer = createServer(app);
 
