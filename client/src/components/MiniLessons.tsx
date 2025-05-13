@@ -813,20 +813,74 @@ export function MiniLessons() {
                             allowFullScreen
                           ></iframe>
                         ) : selectedLesson.category === 'core-values' ? (
-                          /* Core values YouTube embed */
+                          /* Core values YouTube embed - professionally-created ECE values video */
                           <iframe
                             className="w-full h-full absolute inset-0"
-                            src="https://www.youtube.com/embed/LbB4QdKW954" 
-                            title="Building Character and Core Values in Early Childhood"
+                            src="https://www.youtube.com/embed/ckVy6vjkYfA" 
+                            title="Character Development & Core Values in Early Childhood Education"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          ></iframe>
+                        ) : selectedLesson.category === 'foundations' ? (
+                          /* Foundations YouTube embed - professionally-created ECE foundations video */
+                          <iframe
+                            className="w-full h-full absolute inset-0"
+                            src="https://www.youtube.com/embed/fOHLwf9EwxA" 
+                            title="Key Foundations of Early Childhood Education"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          ></iframe>
+                        ) : selectedLesson.category === 'teaching-methods' ? (
+                          /* Teaching methods YouTube embed - professionally-created ECE teaching methods video */
+                          <iframe
+                            className="w-full h-full absolute inset-0"
+                            src="https://www.youtube.com/embed/Ovm3UgIxMvo" 
+                            title="Effective Teaching Methods in Early Childhood"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          ></iframe>
+                        ) : selectedLesson.category === 'inclusion' ? (
+                          /* Inclusion YouTube embed - professionally-created ECE inclusion video */
+                          <iframe
+                            className="w-full h-full absolute inset-0"
+                            src="https://www.youtube.com/embed/8d7t4Vf3msk" 
+                            title="Inclusion in Early Childhood Education"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          ></iframe>
+                        ) : selectedLesson.category === 'stem' ? (
+                          /* STEM YouTube embed - professionally-created ECE STEM video */
+                          <iframe
+                            className="w-full h-full absolute inset-0"
+                            src="https://www.youtube.com/embed/TFro2NAl9X0" 
+                            title="STEM in Early Childhood Education"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          ></iframe>
+                        ) : selectedLesson.category === 'empathy' ? (
+                          /* Empathy YouTube embed - professionally-created empathy video */
+                          <iframe
+                            className="w-full h-full absolute inset-0"
+                            src="https://www.youtube.com/embed/G3_-m0LdIKA" 
+                            title="Teaching Empathy in Early Childhood Education"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          ></iframe>
+                        ) : selectedLesson.category === 'language' ? (
+                          /* Language development YouTube embed - professionally-created ECE language development video */
+                          <iframe
+                            className="w-full h-full absolute inset-0"
+                            src="https://www.youtube.com/embed/nZCTFfcYHKo" 
+                            title="Language Development in Early Childhood"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
                           ></iframe>
                         ) : (
-                          /* Default educational content for other categories */
+                          /* Default educational content for any remaining categories */
                           <iframe
                             className="w-full h-full absolute inset-0"
-                            src="https://www.youtube.com/embed/djPdXSqHV28" 
-                            title="Early Childhood Education Fundamentals"
+                            src="https://www.youtube.com/embed/jt_DG5K8HkQ"
+                            title="General Early Childhood Education Best Practices"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
                           ></iframe>
