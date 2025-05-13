@@ -429,6 +429,8 @@ export const usersRelationsWithDiscussions = relations(users, ({ many }) => ({
   comments: many(discussionComments),
   votes: many(commentVotes),
   spinGameRewards: many(spinGameRewards),
+  nominatorShoutOuts: many(coreValuesShoutOuts, { relationName: "nominator" }),
+  nomineeShoutOuts: many(coreValuesShoutOuts, { relationName: "nominee" }),
 }));
 
 export type DiscussionThread = typeof discussionThreads.$inferSelect;
@@ -442,3 +444,36 @@ export type InsertCommentVote = z.infer<typeof insertCommentVoteSchema>;
 
 export type SpinGameReward = typeof spinGameRewards.$inferSelect;
 export type InsertSpinGameReward = z.infer<typeof insertSpinGameRewardSchema>;
+
+// Core Values Shout Out schema
+export const coreValuesShoutOuts = pgTable("core_values_shout_outs", {
+  id: serial("id").primaryKey(),
+  nominatorId: integer("nominator_id").notNull().references(() => users.id),
+  nomineeId: integer("nominee_id").notNull().references(() => users.id),
+  coreValue: text("core_value").notNull(),
+  description: text("description").notNull(),
+  pointsAwarded: integer("points_awarded").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCoreValuesShoutOutSchema = createInsertSchema(coreValuesShoutOuts).omit({
+  id: true,
+  createdAt: true,
+  pointsAwarded: true,
+});
+
+export type CoreValuesShoutOut = typeof coreValuesShoutOuts.$inferSelect;
+export type InsertCoreValuesShoutOut = z.infer<typeof insertCoreValuesShoutOutSchema>;
+
+export const coreValuesShoutOutRelations = relations(coreValuesShoutOuts, ({ one }) => ({
+  nominator: one(users, {
+    fields: [coreValuesShoutOuts.nominatorId],
+    references: [users.id],
+    relationName: "nominator"
+  }),
+  nominee: one(users, {
+    fields: [coreValuesShoutOuts.nomineeId],
+    references: [users.id],
+    relationName: "nominee"
+  })
+}));

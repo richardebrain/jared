@@ -14,6 +14,8 @@ import DiscussionsPage from "@/pages/discussions";
 import AllModules from "@/pages/modules";
 import CoreValuesPage from "@/pages/core-values";
 import MindfulMorningsPage from "@/pages/mindful-mornings";
+import StorytellingDemoPage from "@/pages/storytelling-demo";
+import CoreValuesShoutOutPage from "@/pages/core-values-shout-out";
 import { useAuth } from "@/hooks/use-auth";
 
 function Router() {
@@ -80,6 +82,14 @@ function Router() {
       
       <Route path="/mindful-mornings">
         {isAuthenticated ? <MindfulMorningsPage /> : <Login />}
+      </Route>
+      
+      <Route path="/storytelling-demo">
+        {isAuthenticated ? <StorytellingDemoPage /> : <Login />}
+      </Route>
+      
+      <Route path="/core-values-shout-out">
+        {isAuthenticated ? <CoreValuesShoutOutPage /> : <Login />}
       </Route>
       
       <Route path="/">

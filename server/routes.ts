@@ -1363,6 +1363,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API Routes for Core Values Shout Outs
+  
+  // Get shout outs where current user is the nominator
+  app.get("/api/core-values/nominations-made", async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const shoutOuts = await storage.getCoreValuesShoutOutsByNominatorId(userId);
+      return res.status(200).json(shoutOuts);
+    } catch (error) {
+      console.error("Error fetching nominations made:", error);
+      return res.status(500).json({ message: "Error fetching nominations made" });
+    }
+  });
+  
+  // Get shout outs where current user is the nominee
+  app.get("/api/core-values/nominations-received", async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const shoutOuts = await storage.getCoreValuesShoutOutsByNomineeId(userId);
+      return res.status(200).json(shoutOuts);
+    } catch (error) {
+      console.error("Error fetching nominations received:", error);
+      return res.status(500).json({ message: "Error fetching nominations received" });
+    }
+  });
+  
+  // Create a new shout out
+  app.post("/api/core-values/nominate", async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const { nomineeId, coreValue, description } = req.body;
+      
+      if (!nomineeId || !coreValue || !description) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
+      // Generate random points between 3-10 points
+      const pointsAwarded = Math.floor(Math.random() * 8) + 3;
+      
+      const shoutOut = await storage.createCoreValuesShoutOut({
+        nominatorId: userId,
+        nomineeId,
+        coreValue,
+        description,
+        pointsAwarded
+      });
+      
+      return res.status(201).json({ 
+        shoutOut,
+        message: `Successfully nominated teacher for demonstrating the core value of ${coreValue}! You earned 1 point, and they earned ${pointsAwarded} points.`
+      });
+    } catch (error) {
+      console.error("Error creating nomination:", error);
+      return res.status(500).json({ message: "Error creating nomination" });
+    }
+  });
+
   // Create HTTP server
   const httpServer = createServer(app);
 

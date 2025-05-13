@@ -91,6 +91,11 @@ export default function Header() {
               Assessment
             </a>
           </Link>
+          <Link href="/core-values-shout-out">
+            <a className={`font-heading font-semibold ${location === "/core-values-shout-out" ? "text-primary" : "text-neutral-800 hover:text-primary"} transition`}>
+              Core Values Shout Out
+            </a>
+          </Link>
         </nav>
         
         <div className="flex items-center space-x-4">
@@ -157,6 +162,11 @@ export default function Header() {
             <Link href="/assessment">
               <a className={`font-heading font-semibold ${location === "/assessment" ? "text-primary" : "text-neutral-800"}`}>
                 Assessment
+              </a>
+            </Link>
+            <Link href="/core-values-shout-out">
+              <a className={`font-heading font-semibold ${location === "/core-values-shout-out" ? "text-primary" : "text-neutral-800"}`}>
+                Core Values Shout Out
               </a>
             </Link>
             <div className="pt-2 border-t border-neutral-100">

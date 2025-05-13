@@ -8,7 +8,8 @@ import {
   userItems, type UserItem, type InsertUserItem,
   discussionThreads, type DiscussionThread, type InsertDiscussionThread,
   discussionComments, type DiscussionComment, type InsertDiscussionComment,
-  commentVotes, type CommentVote, type InsertCommentVote
+  commentVotes, type CommentVote, type InsertCommentVote,
+  coreValuesShoutOuts, type CoreValuesShoutOut, type InsertCoreValuesShoutOut
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -75,6 +76,11 @@ export interface IStorage {
   getVotesByComment(commentId: number): Promise<CommentVote[]>;
   createOrUpdateVote(vote: InsertCommentVote): Promise<CommentVote>;
   deleteVote(userId: number, commentId: number): Promise<void>;
+  
+  // Core Values Shout Out operations
+  getCoreValuesShoutOutsByNominatorId(nominatorId: number): Promise<CoreValuesShoutOut[]>;
+  getCoreValuesShoutOutsByNomineeId(nomineeId: number): Promise<CoreValuesShoutOut[]>;
+  createCoreValuesShoutOut(shoutOut: InsertCoreValuesShoutOut & { pointsAwarded: number }): Promise<CoreValuesShoutOut>;
 }
 
 export class MemStorage implements IStorage {
@@ -1024,6 +1030,50 @@ export class DatabaseStorage implements IStorage {
           .where(eq(discussionComments.id, commentId));
       }
     }
+  }
+
+  // Core Values Shout Out operations
+  async getCoreValuesShoutOutsByNominatorId(nominatorId: number): Promise<CoreValuesShoutOut[]> {
+    return db
+      .select()
+      .from(coreValuesShoutOuts)
+      .where(eq(coreValuesShoutOuts.nominatorId, nominatorId))
+      .orderBy(desc(coreValuesShoutOuts.createdAt));
+  }
+
+  async getCoreValuesShoutOutsByNomineeId(nomineeId: number): Promise<CoreValuesShoutOut[]> {
+    return db
+      .select()
+      .from(coreValuesShoutOuts)
+      .where(eq(coreValuesShoutOuts.nomineeId, nomineeId))
+      .orderBy(desc(coreValuesShoutOuts.createdAt));
+  }
+
+  async createCoreValuesShoutOut(shoutOut: InsertCoreValuesShoutOut & { pointsAwarded: number }): Promise<CoreValuesShoutOut> {
+    const [newShoutOut] = await db
+      .insert(coreValuesShoutOuts)
+      .values(shoutOut)
+      .returning();
+    
+    // Update the nominator's points (add 1 point for nominating someone)
+    const nominator = await this.getUser(shoutOut.nominatorId);
+    if (nominator && nominator.points !== null) {
+      await db
+        .update(users)
+        .set({ points: nominator.points + 1 })
+        .where(eq(users.id, shoutOut.nominatorId));
+    }
+    
+    // Update the nominee's points (add the pointsAwarded)
+    const nominee = await this.getUser(shoutOut.nomineeId);
+    if (nominee && nominee.points !== null) {
+      await db
+        .update(users)
+        .set({ points: nominee.points + shoutOut.pointsAwarded })
+        .where(eq(users.id, shoutOut.nomineeId));
+    }
+    
+    return newShoutOut;
   }
 }
 
