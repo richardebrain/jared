@@ -839,13 +839,53 @@ export default function AssessmentPage() {
   const [completedQuestions, setCompletedQuestions] = useState<string[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   
-  // Function to update domain questions based on difficulty
+  // Function to update domain questions based on difficulty - improved with better error handling
   const updateDomainQuestions = (domainId: string, difficulty: DifficultyLevel) => {
     try {
+      console.log(`Updating questions for domain: ${domainId}, difficulty: ${difficulty}`);
+      
+      // Validate domain exists
+      if (!domains.some(d => d.id === domainId)) {
+        throw new Error(`Domain ${domainId} not found in domains list`);
+      }
+      
       // Filter questions for the specified domain and difficulty
       const filteredQuestions = assessmentQuestions.filter(q => 
         q.domain === domainId && q.difficulty === difficulty
       );
+      
+      // If no questions are available for this difficulty, we have a problem
+      if (filteredQuestions.length === 0) {
+        console.error(`No questions available for domain ${domainId} at difficulty ${difficulty}`);
+        // Fall back to easiest difficulty that has questions
+        if (difficulty !== 'beginner') {
+          toast({
+            title: "Adjusting difficulty level",
+            description: `No ${difficulty} questions available. Switching to a more accessible level.`,
+            variant: "destructive",
+            duration: 3000,
+          });
+          
+          // Try loading beginner questions instead
+          setDomainDifficulty(prev => ({
+            ...prev,
+            [domainId]: 'beginner'
+          }));
+          
+          // Recursively call with 'beginner' difficulty
+          updateDomainQuestions(domainId, 'beginner');
+          return;
+        } else {
+          // This is a critical error - no beginner questions available
+          toast({
+            title: "Error Loading Questions",
+            description: "Could not find any questions for this topic. Please try another area.",
+            variant: "destructive",
+            duration: 5000,
+          });
+          return;
+        }
+      }
       
       // Check if we have enough questions for this difficulty level
       if (filteredQuestions.length < 3 && difficulty !== 'expert') {
@@ -853,7 +893,7 @@ export default function AssessmentPage() {
       }
       
       // Log for debugging
-      console.log(`Loading ${filteredQuestions.length} ${difficulty} questions for ${domainId}`);
+      console.log(`Successfully loaded ${filteredQuestions.length} ${difficulty} questions for ${domainId}`);
 
       // Show a toast notification about advancing to a new difficulty level with appropriate messaging
       let message = '';
@@ -905,6 +945,19 @@ export default function AssessmentPage() {
           ...prev,
           [domainId]: 'beginner'
         }));
+        
+        // Try to load beginner questions
+        setTimeout(() => {
+          updateDomainQuestions(domainId, 'beginner');
+        }, 300);
+      } else {
+        // Critical error that couldn't be recovered from
+        toast({
+          title: "Assessment Error",
+          description: "Something went wrong with the assessment. Please refresh the page or try again later.",
+          variant: "destructive",
+          duration: 5000,
+        });
       }
     }
   };
@@ -1144,11 +1197,40 @@ export default function AssessmentPage() {
     console.log(`Tracking ${currentDifficulty} performance in ${domain}: ${correct} correct, ${incorrect} incorrect`);
   };
   
-  // Handle domain navigation
+  // Handle domain navigation - fix for the setCurrentDomain error
   const handleDomainChange = (domainId: string) => {
-    const newDomainIndex = domains.findIndex(d => d.id === domainId);
-    setCurrentDomainIndex(newDomainIndex);
-    setCurrentQuestionIndex(0);
+    try {
+      // Find the index of the domain in our domains array
+      const newDomainIndex = domains.findIndex(d => d.id === domainId);
+      
+      // Validate that the domain exists
+      if (newDomainIndex === -1) {
+        console.error(`Domain with ID ${domainId} not found in domains list.`);
+        toast({
+          title: "Navigation Error",
+          description: "Could not find the selected domain. Please try again.",
+          variant: "destructive",
+          duration: 3000
+        });
+        return;
+      }
+      
+      console.log(`Navigating to domain: ${domainId} (index: ${newDomainIndex})`);
+      
+      // Update the current domain index
+      setCurrentDomainIndex(newDomainIndex);
+      
+      // Reset to the first question in the new domain
+      setCurrentQuestionIndex(0);
+    } catch (error) {
+      console.error("Error navigating to domain:", error);
+      toast({
+        title: "Navigation Error",
+        description: "Something went wrong when changing topics. Please try again.",
+        variant: "destructive",
+        duration: 3000
+      });
+    }
   };
   
   // Calculate domain progress
