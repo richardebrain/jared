@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { User } from "@shared/schema";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import Header from "@/components/Header";
 import ModuleView from "@/components/ModuleView";
 import { Button } from "@/components/ui/button";
@@ -203,7 +203,7 @@ export default function Dashboard() {
             </Link>
             <Button 
               variant="outline" 
-              onClick={() => setLocation("/")}
+              onClick={() => window.location.href = "/"}
             >
               Continue as Demo User
             </Button>
@@ -512,7 +512,7 @@ export default function Dashboard() {
                     <Leaderboard />
                     
                     {/* Bear Assistant */}
-                    <BearAssistant user={user} initiallyMinimized={false} />
+                    <BearAssistant user={displayUser} initiallyMinimized={false} />
                   </div>
                 </div>
               </>
