@@ -17,7 +17,7 @@ import { AlertCircle, Award, Check, ChevronRight, ClipboardList, Star } from "lu
 
 // Define assessment question types
 type QuestionType = 'multiple-choice';
-type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced';
+type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced' | 'expert';
 
 interface Question {
   id: string;
@@ -769,11 +769,11 @@ export default function AssessmentPage() {
     const totalAnswers = correct + incorrect;
     const correctRatio = totalAnswers > 0 ? correct / totalAnswers : 0;
     
-    // More aggressive difficulty progression logic with safeguards
+    // Enhanced progression logic requiring 5-8 questions per level before advancing
     
-    // Move to intermediate after 1 correct answer at beginner level (with high confidence)
-    if (currentDifficulty === 'beginner' && (correct >= 1 && correctRatio >= 0.5)) {
-      console.log(`Advancing ${domain} from beginner to intermediate (ratio: ${correctRatio.toFixed(2)})`);
+    // Move to intermediate after 5 correct answers at beginner level (with high confidence)
+    if (currentDifficulty === 'beginner' && (correct >= 5 && correctRatio >= 0.7)) {
+      console.log(`Advancing ${domain} from beginner to intermediate (correct: ${correct}, ratio: ${correctRatio.toFixed(2)})`);
       setDomainDifficulty(prev => ({
         ...prev,
         [domain]: 'intermediate'
@@ -787,9 +787,9 @@ export default function AssessmentPage() {
       return;
     }
     
-    // Move to advanced after 1 correct answer at intermediate level (with high confidence)
-    if (currentDifficulty === 'intermediate' && (correct >= 1 && correctRatio >= 0.5)) {
-      console.log(`Advancing ${domain} from intermediate to advanced (ratio: ${correctRatio.toFixed(2)})`);
+    // Move to advanced after 5-6 correct answers at intermediate level (with high confidence)
+    if (currentDifficulty === 'intermediate' && (correct >= 5 && correctRatio >= 0.7)) {
+      console.log(`Advancing ${domain} from intermediate to advanced (correct: ${correct}, ratio: ${correctRatio.toFixed(2)})`);
       setDomainDifficulty(prev => ({
         ...prev,
         [domain]: 'advanced'
@@ -803,8 +803,42 @@ export default function AssessmentPage() {
       return;
     }
     
+    // Move to expert after 5-8 correct answers at advanced level (with high confidence)
+    if (currentDifficulty === 'advanced' && (correct >= 5 && correctRatio >= 0.7)) {
+      console.log(`Advancing ${domain} from advanced to expert (correct: ${correct}, ratio: ${correctRatio.toFixed(2)})`);
+      setDomainDifficulty(prev => ({
+        ...prev,
+        [domain]: 'expert'
+      }));
+      setCorrectByDomain(prev => ({
+        ...prev,
+        [domain]: 0
+      }));
+      // Load questions for the new difficulty level
+      updateDomainQuestions(domain, 'expert');
+      return;
+    }
+    
+    // Adjustment logic for handling incorrect answers
+    
+    // If too many incorrect answers in expert, move back to advanced
+    if (currentDifficulty === 'expert' && incorrect >= 3) {
+      console.log(`Moving ${domain} back from expert to advanced due to incorrect answers`);
+      setDomainDifficulty(prev => ({
+        ...prev,
+        [domain]: 'advanced'
+      }));
+      setIncorrectByDomain(prev => ({
+        ...prev,
+        [domain]: 0
+      }));
+      // Load questions for the adjusted difficulty level
+      updateDomainQuestions(domain, 'advanced');
+      return;
+    }
+    
     // If too many incorrect answers in advanced, move back to intermediate
-    if (currentDifficulty === 'advanced' && incorrect >= 2) {
+    if (currentDifficulty === 'advanced' && incorrect >= 3) {
       console.log(`Moving ${domain} back from advanced to intermediate due to incorrect answers`);
       setDomainDifficulty(prev => ({
         ...prev,
@@ -814,8 +848,24 @@ export default function AssessmentPage() {
         ...prev,
         [domain]: 0
       }));
-      // Load questions for the new difficulty level
+      // Load questions for the adjusted difficulty level
       updateDomainQuestions(domain, 'intermediate');
+      return;
+    }
+    
+    // If too many incorrect answers in intermediate, move back to beginner
+    if (currentDifficulty === 'intermediate' && incorrect >= 3) {
+      console.log(`Moving ${domain} back from intermediate to beginner due to incorrect answers`);
+      setDomainDifficulty(prev => ({
+        ...prev,
+        [domain]: 'beginner'
+      }));
+      setIncorrectByDomain(prev => ({
+        ...prev,
+        [domain]: 0
+      }));
+      // Load questions for the adjusted difficulty level
+      updateDomainQuestions(domain, 'beginner');
       return;
     }
     
