@@ -791,6 +791,135 @@ export default function MicroModuleView() {
     }
   }, [module]);
 
+  // Function to generate final assessment questions based on module type
+  const getFinalAssessmentQuestions = (moduleId: number) => {
+    // Questions for the different module types (3 questions per assessment)
+    switch (moduleId) {
+      // Active Listening
+      case 19:
+        return [
+          {
+            question: "What is the primary goal of active listening?",
+            options: [
+              "To speak more clearly",
+              "To understand and acknowledge the speaker's message and feelings",
+              "To respond with your own similar experiences",
+              "To solve the speaker's problems"
+            ],
+            correctAnswer: 1,
+            correctExplanation: "Correct! Active listening focuses on truly understanding what the speaker is communicating, both the message and the emotions behind it.",
+            incorrectExplanation: "Active listening is primarily about understanding the speaker's message and feelings, not just formulating a response."
+          },
+          {
+            question: "Which technique is NOT part of active listening?",
+            options: [
+              "Maintaining eye contact",
+              "Asking clarifying questions",
+              "Interrupting with your own ideas",
+              "Paraphrasing what you heard"
+            ],
+            correctAnswer: 2,
+            correctExplanation: "Correct! Interrupting the speaker with your own ideas prevents you from truly hearing their message, which goes against active listening principles.",
+            incorrectExplanation: "Interrupting with your own ideas disrupts the speaker and prevents genuine active listening."
+          },
+          {
+            question: "Why is active listening particularly important in early childhood education?",
+            options: [
+              "It helps children develop their own listening skills",
+              "It reduces the need for classroom rules",
+              "It prevents children from speaking too much",
+              "It makes classroom management easier"
+            ],
+            correctAnswer: 0,
+            correctExplanation: "Correct! When teachers model active listening, children learn to use these skills themselves, improving communication throughout the classroom.",
+            incorrectExplanation: "Children learn by example - when teachers demonstrate active listening, children develop these important skills themselves."
+          }
+        ];
+        
+      // Self Care for Teachers 
+      case 28:
+        return [
+          {
+            question: "Why is self-care particularly important for early childhood educators?",
+            options: [
+              "It's required by licensing regulations",
+              "It helps prevent burnout and compassion fatigue",
+              "It improves salary negotiations",
+              "It's only needed during difficult times of year"
+            ],
+            correctAnswer: 1,
+            correctExplanation: "Correct! Self-care helps prevent burnout and compassion fatigue, which are common in the emotionally demanding field of early childhood education.",
+            incorrectExplanation: "Self-care is essential for early childhood educators to prevent burnout and compassion fatigue, allowing them to be present and effective for their students."
+          },
+          {
+            question: "Which of these is an example of a healthy boundary for teachers?",
+            options: [
+              "Giving parents your personal cell phone number for 24/7 access",
+              "Taking work home every weekend",
+              "Setting specific hours for parent communication",
+              "Skipping lunch breaks to help students"
+            ],
+            correctAnswer: 2,
+            correctExplanation: "Correct! Setting specific hours for parent communication is a healthy boundary that respects your personal time while still being accessible professionally.",
+            incorrectExplanation: "Setting specific hours for parent communication creates a healthy boundary that respects your personal time while maintaining professional availability."
+          },
+          {
+            question: "What is one physical self-care practice that teachers can incorporate daily?",
+            options: [
+              "Skipping meals to grade papers",
+              "Taking brief movement breaks throughout the day",
+              "Consuming extra caffeine to stay alert",
+              "Postponing restroom breaks until after school"
+            ],
+            correctAnswer: 1,
+            correctExplanation: "Correct! Taking brief movement breaks throughout the day is a practical physical self-care strategy that helps reduce stress and prevent physical strain.",
+            incorrectExplanation: "Movement breaks throughout the day are important for physical self-care, helping to reduce stress and prevent physical strain from static positions."
+          }
+        ];
+      
+      // Default case for other modules
+      default:
+        return [
+          {
+            question: "What teaching approach best supports children's development in early childhood education?",
+            options: [
+              "Direct instruction only",
+              "Free play with no guidance",
+              "A balance of play-based learning and intentional teaching",
+              "Academic worksheets"
+            ],
+            correctAnswer: 2,
+            correctExplanation: "Correct! Research shows that a balance of play-based learning and intentional teaching best supports children's development.",
+            incorrectExplanation: "A balance of play-based learning and intentional teaching is most effective for early childhood development, allowing for both discovery and guidance."
+          },
+          {
+            question: "How does a child-centered classroom benefit learning?",
+            options: [
+              "It eliminates the need for teacher planning",
+              "It focuses exclusively on academic skills",
+              "It respects children's interests and promotes engagement",
+              "It reduces the importance of social-emotional development"
+            ],
+            correctAnswer: 2,
+            correctExplanation: "Correct! Child-centered classrooms respect children's interests and natural curiosity, which increases engagement and deeper learning.",
+            incorrectExplanation: "Child-centered classrooms respect children's interests and promote engagement, making learning more meaningful and effective."
+          },
+          {
+            question: "What is a key principle of developmentally appropriate practice?",
+            options: [
+              "Treating all children the same regardless of age",
+              "Understanding and respecting children's developmental stages",
+              "Accelerating academic skills above all else",
+              "Focusing primarily on preparing children for standardized tests"
+            ],
+            correctAnswer: 1,
+            correctExplanation: "Correct! Developmentally appropriate practice requires understanding children's developmental stages and tailoring experiences accordingly.",
+            incorrectExplanation: "Developmentally appropriate practice means understanding and respecting children's developmental stages and needs."
+          }
+        ];
+    }
+  };
+  
   const handleCompleteModule = () => {
     // Instead of immediately completing the module, show the final assessment
     setShowFinalAssessment(true);
