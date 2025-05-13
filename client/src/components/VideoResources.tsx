@@ -268,32 +268,48 @@ export function VideoResources({ videoUrls = [], moduleName }: VideoResourcesPro
           
           <TabsContent value="videos" className="mt-4">
             <div className="space-y-4">
-              {videoUrls && videoUrls.length > 0 ? (
-                videoUrls.map((url, index) => (
-                  <div key={index} className="mb-4">
-                    <div className="aspect-w-16 aspect-h-9 mb-2 rounded-md overflow-hidden">
-                      <iframe 
-                        src={formatYouTubeUrl(url)} 
-                        title={`Video resource ${index + 1}`}
-                        className="w-full h-full" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                        allowFullScreen
-                      ></iframe>
+              {/* Recommendation message */}
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
+                <h3 className="text-blue-800 font-medium flex items-center mb-2">
+                  <Youtube className="h-5 w-5 mr-2 text-blue-600" />
+                  Enhance your learning
+                </h3>
+                <p className="text-blue-700 text-sm">
+                  We recommend watching at least one video to improve your understanding of this topic. 
+                  Research shows visual learning helps with retention and practical application of concepts.
+                </p>
+              </div>
+              
+              {/* Display recommended videos from topic resources */}
+              <div className="grid gap-6">
+                {externalResources.videos && externalResources.videos.length > 0 ? (
+                  externalResources.videos.map((video, index) => (
+                    <div key={index} className="mb-4">
+                      <div className="relative pb-[56.25%] h-0 rounded-md overflow-hidden border">
+                        <iframe 
+                          src={video.url} 
+                          title={video.title || `Resource ${index + 1}`}
+                          className="absolute top-0 left-0 w-full h-full" 
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                          allowFullScreen
+                        ></iframe>
+                      </div>
+                      <p className="text-sm mt-2 text-muted-foreground flex items-center">
+                        <Youtube className="h-4 w-4 mr-1 text-red-500" />
+                        {video.title || `Video Resource ${index + 1}`}
+                        {video.source && 
+                          <span className="font-medium text-primary ml-1"> • {video.source}</span>
+                        }
+                      </p>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {externalResources.videos[index]?.title || `Resource ${index + 1}`}
-                      {externalResources.videos[index]?.source && 
-                        <span className="font-medium text-primary"> • {externalResources.videos[index].source}</span>
-                      }
-                    </p>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <Youtube className="h-12 w-12 mx-auto text-muted-foreground/50 mb-2" />
+                    <p className="text-muted-foreground">No video resources available</p>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <Youtube className="h-12 w-12 mx-auto text-muted-foreground/50 mb-2" />
-                  <p className="text-muted-foreground">No video resources available</p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </TabsContent>
           
