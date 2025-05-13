@@ -136,6 +136,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
   
+  // Add points to user endpoint
+  app.post("/api/users/add-points", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const { points } = req.body;
+      
+      if (typeof points !== 'number' || points < 0) {
+        return res.status(400).json({ message: "Invalid points value" });
+      }
+      
+      // Get current user
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Calculate new points total
+      const currentPoints = user.points || 0;
+      const newPoints = currentPoints + points;
+      
+      // Update user with new points
+      const updatedUser = await storage.updateUser(userId, { points: newPoints });
+      
+      console.log(`Added ${points} points to user ${userId}. New total: ${updatedUser.points}`);
+      
+      res.status(200).json({ 
+        success: true, 
+        points: updatedUser.points,
+        pointsAdded: points
+      });
+    } catch (error) {
+      console.error('Failed to add points to user:', error);
+      res.status(500).json({ message: "Failed to add points to user" });
+    }
+  });
+  
   // Setup Passport.js with Google OAuth
   app.use(passport.initialize());
   app.use(passport.session());
