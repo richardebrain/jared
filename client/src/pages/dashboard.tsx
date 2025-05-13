@@ -11,9 +11,12 @@ import AchievementsSection from "@/components/AchievementsSection";
 import BearAssistant from "@/components/BearAssistant";
 import ModuleView from "@/components/ModuleView";
 import SpinWheel from "@/components/SpinWheel";
+import GiftBoxGame from "@/components/GiftBoxGame";
+import Leaderboard from "@/components/Leaderboard";
 import { MonthlyNewsletter } from "@/components/MonthlyNewsletter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import mindfulMorningsLogo from "../assets/images/mindful-mornings-logo.jpg";
 import raisingArizonaLogo from "../assets/images/raising-arizona-logo.jpg";
 
@@ -564,16 +567,16 @@ export default function Dashboard() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-heading font-bold text-amber-800">Spin & Win!</h3>
+                    <h3 className="font-heading font-bold text-amber-800">Gift Box Rewards!</h3>
                     <p className="text-sm my-2 text-amber-900">Complete modules and login daily for chances to win points, Bear Bucks, and monthly grand prizes!</p>
                     <Dialog open={showSpinWheel} onOpenChange={setShowSpinWheel}>
                       <DialogTrigger asChild>
                         <button className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-lg px-4 py-2 text-sm font-semibold hover:from-amber-600 hover:to-yellow-600 transition mt-2 w-full shadow-md">
-                          Try Your Luck
+                          Open Gift Box
                         </button>
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-md border-amber-200">
-                        <SpinWheel onClose={() => setShowSpinWheel(false)} />
+                        <GiftBoxGame canOpen={true} onComplete={() => setShowSpinWheel(false)} />
                       </DialogContent>
                     </Dialog>
                   </div>
@@ -654,7 +657,8 @@ export default function Dashboard() {
                 <MediaSidebar />
               </div>
               
-              <div className="bg-neutral-100 rounded-xl p-6">
+              {/* Learning Stats */}
+              <div className="bg-neutral-100 rounded-xl p-6 mb-6">
                 <h3 className="font-heading font-bold text-lg mb-4">Learning Stats</h3>
                 <div className="space-y-4">
                   <div>
@@ -712,6 +716,64 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
+              
+              {/* Personalized Learning Path Section (moved under progress meter) */}
+              <div className="bg-white rounded-xl shadow-md p-6 mb-6 border border-primary/10">
+                <div className="flex items-center mb-4">
+                  <div className="bg-primary/10 p-2 rounded-full mr-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+                      <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                  </div>
+                  <h3 className="font-heading font-bold text-lg">Personalized Learning Path</h3>
+                </div>
+                
+                <div className="space-y-3 mb-4">
+                  <p className="text-sm text-neutral-600">
+                    Based on your progress and learning style, we recommend these modules:
+                  </p>
+                  
+                  {recommendedCourses.slice(0, 3).map((module) => (
+                    <div 
+                      key={module.id}
+                      onClick={() => handleModuleSelect(module.id)}
+                      className="border border-neutral-200 bg-neutral-50 rounded-lg p-3 hover:border-primary hover:bg-primary/5 transition cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`h-8 w-8 rounded-full flex items-center justify-center text-white ${
+                          module.category === "speaking" ? "bg-primary" : 
+                          module.category === "grammar" ? "bg-secondary" : 
+                          "bg-accent"
+                        }`}>
+                          <span className="text-xs font-semibold">{module.title.charAt(0)}</span>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-sm line-clamp-1">{module.title}</h4>
+                          <div className="flex items-center mt-1 gap-3">
+                            <span className="text-xs text-muted-foreground flex items-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                              </svg>
+                              {module.duration} min
+                            </span>
+                            <span className="text-xs text-muted-foreground capitalize">{module.difficulty}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <Link to="/modules">
+                  <Button variant="outline" size="sm" className="w-full">
+                    View Complete Learning Path
+                  </Button>
+                </Link>
+              </div>
+              
+              {/* Leaderboard Section */}
+              <Leaderboard />
             </div>
           </div>
         </section>
