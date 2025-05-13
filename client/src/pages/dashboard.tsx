@@ -14,6 +14,7 @@ import SpinWheel from "@/components/SpinWheel";
 import GiftBoxGame from "@/components/GiftBoxGame";
 import Leaderboard from "@/components/Leaderboard";
 import { MonthlyNewsletter } from "@/components/MonthlyNewsletter";
+import { SuessifyGenerator } from "@/components/SuessifyGenerator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
