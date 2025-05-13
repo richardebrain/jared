@@ -1551,229 +1551,329 @@ export default function AssessmentPage() {
   
   // Handle proceeding to next question
   const handleNextQuestion = () => {
-    if (!domainQuestions[currentQuestionIndex]) return;
-    
-    const currentQuestion = domainQuestions[currentQuestionIndex];
-    
-    // Check if question is required and not answered
-    if (currentQuestion.required && !answers[currentQuestion.id]) {
-      toast({
-        title: "Required Question",
-        description: "Please answer this question before continuing.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Check if the answer is correct and provide feedback
-    const isCorrect = answers[currentQuestion.id] === currentQuestion.correctAnswer;
-    const currentDifficulty = domainDifficulty[currentDomain];
-    
-    // Update answer feedback to show to user - more engaging and practical
-    setAnswerFeedback({
-      shown: true,
-      correct: isCorrect,
-      explanation: currentQuestion.explanation || (isCorrect 
-        ? "Great job! That's the right approach for our Raising Arizona kids." 
-        : "Let's consider a different approach. In practice with our children: " + currentQuestion.correctAnswer)
-    });
-    
-    // Add immediate toast feedback that's more engaging
-    if (isCorrect) {
-      toast({
-        title: "⭐ That's perfect! ⭐",
-        description: "You're using the right practical approach!",
-        variant: "default",
-        duration: 1500,
-      });
-    } else {
-      toast({
-        title: "Try a different approach",
-        description: "Think about the hands-on technique that works best with children.",
-        variant: "default",
-        duration: 1500,
-      });
-    }
-    
-    // Update correct/incorrect counts
-    if (isCorrect) {
-      setCorrectByDomain(prev => ({
-        ...prev,
-        [currentDomain]: (prev[currentDomain] || 0) + 1
-      }));
+    try {
+      // Enhanced error checking - make sure we have a valid question
+      if (!domainQuestions || domainQuestions.length === 0) {
+        console.error("No questions available for the current domain/difficulty");
+        toast({
+          title: "No Questions Available",
+          description: "There are no questions for this topic at the current difficulty level. Please try another topic.",
+          variant: "destructive",
+          duration: 3000
+        });
+        return;
+      }
       
-      // Check if we should offer to advance difficulty immediately
-      // Fast-track users who are getting correct answers
-      const correct = correctByDomain[currentDomain] || 0;
-      const incorrect = incorrectByDomain[currentDomain] || 0;
+      if (currentQuestionIndex >= domainQuestions.length) {
+        console.error(`Question index (${currentQuestionIndex}) is out of bounds for available questions (${domainQuestions.length})`);
+        setCurrentQuestionIndex(0);
+        toast({
+          title: "Navigation Issue",
+          description: "We had an issue finding your question. Starting from the beginning of this topic.",
+          variant: "destructive",
+          duration: 3000
+        });
+        return;
+      }
       
-      // Auto level-up like a video game - if they answered correctly, level up immediately
-      if (currentDifficulty === 'beginner') {
-        // Immediately level-up to intermediate - video game style
+      const currentQuestion = domainQuestions[currentQuestionIndex];
+      
+      // Additional validation that the question is properly formed
+      if (!currentQuestion || !currentQuestion.text || !currentQuestion.id) {
+        console.error("Invalid question object:", currentQuestion);
         toast({
-          title: "🎮 LEVEL UP! 🎮",
-          description: "You've unlocked Level 2! Moving to intermediate practice-based questions.",
-          variant: "default",
-          duration: 3000,
-          className: "level-up-text"
+          title: "Question Error",
+          description: "There was an error with this question. Please try another topic.",
+          variant: "destructive",
+          duration: 3000
         });
-        
-        // Audio feedback for level up (like a game)
-        playLevelUpSound();
-        
-        // Apply the level up changes
-        setDomainDifficulty(prev => ({
-          ...prev,
-          [currentDomain]: 'intermediate'
-        }));
+        return;
+      }
+      
+      // Check if question is required and not answered
+      if (currentQuestion.required && !answers[currentQuestion.id]) {
+        toast({
+          title: "Required Question",
+          description: "Please answer this question before continuing.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Check if the answer is correct and provide feedback
+      const isCorrect = answers[currentQuestion.id] === currentQuestion.correctAnswer;
+      const currentDifficulty = domainDifficulty[currentDomain];
+      
+      // Update answer feedback to show to user - more engaging and practical
+      setAnswerFeedback({
+        shown: true,
+        correct: isCorrect,
+        explanation: currentQuestion.explanation || (isCorrect 
+          ? "Great job! That's the right approach for our Raising Arizona kids." 
+          : "Let's consider a different approach. In practice with our children: " + currentQuestion.correctAnswer)
+      });
+      
+      // Add immediate toast feedback that's more engaging
+      if (isCorrect) {
+        toast({
+          title: "⭐ That's perfect! ⭐",
+          description: "You're using the right practical approach!",
+          variant: "default",
+          duration: 1500,
+        });
+      } else {
+        toast({
+          title: "Try a different approach",
+          description: "Think about the hands-on technique that works best with children.",
+          variant: "default",
+          duration: 1500,
+        });
+      }
+      
+      // Update correct/incorrect counts
+      if (isCorrect) {
         setCorrectByDomain(prev => ({
           ...prev,
-          [currentDomain]: 0
+          [currentDomain]: (prev[currentDomain] || 0) + 1
         }));
-        // Reset current question index to start the new level
-        setCurrentQuestionIndex(0);
-        // Load intermediate questions
-        updateDomainQuestions(currentDomain, 'intermediate');
-      }
-      // Auto level-up like a video game - intermediate to advanced
-      else if (currentDifficulty === 'intermediate') {
-        // Immediately level-up to advanced - video game style
-        toast({
-          title: "🎮 LEVEL UP! 🎮",
-          description: "You've unlocked Level 3! Moving to advanced hands-on questions.",
-          variant: "default",
-          duration: 3000,
-          className: "level-up-text"
-        });
         
-        // Audio feedback for level up (like a game)
-        playLevelUpSound();
+        // Check if we should offer to advance difficulty immediately
+        // Fast-track users who are getting correct answers
+        const correct = correctByDomain[currentDomain] || 0;
+        const incorrect = incorrectByDomain[currentDomain] || 0;
         
-        // Apply the level up changes
-        setDomainDifficulty(prev => ({
-          ...prev,
-          [currentDomain]: 'advanced'
-        }));
-        setCorrectByDomain(prev => ({
-          ...prev,
-          [currentDomain]: 0
-        }));
-        // Reset current question index to start the new level
-        setCurrentQuestionIndex(0);
-        // Load advanced questions
-        updateDomainQuestions(currentDomain, 'advanced');
-      }
-      // Auto level-up like a video game - advanced to expert/mastery
-      else if (currentDifficulty === 'advanced') {
-        // Immediately level-up to expert/mastery level - video game style
-        toast({
-          title: "🏆 MASTER LEVEL UNLOCKED! 🏆",
-          description: "You've reached MASTER LEVEL! These questions reflect expert teacher knowledge!",
-          variant: "default",
-          duration: 4000,
-          className: "level-up-text"
-        });
-        
-        // Audio feedback for master level (like achieving a major game milestone)
-        playMasterLevelSound();
-        
-        // Apply the level up changes
-        setDomainDifficulty(prev => ({
-          ...prev,
-          [currentDomain]: 'expert'
-        }));
-        setCorrectByDomain(prev => ({
-          ...prev,
-          [currentDomain]: 0
-        }));
-        // Reset current question index to start the new level
-        setCurrentQuestionIndex(0);
-        // Load expert questions
-        updateDomainQuestions(currentDomain, 'expert');
-      }
-    } else {
-      setIncorrectByDomain(prev => ({
-        ...prev,
-        [currentDomain]: (prev[currentDomain] || 0) + 1
-      }));
-    }
-    
-    // Add to completed questions list
-    setCompletedQuestions(prev => [...prev, currentQuestion.id]);
-    
-    // Store state in variables to avoid async state issues
-    const isLastQuestion = currentQuestionIndex >= domainQuestions.length - 1;
-    const currentDomainIndex = domains.findIndex(d => d.id === currentDomain);
-    const isLastDomain = currentDomainIndex >= domains.length - 1;
-    
-    // Adjust difficulty based on performance after answering
-    // This needs to happen before we change questions/domains
-    adjustDifficulty(currentDomain);
-    
-    // Get current state for difficulty and check if we're entering a new level
-    const currentDiff = domainDifficulty[currentDomain];
-    const isLevelingUp = 
-      (currentDiff === 'beginner' || currentDiff === 'intermediate' || currentDiff === 'advanced') && 
-      isCorrect;
-    
-    // Only auto-progress if we're not in a level-up situation
-    if (!isLevelingUp) {
-      // Give the user time to see the feedback before moving on
-      setTimeout(() => {
-        if (!isLastQuestion) {
-          // Move to next question in current domain
-          setCurrentQuestionIndex(prev => prev + 1);
-        } else if (!isLastDomain) {
-          // Move to next domain
-          setCurrentDomainIndex(currentDomainIndex + 1);
-          setCurrentQuestionIndex(0);
-        } else {
-          // We're at the very end - show a final toast
+        // Auto level-up like a video game - if they answered correctly, level up immediately
+        if (currentDifficulty === 'beginner') {
+          // Immediately level-up to intermediate - video game style
           toast({
-            title: "✅ Assessment Complete! ✅",
-            description: "Your results are being calculated. Please click the 'Finish Assessment' button to submit.",
+            title: "🎮 LEVEL UP! 🎮",
+            description: "You've unlocked Level 2! Moving to intermediate practice-based questions.",
             variant: "default",
-            duration: 5000,
+            duration: 3000,
             className: "level-up-text"
           });
           
-          // Make the submit button pulse to draw attention
-          const submitButton = document.querySelector('.bg-green-600');
-          if (submitButton) {
-            submitButton.classList.add('animate-pulse');
-          }
+          // Audio feedback for level up (like a game)
+          playLevelUpSound();
+          
+          // Apply the level up changes
+          setDomainDifficulty(prev => ({
+            ...prev,
+            [currentDomain]: 'intermediate'
+          }));
+          setCorrectByDomain(prev => ({
+            ...prev,
+            [currentDomain]: 0
+          }));
+          // Reset current question index to start the new level
+          setCurrentQuestionIndex(0);
+          // Load intermediate questions
+          updateDomainQuestions(currentDomain, 'intermediate');
         }
-      }, 1500);
+        // Auto level-up like a video game - intermediate to advanced
+        else if (currentDifficulty === 'intermediate') {
+          // Immediately level-up to advanced - video game style
+          toast({
+            title: "🎮 LEVEL UP! 🎮",
+            description: "You've unlocked Level 3! Moving to advanced hands-on questions.",
+            variant: "default",
+            duration: 3000,
+            className: "level-up-text"
+          });
+          
+          // Audio feedback for level up (like a game)
+          playLevelUpSound();
+          
+          // Apply the level up changes
+          setDomainDifficulty(prev => ({
+            ...prev,
+            [currentDomain]: 'advanced'
+          }));
+          setCorrectByDomain(prev => ({
+            ...prev,
+            [currentDomain]: 0
+          }));
+          // Reset current question index to start the new level
+          setCurrentQuestionIndex(0);
+          // Load advanced questions
+          updateDomainQuestions(currentDomain, 'advanced');
+        }
+        // Auto level-up like a video game - advanced to expert/mastery
+        else if (currentDifficulty === 'advanced') {
+          // Immediately level-up to expert/mastery level - video game style
+          toast({
+            title: "🏆 MASTER LEVEL UNLOCKED! 🏆",
+            description: "You've reached MASTER LEVEL! These questions reflect expert teacher knowledge!",
+            variant: "default",
+            duration: 4000,
+            className: "level-up-text"
+          });
+          
+          // Audio feedback for master level (like achieving a major game milestone)
+          playMasterLevelSound();
+          
+          // Apply the level up changes
+          setDomainDifficulty(prev => ({
+            ...prev,
+            [currentDomain]: 'expert'
+          }));
+          setCorrectByDomain(prev => ({
+            ...prev,
+            [currentDomain]: 0
+          }));
+          // Reset current question index to start the new level
+          setCurrentQuestionIndex(0);
+          // Load expert questions
+          updateDomainQuestions(currentDomain, 'expert');
+        }
+      } else {
+        setIncorrectByDomain(prev => ({
+          ...prev,
+          [currentDomain]: (prev[currentDomain] || 0) + 1
+        }));
+      }
+      
+      // Add to completed questions list
+      setCompletedQuestions(prev => [...prev, currentQuestion.id]);
+      
+      // Store state in variables to avoid async state issues
+      const isLastQuestion = currentQuestionIndex >= domainQuestions.length - 1;
+      const currentDomainIndex = domains.findIndex(d => d.id === currentDomain);
+      const isLastDomain = currentDomainIndex >= domains.length - 1;
+      
+      // Adjust difficulty based on performance after answering
+      // This needs to happen before we change questions/domains
+      adjustDifficulty(currentDomain);
+      
+      // Get current state for difficulty and check if we're entering a new level
+      const currentDiff = domainDifficulty[currentDomain];
+      const isLevelingUp = 
+        (currentDiff === 'beginner' || currentDiff === 'intermediate' || currentDiff === 'advanced') && 
+        isCorrect;
+      
+      // Only auto-progress if we're not in a level-up situation
+      if (!isLevelingUp) {
+        // Give the user time to see the feedback before moving on
+        setTimeout(() => {
+          if (!isLastQuestion) {
+            // Move to next question in current domain
+            setCurrentQuestionIndex(prev => prev + 1);
+          } else if (!isLastDomain) {
+            // Move to next domain
+            setCurrentDomainIndex(currentDomainIndex + 1);
+            setCurrentQuestionIndex(0);
+          } else {
+            // We're at the very end - show a final toast
+            toast({
+              title: "✅ Assessment Complete! ✅",
+              description: "Your results are being calculated. Please click the 'Finish Assessment' button to submit.",
+              variant: "default",
+              duration: 5000,
+              className: "level-up-text"
+            });
+            
+            // Make the submit button pulse to draw attention
+            const submitButton = document.querySelector('.bg-green-600');
+            if (submitButton) {
+              submitButton.classList.add('animate-pulse');
+            }
+          }
+        }, 1500);
+      }
+    } catch (error) {
+      console.error("Error in handleNextQuestion:", error);
+      toast({
+        title: "Assessment Error",
+        description: "Something went wrong when processing your answer. Please try a different topic.",
+        variant: "destructive",
+        duration: 3000
+      });
+      
+      // Try to recover by moving to a different domain
+      try {
+        const currentDomainIndex = domains.findIndex(d => d.id === currentDomain);
+        const nextDomainIndex = (currentDomainIndex + 1) % domains.length;
+        setCurrentDomainIndex(nextDomainIndex);
+        setCurrentQuestionIndex(0);
+      } catch (recoveryError) {
+        console.error("Failed to recover from error:", recoveryError);
+      }
     }
   };
   
   // Function to proceed to the next question after viewing feedback
   const handleContinueAfterFeedback = () => {
-    // Hide feedback
-    setAnswerFeedback({
-      shown: false,
-      correct: false,
-      explanation: ''
-    });
-    
-    // Check if we need to move to next question or domain
-    if (currentQuestionIndex < domainQuestions.length - 1) {
-      // Move to next question in current domain/difficulty
-      setCurrentQuestionIndex(prev => prev + 1);
-    } else {
-      // Check if we need to move to next domain
-      const domainCompleted = completedQuestions.filter(qId => {
-        const q = assessmentQuestions.find(aq => aq.id === qId);
-        return q && q.domain === currentDomain;
-      }).length;
+    try {
+      // Hide feedback
+      setAnswerFeedback({
+        shown: false,
+        correct: false,
+        explanation: ''
+      });
       
-      // If we've completed at least 2 questions in this domain, move to the next domain
-      if (domainCompleted >= 1) {
-        if (currentDomainIndex < domains.length - 1) {
-          // Move to next domain
-          setCurrentDomainIndex(prev => prev + 1);
-          setCurrentQuestionIndex(0);
+      // Make sure we have valid domain questions
+      if (!domainQuestions || domainQuestions.length === 0) {
+        console.error("No questions available for feedback continuation");
+        toast({
+          title: "Navigation Error",
+          description: "We couldn't find any questions. Please try another topic.",
+          variant: "destructive",
+          duration: 3000
+        });
+        return;
+      }
+      
+      // Check if we need to move to next question or domain
+      if (currentQuestionIndex < domainQuestions.length - 1) {
+        // Move to next question in current domain/difficulty
+        setCurrentQuestionIndex(prev => prev + 1);
+      } else {
+        // Check if we need to move to next domain
+        const domainCompleted = completedQuestions.filter(qId => {
+          const q = assessmentQuestions.find(aq => aq.id === qId);
+          return q && q.domain === currentDomain;
+        }).length;
+        
+        // If we've completed at least 1 question in this domain, move to the next domain
+        if (domainCompleted >= 1) {
+          if (currentDomainIndex < domains.length - 1) {
+            // Move to next domain
+            setCurrentDomainIndex(prev => prev + 1);
+            setCurrentQuestionIndex(0);
+            
+            // Notify user they're moving to a new domain
+            toast({
+              title: "New Topic",
+              description: `Moving to ${domains[currentDomainIndex + 1]?.name || 'next topic'}`,
+              variant: "default",
+              duration: 2000
+            });
+          } else {
+            // We've reached the end of all domains
+            toast({
+              title: "All Topics Completed",
+              description: "You've completed all topics in the assessment. Please submit your results.",
+              variant: "default",
+              duration: 3000
+            });
+          }
         }
+      }
+    } catch (error) {
+      console.error("Error in handleContinueAfterFeedback:", error);
+      toast({
+        title: "Navigation Error",
+        description: "Something went wrong when continuing. Trying to recover...",
+        variant: "destructive",
+        duration: 3000
+      });
+      
+      // Try to recover by going back to the first domain/question
+      try {
+        setCurrentDomainIndex(0);
+        setCurrentQuestionIndex(0);
+      } catch (recoveryError) {
+        console.error("Failed to recover from feedback error:", recoveryError);
       }
     }
   };
@@ -1781,6 +1881,43 @@ export default function AssessmentPage() {
   // Render the current question - improved with better error handling
   const renderQuestion = () => {
     try {
+      // Additional validation for domainQuestions
+      if (!domainQuestions) {
+        console.error("domainQuestions is undefined or null");
+        return (
+          <div className="p-6 border border-dashed rounded-lg bg-muted/50 text-center">
+            <div className="mb-4 text-muted-foreground">
+              <AlertCircle className="h-10 w-10 mx-auto mb-2 animate-pulse text-red-500" />
+              <p className="font-medium">Error loading questions for this topic.</p>
+            </div>
+            <Button 
+              onClick={() => {
+                try {
+                  // Try initializing the assessment again
+                  initializeAssessment();
+                  // Try a different domain if possible
+                  if (domains && domains.length > 0) {
+                    const safeIndex = (currentDomainIndex + 1) % domains.length;
+                    setCurrentDomainIndex(safeIndex);
+                  }
+                } catch (error) {
+                  console.error("Error during recovery:", error);
+                  toast({
+                    title: "Recovery Failed",
+                    description: "Please refresh the page to start again.",
+                    variant: "destructive"
+                  });
+                }
+              }}
+              variant="default"
+              className="bg-primary hover:bg-primary/90"
+            >
+              Reset Assessment
+            </Button>
+          </div>
+        );
+      }
+      
       // Handle case where no questions are loaded
       if (domainQuestions.length === 0) {
         return (
@@ -1791,16 +1928,25 @@ export default function AssessmentPage() {
             </div>
             <Button 
               onClick={() => {
-                // Try switching back to beginner difficulty
-                setDomainDifficulty(prev => ({
-                  ...prev,
-                  [currentDomain]: 'beginner'
-                }));
-                
-                // Refresh questions
-                setTimeout(() => {
-                  updateDomainQuestions(currentDomain, 'beginner');
-                }, 300);
+                try {
+                  // Try switching back to beginner difficulty
+                  setDomainDifficulty(prev => ({
+                    ...prev,
+                    [currentDomain]: 'beginner'
+                  }));
+                  
+                  // Refresh questions
+                  setTimeout(() => {
+                    updateDomainQuestions(currentDomain, 'beginner');
+                  }, 300);
+                } catch (error) {
+                  console.error("Error switching to beginner:", error);
+                  toast({
+                    title: "Error",
+                    description: "Couldn't switch difficulty. Try a different topic.",
+                    variant: "destructive"
+                  });
+                }
               }}
               variant="outline"
               className="mr-2"
@@ -1809,10 +1955,27 @@ export default function AssessmentPage() {
             </Button>
             <Button 
               onClick={() => {
-                // Try a different domain by advancing to the next one in the list
-                const currentIndex = domains.findIndex(d => d.id === currentDomain);
-                const nextIndex = (currentIndex + 1) % domains.length;
-                handleDomainChange(domains[nextIndex].id);
+                try {
+                  // Try a different domain by advancing to the next one in the list
+                  if (domains && domains.length > 0) {
+                    const currentIndex = domains.findIndex(d => d.id === currentDomain);
+                    if (currentIndex !== -1) {
+                      const nextIndex = (currentIndex + 1) % domains.length;
+                      handleDomainChange(domains[nextIndex].id);
+                    } else {
+                      // Fallback if current domain not found
+                      setCurrentDomainIndex(0);
+                      handleDomainChange(domains[0].id);
+                    }
+                  }
+                } catch (error) {
+                  console.error("Error switching domains:", error);
+                  toast({
+                    title: "Navigation Error",
+                    description: "Please try refreshing the page.",
+                    variant: "destructive"
+                  });
+                }
               }}
             >
               Try Another Topic
@@ -1822,23 +1985,97 @@ export default function AssessmentPage() {
       }
       
       // Handle potential out of bounds index
-      if (currentQuestionIndex >= domainQuestions.length) {
+      if (currentQuestionIndex < 0 || currentQuestionIndex >= domainQuestions.length) {
         console.error(`Question index ${currentQuestionIndex} out of bounds (only ${domainQuestions.length} questions available)`);
+        
+        // Auto-correct the index
         setCurrentQuestionIndex(0);
+        
         return (
           <div className="p-4 border border-yellow-300 rounded-lg bg-yellow-50 mb-4">
-            <p className="text-yellow-800">Adjusting question selection... Please wait.</p>
+            <p className="text-yellow-800 font-medium">Navigation Issue Detected</p>
+            <p className="text-yellow-700 mb-2">Adjusting question selection...</p>
+            <div className="w-full bg-yellow-200 h-2 rounded overflow-hidden">
+              <div className="bg-yellow-500 h-full animate-pulse-slow w-2/3"></div>
+            </div>
           </div>
         );
       }
       
       const question = domainQuestions[currentQuestionIndex];
       
+      // Enhanced question validation
       if (!question) {
         console.error('Question is undefined at index', currentQuestionIndex);
         return (
           <div className="p-4 border border-red-300 rounded-lg bg-red-50">
-            <p className="text-red-800">Error loading question. Please try another topic.</p>
+            <p className="text-red-800 font-medium">Error Loading Question</p>
+            <p className="text-red-700 mb-3">We couldn't find the question data.</p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                onClick={() => {
+                  try {
+                    // Try updating the questions again
+                    const currentDiff = domainDifficulty[currentDomain] || 'beginner';
+                    updateDomainQuestions(currentDomain, currentDiff);
+                  } catch (error) {
+                    console.error("Error reloading questions:", error);
+                  }
+                }}
+                variant="outline"
+                className="mr-2"
+              >
+                Retry Loading
+              </Button>
+              <Button
+                onClick={() => {
+                  try {
+                    // Try a different domain if possible
+                    if (domains && domains.length > 0) {
+                      const nextDomainIndex = (currentDomainIndex + 1) % domains.length;
+                      setCurrentDomainIndex(nextDomainIndex);
+                      setCurrentQuestionIndex(0);
+                    }
+                  } catch (error) {
+                    console.error("Error changing domain:", error);
+                  }
+                }}
+                variant="default"
+              >
+                Try Different Topic
+              </Button>
+            </div>
+          </div>
+        );
+      }
+      
+      // Additional validation for question properties
+      if (!question.options || !Array.isArray(question.options) || question.options.length === 0) {
+        console.error('Question missing options array:', question);
+        return (
+          <div className="p-4 border border-red-300 rounded-lg bg-red-50">
+            <p className="text-red-800 font-medium">Invalid Question Format</p>
+            <p className="text-red-700 mb-3">This question doesn't have proper answer options.</p>
+            <Button
+              onClick={() => {
+                try {
+                  // Skip to next question if possible
+                  if (currentQuestionIndex < domainQuestions.length - 1) {
+                    setCurrentQuestionIndex(currentQuestionIndex + 1);
+                  } else {
+                    // Try next domain
+                    const nextDomainIndex = (currentDomainIndex + 1) % domains.length;
+                    setCurrentDomainIndex(nextDomainIndex);
+                    setCurrentQuestionIndex(0);
+                  }
+                } catch (error) {
+                  console.error("Error skipping question:", error);
+                }
+              }}
+              variant="default"
+            >
+              Skip This Question
+            </Button>
           </div>
         );
       }
@@ -1876,37 +2113,77 @@ export default function AssessmentPage() {
     } catch (error) {
       console.error('Error rendering question:', error);
       
-      // Fallback UI for when rendering fails
+      // Comprehensive fallback UI for when rendering fails
       return (
         <div className="p-6 border border-red-300 rounded-lg bg-red-50 text-center">
           <div className="mb-4 text-red-800">
             <AlertTriangle className="h-8 w-8 mx-auto mb-2" />
             <p className="font-medium">Something went wrong while displaying this question.</p>
+            <p className="text-sm text-red-700 mt-1">We're trying to recover your assessment...</p>
           </div>
-          <Button 
-            onClick={() => {
-              // Reset to beginner difficulty for this domain
-              setDomainDifficulty(prev => ({
-                ...prev,
-                [currentDomain]: 'beginner'
-              }));
-              
-              // Reset to first question
-              setCurrentQuestionIndex(0);
-              
-              // Try to load beginner questions
-              updateDomainQuestions(currentDomain, 'beginner');
-              
-              toast({
-                title: "Resetting questions",
-                description: "We've reset this topic to beginner level.",
-                variant: "default",
-                duration: 2000
-              });
-            }}
-          >
-            Reset Questions
-          </Button>
+          <div className="flex flex-wrap gap-2 justify-center">
+            <Button 
+              onClick={() => {
+                try {
+                  // Reset to beginner difficulty for this domain
+                  setDomainDifficulty(prev => ({
+                    ...prev,
+                    [currentDomain]: 'beginner'
+                  }));
+                  
+                  // Reset to first question
+                  setCurrentQuestionIndex(0);
+                  
+                  // Try to load beginner questions
+                  updateDomainQuestions(currentDomain, 'beginner');
+                  
+                  toast({
+                    title: "Resetting Questions",
+                    description: "We've reset this topic to beginner level.",
+                    variant: "default",
+                    duration: 2000
+                  });
+                } catch (resetError) {
+                  console.error("Failed to reset:", resetError);
+                  toast({
+                    title: "Reset Failed",
+                    description: "Please try refreshing the page.",
+                    variant: "destructive"
+                  });
+                }
+              }}
+              variant="outline"
+              className="mr-2"
+            >
+              Reset Questions
+            </Button>
+            <Button 
+              onClick={() => {
+                try {
+                  // Full assessment reset as a last resort
+                  initializeAssessment();
+                  setCurrentDomainIndex(0);
+                  setCurrentQuestionIndex(0);
+                  
+                  toast({
+                    title: "Assessment Reset",
+                    description: "Starting over with a fresh assessment.",
+                    variant: "default"
+                  });
+                } catch (fullResetError) {
+                  console.error("Complete reset failed:", fullResetError);
+                  toast({
+                    title: "Reset Failed",
+                    description: "Please refresh the page to start over.",
+                    variant: "destructive"
+                  });
+                }
+              }}
+              variant="default"
+            >
+              Restart Assessment
+            </Button>
+          </div>
         </div>
       );
     }
