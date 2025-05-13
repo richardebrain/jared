@@ -1245,13 +1245,24 @@ export default function AssessmentPage() {
   
   // Check if the current question has been answered
   const isCurrentQuestionAnswered = () => {
+    // Add more robust validation
+    if (!domainQuestions || domainQuestions.length === 0) return false;
+    if (currentQuestionIndex < 0 || currentQuestionIndex >= domainQuestions.length) return false;
     if (!domainQuestions[currentQuestionIndex]) return false;
+    if (!domainQuestions[currentQuestionIndex].id) return false;
+    
     return answers[domainQuestions[currentQuestionIndex].id] !== undefined;
   };
   
   // Check if we're on the last question of the last domain
   const isLastDomainLastQuestion = () => {
+    // Add validation to prevent errors when checking for last domain/question
+    if (!domains || domains.length === 0) return false;
+    if (!domainQuestions || domainQuestions.length === 0) return false;
+    
     const currentDomainIndex = domains.findIndex(d => d.id === currentDomain);
+    if (currentDomainIndex === -1) return false; // Domain not found
+    
     const isLastDomain = currentDomainIndex === domains.length - 1;
     const isLastQuestion = currentQuestionIndex === domainQuestions.length - 1;
     
@@ -2399,8 +2410,19 @@ export default function AssessmentPage() {
               <CardFooter className="flex justify-between">
                 <Button
                   variant="outline"
-                  onClick={() => setCurrentQuestionIndex(i => Math.max(0, i - 1))}
-                  disabled={currentQuestionIndex === 0 || domainQuestions.length === 0}
+                  onClick={() => {
+                    if (currentQuestionIndex > 0) {
+                      setCurrentQuestionIndex(currentQuestionIndex - 1);
+                    } else {
+                      toast({
+                        title: "Already at first question",
+                        description: "This is the first question in this topic.",
+                        variant: "default",
+                        duration: 1500
+                      });
+                    }
+                  }}
+                  disabled={currentQuestionIndex === 0 || !domainQuestions || domainQuestions.length === 0}
                 >
                   Previous
                 </Button>
@@ -2424,7 +2446,7 @@ export default function AssessmentPage() {
                       variant="default"
                       className={isCurrentQuestionAnswered() ? "animate-pulse-slow" : ""}
                       onClick={handleNextQuestion}
-                      disabled={!isCurrentQuestionAnswered() && domainQuestions[currentQuestionIndex].required}
+                      disabled={!isCurrentQuestionAnswered() && domainQuestions && domainQuestions[currentQuestionIndex] && domainQuestions[currentQuestionIndex].required}
                     >
                       Next <ChevronRight className="ml-1 h-4 w-4" />
                     </Button>
