@@ -963,8 +963,17 @@ export default function AssessmentPage() {
       return;
     }
     
-    // Check if the answer is correct (without telling the user)
+    // Check if the answer is correct and provide feedback
     const isCorrect = answers[currentQuestion.id] === currentQuestion.correctAnswer;
+    
+    // Update answer feedback to show to user
+    setAnswerFeedback({
+      shown: true,
+      correct: isCorrect,
+      explanation: currentQuestion.explanation || (isCorrect 
+        ? "Great job! That's the correct answer." 
+        : "That's not quite right. The correct answer was: " + currentQuestion.correctAnswer)
+    });
     
     // Update correct/incorrect counts
     if (isCorrect) {
@@ -985,7 +994,19 @@ export default function AssessmentPage() {
     // Adjust difficulty based on performance after answering
     adjustDifficulty(currentDomain);
     
-    // Move to next question or domain if needed
+    // We'll wait for the user to view the feedback before moving to the next question
+  };
+  
+  // Function to proceed to the next question after viewing feedback
+  const handleContinueAfterFeedback = () => {
+    // Hide feedback
+    setAnswerFeedback({
+      shown: false,
+      correct: false,
+      explanation: ''
+    });
+    
+    // Check if we need to move to next question or domain
     if (currentQuestionIndex < domainQuestions.length - 1) {
       // Move to next question in current domain/difficulty
       setCurrentQuestionIndex(prev => prev + 1);
