@@ -45,11 +45,46 @@ export default function AllModules() {
     return progress ? progress.recommended : false;
   };
 
+  // Get difficulty badge style
+  const getDifficultyBadgeStyle = (difficulty: string) => {
+    switch (difficulty.toLowerCase()) {
+      case 'beginner':
+        return {
+          bg: 'bg-green-50',
+          text: 'text-green-700',
+          border: 'border-green-200',
+          icon: <Star className="w-3 h-3 mr-1" />
+        };
+      case 'intermediate':
+        return {
+          bg: 'bg-blue-50',
+          text: 'text-blue-700',
+          border: 'border-blue-200',
+          icon: <Star className="w-3 h-3 mr-1" />
+        };
+      case 'advanced':
+        return {
+          bg: 'bg-purple-50',
+          text: 'text-purple-700',
+          border: 'border-purple-200',
+          icon: <Award className="w-3 h-3 mr-1" />
+        };
+      default:
+        return {
+          bg: 'bg-gray-50',
+          text: 'text-gray-700',
+          border: 'border-gray-200',
+          icon: <Star className="w-3 h-3 mr-1" />
+        };
+    }
+  };
+
   // Render module card
   const renderModuleCard = (module: LearningModule) => {
     const progress = getModuleProgress(module.id);
     const isCompleted = isModuleCompleted(module.id);
     const isRecommended = isModuleRecommended(module.id);
+    const difficultyStyle = getDifficultyBadgeStyle(module.difficulty);
     
     return (
       <Card key={module.id} className="h-full flex flex-col hover:shadow-md transition-shadow">
@@ -69,16 +104,22 @@ export default function AllModules() {
             <Clock className="w-4 h-4" />
             <span>{module.duration} min</span>
             <Separator orientation="vertical" className="h-4" />
-            <Bookmark className="w-4 h-4" />
-            <span>{module.category}</span>
+            <Badge variant="outline" className={`${difficultyStyle.bg} ${difficultyStyle.text} ${difficultyStyle.border} font-medium border py-0 px-1.5 h-5`}>
+              {difficultyStyle.icon}
+              {module.difficulty}
+            </Badge>
           </div>
           <div className="flex items-center gap-2 mb-3">
             <Progress value={progress} className="h-2" />
             <span className="text-xs text-muted-foreground">{progress}%</span>
           </div>
           <div className="flex flex-wrap gap-1">
-            <Badge variant="outline" className="bg-gray-50">{module.difficulty}</Badge>
             <Badge variant="outline" className="bg-gray-50">{module.category}</Badge>
+            {isRecommended && 
+              <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                <Zap className="w-3 h-3 mr-1" /> Recommended
+              </Badge>
+            }
           </div>
         </CardContent>
         <CardFooter className="pt-2">

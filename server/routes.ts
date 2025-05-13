@@ -1221,19 +1221,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         res.status(200).json({
           message: "Reward claimed successfully",
-          reward: reward.rows[0],
+          reward: newReward,
           pointsAdded: parseInt(rewardAmount),
           totalPoints: updatedUser.points
         });
       } else if (rewardType === 'bearBucks') {
         // Update bear bucks
-        const updatedUser = await storage.updateUser(session.userId, {
-          bearBucks: (user.bearBucks || 0) + parseInt(rewardAmount)
+        const currentBearBucks = user.bearBucks || 0;
+        updatedUser = await storage.updateUser(userId, {
+          bearBucks: currentBearBucks + parseInt(rewardAmount)
         });
         
         res.status(200).json({
           message: "Reward claimed successfully",
-          reward: reward.rows[0],
+          reward: newReward,
           bearBucksAdded: parseInt(rewardAmount),
           totalBearBucks: updatedUser.bearBucks
         });
@@ -1241,13 +1242,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Special prizes don't update user balances directly
         res.status(200).json({
           message: "Special reward claimed successfully",
-          reward: reward.rows[0],
+          reward: newReward,
           info: "This reward will be redeemed by your administrator"
         });
       }
     } catch (error) {
       console.error("Error processing spin game reward:", error);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get spin game reward history for current user
+  app.get('/api/spin-game/history', requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      
+      // Get user's spin rewards from newest to oldest
+      const rewards = await storage.getSpinGameRewardsByUserId(userId);
+      
+      // Sort by date (newest first)
+      rewards.sort((a, b) => {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
+      
+      res.status(200).json(rewards);
+    } catch (error) {
+      console.error('Error fetching reward history:', error);
+      res.status(500).json({ message: "Error fetching reward history" });
     }
   });
 

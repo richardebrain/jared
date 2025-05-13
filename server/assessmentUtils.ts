@@ -58,23 +58,89 @@ export function generateModuleRecommendations(
   recommendedModuleTitles.push(...strengthModules);
   
   // Match module titles to actual modules in the database
-  const recommendations = allModules
+  const matchedModules = allModules
     .filter(module => {
       // Check if this module matches any of our recommended topics
       return recommendedModuleTitles.some(title => 
         module.title.includes(title) || module.description.includes(title)
       );
-    })
-    .map(module => module.id);
+    });
   
-  // If we don't have enough recommendations, add some general modules
+  // Separate modules by difficulty
+  const beginnerModules = matchedModules.filter(module => module.difficulty === 'beginner');
+  const intermediateModules = matchedModules.filter(module => module.difficulty === 'intermediate');
+  const advancedModules = matchedModules.filter(module => module.difficulty === 'advanced');
+  
+  // Create a balanced set of recommendations with different difficulties
+  const recommendations: number[] = [];
+  
+  // Add one module from each difficulty level (if available)
+  if (beginnerModules.length > 0) {
+    recommendations.push(beginnerModules[0].id);
+  }
+  
+  if (intermediateModules.length > 0) {
+    recommendations.push(intermediateModules[0].id);
+  }
+  
+  if (advancedModules.length > 0) {
+    recommendations.push(advancedModules[0].id);
+  }
+  
+  // If we don't have modules from all difficulty levels, fill in with available modules
+  const allRecommendedModules = [...matchedModules];
+  
+  // Remove modules already added to recommendations
+  allRecommendedModules.sort((a, b) => {
+    // First, prioritize matching content
+    const aScore = recommendedModuleTitles.filter(title => 
+      a.title.includes(title) || a.description.includes(title)
+    ).length;
+    
+    const bScore = recommendedModuleTitles.filter(title => 
+      b.title.includes(title) || b.description.includes(title)
+    ).length;
+    
+    return bScore - aScore;
+  });
+  
+  // Fill remaining slots with the best matches that aren't already recommended
+  for (const module of allRecommendedModules) {
+    if (!recommendations.includes(module.id) && recommendations.length < 3) {
+      recommendations.push(module.id);
+    }
+  }
+  
+  // If we still don't have enough recommendations, add some general modules
   if (recommendations.length < 3) {
-    const generalModules = allModules
-      .filter(module => !recommendations.includes(module.id))
+    // Group remaining modules by difficulty
+    const remainingModules = allModules.filter(module => !recommendations.includes(module.id));
+    const remainingBeginners = remainingModules.filter(m => m.difficulty === 'beginner');
+    const remainingIntermediate = remainingModules.filter(m => m.difficulty === 'intermediate');
+    const remainingAdvanced = remainingModules.filter(m => m.difficulty === 'advanced');
+    
+    // Add one from each difficulty that we're missing
+    if (recommendations.length < 3 && !recommendations.some(id => 
+        beginnerModules.some(m => m.id === id)) && remainingBeginners.length > 0) {
+      recommendations.push(remainingBeginners[0].id);
+    }
+    
+    if (recommendations.length < 3 && !recommendations.some(id => 
+        intermediateModules.some(m => m.id === id)) && remainingIntermediate.length > 0) {
+      recommendations.push(remainingIntermediate[0].id);
+    }
+    
+    if (recommendations.length < 3 && !recommendations.some(id => 
+        advancedModules.some(m => m.id === id)) && remainingAdvanced.length > 0) {
+      recommendations.push(remainingAdvanced[0].id);
+    }
+    
+    // If we still need more, add any modules
+    const anyRemaining = remainingModules
       .slice(0, 3 - recommendations.length)
       .map(module => module.id);
       
-    recommendations.push(...generalModules);
+    recommendations.push(...anyRemaining);
   }
   
   return recommendations;
