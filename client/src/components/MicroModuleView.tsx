@@ -726,15 +726,13 @@ export default function MicroModuleView() {
                   )}
                   
                   <MemoryMatchGame 
-                    title="Match & Remember"
-                    pairs={[
-                      { content: "😊", description: "Positive Attitude" },
-                      { content: "🤔", description: "Critical Thinking" },
-                      { content: "🤗", description: "Emotional Support" },
-                      { content: "📚", description: "Literacy Development" },
-                      { content: "🎨", description: "Creative Expression" },
-                      { content: "🧠", description: "Cognitive Growth" },
-                    ]}
+                    title="Match Concepts & Responses"
+                    moduleName={module?.title || ''}
+                    onComplete={() => {
+                      // Trigger confetti when the memory game is completed
+                      setShowConfetti(true);
+                      setTimeout(() => setShowConfetti(false), 3000);
+                    }}
                   />
                   
                   {perplexityContent.videoResources && perplexityContent.videoResources.length > 0 && (
