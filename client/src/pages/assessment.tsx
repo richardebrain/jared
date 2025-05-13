@@ -1635,17 +1635,28 @@ export default function AssessmentPage() {
       {/* Answer Feedback Overlay */}
       {answerFeedback.shown && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className={`bg-white p-6 rounded-lg shadow-lg max-w-md w-full ${
+          <div className={`bg-white p-6 rounded-lg shadow-lg max-w-md w-full animate-pop ${
             answerFeedback.correct ? 'border-l-8 border-green-500' : 'border-l-8 border-red-500'
           }`}>
-            <h3 className={`text-xl font-bold ${
+            <h3 className={`text-xl font-bold mb-2 ${
               answerFeedback.correct ? 'text-green-600' : 'text-red-600'
             }`}>
-              {answerFeedback.correct ? 'Correct!' : 'Incorrect'}
+              {answerFeedback.correct ? (
+                <span className="inline-flex items-center">
+                  <span className="animate-bounce-slow mr-2">🎮</span>
+                  Correct!
+                  <span className="animate-bounce-slow ml-2">⭐</span>
+                </span>
+              ) : (
+                <span className="inline-flex items-center">
+                  <span className="animate-shake mr-1">⚠️</span>
+                  Incorrect
+                </span>
+              )}
             </h3>
-            <p className="my-4">{answerFeedback.explanation}</p>
+            <p className="my-4 float-in">{answerFeedback.explanation}</p>
             <Button 
-              className="w-full" 
+              className={`w-full ${answerFeedback.correct ? "animate-pulse-slow" : ""}`}
               onClick={handleContinueAfterFeedback}
             >
               Continue
@@ -1692,13 +1703,16 @@ export default function AssessmentPage() {
                         className={`w-full flex items-center justify-between p-3 rounded-md transition-colors
                           ${isActive 
                             ? 'bg-primary text-primary-foreground' 
-                            : 'hover:bg-muted'
-                          }`}
+                            : 'hover:bg-muted hover:scale-[1.02] transform'
+                          } ${isComplete ? 'hover:border-green-400 border-2 border-transparent' : ''}
+                          float-in`}
+                        style={{ animationDelay: `${index * 0.1}s` }}
                         onClick={() => handleDomainChange(domain.id)}
                       >
                         <div className="flex items-center">
-                          <DomainIcon className="mr-2 h-4 w-4" />
+                          <DomainIcon className={`mr-2 h-4 w-4 ${isActive ? 'animate-pulse text-white' : ''}`} />
                           <span>{domain.name}</span>
+                          {isActive && <span className="ml-2 text-xs bg-white text-primary px-1 rounded animate-pulse">Active</span>}
                         </div>
                         <div className="flex items-center">
                           {isComplete && <Check className="h-4 w-4 mr-1" />}
