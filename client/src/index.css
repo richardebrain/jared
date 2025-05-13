@@ -4,6 +4,48 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Game-style animations for assessment */
+@keyframes pulse-green {
+  0% { background-color: hsl(142.1, 76.2%, 36.3%); }
+  50% { background-color: hsl(142.1, 76.2%, 46.3%); }
+  100% { background-color: hsl(142.1, 76.2%, 36.3%); }
+}
+
+@keyframes highlight-answer {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes float-in {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes level-up {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); filter: brightness(1.2); }
+  100% { transform: scale(1); }
+}
+
+.answer-selected {
+  animation: highlight-answer 0.5s ease-in-out;
+}
+
+.level-up-text {
+  animation: level-up 1s ease-in-out;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+.float-in {
+  animation: float-in 0.5s ease-out;
+}
+
+.pulse-finish {
+  animation: pulse-green 2s infinite;
+}
+
 :root {
   --background: 210 40% 98%;
   --foreground: 222 47% 11%;

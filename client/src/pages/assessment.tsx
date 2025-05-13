@@ -1063,6 +1063,15 @@ export default function AssessmentPage() {
     return answers[domainQuestions[currentQuestionIndex].id] !== undefined;
   };
   
+  // Check if we're on the last question of the last domain
+  const isLastDomainLastQuestion = () => {
+    const currentDomainIndex = domains.findIndex(d => d.id === currentDomain);
+    const isLastDomain = currentDomainIndex === domains.length - 1;
+    const isLastQuestion = currentQuestionIndex === domainQuestions.length - 1;
+    
+    return isLastDomain && isLastQuestion;
+  };
+  
   // Submit assessment mutation
   const submitAssessmentMutation = useMutation({
     mutationFn: async (assessmentData: any) => {
@@ -1139,6 +1148,19 @@ export default function AssessmentPage() {
   // Submit assessment
   const handleSubmitAssessment = () => {
     if (!user) return;
+    
+    // Prevent multiple submissions
+    if (submitAssessmentMutation.isPending) return;
+    
+    // Confirm assessment is ready to be submitted
+    if (!isLastDomainLastQuestion()) {
+      toast({
+        title: "Assessment In Progress",
+        description: "Please complete all domains before submitting.",
+        variant: "default",
+      });
+      return;
+    }
     
     // Calculate scores by domain and max difficulty reached
     const domainScores: Record<string, {
@@ -1499,34 +1521,39 @@ export default function AssessmentPage() {
     // This needs to happen before we change questions/domains
     adjustDifficulty(currentDomain);
     
-    // Give the user time to see the toast before moving on
-    // Only auto-progress if not at the end of a difficulty level
-    if (!isLastQuestion) {
-      // Move to next question in current domain
+    // Get current state for difficulty and check if we're entering a new level
+    const currentDiff = domainDifficulty[currentDomain];
+    const isLevelingUp = 
+      (currentDiff === 'beginner' || currentDiff === 'intermediate' || currentDiff === 'advanced') && 
+      isCorrect;
+    
+    // Only auto-progress if we're not in a level-up situation
+    if (!isLevelingUp) {
+      // Give the user time to see the feedback before moving on
       setTimeout(() => {
-        setCurrentQuestionIndex(prev => prev + 1);
-      }, 500);
-    } else if (!isLastDomain) {
-      // Move to next domain
-      setTimeout(() => {
-        setCurrentDomain(domains[currentDomainIndex + 1].id);
-        setCurrentQuestionIndex(0);
-      }, 500);
-    } else {
-      // Complete assessment if we've gone through all domains
-      // But only if we're not showing a level-up toast
-      const currentDiff = domainDifficulty[currentDomain];
-      const isShowingLevelUpPrompt = 
-        (currentDiff === 'beginner' || currentDiff === 'intermediate' || currentDiff === 'advanced') && 
-        isCorrect && 
-        isLastQuestion;
-      
-      if (!isShowingLevelUpPrompt) {
-        // Submit the assessment only if we're not showing a level-up prompt
-        setTimeout(() => {
-          handleSubmitAssessment();
-        }, 1000);
-      }
+        if (!isLastQuestion) {
+          // Move to next question in current domain
+          setCurrentQuestionIndex(prev => prev + 1);
+        } else if (!isLastDomain) {
+          // Move to next domain
+          setCurrentDomain(domains[currentDomainIndex + 1].id);
+          setCurrentQuestionIndex(0);
+        } else {
+          // We're at the very end - show a final toast
+          toast({
+            title: "✅ Assessment Complete! ✅",
+            description: "Your results are being calculated. Please click the 'Finish Assessment' button to submit.",
+            variant: "default",
+            duration: 5000,
+          });
+          
+          // Make the submit button pulse to draw attention
+          const submitButton = document.querySelector('.bg-green-600');
+          if (submitButton) {
+            submitButton.classList.add('animate-pulse');
+          }
+        }
+      }, 1500);
     }
   };
   
