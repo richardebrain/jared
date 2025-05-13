@@ -316,8 +316,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.session.userId as number;
       const progress = await storage.getUserProgressByUserId(userId);
+      console.log(`Returning ${progress.length} progress records for user ${userId}`);
+      
+      // Log any recommended modules
+      const recommendedEntries = progress.filter(p => p.recommended === true);
+      if (recommendedEntries.length > 0) {
+        console.log(`Found ${recommendedEntries.length} recommended modules: ${recommendedEntries.map(p => p.moduleId).join(', ')}`);
+      } else {
+        console.log(`No recommended modules found for user ${userId}`);
+      }
+      
       res.status(200).json(progress);
     } catch (error) {
+      console.error("Error fetching user progress:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

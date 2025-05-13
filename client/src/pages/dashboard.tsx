@@ -83,31 +83,48 @@ export default function Dashboard() {
   // Identify areas that need improvement
   const weakAreas = assessmentDomains.filter(d => d.weakArea).map(d => d.id);
   
-  // Generate recommended modules based on assessment results - limited to top 3
+  // Get recommended modules from user progress
   const recommendedModules = useMemo(() => {
-    if (!modules || !weakAreas || weakAreas.length === 0) return [];
+    if (!modules || !userProgress) return [];
     
-    // Add modules that match weak domain areas
-    let recommendations = [];
+    // Get modules that are marked as recommended in user progress
+    const recommendedProgressEntries = Array.isArray(userProgress) 
+      ? userProgress.filter(progress => progress.recommended === true)
+      : [];
     
-    for (const domain of weakAreas) {
-      const domainModules = modules.filter(module => 
-        module.domains && module.domains.includes(domain)
-      ).sort((a, b) => a.sequence - b.sequence);
+    if (recommendedProgressEntries.length === 0) {
+      // Fall back to old recommendation logic if no entries marked as recommended
+      if (!weakAreas || weakAreas.length === 0) return [];
       
-      if (domainModules.length > 0) {
-        recommendations = [...recommendations, ...domainModules.slice(0, 2)];
+      // Add modules that match weak domain areas
+      let recommendations = [];
+      
+      for (const domain of weakAreas) {
+        const domainModules = Array.isArray(modules) ? modules.filter(module => 
+          module.domains && module.domains.includes(domain)
+        ).sort((a, b) => a.sequence - b.sequence) : [];
+        
+        if (domainModules.length > 0) {
+          recommendations = [...recommendations, ...domainModules.slice(0, 2)];
+        }
       }
+      
+      // Deduplicate modules
+      recommendations = recommendations.filter((module, index, self) =>
+        index === self.findIndex((m) => m.id === module.id)
+      );
+      
+      // Limit to top 3 recommendations
+      return recommendations.slice(0, 3);
     }
     
-    // Deduplicate modules
-    recommendations = recommendations.filter((module, index, self) =>
-      index === self.findIndex((m) => m.id === module.id)
-    );
+    // Map recommended progress entries to actual modules
+    const recommendedModuleIds = recommendedProgressEntries.map(progress => progress.moduleId);
     
-    // Limit to top 3 recommendations
-    return recommendations.slice(0, 3);
-  }, [modules, weakAreas]);
+    return Array.isArray(modules) 
+      ? modules.filter(module => recommendedModuleIds.includes(module.id))
+      : [];
+  }, [modules, userProgress, weakAreas]);
   
   if (isLoadingUser) {
     return (
