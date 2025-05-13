@@ -354,25 +354,28 @@ export default function DynamicLessonGenerator({ user, moduleId, onLessonComplet
           
           <TabsContent value="content" className="p-4">
             <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-bold mb-2">Introduction</h3>
+              <div className="bg-gradient-to-r from-primary/5 to-transparent p-4 rounded-lg">
+                <h3 className="text-xl font-bold mb-2 flex items-center">
+                  <span className="text-primary mr-2">🚀</span> Your Quest Begins!
+                </h3>
                 <p className="text-muted-foreground">
-                  {lessonContent.introduction || "In this lesson, we'll explore strategies to address your selected classroom challenge..."}
+                  {lessonContent.introduction || "In this adventure, you'll discover strategies to overcome your classroom challenge..."}
                 </p>
               </div>
               
               <Separator />
               
               <div>
-                <h3 className="text-xl font-bold mb-2">Key Concepts</h3>
+                <h3 className="text-xl font-bold mb-2 flex items-center">
+                  <span className="text-primary mr-2">🏆</span> Achievements to Unlock
+                </h3>
                 <div className="space-y-3">
                   {lessonContent.keyConcepts?.map((concept: string, index: number) => (
-                    <div key={index} className="flex">
-                      <div className="mr-3 text-primary">•</div>
+                    <div key={index} className="bg-muted/20 p-3 rounded-lg border-l-4 border-primary/60 hover:bg-muted/30 transition-colors">
                       <p>{concept}</p>
                     </div>
                   )) || (
-                    <p className="text-muted-foreground">Loading key concepts...</p>
+                    <p className="text-muted-foreground">Loading achievements...</p>
                   )}
                 </div>
               </div>
@@ -380,11 +383,13 @@ export default function DynamicLessonGenerator({ user, moduleId, onLessonComplet
               <Separator />
               
               <div>
-                <h3 className="text-xl font-bold mb-2">Practical Strategies</h3>
-                <div className="space-y-4">
+                <h3 className="text-xl font-bold mb-2 flex items-center">
+                  <span className="text-primary mr-2">⚔️</span> Teaching Toolkit
+                </h3>
+                <div className="grid gap-4 md:grid-cols-2">
                   {lessonContent.strategies?.map((strategy: any, index: number) => (
-                    <div key={index} className="bg-muted/30 p-4 rounded-lg">
-                      <h4 className="font-medium mb-1">{strategy.title}</h4>
+                    <div key={index} className="bg-gradient-to-br from-primary/10 to-transparent p-4 rounded-lg border border-primary/20 hover:border-primary/40 transition-all">
+                      <h4 className="font-medium mb-1 text-primary">{strategy.title}</h4>
                       <p className="text-sm">{strategy.description}</p>
                     </div>
                   )) || (
@@ -393,14 +398,36 @@ export default function DynamicLessonGenerator({ user, moduleId, onLessonComplet
                 </div>
               </div>
               
+              {lessonContent.funFacts && (
+                <>
+                  <Separator />
+                  
+                  <div>
+                    <h3 className="text-xl font-bold mb-2 flex items-center">
+                      <span className="text-primary mr-2">💡</span> Secret Knowledge
+                    </h3>
+                    <div className="space-y-3">
+                      {lessonContent.funFacts.map((fact: any, index: number) => (
+                        <div key={index} className="bg-primary/5 p-3 rounded-lg border border-primary/20">
+                          <h4 className="font-medium text-primary mb-1">{fact.title}</h4>
+                          <p className="text-sm">{fact.fact}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+              
               <div className="pt-4">
-                <Button onClick={completeSection} disabled={completionStep > 0}>
+                <Button onClick={completeSection} disabled={completionStep > 0} className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary">
                   {completionStep > 0 ? (
                     <>
-                      <CheckCircle className="mr-2 h-4 w-4" /> Content Completed
+                      <CheckCircle className="mr-2 h-4 w-4" /> Main Quest Completed
                     </>
                   ) : (
-                    "Mark Content as Completed"
+                    <>
+                      Complete Main Quest <ArrowRightCircle className="ml-2 h-4 w-4" />
+                    </>
                   )}
                 </Button>
               </div>
@@ -410,29 +437,36 @@ export default function DynamicLessonGenerator({ user, moduleId, onLessonComplet
           <TabsContent value="activities" className="p-4">
             <div className="space-y-4">
               <div>
-                <h3 className="text-xl font-bold mb-3">Interactive Activities</h3>
+                <h3 className="text-xl font-bold mb-3 flex items-center">
+                  <span className="text-primary mr-2">🎲</span> Interactive Challenges
+                </h3>
                 <p className="text-muted-foreground mb-4">
-                  These activities are designed to help you apply the concepts you've learned.
+                  These fun activities will help you master the skills needed to complete your quest!
                 </p>
                 
                 <div className="space-y-6">
                   {lessonContent.activities?.map((activity: any, index: number) => (
-                    <div key={index} className="border rounded-lg p-4">
-                      <h4 className="font-medium mb-2">{activity.title}</h4>
+                    <div key={index} className="border-2 border-primary/20 rounded-lg p-4 hover:border-primary/40 transition-colors">
+                      <h4 className="font-medium mb-2 text-lg text-primary">{activity.title}</h4>
                       <p className="mb-3">{activity.description}</p>
                       
                       <div className="bg-muted/30 p-3 rounded-lg mb-3">
                         <div className="flex items-start">
-                          <Clock className="w-4 h-4 mr-2 mt-1 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">Estimated time: {activity.timeEstimate || "10-15 minutes"}</span>
+                          <Clock className="w-4 h-4 mr-2 mt-1 text-primary" />
+                          <span className="text-sm">Play time: {activity.timeEstimate || "10-15 minutes"}</span>
                         </div>
                       </div>
                       
                       <div className="space-y-2">
-                        <h5 className="text-sm font-medium">Steps:</h5>
-                        <ol className="list-decimal pl-5 space-y-1">
+                        <h5 className="text-sm font-medium">Adventure Steps:</h5>
+                        <ol className="space-y-1">
                           {activity.steps?.map((step: string, stepIndex: number) => (
-                            <li key={stepIndex} className="text-sm">{step}</li>
+                            <li key={stepIndex} className="text-sm flex items-start">
+                              <div className="bg-primary/20 text-primary w-6 h-6 flex items-center justify-center rounded-full mr-2 flex-shrink-0 mt-0.5">
+                                {stepIndex + 1}
+                              </div>
+                              <div>{step}</div>
+                            </li>
                           ))}
                         </ol>
                       </div>
@@ -444,13 +478,70 @@ export default function DynamicLessonGenerator({ user, moduleId, onLessonComplet
               </div>
               
               <div className="pt-4">
-                <Button onClick={completeSection} disabled={completionStep > 1}>
+                <Button onClick={completeSection} disabled={completionStep > 1 || completionStep < 1} className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary">
                   {completionStep > 1 ? (
                     <>
-                      <CheckCircle className="mr-2 h-4 w-4" /> Activities Completed
+                      <CheckCircle className="mr-2 h-4 w-4" /> Mini-Games Completed
                     </>
                   ) : (
-                    "Mark Activities as Completed"
+                    <>
+                      Complete Mini-Games <ArrowRightCircle className="ml-2 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="gameElements" className="p-4">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xl font-bold mb-3 flex items-center">
+                  <span className="text-primary mr-2">🧙‍♂️</span> Game Elements
+                </h3>
+                <p className="text-muted-foreground mb-4">
+                  Turn your classroom challenges into fun adventures with these game-like systems!
+                </p>
+                
+                <div className="grid gap-4 md:grid-cols-2">
+                  {lessonContent.gameElements?.map((element: any, index: number) => (
+                    <div key={index} className="border border-primary/20 rounded-lg p-4 bg-gradient-to-br from-primary/5 to-transparent hover:from-primary/10 transition-colors">
+                      <h4 className="font-medium mb-2 text-primary">{element.title}</h4>
+                      <p className="text-sm">{element.description}</p>
+                    </div>
+                  )) || (
+                    <div>
+                      <div className="border border-primary/20 rounded-lg p-4 bg-gradient-to-br from-primary/5 to-transparent mb-4">
+                        <h4 className="font-medium mb-2 text-primary">Bear Badges</h4>
+                        <p className="text-sm">Award digital badges to students for specific achievements, creating a sense of accomplishment. Example: "Helper Bear" for students who assist classmates.</p>
+                      </div>
+                      <div className="border border-primary/20 rounded-lg p-4 bg-gradient-to-br from-primary/5 to-transparent mb-4">
+                        <h4 className="font-medium mb-2 text-primary">Level-Up Chart</h4>
+                        <p className="text-sm">Create a visual progression system where students "level up" through different ranks by mastering skills. Example: "Cub" → "Scout Bear" → "Ranger Bear" → "Master Bear"</p>
+                      </div>
+                      <div className="border border-primary/20 rounded-lg p-4 bg-gradient-to-br from-primary/5 to-transparent mb-4">
+                        <h4 className="font-medium mb-2 text-primary">Adventure Points</h4>
+                        <p className="text-sm">Award points for positive behaviors that can be redeemed for small privileges. Example: 10 points = choosing a special book for story time.</p>
+                      </div>
+                      <div className="border border-primary/20 rounded-lg p-4 bg-gradient-to-br from-primary/5 to-transparent">
+                        <h4 className="font-medium mb-2 text-primary">Mystery Treasure</h4>
+                        <p className="text-sm">Hide small surprises or special activities that are "unlocked" when classroom goals are achieved. Example: A special outdoor activity revealed only after reaching a group goal.</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="pt-4">
+                <Button onClick={completeSection} disabled={completionStep > 2 || completionStep < 2} className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary">
+                  {completionStep > 2 ? (
+                    <>
+                      <CheckCircle className="mr-2 h-4 w-4" /> Power-Ups Collected
+                    </>
+                  ) : (
+                    <>
+                      Collect Power-Ups <ArrowRightCircle className="ml-2 h-4 w-4" />
+                    </>
                   )}
                 </Button>
               </div>
