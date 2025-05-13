@@ -604,6 +604,11 @@ export default function Dashboard() {
                 <MediaSidebar />
               </div>
               
+              {/* Suessify Generator - NEW */}
+              <div className="mb-6">
+                <SuessifyGenerator />
+              </div>
+              
               {/* Learning Stats */}
               <div className="bg-neutral-100 rounded-xl p-6 mb-6">
                 <h3 className="font-heading font-bold text-lg mb-4">Learning Stats</h3>

@@ -79,18 +79,77 @@ export default function MicroModuleView() {
     isLoading: false
   });
 
-  // Generate content for special modules using Perplexity
+  // Get module-specific prompts based on ID
+  const getModulePrompts = (moduleId: number): { conceptPrompt: string, applicationPrompt: string } => {
+    // Default prompts
+    let conceptPrompt = "Create a concise educational paragraph (max 150 words) about this early childhood education topic. Include a practical tip.";
+    let applicationPrompt = "Provide 3 practical techniques (max 150 words total) that early childhood educators can implement immediately. Each technique should be 1-2 sentences and very actionable.";
+    
+    switch(moduleId) {
+      // Positive Attitude module
+      case 18:
+        conceptPrompt = `Create a concise educational paragraph (max 150 words) about maintaining a positive attitude in early childhood education. Focus on how a teacher's positive attitude impacts children's learning and emotional development. Use a warm, encouraging tone and include one practical tip.`;
+        applicationPrompt = `Provide 3 practical techniques (max 150 words total) for early childhood educators to maintain a positive attitude during challenging moments in the classroom. Each technique should be 1-2 sentences and very actionable.`;
+        break;
+      
+      // Active Listening with Children
+      case 19:
+        conceptPrompt = `Create a concise educational paragraph (max 150 words) about active listening with preschool children. Explain why it's important for building trust and emotional safety, and include one practical tip.`;
+        applicationPrompt = `Provide 3 practical active listening techniques (max 150 words total) for preschool teachers to use when communicating with young children. Each technique should be 1-2 sentences and very actionable.`;
+        break;
+      
+      // Patience in Practice
+      case 20:
+        conceptPrompt = `Create a concise educational paragraph (max 150 words) about developing patience in high-stress classroom situations with preschoolers. Focus on the benefits for both teachers and children, and include one practical tip.`;
+        applicationPrompt = `Provide 3 practical techniques (max 150 words total) for early childhood educators to maintain patience during challenging moments. Each technique should be 1-2 sentences and very simple to implement.`;
+        break;
+      
+      // Empathy: Walking in Tiny Shoes
+      case 21:
+        conceptPrompt = `Create a concise educational paragraph (max 150 words) about developing deeper empathy by understanding situations from a child's perspective. Explain why this is crucial for early childhood educators and include one practical tip.`;
+        applicationPrompt = `Provide 3 practical empathy-building techniques (max 150 words total) for preschool teachers to better understand children's perspectives. Each technique should be 1-2 sentences and very actionable.`;
+        break;
+        
+      // Creativity as a Core Value
+      case 22:
+        conceptPrompt = `Create a concise educational paragraph (max 150 words) about nurturing and modeling creativity as a fundamental value in early childhood education. Explain its importance for child development and include one practical tip.`;
+        applicationPrompt = `Provide 3 practical techniques (max 150 words total) for early childhood educators to foster creativity in their classroom daily. Each technique should be 1-2 sentences and very actionable.`;
+        break;
+        
+      // Quick Transition Techniques
+      case 23:
+        conceptPrompt = `Create a concise educational paragraph (max 150 words) about the importance of smooth transitions between classroom activities for preschoolers. Explain why transitions can be challenging and include one practical tip.`;
+        applicationPrompt = `Provide 3 effective techniques (max 150 words total) for early childhood educators to smoothly transition young children between classroom activities. Each technique should be 1-2 sentences and very actionable.`;
+        break;
+        
+      // Mindful Morning Greeting
+      case 24:
+        conceptPrompt = `Create a concise educational paragraph (max 150 words) about starting each day with an intentional, mindful greeting ritual in preschool. Explain how this sets a positive tone for the day and include one practical tip.`;
+        applicationPrompt = `Provide 3 different mindful morning greeting rituals (max 150 words total) for preschool teachers to use with their class. Each ritual should be 1-2 sentences and very simple to implement.`;
+        break;
+        
+      // Safety First: 5-Minute Checklist
+      case 25:
+        conceptPrompt = `Create a concise educational paragraph (max 150 words) about the importance of classroom safety protocols in early childhood education. Focus on why consistent safety checks matter and include one practical tip.`;
+        applicationPrompt = `Provide a 3-point safety checklist (max 150 words total) that early childhood educators can quickly use daily. Each checklist item should be 1-2 sentences and cover a different aspect of classroom safety.`;
+        break;
+    }
+    
+    return { conceptPrompt, applicationPrompt };
+  };
+
+  // Generate content for micro modules using Perplexity
   React.useEffect(() => {
-    if (module && module.id === 18) { // Positive Attitude module
+    if (module && module.duration <= 5) { // Only for micro modules (5 min or less)
       setPerplexityContent(prev => ({ ...prev, isLoading: true }));
+      
+      const { conceptPrompt, applicationPrompt } = getModulePrompts(module.id);
       
       // Generate core concept content
       fetch('/api/perplexity/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: `Create a concise educational paragraph (max 150 words) about maintaining a positive attitude in early childhood education. Focus on how a teacher's positive attitude impacts children's learning and emotional development. Use a warm, encouraging tone and include one practical tip.`
-        })
+        body: JSON.stringify({ prompt: conceptPrompt })
       })
       .then(res => res.json())
       .then(data => {
@@ -113,9 +172,7 @@ export default function MicroModuleView() {
       fetch('/api/perplexity/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: `Provide 3 practical techniques (max 150 words total) for early childhood educators to maintain a positive attitude during challenging moments in the classroom. Each technique should be 1-2 sentences and very actionable.`
-        })
+        body: JSON.stringify({ prompt: applicationPrompt })
       })
       .then(res => res.json())
       .then(data => {
@@ -138,24 +195,46 @@ export default function MicroModuleView() {
 
   // Simplified content for micro modules - just 3 quick steps
   const getStepContent = (step: number): { title: string, content: string } => {
-    // Special handling for Positive Attitude module (id: 18)
-    if (module?.id === 18) {
+    // Check if we have a micro-module (5 min or less)
+    if (module?.duration && module.duration <= 5) {
+      let stepTitles = ["Quick Introduction", "Core Concept", "Practical Techniques"];
+      
+      // Customize step titles for certain module types
+      if (module.id === 18) { 
+        stepTitles[1] = "The Power of Positivity"; 
+      } else if (module.id === 19) { 
+        stepTitles[1] = "Effective Listening Skills"; 
+      } else if (module.id === 20) { 
+        stepTitles[1] = "Patience Strategies"; 
+      } else if (module.id === 21) { 
+        stepTitles[1] = "Understanding Child Perspectives"; 
+      } else if (module.id === 22) { 
+        stepTitles[1] = "Nurturing Creativity"; 
+      } else if (module.id === 23) { 
+        stepTitles[1] = "Smooth Transitions"; 
+      } else if (module.id === 24) { 
+        stepTitles[1] = "Morning Mindfulness"; 
+      } else if (module.id === 25) { 
+        stepTitles[1] = "Safety Protocol"; 
+      }
+      
+      // Return appropriate content based on step
       switch(step) {
         case 0:
           return {
-            title: "Quick Introduction",
+            title: stepTitles[0],
             content: module?.description || ""
           };
         case 1:
           return {
-            title: "The Power of Positivity",
+            title: stepTitles[1],
             content: perplexityContent.isLoading 
               ? "Loading personalized content..." 
               : perplexityContent.coreConcept || "A positive attitude is contagious in the classroom. When teachers approach each day with optimism and enthusiasm, children absorb this energy and feel more secure and motivated to learn. Studies show that positive teacher-child interactions lead to better cognitive and social-emotional outcomes."
           };
         case 2:
           return {
-            title: "Practical Techniques",
+            title: stepTitles[2],
             content: perplexityContent.isLoading 
               ? "Loading personalized content..." 
               : perplexityContent.practicalApplication || "1. Start each day with a personal positive affirmation and share one thing you're excited about with your class.\n\n2. Use the 'pause and breathe' technique when feeling frustrated - take three deep breaths before responding to challenging behavior.\n\n3. Keep a small notebook to jot down positive moments throughout the day, creating a resource of joy to reflect on during difficult times."
@@ -168,7 +247,7 @@ export default function MicroModuleView() {
       }
     }
     
-    // Default content for other modules
+    // Default content for non-micro modules or fallback
     const defaultSteps = [
       {
         title: "Quick Introduction",
@@ -176,7 +255,7 @@ export default function MicroModuleView() {
       },
       {
         title: "Core Concept",
-        content: "This is where the core concept of the micro module is presented in a concise, focused way."
+        content: "This is where the core concept of the module is presented in a concise, focused way."
       },
       {
         title: "Practical Application",
