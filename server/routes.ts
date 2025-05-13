@@ -1195,15 +1195,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Insert the reward into the database
-      const reward = await db
-        .insert(spinGameRewards)
-        .values({
-          userId: session.userId,
-          rewardType,
-          rewardAmount: parseInt(rewardAmount),
-          isGrandPrize: rewardType === 'dayOff' || rewardType === 'cash' || (rewardType === 'lunch' && parseInt(rewardAmount) > 1),
-        })
-        .returning();
+      const reward = await db.execute(
+        `INSERT INTO spin_game_rewards (user_id, reward_type, reward_amount, is_grand_prize) 
+         VALUES ($1, $2, $3, $4) 
+         RETURNING *`,
+        [
+          session.userId, 
+          rewardType, 
+          parseInt(rewardAmount),
+          rewardType === 'dayOff' || rewardType === 'cash' || (rewardType === 'lunch' && parseInt(rewardAmount) > 1)
+        ]
+      );
       
       // If reward is points or bear bucks, update user's balance
       let user = await storage.getUser(session.userId);
@@ -1219,7 +1221,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         res.status(200).json({
           message: "Reward claimed successfully",
-          reward: reward[0],
+          reward: reward.rows[0],
           pointsAdded: parseInt(rewardAmount),
           totalPoints: updatedUser.points
         });
@@ -1231,7 +1233,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         res.status(200).json({
           message: "Reward claimed successfully",
-          reward: reward[0],
+          reward: reward.rows[0],
           bearBucksAdded: parseInt(rewardAmount),
           totalBearBucks: updatedUser.bearBucks
         });
@@ -1239,7 +1241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Special prizes don't update user balances directly
         res.status(200).json({
           message: "Special reward claimed successfully",
-          reward: reward[0],
+          reward: reward.rows[0],
           info: "This reward will be redeemed by your administrator"
         });
       }
