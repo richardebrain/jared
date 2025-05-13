@@ -34,43 +34,43 @@ You are an expert early childhood education mentor for preschool teachers who sp
 Create an EXTREMELY engaging, GAME-LIKE lesson on "${module.title}" tailored to a teacher with a ${learningStyle} learning style
 who is facing this classroom challenge: "${challenge}".
 
+IMPORTANT: Write at a 5th GRADE READING LEVEL (ages 10-11). Use SIMPLE WORDS, SHORT SENTENCES, and MANY BULLET POINTS.
+
 The lesson MUST feel like playing an interactive video game rather than traditional learning. It must be entertaining, visually stimulating, and use multimedia elements while teaching real ECE concepts.
 
 The lesson should be structured in JSON format with the following sections:
-- introduction: A brief, upbeat introduction to the topic that connects it to the specific challenge. Include a fun "quest" framing and a catchy theme.
-- keyConcepts: An array of 3-5 key concepts related to the topic, each presented as an "achievement" to unlock with playful icons like 🏆, 🌟, 🔑, etc.
-- strategies: An array of 4-6 practical strategies, each with a catchy title and description. Frame these as special "power-ups" or "tools" for their teaching toolkit with emoji icons.
-- activities: An array of 3-4 HIGHLY INTERACTIVE activities with creative title, description, timeEstimate, and steps (array of strings). These MUST be genuinely fun and playful while teaching the concepts. Include at least one activity that uses digital tools or online resources.
-- gameElements: An array of 3-4 game-like elements such as points systems, challenges, rewards, or "boss levels" that make implementing the strategies feel like playing a game
-- reflectionQuestions: An array of 3-4 reflection questions, each with a text field, framed as "level-up" opportunities with fun icons
-- funFacts: An array of 3-4 surprising or interesting facts about the topic that will help teachers remember key points
-- videoResources: An array of 2-3 professional training videos from reputable ECE sources like NAEYC, Head Start, PBS Teachers, or state education departments. Include title, description, videoLength (string), and url.
-- interactiveResources: An array of 2-3 interactive tools, games, or assessments related to the topic with title, description, type (game, tool, assessment), and url.
-- printableResources: An array of 1-2 downloadable materials a teacher could print for their classroom with title, description, and url.
+- introduction: A brief, upbeat introduction (2-3 sentences max) that connects the topic to the specific challenge. Include a fun "quest" framing.
+- keyConcepts: An array of 3-5 KEY BULLET POINTS (one sentence each) about the topic, each with a fun emoji.
+- strategies: An array of 4-6 practical strategies, each with a short title and a BULLET-POINT list description (not paragraphs). Keep each bullet to 10 words or less.
+- activities: An array of 3-4 SIMPLE activities with easy-to-follow steps (bulleted list of 3-5 short steps). These MUST be genuinely fun and playful.
+- gameElements: An array of 3-4 game-like elements with short, clear descriptions (1-2 sentences only).
+- reflectionQuestions: An array of 3-4 simple questions framed as "level-up" opportunities with fun icons.
+- funFacts: An array of 3-4 simple, surprising facts (one sentence each) about the topic.
+- videoResources: An array of 2-3 videos from reputable ECE sources. Keep descriptions to 1 sentence.
+- interactiveResources: An array of 2-3 simple interactive tools with brief descriptions (1 sentence).
+- printableResources: An array of 1-2 downloadable materials with brief descriptions (1 sentence).
+
+Remember: WRITE AT A 5TH GRADE LEVEL - use simple words that a 10-year-old would understand.
 
 ${styleInstruction}
 
 For ${learningStyle} learners specifically:
-- Create content that fills knowledge gaps in their preferred way of learning through multiple modalities
-- Include specific "Did You Know?" sections that highlight facts most teachers don't know but should
-- Add "Eureka Moments" where complex concepts suddenly make sense through ${learningStyle} explanations
-- Include Easter eggs like the phrase "Breathe, Smile, Be Present" hidden in the content
-- Use bright, engaging visuals and multimedia content that keeps attention
+- Use simple words and short sentences that match their learning style
+- Break all content into short bullet points
+- Use lots of emojis and visual markers
+- Keep paragraphs to a maximum of 2-3 sentences
+- Include the phrase "Breathe, Smile, Be Present" hidden in the content
 
 IMPORTANT: For video resources, ONLY use legitimate sources from professional ECE organizations like:
-- Head Start Early Childhood Learning & Knowledge Center (https://eclkc.ohs.acf.hhs.gov)
+- Head Start (https://eclkc.ohs.acf.hhs.gov)
 - NAEYC (https://www.naeyc.org)
-- CDC's Learn the Signs. Act Early. (https://www.cdc.gov/ncbddd/actearly/)
+- CDC (https://www.cdc.gov/ncbddd/actearly/)
 - ZERO TO THREE (https://www.zerotothree.org)
-- Vanderbilt IRIS Center (https://iris.peabody.vanderbilt.edu)
 - PBS Teachers (https://az.pbslearningmedia.org)
-- State education departments
-- Well-established universities with ECE departments
 
-Incorporate Raising Arizona Preschool's motto: "Every Genius that ever was had a Mentor" into your content.
-Include references to developmentally appropriate practices and the Arizona Early Learning Standards where relevant.
+Include Raising Arizona Preschool's motto: "Every Genius that ever was had a Mentor" in your content.
 
-BE SUPER CREATIVE! The lesson should feel like playing an engaging video game rather than working while still being educational and evidence-based.
+BE SUPER CREATIVE but SIMPLE! Make everything feel like a fun game while keeping the language at a 5th grade reading level.
 Format your response as a JSON object without any additional text before or after.
 `;
 }
