@@ -589,17 +589,66 @@ export default function MicroModuleView() {
             isLoading: false
           }));
         });
+        
+        // Generate video resources based on the module topic
+        const videoPrompt = `Please provide 3 YouTube video IDs (just the ID, not the full URL) for educational videos about "${module.title || module.category || 'early childhood education'}" that would be helpful for preschool teachers. Focus on high-quality content from reputable educational sources. Format as a simple list of IDs, each on a new line. Example response format: "ckZt33Ymbpg\n4PSRP98mtJY\nHQT6u-tFKZ4"`;
+        
+        apiRequest('/api/perplexity/generate', {
+          method: 'POST',
+          data: { prompt: videoPrompt }
+        })
+        .then(data => {
+          console.log("Video resources response received:", data);
+          
+          // Parse video IDs from the response
+          const videoIds = data.content
+            .split('\n')
+            .map(line => line.trim())
+            .filter(id => id && id.length > 0 && id.length <= 20) // Basic validation for video IDs
+            .map(id => {
+              // Extract just the ID if full URLs were returned
+              if (id.includes('youtube.com') || id.includes('youtu.be')) {
+                const match = id.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+                return match ? match[1] : null;
+              }
+              return id;
+            })
+            .filter(Boolean)
+            .slice(0, 3); // Take up to 3 videos
+            
+          // Format as embed URLs
+          const videoUrls = videoIds.map(id => `https://www.youtube.com/embed/${id}`);
+          
+          console.log("Processed video URLs:", videoUrls);
+          
+          if (videoUrls.length > 0) {
+            setPerplexityContent(prev => ({
+              ...prev,
+              videoResources: videoUrls
+            }));
+          } else {
+            // If no valid video IDs, use default videos based on module type
+            setPerplexityContent(prev => ({
+              ...prev,
+              videoResources: getDefaultVideosForModule(module.id)
+            }));
+          }
+        })
+        .catch(err => {
+          console.error("Error fetching video resources from Perplexity:", err);
+          // Use default videos based on module type
+          setPerplexityContent(prev => ({
+            ...prev,
+            videoResources: getDefaultVideosForModule(module.id)
+          }));
+        });
       } catch (error) {
         console.error("Unexpected error in content generation:", error);
         setPerplexityContent(prev => ({ 
           ...prev, 
           coreConcept: "A positive attitude creates a supportive learning environment. Your energy and enthusiasm set the tone for the day and influence how children engage with activities and each other.",
           practicalApplication: "1. Begin each day by greeting each child individually with a smile and using their name.\n\n2. Create a 'gratitude corner' where you and children can share daily moments of appreciation.\n\n3. Use positive language that focuses on what children should do rather than what they shouldn't do.",
-          videoResources: [
-            "https://www.youtube.com/embed/ckZt33Ymbpg",  // Vanderbilt IRIS Center on Positive Behavior Support
-            "https://www.youtube.com/embed/4PSRP98mtJY",  // PBS Teachers video on positive classroom environments
-            "https://www.youtube.com/embed/HQT6u-tFKZ4"   // Head Start video on Positive Teacher-Child Interactions
-          ],
+          videoResources: getDefaultVideosForModule(module?.id || 0),
           interactiveElement: "<div class='interactive-activity'><h4>Reflect and Respond</h4><p>Think about a recent challenging situation with a child. How might you approach it differently with a more positive mindset?</p><textarea placeholder='Type your reflection here...' rows='3' class='w-full p-2 border rounded-md'></textarea><button class='mt-2 px-4 py-2 bg-primary text-white rounded-md'>Save for later</button></div>",
           quizQuestions: getDefaultQuizQuestions(module.id),
           isLoading: false
