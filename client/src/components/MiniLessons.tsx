@@ -1032,21 +1032,63 @@ export function MiniLessons() {
                         </div>
                         
                         <div className="mt-6">
-                          <h3 className="text-lg font-semibold mb-3">Video Demonstration</h3>
-                          <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                            <iframe 
-                              width="100%" 
-                              height="100%" 
-                              src="https://www.youtube.com/embed/ryuuaifO8MQ" 
-                              title="Morning Mindfulness for Children" 
-                              frameBorder="0" 
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                              allowFullScreen
-                            ></iframe>
+                          <h3 className="text-lg font-semibold mb-3">Video Demonstrations</h3>
+                          
+                          <div className="space-y-4">
+                            <div>
+                              <h4 className="text-md font-medium mb-2">Morning Mindfulness Exercises for Children</h4>
+                              <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                                <iframe 
+                                  width="100%" 
+                                  height="100%" 
+                                  src="https://www.youtube.com/embed/ryuuaifO8MQ" 
+                                  title="Morning Mindfulness for Children" 
+                                  frameBorder="0" 
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                  allowFullScreen
+                                ></iframe>
+                              </div>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Simple mindfulness practices designed specifically for young children to start their day calmly and with focus.
+                              </p>
+                            </div>
+                            
+                            <div>
+                              <h4 className="text-md font-medium mb-2">Breathing Exercises for the Classroom</h4>
+                              <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                                <iframe 
+                                  width="100%" 
+                                  height="100%" 
+                                  src="https://www.youtube.com/embed/RVA2N6tX2cg" 
+                                  title="Breathing Exercises for the Classroom" 
+                                  frameBorder="0" 
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                  allowFullScreen
+                                ></iframe>
+                              </div>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Child-friendly breathing techniques that promote focus, emotional regulation, and a calm classroom environment.
+                              </p>
+                            </div>
+                            
+                            <div>
+                              <h4 className="text-md font-medium mb-2">Body Awareness Activities for Early Childhood</h4>
+                              <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                                <iframe 
+                                  width="100%" 
+                                  height="100%" 
+                                  src="https://www.youtube.com/embed/ihwcw_ofuME" 
+                                  title="Body Awareness Activities" 
+                                  frameBorder="0" 
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                  allowFullScreen
+                                ></iframe>
+                              </div>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Age-appropriate body scan and awareness activities that help children connect with their physical sensations in a mindful way.
+                              </p>
+                            </div>
                           </div>
-                          <p className="text-sm text-muted-foreground mt-2">
-                            This video demonstrates simple mindfulness exercises that are perfect for starting the day.
-                          </p>
                         </div>
                       </div>
                     )}
@@ -1080,21 +1122,63 @@ export function MiniLessons() {
                         </div>
                         
                         <div className="mt-6">
-                          <h3 className="text-lg font-semibold mb-3">Video Demonstration</h3>
-                          <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                            <iframe 
-                              width="100%" 
-                              height="100%" 
-                              src="https://www.youtube.com/embed/owppju3jwPE" 
-                              title="Active Listening Skills for Preschool" 
-                              frameBorder="0" 
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                              allowFullScreen
-                            ></iframe>
+                          <h3 className="text-lg font-semibold mb-3">Video Demonstrations</h3>
+                          
+                          <div className="space-y-4">
+                            <div>
+                              <h4 className="text-md font-medium mb-2">Teaching Active Listening to Young Children</h4>
+                              <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                                <iframe 
+                                  width="100%" 
+                                  height="100%" 
+                                  src="https://www.youtube.com/embed/owppju3jwPE" 
+                                  title="Active Listening Skills for Preschool" 
+                                  frameBorder="0" 
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                  allowFullScreen
+                                ></iframe>
+                              </div>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Learn how to teach active listening skills to preschoolers using engaging and age-appropriate techniques.
+                              </p>
+                            </div>
+                            
+                            <div>
+                              <h4 className="text-md font-medium mb-2">Active Listening Visual Cues and Strategies</h4>
+                              <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                                <iframe 
+                                  width="100%" 
+                                  height="100%" 
+                                  src="https://www.youtube.com/embed/1unmHDO8_Qs" 
+                                  title="Active Listening Visual Cues" 
+                                  frameBorder="0" 
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                  allowFullScreen
+                                ></iframe>
+                              </div>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Visual cues and strategies that help young children understand and practice active listening in the classroom.
+                              </p>
+                            </div>
+                            
+                            <div>
+                              <h4 className="text-md font-medium mb-2">Active Listening Games and Activities</h4>
+                              <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                                <iframe 
+                                  width="100%" 
+                                  height="100%" 
+                                  src="https://www.youtube.com/embed/cSADcOZ5D2Y" 
+                                  title="Active Listening Games" 
+                                  frameBorder="0" 
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                  allowFullScreen
+                                ></iframe>
+                              </div>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Fun and interactive games that develop active listening skills while keeping children engaged and interested.
+                              </p>
+                            </div>
                           </div>
-                          <p className="text-sm text-muted-foreground mt-2">
-                            This video demonstrates how to teach active listening skills to young children.
-                          </p>
                         </div>
                       </div>
                     )}
