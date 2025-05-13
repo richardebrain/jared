@@ -80,12 +80,53 @@ export function MiniLessons() {
   }, [assessmentData]);
   
   // Extract recommended categories from the most recent assessment
-  const recentAssessment = assessmentData?.assessments && Array.isArray(assessmentData?.assessments) && assessmentData.assessments.length > 0 
-    ? assessmentData.assessments[assessmentData.assessments.length - 1] 
-    : null;
+  const recentAssessment = useMemo(() => {
+    // Check if assessment data exists
+    if (!assessmentData) return null;
+    
+    // Handle case where assessments are directly an array
+    if (Array.isArray(assessmentData)) {
+      return assessmentData.length > 0 ? assessmentData[assessmentData.length - 1] : null;
+    }
+    
+    // Handle case where assessments are nested in a property
+    if (assessmentData?.assessments && Array.isArray(assessmentData.assessments)) {
+      return assessmentData.assessments.length > 0 
+        ? assessmentData.assessments[assessmentData.assessments.length - 1] 
+        : null;
+    }
+    
+    // Handle case where a single assessment is returned
+    if (assessmentData?.id && assessmentData?.userId) {
+      return assessmentData;
+    }
+    
+    // No valid assessment found
+    return null;
+  }, [assessmentData]);
   
   // Extract growth areas from assessment if available
-  const growthAreas = recentAssessment?.growthAreas || [];
+  const growthAreas = useMemo(() => {
+    // If we have a recent assessment with growth areas
+    if (recentAssessment?.growthAreas && Array.isArray(recentAssessment.growthAreas)) {
+      return recentAssessment.growthAreas;
+    }
+    
+    // Fallback: Extract from domain scores if available
+    if (recentAssessment?.domainScores) {
+      // Find domains with low scores (below 70%)
+      const lowScoreDomains = Object.entries(recentAssessment.domainScores)
+        .filter(([domain, data]) => data.score < 70)
+        .map(([domain]) => domain);
+      
+      if (lowScoreDomains.length > 0) {
+        return lowScoreDomains;
+      }
+    }
+    
+    // Final fallback: Use common essential categories
+    return ['foundations', 'teaching-methods', 'classroom-management'];
+  }, [recentAssessment]);
   
   // Filter modules to show only three recommended ones
   const modules = useMemo(() => {
@@ -162,13 +203,17 @@ export function MiniLessons() {
     queryKey: ['/api/progress'],
   });
   
-  // Create a map of module progress
-  const progressMap = Array.isArray(progress) 
-    ? progress.reduce((acc: Record<number, UserProgress>, curr: UserProgress) => {
+  // Create a map of module progress with type safety
+  const progressMap = useMemo(() => {
+    if (!Array.isArray(progress)) return {};
+    
+    return progress.reduce((acc: Record<number, UserProgress>, curr: UserProgress) => {
+      if (curr && typeof curr.moduleId === 'number') {
         acc[curr.moduleId] = curr;
-        return acc;
-      }, {})
-    : {};
+      }
+      return acc;
+    }, {});
+  }, [progress]);
 
   // Mutation for updating progress
   const progressMutation = useMutation({
@@ -246,12 +291,12 @@ export function MiniLessons() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Debug info in development */}
-              {process.env.NODE_ENV === 'development' && (
+              {import.meta.env.DEV && (
                 <div className="col-span-3 p-2 mb-4 bg-gray-100 text-xs rounded overflow-auto max-h-40">
                   <p>Growth Areas: {growthAreas.join(', ') || 'None'}</p>
                   <p>Total Modules: {allModules.length}</p>
                   <p>Selected Modules: {modules.length}</p>
-                  <p>Progress Records: {progress.length}</p>
+                  <p>Progress Records: {Array.isArray(progress) ? progress.length : 0}</p>
                 </div>
               )}
               
