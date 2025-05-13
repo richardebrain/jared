@@ -65,6 +65,10 @@ export function MiniLessons() {
   const [aiGeneratedContent, setAiGeneratedContent] = useState<any>(null);
   const [isGeneratingContent, setIsGeneratingContent] = useState(false);
   const [activeTab, setActiveTab] = useState('video');
+  const [showGame, setShowGame] = useState(false);
+  const [gameType, setGameType] = useState<'quiz' | 'matching' | 'flashcards'>('quiz');
+  const [quizScore, setQuizScore] = useState(0);
+  const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
   
   // Get mini modules from the API (short duration modules, ≤ 7 minutes)
   const { data: allModules = [], isLoading: modulesLoading, isError: modulesError } = useQuery({
