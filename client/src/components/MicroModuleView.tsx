@@ -795,6 +795,47 @@ export default function MicroModuleView() {
   const getFinalAssessmentQuestions = (moduleId: number) => {
     // Questions for the different module types (3 questions per assessment)
     switch (moduleId) {
+      // Quick Transition Techniques
+      case 23:
+        return [
+          {
+            question: "Which transition strategy best aligns with the 'Building Chapter One' framework?",
+            options: [
+              "Using sudden changes to keep children alert",
+              "Providing predictable routines with clear visual cues",
+              "Extending transition times to maximize learning",
+              "Separating struggling children during transitions"
+            ],
+            correctAnswer: 1,
+            correctExplanation: "Correct! Predictable routines with clear visual cues help children understand their role in the classroom story and build confidence during transitions, which supports the Chapter One framework.",
+            incorrectExplanation: "The Chapter One framework is best supported by predictable routines with clear visual cues that help children understand how they fit into the classroom story."
+          },
+          {
+            question: "What is the primary benefit of using transition songs in preschool?",
+            options: [
+              "They extend the transition period",
+              "They make children dependent on teacher cues",
+              "They signal change in a developmentally appropriate way",
+              "They eliminate the need for verbal instructions"
+            ],
+            correctAnswer: 2,
+            correctExplanation: "Correct! Transition songs provide auditory cues in a fun, developmentally appropriate way that helps children process the upcoming change.",
+            incorrectExplanation: "Transition songs are valuable because they signal change in a developmentally appropriate way that children can understand and enjoy."
+          },
+          {
+            question: "How do effective transitions support 'Building Chapter One' in each child?",
+            options: [
+              "They create disruptions that teach resilience",
+              "They minimize learning time in favor of management",
+              "They help children develop self-regulation and independence",
+              "They separate faster learners from slower learners"
+            ],
+            correctAnswer: 2,
+            correctExplanation: "Correct! Effective transitions help children develop self-regulation and independence, which are essential skills for their personal 'Chapter One' development story.",
+            incorrectExplanation: "Effective transitions support Building Chapter One by helping children develop self-regulation and independence, key components of their personal growth story."
+          }
+        ];
+      
       // Active Listening
       case 19:
         return [
