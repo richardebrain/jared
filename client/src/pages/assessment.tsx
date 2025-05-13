@@ -913,7 +913,37 @@ export default function AssessmentPage() {
     // Adjustment logic for handling incorrect answers
     
     // If struggling with expert level, move back to advanced
+    // Moving users back from expert level if they struggle
     if (currentDifficulty === 'expert' && incorrect >= 2) {
+      console.log(`Moving ${domain} back from expert/mastery to advanced level due to incorrect answers`);
+      
+      toast({
+        title: "Adjusting Difficulty",
+        description: "We're providing some advanced questions to better match your current knowledge level.",
+        variant: "default",
+        duration: 3000,
+      });
+      
+      setDomainDifficulty(prev => ({
+        ...prev,
+        [domain]: 'advanced'
+      }));
+      setIncorrectByDomain(prev => ({
+        ...prev,
+        [domain]: 0
+      }));
+      // Load questions for the adjusted difficulty level
+      updateDomainQuestions(domain, 'advanced');
+      return;
+    }
+    
+    // Even track expert level performance for analytics
+    if (currentDifficulty === 'expert') {
+      console.log(`Tracking expert/mastery performance in ${domain}: ${correct} correct, ${incorrect} incorrect`);
+    }
+    
+    // After just 1 incorrect answer at expert level, consider moving back to advanced
+    if (currentDifficulty === 'expert' && incorrect >= 1) {
       console.log(`Moving ${domain} back from expert to advanced due to incorrect answers`);
       
       toast({
@@ -1225,7 +1255,7 @@ export default function AssessmentPage() {
             moduleType: 'intermediate',
             reason: 'You have basic understanding but need more practice with complex concepts'
           });
-        } else {
+        } else if (difficulty === 'advanced') {
           // Advanced modules for fine-tuning knowledge
           learningPath.push({
             domainId: domain,
@@ -1235,6 +1265,16 @@ export default function AssessmentPage() {
             moduleType: 'advanced',
             reason: 'You have strong knowledge but missed a few advanced concepts'
           });
+        } else if (difficulty === 'expert') {
+          // Expert/mastery modules for deepening specialized knowledge
+          learningPath.push({
+            domainId: domain,
+            domainName: domainInfo.name,
+            priority: 'specialized',
+            recommendation: `Explore mastery-level content in ${domainInfo.name}, particularly attachment theory and trauma-informed practices`,
+            moduleType: 'expert',
+            reason: 'You demonstrate advanced knowledge but could benefit from deeper exploration of specialized concepts in this area'
+          });
         }
       });
       
@@ -1243,15 +1283,30 @@ export default function AssessmentPage() {
         const domainInfo = domains.find(d => d.id === domain);
         if (!domainInfo) return;
         
-        // Add mastery or mentorship modules
-        learningPath.push({
-          domainId: domain,
-          domainName: domainInfo.name,
-          priority: 'suggested',
-          recommendation: `Consider mentor opportunities in ${domainInfo.name}`,
-          moduleType: 'mastery',
-          reason: 'You demonstrated strong understanding in this area'
-        });
+        // Get the domain difficulty level that was reached
+        const difficulty = domainScores[domain].maxDifficulty;
+        
+        if (difficulty === 'expert') {
+          // For expert-level achievers, suggest mentorship and leadership
+          learningPath.push({
+            domainId: domain,
+            domainName: domainInfo.name,
+            priority: 'suggested',
+            recommendation: `Consider becoming a mentor or lead trainer in ${domainInfo.name}`,
+            moduleType: 'mentorship',
+            reason: 'You demonstrated mastery-level understanding in this area, including advanced concepts in attachment theory and trauma-informed practices'
+          });
+        } else {
+          // Add mastery modules for non-expert achievers
+          learningPath.push({
+            domainId: domain,
+            domainName: domainInfo.name,
+            priority: 'suggested',
+            recommendation: `Consider mentor opportunities in ${domainInfo.name}`,
+            moduleType: 'mastery',
+            reason: 'You demonstrated strong understanding in this area'
+          });
+        }
       });
       
       return learningPath;
