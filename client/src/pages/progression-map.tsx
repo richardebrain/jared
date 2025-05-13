@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { 
   Award, 
@@ -358,7 +358,9 @@ export default function ProgressionMap() {
                 <CardHeader className={`${teacherLevels[selectedLevel].color} text-white`}>
                   <div className="flex items-center">
                     <div className="p-3 bg-white/10 rounded-lg mr-4">
-                      {React.createElement(teacherLevels[selectedLevel].icon, { className: "h-8 w-8" })}
+                      <div className="h-8 w-8">
+                        {React.createElement(teacherLevels[selectedLevel].icon, { className: "h-8 w-8" })}
+                      </div>
                     </div>
                     <div>
                       <CardTitle className="text-2xl">{selectedLevel.charAt(0).toUpperCase() + selectedLevel.slice(1)} Teacher</CardTitle>
@@ -585,7 +587,7 @@ export default function ProgressionMap() {
           </div>
           
           <div className="lg:col-span-1">
-            <BearAssistant />
+            <BearAssistant user={user} />
             
             {/* Motivation card */}
             <Card className="mt-6">
