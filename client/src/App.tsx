@@ -8,6 +8,7 @@ import Register from "@/pages/register";
 import Schedule from "@/pages/schedule";
 import Assessment from "@/pages/assessment";
 import LearningModulePage from "@/pages/learning-module";
+import MicroModulePage from "@/pages/micro-module";
 import LearningStylePage from "@/pages/learning-style";
 import DiscussionsPage from "@/pages/discussions";
 import AllModules from "@/pages/modules";
@@ -53,6 +54,10 @@ function Router() {
       
       <Route path="/modules/:id">
         {isAuthenticated ? <LearningModulePage /> : <Login />}
+      </Route>
+      
+      <Route path="/micro-modules/:id">
+        {isAuthenticated ? <MicroModulePage /> : <Login />}
       </Route>
       
       <Route path="/discussions/:id">

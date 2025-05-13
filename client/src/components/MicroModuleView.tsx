@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useParams, useLocation } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
-import { LearningModule, UserProgress } from '@shared/schema';
+import { LearningModule, UserProgress, User } from '@shared/schema';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Clock, Check, Heart, Star, Zap, ArrowLeft, Trophy } from 'lucide-react';
+import { Clock, Check, Heart, Star, Zap, ArrowLeft, Trophy, Award, Coins } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Confetti } from '@/components/ui/confetti';
 
@@ -18,6 +18,11 @@ export default function MicroModuleView() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [keyTakeaways, setKeyTakeaways] = useState<string[]>([]);
   const [completedStep, setCompletedStep] = useState<number>(0);
+  const [pointsEarned, setPointsEarned] = useState<number>(0);
+  
+  // Points for micro module (5 min) = 5 points
+  // This is a good balance - 1 point per minute ensures fairness across all module sizes
+  const MICRO_MODULE_POINTS = 5;
   
   // Fetch the module data
   const { data: module, isLoading: isLoadingModule } = useQuery<LearningModule>({
@@ -29,17 +34,37 @@ export default function MicroModuleView() {
     queryKey: [`/api/progress/${moduleId}`],
   });
   
-  // Update progress mutation
+  // Fetch user data for points tracking
+  const { data: user, isLoading: isLoadingUser } = useQuery<User>({
+    queryKey: ['/api/auth/me'],
+  });
+  
+  // Update progress mutation with points tracking
   const updateProgressMutation = useMutation({
-    mutationFn: async (data: { progress: number, completed: boolean }) => {
+    mutationFn: async (data: { progress: number, completed: boolean, pointsEarned?: number }) => {
       return apiRequest(`/api/progress/${moduleId}`, {
         method: 'POST',
         data
       });
     },
     onSuccess: () => {
+      // Invalidate both progress and user queries to refresh points
       queryClient.invalidateQueries({ queryKey: [`/api/progress/${moduleId}`] });
       queryClient.invalidateQueries({ queryKey: ['/api/progress'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+    }
+  });
+  
+  // Update user points mutation
+  const updateUserPointsMutation = useMutation({
+    mutationFn: async (points: number) => {
+      return apiRequest('/api/users/add-points', {
+        method: 'POST',
+        data: { points }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
     }
   });
 
@@ -95,15 +120,24 @@ export default function MicroModuleView() {
   }, [module]);
 
   const handleCompleteModule = () => {
+    // Add pointsEarned to the progress update
+    const pointsToAdd = MICRO_MODULE_POINTS;
+    setPointsEarned(pointsToAdd);
+    
     updateProgressMutation.mutate({ 
       progress: 100, 
-      completed: true 
+      completed: true,
+      pointsEarned: pointsToAdd
     }, {
       onSuccess: () => {
         setShowConfetti(true);
+        
+        // Also update user points directly
+        updateUserPointsMutation.mutate(pointsToAdd);
+        
         toast({
-          title: "Module Completed!",
-          description: "You've earned points for completing this micro module.",
+          title: "🎉 Micro Module Completed!",
+          description: `You've earned ${pointsToAdd} points for completing this micro module!`,
         });
       }
     });
@@ -149,6 +183,34 @@ export default function MicroModuleView() {
   return (
     <div className="container py-6">
       {showConfetti && <Confetti />}
+      
+      {/* Points Tracking Header */}
+      <div className="bg-gradient-to-r from-green-50 to-amber-50 p-4 rounded-lg mb-4 shadow-sm border border-amber-100">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="bg-white p-2 rounded-full shadow-sm">
+              <Award className="h-6 w-6 text-amber-500" />
+            </div>
+            <div className="ml-3">
+              <h2 className="font-bold text-lg">Points System</h2>
+              <p className="text-sm text-muted-foreground">1 point per minute = fair rewards for all modules</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center bg-white px-4 py-2 rounded-full shadow-sm">
+            <Coins className="h-5 w-5 text-amber-500 mr-2" />
+            <div>
+              <span className="font-bold text-lg">{user?.points || 0}</span>
+              <span className="text-muted-foreground ml-1">points total</span>
+            </div>
+            {pointsEarned > 0 && (
+              <div className="ml-2 bg-green-100 px-2 py-1 rounded-full text-green-700 text-xs font-semibold animate-pulse">
+                +{pointsEarned} earned
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
       
       <div className="flex items-center mb-6">
         <Button onClick={() => setLocation('/modules')} variant="outline" className="mr-4">
