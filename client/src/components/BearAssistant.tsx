@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SendHorizonal, Minimize2, Maximize2, HelpCircle } from "lucide-react";
 import { User } from "@shared/schema";
+import { askEceQuestion } from "@/lib/perplexity";
 
 interface BearAssistantProps {
   user?: User;
@@ -20,8 +21,9 @@ export default function BearAssistant({ user, initiallyMinimized = true }: BearA
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isUsingPerplexity, setIsUsingPerplexity] = useState(true);
   
-  // Predefined responses based on question keywords
+  // Predefined responses based on question keywords for fallback use
   const responses = {
     'chapter one': 'Building "Chapter One" is our philosophy that emphasizes creating foundational experiences for each child. Each interaction helps form the beginning of their life story.',
     'mindful morning': 'Mindful Mornings is our approach to starting the day with intentional calm activities that help children center themselves and prepare for learning.',
@@ -40,34 +42,72 @@ export default function BearAssistant({ user, initiallyMinimized = true }: BearA
   }, [messages]);
   
   // Function to handle sending a message
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!input.trim()) return;
     
     // Add user message
     setMessages(prev => [...prev, { role: 'user', content: input }]);
+    const userQuestion = input;
     setInput('');
     setIsTyping(true);
     
-    // Simulate thinking and then respond
-    setTimeout(() => {
-      let responseText = 'I don\'t have specific information about that yet. Perhaps check the learning modules or ask your mentor?';
+    try {
+      let responseText = '';
       
-      // Check for keyword matches in the responses object
+      // First check for keyword matches in the responses object for instant responses
+      let matchFound = false;
       for (const [keyword, response] of Object.entries(responses)) {
-        if (input.toLowerCase().includes(keyword)) {
+        if (userQuestion.toLowerCase().includes(keyword)) {
           responseText = response;
+          matchFound = true;
           break;
         }
       }
       
-      // Add assistant message
-      setMessages(prev => [...prev, { role: 'assistant', content: responseText }]);
+      // If no match found and using Perplexity is enabled, use the API
+      if (!matchFound && isUsingPerplexity) {
+        try {
+          // Enhance the question with user context if available
+          let enhancedQuestion = userQuestion;
+          if (user?.learningStyle) {
+            enhancedQuestion += `\n\nContext: Teacher's preferred learning style is ${user.learningStyle.preferred}.`;
+          }
+          
+          const aiResponse = await askEceQuestion(enhancedQuestion);
+          if (aiResponse) {
+            responseText = aiResponse;
+          } else {
+            // Fallback if API response is empty
+            responseText = "I'm having trouble connecting to my knowledge base right now. Please try a different question or check back later.";
+          }
+        } catch (error) {
+          console.error("Error using Perplexity:", error);
+          setIsUsingPerplexity(false);
+          responseText = "I'm experiencing technical difficulties with my advanced knowledge features. I'll use my basic knowledge to help you for now.";
+        }
+      } else if (!matchFound) {
+        // Fallback response if Perplexity is disabled and no keyword match
+        responseText = "I'm sorry, I don't have specific information about that topic yet. Please check the learning modules or try asking about our core teaching philosophy, classroom techniques, or using the app.";
+      }
+      
+      // Add assistant message after a slight delay to simulate thinking
+      setTimeout(() => {
+        setMessages(prev => [...prev, { role: 'assistant', content: responseText }]);
+        setIsTyping(false);
+      }, 800);
+      
+    } catch (error) {
+      console.error("Error in message handling:", error);
       setIsTyping(false);
-    }, 1000);
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: "I'm sorry, I encountered an error. Please try again later." 
+      }]);
+    }
   };
   
   return (
-    <Card className="border border-amber-200 overflow-hidden">
+    <Card className="border border-amber-200 overflow-hidden shadow-md">
       <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50 pb-3 flex flex-row items-center justify-between">
         <div className="flex items-center">
           <img 
@@ -89,16 +129,16 @@ export default function BearAssistant({ user, initiallyMinimized = true }: BearA
       
       {!isMinimized && (
         <CardContent className="p-0">
-          <div className="h-[300px] flex flex-col">
+          <div className="h-[340px] flex flex-col">
             {/* Messages area */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {messages.map((message, index) => (
                 <div 
                   key={index} 
                   className={`flex ${message.role === 'assistant' ? 'justify-start' : 'justify-end'}`}
                 >
                   <div 
-                    className={`max-w-[80%] px-3 py-2 rounded-lg ${
+                    className={`max-w-[85%] px-4 py-3 rounded-lg shadow-sm ${
                       message.role === 'assistant' 
                         ? 'bg-muted text-foreground' 
                         : 'bg-primary text-primary-foreground'
@@ -110,7 +150,7 @@ export default function BearAssistant({ user, initiallyMinimized = true }: BearA
               ))}
               {isTyping && (
                 <div className="flex justify-start">
-                  <div className="bg-muted px-3 py-2 rounded-lg">
+                  <div className="bg-muted px-4 py-3 rounded-lg shadow-sm">
                     <div className="flex space-x-1">
                       <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
                       <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
@@ -123,7 +163,7 @@ export default function BearAssistant({ user, initiallyMinimized = true }: BearA
             </div>
             
             {/* Input area */}
-            <div className="border-t border-border p-3 flex items-center">
+            <div className="border-t border-border p-4 flex items-center">
               <div className="flex-1 relative">
                 <input
                   type="text"
@@ -131,22 +171,22 @@ export default function BearAssistant({ user, initiallyMinimized = true }: BearA
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                   placeholder="Ask BearyAI a question..."
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-4 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 text-base"
                 />
                 {!input && (
-                  <div className="absolute right-3 top-2.5 text-xs text-muted-foreground flex items-center">
-                    <HelpCircle className="h-3 w-3 mr-1" />
+                  <div className="absolute right-4 top-3.5 text-sm text-muted-foreground flex items-center">
+                    <HelpCircle className="h-4 w-4 mr-1" />
                     Try: "What is Chapter One?"
                   </div>
                 )}
               </div>
               <Button 
-                size="sm" 
-                className="ml-2"
+                size="default" 
+                className="ml-3 px-4"
                 onClick={handleSendMessage}
                 disabled={!input.trim()}
               >
-                <SendHorizonal className="h-4 w-4" />
+                <SendHorizonal className="h-5 w-5" />
               </Button>
             </div>
           </div>
