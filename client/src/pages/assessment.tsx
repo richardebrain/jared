@@ -1272,8 +1272,12 @@ export default function AssessmentPage() {
   // Submit assessment mutation
   const submitAssessmentMutation = useMutation({
     mutationFn: async (assessmentData: any) => {
-      const response = await apiRequest("POST", "/api/assessments", assessmentData);
-      return response.json();
+      console.log("Submitting assessment data:", assessmentData);
+      const response = await apiRequest("/api/assessments", {
+        method: "POST",
+        data: assessmentData
+      });
+      return response;
     },
     onSuccess: () => {
       // Calculate total correct answers
