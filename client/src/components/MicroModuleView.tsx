@@ -475,6 +475,7 @@ export default function MicroModuleView() {
             ...prev, 
             coreConcept: data.content,
             isLoading: false
+            // Leave other content intact
           }));
         })
         .catch(err => {
