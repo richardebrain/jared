@@ -40,14 +40,14 @@ import { Award, Heart, Medal, Star, ThumbsUp, Trophy, UserCheck } from "lucide-r
 import axios from "axios";
 import { formatDistanceToNow } from "date-fns";
 
-// Define the core values
+// Define the core values for Raising Arizona Preschool
 const coreValues = [
-  { value: "respect", label: "Respect", icon: <UserCheck className="h-5 w-5 text-blue-500" /> },
-  { value: "excellence", label: "Excellence", icon: <Star className="h-5 w-5 text-yellow-500" /> },
-  { value: "compassion", label: "Compassion", icon: <Heart className="h-5 w-5 text-red-500" /> },
-  { value: "teamwork", label: "Teamwork", icon: <ThumbsUp className="h-5 w-5 text-green-500" /> },
-  { value: "leadership", label: "Leadership", icon: <Trophy className="h-5 w-5 text-purple-500" /> },
-  { value: "achievement", label: "Achievement", icon: <Medal className="h-5 w-5 text-amber-500" /> },
+  { value: "integrity", label: "Integrity", icon: <UserCheck className="h-5 w-5 text-blue-500" /> },
+  { value: "curiosity", label: "Curiosity", icon: <Star className="h-5 w-5 text-yellow-500" /> },
+  { value: "kindness", label: "Kindness", icon: <Heart className="h-5 w-5 text-red-500" /> },
+  { value: "collaboration", label: "Collaboration", icon: <ThumbsUp className="h-5 w-5 text-green-500" /> },
+  { value: "resilience", label: "Resilience", icon: <Trophy className="h-5 w-5 text-purple-500" /> },
+  { value: "creativity", label: "Creativity", icon: <Medal className="h-5 w-5 text-amber-500" /> },
 ];
 
 // Form schema
