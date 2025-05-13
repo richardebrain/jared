@@ -917,8 +917,6 @@ export default function MicroModuleView() {
             incorrectExplanation: "Morning greetings build a sense of belonging by acknowledging each child and explicitly inviting them into the day's story, reinforcing their importance in both their individual and collective classroom narrative."
           }
         ];
-        
-      // Self Care for Teachers 
       case 28:
         return [
           {
