@@ -52,10 +52,17 @@ export default function Login() {
     mutationFn: async (data: z.infer<typeof loginSchema>) => {
       console.log("Attempting login with:", { username: data.username, password: "***" });
       
-      const response = await apiRequest("POST", "/api/auth/login", data);
-      const responseData = await response.json();
-      console.log("Login response:", responseData);
-      return responseData;
+      try {
+        const responseData = await apiRequest("/api/auth/login", {
+          method: "POST",
+          data: data
+        });
+        console.log("Login response:", responseData);
+        return responseData;
+      } catch (error) {
+        console.error("Login error:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
       console.log("Login successful, user data:", data);
