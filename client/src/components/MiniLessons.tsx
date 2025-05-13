@@ -222,6 +222,36 @@ export function MiniLessons() {
   }, [progress]);
 
   // Mutation for updating progress
+  // Generate personalized lesson content
+  const generateContentMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedLesson) return null;
+      
+      // Get personalized content from the API
+      return apiRequest(`/api/lesson/generate`, {
+        method: 'POST',
+        data: {
+          moduleId: selectedLesson.id,
+          challenge: "Implementing personalized learning strategies for diverse learning styles",
+          learningStyle: "visual" // This would ideally come from user preferences
+        }
+      });
+    },
+    onSuccess: (data) => {
+      setAiGeneratedContent(data);
+      setIsGeneratingContent(false);
+      setActiveTab('content');
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to generate personalized content. Using default content instead.",
+        variant: "destructive"
+      });
+      setIsGeneratingContent(false);
+    }
+  });
+
   const progressMutation = useMutation({
     mutationFn: (data: { moduleId: number, progress: number, completed: boolean }) => {
       return apiRequest(`/api/progress`, {
