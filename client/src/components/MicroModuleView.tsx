@@ -144,6 +144,82 @@ export default function MicroModuleView() {
   // Add state for the active step in the lesson
   const [currentStep, setCurrentStep] = useState(0);
   
+  // Function to get default videos based on module type
+  const getDefaultVideosForModule = (moduleId: number): string[] => {
+    // Default videos for common module categories
+    const moduleCategory = module?.category?.toLowerCase() || '';
+    
+    // Active Listening videos
+    if (moduleId === 1 || moduleId === 15 || moduleCategory.includes('listen') || moduleCategory.includes('communication')) {
+      return [
+        "https://www.youtube.com/embed/ZwSHAIb_qO8", // Active Listening Techniques
+        "https://www.youtube.com/embed/5oP2__wXQ9U", // Effective Listening in Classroom
+        "https://www.youtube.com/embed/3_dAkDsBQyk"  // Communication Skills
+      ];
+    }
+    
+    // Empathy videos
+    if (moduleId === 2 || moduleId === 16 || moduleCategory.includes('empathy') || moduleCategory.includes('emotion')) {
+      return [
+        "https://www.youtube.com/embed/9_1Rt1R4xbM", // Teaching Empathy
+        "https://www.youtube.com/embed/aU3QfyqvHk8", // Building Empathy
+        "https://www.youtube.com/embed/cTOhzcSYMlM"  // Social-Emotional Skills
+      ];
+    }
+    
+    // Mindfulness videos
+    if (moduleCategory.includes('mindful') || moduleCategory.includes('morning')) {
+      return [
+        "https://www.youtube.com/embed/O29e4rRMrV4", // Mindfulness for Kids
+        "https://www.youtube.com/embed/2zMbdQU-nQs", // Morning Meditation
+        "https://www.youtube.com/embed/uwWdK887mE0"  // Mindful Mornings
+      ];
+    }
+    
+    // Inclusion videos
+    if (moduleCategory.includes('inclus') || moduleCategory.includes('divers')) {
+      return [
+        "https://www.youtube.com/embed/AGMLnvVFkOA", // Inclusion in ECE 
+        "https://www.youtube.com/embed/sQuM5e0QGLg", // Diversity in Classroom
+        "https://www.youtube.com/embed/0MF2Qxepoj8"  // Creating Inclusive Environment
+      ];
+    }
+    
+    // Behavior Management videos
+    if (moduleCategory.includes('behav') || moduleCategory.includes('manag')) {
+      return [
+        "https://www.youtube.com/embed/ckZt33Ymbpg", // Positive Behavior Support
+        "https://www.youtube.com/embed/4PSRP98mtJY", // Positive Classroom
+        "https://www.youtube.com/embed/HQT6u-tFKZ4"  // Teacher-Child Interactions
+      ];
+    }
+    
+    // STEM videos
+    if (moduleCategory.includes('stem') || moduleCategory.includes('science') || moduleCategory.includes('math')) {
+      return [
+        "https://www.youtube.com/embed/D8Q8EZ6IryM", // STEM Activities
+        "https://www.youtube.com/embed/6X-vObPOAeE", // Teaching Math Concepts
+        "https://www.youtube.com/embed/RI6_xQqHI94"  // Science Exploration
+      ];
+    }
+    
+    // Family Engagement videos
+    if (moduleCategory.includes('family') || moduleCategory.includes('parent')) {
+      return [
+        "https://www.youtube.com/embed/caWIhWtn5vA", // Family Engagement
+        "https://www.youtube.com/embed/EgzJvT5x_vw", // Parent Communication
+        "https://www.youtube.com/embed/nuYt8Kf37OM"  // Family Partnerships
+      ];
+    }
+    
+    // Default videos for general ECE topics
+    return [
+      "https://www.youtube.com/embed/ckZt33Ymbpg", // Positive Behavior Support
+      "https://www.youtube.com/embed/4PSRP98mtJY", // Positive Classroom Environment
+      "https://www.youtube.com/embed/HQT6u-tFKZ4"  // Teacher-Child Interactions
+    ];
+  };
+  
   // Get default quiz questions appropriate for each module topic
   const getDefaultQuizQuestions = (moduleId: number) => {
     switch(moduleId) {
