@@ -1,5 +1,5 @@
-import React, { useState, useRef } from "react";
-import { useMutation } from "@tanstack/react-query";
+import React, { useState, useRef, useCallback, useEffect } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -58,9 +58,45 @@ export function MindfulMorningsTraining() {
   const [audioPlaying, setAudioPlaying] = useState(false);
   const [selfAffirmation, setSelfAffirmation] = useState("");
   const [selectedAffirmations, setSelectedAffirmations] = useState<string[]>([]);
+  const [moduleProgress, setModuleProgress] = useState(0);
+  const [pointsEarned, setPointsEarned] = useState(0);
+  const [showPointsAnimation, setShowPointsAnimation] = useState(false);
+  const [lastPointsAwarded, setLastPointsAwarded] = useState(0);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const breathingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Get user progress
+  const { data: userProgress } = useQuery({
+    queryKey: ['/api/progress/by-user'],
+    enabled: !!user,
+  });
+
+  // Find the Mindful Mornings module ID
+  const { data: modules } = useQuery({
+    queryKey: ['/api/modules'],
+    enabled: !!user,
+  });
+
+  // Update progress mutation
+  const updateProgressMutation = useMutation({
+    mutationFn: (data: { moduleId: number, progress: number, completed: boolean, pointsEarned?: number }) => {
+      return apiRequest(`/api/progress`, {
+        method: "POST",
+        data
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/progress/by-user"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update progress: " + error.message,
+        variant: "destructive"
+      });
+    }
+  });
   
   // Add points mutation
   const addPointsMutation = useMutation({
@@ -83,8 +119,57 @@ export function MindfulMorningsTraining() {
   });
   
   const addPoints = (points: number) => {
+    setLastPointsAwarded(points);
+    setPointsEarned(prev => prev + points);
+    setShowPointsAnimation(true);
+    
+    // Hide the animation after 3 seconds
+    setTimeout(() => {
+      setShowPointsAnimation(false);
+    }, 3000);
+    
+    // Call the API to add points
     addPointsMutation.mutate(points);
   };
+  
+  // Function to update module progress
+  const updateModuleProgress = useCallback(() => {
+    // Calculate overall progress based on completed sections
+    const completedCount = Object.values(completedSections).filter(Boolean).length;
+    const totalSections = Object.keys(completedSections).length;
+    const progress = Math.round((completedCount / totalSections) * 100);
+    
+    setModuleProgress(progress);
+    
+    // Find the mindful mornings module
+    if (!modules || !Array.isArray(modules)) return;
+    
+    const mindfulMorningsModule = modules.find(m => 
+      m.title.toLowerCase().includes('mindful') && m.title.toLowerCase().includes('morning')
+    );
+    
+    if (!mindfulMorningsModule) return;
+    
+    // Update progress in the database
+    updateProgressMutation.mutate({
+      moduleId: mindfulMorningsModule.id,
+      progress,
+      completed: progress === 100,
+      pointsEarned: pointsEarned
+    });
+    
+    // If all sections are completed, award a completion bonus
+    if (progress === 100) {
+      toast({
+        title: "Module Completed!",
+        description: "You've earned a bonus for completing the Mindful Mornings practice.",
+        variant: "default"
+      });
+      
+      // Add 20 points for completing the entire module
+      addPoints(20);
+    }
+  }, [completedSections, modules, pointsEarned, updateProgressMutation, toast]);
   
   // Define the breathing exercises
   const breathingExercises: BreathingExercise[] = [
