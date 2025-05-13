@@ -769,6 +769,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Spin game rewards
+  app.post('/api/spin-game/reward', requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const { rewardType, rewardAmount, itemId } = req.body;
+      
+      if (!rewardType) {
+        return res.status(400).json({ message: "Reward type is required" });
+      }
+      
+      // Get the user
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Create a reward record
+      await db.insert(spinGameRewards).values({
+        userId,
+        rewardType,
+        rewardAmount: rewardAmount || null,
+        itemId: itemId || null
+      });
+      
+      // Apply the reward
+      let updatedUser;
+      
+      switch (rewardType) {
+        case "points":
+          updatedUser = await storage.updateUser(userId, {
+            points: (user.points || 0) + (rewardAmount || 0)
+          });
+          break;
+          
+        case "bearBucks":
+          updatedUser = await storage.updateUser(userId, {
+            bearBucks: (user.bearBucks || 0) + (rewardAmount || 0)
+          });
+          break;
+          
+        case "item":
+          if (itemId) {
+            // Check if the item exists
+            const item = await storage.getStoreItem(itemId);
+            if (!item) {
+              return res.status(404).json({ message: "Item not found" });
+            }
+            
+            // Add the item to user's inventory
+            await storage.createUserItem({
+              userId,
+              itemId,
+              used: false
+            });
+            
+            updatedUser = user;
+          } else {
+            return res.status(400).json({ message: "Item ID is required for item rewards" });
+          }
+          break;
+          
+        default:
+          updatedUser = user;
+      }
+      
+      res.status(200).json({
+        success: true,
+        rewardType,
+        rewardAmount,
+        itemId,
+        updatedPoints: updatedUser.points,
+        updatedBearBucks: updatedUser.bearBucks
+      });
+      
+    } catch (error) {
+      console.error("Error processing spin game reward:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   // Chat with Bear Assistant API endpoint
   app.post('/api/chat/bear-assistant', requireAuth, async (req, res) => {
     try {

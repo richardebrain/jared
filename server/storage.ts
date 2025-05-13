@@ -4,6 +4,8 @@ import {
   userProgress, type UserProgress, type InsertUserProgress,
   meetings, type Meeting, type InsertMeeting,
   assessments, type Assessment, type InsertAssessment,
+  storeItems, type StoreItem, type InsertStoreItem,
+  userItems, type UserItem, type InsertUserItem,
   discussionThreads, type DiscussionThread, type InsertDiscussionThread,
   discussionComments, type DiscussionComment, type InsertDiscussionComment,
   commentVotes, type CommentVote, type InsertCommentVote
