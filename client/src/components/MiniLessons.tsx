@@ -18,7 +18,11 @@ import {
   Star,
   ThumbsUp,
   Loader2,
-  Zap
+  Zap,
+  Gamepad,
+  Trophy,
+  Check,
+  X
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -65,10 +69,234 @@ export function MiniLessons() {
   const [aiGeneratedContent, setAiGeneratedContent] = useState<any>(null);
   const [isGeneratingContent, setIsGeneratingContent] = useState(false);
   const [activeTab, setActiveTab] = useState('video');
+  
+  // Gamification state
   const [showGame, setShowGame] = useState(false);
   const [gameType, setGameType] = useState<'quiz' | 'matching' | 'flashcards'>('quiz');
   const [quizScore, setQuizScore] = useState(0);
   const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
+  const [quizCompleted, setQuizCompleted] = useState(false);
+  const [bonusPoints, setBonusPoints] = useState(0);
+  
+  // Function to generate quiz questions based on the selected lesson
+  const generateQuizQuestions = () => {
+    if (!selectedLesson) return;
+    
+    // Generate different questions based on the category
+    const questions = [];
+    
+    if (selectedLesson.category === 'core-values') {
+      questions.push(
+        {
+          question: "Which of the following best describes why positive attitude is important in early childhood education?",
+          options: [
+            "It helps manage paperwork efficiently",
+            "It creates a nurturing environment that fosters learning",
+            "It prevents children from misbehaving",
+            "It reduces the need for lesson planning"
+          ],
+          correctAnswer: 1
+        },
+        {
+          question: "How does a teacher's positive attitude impact children?",
+          options: [
+            "It has minimal impact on children's development",
+            "It only affects children with positive home environments",
+            "It models behavior and creates emotional safety",
+            "It is primarily important for administrative purposes"
+          ],
+          correctAnswer: 2
+        },
+        {
+          question: "What is the 'Chapter One' philosophy at Raising Arizona?",
+          options: [
+            "Starting each day with reading time",
+            "Understanding we're writing the first chapter of children's lives",
+            "Following a specific curriculum outlined in chapter one of our handbook",
+            "Focusing only on literacy in the first year"
+          ],
+          correctAnswer: 1
+        }
+      );
+    } else if (selectedLesson.category === 'active-listening') {
+      questions.push(
+        {
+          question: "Which of the following is a key component of active listening with children?",
+          options: [
+            "Interrupting to correct mistakes",
+            "Maintaining eye contact at their level",
+            "Multitasking while they speak",
+            "Speaking in a louder voice than them"
+          ],
+          correctAnswer: 1
+        },
+        {
+          question: "Why is active listening particularly important for young children?",
+          options: [
+            "It makes classroom management easier",
+            "It builds trust and validates their feelings",
+            "It reduces the time spent in conversation",
+            "It's only important for verbal children"
+          ],
+          correctAnswer: 1
+        },
+        {
+          question: "What should you do when a child is speaking to you?",
+          options: [
+            "Think about your response while they talk",
+            "Stop what you're doing and give full attention",
+            "Correct grammar mistakes as they occur",
+            "Keep working while listening"
+          ],
+          correctAnswer: 1
+        }
+      );
+    } else if (selectedLesson.category === 'quick-transition-techniques') {
+      questions.push(
+        {
+          question: "What is the main purpose of transition techniques in a preschool classroom?",
+          options: [
+            "To give teachers a break",
+            "To smoothly move children between activities and reduce disruption",
+            "To discipline children who aren't following directions",
+            "To extend activity time"
+          ],
+          correctAnswer: 1
+        },
+        {
+          question: "Which transition technique uses sound cues?",
+          options: [
+            "Visual countdown cards",
+            "Hand signals",
+            "Singing a cleanup song",
+            "Whispering instructions"
+          ],
+          correctAnswer: 2
+        },
+        {
+          question: "Why is it important to give a warning before transitions?",
+          options: [
+            "To make sure children have time to mentally prepare for change",
+            "To allow teachers time to set up the next activity",
+            "It's not important - transitions should be surprising",
+            "To test children's ability to follow directions quickly"
+          ],
+          correctAnswer: 0
+        }
+      );
+    } else if (selectedLesson.category === 'mindful-mornings') {
+      questions.push(
+        {
+          question: "What is a benefit of starting the day with mindfulness?",
+          options: [
+            "It eliminates the need for lesson planning",
+            "It creates a calm, focused atmosphere for learning",
+            "It takes up time in the schedule",
+            "It makes children tired so they nap better"
+          ],
+          correctAnswer: 1
+        },
+        {
+          question: "Which of these is a simple mindfulness technique for young children?",
+          options: [
+            "Complex meditation mantras",
+            "Deep breathing with a visual aid like a stuffed animal on their belly",
+            "Extended periods of complete silence",
+            "Competitive relaxation games"
+          ],
+          correctAnswer: 1
+        },
+        {
+          question: "How long should a mindfulness activity last for preschoolers?",
+          options: [
+            "30-45 minutes",
+            "15-30 minutes",
+            "3-7 minutes",
+            "At least an hour"
+          ],
+          correctAnswer: 2
+        }
+      );
+    } else {
+      // Generic questions for other categories
+      questions.push(
+        {
+          question: `What is the main focus of the "${selectedLesson.title}" mini-lesson?`,
+          options: [
+            "Building administrative skills",
+            "Classroom decoration techniques",
+            `${selectedLesson.description.split(".")[0]}`,
+            "Paperwork management"
+          ],
+          correctAnswer: 2
+        },
+        {
+          question: "How can this knowledge help you in your teaching practice?",
+          options: [
+            "It has little practical application",
+            "It helps create a better learning environment for children",
+            "It's mainly for theoretical knowledge",
+            "It only helps with specific children"
+          ],
+          correctAnswer: 1
+        },
+        {
+          question: "What makes this topic important in early childhood education?",
+          options: [
+            "It's required by regulations but not important",
+            "It helps develop foundational skills in children",
+            "It's only important for older children",
+            "It's primarily for parent communication"
+          ],
+          correctAnswer: 1
+        }
+      );
+    }
+    
+    // Randomize questions order
+    const shuffledQuestions = [...questions].sort(() => 0.5 - Math.random());
+    setQuizQuestions(shuffledQuestions.slice(0, 5)); // Limit to 5 questions
+    setCurrentQuestionIndex(0);
+    setSelectedAnswers({});
+    setQuizCompleted(false);
+    setQuizScore(0);
+    setBonusPoints(0);
+  };
+  
+  // Function to handle answering a question
+  const handleAnswerSelect = (questionIndex: number, answerIndex: number) => {
+    setSelectedAnswers({
+      ...selectedAnswers,
+      [questionIndex]: answerIndex
+    });
+  };
+  
+  // Function to go to the next question or complete the quiz
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < quizQuestions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    } else {
+      // Calculate score
+      let correctAnswers = 0;
+      Object.entries(selectedAnswers).forEach(([qIndex, answerIndex]) => {
+        const questionIndex = parseInt(qIndex);
+        if (quizQuestions[questionIndex].correctAnswer === answerIndex) {
+          correctAnswers++;
+        }
+      });
+      
+      const score = Math.round((correctAnswers / quizQuestions.length) * 100);
+      setQuizScore(score);
+      
+      // Calculate bonus points based on score
+      const points = Math.floor(score / 20); // 0-5 points based on score
+      setBonusPoints(points);
+      
+      setQuizCompleted(true);
+    }
+  };
   
   // Get mini modules from the API (short duration modules, ≤ 7 minutes)
   const { data: allModules = [], isLoading: modulesLoading, isError: modulesError } = useQuery({
@@ -534,7 +762,7 @@ export function MiniLessons() {
                             <iframe 
                               width="100%" 
                               height="100%" 
-                              src="https://www.youtube.com/embed/r0XXqhYIGlk" 
+                              src="https://www.youtube.com/embed/bWte1oMd4Qk" 
                               title="Transition Techniques" 
                               frameBorder="0" 
                               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -592,7 +820,7 @@ export function MiniLessons() {
                             <iframe 
                               width="100%" 
                               height="100%" 
-                              src="https://www.youtube.com/embed/0vuaCfEjp_4" 
+                              src="https://www.youtube.com/embed/ryuuaifO8MQ" 
                               title="Morning Mindfulness for Children" 
                               frameBorder="0" 
                               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -640,7 +868,7 @@ export function MiniLessons() {
                             <iframe 
                               width="100%" 
                               height="100%" 
-                              src="https://www.youtube.com/embed/3_dAkDsBQyk" 
+                              src="https://www.youtube.com/embed/owppju3jwPE" 
                               title="Active Listening Skills for Preschool" 
                               frameBorder="0" 
                               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -682,7 +910,7 @@ export function MiniLessons() {
                             <iframe 
                               width="100%" 
                               height="100%" 
-                              src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+                              src="https://www.youtube.com/embed/Z4aD4RKoeLU" 
                               title={selectedLesson.title} 
                               frameBorder="0" 
                               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
