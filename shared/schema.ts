@@ -103,6 +103,14 @@ export const assessments = pgTable("assessments", {
   growthAreas: json("growth_areas").$type<string[]>(),
   incorrectAnswers: json("incorrect_answers").$type<Record<string, string[]>>(),
   recommendedModules: json("recommended_modules").$type<number[]>(),
+  personalizedLearningPath: json("personalized_learning_path").$type<Array<{
+    domainId: string;
+    domainName: string;
+    priority: 'high' | 'medium' | 'low' | 'suggested';
+    recommendation: string;
+    moduleType: 'foundational' | 'intermediate' | 'advanced' | 'mastery';
+    reason: string;
+  }>>(),
   createdAt: timestamp("created_at").defaultNow(),
   assessmentType: text("assessment_type").default("ITERS_ECERS_CLASS"),
   notes: text("notes"),

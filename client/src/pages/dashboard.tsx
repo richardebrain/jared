@@ -32,6 +32,9 @@ const domains = [
   { id: 'curriculum-planning', name: 'Curriculum Planning' }
 ];
 
+// Define the BearBuck conversion rate
+const POINTS_PER_BEAR_BUCK = 20;
+
 export default function Dashboard() {
   const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
   const [showSpinWheel, setShowSpinWheel] = useState(false);
@@ -48,31 +51,41 @@ export default function Dashboard() {
     retry: 3
   });
   
-  const { data: modules } = useQuery({
+  const { data: modules } = useQuery({ 
     queryKey: ["/api/modules"],
+    enabled: !!user,
     retry: 3
   });
   
-  const { data: meetings } = useQuery({
+  const { data: meetings } = useQuery({ 
     queryKey: ["/api/meetings"],
     enabled: !!user,
     retry: 3
   });
   
-  // Query the user's assessment status
-  const { data: assessments } = useQuery({
+  const { data: assessments } = useQuery({ 
     queryKey: ["/api/assessments"],
     enabled: !!user,
     retry: 3
   });
   
-  // Check if user has completed at least one assessment
-  const hasCompletedAssessment = Array.isArray(assessments) && assessments.some(
-    assessment => assessment.completed
-  );
+  const { data: storeItems } = useQuery({ 
+    queryKey: ["/api/store"],
+    enabled: !!user,
+    retry: 3
+  });
   
-  // Find recommended lessons based on assessment results
-  const recommendedLessons = useMemo(() => {
+  // Determine if the user has completed an assessment
+  const hasCompletedAssessment = useMemo(() => {
+    if (!assessments) {
+      return false;
+    }
+    
+    return assessments.length > 0 && assessments.some((assessment) => assessment.completed);
+  }, [assessments]);
+  
+  // Get recommended modules based on assessment results
+  const getRecommendedModules = () => {
     if (!hasCompletedAssessment || !modules || !assessments || assessments.length === 0) {
       return [];
     }
@@ -80,12 +93,15 @@ export default function Dashboard() {
     // Get the most recent assessment
     const latestAssessment = assessments[assessments.length - 1];
     
+    // Extract personalized learning path if available
+    const personalizedLearningPath = latestAssessment.personalizedLearningPath || [];
+    
     // Extract domain priorities from incorrectAnswers field if available
-    let sortedDomains: string[] = [];
+    let sortedDomains = [];
     
     if (latestAssessment.incorrectAnswers) {
       // Use the precomputed incorrect answers by domain
-      const domainCounts: Record<string, number> = {};
+      const domainCounts = {};
       
       // Count number of incorrect answers per domain
       Object.entries(latestAssessment.incorrectAnswers as Record<string, string[]>).forEach(([domain, questions]) => {
@@ -101,7 +117,7 @@ export default function Dashboard() {
       sortedDomains = latestAssessment.growthAreas;
     } else if (latestAssessment.results) {
       // Legacy fallback: analyze results manually if incorrectAnswers not available
-      const incorrectAnswersList: {questionId: string; domain: string}[] = [];
+      const incorrectAnswersList = [];
       
       // Extract domain from question ID pattern (like "classroom-management-beginner-1")
       Object.entries(latestAssessment.results).forEach(([questionId, answer]) => {
@@ -116,84 +132,105 @@ export default function Dashboard() {
       });
       
       // Count domains with incorrect answers
-      const domainCounts: Record<string, number> = {};
+      const domainCounts = {};
       incorrectAnswersList.forEach(({ domain }) => {
         domainCounts[domain] = (domainCounts[domain] || 0) + 1;
       });
       
-      // Sort domains by number of incorrect answers (descending)
+      // Sort domains by number of incorrect answers
       sortedDomains = Object.entries(domainCounts)
         .sort((a, b) => b[1] - a[1])
         .map(([domain]) => domain);
     }
     
-    // Find modules related to the priority domains
-    const recommendedModules = modules.filter(module => {
-      // Match modules to domains based on keywords in title or description
-      const moduleText = `${module.title.toLowerCase()} ${module.description.toLowerCase()}`;
-      
-      // Check if module matches any of the top domains with incorrect answers
-      return sortedDomains.some(domain => {
-        const domainInfo = domains.find(d => d.id === domain);
-        return domainInfo && moduleText.includes(domainInfo.name.toLowerCase());
-      });
-    });
+    // Get modules recommended for these priority domains
+    // Start with explicitly recommended modules if available
+    let recommendedModules = [];
     
-    // If there are no direct domain matches, use difficulty-based recommendations
-    if (recommendedModules.length === 0 && modules.length > 0) {
-      return modules
-        .filter(module => module.difficulty === 'beginner')
-        .sort((a, b) => a.id - b.id)
-        .slice(0, 3);
+    if (latestAssessment.recommendedModules && latestAssessment.recommendedModules.length > 0) {
+      // Get module objects by ID
+      recommendedModules = modules.filter(module => 
+        latestAssessment.recommendedModules.includes(module.id)
+      );
     }
     
-    // Return top 3 recommended modules
-    return recommendedModules.slice(0, 3);
+    // If no explicit recommendations, select modules based on domains
+    if (recommendedModules.length === 0) {
+      // First get 1-2 foundational modules for each prioritized domain
+      sortedDomains.slice(0, 3).forEach(domain => {
+        const domainModules = modules.filter(module => 
+          module.domain === domain && module.difficulty === 'foundational'
+        ).sort((a, b) => a.id - b.id);
+        
+        // Add up to 2 foundational modules per domain
+        recommendedModules = [...recommendedModules, ...domainModules.slice(0, 2)];
+      });
+    }
+    
+    return recommendedModules;
+  };
+  
+  // Calculate total modules
+  const totalModulesCount = modules ? modules.length : 0;
+  
+  // Calculate the user's overall progress
+  const overallProgress = useMemo(() => {
+    if (!userProgress || !modules) {
+      return 0;
+    }
+    
+    const completedModulesCount = userProgress.reduce((acc, curr) => {
+      return curr.completed ? acc + 1 : acc;
+    }, 0);
+    
+    return Math.round((completedModulesCount / totalModulesCount) * 100);
+  }, [userProgress, modules, totalModulesCount]);
+  
+  // Get modules in progress 
+  const inProgressModules = useMemo(() => {
+    if (!modules || !userProgress) {
+      return [];
+    }
+    
+    return modules.filter(module => 
+      userProgress.some(progress => 
+        progress.moduleId === module.id && progress.progress > 0 && !progress.completed
+      )
+    );
+  }, [modules, userProgress]);
+  
+  // Get completed modules
+  const completedModules = useMemo(() => {
+    if (!modules || !userProgress) {
+      return [];
+    }
+    
+    return modules.filter(module => 
+      userProgress.some(progress => 
+        progress.moduleId === module.id && progress.completed
+      )
+    );
+  }, [modules, userProgress]);
+  
+  // Get recommended modules
+  const recommendedModules = useMemo(() => {
+    if (!hasCompletedAssessment) {
+      return [];
+    }
+    
+    return getRecommendedModules();
   }, [hasCompletedAssessment, modules, assessments]);
   
-  // Debug logging for authentication issues
-  console.log("[Dashboard] Authentication state:", { 
-    user, 
-    isLoadingUser, 
-    isUserError,
-    userProgress,
-    modules,
-    meetings,
-    assessments,
-    hasCompletedAssessment
-  });
-
-  // Calculate overall progress
-  const overallProgress = userProgress?.length 
-    ? Math.round(userProgress.reduce((acc, curr) => acc + curr.progress, 0) / userProgress.length) 
-    : 0;
-
-  // Progress stats
-  const progressStats = [
-    { label: "Modules", value: 75, color: "secondary" },
-    { label: "Quizzes", value: 42, color: "primary" },
-    { label: "Activities", value: 58, color: "accent" },
-    { label: "Meetings", value: 20, color: "destructive" }
-  ];
-
-  // Get in-progress courses
-  const inProgressCourses = modules?.filter(module => 
-    userProgress?.some(progress => 
-      progress.moduleId === module.id && progress.progress > 0 && !progress.completed
-    )
-  ) || [];
-
-  // Get recommended courses
-  const recommendedCourses = modules?.filter(module => 
-    !userProgress?.some(progress => 
-      progress.moduleId === module.id
-    )
-  ).slice(0, 3) || [];
-  
-  // Get Mindful Mornings modules
-  const mindfulMorningsModules = modules?.filter(module => 
-    module.category === 'mindful-mornings'
-  ) || [];
+  // Get modules that haven't been started yet
+  const notStartedModules = useMemo(() => {
+    if (!modules || !userProgress) {
+      return [];
+    }
+    
+    return modules.filter(module => 
+      !userProgress.some(progress => progress.moduleId === module.id)
+    );
+  }, [modules, userProgress]);
   
   // Get Core Values modules, including the LEGO-themed "Building a Child" module
   const coreValuesModules = modules?.filter(module => 
@@ -227,6 +264,38 @@ export default function Dashboard() {
       </div>
     );
   }
+  
+  // Calculate Bear Bucks based on points
+  const calculateBearBucks = (points: number) => {
+    return Math.floor(points / POINTS_PER_BEAR_BUCK);
+  };
+  
+  // Progress stats for the dashboard
+  const progressStats = [
+    { 
+      label: "Completed", 
+      value: completedModules?.length || 0, 
+      color: "primary" 
+    },
+    { 
+      label: "In Progress", 
+      value: inProgressModules?.length || 0, 
+      color: "secondary" 
+    },
+    { 
+      label: "To Start", 
+      value: notStartedModules?.length || 0, 
+      color: "accent" 
+    },
+    { 
+      label: "Overall", 
+      value: overallProgress || 0, 
+      color: "destructive" 
+    }
+  ];
+
+  // Slice the in-progress courses to display only a few
+  const inProgressCourses = inProgressModules?.slice(0, 3) || [];
   
   return (
     <div className="min-h-screen bg-neutral-100">
@@ -269,15 +338,24 @@ export default function Dashboard() {
                 </div>
               </div>
             ) : (
-              /* Removed personalized learning path - now appears under progress meter */
-              <div className="bg-primary/10 rounded-xl p-4 text-center">
-                <h3 className="font-bold text-primary mb-2">Your assessment is complete!</h3>
-                <p className="text-sm mb-3">Check out your personalized learning path in the sidebar.</p>
-                <Link to="/modules">
-                  <Button variant="outline" size="sm">
-                    Browse All Modules
-                  </Button>
-                </Link>
+              <div className="mb-6">
+                {/* Add personalized learning path component */}
+                {assessments && assessments.length > 0 && assessments[assessments.length - 1].personalizedLearningPath && 
+                 assessments[assessments.length - 1].personalizedLearningPath.length > 0 ? (
+                  <PersonalizedLearningPath 
+                    learningPath={assessments[assessments.length - 1].personalizedLearningPath} 
+                  />
+                ) : (
+                  <div className="bg-primary/10 rounded-xl p-4 text-center">
+                    <h3 className="font-bold text-primary mb-2">Your assessment is complete!</h3>
+                    <p className="text-sm mb-3">Browse our recommended modules to continue your learning journey.</p>
+                    <Link to="/modules">
+                      <Button variant="outline" size="sm">
+                        Browse All Modules
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </div>
             )}
           </section>
@@ -292,68 +370,66 @@ export default function Dashboard() {
                 <path d="M50,10 C70,10 85,25 85,45 C85,65 70,80 50,80 C30,80 15,65 15,45 C15,25 30,10 50,10 Z" fill="currentColor" />
                 <circle cx="35" cy="35" r="5" fill="white" />
                 <circle cx="65" cy="35" r="5" fill="white" />
-                <path d="M40,55 C45,60 55,60 60,55" stroke="white" strokeWidth="2" fill="none" />
+                <path d="M40,60 C45,65 55,65 60,60" stroke="white" strokeWidth="2" fill="none" />
               </svg>
             </div>
-            
-            <div className="flex items-center justify-between flex-wrap relative z-10">
-              <div className="flex items-center">
-                <div className="h-16 w-16 mr-4 relative">
-                  <img 
-                    src={raisingArizonaLogo} 
-                    alt="Raising Arizona Preschool" 
-                    className="h-full w-full object-contain bg-white rounded-full p-1.5 shadow-md"
-                  />
-                  <div className="absolute -top-1 -right-1 w-6 h-6 bg-accent rounded-full flex items-center justify-center border-2 border-white">
-                    <span className="text-xs font-bold text-white">🐻</span>
-                  </div>
-                </div>
-                <div>
-                  <h2 className="text-white font-bold text-xl md:text-2xl font-heading">Raising Arizona Preschool</h2>
-                  <p className="text-white/80 text-xs md:text-sm">Teacher Training Portal • MentorMe</p>
-                </div>
-              </div>
-              <div className="mt-2 md:mt-0 bg-white/10 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/20">
-                <p className="text-white italic font-bold text-base md:text-xl">
-                  "Every Genius that ever was had a Mentor."
+
+            <div className="flex items-center justify-between relative z-10">
+              <div>
+                <h2 className="text-xl md:text-2xl font-bold text-white">Building Chapter One</h2>
+                <p className="text-white/90 md:max-w-lg">
+                  Every interaction with a child is a building block in their story. 
+                  At Raising Arizona, we're committed to making "Chapter One" count!
                 </p>
+              </div>
+              
+              <div className="hidden md:block">
+                <img 
+                  src={raisingArizonaLogo} 
+                  alt="Raising Arizona Logo" 
+                  className="h-20 w-20 object-contain rounded-full bg-white p-2"
+                />
               </div>
             </div>
           </div>
         </section>
         
-        {/* Welcome Section */}
-        <section className="mb-12">
-          <div className="flex flex-col md:flex-row items-start gap-8">
-            <div className="flex-1">
-              <div className="mb-4">
-                <h1 className="text-3xl md:text-4xl font-heading font-bold text-neutral-800">
-                  Welcome back, <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{user?.firstName || 'Learner'}</span>!
-                </h1>
-                <p className="text-neutral-700 mt-2 flex items-center">
-                  <svg className="w-4 h-4 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                  Continue your professional development journey with personalized learning
-                </p>
-              </div>
-              
-              <div className="bg-white rounded-xl shadow-md p-6 mb-6 border-t-4 border-primary">
-                <div className="flex justify-between items-center mb-4">
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mr-3">
-                      <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        {/* Main Dashboard Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Primary Content */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Progress Overview */}
+            {user && (
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-heading font-bold">Your Training Progress</h2>
+                  
+                  {/* Points & Bear Bucks Display */}
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm font-medium">
+                      <svg className="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M16 12l-4 4-4-4M12 8v7" />
                       </svg>
+                      <span>{user.points || 0} Points</span>
                     </div>
-                    <h2 className="text-xl font-heading font-bold text-primary">Your Progress</h2>
-                  </div>
-                  <div className="bg-primary/10 rounded-full px-3 py-1">
-                    <span className="text-sm text-primary font-semibold">{overallProgress}% Completed</span>
+                    
+                    <div className="flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                      <svg className="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
+                        <path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 8 1.79 4 4-1.79 4-4 4z" />
+                      </svg>
+                      <span>{calculateBearBucks(user.points || 0)} Bear Bucks</span>
+                      <span className="ml-1 text-xs">(1 Bear Buck = {POINTS_PER_BEAR_BUCK} Points)</span>
+                    </div>
                   </div>
                 </div>
                 
-                <div className="w-full bg-neutral-200 rounded-full h-4 mb-6 overflow-hidden">
+                <p className="text-neutral-500 mb-4">
+                  Track your training journey and see how far you've come.
+                </p>
+                
+                <div className="w-full bg-neutral-200 rounded-full h-4 mb-6">
                   <div 
                     className="bg-gradient-to-r from-primary to-secondary h-4 rounded-full" 
                     style={{ width: `${overallProgress}%` }}
@@ -372,576 +448,300 @@ export default function Dashboard() {
                   ))}
                 </div>
               </div>
+            )}
+            
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-heading font-bold">Continue Learning</h2>
+                <Link href="/modules" className="text-sm text-primary font-semibold hover:underline">
+                  View All Courses
+                </Link>
+              </div>
               
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-heading font-bold">Continue Learning</h2>
-                  <Link href="/modules" className="text-sm text-primary font-semibold hover:underline">
-                    View All Courses
-                  </Link>
-                </div>
-                
-                <div className="space-y-4">
-                  {inProgressCourses.length > 0 ? (
-                    inProgressCourses.map(course => (
-                      <div
-                        onClick={() => handleModuleSelect(course.id)}
-                        className="border border-neutral-200 rounded-lg p-4 hover:border-primary transition cursor-pointer" 
-                        key={course.id}
-                      >
-                        <div className="flex justify-between">
-                          <div>
-                            <h3 className="font-heading font-semibold">{course.title}</h3>
-                            <div className="flex items-center mt-1">
-                              <div className="w-full bg-neutral-200 rounded-full h-2 mr-2" style={{ maxWidth: "150px" }}>
-                                <div 
-                                  className="bg-primary h-2 rounded-full" 
-                                  style={{ 
-                                    width: `${userProgress?.find(p => p.moduleId === course.id)?.progress || 0}%` 
-                                  }}
-                                ></div>
-                              </div>
-                              <span className="text-xs text-neutral-800">
-                                {userProgress?.find(p => p.moduleId === course.id)?.progress || 0}%
-                              </span>
+              <div className="space-y-4">
+                {inProgressCourses.length > 0 ? (
+                  inProgressCourses.map(course => (
+                    <div
+                      onClick={() => handleModuleSelect(course.id)}
+                      className="border border-neutral-200 rounded-lg p-4 hover:border-primary transition cursor-pointer" 
+                      key={course.id}
+                    >
+                      <div className="flex justify-between">
+                        <div>
+                          <h3 className="font-heading font-semibold">{course.title}</h3>
+                          <div className="flex items-center mt-1">
+                            <div className="w-full bg-neutral-200 rounded-full h-2 mr-2" style={{ maxWidth: "150px" }}>
+                              <div 
+                                className="bg-primary h-2 rounded-full" 
+                                style={{ 
+                                  width: `${userProgress?.find(p => p.moduleId === course.id)?.progress || 0}%` 
+                                }}
+                              />
                             </div>
+                            <span className="text-xs text-neutral-500">
+                              {userProgress?.find(p => p.moduleId === course.id)?.progress || 0}%
+                            </span>
                           </div>
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleModuleSelect(course.id);
-                            }}
-                            className="bg-primary text-white rounded-lg px-3 py-1 text-sm font-semibold hover:bg-opacity-90 transition"
-                          >
-                            Resume
-                          </button>
+                        </div>
+                        <div className="bg-primary/10 text-primary rounded-full px-3 py-1 text-xs font-medium self-start">
+                          {course.difficulty}
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-6">
-                      <p className="text-muted-foreground">No courses in progress. Start learning today!</p>
-                      <Link href="/assessment">
-                        <button className="mt-4 bg-primary text-white rounded-lg px-4 py-2 text-sm font-semibold hover:bg-opacity-90 transition">
-                          Take Assessment
-                        </button>
-                      </Link>
                     </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            
-            <div className="w-full md:w-80 space-y-6">
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <h2 className="text-xl font-heading font-bold mb-4">Your Teacher Level</h2>
-                <div className="flex items-center justify-center mb-4">
-                  <div className="w-20 h-20 rounded-full bg-[#e6ecff] mx-auto flex items-center justify-center border-4 border-[#0030b8]">
-                    <i className="ri-award-line text-2xl text-[#0030b8]"></i>
-                  </div>
-                </div>
-                <div className="text-center mb-4">
-                  <p className="font-bold text-lg text-[#0030b8]">Assistant Teacher</p>
-                  <p className="text-sm text-gray-600">Level 1 of 4</p>
-                </div>
-                
-                <div className="w-full bg-neutral-200 rounded-full h-2 mb-6">
-                  <div className="bg-[#0030b8] h-2 rounded-full" style={{ width: "25%" }}></div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-full bg-[#e6ecff] flex items-center justify-center mr-3">
-                      <i className="ri-checkbox-circle-fill text-[#0030b8]"></i>
-                    </div>
-                    <span className="text-sm">Assistant Teacher</span>
-                    <span className="ml-auto text-xs bg-[#e6ecff] text-[#0030b8] px-2 py-1 rounded-full">Current</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center mr-3">
-                      <span className="text-xs font-bold">2</span>
-                    </div>
-                    <span className="text-sm text-neutral-600">Lead Teacher</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center mr-3">
-                      <span className="text-xs font-bold">3</span>
-                    </div>
-                    <span className="text-sm text-neutral-600">Senior Teacher</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center mr-3">
-                      <span className="text-xs font-bold">4</span>
-                    </div>
-                    <span className="text-sm text-neutral-600">Master Lead Teacher</span>
-                    <span className="ml-auto text-xs bg-neutral-200 text-neutral-600 px-2 py-1 rounded-full">Top Level</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <h2 className="text-xl font-heading font-bold mb-4">Upcoming Meetings</h2>
-                {upcomingMeetings.length > 0 ? (
-                  <div className="space-y-3">
-                    {upcomingMeetings.map(meeting => (
-                      <div className="border-l-4 border-primary pl-3" key={meeting.id}>
-                        <p className="font-semibold text-sm">{meeting.title}</p>
-                        <p className="text-xs text-neutral-800">
-                          {new Date(meeting.startTime).toLocaleDateString()} at {new Date(meeting.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
+                  ))
                 ) : (
-                  <div className="text-center py-2">
-                    <p className="text-muted-foreground text-sm">No upcoming meetings</p>
-                    <Link href="/schedule">
-                      <button className="mt-4 bg-primary text-white rounded-lg px-4 py-2 text-sm font-semibold hover:bg-opacity-90 transition w-full">
-                        Schedule Meeting
-                      </button>
+                  <div className="text-center py-8">
+                    <div className="bg-neutral-100 inline-flex rounded-full p-3 mb-3">
+                      <svg 
+                        className="h-6 w-6 text-neutral-500" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        stroke="currentColor"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={2} 
+                          d="M12 6v6m0 0v6m0-6h6m-6 0H6" 
+                        />
+                      </svg>
+                    </div>
+                    <h3 className="font-medium mb-1">No modules in progress</h3>
+                    <p className="text-sm text-neutral-500 mb-4">Start a new module to continue your learning journey</p>
+                    <Link to="/modules">
+                      <Button size="sm">Browse Modules</Button>
                     </Link>
                   </div>
                 )}
               </div>
-              
-
-              {/* Spin & Win Game Section */}
-              <div className="bg-gradient-to-r from-amber-100 to-yellow-200 rounded-xl p-6">
-                <div className="flex items-start">
-                  <div className="mr-3 mt-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-600">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="M12 6v6l4 2"></path>
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-heading font-bold text-amber-800">Gift Box Rewards!</h3>
-                    <p className="text-sm my-2 text-amber-900">Complete modules and login daily for chances to win points, Bear Bucks, and monthly grand prizes!</p>
-                    <Dialog open={showSpinWheel} onOpenChange={setShowSpinWheel}>
-                      <DialogTrigger asChild>
-                        <button className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-lg px-4 py-2 text-sm font-semibold hover:from-amber-600 hover:to-yellow-600 transition mt-2 w-full shadow-md">
-                          Open Gift Box
-                        </button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-md border-amber-200">
-                        <GiftBoxGame canOpen={true} onComplete={() => setShowSpinWheel(false)} />
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        
-
-        
-        {/* Learning Modules */}
-        <section className="mb-12">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-heading font-bold">Learning Modules</h2>
-            <div className="flex space-x-2">
-              <button className="text-neutral-800 hover:text-primary transition">
-                <i className="ri-filter-3-line text-xl"></i>
-              </button>
-              <button className="text-neutral-800 hover:text-primary transition">
-                <i className="ri-search-line text-xl"></i>
-              </button>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="col-span-1 md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {modules?.slice(0, 4).map(module => (
-                <ModuleCard key={module.id} module={module} progress={userProgress?.find(p => p.moduleId === module.id)?.progress || 0} />
-              ))}
             </div>
             
-            {/* Right sidebar with featured content */}
-            <div className="col-span-1">
-              {/* Raising Arizona Preschool Monthly Newsletter */}
-              <MonthlyNewsletter />
-              
-              <div className="bg-neutral-50 rounded-xl p-6 mb-6 border-2 border-[#ff8c24] border-opacity-30">
-                <h3 className="font-heading font-bold text-lg mb-4 text-[#ff8c24]">Achievement Level</h3>
-                <div className="flex flex-col items-center">
-                  <div className="h-24 w-24 flex items-center justify-center rounded-full bg-gradient-to-r from-[#ff8c24] to-[#0030b8] mb-4">
-                    <div className="h-20 w-20 rounded-full bg-white flex items-center justify-center">
-                      <span className="text-3xl font-bold text-[#0030b8]">
-                        {Math.round(overallProgress/20) || 1}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <h4 className="font-bold text-lg mb-1">
-                      {overallProgress >= 80 ? "Master Lead Teacher" :
-                       overallProgress >= 60 ? "Lead Teacher" :
-                       overallProgress >= 40 ? "Associate Teacher" :
-                       overallProgress >= 20 ? "Assistant Teacher" : 
-                       "Teacher in Training"}
-                    </h4>
-                    <p className="text-sm text-neutral-600 mb-3">
-                      {overallProgress >= 80 ? "Amazing! You've mastered the content." :
-                       overallProgress >= 60 ? "Great progress! Almost at master level." :
-                       overallProgress >= 40 ? "Good progress! Keep learning." :
-                       overallProgress >= 20 ? "You're on your way! Keep going." : 
-                       "Just getting started. Welcome!"}
-                    </p>
-                    <div className="w-full bg-neutral-200 rounded-full h-3 mb-1">
-                      <div 
-                        className="bg-gradient-to-r from-[#ff8c24] to-[#0030b8] h-3 rounded-full" 
-                        style={{ width: `${overallProgress}%` }}
-                      ></div>
-                    </div>
-                    <span className="text-xs text-neutral-500">
-                      {overallProgress}% to next level
-                    </span>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Media Resources Section */}
-              <div className="bg-white rounded-xl overflow-hidden mb-6 shadow-md">
-                <MediaSidebar />
-              </div>
-              
-              {/* Suessify Generator - NEW */}
-              <div className="mb-6">
-                <SuessifyGenerator />
-              </div>
-              
-              {/* Learning Stats */}
-              <div className="bg-neutral-100 rounded-xl p-6 mb-6">
-                <h3 className="font-heading font-bold text-lg mb-4">Learning Stats</h3>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm font-semibold">Time Spent Learning</span>
-                      <span className="text-sm font-bold">12.5 hours</span>
-                    </div>
-                    <div className="w-full bg-neutral-200 rounded-full h-2">
-                      <div className="bg-primary h-2 rounded-full" style={{ width: "62%" }}></div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm font-semibold">Modules Completed</span>
-                      <span className="text-sm font-bold">
-                        {userProgress?.filter(p => p.completed).length || 0}/{modules?.length || 0}
-                      </span>
-                    </div>
-                    <div className="w-full bg-neutral-200 rounded-full h-2">
-                      <div 
-                        className="bg-secondary h-2 rounded-full" 
-                        style={{ 
-                          width: modules?.length 
-                            ? `${((userProgress?.filter(p => p.completed).length || 0) / modules.length) * 100}%` 
-                            : "0%" 
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm font-semibold">Quiz Accuracy</span>
-                      <span className="text-sm font-bold">78%</span>
-                    </div>
-                    <div className="w-full bg-neutral-200 rounded-full h-2">
-                      <div className="bg-accent h-2 rounded-full" style={{ width: "78%" }}></div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm font-semibold">Meetings Completed</span>
-                      <span className="text-sm font-bold">
-                        {meetings?.filter(m => m.status === "completed").length || 0}
-                      </span>
-                    </div>
-                    <div className="w-full bg-neutral-200 rounded-full h-2">
-                      <div 
-                        className="bg-primary h-2 rounded-full" 
-                        style={{ width: "42%" }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Personalized Learning Path Section (moved under progress meter) */}
-              <div className="bg-white rounded-xl shadow-md p-6 mb-6 border border-primary/10">
-                <div className="flex items-center mb-4">
-                  <div className="bg-primary/10 p-2 rounded-full mr-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
-                      <path d="M9 18l6-6-6-6"/>
-                    </svg>
-                  </div>
-                  <h3 className="font-heading font-bold text-lg">Personalized Learning Path</h3>
-                </div>
-                
-                <div className="space-y-3 mb-4">
-                  <p className="text-sm text-neutral-600">
-                    Based on your progress and learning style, we recommend these modules:
-                  </p>
-                  
-                  {recommendedCourses.slice(0, 3).map((module) => (
-                    <div 
-                      key={module.id}
-                      onClick={() => handleModuleSelect(module.id)}
-                      className="border border-neutral-200 bg-neutral-50 rounded-lg p-3 hover:border-primary hover:bg-primary/5 transition cursor-pointer"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`h-8 w-8 rounded-full flex items-center justify-center text-white ${
-                          module.category === "speaking" ? "bg-primary" : 
-                          module.category === "grammar" ? "bg-secondary" : 
-                          "bg-accent"
-                        }`}>
-                          <span className="text-xs font-semibold">{module.title.charAt(0)}</span>
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-sm line-clamp-1">{module.title}</h4>
-                          <div className="flex items-center mt-1 gap-3">
-                            <span className="text-xs text-muted-foreground flex items-center">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
-                              </svg>
-                              {module.duration} min
-                            </span>
-                            <span className="text-xs text-muted-foreground capitalize">{module.difficulty}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                <Link to="/modules">
-                  <Button variant="outline" size="sm" className="w-full">
-                    View Complete Learning Path
-                  </Button>
+            {/* Upcoming Events/Meetings */}
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-heading font-bold">Upcoming Events</h2>
+                <Link href="/meetings" className="text-sm text-primary font-semibold hover:underline">
+                  View All
                 </Link>
               </div>
               
-              {/* Leaderboard Section */}
-              <Leaderboard />
-            </div>
-          </div>
-        </section>
-        
-        {/* Mindful Mornings Section */}
-        <section className="mb-12">
-          <div className="bg-[#f5f8ff] rounded-xl p-8 border-2 border-primary shadow-lg">
-            <div className="flex flex-col md:flex-row items-center">
-              <div className="flex-1 mb-6 md:mb-0 md:mr-8">
-                <div className="flex items-center mb-4">
-                  <div className="relative">
-                    <img 
-                      src={mindfulMorningsLogo} 
-                      alt="Mindful Mornings" 
-                      className="h-20 mr-4 rounded-lg shadow-md"
-                    />
-                    <div className="absolute -top-2 -right-2 bg-[#ff8c24] text-white text-xs px-2 py-1 rounded-full font-bold">
-                      Featured
+              <div className="space-y-4">
+                {upcomingMeetings.length > 0 ? (
+                  upcomingMeetings.map(meeting => (
+                    <div className="border border-neutral-200 rounded-lg p-4" key={meeting.id}>
+                      <div className="flex flex-col md:flex-row md:justify-between">
+                        <div>
+                          <h3 className="font-heading font-semibold mb-1">{meeting.title}</h3>
+                          <p className="text-sm text-neutral-600">{meeting.description?.slice(0, 100)}...</p>
+                        </div>
+                        <div className="mt-2 md:mt-0 md:ml-4 flex flex-col items-start md:items-end">
+                          <div className="bg-primary/10 text-primary rounded-full px-3 py-1 text-xs font-medium mb-1">
+                            {new Date(meeting.startTime).toLocaleDateString()}
+                          </div>
+                          <span className="text-xs text-neutral-500">
+                            {new Date(meeting.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-heading font-bold bg-gradient-to-r from-primary to-[#ff8c24] bg-clip-text text-transparent">
-                      Mindful Mornings
-                    </h2>
-                    <p className="text-sm italic font-medium">A Raising Arizona exclusive program</p>
-                  </div>
-                </div>
-                <p className="mb-6 text-[#333]">Start each day with purpose and calm. Our Mindful Mornings program helps teachers develop emotional regulation, positive self-image, and gratitude practices to share with children.</p>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  {mindfulMorningsModules.length > 0 && (
-                    <button 
-                      onClick={() => handleModuleSelect(mindfulMorningsModules[0].id)}
-                      className="bg-gradient-to-r from-primary to-[#ff8c24] text-white rounded-lg px-6 py-3 font-semibold hover:opacity-90 transition shadow-md"
-                    >
-                      Start Training
-                    </button>
-                  )}
-                  <button className="border-2 border-primary text-primary rounded-lg px-6 py-3 font-semibold hover:bg-primary/10 transition">
-                    Program Details
-                  </button>
-                </div>
-              </div>
-              
-              <div className="w-full md:w-1/3">
-                <div className="bg-white p-6 rounded-lg shadow-md border border-primary/20">
-                  <div className="flex items-center mb-4">
-                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center mr-3">
-                      <span className="text-primary font-bold">🌟</span>
-                    </div>
-                    <h3 className="font-semibold text-primary">Training Modules</h3>
-                  </div>
-                  <div className="pl-11">
-                    <p className="text-xs text-neutral-600 mb-4 italic">Memorize "Breathe, Smile, Be Present" for lunch reward!</p>
-                  </div>
-                  <ul className="space-y-3">
-                    {mindfulMorningsModules.map((module) => (
-                      <li 
-                        key={module.id} 
-                        className="flex items-center bg-neutral-50 p-2 rounded-md border-l-4 border-primary"
-                        onClick={() => handleModuleSelect(module.id)}
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="bg-neutral-100 inline-flex rounded-full p-3 mb-3">
+                      <svg 
+                        className="h-6 w-6 text-neutral-500" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        stroke="currentColor"
                       >
-                        <span className="text-sm hover:text-primary font-medium cursor-pointer transition w-full">
-                          {module.title}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        
-        {/* Building a Child: Block by Block Section */}
-        <section className="mb-12">
-          <div className="bg-[#fff9f0] rounded-xl p-8 border-2 border-[#ff8c24] shadow-lg">
-            <div className="flex flex-col md:flex-row items-center">
-              <div className="flex-1 mb-6 md:mb-0 md:mr-8">
-                <div className="flex items-center mb-4">
-                  <div className="relative">
-                    <div className="h-20 w-20 mr-4 rounded-lg shadow-md bg-[#ff8c24] flex items-center justify-center">
-                      <span className="text-4xl">🧱</span>
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={2} 
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" 
+                        />
+                      </svg>
                     </div>
-                    <div className="absolute -top-2 -right-2 bg-primary text-white text-xs px-2 py-1 rounded-full font-bold">
-                      New
-                    </div>
+                    <h3 className="font-medium mb-1">No upcoming events</h3>
+                    <p className="text-sm text-neutral-500 mb-4">Events and trainings will appear here</p>
                   </div>
-                  <div>
-                    <h2 className="text-2xl font-heading font-bold bg-gradient-to-r from-[#ff8c24] to-primary bg-clip-text text-transparent">
-                      Building a Child: Block by Block
-                    </h2>
-                    <p className="text-sm italic font-medium">Creating life stories through daily interactions</p>
-                  </div>
-                </div>
-                <p className="mb-6 text-[#333]">Learn how teachers build a child's story block by block through their daily interactions. Each colorful LEGO block represents a different aspect of child development that contributes to their life narrative.</p>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  {coreValuesModules.length > 0 && (
-                    <Link to="/building-child">
-                      <button 
-                        className="bg-gradient-to-r from-[#ff8c24] to-primary text-white rounded-lg px-6 py-3 font-semibold hover:opacity-90 transition shadow-md"
-                      >
-                        Start Building
-                      </button>
-                    </Link>
-                  )}
-                  <button className="border-2 border-[#ff8c24] text-[#ff8c24] rounded-lg px-6 py-3 font-semibold hover:bg-[#ff8c24]/10 transition">
-                    Learn More
-                  </button>
-                </div>
-              </div>
-              
-              <div className="w-full md:w-1/3">
-                <div className="bg-white p-6 rounded-lg shadow-md border border-[#ff8c24]/20">
-                  <div className="flex items-center mb-4">
-                    <div className="w-8 h-8 rounded-full bg-[#ff8c24]/20 flex items-center justify-center mr-3">
-                      <span className="text-[#ff8c24] font-bold">🧩</span>
-                    </div>
-                    <h3 className="font-semibold text-[#ff8c24]">Building Blocks</h3>
-                  </div>
-                  <div className="pl-11">
-                    <p className="text-xs text-neutral-600 mb-4 italic">Each block represents a chapter in a child's life story!</p>
-                  </div>
-                  <ul className="space-y-3">
-                    {coreValuesModules.map((module) => (
-                      <li 
-                        key={module.id} 
-                        className="flex items-center bg-neutral-50 p-2 rounded-md border-l-4 border-[#ff8c24]"
-                        onClick={() => handleModuleSelect(module.id)}
-                      >
-                        <span className="text-sm hover:text-[#ff8c24] font-medium cursor-pointer transition w-full">
-                          {module.title}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
-      
-      {/* Footer with motto */}
-      <footer className="mt-8 border-t border-neutral-200">
-        <div className="bg-primary/5 py-6">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col md:flex-row justify-between items-center">
-              <div className="flex items-center mb-4 md:mb-0">
-                <div className="relative mr-3">
-                  <img 
-                    src={raisingArizonaLogo} 
-                    alt="Raising Arizona Preschool" 
-                    className="h-14 w-14 object-contain bg-white rounded-lg p-1 shadow-md border border-primary/20"
-                  />
-                  <svg className="absolute -top-2 -right-2 w-8 h-8 text-primary" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" fill="white"/>
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm4 0h-2v-6h2v6zm1-9.5c0 .83-.67 1.5-1.5 1.5h-5c-.83 0-1.5-.67-1.5-1.5V6c0-.83.67-1.5 1.5-1.5h5c.83 0 1.5.67 1.5 1.5v1.5z" fill="currentColor"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-bold text-lg text-primary">Raising Arizona Preschool</h3>
-                  <p className="text-neutral-600 text-sm flex items-center">
-                    <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    Training tomorrow's educators today
-                  </p>
-                </div>
-              </div>
-              
-              <div className="text-center md:text-right">
-                <div className="inline-block bg-gradient-to-r from-primary to-secondary p-[2px] rounded-lg mb-2">
-                  <div className="bg-white px-4 py-2 rounded-[6px]">
-                    <p className="font-heading font-bold text-lg italic bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                      "Every Genius that ever was had a Mentor."
-                    </p>
-                  </div>
-                </div>
-                <p className="text-neutral-600 text-sm">
-                  &copy; {new Date().getFullYear()} Raising Arizona Preschool | MentorMe Platform
-                </p>
+                )}
               </div>
             </div>
             
-            <div className="mt-6 pt-6 border-t border-neutral-200 flex flex-col md:flex-row justify-between items-center">
-              <ul className="flex space-x-6 mb-4 md:mb-0">
-                <li><Link to="/discussions" className="text-sm text-primary hover:text-secondary">Teacher Discussions</Link></li>
-                <li><a href="#" className="text-sm text-primary hover:text-secondary">About Us</a></li>
-                <li><a href="#" className="text-sm text-primary hover:text-secondary">Contact</a></li>
-                <li><a href="#" className="text-sm text-primary hover:text-secondary">Privacy Policy</a></li>
-                <li><a href="#" className="text-sm text-primary hover:text-secondary">Terms of Service</a></li>
-              </ul>
-              <div className="flex space-x-3">
-                <a href="#" className="w-8 h-8 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z" />
-                  </svg>
-                </a>
-                <a href="#" className="w-8 h-8 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723 10.1 10.1 0 01-3.127 1.184 4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
-                  </svg>
-                </a>
-                <a href="#" className="w-8 h-8 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678c-3.405 0-6.162 2.76-6.162 6.162 0 3.405 2.76 6.162 6.162 6.162 3.405 0 6.162-2.76 6.162-6.162 0-3.405-2.76-6.162-6.162-6.162zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405c0 .795-.646 1.44-1.44 1.44-.795 0-1.44-.646-1.44-1.44 0-.794.646-1.439 1.44-1.439.793-.001 1.44.645 1.44 1.439z" />
-                  </svg>
-                </a>
+            {/* Recommended Courses */}
+            {recommendedModules && recommendedModules.length > 0 && (
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-heading font-bold">Recommended For You</h2>
+                  <Link href="/modules" className="text-sm text-primary font-semibold hover:underline">
+                    View All
+                  </Link>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {recommendedModules.slice(0, 3).map(module => (
+                    <ModuleCard 
+                      key={module.id}
+                      module={module}
+                      progress={userProgress?.find(p => p.moduleId === module.id)?.progress || 0}
+                      onClick={() => handleModuleSelect(module.id)}
+                    />
+                  ))}
+                </div>
               </div>
+            )}
+            
+            {/* LEGO-themed Core Values Training */}
+            {coreValuesModules && coreValuesModules.length > 0 && (
+              <div className="bg-white rounded-xl shadow-md p-6 overflow-hidden relative">
+                <div className="absolute -right-8 -top-8 w-32 h-32 bg-yellow-100 opacity-50 rounded-full"></div>
+                <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-red-100 opacity-50 rounded-full"></div>
+                
+                <div className="relative z-10">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-heading font-bold">Building Chapter One Training</h2>
+                    <img 
+                      src={raisingArizonaLogo} 
+                      alt="Raising Arizona Logo" 
+                      className="h-10 w-10 object-contain rounded-full"
+                    />
+                  </div>
+                  
+                  <p className="text-neutral-600 mb-4">
+                    Learn how we're building Chapter One into each child's life with our core values.
+                  </p>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {coreValuesModules.filter(p => p.title.includes("Building")).length > 0 ? (
+                      coreValuesModules.filter(p => p.title.includes("Building")).map(module => (
+                        <div 
+                          key={module.id}
+                          onClick={() => handleModuleSelect(module.id)} 
+                          className="border-2 border-yellow-300 bg-yellow-50 rounded-lg p-4 cursor-pointer hover:bg-yellow-100 transition"
+                        >
+                          <h3 className="font-heading font-semibold mb-2">{module.title}</h3>
+                          <p className="text-sm text-neutral-600 mb-3">{module.description.slice(0, 80)}...</p>
+                          <Button variant="outline" size="sm">
+                            Start Learning
+                          </Button>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="col-span-2 text-center py-6">
+                        <p>Coming soon - Our LEGO-themed core values training!</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column - Sidebar */}
+          <div className="space-y-8">
+            {/* Mindful Mornings */}
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <div className="flex items-center mb-4">
+                <img 
+                  src={mindfulMorningsLogo} 
+                  alt="Mindful Mornings" 
+                  className="h-10 w-10 mr-3 rounded-full object-cover"
+                />
+                <h2 className="text-xl font-heading font-bold">Mindful Mornings</h2>
+              </div>
+              
+              <p className="text-neutral-600 mb-4">
+                Start your day with mindfulness practices designed for preschool settings.
+              </p>
+              
+              {modules && modules.filter(m => m.category === 'mindful-mornings').length > 0 ? (
+                <div className="space-y-3">
+                  {modules.filter(module => module.category === 'mindful-mornings')
+                    .slice(0, 1)
+                    .map(module => (
+                      <div 
+                        key={module.id}
+                        onClick={() => handleModuleSelect(module.id)}
+                        className="border border-neutral-200 hover:border-primary transition rounded-lg p-3 cursor-pointer"
+                      >
+                        <h3 className="font-medium text-sm">{module.title}</h3>
+                        <div className="flex items-center mt-1">
+                          <div className="w-full bg-neutral-200 rounded-full h-1.5 mr-2">
+                            <div 
+                              className="bg-primary h-1.5 rounded-full" 
+                              style={{ 
+                                width: `${userProgress?.find(p => p.moduleId === module.id)?.progress || 0}%` 
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  
+                  <Link to="/modules?category=mindful-mornings">
+                    <Button variant="outline" size="sm" className="w-full">
+                      View All Mindfulness Modules
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-neutral-500">Mindfulness modules coming soon</p>
+                </div>
+              )}
             </div>
+            
+            {/* Media Resources */}
+            <MediaSidebar />
+            
+            {/* Leaderboard */}
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <h2 className="text-xl font-heading font-bold mb-4">Leaderboard</h2>
+              <Leaderboard />
+            </div>
+            
+            {/* Achievement Highlights */}
+            <AchievementsSection />
+            
+            {/* Store & Rewards Access */}
+            {user && (
+              <div className="bg-gradient-to-r from-amber-100 to-amber-200 rounded-xl shadow-md p-6">
+                <h2 className="text-xl font-heading font-bold mb-2">Bear Bucks Rewards</h2>
+                <p className="text-sm text-neutral-700 mb-4">
+                  You have {calculateBearBucks(user.points || 0)} Bear Bucks to spend on rewards!
+                </p>
+                
+                <div className="flex flex-col space-y-3">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="default" className="bg-amber-500 hover:bg-amber-600">
+                        Spin to Win
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="w-[95vw] max-w-[500px] p-0 bg-transparent border-none">
+                      <SpinWheel closeDialog={() => {}} />
+                    </DialogContent>
+                  </Dialog>
+                  
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="border-amber-500 text-amber-700">
+                        Mystery Gift Box
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="w-[95vw] max-w-[500px] p-0 bg-transparent border-none">
+                      <GiftBoxGame />
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      </footer>
+      </main>
       
-      <BearAssistant user={user} />
+      {user && <BearAssistant user={user} />}
     </div>
   );
 }
