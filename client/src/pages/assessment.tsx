@@ -769,11 +769,20 @@ export default function AssessmentPage() {
     const totalAnswers = correct + incorrect;
     const correctRatio = totalAnswers > 0 ? correct / totalAnswers : 0;
     
-    // Enhanced progression logic requiring 5-8 questions per level before advancing
+    // Faster progression logic - directly skip to intermediate level with fewer questions
     
-    // Move to intermediate after 5 correct answers at beginner level (with high confidence)
-    if (currentDifficulty === 'beginner' && (correct >= 5 && correctRatio >= 0.7)) {
-      console.log(`Advancing ${domain} from beginner to intermediate (correct: ${correct}, ratio: ${correctRatio.toFixed(2)})`);
+    // Quickly move to intermediate after just 1-2 correct answers at beginner level
+    if (currentDifficulty === 'beginner' && (correct >= 1 && correctRatio >= 0.5)) {
+      console.log(`Quickly advancing ${domain} to intermediate level (correct: ${correct}, ratio: ${correctRatio.toFixed(2)})`);
+      
+      // Open dialog to ask user if they want to try intermediate questions
+      toast({
+        title: "Moving to Intermediate Questions",
+        description: "Based on your answers, we're advancing you to intermediate level questions in this category.",
+        variant: "default",
+        duration: 5000,
+      });
+      
       setDomainDifficulty(prev => ({
         ...prev,
         [domain]: 'intermediate'
@@ -787,9 +796,17 @@ export default function AssessmentPage() {
       return;
     }
     
-    // Move to advanced after 5-6 correct answers at intermediate level (with high confidence)
-    if (currentDifficulty === 'intermediate' && (correct >= 5 && correctRatio >= 0.7)) {
-      console.log(`Advancing ${domain} from intermediate to advanced (correct: ${correct}, ratio: ${correctRatio.toFixed(2)})`);
+    // Quickly move to advanced after 2-3 correct answers at intermediate level
+    if (currentDifficulty === 'intermediate' && (correct >= 2 && correctRatio >= 0.66)) {
+      console.log(`Quickly advancing ${domain} to advanced level (correct: ${correct}, ratio: ${correctRatio.toFixed(2)})`);
+      
+      toast({
+        title: "Moving to Advanced Questions",
+        description: "Great job! You're now advancing to advanced level questions in this category.",
+        variant: "default",
+        duration: 5000,
+      });
+      
       setDomainDifficulty(prev => ({
         ...prev,
         [domain]: 'advanced'
@@ -803,9 +820,17 @@ export default function AssessmentPage() {
       return;
     }
     
-    // Move to expert after 5-8 correct answers at advanced level (with high confidence)
-    if (currentDifficulty === 'advanced' && (correct >= 5 && correctRatio >= 0.7)) {
-      console.log(`Advancing ${domain} from advanced to expert (correct: ${correct}, ratio: ${correctRatio.toFixed(2)})`);
+    // Move to expert/mastery level after 2-3 correct answers at advanced level
+    if (currentDifficulty === 'advanced' && (correct >= 2 && correctRatio >= 0.66)) {
+      console.log(`Advancing ${domain} to mastery/expert level (correct: ${correct}, ratio: ${correctRatio.toFixed(2)})`);
+      
+      toast({
+        title: "Ready for Mastery Level?",
+        description: "You've mastered advanced questions. Would you like to try expert-level questions in this category?",
+        variant: "default",
+        duration: 5000,
+      });
+      
       setDomainDifficulty(prev => ({
         ...prev,
         [domain]: 'expert'
@@ -821,9 +846,17 @@ export default function AssessmentPage() {
     
     // Adjustment logic for handling incorrect answers
     
-    // If too many incorrect answers in expert, move back to advanced
-    if (currentDifficulty === 'expert' && incorrect >= 3) {
+    // If struggling with expert level, move back to advanced
+    if (currentDifficulty === 'expert' && incorrect >= 2) {
       console.log(`Moving ${domain} back from expert to advanced due to incorrect answers`);
+      
+      toast({
+        title: "Adjusting Difficulty",
+        description: "We're providing some advanced questions to better match your current knowledge level.",
+        variant: "default",
+        duration: 3000,
+      });
+      
       setDomainDifficulty(prev => ({
         ...prev,
         [domain]: 'advanced'
@@ -837,9 +870,17 @@ export default function AssessmentPage() {
       return;
     }
     
-    // If too many incorrect answers in advanced, move back to intermediate
-    if (currentDifficulty === 'advanced' && incorrect >= 3) {
+    // If struggling with advanced, move back to intermediate
+    if (currentDifficulty === 'advanced' && incorrect >= 2) {
       console.log(`Moving ${domain} back from advanced to intermediate due to incorrect answers`);
+      
+      toast({
+        title: "Adjusting Difficulty",
+        description: "We're providing some intermediate questions to better match your current knowledge level.",
+        variant: "default",
+        duration: 3000,
+      });
+      
       setDomainDifficulty(prev => ({
         ...prev,
         [domain]: 'intermediate'
@@ -853,9 +894,17 @@ export default function AssessmentPage() {
       return;
     }
     
-    // If too many incorrect answers in intermediate, move back to beginner
-    if (currentDifficulty === 'intermediate' && incorrect >= 3) {
+    // If struggling with intermediate, move back to beginner
+    if (currentDifficulty === 'intermediate' && incorrect >= 2) {
       console.log(`Moving ${domain} back from intermediate to beginner due to incorrect answers`);
+      
+      toast({
+        title: "Adjusting Difficulty",
+        description: "We're providing some foundational questions to ensure you have the basics covered.",
+        variant: "default",
+        duration: 3000,
+      });
+      
       setDomainDifficulty(prev => ({
         ...prev,
         [domain]: 'beginner'
@@ -1187,6 +1236,7 @@ export default function AssessmentPage() {
     
     // Check if the answer is correct and provide feedback
     const isCorrect = answers[currentQuestion.id] === currentQuestion.correctAnswer;
+    const currentDifficulty = domainDifficulty[currentDomain];
     
     // Update answer feedback to show to user
     setAnswerFeedback({
@@ -1201,22 +1251,146 @@ export default function AssessmentPage() {
     if (isCorrect) {
       setCorrectByDomain(prev => ({
         ...prev,
-        [currentDomain]: prev[currentDomain] + 1
+        [currentDomain]: (prev[currentDomain] || 0) + 1
       }));
+      
+      // Check if we should offer to advance difficulty immediately
+      // Fast-track users who are getting correct answers
+      const correct = correctByDomain[currentDomain] || 0;
+      const incorrect = incorrectByDomain[currentDomain] || 0;
+      
+      // If they just answered the last beginner question correctly
+      if (currentDifficulty === 'beginner' && 
+          currentQuestionIndex === domainQuestions.length - 1 && 
+          domainQuestions.length > 0) {
+        // Offer to move to intermediate level directly
+        toast({
+          title: "Ready for Intermediate Questions?",
+          description: "You're doing well! Would you like to try intermediate questions in this topic?",
+          variant: "default",
+          duration: 6000,
+          action: (
+            <Button 
+              variant="default" 
+              size="sm" 
+              onClick={() => {
+                setDomainDifficulty(prev => ({
+                  ...prev,
+                  [currentDomain]: 'intermediate'
+                }));
+                setCorrectByDomain(prev => ({
+                  ...prev,
+                  [currentDomain]: 0
+                }));
+                // Reset current question index to start the new level
+                setCurrentQuestionIndex(0);
+                // Load intermediate questions
+                updateDomainQuestions(currentDomain, 'intermediate');
+              }}
+            >
+              Yes, continue to intermediate
+            </Button>
+          ),
+        });
+      }
+      // If they just answered the last intermediate question correctly
+      else if (currentDifficulty === 'intermediate' && 
+               currentQuestionIndex === domainQuestions.length - 1 && 
+               domainQuestions.length > 0) {
+        // Offer to move to advanced level directly
+        toast({
+          title: "Ready for Advanced Questions?",
+          description: "You're showing mastery! Would you like to try advanced questions in this topic?",
+          variant: "default",
+          duration: 6000,
+          action: (
+            <Button 
+              variant="default" 
+              size="sm" 
+              onClick={() => {
+                setDomainDifficulty(prev => ({
+                  ...prev,
+                  [currentDomain]: 'advanced'
+                }));
+                setCorrectByDomain(prev => ({
+                  ...prev,
+                  [currentDomain]: 0
+                }));
+                // Reset current question index to start the new level
+                setCurrentQuestionIndex(0);
+                // Load advanced questions
+                updateDomainQuestions(currentDomain, 'advanced');
+              }}
+            >
+              Yes, try advanced questions
+            </Button>
+          ),
+        });
+      }
+      // If they just answered the last advanced question correctly
+      else if (currentDifficulty === 'advanced' && 
+               currentQuestionIndex === domainQuestions.length - 1 && 
+               domainQuestions.length > 0) {
+        // Offer to move to expert/mastery level
+        toast({
+          title: "Ready for Mastery Level?",
+          description: "Impressive! Would you like to attempt mastery-level questions in this topic?",
+          variant: "default",
+          duration: 6000,
+          action: (
+            <Button 
+              variant="default" 
+              size="sm" 
+              onClick={() => {
+                setDomainDifficulty(prev => ({
+                  ...prev,
+                  [currentDomain]: 'expert'
+                }));
+                setCorrectByDomain(prev => ({
+                  ...prev,
+                  [currentDomain]: 0
+                }));
+                // Reset current question index to start the new level
+                setCurrentQuestionIndex(0);
+                // Load expert questions
+                updateDomainQuestions(currentDomain, 'expert');
+              }}
+            >
+              Yes, I'm ready for mastery level
+            </Button>
+          ),
+        });
+      }
     } else {
       setIncorrectByDomain(prev => ({
         ...prev,
-        [currentDomain]: prev[currentDomain] + 1
+        [currentDomain]: (prev[currentDomain] || 0) + 1
       }));
     }
     
     // Add to completed questions list
     setCompletedQuestions(prev => [...prev, currentQuestion.id]);
     
+    // If not advancing to next level, move to next question or domain
+    if (currentQuestionIndex < domainQuestions.length - 1) {
+      // Move to next question in current domain
+      setCurrentQuestionIndex(prev => prev + 1);
+    } else {
+      // Move to next domain or complete assessment
+      const currentDomainIndex = domains.findIndex(d => d.id === currentDomain);
+      
+      if (currentDomainIndex < domains.length - 1) {
+        // Move to next domain
+        setCurrentDomain(domains[currentDomainIndex + 1].id);
+        setCurrentQuestionIndex(0);
+      } else {
+        // Complete assessment
+        handleSubmitAssessment();
+      }
+    }
+    
     // Adjust difficulty based on performance after answering
     adjustDifficulty(currentDomain);
-    
-    // We'll wait for the user to view the feedback before moving to the next question
   };
   
   // Function to proceed to the next question after viewing feedback
