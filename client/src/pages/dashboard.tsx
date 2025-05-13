@@ -28,6 +28,7 @@ const domains = [
 
 export default function Dashboard() {
   const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
+  const [showSpinWheel, setShowSpinWheel] = useState(false);
   
   const { data: user, isLoading: isLoadingUser, isError: isUserError } = useQuery<User>({ 
     queryKey: ["/api/auth/me"],
@@ -546,7 +547,7 @@ export default function Dashboard() {
                 )}
               </div>
               
-              <div className="bg-primary bg-opacity-10 rounded-xl p-6">
+              <div className="bg-primary bg-opacity-10 rounded-xl p-6 mb-4">
                 <div className="flex items-start">
                   <div className="mr-3 mt-1">
                     <i className="ri-customer-service-2-line text-xl text-primary"></i>
@@ -560,6 +561,32 @@ export default function Dashboard() {
                     >
                       Chat with Support
                     </button>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Spin & Win Game Section */}
+              <div className="bg-gradient-to-r from-amber-100 to-yellow-200 rounded-xl p-6">
+                <div className="flex items-start">
+                  <div className="mr-3 mt-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-600">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <path d="M12 6v6l4 2"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-bold text-amber-800">Spin & Win!</h3>
+                    <p className="text-sm my-2 text-amber-900">Complete modules and login daily for chances to win points, Bear Bucks, and monthly grand prizes!</p>
+                    <Dialog open={showSpinWheel} onOpenChange={setShowSpinWheel}>
+                      <DialogTrigger asChild>
+                        <button className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-lg px-4 py-2 text-sm font-semibold hover:from-amber-600 hover:to-yellow-600 transition mt-2 w-full shadow-md">
+                          Try Your Luck
+                        </button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md border-amber-200">
+                        <SpinWheel onClose={() => setShowSpinWheel(false)} />
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </div>
               </div>
