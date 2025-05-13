@@ -551,20 +551,22 @@ export default function DynamicLessonGenerator({ user, moduleId, onLessonComplet
           <TabsContent value="reflection" className="p-4">
             <div className="space-y-4">
               <div>
-                <h3 className="text-xl font-bold mb-2">Reflection Questions</h3>
+                <h3 className="text-xl font-bold mb-3 flex items-center">
+                  <span className="text-primary mr-2">🔮</span> Level-Up Reflections
+                </h3>
                 <p className="text-muted-foreground mb-4">
-                  Take some time to reflect on what you've learned and how you'll apply it.
+                  Answer these questions to gain XP and level up your teaching skills!
                 </p>
                 
                 <div className="space-y-6">
                   {lessonContent.reflectionQuestions?.map((question: any, index: number) => (
-                    <div key={index} className="border rounded-lg p-4">
-                      <Label htmlFor={`question-${index}`} className="block mb-2">
-                        {index + 1}. {question.text}
+                    <div key={index} className="border border-primary/20 rounded-lg p-4 bg-primary/5">
+                      <Label htmlFor={`question-${index}`} className="block mb-3 text-primary font-medium">
+                        {question.text}
                       </Label>
                       <Textarea
                         id={`question-${index}`}
-                        placeholder="Your answer..."
+                        placeholder="Record your wisdom here..."
                         value={userAnswers[`question-${index}`] || ""}
                         onChange={(e) => handleAnswerChange(`question-${index}`, e.target.value)}
                         className="min-h-[100px]"
@@ -579,14 +581,17 @@ export default function DynamicLessonGenerator({ user, moduleId, onLessonComplet
               <div className="pt-4">
                 <Button 
                   onClick={completeSection} 
-                  disabled={completionStep > 2 || Object.keys(userAnswers).length < (lessonContent.reflectionQuestions?.length || 0)}
+                  disabled={completionStep > 3 || completionStep < 3 || Object.keys(userAnswers).length < (lessonContent.reflectionQuestions?.length || 0)}
+                  className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary"
                 >
-                  {completionStep > 2 ? (
+                  {completionStep > 3 ? (
                     <>
-                      <CheckCircle className="mr-2 h-4 w-4" /> Reflection Completed
+                      <CheckCircle className="mr-2 h-4 w-4" /> Level-Up Complete
                     </>
                   ) : (
-                    "Submit Reflection"
+                    <>
+                      Level-Up Now <ArrowRightCircle className="ml-2 h-4 w-4" />
+                    </>
                   )}
                 </Button>
               </div>
