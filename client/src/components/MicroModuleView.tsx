@@ -448,6 +448,16 @@ export default function MicroModuleView() {
               toast({
                 title: "🎉 Micro Module Completed!",
                 description: `You've earned ${pointsToAdd} points for completing this micro module!`,
+                action: (
+                  <Button 
+                    onClick={() => setLocation('/dashboard')} 
+                    variant="outline" 
+                    className="mt-2 flex items-center"
+                  >
+                    <ChevronLeft className="mr-2 h-4 w-4" /> 
+                    Back to Dashboard
+                  </Button>
+                )
               });
             },
             onError: (error) => {
@@ -455,7 +465,17 @@ export default function MicroModuleView() {
               toast({
                 title: "Module Completed",
                 description: "Your progress was saved, but we couldn't update your points. Please try again later.",
-                variant: "destructive"
+                variant: "destructive",
+                action: (
+                  <Button 
+                    onClick={() => setLocation('/dashboard')} 
+                    variant="outline" 
+                    className="mt-2 flex items-center"
+                  >
+                    <ChevronLeft className="mr-2 h-4 w-4" /> 
+                    Back to Dashboard
+                  </Button>
+                )
               });
             }
           });
@@ -464,7 +484,17 @@ export default function MicroModuleView() {
           toast({
             title: "Module Completed",
             description: "Your progress was saved, but we couldn't update your points. Please try again later.",
-            variant: "destructive"
+            variant: "destructive",
+            action: (
+              <Button 
+                onClick={() => setLocation('/dashboard')} 
+                variant="outline" 
+                className="mt-2 flex items-center"
+              >
+                <ChevronLeft className="mr-2 h-4 w-4" /> 
+                Back to Dashboard
+              </Button>
+            )
           });
         }
       }
@@ -659,6 +689,18 @@ export default function MicroModuleView() {
                       moduleName={module?.title || 'Learning Resources'}
                     />
                   )}
+                  
+                  <div className="flex justify-center mt-8">
+                    <Button 
+                      onClick={() => setLocation('/dashboard')} 
+                      variant="default" 
+                      size="lg"
+                      className="flex items-center"
+                    >
+                      <ChevronLeft className="mr-2 h-5 w-5" /> 
+                      Back to Dashboard
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 // Regular text content for steps 0-2
