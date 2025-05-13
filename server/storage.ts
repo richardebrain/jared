@@ -675,6 +675,284 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return newAssessment;
   }
+  
+  // Discussion threads operations
+  async getAllThreads(options?: { limit?: number, offset?: number, category?: string }): Promise<DiscussionThread[]> {
+    let query = db.select().from(discussionThreads).orderBy(desc(discussionThreads.createdAt));
+    
+    if (options?.category) {
+      query = query.where(eq(discussionThreads.category, options.category));
+    }
+    
+    if (options?.limit) {
+      query = query.limit(options.limit);
+    }
+    
+    if (options?.offset) {
+      query = query.offset(options.offset);
+    }
+    
+    return await query;
+  }
+  
+  async getThreadById(id: number): Promise<DiscussionThread | undefined> {
+    const [thread] = await db
+      .select()
+      .from(discussionThreads)
+      .where(eq(discussionThreads.id, id));
+    return thread || undefined;
+  }
+  
+  async getThreadsByAuthor(authorId: number): Promise<DiscussionThread[]> {
+    return await db
+      .select()
+      .from(discussionThreads)
+      .where(eq(discussionThreads.authorId, authorId))
+      .orderBy(desc(discussionThreads.createdAt));
+  }
+  
+  async createThread(thread: InsertDiscussionThread): Promise<DiscussionThread> {
+    const [newThread] = await db
+      .insert(discussionThreads)
+      .values(thread)
+      .returning();
+    return newThread;
+  }
+  
+  async updateThread(id: number, threadData: Partial<InsertDiscussionThread>): Promise<DiscussionThread> {
+    const [updatedThread] = await db
+      .update(discussionThreads)
+      .set(threadData)
+      .where(eq(discussionThreads.id, id))
+      .returning();
+    return updatedThread;
+  }
+  
+  async deleteThread(id: number): Promise<void> {
+    // Delete related comments first (to avoid foreign key constraints)
+    await db
+      .delete(discussionComments)
+      .where(eq(discussionComments.threadId, id));
+    
+    // Then delete the thread
+    await db
+      .delete(discussionThreads)
+      .where(eq(discussionThreads.id, id));
+  }
+  
+  async incrementThreadViewCount(id: number): Promise<void> {
+    const thread = await this.getThreadById(id);
+    if (thread) {
+      await db
+        .update(discussionThreads)
+        .set({ viewCount: (thread.viewCount || 0) + 1 })
+        .where(eq(discussionThreads.id, id));
+    }
+  }
+  
+  // Discussion comments operations
+  async getCommentsByThreadId(threadId: number): Promise<DiscussionComment[]> {
+    return await db
+      .select()
+      .from(discussionComments)
+      .where(eq(discussionComments.threadId, threadId))
+      .orderBy(discussionComments.createdAt);
+  }
+  
+  async getCommentById(id: number): Promise<DiscussionComment | undefined> {
+    const [comment] = await db
+      .select()
+      .from(discussionComments)
+      .where(eq(discussionComments.id, id));
+    return comment || undefined;
+  }
+  
+  async getCommentsByAuthor(authorId: number): Promise<DiscussionComment[]> {
+    return await db
+      .select()
+      .from(discussionComments)
+      .where(eq(discussionComments.authorId, authorId))
+      .orderBy(desc(discussionComments.createdAt));
+  }
+  
+  async createComment(comment: InsertDiscussionComment): Promise<DiscussionComment> {
+    const [newComment] = await db
+      .insert(discussionComments)
+      .values(comment)
+      .returning();
+    
+    // Update the thread's comment count
+    const thread = await this.getThreadById(comment.threadId);
+    if (thread) {
+      await db
+        .update(discussionThreads)
+        .set({ 
+          commentCount: (thread.commentCount || 0) + 1, 
+          lastActivity: new Date() 
+        })
+        .where(eq(discussionThreads.id, comment.threadId));
+    }
+    
+    return newComment;
+  }
+  
+  async updateComment(id: number, commentData: Partial<InsertDiscussionComment>): Promise<DiscussionComment> {
+    const [updatedComment] = await db
+      .update(discussionComments)
+      .set(commentData)
+      .where(eq(discussionComments.id, id))
+      .returning();
+    return updatedComment;
+  }
+  
+  async deleteComment(id: number): Promise<void> {
+    // Get the comment to get the threadId
+    const comment = await this.getCommentById(id);
+    
+    if (comment) {
+      // Delete related votes first
+      await db
+        .delete(commentVotes)
+        .where(eq(commentVotes.commentId, id));
+      
+      // Delete the comment
+      await db
+        .delete(discussionComments)
+        .where(eq(discussionComments.id, id));
+      
+      // Update the thread's comment count
+      const thread = await this.getThreadById(comment.threadId);
+      if (thread && thread.commentCount && thread.commentCount > 0) {
+        await db
+          .update(discussionThreads)
+          .set({ 
+            commentCount: thread.commentCount - 1, 
+            lastActivity: new Date() 
+          })
+          .where(eq(discussionThreads.id, comment.threadId));
+      }
+    }
+  }
+  
+  async endorseComment(id: number, endorsed: boolean): Promise<void> {
+    await db
+      .update(discussionComments)
+      .set({ endorsed })
+      .where(eq(discussionComments.id, id));
+  }
+  
+  // Comment votes operations
+  async getVotesByUser(userId: number): Promise<CommentVote[]> {
+    return await db
+      .select()
+      .from(commentVotes)
+      .where(eq(commentVotes.userId, userId));
+  }
+  
+  async getVotesByComment(commentId: number): Promise<CommentVote[]> {
+    return await db
+      .select()
+      .from(commentVotes)
+      .where(eq(commentVotes.commentId, commentId));
+  }
+  
+  async createOrUpdateVote(vote: InsertCommentVote): Promise<CommentVote> {
+    // Check if vote already exists
+    const [existingVote] = await db
+      .select()
+      .from(commentVotes)
+      .where(
+        and(
+          eq(commentVotes.userId, vote.userId),
+          eq(commentVotes.commentId, vote.commentId)
+        )
+      );
+    
+    if (existingVote) {
+      // Update if vote type is different
+      if (existingVote.voteType !== vote.voteType) {
+        const [updatedVote] = await db
+          .update(commentVotes)
+          .set({ voteType: vote.voteType })
+          .where(
+            and(
+              eq(commentVotes.userId, vote.userId),
+              eq(commentVotes.commentId, vote.commentId)
+            )
+          )
+          .returning();
+        return updatedVote;
+      }
+      return existingVote;
+    } else {
+      // Create new vote
+      const [newVote] = await db
+        .insert(commentVotes)
+        .values(vote)
+        .returning();
+      
+      // Update upvote/downvote counts on the comment
+      const comment = await this.getCommentById(vote.commentId);
+      if (comment) {
+        const updatedCounts = { 
+          upvotes: comment.upvotes || 0,
+          downvotes: comment.downvotes || 0
+        };
+        
+        if (vote.voteType === 'upvote') {
+          updatedCounts.upvotes += 1;
+        } else {
+          updatedCounts.downvotes += 1;
+        }
+        
+        await db
+          .update(discussionComments)
+          .set(updatedCounts)
+          .where(eq(discussionComments.id, vote.commentId));
+      }
+      
+      return newVote;
+    }
+  }
+  
+  async deleteVote(userId: number, commentId: number): Promise<void> {
+    // Get the vote to know its type
+    const [vote] = await db
+      .select()
+      .from(commentVotes)
+      .where(
+        and(
+          eq(commentVotes.userId, userId),
+          eq(commentVotes.commentId, commentId)
+        )
+      );
+    
+    if (vote) {
+      // Delete the vote
+      await db
+        .delete(commentVotes)
+        .where(
+          and(
+            eq(commentVotes.userId, userId),
+            eq(commentVotes.commentId, commentId)
+          )
+        );
+      
+      // Update upvote/downvote counts on the comment
+      const comment = await this.getCommentById(commentId);
+      if (comment) {
+        const updatedCounts = { 
+          upvotes: Math.max(0, (comment.upvotes || 0) - (vote.voteType === 'upvote' ? 1 : 0)),
+          downvotes: Math.max(0, (comment.downvotes || 0) - (vote.voteType === 'downvote' ? 1 : 0))
+        };
+        
+        await db
+          .update(discussionComments)
+          .set(updatedCounts)
+          .where(eq(discussionComments.id, commentId));
+      }
+    }
+  }
 }
 
 // Export a new instance of DatabaseStorage
