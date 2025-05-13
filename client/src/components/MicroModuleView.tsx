@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Clock, Check, Heart, Star, Zap, ArrowLeft, Trophy, Award, Coins, ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
+import { Clock, Check, Heart, Star, Zap, ArrowLeft, Trophy, Award, Coins, ChevronLeft, ChevronRight, CheckCircle, GraduationCap } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Confetti } from '@/components/ui/confetti';
 import { CelebrationOverlay } from '@/components/CelebrationOverlay';
@@ -931,8 +931,27 @@ export default function MicroModuleView() {
     const passed = score >= 67;
     setFinalAssessmentPassed(passed);
     
-    // Add pointsEarned to the progress update
-    const pointsToAdd = MICRO_MODULE_POINTS;
+    // Hide the assessment modal
+    setShowFinalAssessment(false);
+    
+    // Add bonus points for perfect score (3/3 questions correct)
+    let pointsToAdd = MICRO_MODULE_POINTS;
+    if (score === 100) {
+      // Add extra bonus for perfect score
+      pointsToAdd += 10;
+      toast({
+        title: "Perfect Score! 🎯",
+        description: "You earned 10 bonus points for answering all questions correctly!",
+      });
+    } else if (passed) {
+      // Add small bonus for passing (2/3 correct)
+      pointsToAdd += 5;
+      toast({
+        title: "Assessment Passed! ✅",
+        description: "You earned 5 bonus points for demonstrating your understanding of the material.",
+      });
+    }
+    
     setPointsEarned(pointsToAdd);
     
     // Always mark as completed, regardless of assessment score
@@ -942,6 +961,7 @@ export default function MicroModuleView() {
       pointsEarned: pointsToAdd
     }, {
       onSuccess: () => {
+        // Show celebration overlay
         setShowConfetti(true);
         
         // Also update user points directly
