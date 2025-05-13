@@ -80,6 +80,12 @@ export function MiniLessons() {
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [bonusPoints, setBonusPoints] = useState(0);
   
+  // Matching game state
+  const [matchingPairs, setMatchingPairs] = useState<{id: number; text: string; matched: boolean; flipped: boolean}[]>([]);
+  const [selectedCard, setSelectedCard] = useState<number | null>(null);
+  const [matchingMoves, setMatchingMoves] = useState(0);
+  const [matchesFound, setMatchesFound] = useState(0);
+  
   // Function to generate quiz questions based on the selected lesson
   const generateQuizQuestions = () => {
     if (!selectedLesson) return;
@@ -295,6 +301,170 @@ export function MiniLessons() {
       setBonusPoints(points);
       
       setQuizCompleted(true);
+    }
+  };
+  
+  // Function to generate matching pairs for the matching game
+  const generateMatchingPairs = () => {
+    if (!selectedLesson) return;
+    
+    let pairs = [];
+    
+    if (selectedLesson.category === 'patience') {
+      pairs = [
+        { id: 1, text: "Deep breathing", matched: false, flipped: false },
+        { id: 2, text: "Calming technique", matched: false, flipped: false },
+        { id: 3, text: "Counting to ten", matched: false, flipped: false },
+        { id: 4, text: "Self-regulation strategy", matched: false, flipped: false },
+        { id: 5, text: "Taking a break", matched: false, flipped: false },
+        { id: 6, text: "Stepping away briefly", matched: false, flipped: false },
+        { id: 7, text: "Positive self-talk", matched: false, flipped: false },
+        { id: 8, text: "Encouraging internal dialogue", matched: false, flipped: false }
+      ];
+    } else if (selectedLesson.category === 'core-values') {
+      pairs = [
+        { id: 1, text: "Respect", matched: false, flipped: false },
+        { id: 2, text: "Treating others with dignity", matched: false, flipped: false },
+        { id: 3, text: "Integrity", matched: false, flipped: false },
+        { id: 4, text: "Doing the right thing", matched: false, flipped: false },
+        { id: 5, text: "Compassion", matched: false, flipped: false },
+        { id: 6, text: "Showing kindness to others", matched: false, flipped: false },
+        { id: 7, text: "Growth mindset", matched: false, flipped: false },
+        { id: 8, text: "Embracing challenges", matched: false, flipped: false }
+      ];
+    } else if (selectedLesson.category === 'active-listening') {
+      pairs = [
+        { id: 1, text: "Eye contact", matched: false, flipped: false },
+        { id: 2, text: "Shows attention", matched: false, flipped: false },
+        { id: 3, text: "Nodding", matched: false, flipped: false },
+        { id: 4, text: "Nonverbal acknowledgment", matched: false, flipped: false },
+        { id: 5, text: "Paraphrasing", matched: false, flipped: false },
+        { id: 6, text: "Restating in your own words", matched: false, flipped: false },
+        { id: 7, text: "Open-ended questions", matched: false, flipped: false },
+        { id: 8, text: "Encourages elaboration", matched: false, flipped: false }
+      ];
+    } else if (selectedLesson.category === 'quick-transition-techniques') {
+      pairs = [
+        { id: 1, text: "Cleanup song", matched: false, flipped: false },
+        { id: 2, text: "Musical transition cue", matched: false, flipped: false },
+        { id: 3, text: "Visual timer", matched: false, flipped: false },
+        { id: 4, text: "Shows time remaining", matched: false, flipped: false },
+        { id: 5, text: "Transition warnings", matched: false, flipped: false },
+        { id: 6, text: "Prepares children for change", matched: false, flipped: false },
+        { id: 7, text: "Cleanup buddies", matched: false, flipped: false },
+        { id: 8, text: "Teamwork approach", matched: false, flipped: false }
+      ];
+    } else if (selectedLesson.category === 'mindful-mornings') {
+      pairs = [
+        { id: 1, text: "Breathing exercise", matched: false, flipped: false },
+        { id: 2, text: "Calming technique", matched: false, flipped: false },
+        { id: 3, text: "Body scan", matched: false, flipped: false },
+        { id: 4, text: "Physical awareness", matched: false, flipped: false },
+        { id: 5, text: "Gratitude practice", matched: false, flipped: false },
+        { id: 6, text: "Expressing thankfulness", matched: false, flipped: false },
+        { id: 7, text: "Movement breaks", matched: false, flipped: false },
+        { id: 8, text: "Physical mindfulness", matched: false, flipped: false }
+      ];
+    } else {
+      // Generic pairs for other categories
+      pairs = [
+        { id: 1, text: `${selectedLesson.title}`, matched: false, flipped: false },
+        { id: 2, text: "Key teaching concept", matched: false, flipped: false },
+        { id: 3, text: "Child development", matched: false, flipped: false },
+        { id: 4, text: "Growth and learning", matched: false, flipped: false },
+        { id: 5, text: "Classroom environment", matched: false, flipped: false },
+        { id: 6, text: "Learning space", matched: false, flipped: false },
+        { id: 7, text: "Chapter One philosophy", matched: false, flipped: false },
+        { id: 8, text: "Lifelong foundation", matched: false, flipped: false }
+      ];
+    }
+    
+    // Create matching pairs (1 matches with 2, 3 with 4, etc.)
+    const matchingPairsArray = [];
+    for (let i = 0; i < pairs.length; i += 2) {
+      matchingPairsArray.push({
+        id: i,
+        text: pairs[i].text,
+        matched: false,
+        flipped: false,
+        matchId: i + 1
+      });
+      matchingPairsArray.push({
+        id: i + 1,
+        text: pairs[i + 1].text,
+        matched: false,
+        flipped: false,
+        matchId: i
+      });
+    }
+    
+    // Shuffle the array
+    const shuffled = [...matchingPairsArray].sort(() => 0.5 - Math.random());
+    setMatchingPairs(shuffled);
+    setSelectedCard(null);
+    setMatchingMoves(0);
+    setMatchesFound(0);
+  };
+  
+  // Handle flipping a card in the matching game
+  const handleCardFlip = (id: number) => {
+    // Ignore if the card is already matched
+    if (matchingPairs.find(card => card.id === id)?.matched) return;
+    
+    // If no card is selected, select this one
+    if (selectedCard === null) {
+      setSelectedCard(id);
+      setMatchingPairs(matchingPairs.map(card => 
+        card.id === id ? { ...card, flipped: true } : card
+      ));
+      return;
+    }
+    
+    // If same card is clicked, ignore
+    if (selectedCard === id) return;
+    
+    // Flip the second card
+    setMatchingPairs(matchingPairs.map(card => 
+      card.id === id ? { ...card, flipped: true } : card
+    ));
+    
+    // Increment move counter
+    setMatchingMoves(prev => prev + 1);
+    
+    // Check if it's a match
+    const firstCard = matchingPairs.find(card => card.id === selectedCard);
+    const secondCard = matchingPairs.find(card => card.id === id);
+    
+    if (firstCard && secondCard && firstCard.matchId === secondCard.id) {
+      // It's a match!
+      setMatchingPairs(matchingPairs.map(card => 
+        (card.id === selectedCard || card.id === id) 
+          ? { ...card, matched: true, flipped: true } 
+          : card
+      ));
+      setSelectedCard(null);
+      setMatchesFound(prev => prev + 1);
+      
+      // Check if all matches are found
+      if (matchesFound + 1 === matchingPairs.length / 2) {
+        // Calculate bonus points based on moves
+        const maxMoves = matchingPairs.length;
+        const efficiency = Math.max(0, maxMoves - (matchingMoves + 1));
+        const bonusPoints = Math.floor(efficiency / 2);
+        
+        setBonusPoints(bonusPoints);
+        setQuizCompleted(true); // Reuse this state for game completion
+      }
+    } else {
+      // Not a match, flip back after a delay
+      setTimeout(() => {
+        setMatchingPairs(matchingPairs.map(card => 
+          (card.id === selectedCard || card.id === id) 
+            ? { ...card, flipped: false } 
+            : card
+        ));
+        setSelectedCard(null);
+      }, 1000);
     }
   };
   
@@ -762,21 +932,63 @@ export function MiniLessons() {
                         </div>
                         
                         <div className="mt-6">
-                          <h3 className="text-lg font-semibold mb-3">Video Demonstration</h3>
-                          <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                            <iframe 
-                              width="100%" 
-                              height="100%" 
-                              src="https://www.youtube.com/embed/bWte1oMd4Qk" 
-                              title="Transition Techniques" 
-                              frameBorder="0" 
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                              allowFullScreen
-                            ></iframe>
+                          <h3 className="text-lg font-semibold mb-3">Video Demonstrations</h3>
+                          
+                          <div className="space-y-4">
+                            <div>
+                              <h4 className="text-md font-medium mb-2">Classroom Transitions: 5 Strategies for Smooth Transitions</h4>
+                              <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                                <iframe 
+                                  width="100%" 
+                                  height="100%" 
+                                  src="https://www.youtube.com/embed/bWte1oMd4Qk" 
+                                  title="Transition Techniques" 
+                                  frameBorder="0" 
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                  allowFullScreen
+                                ></iframe>
+                              </div>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Learn practical strategies for smooth classroom transitions that minimize disruption and maximize learning time.
+                              </p>
+                            </div>
+                            
+                            <div>
+                              <h4 className="text-md font-medium mb-2">Creative Transition Techniques for Preschoolers</h4>
+                              <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                                <iframe 
+                                  width="100%" 
+                                  height="100%" 
+                                  src="https://www.youtube.com/embed/yYHT-TF--og" 
+                                  title="Creative Transition Techniques" 
+                                  frameBorder="0" 
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                  allowFullScreen
+                                ></iframe>
+                              </div>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Discover fun and engaging ways to help preschoolers transition between activities using music, movement, and games.
+                              </p>
+                            </div>
+                            
+                            <div>
+                              <h4 className="text-md font-medium mb-2">Managing Transitions in Early Childhood Classrooms</h4>
+                              <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                                <iframe 
+                                  width="100%" 
+                                  height="100%" 
+                                  src="https://www.youtube.com/embed/4IpNZlAkmns" 
+                                  title="Managing Classroom Transitions" 
+                                  frameBorder="0" 
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                  allowFullScreen
+                                ></iframe>
+                              </div>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Expert teachers share their best practices for helping young children smoothly move from one activity to another.
+                              </p>
+                            </div>
                           </div>
-                          <p className="text-sm text-muted-foreground mt-2">
-                            Watch this video from the NAEYC to see effective classroom transition techniques demonstrated in real preschool settings.
-                          </p>
                         </div>
                       </div>
                     )}
@@ -998,7 +1210,7 @@ export function MiniLessons() {
 
               {showGame ? (
                 <div className="mt-4 mb-4">
-                  {!quizCompleted ? (
+                  {gameType === 'quiz' && !quizCompleted ? (
                     <div className="space-y-6">
                       <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-6 border border-indigo-100">
                         <div className="flex justify-between items-center mb-4">
@@ -1048,13 +1260,74 @@ export function MiniLessons() {
                         </div>
                       </div>
                     </div>
+                  ) : gameType === 'matching' && !quizCompleted ? (
+                    <div className="space-y-6">
+                      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-6 border border-indigo-100">
+                        <div className="flex justify-between items-center mb-4">
+                          <h3 className="text-lg font-semibold text-indigo-900">Memory Match: {selectedLesson.title}</h3>
+                          <div className="flex space-x-4">
+                            <Badge variant="outline" className="bg-white">
+                              Moves: {matchingMoves}
+                            </Badge>
+                            <Badge variant="outline" className="bg-white">
+                              Matches: {matchesFound} / {matchingPairs.length / 2}
+                            </Badge>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-4 gap-3 mb-6">
+                          {matchingPairs.map((card) => (
+                            <div 
+                              key={card.id} 
+                              className={`
+                                aspect-square rounded-lg border-2 cursor-pointer transition-all duration-300 ease-in-out flex items-center justify-center text-center p-2 text-sm
+                                ${card.flipped 
+                                  ? 'bg-white border-indigo-400 shadow-md rotate-0' 
+                                  : 'bg-gradient-to-br from-indigo-500 to-purple-600 border-indigo-600 shadow rotate-y-180'
+                                }
+                                ${card.matched ? 'border-green-500 bg-green-50' : ''}
+                              `}
+                              onClick={() => !card.flipped && !card.matched && handleCardFlip(card.id)}
+                            >
+                              {card.flipped || card.matched ? (
+                                <span>{card.text}</span>
+                              ) : (
+                                <span className="text-transparent">Hidden</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <div className="flex justify-between">
+                          <Button 
+                            variant="outline" 
+                            onClick={() => setShowGame(false)}
+                          >
+                            Exit Game
+                          </Button>
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setGameType('quiz');
+                                generateQuizQuestions();
+                              }}
+                            >
+                              Switch to Quiz
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   ) : (
                     <div className="space-y-6">
                       <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-6 border border-indigo-100 text-center">
-                        <h3 className="text-lg font-semibold text-indigo-900 mb-2">Quiz Complete!</h3>
+                        <h3 className="text-lg font-semibold text-indigo-900 mb-2">
+                          {gameType === 'matching' ? 'Game Complete!' : 'Quiz Complete!'}
+                        </h3>
                         
                         <div className="mb-4 flex justify-center">
-                          {quizScore >= 80 ? (
+                          {quizScore >= 80 || (gameType === 'matching' && matchesFound === matchingPairs.length / 2) ? (
                             <Trophy className="h-16 w-16 text-yellow-500" />
                           ) : quizScore >= 60 ? (
                             <Star className="h-16 w-16 text-indigo-500" />
@@ -1064,36 +1337,77 @@ export function MiniLessons() {
                         </div>
                         
                         <div className="mb-4">
-                          <h4 className="font-medium mb-2">Your Score: {quizScore}%</h4>
-                          <Progress value={quizScore} className="h-2 w-full" />
+                          {gameType === 'quiz' ? (
+                            <>
+                              <h4 className="font-medium mb-2">Your Score: {quizScore}%</h4>
+                              <Progress value={quizScore} className="h-2 w-full" />
+                            </>
+                          ) : (
+                            <>
+                              <h4 className="font-medium mb-2">Matching Complete!</h4>
+                              <p>You found all matches in {matchingMoves} moves.</p>
+                            </>
+                          )}
                         </div>
                         
                         <div className="mb-6">
-                          {quizScore >= 80 ? (
-                            <p className="text-green-700">Excellent work! You've mastered this topic.</p>
-                          ) : quizScore >= 60 ? (
-                            <p className="text-blue-700">Good job! You understand the key concepts.</p>
+                          {gameType === 'quiz' ? (
+                            quizScore >= 80 ? (
+                              <p className="text-green-700">Excellent work! You've mastered this topic.</p>
+                            ) : quizScore >= 60 ? (
+                              <p className="text-blue-700">Good job! You understand the key concepts.</p>
+                            ) : (
+                              <p className="text-amber-700">You might want to review the material again.</p>
+                            )
                           ) : (
-                            <p className="text-amber-700">You might want to review the material again.</p>
+                            <p className="text-green-700">
+                              Great memory skills! You've reinforced key concepts from this lesson.
+                            </p>
                           )}
                           
                           {bonusPoints > 0 && (
                             <p className="mt-2 text-indigo-700 font-medium">
-                              Bonus: +{bonusPoints} extra points for your score!
+                              Bonus: +{bonusPoints} extra points for your {gameType === 'quiz' ? 'score' : 'efficiency'}!
                             </p>
                           )}
                         </div>
                         
                         <div className="flex justify-between">
-                          <Button 
-                            variant="outline" 
-                            onClick={() => {
-                              setShowGame(false);
-                              setQuizCompleted(false);
-                            }}
-                          >
-                            Back to Lesson
-                          </Button>
+                          <div className="flex space-x-2">
+                            <Button 
+                              variant="outline" 
+                              onClick={() => {
+                                setShowGame(false);
+                                setQuizCompleted(false);
+                              }}
+                            >
+                              Back to Lesson
+                            </Button>
+                            
+                            {gameType === 'quiz' ? (
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  setGameType('matching');
+                                  setQuizCompleted(false);
+                                  generateMatchingPairs();
+                                }}
+                              >
+                                Try Matching Game
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  setGameType('quiz');
+                                  setQuizCompleted(false);
+                                  generateQuizQuestions();
+                                }}
+                              >
+                                Try Quiz
+                              </Button>
+                            )}
+                          </div>
                           
                           <Button 
                             onClick={handleCompleteMiniLesson}
@@ -1116,18 +1430,32 @@ export function MiniLessons() {
                         onClick={handleCompleteMiniLesson} 
                         disabled={progressMutation.isPending}
                       >
-                        {progressMutation.isPending ? 'Saving...' : 'Skip Quiz & Complete'}
+                        {progressMutation.isPending ? 'Saving...' : 'Skip Games & Complete'}
                       </Button>
-                      <Button 
-                        onClick={() => {
-                          setShowGame(true);
-                          generateQuizQuestions();
-                        }}
-                        className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700"
-                      >
-                        <Gamepad className="mr-2 h-4 w-4" />
-                        Take Quiz
-                      </Button>
+                      <div className="flex space-x-2">
+                        <Button 
+                          onClick={() => {
+                            setShowGame(true);
+                            setGameType('quiz');
+                            generateQuizQuestions();
+                          }}
+                          className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700"
+                        >
+                          <Gamepad className="mr-2 h-4 w-4" />
+                          Take Quiz
+                        </Button>
+                        <Button 
+                          onClick={() => {
+                            setShowGame(true);
+                            setGameType('matching');
+                            generateMatchingPairs();
+                          }}
+                          className="bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700"
+                        >
+                          <Eye className="mr-2 h-4 w-4" />
+                          Memory Match
+                        </Button>
+                      </div>
                     </div>
                   ) : (
                     <div className="flex items-center justify-between w-full">
@@ -1136,17 +1464,30 @@ export function MiniLessons() {
                         <span>You've completed this mini-lesson and earned {progressMap[selectedLesson.id]?.pointsEarned || selectedLesson.duration} points!</span>
                       </div>
                       
-                      <Button 
-                        onClick={() => {
-                          setShowGame(true);
-                          generateQuizQuestions();
-                        }}
-                        variant="outline"
-                        className="ml-4"
-                      >
-                        <Gamepad className="mr-2 h-4 w-4" />
-                        Retake Quiz
-                      </Button>
+                      <div className="flex space-x-2">
+                        <Button 
+                          onClick={() => {
+                            setShowGame(true);
+                            setGameType('quiz');
+                            generateQuizQuestions();
+                          }}
+                          variant="outline"
+                        >
+                          <Gamepad className="mr-2 h-4 w-4" />
+                          Quiz
+                        </Button>
+                        <Button 
+                          onClick={() => {
+                            setShowGame(true);
+                            setGameType('matching');
+                            generateMatchingPairs();
+                          }}
+                          variant="outline"
+                        >
+                          <Eye className="mr-2 h-4 w-4" />
+                          Match
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </DialogFooter>
