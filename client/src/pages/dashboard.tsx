@@ -837,6 +837,7 @@ export default function Dashboard() {
             
             <div className="mt-6 pt-6 border-t border-neutral-200 flex flex-col md:flex-row justify-between items-center">
               <ul className="flex space-x-6 mb-4 md:mb-0">
+                <li><Link to="/discussions" className="text-sm text-primary hover:text-secondary">Teacher Discussions</Link></li>
                 <li><a href="#" className="text-sm text-primary hover:text-secondary">About Us</a></li>
                 <li><a href="#" className="text-sm text-primary hover:text-secondary">Contact</a></li>
                 <li><a href="#" className="text-sm text-primary hover:text-secondary">Privacy Policy</a></li>

@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -114,9 +115,19 @@ export default function Login() {
                   <FormItem>
                     <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter your username" {...field} />
+                      <Input 
+                        placeholder="Enter your username" 
+                        {...field} 
+                        onChange={(e) => {
+                          // Trim whitespace when user types
+                          field.onChange(e.target.value.trim());
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Tip: Username is case-sensitive (e.g., "jlcookie20")
+                    </p>
                   </FormItem>
                 )}
               />
@@ -128,7 +139,15 @@ export default function Login() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="Enter your password" {...field} />
+                      <Input 
+                        type="password" 
+                        placeholder="Enter your password" 
+                        {...field} 
+                        onChange={(e) => {
+                          // Trim whitespace when user types
+                          field.onChange(e.target.value.trim());
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
