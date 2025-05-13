@@ -530,7 +530,7 @@ export function MiniLessons() {
                             <iframe 
                               width="100%" 
                               height="100%" 
-                              src="https://www.youtube.com/embed/4T2Xq6-KRSk" 
+                              src="https://www.youtube.com/embed/r0XXqhYIGlk" 
                               title="Transition Techniques" 
                               frameBorder="0" 
                               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -538,7 +538,7 @@ export function MiniLessons() {
                             ></iframe>
                           </div>
                           <p className="text-sm text-muted-foreground mt-2">
-                            Watch this video to see these transition techniques demonstrated in a real classroom setting.
+                            Watch this video from the NAEYC to see effective classroom transition techniques demonstrated in real preschool settings.
                           </p>
                         </div>
                       </div>
@@ -588,7 +588,7 @@ export function MiniLessons() {
                             <iframe 
                               width="100%" 
                               height="100%" 
-                              src="https://www.youtube.com/embed/n0DPXbwS9hQ" 
+                              src="https://www.youtube.com/embed/0vuaCfEjp_4" 
                               title="Morning Mindfulness for Children" 
                               frameBorder="0" 
                               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -636,8 +636,8 @@ export function MiniLessons() {
                             <iframe 
                               width="100%" 
                               height="100%" 
-                              src="https://www.youtube.com/embed/D6-L3LlenHQ" 
-                              title="Active Listening Skills" 
+                              src="https://www.youtube.com/embed/3_dAkDsBQyk" 
+                              title="Active Listening Skills for Preschool" 
                               frameBorder="0" 
                               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                               allowFullScreen
