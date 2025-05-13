@@ -1180,8 +1180,16 @@ export default function AssessmentPage() {
         return question && question.difficulty === 'intermediate';
       });
       
+      // Check for expert-level questions first
+      const expertAnswers = domainAnswers.filter(([qId]) => {
+        const question = assessmentQuestions.find(q => q.id === qId);
+        return question && question.difficulty === 'expert';
+      });
+      
       let maxDifficulty: DifficultyLevel = 'beginner';
-      if (advancedAnswers.length > 0) {
+      if (expertAnswers.length > 0) {
+        maxDifficulty = 'expert';
+      } else if (advancedAnswers.length > 0) {
         maxDifficulty = 'advanced';
       } else if (intermediateAnswers.length > 0) {
         maxDifficulty = 'intermediate';
@@ -1492,26 +1500,44 @@ export default function AssessmentPage() {
     // Add to completed questions list
     setCompletedQuestions(prev => [...prev, currentQuestion.id]);
     
-    // If not advancing to next level, move to next question or domain
-    if (currentQuestionIndex < domainQuestions.length - 1) {
-      // Move to next question in current domain
-      setCurrentQuestionIndex(prev => prev + 1);
-    } else {
-      // Move to next domain or complete assessment
-      const currentDomainIndex = domains.findIndex(d => d.id === currentDomain);
-      
-      if (currentDomainIndex < domains.length - 1) {
-        // Move to next domain
-        setCurrentDomain(domains[currentDomainIndex + 1].id);
-        setCurrentQuestionIndex(0);
-      } else {
-        // Complete assessment
-        handleSubmitAssessment();
-      }
-    }
+    // Store state in variables to avoid async state issues
+    const isLastQuestion = currentQuestionIndex >= domainQuestions.length - 1;
+    const currentDomainIndex = domains.findIndex(d => d.id === currentDomain);
+    const isLastDomain = currentDomainIndex >= domains.length - 1;
     
     // Adjust difficulty based on performance after answering
+    // This needs to happen before we change questions/domains
     adjustDifficulty(currentDomain);
+    
+    // Give the user time to see the toast before moving on
+    // Only auto-progress if not at the end of a difficulty level
+    if (!isLastQuestion) {
+      // Move to next question in current domain
+      setTimeout(() => {
+        setCurrentQuestionIndex(prev => prev + 1);
+      }, 500);
+    } else if (!isLastDomain) {
+      // Move to next domain
+      setTimeout(() => {
+        setCurrentDomain(domains[currentDomainIndex + 1].id);
+        setCurrentQuestionIndex(0);
+      }, 500);
+    } else {
+      // Complete assessment if we've gone through all domains
+      // But only if we're not showing a level-up toast
+      const currentDiff = domainDifficulty[currentDomain];
+      const isShowingLevelUpPrompt = 
+        (currentDiff === 'beginner' || currentDiff === 'intermediate' || currentDiff === 'advanced') && 
+        isCorrect && 
+        isLastQuestion;
+      
+      if (!isShowingLevelUpPrompt) {
+        // Submit the assessment only if we're not showing a level-up prompt
+        setTimeout(() => {
+          handleSubmitAssessment();
+        }, 1000);
+      }
+    }
   };
   
   // Function to proceed to the next question after viewing feedback
