@@ -13,7 +13,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Award, Check, ChevronRight, ClipboardList, Star } from "lucide-react";
+import { AlertCircle, AlertTriangle, Award, Check, ChevronRight, ClipboardList, Star } from "lucide-react";
 
 // Audio feedback functions for game-like experience
 const playLevelUpSound = () => {
@@ -1778,40 +1778,138 @@ export default function AssessmentPage() {
     }
   };
   
-  // Render the current question
+  // Render the current question - improved with better error handling
   const renderQuestion = () => {
-    if (domainQuestions.length === 0) return null;
-    
-    const question = domainQuestions[currentQuestionIndex];
-    
-    // For this version, we only have multiple-choice questions
-    return (
-      <RadioGroup 
-        value={answers[question.id] || ""} 
-        onValueChange={(value) => handleAnswerChange(question.id, value)}
-      >
-        <div className="grid gap-4">
-          {question.options.map((option, i) => (
-            <div 
-              key={i} 
-              className={`border rounded-lg p-4 hover:bg-accent/20 transition-colors cursor-pointer float-in ${answers[question.id] === option ? 'answer-selected' : ''}`}
-              style={{ animationDelay: `${i * 0.15}s` }} /* Staggered animation for each option */
-              onClick={() => handleAnswerChange(question.id, option)}
-            >
-              <div className="flex items-center space-x-3">
-                <RadioGroupItem id={`option-${i}`} value={option} />
-                <Label 
-                  htmlFor={`option-${i}`} 
-                  className="text-base font-medium leading-relaxed cursor-pointer"
-                >
-                  {option}
-                </Label>
-              </div>
+    try {
+      // Handle case where no questions are loaded
+      if (domainQuestions.length === 0) {
+        return (
+          <div className="p-6 border border-dashed rounded-lg bg-muted/50 text-center">
+            <div className="mb-4 text-muted-foreground">
+              <AlertCircle className="h-10 w-10 mx-auto mb-2 animate-pulse" />
+              <p className="font-medium">No questions available for this topic at the current difficulty level.</p>
             </div>
-          ))}
+            <Button 
+              onClick={() => {
+                // Try switching back to beginner difficulty
+                setDomainDifficulty(prev => ({
+                  ...prev,
+                  [currentDomain]: 'beginner'
+                }));
+                
+                // Refresh questions
+                setTimeout(() => {
+                  updateDomainQuestions(currentDomain, 'beginner');
+                }, 300);
+              }}
+              variant="outline"
+              className="mr-2"
+            >
+              Try Beginner Level
+            </Button>
+            <Button 
+              onClick={() => {
+                // Try a different domain by advancing to the next one in the list
+                const currentIndex = domains.findIndex(d => d.id === currentDomain);
+                const nextIndex = (currentIndex + 1) % domains.length;
+                handleDomainChange(domains[nextIndex].id);
+              }}
+            >
+              Try Another Topic
+            </Button>
+          </div>
+        );
+      }
+      
+      // Handle potential out of bounds index
+      if (currentQuestionIndex >= domainQuestions.length) {
+        console.error(`Question index ${currentQuestionIndex} out of bounds (only ${domainQuestions.length} questions available)`);
+        setCurrentQuestionIndex(0);
+        return (
+          <div className="p-4 border border-yellow-300 rounded-lg bg-yellow-50 mb-4">
+            <p className="text-yellow-800">Adjusting question selection... Please wait.</p>
+          </div>
+        );
+      }
+      
+      const question = domainQuestions[currentQuestionIndex];
+      
+      if (!question) {
+        console.error('Question is undefined at index', currentQuestionIndex);
+        return (
+          <div className="p-4 border border-red-300 rounded-lg bg-red-50">
+            <p className="text-red-800">Error loading question. Please try another topic.</p>
+          </div>
+        );
+      }
+      
+      // For this version, we only have multiple-choice questions
+      return (
+        <RadioGroup 
+          value={answers[question.id] || ""} 
+          onValueChange={(value) => handleAnswerChange(question.id, value)}
+        >
+          <div className="grid gap-4">
+            {question.options.map((option, i) => (
+              <div 
+                key={i} 
+                className={`border rounded-lg p-4 hover:bg-accent/20 transition-all duration-300 cursor-pointer float-in ${
+                  answers[question.id] === option ? 'bg-accent/30 answer-selected shadow-sm' : ''
+                }`}
+                style={{ animationDelay: `${i * 0.15}s` }} /* Staggered animation for each option */
+                onClick={() => handleAnswerChange(question.id, option)}
+              >
+                <div className="flex items-center space-x-3">
+                  <RadioGroupItem id={`option-${i}`} value={option} />
+                  <Label 
+                    htmlFor={`option-${i}`} 
+                    className="text-base font-medium leading-relaxed cursor-pointer"
+                  >
+                    {option}
+                  </Label>
+                </div>
+              </div>
+            ))}
+          </div>
+        </RadioGroup>
+      );
+    } catch (error) {
+      console.error('Error rendering question:', error);
+      
+      // Fallback UI for when rendering fails
+      return (
+        <div className="p-6 border border-red-300 rounded-lg bg-red-50 text-center">
+          <div className="mb-4 text-red-800">
+            <AlertTriangle className="h-8 w-8 mx-auto mb-2" />
+            <p className="font-medium">Something went wrong while displaying this question.</p>
+          </div>
+          <Button 
+            onClick={() => {
+              // Reset to beginner difficulty for this domain
+              setDomainDifficulty(prev => ({
+                ...prev,
+                [currentDomain]: 'beginner'
+              }));
+              
+              // Reset to first question
+              setCurrentQuestionIndex(0);
+              
+              // Try to load beginner questions
+              updateDomainQuestions(currentDomain, 'beginner');
+              
+              toast({
+                title: "Resetting questions",
+                description: "We've reset this topic to beginner level.",
+                variant: "default",
+                duration: 2000
+              });
+            }}
+          >
+            Reset Questions
+          </Button>
         </div>
-      </RadioGroup>
-    );
+      );
+    }
   };
   
   return (
@@ -1886,14 +1984,30 @@ export default function AssessmentPage() {
                     return (
                       <button
                         key={index}
-                        className={`w-full flex items-center justify-between p-3 rounded-md transition-colors
+                        className={`w-full flex items-center justify-between p-3 rounded-md transition-all duration-300
                           ${isActive 
-                            ? 'bg-primary text-primary-foreground' 
+                            ? 'bg-primary text-primary-foreground shadow-md' 
                             : 'hover:bg-muted hover:scale-[1.02] transform'
                           } ${isComplete ? 'hover:border-green-400 border-2 border-transparent' : ''}
                           float-in`}
                         style={{ animationDelay: `${index * 0.1}s` }}
-                        onClick={() => handleDomainChange(domain.id)}
+                        onClick={() => {
+                          try {
+                            console.log(`Clicked domain: ${domain.id}`);
+                            // Call the handleDomainChange function with error handling
+                            handleDomainChange(domain.id);
+                          } catch (err) {
+                            console.error("Error in domain button click handler:", err);
+                            toast({
+                              title: "Navigation Error",
+                              description: "Couldn't switch to that topic. Please try another one.",
+                              variant: "destructive",
+                              duration: 3000
+                            });
+                          }
+                        }}
+                        aria-label={`Select ${domain.name} assessment area`}
+                        title={`Difficulty: ${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}`}
                       >
                         <div className="flex items-center">
                           <DomainIcon className={`mr-2 h-4 w-4 ${isActive ? 'animate-pulse text-white' : ''}`} />
@@ -1903,8 +2017,19 @@ export default function AssessmentPage() {
                         <div className="flex items-center">
                           {isComplete && <Check className="h-4 w-4 mr-1" />}
                           <span className="text-xs">{domainProgress}%</span>
-                          {/* Show difficulty level with color indicator */}
-                          {!isActive && <span className={`ml-1 text-xs ${difficultyColor}`}>●</span>}
+                          {/* Enhanced difficulty indicator */}
+                          <div className="flex items-center ml-2" title={`Level ${
+                            difficulty === 'beginner' ? '1' :
+                            difficulty === 'intermediate' ? '2' :
+                            difficulty === 'advanced' ? '3' : '4'
+                          }`}>
+                            <span className={`text-xs font-medium ${difficultyColor}`}>
+                              {difficulty === 'beginner' && '●'}
+                              {difficulty === 'intermediate' && '●●'}
+                              {difficulty === 'advanced' && '●●●'}
+                              {difficulty === 'expert' && '●●●●'}
+                            </span>
+                          </div>
                         </div>
                       </button>
                     );
