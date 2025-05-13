@@ -5,7 +5,7 @@ import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
-import Schedule from "@/pages/schedule";
+import ProgressionMap from "@/pages/progression-map";
 import Assessment from "@/pages/assessment";
 import LearningModulePage from "@/pages/learning-module";
 import MicroModulePage from "@/pages/micro-module";
@@ -40,8 +40,8 @@ function Router() {
         {isAuthenticated ? <Dashboard /> : <Login />}
       </Route>
       
-      <Route path="/schedule">
-        {isAuthenticated ? <Schedule /> : <Login />}
+      <Route path="/progression-map">
+        {isAuthenticated ? <ProgressionMap /> : <Login />}
       </Route>
       
       <Route path="/assessment">

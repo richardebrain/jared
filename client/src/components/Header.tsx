@@ -81,9 +81,9 @@ export default function Header() {
               Dashboard
             </a>
           </Link>
-          <Link href="/schedule">
-            <a className={`font-heading font-semibold ${location === "/schedule" ? "text-primary" : "text-neutral-800 hover:text-primary"} transition`}>
-              Schedule
+          <Link href="/progression-map">
+            <a className={`font-heading font-semibold ${location === "/progression-map" ? "text-primary" : "text-neutral-800 hover:text-primary"} transition`}>
+              Teacher Progression
             </a>
           </Link>
           <Link href="/assessment">
@@ -149,9 +149,9 @@ export default function Header() {
                 Dashboard
               </a>
             </Link>
-            <Link href="/schedule">
-              <a className={`font-heading font-semibold ${location === "/schedule" ? "text-primary" : "text-neutral-800"}`}>
-                Schedule
+            <Link href="/progression-map">
+              <a className={`font-heading font-semibold ${location === "/progression-map" ? "text-primary" : "text-neutral-800"}`}>
+                Teacher Progression
               </a>
             </Link>
             <Link href="/assessment">
