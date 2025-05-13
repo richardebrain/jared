@@ -6,6 +6,9 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Heart, 
   Star, 
+  Eye,
+  Smile,
+  Wind,
   Calendar, 
   CheckCircle, 
   Briefcase,
@@ -34,35 +37,35 @@ import { Label } from "@/components/ui/label";
 // Define the core values with their details
 const coreValues = [
   {
-    id: "committed",
-    name: "Committed",
-    icon: <Calendar className="h-10 w-10 text-blue-500" />,
+    id: "breathe",
+    name: "Breathe",
+    icon: <Wind className="h-10 w-10 text-blue-500" />,
     color: "bg-blue-500",
-    description: "We dedicate ourselves fully to the development and education of each child in our care.",
+    description: "We pause and breathe to center ourselves, creating calm and mindful moments throughout the day.",
     examples: [
-      "Arriving early to prepare for the day",
-      "Attending all professional development opportunities",
-      "Going above and beyond standard expectations",
-      "Continuing education in early childhood development"
+      "Taking a deep breath before responding to challenging behavior",
+      "Leading children in mindful breathing exercises",
+      "Pausing to reset when the classroom energy gets too high",
+      "Using breathing techniques to manage stress"
     ],
     quiz: [
       {
-        question: "A parent approaches you at the end of the day with concerns about their child's development. It's already 10 minutes past your scheduled end time. What would be the most committed response?",
+        question: "A child in your classroom is having a tantrum. What would be the best first response that embodies our 'Breathe' value?",
         options: [
           {
-            text: "Ask the parent to schedule a meeting for another day since your shift is over",
+            text: "Immediately try to reason with the child about their behavior",
             correct: false
           },
           {
-            text: "Listen attentively to their concerns and offer to schedule a detailed follow-up meeting",
+            text: "Take a deep breath yourself, then calmly approach the child at their level",
             correct: true
           },
           {
-            text: "Quickly reassure them that everything is fine and say goodbye",
+            text: "Remove the child from the classroom immediately",
             correct: false
           },
           {
-            text: "Tell them to speak with the director instead",
+            text: "Tell the child to be quiet so they don't disrupt others",
             correct: false
           }
         ]
@@ -70,35 +73,35 @@ const coreValues = [
     ]
   },
   {
-    id: "consistent",
-    name: "Consistent",
-    icon: <CheckCircle className="h-10 w-10 text-green-500" />,
-    color: "bg-green-500",
-    description: "We maintain reliable routines and dependable presence, creating security for children.",
+    id: "smile",
+    name: "Smile",
+    icon: <Smile className="h-10 w-10 text-yellow-500" />,
+    color: "bg-yellow-500",
+    description: "We bring joy and positivity to each interaction, creating a happy learning environment.",
     examples: [
-      "Following daily schedules and routines",
-      "Implementing classroom rules uniformly",
-      "Providing predictable responses to behavior",
-      "Maintaining the same high standards every day"
+      "Greeting each child with a warm smile every morning",
+      "Finding joy in small moments throughout the day",
+      "Using humor appropriately to engage children",
+      "Celebrating progress and achievements with enthusiasm"
     ],
     quiz: [
       {
-        question: "Why is consistency especially important for early childhood development?",
+        question: "Why is smiling and positive affect especially important in early childhood education?",
         options: [
           {
-            text: "It makes classroom management easier for teachers",
+            text: "It's just part of being professional and doing your job",
             correct: false
           },
           {
-            text: "It helps children develop independence by providing a secure foundation",
+            text: "It creates a secure attachment bond and fosters a positive learning environment",
             correct: true
           },
           {
-            text: "It impresses parents and administrators",
+            text: "It makes the day go by faster",
             correct: false
           },
           {
-            text: "It's not that important as long as children are having fun",
+            text: "It impresses the parents when they visit",
             correct: false
           }
         ]
@@ -106,16 +109,16 @@ const coreValues = [
     ]
   },
   {
-    id: "caring",
-    name: "Caring",
-    icon: <Heart className="h-10 w-10 text-red-500" />,
-    color: "bg-red-500",
-    description: "We nurture with warmth and empathy, seeing each child as a unique individual worthy of respect.",
+    id: "be-present",
+    name: "Be Present",
+    icon: <Eye className="h-10 w-10 text-purple-500" />,
+    color: "bg-purple-500",
+    description: "We give our full attention to the children and the moment, noticing needs and opportunities.",
     examples: [
-      "Responding to emotional needs with empathy",
-      "Creating a warm, welcoming classroom environment",
-      "Acknowledging and validating children's feelings",
-      "Building genuine relationships with families"
+      "Putting away personal devices during class time",
+      "Making eye contact when children are speaking",
+      "Observing and documenting children's learning and development",
+      "Being fully engaged in activities alongside children"
     ],
     quiz: [
       {

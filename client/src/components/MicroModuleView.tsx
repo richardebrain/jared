@@ -68,21 +68,126 @@ export default function MicroModuleView() {
     }
   });
 
-  // Simplified content for micro modules - just 3 quick steps
-  const steps = [
-    {
-      title: "Quick Introduction",
-      content: module?.description || ""
-    },
-    {
-      title: "Core Concept",
-      content: "This is where the core concept of the micro module is presented in a concise, focused way."
-    },
-    {
-      title: "Practical Application",
-      content: "A brief, actionable takeaway that can be immediately applied in your classroom."
+  // State for Perplexity-generated content
+  const [perplexityContent, setPerplexityContent] = useState<{
+    coreConcept: string,
+    practicalApplication: string,
+    isLoading: boolean
+  }>({
+    coreConcept: "",
+    practicalApplication: "",
+    isLoading: false
+  });
+
+  // Generate content for special modules using Perplexity
+  React.useEffect(() => {
+    if (module && module.id === 18) { // Positive Attitude module
+      setPerplexityContent(prev => ({ ...prev, isLoading: true }));
+      
+      // Generate core concept content
+      fetch('/api/perplexity/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: `Create a concise educational paragraph (max 150 words) about maintaining a positive attitude in early childhood education. Focus on how a teacher's positive attitude impacts children's learning and emotional development. Use a warm, encouraging tone and include one practical tip.`
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        setPerplexityContent(prev => ({ 
+          ...prev, 
+          coreConcept: data.content,
+          isLoading: false
+        }));
+      })
+      .catch(err => {
+        console.error("Error fetching from Perplexity:", err);
+        setPerplexityContent(prev => ({ 
+          ...prev, 
+          coreConcept: "A positive attitude is contagious in the classroom. When teachers approach each day with optimism and enthusiasm, children absorb this energy and feel more secure and motivated to learn. Studies show that positive teacher-child interactions lead to better cognitive and social-emotional outcomes.",
+          isLoading: false
+        }));
+      });
+      
+      // Generate practical application content
+      fetch('/api/perplexity/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: `Provide 3 practical techniques (max 150 words total) for early childhood educators to maintain a positive attitude during challenging moments in the classroom. Each technique should be 1-2 sentences and very actionable.`
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        setPerplexityContent(prev => ({ 
+          ...prev, 
+          practicalApplication: data.content,
+          isLoading: false
+        }));
+      })
+      .catch(err => {
+        console.error("Error fetching from Perplexity:", err);
+        setPerplexityContent(prev => ({ 
+          ...prev, 
+          practicalApplication: "1. Start each day with a personal positive affirmation and share one thing you're excited about with your class.\n\n2. Use the 'pause and breathe' technique when feeling frustrated - take three deep breaths before responding to challenging behavior.\n\n3. Keep a small notebook to jot down positive moments throughout the day, creating a resource of joy to reflect on during difficult times.",
+          isLoading: false
+        }));
+      });
     }
-  ];
+  }, [module]);
+
+  // Simplified content for micro modules - just 3 quick steps
+  const getStepContent = (step: number): { title: string, content: string } => {
+    // Special handling for Positive Attitude module (id: 18)
+    if (module?.id === 18) {
+      switch(step) {
+        case 0:
+          return {
+            title: "Quick Introduction",
+            content: module?.description || ""
+          };
+        case 1:
+          return {
+            title: "The Power of Positivity",
+            content: perplexityContent.isLoading 
+              ? "Loading personalized content..." 
+              : perplexityContent.coreConcept || "A positive attitude is contagious in the classroom. When teachers approach each day with optimism and enthusiasm, children absorb this energy and feel more secure and motivated to learn. Studies show that positive teacher-child interactions lead to better cognitive and social-emotional outcomes."
+          };
+        case 2:
+          return {
+            title: "Practical Techniques",
+            content: perplexityContent.isLoading 
+              ? "Loading personalized content..." 
+              : perplexityContent.practicalApplication || "1. Start each day with a personal positive affirmation and share one thing you're excited about with your class.\n\n2. Use the 'pause and breathe' technique when feeling frustrated - take three deep breaths before responding to challenging behavior.\n\n3. Keep a small notebook to jot down positive moments throughout the day, creating a resource of joy to reflect on during difficult times."
+          };
+        default:
+          return {
+            title: "Error",
+            content: "Content not found"
+          };
+      }
+    }
+    
+    // Default content for other modules
+    const defaultSteps = [
+      {
+        title: "Quick Introduction",
+        content: module?.description || ""
+      },
+      {
+        title: "Core Concept",
+        content: "This is where the core concept of the micro module is presented in a concise, focused way."
+      },
+      {
+        title: "Practical Application",
+        content: "A brief, actionable takeaway that can be immediately applied in your classroom."
+      }
+    ];
+    
+    return defaultSteps[step] || defaultSteps[0];
+  };
+  
+  const steps = [0, 1, 2].map(step => getStepContent(step));
 
   // Default key takeaways based on module category
   React.useEffect(() => {
