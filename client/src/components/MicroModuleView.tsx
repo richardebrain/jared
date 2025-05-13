@@ -296,7 +296,7 @@ export default function MicroModuleView() {
     }
   }, [module]);
 
-  // Simplified content for micro modules - just 3 quick steps
+  // Simplified content for micro modules - 4 steps including interactive content
   const getStepContent = (step: number): { title: string, content: string } => {
     // Default return in case of missing data
     const defaultContent = { 
@@ -311,7 +311,7 @@ export default function MicroModuleView() {
     
     // Check if we have a micro-module (5 min or less)
     if (module.duration && module.duration <= 5) {
-      let stepTitles = ["Quick Introduction", "Core Concept", "Practical Techniques"];
+      let stepTitles = ["Quick Introduction", "Core Concept", "Practical Techniques", "Interactive Learning"];
       
       // Customize step titles for certain module types
       if (module.id === 18) { 
@@ -353,6 +353,11 @@ export default function MicroModuleView() {
               ? "Loading personalized content..." 
               : perplexityContent.practicalApplication || "1. Start each day with a personal positive affirmation and share one thing you're excited about with your class.\n\n2. Use the 'pause and breathe' technique when feeling frustrated - take three deep breaths before responding to challenging behavior.\n\n3. Keep a small notebook to jot down positive moments throughout the day, creating a resource of joy to reflect on during difficult times."
           };
+        case 3:
+          return {
+            title: stepTitles[3],
+            content: "Complete these activities to check your understanding and solidify your learning."
+          };
         default:
           return {
             title: "Error",
@@ -381,7 +386,8 @@ export default function MicroModuleView() {
   };
   
   // Only generate steps when module is loaded
-  const steps = module ? [0, 1, 2].map(step => getStepContent(step)) : [
+  const steps = module ? [0, 1, 2, 3].map(step => getStepContent(step)) : [
+    { title: "Loading...", content: "Loading module content..." },
     { title: "Loading...", content: "Loading module content..." },
     { title: "Loading...", content: "Loading module content..." },
     { title: "Loading...", content: "Loading module content..." }
@@ -619,11 +625,49 @@ export default function MicroModuleView() {
                 </div>
               </div>
               
-              <div className="text-lg mb-6">
-                {steps[completedStep]?.content || "Loading content..."}
-              </div>
+              {completedStep === 3 ? (
+                // Interactive Step - Games, Videos, and Quiz
+                <div className="space-y-6">
+                  <div className="text-lg mb-6">
+                    {steps[completedStep]?.content || "Loading content..."}
+                  </div>
+                  
+                  {perplexityContent.quizQuestion && (
+                    <InteractiveQuiz 
+                      question={{
+                        ...perplexityContent.quizQuestion,
+                        explanation: "Understanding key early childhood education concepts helps create effective learning environments."
+                      }}
+                    />
+                  )}
+                  
+                  <MemoryMatchGame 
+                    title="Match & Remember"
+                    pairs={[
+                      { content: "😊", description: "Positive Attitude" },
+                      { content: "🤔", description: "Critical Thinking" },
+                      { content: "🤗", description: "Emotional Support" },
+                      { content: "📚", description: "Literacy Development" },
+                      { content: "🎨", description: "Creative Expression" },
+                      { content: "🧠", description: "Cognitive Growth" },
+                    ]}
+                  />
+                  
+                  {perplexityContent.videoResources && perplexityContent.videoResources.length > 0 && (
+                    <VideoResources
+                      videoUrls={perplexityContent.videoResources}
+                      moduleName={module?.title || 'Learning Resources'}
+                    />
+                  )}
+                </div>
+              ) : (
+                // Regular text content for steps 0-2
+                <div className="text-lg mb-6">
+                  {steps[completedStep]?.content || "Loading content..."}
+                </div>
+              )}
               
-              {completedStep === steps.length - 1 && keyTakeaways.length > 0 && (
+              {completedStep === 3 && keyTakeaways.length > 0 && (
                 <Card className="bg-green-50 border-green-200 mb-6">
                   <CardHeader className="py-3">
                     <CardTitle className="text-lg flex items-center">
