@@ -1111,6 +1111,32 @@ export default function MicroModuleView() {
         />
       )}
       
+      {/* Final Assessment Modal */}
+      {showFinalAssessment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-3xl overflow-hidden">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold text-primary">Final Assessment</h2>
+                <GraduationCap className="text-primary h-8 w-8" />
+              </div>
+              <p className="mb-6 text-gray-600">
+                Complete this assessment to finish the module. Answer at least 2 out of 3 questions correctly to demonstrate your understanding.
+              </p>
+              
+              {/* Final Assessment Quiz */}
+              <InteractiveQuiz 
+                questions={module ? getFinalAssessmentQuestions(module.id) : []}
+                onComplete={(score) => {
+                  // Handle the assessment completion with the score percentage
+                  handleFinalAssessmentComplete(score);
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Points Tracking Header */}
       <div className="bg-gradient-to-r from-green-50 to-amber-50 p-4 rounded-lg mb-4 shadow-sm border border-amber-100">
         <div className="flex items-center justify-between">
