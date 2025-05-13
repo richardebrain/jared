@@ -1343,107 +1343,86 @@ export default function AssessmentPage() {
       const correct = correctByDomain[currentDomain] || 0;
       const incorrect = incorrectByDomain[currentDomain] || 0;
       
-      // If they just answered the last beginner question correctly
-      if (currentDifficulty === 'beginner' && 
-          currentQuestionIndex === domainQuestions.length - 1 && 
-          domainQuestions.length > 0) {
-        // Offer to move to intermediate level directly
+      // Auto level-up like a video game - if they answered correctly, level up immediately
+      if (currentDifficulty === 'beginner') {
+        // Immediately level-up to intermediate - video game style
         toast({
-          title: "Ready for Intermediate Questions?",
-          description: "You're doing well! Would you like to try intermediate questions in this topic?",
+          title: "🎮 LEVEL UP! 🎮",
+          description: "You've unlocked Level 2! Moving to intermediate practice-based questions.",
           variant: "default",
-          duration: 6000,
-          action: (
-            <Button 
-              variant="default" 
-              size="sm" 
-              onClick={() => {
-                setDomainDifficulty(prev => ({
-                  ...prev,
-                  [currentDomain]: 'intermediate'
-                }));
-                setCorrectByDomain(prev => ({
-                  ...prev,
-                  [currentDomain]: 0
-                }));
-                // Reset current question index to start the new level
-                setCurrentQuestionIndex(0);
-                // Load intermediate questions
-                updateDomainQuestions(currentDomain, 'intermediate');
-              }}
-            >
-              Yes, continue to intermediate
-            </Button>
-          ),
+          duration: 3000,
         });
+        
+        // Audio feedback for level up (like a game)
+        playLevelUpSound();
+        
+        // Apply the level up changes
+        setDomainDifficulty(prev => ({
+          ...prev,
+          [currentDomain]: 'intermediate'
+        }));
+        setCorrectByDomain(prev => ({
+          ...prev,
+          [currentDomain]: 0
+        }));
+        // Reset current question index to start the new level
+        setCurrentQuestionIndex(0);
+        // Load intermediate questions
+        updateDomainQuestions(currentDomain, 'intermediate');
       }
-      // If they just answered the last intermediate question correctly
-      else if (currentDifficulty === 'intermediate' && 
-               currentQuestionIndex === domainQuestions.length - 1 && 
-               domainQuestions.length > 0) {
-        // Offer to move to advanced level directly
+      // Auto level-up like a video game - intermediate to advanced
+      else if (currentDifficulty === 'intermediate') {
+        // Immediately level-up to advanced - video game style
         toast({
-          title: "Ready for Advanced Questions?",
-          description: "You're showing mastery! Would you like to try advanced questions in this topic?",
+          title: "🎮 LEVEL UP! 🎮",
+          description: "You've unlocked Level 3! Moving to advanced hands-on questions.",
           variant: "default",
-          duration: 6000,
-          action: (
-            <Button 
-              variant="default" 
-              size="sm" 
-              onClick={() => {
-                setDomainDifficulty(prev => ({
-                  ...prev,
-                  [currentDomain]: 'advanced'
-                }));
-                setCorrectByDomain(prev => ({
-                  ...prev,
-                  [currentDomain]: 0
-                }));
-                // Reset current question index to start the new level
-                setCurrentQuestionIndex(0);
-                // Load advanced questions
-                updateDomainQuestions(currentDomain, 'advanced');
-              }}
-            >
-              Yes, try advanced questions
-            </Button>
-          ),
+          duration: 3000,
         });
+        
+        // Audio feedback for level up (like a game)
+        playLevelUpSound();
+        
+        // Apply the level up changes
+        setDomainDifficulty(prev => ({
+          ...prev,
+          [currentDomain]: 'advanced'
+        }));
+        setCorrectByDomain(prev => ({
+          ...prev,
+          [currentDomain]: 0
+        }));
+        // Reset current question index to start the new level
+        setCurrentQuestionIndex(0);
+        // Load advanced questions
+        updateDomainQuestions(currentDomain, 'advanced');
       }
-      // If they just answered the last advanced question correctly
-      else if (currentDifficulty === 'advanced' && 
-               currentQuestionIndex === domainQuestions.length - 1 && 
-               domainQuestions.length > 0) {
-        // Offer to move to expert/mastery level
+      // Auto level-up like a video game - advanced to expert/mastery
+      else if (currentDifficulty === 'advanced') {
+        // Immediately level-up to expert/mastery level - video game style
         toast({
-          title: "Ready for Mastery Level?",
-          description: "Impressive! Would you like to attempt mastery-level questions in this topic?",
+          title: "🏆 MASTER LEVEL UNLOCKED! 🏆",
+          description: "You've reached MASTER LEVEL! These questions reflect expert teacher knowledge!",
           variant: "default",
-          duration: 6000,
-          action: (
-            <Button 
-              variant="default" 
-              size="sm" 
-              onClick={() => {
-                setDomainDifficulty(prev => ({
-                  ...prev,
-                  [currentDomain]: 'expert'
-                }));
-                setCorrectByDomain(prev => ({
-                  ...prev,
-                  [currentDomain]: 0
-                }));
-                // Reset current question index to start the new level
-                setCurrentQuestionIndex(0);
-                // Load expert questions
-                updateDomainQuestions(currentDomain, 'expert');
-              }}
-            >
-              Yes, I'm ready for mastery level
-            </Button>
-          ),
+          duration: 4000,
         });
+        
+        // Audio feedback for master level (like achieving a major game milestone)
+        playMasterLevelSound();
+        
+        // Apply the level up changes
+        setDomainDifficulty(prev => ({
+          ...prev,
+          [currentDomain]: 'expert'
+        }));
+        setCorrectByDomain(prev => ({
+          ...prev,
+          [currentDomain]: 0
+        }));
+        // Reset current question index to start the new level
+        setCurrentQuestionIndex(0);
+        // Load expert questions
+        updateDomainQuestions(currentDomain, 'expert');
       }
     } else {
       setIncorrectByDomain(prev => ({
