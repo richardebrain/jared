@@ -1,7 +1,12 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertLearningModuleSchema, insertUserProgressSchema, insertMeetingSchema, insertAssessmentSchema, type User } from "@shared/schema";
+import { db } from "./db";
+import { 
+  insertUserSchema, insertLearningModuleSchema, insertUserProgressSchema, 
+  insertMeetingSchema, insertAssessmentSchema, type User,
+  spinGameRewards
+} from "@shared/schema";
 import express from "express";
 import session from "express-session";
 import passport from "passport";

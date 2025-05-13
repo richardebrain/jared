@@ -10,7 +10,9 @@ import MediaSidebar from "@/components/MediaSidebar";
 import AchievementsSection from "@/components/AchievementsSection";
 import BearAssistant from "@/components/BearAssistant";
 import ModuleView from "@/components/ModuleView";
+import SpinWheel from "@/components/SpinWheel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import mindfulMorningsLogo from "../assets/images/mindful-mornings-logo.jpg";
 import raisingArizonaLogo from "../assets/images/raising-arizona-logo.jpg";
 
