@@ -477,10 +477,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/progress", requireAuth, async (req, res) => {
     try {
       const userId = req.session.userId as number;
-      const progressData = insertUserProgressSchema.parse({
+      // Parse and validate the input data
+      let progressData = insertUserProgressSchema.parse({
         ...req.body,
         userId
       });
+      
+      // Ensure progress is between 0 and 100
+      if (progressData.progress !== undefined) {
+        progressData.progress = Math.max(0, Math.min(100, progressData.progress));
+      }
       
       // Get the module to calculate points
       const module = await storage.getModule(progressData.moduleId);
@@ -553,6 +559,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set pointsEarned in progress data if not set
       if (!progressData.pointsEarned) {
         progressData.pointsEarned = pointsEarned;
+      }
+      
+      // Always ensure modules with 100% progress are marked as completed
+      if (progressData.progress >= 100) {
+        progressData.completed = true;
+        console.log(`Marking module ${progressData.moduleId} as completed with 100% progress`);
       }
       
       // Update progress first

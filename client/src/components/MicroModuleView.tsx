@@ -552,7 +552,17 @@ export default function MicroModuleView() {
       // Increment the step first
       const newStep = completedStep + 1;
       setCompletedStep(newStep);
-      const progressValue = Math.floor((newStep / steps.length) * 100);
+      
+      // Calculate progress percentage - ensure it's exactly 100% on last step
+      let progressValue;
+      if (newStep >= steps.length - 1) {
+        progressValue = 100; // Set to exactly 100% on last step
+      } else {
+        // Use ceiling instead of floor to avoid showing less than 100% on completion
+        progressValue = Math.ceil((newStep / (steps.length - 1)) * 100);
+        // Cap at 99% until final step to ensure 100% only shown when fully completed
+        progressValue = Math.min(progressValue, 99);
+      }
       
       console.log("Updating progress:", { 
         step: newStep, 
