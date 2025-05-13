@@ -7,6 +7,45 @@ import { Textarea } from "@/components/ui/textarea";
 import { Book, PenTool, Sparkles, Copy, BookOpenText, ThumbsUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+// Cat in the Hat SVG
+const CatInHatIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="60" height="72">
+    {/* Red and white striped hat */}
+    <rect x="30" y="5" width="40" height="40" fill="red"/>
+    <rect x="30" y="12" width="40" height="6" fill="white"/>
+    <rect x="30" y="24" width="40" height="6" fill="white"/>
+    <rect x="30" y="36" width="40" height="6" fill="white"/>
+    <ellipse cx="50" cy="45" rx="25" ry="5" fill="red"/>
+    
+    {/* Cat face */}
+    <circle cx="50" cy="65" r="20" fill="black"/>
+    <circle cx="50" cy="60" r="18" fill="white"/>
+    
+    {/* Eyes */}
+    <ellipse cx="42" cy="55" rx="4" ry="5" fill="black"/>
+    <ellipse cx="58" cy="55" rx="4" ry="5" fill="black"/>
+    <circle cx="41" cy="54" r="1" fill="white"/>
+    <circle cx="57" cy="54" r="1" fill="white"/>
+    
+    {/* Nose and mouth */}
+    <circle cx="50" cy="61" r="2.5" fill="pink"/>
+    <path d="M 40 65 C 45 70, 55 70, 60 65" stroke="black" fill="none" strokeWidth="1"/>
+    
+    {/* Whiskers */}
+    <line x1="34" y1="62" x2="25" y2="60" stroke="black" strokeWidth="1"/>
+    <line x1="34" y1="64" x2="25" y2="64" stroke="black" strokeWidth="1"/>
+    <line x1="34" y1="66" x2="25" y2="68" stroke="black" strokeWidth="1"/>
+    <line x1="66" y1="62" x2="75" y2="60" stroke="black" strokeWidth="1"/>
+    <line x1="66" y1="64" x2="75" y2="64" stroke="black" strokeWidth="1"/>
+    <line x1="66" y1="66" x2="75" y2="68" stroke="black" strokeWidth="1"/>
+    
+    {/* Bow tie */}
+    <path d="M 40 75 L 44 79 L 40 83 Z" fill="red"/>
+    <path d="M 60 75 L 56 79 L 60 83 Z" fill="red"/>
+    <circle cx="50" cy="79" r="3" fill="red"/>
+  </svg>
+);
+
 const examplePrompts = [
   "Jonny is using walking feet today in class",
   "Emma shared her toys with her friends",
@@ -93,33 +132,35 @@ export function SuessifyGenerator() {
     <Card className="w-full">
       <CardHeader className="pb-4">
         <div className="flex items-center">
-          <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-2 rounded-lg mr-3">
-            <Book className="h-5 w-5 text-white" />
+          <div className="mr-3">
+            <CatInHatIcon />
           </div>
-          <CardTitle className="text-xl">Suessify Generator</CardTitle>
+          <div>
+            <CardTitle className="text-xl">Suessify Generator</CardTitle>
+            <CardDescription>
+              Transform any classroom moment into a fun Dr. Seuss-style poem to share with your students!
+            </CardDescription>
+          </div>
         </div>
-        <CardDescription>
-          Transform any classroom moment into a fun Dr. Seuss-style poem to share with your students!
-        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="situation">Describe a situation or achievement</Label>
-          <div className="flex gap-2">
+          <div className="space-y-3">
             <Input
               id="situation"
               placeholder={`For example: "${randomPrompt}"`}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
+              className="h-12 text-lg"
             />
             <Button 
               variant="outline" 
-              size="sm" 
               onClick={handleUseExample}
-              className="whitespace-nowrap"
+              className="w-full"
             >
-              <BookOpenText className="h-4 w-4 mr-2" />
-              Use Example
+              <BookOpenText className="h-5 w-5 mr-2" />
+              Use Example Prompt
             </Button>
           </div>
         </div>
