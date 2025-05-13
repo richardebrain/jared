@@ -1485,6 +1485,141 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Endpoints
+  
+  // Suessify Generator - Dr. Seuss style text transformer
+  app.post("/api/ai/suessify", async (req, res) => {
+    try {
+      const { text } = req.body;
+      
+      if (!text) {
+        return res.status(400).json({ error: "Text is required" });
+      }
+      
+      // Generate the Suessified text
+      const prompt = `Transform the following text into a Dr. Seuss style rhyme, focusing on simple words, rhythmic patterns, and playful rhymes. Make it suitable for preschool education, maintaining the original meaning but with Seuss-like creativity:
+
+"${text}"
+
+Respond with only the transformed text, no additional commentary.`;
+      
+      let suessifiedText = "";
+      
+      try {
+        // If Perplexity API is available, use it
+        if (process.env.PERPLEXITY_API_KEY) {
+          const response = await fetch("https://api.perplexity.ai/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${process.env.PERPLEXITY_API_KEY}`
+            },
+            body: JSON.stringify({
+              model: "llama-3.1-sonar-small-128k-online",
+              messages: [
+                {
+                  role: "system",
+                  content: "You are an expert at creating Dr. Seuss-style rhymes for early childhood education."
+                },
+                {
+                  role: "user",
+                  content: prompt
+                }
+              ],
+              temperature: 0.7
+            })
+          });
+          
+          const data = await response.json();
+          suessifiedText = data.choices[0].message.content;
+        }
+        else {
+          suessifiedText = "No AI service is currently available. Please try again later.";
+        }
+      } catch (error) {
+        console.error("Error calling AI API:", error);
+        throw new Error("Failed to generate Suessified text");
+      }
+      
+      return res.json({ suessifiedText });
+    } catch (error) {
+      console.error("Error in /api/ai/suessify:", error);
+      return res.status(500).json({ error: "Failed to generate Suessified text" });
+    }
+  });
+  
+  // Parent Response Generator endpoint - for crafting professional parent communications
+  app.post("/api/ai/parent-response", async (req, res) => {
+    try {
+      const { prompt } = req.body;
+      
+      if (!prompt) {
+        return res.status(400).json({ error: "Prompt is required" });
+      }
+      
+      // Generate the parent response
+      const systemPrompt = `You are an expert early childhood educator with 20 years of experience in communicating effectively with parents. 
+You excel at crafting sensitive, professional, and constructive responses to parents, even in difficult situations.
+Your communication style is:
+1. Empathetic but professional
+2. Solutions-focused rather than problem-focused
+3. Based on established child development principles
+4. Partnership-oriented, inviting parent collaboration
+5. Structured with observations first, then interpretations, and finally suggestions
+6. Written at a 6th-8th grade reading level for accessibility
+7. Free of educational jargon unless necessary (and then explained)`;
+      
+      const userPrompt = `Create a professional, empathetic response to use when communicating with a parent about the following situation:
+
+"${prompt}"
+
+Format your response as a complete message I could use, including a greeting and closing. Focus on maintaining a positive parent-teacher partnership while being honest about any concerns. Include 2-3 specific, actionable suggestions when appropriate.`;
+      
+      let response = "";
+      
+      try {
+        // If Perplexity API is available, use it
+        if (process.env.PERPLEXITY_API_KEY) {
+          const apiResponse = await fetch("https://api.perplexity.ai/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${process.env.PERPLEXITY_API_KEY}`
+            },
+            body: JSON.stringify({
+              model: "llama-3.1-sonar-small-128k-online",
+              messages: [
+                {
+                  role: "system",
+                  content: systemPrompt
+                },
+                {
+                  role: "user",
+                  content: userPrompt
+                }
+              ],
+              temperature: 0.5
+            })
+          });
+          
+          const data = await apiResponse.json();
+          response = data.choices[0].message.content;
+        }
+        else {
+          response = "No AI service is currently available. Please try again later.";
+        }
+      } catch (error) {
+        console.error("Error calling AI API:", error);
+        throw new Error("Failed to generate parent response");
+      }
+      
+      return res.json({ response });
+    } catch (error) {
+      console.error("Error in /api/ai/parent-response:", error);
+      return res.status(500).json({ error: "Failed to generate parent response" });
+    }
+  });
+  
   // Perplexity API integration for micro-learning modules
   app.post('/api/perplexity/generate', async (req, res) => {
     try {
