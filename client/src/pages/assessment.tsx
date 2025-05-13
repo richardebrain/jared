@@ -2358,20 +2358,26 @@ export default function AssessmentPage() {
                   </Badge>
                 </div>
                 <CardDescription>
-                  Question {currentQuestionIndex + 1} of {domainQuestions.length}
+                  {/* Add validation to prevent division by zero or NaN issues */}
+                  Question {currentQuestionIndex + 1} of {domainQuestions ? domainQuestions.length : 0}
                 </CardDescription>
                 <Progress 
-                  value={((currentQuestionIndex + 1) / domainQuestions.length) * 100} 
+                  value={domainQuestions && domainQuestions.length > 0 
+                    ? ((currentQuestionIndex + 1) / domainQuestions.length) * 100 
+                    : 0} 
                   className="h-2" 
                 />
               </CardHeader>
               
               <CardContent>
-                {domainQuestions.length > 0 ? (
+                {domainQuestions && domainQuestions.length > 0 ? (
                   <div className="space-y-6">
                     <div className="text-lg font-medium float-in">
-                      {domainQuestions[currentQuestionIndex].text}
-                      {domainQuestions[currentQuestionIndex].required && (
+                      {/* Add validation to prevent the "cannot read properties of undefined (reading 'text')" error */}
+                      {domainQuestions[currentQuestionIndex] && domainQuestions[currentQuestionIndex].text
+                        ? domainQuestions[currentQuestionIndex].text
+                        : "Loading question..."}
+                      {domainQuestions[currentQuestionIndex] && domainQuestions[currentQuestionIndex].required && (
                         <span className="text-destructive ml-1">*</span>
                       )}
                     </div>
