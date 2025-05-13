@@ -58,6 +58,9 @@ export default function DynamicLessonGenerator({ user, moduleId, onLessonComplet
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [completionStep, setCompletionStep] = useState<number>(0);
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
+  const [selectedLearningStyle, setSelectedLearningStyle] = useState<"visual" | "auditory" | "reading" | "kinesthetic" | null>(
+    user.learningStyle?.preferred || null
+  );
 
   // Get module details
   const { data: module } = useQuery({
@@ -90,12 +93,22 @@ export default function DynamicLessonGenerator({ user, moduleId, onLessonComplet
       // Determine the challenge to use (either selected or custom)
       const challenge = isCustom ? customChallenge : selectedChallenge;
       
+      if (!selectedLearningStyle) {
+        toast({
+          title: "Learning Style Required",
+          description: "Please select a learning style to personalize your lesson.",
+          variant: "destructive",
+        });
+        setIsGenerating(false);
+        return;
+      }
+      
       // Call the API to generate lesson content
       const response = await apiRequest('POST', '/api/lesson/generate', {
         moduleId,
         userId: user.id,
         challenge,
-        learningStyle: user.learningStyle?.preferred || 'visual',
+        learningStyle: selectedLearningStyle,
       });
       
       const data = await response.json();
@@ -216,35 +229,68 @@ export default function DynamicLessonGenerator({ user, moduleId, onLessonComplet
             <div className="bg-muted/30 p-4 rounded-lg">
               <h4 className="font-medium mb-2 flex items-center">
                 <HelpCircle className="w-4 h-4 mr-2 text-primary" />
-                Your Learning Style
+                Select Your Learning Style
               </h4>
               <p className="text-sm mb-3">
-                Based on your assessment, you learn best through:
+                Choose how you'd like your lesson to be tailored:
               </p>
-              <div className="flex items-center space-x-2 mb-2">
-                {user.learningStyle?.preferred === 'visual' && (
-                  <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm flex items-center">
-                    <BookOpen className="w-4 h-4 mr-1" /> Visual
-                  </div>
-                )}
-                {user.learningStyle?.preferred === 'auditory' && (
-                  <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm flex items-center">
-                    <Headphones className="w-4 h-4 mr-1" /> Auditory
-                  </div>
-                )}
-                {user.learningStyle?.preferred === 'reading' && (
-                  <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm flex items-center">
-                    <PenTool className="w-4 h-4 mr-1" /> Reading/Writing
-                  </div>
-                )}
-                {user.learningStyle?.preferred === 'kinesthetic' && (
-                  <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm flex items-center">
-                    <PenTool className="w-4 h-4 mr-1" /> Hands-on
-                  </div>
-                )}
-              </div>
+              
+              <RadioGroup 
+                value={selectedLearningStyle || ''}
+                onValueChange={(value) => setSelectedLearningStyle(value as "visual" | "auditory" | "reading" | "kinesthetic")}
+                className="space-y-2 mb-3"
+              >
+                <div className={`flex items-center space-x-2 rounded-md border p-3 
+                  ${selectedLearningStyle === 'visual' ? 'bg-primary/10 border-primary' : 'bg-background'}`}>
+                  <RadioGroupItem value="visual" id="visual" />
+                  <Label htmlFor="visual" className="flex items-center cursor-pointer">
+                    <BookOpen className="w-4 h-4 mr-2 text-primary" /> 
+                    <div>
+                      <span className="font-medium">Visual</span>
+                      <p className="text-xs text-muted-foreground">Learn with images, diagrams, and visual demonstrations</p>
+                    </div>
+                  </Label>
+                </div>
+                
+                <div className={`flex items-center space-x-2 rounded-md border p-3 
+                  ${selectedLearningStyle === 'auditory' ? 'bg-primary/10 border-primary' : 'bg-background'}`}>
+                  <RadioGroupItem value="auditory" id="auditory" />
+                  <Label htmlFor="auditory" className="flex items-center cursor-pointer">
+                    <Headphones className="w-4 h-4 mr-2 text-primary" /> 
+                    <div>
+                      <span className="font-medium">Auditory</span>
+                      <p className="text-xs text-muted-foreground">Learn through discussion, verbal explanations, and sound</p>
+                    </div>
+                  </Label>
+                </div>
+                
+                <div className={`flex items-center space-x-2 rounded-md border p-3 
+                  ${selectedLearningStyle === 'reading' ? 'bg-primary/10 border-primary' : 'bg-background'}`}>
+                  <RadioGroupItem value="reading" id="reading" />
+                  <Label htmlFor="reading" className="flex items-center cursor-pointer">
+                    <PenTool className="w-4 h-4 mr-2 text-primary" /> 
+                    <div>
+                      <span className="font-medium">Reading/Writing</span>
+                      <p className="text-xs text-muted-foreground">Learn through reading text and writing notes</p>
+                    </div>
+                  </Label>
+                </div>
+                
+                <div className={`flex items-center space-x-2 rounded-md border p-3 
+                  ${selectedLearningStyle === 'kinesthetic' ? 'bg-primary/10 border-primary' : 'bg-background'}`}>
+                  <RadioGroupItem value="kinesthetic" id="kinesthetic" />
+                  <Label htmlFor="kinesthetic" className="flex items-center cursor-pointer">
+                    <ArrowRightCircle className="w-4 h-4 mr-2 text-primary" /> 
+                    <div>
+                      <span className="font-medium">Hands-on</span>
+                      <p className="text-xs text-muted-foreground">Learn by doing, practicing, and physical activities</p>
+                    </div>
+                  </Label>
+                </div>
+              </RadioGroup>
+              
               <p className="text-sm text-muted-foreground">
-                Your content will be tailored to your preferred learning style. You can update this anytime by retaking the assessment.
+                Your content will be tailored to your selected learning style to make learning fun and effective!
               </p>
             </div>
 
@@ -275,28 +321,34 @@ export default function DynamicLessonGenerator({ user, moduleId, onLessonComplet
   // Render the lesson content if it's been generated
   return (
     <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="text-2xl">{module.title}</CardTitle>
+      <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent">
+        <CardTitle className="text-2xl flex items-center">
+          <span className="mr-2">🎮</span> 
+          {module.title}
+        </CardTitle>
         <CardDescription>
-          Personalized for your {user.learningStyle?.preferred || 'visual'} learning style
-          {!isCustom && <span> - Addressing: {selectedChallenge}</span>}
-          {isCustom && <span> - Addressing: Your custom challenge</span>}
+          Personalized for your {selectedLearningStyle} learning style
+          {!isCustom && <span> - Quest: Conquer {selectedChallenge}</span>}
+          {isCustom && <span> - Quest: Solve Your Custom Challenge</span>}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="content" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="content">
-              Lesson Content
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="content" className="flex items-center">
+              <BookOpen className="w-4 h-4 mr-2" /> Main Quest
             </TabsTrigger>
-            <TabsTrigger value="activities">
-              Activities
+            <TabsTrigger value="activities" className="flex items-center">
+              <ArrowRightCircle className="w-4 h-4 mr-2" /> Mini-Games
             </TabsTrigger>
-            <TabsTrigger value="reflection">
-              Reflection
+            <TabsTrigger value="gameElements" className="flex items-center">
+              <HelpCircle className="w-4 h-4 mr-2" /> Power-Ups
             </TabsTrigger>
-            <TabsTrigger value="resources">
-              Resources
+            <TabsTrigger value="reflection" className="flex items-center">
+              <PenTool className="w-4 h-4 mr-2" /> Level-Up
+            </TabsTrigger>
+            <TabsTrigger value="resources" className="flex items-center">
+              <Headphones className="w-4 h-4 mr-2" /> Treasure
             </TabsTrigger>
           </TabsList>
           

@@ -30,24 +30,34 @@ export function generateLessonPrompt(
   
   // Generate the prompt
   return `
-You are an expert early childhood education mentor for preschool teachers who specializes in personalized instruction. 
-Create a detailed, engaging lesson on "${module.title}" tailored to a teacher with a ${learningStyle} learning style
+You are an expert early childhood education mentor for preschool teachers who specializes in personalized, FUN instruction. 
+Create a highly engaging, GAME-LIKE lesson on "${module.title}" tailored to a teacher with a ${learningStyle} learning style
 who is facing this classroom challenge: "${challenge}".
 
+The lesson should feel like a fun video game rather than traditional learning. It must be entertaining while teaching real ECE concepts.
+
 The lesson should be structured in JSON format with the following sections:
-- introduction: A brief introduction to the topic that connects it to the specific challenge
-- keyConcepts: An array of 3-5 key concepts related to the topic
-- strategies: An array of 4-6 practical strategies, each with a title and description
-- activities: An array of 2-3 interactive activities with title, description, timeEstimate, and steps (array of strings)
-- reflectionQuestions: An array of 3-4 reflection questions, each with a text field
-- resources: An array of additional resources with title, description, type (video, article, audio), and url
+- introduction: A brief, upbeat introduction to the topic that connects it to the specific challenge. Include a fun "quest" framing.
+- keyConcepts: An array of 3-5 key concepts related to the topic, each presented as an "achievement" to unlock
+- strategies: An array of 4-6 practical strategies, each with a catchy title and description. Frame these as special "power-ups" or "tools" for their teaching toolkit.
+- activities: An array of 2-3 HIGHLY INTERACTIVE activities with creative title, description, timeEstimate, and steps (array of strings). These MUST be genuinely fun and playful while teaching the concepts.
+- gameElements: An array of 3-4 game-like elements such as points systems, challenges, rewards, or "boss levels" that can make implementing the strategies more engaging
+- reflectionQuestions: An array of 3-4 reflection questions, each with a text field, framed as "level-up" opportunities
+- funFacts: An array of 2-3 surprising or interesting facts about the topic that will help teachers remember key points
+- resources: An array of additional resources with title, description, type (video, article, audio, game), and url
 
 ${styleInstruction}
+
+For ${learningStyle} learners specifically:
+- Create content that fills knowledge gaps in their preferred way of learning
+- Include specific "Did You Know?" sections that highlight facts most teachers don't know but should
+- Add "Eureka Moments" where complex concepts suddenly make sense through ${learningStyle} explanations
+- Include Easter eggs like the phrase "Breathe, Smile, Be Present" hidden in the content
 
 Incorporate Raising Arizona Preschool's motto: "Every Genius that ever was had a Mentor" into your content.
 Include references to developmentally appropriate practices and the Arizona Early Learning Standards where relevant.
 
-Ensure all content is factually accurate, evidence-based, and follows best practices in early childhood education.
+BE CREATIVE! The lesson should feel like playing rather than working while still being educational and evidence-based.
 Format your response as a JSON object without any additional text before or after.
 `;
 }
@@ -112,74 +122,200 @@ function generateDefaultLessonContent(prompt: string): any {
   const learningStyle = prompt.match(/with a (\w+) learning style/)?.[1] || "visual";
   const challenge = prompt.match(/challenge: "([^"]+)"/)?.[1] || "classroom management";
   
-  // Create basic content based on extracted information
-  return {
-    introduction: `This lesson on ${moduleTitle} will help you address challenges with ${challenge}. As someone with a ${learningStyle} learning style, you'll find this content specially designed to match how you learn best.`,
-    keyConcepts: [
-      "Understanding developmental milestones related to this challenge",
-      "Creating supportive classroom environments",
-      "Using positive reinforcement effectively",
-      "Building strong teacher-child relationships",
-      "Communicating effectively with families"
-    ],
-    strategies: [
-      {
-        title: "Proactive Classroom Management",
-        description: "Establish clear routines and expectations before challenges arise."
-      },
-      {
-        title: "Positive Behavior Guidance",
-        description: "Focus on reinforcing desired behaviors rather than punishing unwanted ones."
-      },
-      {
-        title: "Environmental Modifications",
-        description: "Adjust the physical space to promote desired behaviors and reduce triggers."
-      },
-      {
-        title: "Individualized Approaches",
-        description: "Tailor your strategies to each child's unique needs and developmental level."
-      }
-    ],
-    activities: [
-      {
-        title: "Classroom Scenario Analysis",
-        description: "Analyze common classroom situations and practice applying strategies.",
+  // Create fun game-like content based on learning style
+  let styleSpecificActivity = {};
+  let styleSpecificStrategy = {};
+  
+  switch(learningStyle) {
+    case "visual":
+      styleSpecificActivity = {
+        title: "Classroom Design Challenge",
+        description: "Create a visual map of your ideal classroom setup to address this challenge.",
+        timeEstimate: "20-25 minutes",
+        steps: [
+          "Grab some colored markers and a large sheet of paper",
+          "Draw your classroom layout with color-coded zones for different activities",
+          "Use sticky notes to mark potential problem areas related to your challenge",
+          "Use different colors to indicate solutions for each area",
+          "Take a photo of your design to refer back to later"
+        ]
+      };
+      styleSpecificStrategy = {
+        title: "Visual Cue Power-Up",
+        description: "Harness the power of visual signals and cues to communicate expectations without words."
+      };
+      break;
+    case "auditory":
+      styleSpecificActivity = {
+        title: "Soundscape Solutions",
+        description: "Create audio cues and verbal strategies for smoother classroom transitions.",
         timeEstimate: "15-20 minutes",
         steps: [
-          "Review the provided scenario related to your challenge",
-          "Identify potential causes and triggers",
-          "Select appropriate strategies to address the situation",
-          "Role-play or write out your response",
-          "Reflect on potential outcomes"
+          "Record 3-4 different sound cues on your phone (bell, chime, etc.)",
+          "Create a script for verbal directions that use rhythm and rhyming",
+          "Practice your verbal cues with varying tones and volumes",
+          "Role-play with a colleague responding to the audio cues",
+          "Develop a plan for teaching children these audio signals"
         ]
+      };
+      styleSpecificStrategy = {
+        title: "Sound System Mastery",
+        description: "Leverage the power of songs, rhythms and verbal cues to transform your classroom management."
+      };
+      break;
+    case "reading":
+      styleSpecificActivity = {
+        title: "Strategy Guidebook Creation",
+        description: "Write a personalized quick-reference guide for your specific classroom challenges.",
+        timeEstimate: "25-30 minutes",
+        steps: [
+          "Create a small notebook or digital document titled 'My Classroom Solutions'",
+          "Write clear, step-by-step procedures for handling specific situations",
+          "Include 'If/Then' scenarios for common challenges",
+          "Add inspirational quotes that motivate you as a teacher",
+          "Include a section for notes on what works and what needs adjustment"
+        ]
+      };
+      styleSpecificStrategy = {
+        title: "Text-to-Action Protocol",
+        description: "Transform written classroom policies into effective daily practices through systematic implementation."
+      };
+      break;
+    case "kinesthetic":
+      styleSpecificActivity = {
+        title: "Movement Strategy Relay",
+        description: "Physically act out classroom techniques in a fun, movement-based practice session.",
+        timeEstimate: "20-25 minutes",
+        steps: [
+          "Set up 4-5 stations around your room representing different classroom scenarios",
+          "At each station, physically act out your response to that scenario",
+          "Use props and move furniture as needed to fully engage with the space",
+          "Practice different physical positions (sitting, standing, kneeling) to see what works best",
+          "Create a physical 'anchor' gesture that helps you remember each strategy"
+        ]
+      };
+      styleSpecificStrategy = {
+        title: "Movement Magic Toolkit",
+        description: "Use purposeful physical activities and gestures to redirect behavior and create classroom harmony."
+      };
+      break;
+    default:
+      styleSpecificActivity = {
+        title: "Multi-Sensory Classroom Solutions",
+        description: "Develop strategies that engage multiple senses for more effective learning.",
+        timeEstimate: "20-25 minutes",
+        steps: [
+          "Identify 3 challenging classroom situations you face regularly",
+          "For each situation, brainstorm a solution that incorporates visual elements",
+          "Add an auditory component to each solution",
+          "Include how you could incorporate movement or touch",
+          "Create a quick-reference chart connecting situations to your multi-sensory solutions"
+        ]
+      };
+      styleSpecificStrategy = {
+        title: "Sensory Integration Power-Up",
+        description: "Combine visual, auditory, and kinesthetic techniques for maximum classroom effectiveness."
+      };
+  }
+  
+  // Create basic content based on extracted information
+  return {
+    introduction: `Welcome to your adventure in ${moduleTitle}! This fun quest will help you conquer challenges with ${challenge}. As someone with a ${learningStyle} learning style, you'll find this content specially designed to match how you learn best. Remember, "Every Genius that ever was had a Mentor" - and today, you're building your genius teaching skills! Breathe, Smile, Be Present as we begin...`,
+    
+    keyConcepts: [
+      "🏆 ACHIEVEMENT UNLOCK: Developmental Milestone Master - Understand key milestones related to this challenge",
+      "🏆 ACHIEVEMENT UNLOCK: Environment Architect - Create supportive classroom spaces that prevent problems",
+      "🏆 ACHIEVEMENT UNLOCK: Positive Reinforcement Wizard - Use effective techniques to encourage desired behaviors",
+      "🏆 ACHIEVEMENT UNLOCK: Relationship Builder - Foster strong teacher-child connections that reduce challenges",
+      "🏆 ACHIEVEMENT UNLOCK: Communication Champion - Partner effectively with families on consistent approaches"
+    ],
+    
+    strategies: [
+      {
+        title: "🔮 Anticipation Spell",
+        description: "Predict and prevent problems before they occur by reading classroom energy cues."
       },
       {
-        title: "Strategy Implementation Plan",
-        description: "Create a concrete plan to implement new strategies in your classroom.",
-        timeEstimate: "20-30 minutes",
+        title: "🛡️ Boundary Shield",
+        description: "Create clear, consistent limits that make children feel secure and understood."
+      },
+      {
+        title: "✨ Connection Charm",
+        description: "Build genuine relationships that give you influence during challenging moments."
+      },
+      {
+        title: "🌈 Redirection Rainbow",
+        description: "Smoothly guide children from undesired to appropriate behaviors using engaging alternatives."
+      },
+      styleSpecificStrategy
+    ],
+    
+    activities: [
+      {
+        title: "Classroom Challenge Simulator",
+        description: "A role-playing game where you practice handling tricky situations with different strategies.",
+        timeEstimate: "15-20 minutes",
         steps: [
-          "Select 2-3 strategies that resonate with you",
-          "Identify specific situations where you'll apply each strategy",
-          "List materials or preparations needed",
-          "Set measurable goals for implementation",
-          "Create a timeline for implementation and assessment"
+          "Choose a specific challenging scenario from your classroom experience",
+          "Write it down on a card with key details about the children involved",
+          "Draw a 'Strategy Card' from your deck (the strategies section above)",
+          "Role-play how you would handle the situation using that strategy",
+          "Reflect on what worked well and what you might adapt next time",
+          "Level up: Try the same scenario with a different strategy card!"
         ]
+      },
+      styleSpecificActivity
+    ],
+    
+    gameElements: [
+      {
+        title: "Strategy Collector",
+        description: "Each time you successfully implement a strategy, add it to your 'teaching toolkit' with notes on how it worked. Aim to collect all strategies with 3-star ratings."
+      },
+      {
+        title: "Classroom Challenge Boss Battles",
+        description: "Identify your top 3 recurring challenges as 'boss battles' to overcome. Track your progress in defeating each 'boss' by noting when your strategies succeed."
+      },
+      {
+        title: "XP Tracker",
+        description: "Award yourself experience points for each successful intervention. 1 XP for basic success, 3 XP for handling difficult situations, 5 XP for preventing problems before they start."
+      },
+      {
+        title: "Teaching Level-Up System",
+        description: "Every 20 XP, award yourself a 'level up' with a small reward. Track your journey from 'Novice' to 'Master Teacher' with specific milestones."
       }
     ],
+    
     reflectionQuestions: [
       {
-        text: "How does this challenge relate to the developmental stages of children in your classroom?"
+        text: "🔍 LEVEL-UP OPPORTUNITY: What specific developmental needs might be driving the challenging behaviors you're seeing?"
       },
       {
-        text: "Which strategy do you think will be most effective in your specific classroom context and why?"
+        text: "🔍 LEVEL-UP OPPORTUNITY: Which strategy feels most natural to your teaching style, and which one will stretch your skills in a good way?"
       },
       {
-        text: "What potential barriers might you face when implementing these strategies, and how will you address them?"
+        text: "🔍 LEVEL-UP OPPORTUNITY: How could you adapt these approaches to fit your unique classroom community and personalities?"
       },
       {
-        text: "How will you know if your approach is working, and what adjustments might you need to make?"
+        text: "🔍 LEVEL-UP OPPORTUNITY: What small victory will you celebrate first as you implement these strategies?"
       }
     ],
+    
+    funFacts: [
+      {
+        title: "Did You Know?",
+        fact: "Children's challenging behaviors often peak right before they master a new developmental skill. What looks like defiance might actually be a sign of growth!"
+      },
+      {
+        title: "Eureka Moment!",
+        fact: "Studies show that teachers who use playful approaches to classroom management report less burnout and more job satisfaction than those using strict disciplinary methods."
+      },
+      {
+        title: "Hidden Knowledge",
+        fact: "The 3:1 ratio is magical in teaching - aim for at least three positive interactions for every correction or redirection you give a child to maintain a positive relationship."
+      }
+    ],
+    
     resources: [
       {
         title: "NAEYC Position Statement on Developmentally Appropriate Practice",
@@ -198,6 +334,12 @@ function generateDefaultLessonContent(prompt: string): any {
         description: "Video demonstration of effective management techniques",
         type: "video",
         url: "https://www.youtube.com/watch?v=5pAXdCQnJ8Y"
+      },
+      {
+        title: "Teacher Learning Styles Quiz",
+        description: "Understand more about your own learning style and how it affects your teaching",
+        type: "game",
+        url: "https://www.educationplanner.org/students/self-assessments/learning-styles-quiz.shtml"
       }
     ]
   };
