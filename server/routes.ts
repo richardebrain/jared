@@ -1178,6 +1178,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Spin game reward endpoint
+  app.post("/api/spin-game/reward", async (req, res) => {
+    try {
+      const session = req.session as SessionData;
+      
+      if (!session.userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { rewardType, rewardAmount } = req.body;
+      
+      // Validate reward type and amount
+      if (!rewardType || !rewardAmount) {
+        return res.status(400).json({ message: "Invalid reward data" });
+      }
+      
+      // Insert the reward into the database
+      const reward = await db
+        .insert(spinGameRewards)
+        .values({
+          userId: session.userId,
+          rewardType,
+          rewardAmount: parseInt(rewardAmount),
+          isGrandPrize: rewardType === 'dayOff' || rewardType === 'cash' || (rewardType === 'lunch' && parseInt(rewardAmount) > 1),
+        })
+        .returning();
+      
+      // If reward is points or bear bucks, update user's balance
+      let user = await storage.getUser(session.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      if (rewardType === 'points') {
+        // Update points
+        const updatedUser = await storage.updateUser(session.userId, {
+          points: (user.points || 0) + parseInt(rewardAmount)
+        });
+        
+        res.status(200).json({
+          message: "Reward claimed successfully",
+          reward: reward[0],
+          pointsAdded: parseInt(rewardAmount),
+          totalPoints: updatedUser.points
+        });
+      } else if (rewardType === 'bearBucks') {
+        // Update bear bucks
+        const updatedUser = await storage.updateUser(session.userId, {
+          bearBucks: (user.bearBucks || 0) + parseInt(rewardAmount)
+        });
+        
+        res.status(200).json({
+          message: "Reward claimed successfully",
+          reward: reward[0],
+          bearBucksAdded: parseInt(rewardAmount),
+          totalBearBucks: updatedUser.bearBucks
+        });
+      } else {
+        // Special prizes don't update user balances directly
+        res.status(200).json({
+          message: "Special reward claimed successfully",
+          reward: reward[0],
+          info: "This reward will be redeemed by your administrator"
+        });
+      }
+    } catch (error) {
+      console.error("Error processing spin game reward:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Create HTTP server
   const httpServer = createServer(app);
 

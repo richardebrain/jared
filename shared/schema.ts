@@ -428,6 +428,7 @@ export const usersRelationsWithDiscussions = relations(users, ({ many }) => ({
   threads: many(discussionThreads),
   comments: many(discussionComments),
   votes: many(commentVotes),
+  spinGameRewards: many(spinGameRewards),
 }));
 
 export type DiscussionThread = typeof discussionThreads.$inferSelect;
@@ -438,3 +439,6 @@ export type InsertDiscussionComment = z.infer<typeof insertDiscussionCommentSche
 
 export type CommentVote = typeof commentVotes.$inferSelect;
 export type InsertCommentVote = z.infer<typeof insertCommentVoteSchema>;
+
+export type SpinGameReward = typeof spinGameRewards.$inferSelect;
+export type InsertSpinGameReward = z.infer<typeof insertSpinGameRewardSchema>;

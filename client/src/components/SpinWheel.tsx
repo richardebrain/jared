@@ -38,7 +38,7 @@ const getTotalProbability = () => PRIZES.reduce((acc, prize) => acc + prize.prob
 
 export function SpinWheel({ onClose }: SpinWheelProps) {
   const { toast } = useToast();
-  const { user, refreshUser } = useAuth();
+  const { user } = useAuth();
   const [spinning, setSpinning] = useState(false);
   const [spinEnabled, setSpinEnabled] = useState(true);
   const [confetti, setConfetti] = useState(false);
@@ -137,17 +137,14 @@ export function SpinWheel({ onClose }: SpinWheelProps) {
       
       // Record the reward in the database
       try {
-        const response = await apiRequest('/api/spin-game/reward', {
-          method: 'POST',
-          body: JSON.stringify({
-            rewardType: prize.type,
-            rewardAmount: prize.value
-          })
+        const response = await apiRequest('POST', '/api/spin-game/reward', {
+          rewardType: prize.type,
+          rewardAmount: prize.value
         });
         
-        if (response.success) {
-          // Refresh the user to get updated points/bear bucks
-          refreshUser();
+        if (response) {
+          // Reload user data to get updated points/bear bucks
+          window.location.reload();
         }
       } catch (error) {
         console.error("Error recording spin reward:", error);
