@@ -299,6 +299,15 @@ export function MindfulMorningsTraining() {
             Mindful Mornings is a brief daily practice to center yourself before starting your day with the children at Raising Arizona Preschool.
           </p>
           
+          <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200 max-w-2xl mx-auto mt-4">
+            <h3 className="text-indigo-800 font-medium text-lg mb-2">Shaping Their First Chapter</h3>
+            <p className="text-indigo-700 text-sm">
+              Every interaction with a child is writing a page in their life story. How we present ourselves—our calm, 
+              our patience, our joy—becomes woven into their narrative. Through these mindful practices, 
+              we prepare ourselves to help author the first chapters of their lives with intention and care.
+            </p>
+          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
             <Card className="bg-blue-50 border-blue-200">
               <CardHeader className="pb-2">
@@ -379,6 +388,16 @@ export function MindfulMorningsTraining() {
           <p className="text-center text-neutral-600">
             Select a breathing exercise to begin. Each exercise is designed to bring you to a calm, centered state.
           </p>
+          
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
+            <h3 className="text-blue-800 font-medium text-lg mb-2">The Breath as a Storyteller</h3>
+            <p className="text-blue-700 text-sm">
+              When we model mindful breathing for children, we write a powerful page in their developing story. 
+              Children who witness adults regulating emotions through breath learn an essential life skill that becomes 
+              part of their own narrative. By demonstrating that we can pause and breathe before reacting, 
+              we help write a chapter where they too can find calm in any storm throughout their lives.
+            </p>
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {breathingExercises.map((exercise) => (
@@ -477,6 +496,16 @@ export function MindfulMorningsTraining() {
           <p className="text-center text-neutral-600">
             Select affirmations that resonate with you, or create your own to guide your mindset today.
           </p>
+          
+          <div className="bg-purple-50 p-4 rounded-lg border border-purple-200 mb-6">
+            <h3 className="text-purple-800 font-medium text-lg mb-2">Words That Shape Their Story</h3>
+            <p className="text-purple-700 text-sm">
+              The words we speak to children and around them become the internal dialogue of their developing minds. 
+              By practicing positive affirmations, we're not just changing our own mindset—we're helping children write 
+              empowering chapters in their life stories where they believe in their capabilities and worth. 
+              Our affirming language today becomes their self-talk tomorrow.
+            </p>
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {affirmations.map((affirmation) => (
@@ -579,6 +608,16 @@ export function MindfulMorningsTraining() {
                 "Sometimes, our greatest wealth is in the opportunities we have and the impact we can make."
               </p>
             </div>
+          </div>
+          
+          <div className="bg-amber-50 p-4 rounded-lg border border-amber-200 mt-4 mb-2">
+            <h3 className="text-amber-800 font-medium text-lg mb-2">Gratitude: The Backbone of Their Story</h3>
+            <p className="text-amber-700 text-sm">
+              When we practice gratitude, we model for children how to appreciate life's gifts both big and small. 
+              This shapes a crucial chapter in their story—one where they learn to find joy and meaning even in challenging times. 
+              Children who witness adults expressing genuine gratitude develop resilience and positivity that becomes 
+              woven into their own life narrative, creating a foundation for lifelong emotional wellbeing.
+            </p>
           </div>
           
           <p className="text-center text-neutral-600 mt-2">
@@ -685,6 +724,17 @@ export function MindfulMorningsTraining() {
           <p className="text-lg">
             You've completed your Mindful Mornings practice. Carry this mindfulness with you throughout your day with the children.
           </p>
+          
+          <div className="bg-green-50 p-4 rounded-lg border border-green-200 mt-4">
+            <h3 className="text-green-800 font-medium text-lg mb-2">Your Role as a Co-Author</h3>
+            <p className="text-green-700 text-sm">
+              Remember that each day, you help write important chapters in the life stories of the children in your care. 
+              The mindfulness you bring to your interactions, the calm presence you embody, and the gratitude you model 
+              all become part of their developing narrative. You're not just a teacher—you're a co-author of their first 
+              and most formative chapter, helping them write a story of resilience, positivity, and emotional intelligence 
+              that will follow them throughout their lives.
+            </p>
+          </div>
           
           <div className="p-6 bg-blue-50 rounded-lg border border-blue-100 max-w-md mx-auto">
             <h4 className="font-bold text-lg mb-3 text-blue-800">Your Daily Mantra:</h4>
