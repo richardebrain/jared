@@ -159,8 +159,58 @@ async function seedDatabase() {
       }
     ];
 
-    await db.insert(learningModules).values(moduleData);
-    console.log("Learning modules created");
+    // Add mini-modules (short-duration, quick learning opportunities)
+    const miniModuleData: InsertLearningModule[] = [
+      {
+        title: "Quick Transition Techniques",
+        description: "Learn 5 effective ways to transition between activities while keeping children engaged. Each technique is worth 1 point. Complete all 5 for a 5-point reward!",
+        duration: 5,
+        imageUrl: null,
+        featured: false,
+        difficulty: "beginner",
+        category: "quick-transition-techniques"
+      },
+      {
+        title: "Coping Strategy: The Turtle Technique",
+        description: "Teach children the 'Turtle Technique' for managing big emotions. This simple technique gives children a concrete way to process feelings. Worth 7 points.",
+        duration: 7,
+        imageUrl: null,
+        featured: false,
+        difficulty: "beginner",
+        category: "social-emotional"
+      },
+      {
+        title: "Mindful Moment Script",
+        description: "A 3-minute guided mindfulness exercise to use during morning circle. This script helps children center themselves. Worth 3 points.",
+        duration: 3,
+        imageUrl: null,
+        featured: false,
+        difficulty: "beginner",
+        category: "mindful-mornings"
+      },
+      {
+        title: "Building Chapter One: Meaningful Greetings",
+        description: "Learn how to make morning greetings more meaningful to help children feel valued. This mini-module is worth 4 points toward your Chapter One expertise.",
+        duration: 4,
+        imageUrl: null,
+        featured: true,
+        difficulty: "beginner",
+        category: "core-values"
+      },
+      {
+        title: "Active Listening Techniques",
+        description: "Practice 3 active listening techniques to show children they are truly heard. Each technique is worth 1-2 points for a total of 5 points.",
+        duration: 5,
+        imageUrl: null,
+        featured: false,
+        difficulty: "beginner",
+        category: "active-listening"
+      }
+    ];
+
+    // Add mini-modules to the database
+    await db.insert(learningModules).values([...moduleData, ...miniModuleData]);
+    console.log("Learning modules and mini-modules created");
 
     console.log("Database seeded successfully");
   } catch (error) {
