@@ -1305,14 +1305,31 @@ export default function AssessmentPage() {
     const isCorrect = answers[currentQuestion.id] === currentQuestion.correctAnswer;
     const currentDifficulty = domainDifficulty[currentDomain];
     
-    // Update answer feedback to show to user
+    // Update answer feedback to show to user - more engaging and practical
     setAnswerFeedback({
       shown: true,
       correct: isCorrect,
       explanation: currentQuestion.explanation || (isCorrect 
-        ? "Great job! That's the correct answer." 
-        : "That's not quite right. The correct answer was: " + currentQuestion.correctAnswer)
+        ? "Great job! That's the right approach for our Raising Arizona kids." 
+        : "Let's consider a different approach. In practice with our children: " + currentQuestion.correctAnswer)
     });
+    
+    // Add immediate toast feedback that's more engaging
+    if (isCorrect) {
+      toast({
+        title: "⭐ That's perfect! ⭐",
+        description: "You're using the right practical approach!",
+        variant: "default",
+        duration: 1500,
+      });
+    } else {
+      toast({
+        title: "Try a different approach",
+        description: "Think about the hands-on technique that works best with children.",
+        variant: "default",
+        duration: 1500,
+      });
+    }
     
     // Update correct/incorrect counts
     if (isCorrect) {
