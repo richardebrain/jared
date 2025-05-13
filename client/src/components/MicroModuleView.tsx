@@ -112,10 +112,19 @@ export default function MicroModuleView() {
   const [perplexityContent, setPerplexityContent] = useState<{
     coreConcept: string,
     practicalApplication: string,
+    videoResources: string[],
+    interactiveElement: string,
+    quizQuestion?: {
+      question: string,
+      options: string[],
+      correctAnswer: number
+    },
     isLoading: boolean
   }>({
     coreConcept: "",
     practicalApplication: "",
+    videoResources: [],
+    interactiveElement: "",
     isLoading: false
   });
 
@@ -242,6 +251,22 @@ export default function MicroModuleView() {
           ...prev, 
           coreConcept: "A positive attitude creates a supportive learning environment. Your energy and enthusiasm set the tone for the day and influence how children engage with activities and each other.",
           practicalApplication: "1. Begin each day by greeting each child individually with a smile and using their name.\n\n2. Create a 'gratitude corner' where you and children can share daily moments of appreciation.\n\n3. Use positive language that focuses on what children should do rather than what they shouldn't do.",
+          videoResources: [
+            "https://www.youtube.com/embed/ckZt33Ymbpg",  // Vanderbilt IRIS Center on Positive Behavior Support
+            "https://www.youtube.com/embed/4PSRP98mtJY",  // PBS Teachers video on positive classroom environments
+            "https://www.youtube.com/embed/HQT6u-tFKZ4"   // Head Start video on Positive Teacher-Child Interactions
+          ],
+          interactiveElement: "<div class='interactive-activity'><h4>Reflect and Respond</h4><p>Think about a recent challenging situation with a child. How might you approach it differently with a more positive mindset?</p><textarea placeholder='Type your reflection here...' rows='3' class='w-full p-2 border rounded-md'></textarea><button class='mt-2 px-4 py-2 bg-primary text-white rounded-md'>Save for later</button></div>",
+          quizQuestion: {
+            question: "What is one benefit of maintaining a positive attitude in the classroom?",
+            options: [
+              "It reduces the need for planning activities",
+              "It creates a supportive environment that fosters learning",
+              "It eliminates all behavioral challenges",
+              "It replaces the need for structured routines"
+            ],
+            correctAnswer: 1
+          },
           isLoading: false
         }));
       }
