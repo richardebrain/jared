@@ -1457,6 +1457,7 @@ export default function AssessmentPage() {
           description: "You've unlocked Level 3! Moving to advanced hands-on questions.",
           variant: "default",
           duration: 3000,
+          className: "level-up-text"
         });
         
         // Audio feedback for level up (like a game)
@@ -1484,6 +1485,7 @@ export default function AssessmentPage() {
           description: "You've reached MASTER LEVEL! These questions reflect expert teacher knowledge!",
           variant: "default",
           duration: 4000,
+          className: "level-up-text"
         });
         
         // Audio feedback for master level (like achieving a major game milestone)
@@ -1546,6 +1548,7 @@ export default function AssessmentPage() {
             description: "Your results are being calculated. Please click the 'Finish Assessment' button to submit.",
             variant: "default",
             duration: 5000,
+            className: "level-up-text"
           });
           
           // Make the submit button pulse to draw attention

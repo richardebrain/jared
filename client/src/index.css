@@ -23,8 +23,10 @@
 }
 
 @keyframes level-up {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.2); filter: brightness(1.2); }
+  0% { transform: scale(1); opacity: 0.7; }
+  25% { transform: scale(1.3); filter: brightness(1.3); opacity: 1; }
+  50% { transform: scale(1.1); filter: brightness(1.1); }
+  75% { transform: scale(1.2); filter: brightness(1.2); }
   100% { transform: scale(1); }
 }
 
@@ -33,9 +35,15 @@
 }
 
 .level-up-text {
-  animation: level-up 1s ease-in-out;
+  animation: level-up 1.5s ease-in-out;
   font-weight: bold;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.9); /* Golden glow effect */
+  background: linear-gradient(90deg, #ff8a00, #ffb600, #ffd500, #ffb600, #ff8a00);
+  background-size: 200% auto;
+  background-clip: text;
+  text-fill-color: transparent;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .float-in {
