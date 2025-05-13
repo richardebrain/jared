@@ -321,7 +321,7 @@ export function MiniLessons() {
             </Link>
           </div>
           <CardDescription>
-            5-10 minute activities for when you have a short break. Each mini-lesson awards points equal to their duration.
+            5-minute activities for when you have a short break. All mini-lessons are shown below. Each one awards points equal to their duration.
           </CardDescription>
         </CardHeader>
         
@@ -344,8 +344,8 @@ export function MiniLessons() {
                 </div>
               )}
               
-              {/* Fallback to allModules when modules is empty */}
-              {(modules.length > 0 ? modules : allModules.slice(0, 3)).map((lesson: MiniLesson) => {
+              {/* Show all mini-lessons */}
+              {allModules.map((lesson: MiniLesson) => {
                 const userProgress = progressMap[lesson.id];
                 const completed = userProgress?.completed || false;
                 const pointsEarned = userProgress?.pointsEarned || 0;
