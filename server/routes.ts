@@ -896,8 +896,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user, 
         module, 
         challenge, 
-        recentAssessment,
-        userProgress
+        recentAssessment || null,
+        userProgress || []
       );
       
       const lessonContent = await generateLessonContent(prompt);
