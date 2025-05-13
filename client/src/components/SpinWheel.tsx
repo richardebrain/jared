@@ -2,12 +2,19 @@ import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import { Confetti } from "../components/ui/confetti";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { motion } from "framer-motion";
-import { TrophyIcon, Gift, Award, Star, Gem, GemIcon, StarIcon, SparklesIcon, CircleDollarSign, Calendar } from "lucide-react";
+import { 
+  TrophyIcon, Gift, Award, Star, Gem, GemIcon, StarIcon, SparklesIcon, 
+  CircleDollarSign, Calendar, History, Clock, Check, CoffeeIcon, Utensils, Sparkles
+} from "lucide-react";
 
 interface SpinWheelProps {
   onClose?: () => void;
@@ -21,17 +28,109 @@ interface Prize {
   probability: number;
   icon: React.ElementType;
   color: string;
+  textColor: string;
+  description: string;
+}
+
+// Reward history interface
+interface RewardHistory {
+  id: number;
+  reward_type: string;
+  reward_amount: number;
+  created_at: string;
+  is_redeemed: boolean;
+  is_grand_prize: boolean;
 }
 
 const PRIZES: Prize[] = [
-  { id: 1, name: "10 Points", type: "points", value: 10, probability: 25, icon: Star, color: "bg-yellow-500" },
-  { id: 2, name: "25 Points", type: "points", value: 25, probability: 15, icon: Star, color: "bg-yellow-600" },
-  { id: 3, name: "50 Points", type: "points", value: 50, probability: 10, icon: StarIcon, color: "bg-yellow-700" },
-  { id: 4, name: "5 Bear Bucks", type: "bearBucks", value: 5, probability: 20, icon: CircleDollarSign, color: "bg-green-500" },
-  { id: 5, name: "15 Bear Bucks", type: "bearBucks", value: 15, probability: 12, icon: CircleDollarSign, color: "bg-green-600" },
-  { id: 6, name: "Free Lunch", type: "lunch", value: 1, probability: 8, icon: GemIcon, color: "bg-purple-500" },
-  { id: 7, name: "Day Off", type: "dayOff", value: 1, probability: 1, icon: Calendar, color: "bg-blue-500" },
-  { id: 8, name: "$100 Cash", type: "cash", value: 100, probability: 1, icon: SparklesIcon, color: "bg-orange-500" }
+  { 
+    id: 1, 
+    name: "10 Points", 
+    type: "points", 
+    value: 10, 
+    probability: 25, 
+    icon: Star, 
+    color: "bg-yellow-500",
+    textColor: "text-white",
+    description: "Points can be accumulated to level up your teacher profile"
+  },
+  { 
+    id: 2, 
+    name: "25 Points", 
+    type: "points", 
+    value: 25, 
+    probability: 15, 
+    icon: Star, 
+    color: "bg-yellow-600",
+    textColor: "text-white",
+    description: "Points can be accumulated to level up your teacher profile"
+  },
+  { 
+    id: 3, 
+    name: "50 Points", 
+    type: "points", 
+    value: 50, 
+    probability: 10, 
+    icon: StarIcon, 
+    color: "bg-yellow-700",
+    textColor: "text-white",
+    description: "Points can be accumulated to level up your teacher profile"
+  },
+  { 
+    id: 4, 
+    name: "5 Bear Bucks", 
+    type: "bearBucks", 
+    value: 5, 
+    probability: 20, 
+    icon: CircleDollarSign, 
+    color: "bg-green-500",
+    textColor: "text-white",
+    description: "Bear Bucks can be redeemed for real rewards at the school"
+  },
+  { 
+    id: 5, 
+    name: "15 Bear Bucks", 
+    type: "bearBucks", 
+    value: 15, 
+    probability: 12, 
+    icon: CircleDollarSign, 
+    color: "bg-green-600",
+    textColor: "text-white",
+    description: "Bear Bucks can be redeemed for real rewards at the school"
+  },
+  { 
+    id: 6, 
+    name: "Free Lunch", 
+    type: "lunch", 
+    value: 1, 
+    probability: 8, 
+    icon: Utensils, 
+    color: "bg-purple-500",
+    textColor: "text-white",
+    description: "Get a free lunch at the school cafeteria - claim from your administrator"
+  },
+  { 
+    id: 7, 
+    name: "Day Off", 
+    type: "dayOff", 
+    value: 1, 
+    probability: 1, 
+    icon: Calendar, 
+    color: "bg-blue-500",
+    textColor: "text-white",
+    description: "Get a free day off! Claim from your administrator"
+  },
+  { 
+    id: 8, 
+    name: "$100 Cash", 
+    type: "cash", 
+    value: 100, 
+    probability: 1, 
+    icon: Sparkles, 
+    color: "bg-orange-500",
+    textColor: "text-white",
+    description: "Win $100 cash! Claim from your administrator"
+  }
 ];
 
 const getTotalProbability = () => PRIZES.reduce((acc, prize) => acc + prize.probability, 0);
@@ -46,7 +145,14 @@ export function SpinWheel({ onClose }: SpinWheelProps) {
   const [rotation, setRotation] = useState(0);
   const [dailySpinsLeft, setDailySpinsLeft] = useState(3);
   const [isGrandPrizeEligible, setIsGrandPrizeEligible] = useState(false);
+  const [activeTab, setActiveTab] = useState("wheel");
   const wheelRef = useRef<HTMLDivElement>(null);
+  
+  // Fetch reward history
+  const { data: rewardHistory = [] } = useQuery<RewardHistory[]>({
+    queryKey: ["/api/spin-game/history"],
+    refetchOnWindowFocus: false,
+  });
 
   useEffect(() => {
     // Check if user has completed modules or logged in today to enable spinning
@@ -153,86 +259,200 @@ export function SpinWheel({ onClose }: SpinWheelProps) {
     }, 5000); // 5 seconds for the wheel to spin
   };
 
+  // Helper function to get prize icon by type and value
+  const getPrizeIcon = (type: string, value: number) => {
+    switch (type) {
+      case 'points':
+        return value <= 10 ? <Star className="h-5 w-5 text-yellow-500" /> : 
+               value <= 25 ? <Star className="h-5 w-5 text-yellow-600" /> : 
+               <StarIcon className="h-5 w-5 text-yellow-700" />;
+      case 'bearBucks':
+        return value <= 5 ? <CircleDollarSign className="h-5 w-5 text-green-500" /> : 
+               <CircleDollarSign className="h-5 w-5 text-green-600" />;
+      case 'lunch':
+        return <Utensils className="h-5 w-5 text-purple-500" />;
+      case 'dayOff':
+        return <Calendar className="h-5 w-5 text-blue-500" />;
+      case 'cash':
+        return <Sparkles className="h-5 w-5 text-orange-500" />;
+      default:
+        return <Gift className="h-5 w-5 text-gray-500" />;
+    }
+  };
+
+  // Helper function to format reward type as readable text
+  const formatRewardType = (type: string) => {
+    switch (type) {
+      case 'points': return 'Points';
+      case 'bearBucks': return 'Bear Bucks';
+      case 'lunch': return 'Free Lunch';
+      case 'dayOff': return 'Day Off';
+      case 'cash': return 'Cash';
+      default: return type;
+    }
+  };
+
   return (
-    <Card className="w-full max-w-md mx-auto bg-gradient-to-b from-amber-50 to-yellow-100 border-2 border-amber-200">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold text-amber-800">Spin & Win</CardTitle>
-        <CardDescription>
+    <Card className="w-full max-w-md mx-auto bg-white border shadow-lg">
+      <CardHeader className="text-center bg-gradient-to-r from-amber-500 to-yellow-600 text-white">
+        <CardTitle className="text-2xl font-bold">Spin & Win</CardTitle>
+        <CardDescription className="text-amber-100">
           Spin the wheel to win points, Bear Bucks, and special prizes!
         </CardDescription>
-        {isGrandPrizeEligible && (
-          <Badge variant="outline" className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white">
-            Grand Prize Month!
-          </Badge>
-        )}
-        <div className="flex justify-center mt-2">
-          <Badge variant="outline" className="bg-blue-100 text-blue-700">
-            Daily Spins Left: {dailySpinsLeft}
+        <div className="flex justify-center space-x-2 mt-2">
+          {isGrandPrizeEligible && (
+            <Badge variant="outline" className="bg-white/20 text-white border-white">
+              <Sparkles className="h-3 w-3 mr-1" /> Grand Prize Month!
+            </Badge>
+          )}
+          <Badge variant="outline" className="bg-white/20 text-white border-white">
+            <Gift className="h-3 w-3 mr-1" /> Daily Spins: {dailySpinsLeft}
           </Badge>
         </div>
       </CardHeader>
       
-      <CardContent className="flex flex-col items-center">
-        <div className="relative w-64 h-64 mb-4">
-          {/* Spinner indicator (triangle pointer) */}
-          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
-            <div className="w-6 h-6 bg-amber-600 rotate-45 transform origin-bottom"></div>
-          </div>
-          
-          {/* Wheel */}
-          <motion.div 
-            ref={wheelRef}
-            className="w-full h-full rounded-full border-4 border-amber-400 overflow-hidden relative"
-            style={{ 
-              transformOrigin: "center", 
-              transform: `rotate(${rotation}deg)`,
-              transition: spinning ? "transform 5s cubic-bezier(0.2, 0.8, 0.25, 1)" : "none"
-            }}
-          >
-            {/* Wheel segments */}
-            {PRIZES.map((prize, index) => {
-              const anglePerSegment = 360 / PRIZES.length;
-              const rotationAngle = index * anglePerSegment;
-              
-              return (
-                <div
-                  key={prize.id}
-                  className={`absolute top-0 left-0 w-full h-full ${prize.color} origin-bottom-right`}
-                  style={{ 
-                    clipPath: `polygon(50% 50%, 50% 0%, ${50 + 50 * Math.cos((rotationAngle + anglePerSegment) * Math.PI / 180)}% ${50 + 50 * Math.sin((rotationAngle + anglePerSegment) * Math.PI / 180)}%, 50% 50%)`,
-                    transform: `rotate(${rotationAngle}deg)`,
-                  }}
-                >
-                  <div className="absolute top-12 left-1/2 transform -translate-x-1/2 text-white font-bold text-xs">
-                    {prize.name}
-                  </div>
-                </div>
-              );
-            })}
-          </motion.div>
-        </div>
+      <Tabs defaultValue="wheel" className="w-full" onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="wheel" className="text-sm">
+            <Gift className="h-4 w-4 mr-2" /> Spin Wheel
+          </TabsTrigger>
+          <TabsTrigger value="history" className="text-sm">
+            <History className="h-4 w-4 mr-2" /> Reward History
+          </TabsTrigger>
+        </TabsList>
         
-        {result && (
-          <div className="mt-4 text-center">
-            <h3 className="text-lg font-semibold">You won:</h3>
-            <div className="flex items-center justify-center mt-2 space-x-2">
-              <result.icon className="h-6 w-6 text-amber-600" />
-              <span className="text-xl font-bold text-amber-800">{result.name}</span>
+        <TabsContent value="wheel" className="mt-0 p-4">
+          <div className="flex flex-col items-center">
+            <div className="relative w-64 h-64 mb-4">
+              {/* Spinner indicator (arrow pointer) */}
+              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 w-8 h-8">
+                <div className="w-0 h-0 
+                    border-l-[16px] border-l-transparent
+                    border-r-[16px] border-r-transparent
+                    border-t-[24px] border-t-amber-600
+                    mx-auto"></div>
+              </div>
+              
+              {/* Wheel */}
+              <div className="absolute inset-0 rounded-full bg-white border-8 border-amber-400 shadow-inner z-0"></div>
+              <motion.div 
+                ref={wheelRef}
+                className="w-full h-full rounded-full overflow-hidden relative shadow-lg"
+                style={{ 
+                  transformOrigin: "center", 
+                  transform: `rotate(${rotation}deg)`,
+                  transition: spinning ? "transform 5s cubic-bezier(0.2, 0.8, 0.25, 1)" : "none"
+                }}
+              >
+                {/* Wheel segments */}
+                {PRIZES.map((prize, index) => {
+                  const anglePerSegment = 360 / PRIZES.length;
+                  const rotationAngle = index * anglePerSegment;
+                  
+                  return (
+                    <div
+                      key={prize.id}
+                      className={`absolute top-0 left-0 w-full h-full ${prize.color} origin-center`}
+                      style={{ 
+                        clipPath: `polygon(50% 50%, 50% 0%, ${50 + 50 * Math.cos((rotationAngle + anglePerSegment) * Math.PI / 180)}% ${50 + 50 * Math.sin((rotationAngle + anglePerSegment) * Math.PI / 180)}%, 50% 50%)`,
+                        transform: `rotate(${rotationAngle}deg)`,
+                      }}
+                    >
+                      <div 
+                        className={`absolute top-1/4 left-1/2 -translate-x-1/2 ${prize.textColor} font-bold text-center w-20`}
+                        style={{ transform: `rotate(${anglePerSegment/2}deg)` }}
+                      >
+                        <prize.icon className="h-6 w-6 mx-auto mb-1" />
+                        <div className="text-xs leading-tight">{prize.name}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </motion.div>
             </div>
+            
+            {result && (
+              <div className="mt-4 text-center p-4 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg border border-amber-200 w-full">
+                <h3 className="text-lg font-semibold text-amber-800">You won:</h3>
+                <div className="flex items-center justify-center mt-2 mb-1">
+                  <result.icon className="h-8 w-8 text-amber-600 mr-2" />
+                  <span className="text-xl font-bold text-amber-800">{result.name}</span>
+                </div>
+                <p className="text-sm text-amber-700">{result.description}</p>
+              </div>
+            )}
+            
+            <Button 
+              variant="default" 
+              onClick={handleSpin} 
+              disabled={spinning || !spinEnabled || dailySpinsLeft <= 0}
+              className="bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white w-full mt-4"
+              size="lg"
+            >
+              {spinning ? (
+                <>
+                  <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  Spinning...
+                </>
+              ) : (
+                <>
+                  <Gift className="mr-2 h-5 w-5" /> Spin the Wheel
+                </>
+              )}
+            </Button>
           </div>
-        )}
-      </CardContent>
-      
-      <CardFooter className="flex justify-center">
-        <Button 
-          variant="default" 
-          onClick={handleSpin} 
-          disabled={spinning || !spinEnabled || dailySpinsLeft <= 0}
-          className="bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white"
-        >
-          {spinning ? "Spinning..." : "Spin the Wheel"}
-        </Button>
-      </CardFooter>
+        </TabsContent>
+        
+        <TabsContent value="history" className="mt-0">
+          <div className="p-4">
+            <h3 className="text-lg font-semibold mb-3 flex items-center">
+              <History className="mr-2 h-5 w-5 text-amber-600" />
+              Your Rewards History
+            </h3>
+            
+            {rewardHistory.length === 0 ? (
+              <div className="text-center p-6 bg-gray-50 rounded-lg">
+                <Gift className="h-10 w-10 text-gray-300 mx-auto mb-2" />
+                <p className="text-gray-500">No rewards yet. Spin the wheel to win prizes!</p>
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                {rewardHistory.map((reward) => (
+                  <div 
+                    key={reward.id} 
+                    className={`p-3 rounded-lg border flex items-center ${
+                      reward.is_grand_prize ? 'bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200' : 'bg-white border-gray-200'
+                    }`}
+                  >
+                    <div className="mr-3">
+                      {getPrizeIcon(reward.reward_type, reward.reward_amount)}
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium">
+                        {reward.reward_amount} {formatRewardType(reward.reward_type)}
+                        {reward.is_grand_prize && (
+                          <Badge variant="outline" className="ml-2 bg-amber-100 text-amber-800 text-xs">
+                            Grand Prize
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500 flex items-center">
+                        <Clock className="h-3 w-3 mr-1" />
+                        {format(new Date(reward.created_at), 'MMMM d, yyyy')}
+                        {reward.is_redeemed && (
+                          <span className="flex items-center ml-2 text-green-600">
+                            <Check className="h-3 w-3 mr-1" /> Redeemed
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
       
       {confetti && <Confetti />}
     </Card>

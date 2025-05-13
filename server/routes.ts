@@ -1179,13 +1179,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Spin game reward endpoint
-  app.post("/api/spin-game/reward", async (req, res) => {
+  app.post("/api/spin-game/reward", requireAuth, async (req, res) => {
     try {
-      const session = req.session as SessionData;
-      
-      if (!session.userId) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
+      const userId = req.session.userId as number;
 
       const { rewardType, rewardAmount } = req.body;
       
@@ -1194,25 +1190,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid reward data" });
       }
       
-      // Insert the reward into the database
-      const isGrandPrize = rewardType === 'dayOff' || rewardType === 'cash' || (rewardType === 'lunch' && parseInt(rewardAmount) > 1);
-      const query = `
-        INSERT INTO spin_game_rewards (user_id, reward_type, reward_amount, is_grand_prize) 
-        VALUES ($1, $2, $3, $4) 
-        RETURNING *
-      `;
-      const reward = await pool.query(query, [session.userId, rewardType, parseInt(rewardAmount), isGrandPrize]);
+      // Record the reward in the database
+      const isGrandPrize = 
+        rewardType === 'dayOff' || 
+        rewardType === 'cash' || 
+        (rewardType === 'lunch' && Math.random() < 0.5); // 50% chance of lunch being grand prize
       
-      // If reward is points or bear bucks, update user's balance
-      let user = await storage.getUser(session.userId);
+      const newReward = await storage.createSpinGameReward({
+        userId,
+        reward_type: rewardType,
+        reward_amount: parseInt(rewardAmount),
+        is_redeemed: false,
+        is_grand_prize: isGrandPrize,
+        created_at: new Date()
+      });
+
+      // Update user points or bear bucks based on reward type
+      const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
+      let updatedUser = user;
+
       if (rewardType === 'points') {
-        // Update points
-        const updatedUser = await storage.updateUser(session.userId, {
-          points: (user.points || 0) + parseInt(rewardAmount)
+        const currentPoints = user.points || 0;
+        updatedUser = await storage.updateUser(userId, {
+          points: currentPoints + parseInt(rewardAmount)
         });
         
         res.status(200).json({
