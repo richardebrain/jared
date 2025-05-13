@@ -266,7 +266,12 @@ export default function MicroModuleView() {
     return defaultSteps[step] || defaultSteps[0];
   };
   
-  const steps = [0, 1, 2].map(step => getStepContent(step));
+  // Only generate steps when module is loaded
+  const steps = module ? [0, 1, 2].map(step => getStepContent(step)) : [
+    { title: "Loading...", content: "Loading module content..." },
+    { title: "Loading...", content: "Loading module content..." },
+    { title: "Loading...", content: "Loading module content..." }
+  ];
 
   // Default key takeaways based on module category
   React.useEffect(() => {
@@ -401,7 +406,7 @@ export default function MicroModuleView() {
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Modules
         </Button>
-        <h1 className="text-2xl font-bold">{module.title}</h1>
+        <h1 className="text-2xl font-bold">{module?.title || 'Loading module...'}</h1>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -412,15 +417,15 @@ export default function MicroModuleView() {
                 <div className="flex items-center">
                   <Clock className="h-5 w-5 mr-2 text-rose-500" />
                   <CardTitle className="text-xl">
-                    {steps[completedStep].title}
+                    {steps[completedStep]?.title || "Learning Content"}
                   </CardTitle>
                 </div>
                 <span className="bg-rose-100 text-rose-800 text-xs font-medium px-2.5 py-1 rounded-full">
-                  {module.duration} min
+                  {module?.duration || '5'} min
                 </span>
               </div>
               <CardDescription>
-                {module.category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} • {module.difficulty.charAt(0).toUpperCase() + module.difficulty.slice(1)}
+                {module?.category ? module.category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : 'Loading category'} • {module?.difficulty ? module.difficulty.charAt(0).toUpperCase() + module.difficulty.slice(1) : 'Beginner'}
               </CardDescription>
             </CardHeader>
             <CardContent className="py-4">
