@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowRightCircle, BookOpen, CheckCircle, Clock, Film, Headphones, HelpCircle, PenTool } from "lucide-react";
+import { ArrowRightCircle, BookOpen, CheckCircle, Clock, Film, Gamepad, Headphones, HelpCircle, PenTool, Compass } from "lucide-react";
 
 // Common classroom challenges that teachers might face
 const commonChallenges = [
@@ -601,44 +601,54 @@ export default function DynamicLessonGenerator({ user, moduleId, onLessonComplet
           <TabsContent value="resources" className="p-4">
             <div className="space-y-4">
               <div>
-                <h3 className="text-xl font-bold mb-2">Additional Resources</h3>
+                <h3 className="text-xl font-bold mb-3 flex items-center">
+                  <span className="text-primary mr-2">🏆</span> Bonus Treasure Chest
+                </h3>
                 <p className="text-muted-foreground mb-4">
-                  Explore these resources to deepen your understanding.
+                  Collect these valuable resources to enhance your teaching powers!
                 </p>
                 
                 <div className="grid gap-4 md:grid-cols-2">
                   {lessonContent.resources?.map((resource: any, index: number) => (
-                    <div key={index} className="border rounded-lg p-4 flex">
-                      {resource.type === 'video' && <Film className="w-5 h-5 mr-3 text-primary" />}
-                      {resource.type === 'article' && <BookOpen className="w-5 h-5 mr-3 text-primary" />}
-                      {resource.type === 'audio' && <Headphones className="w-5 h-5 mr-3 text-primary" />}
-                      <div>
-                        <h4 className="font-medium">{resource.title}</h4>
-                        <p className="text-sm text-muted-foreground mb-2">{resource.description}</p>
-                        <a
-                          href={resource.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-primary underline"
-                        >
-                          View Resource
-                        </a>
+                    <a 
+                      key={index} 
+                      href={resource.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="border-2 border-primary/20 rounded-lg p-4 hover:border-primary/60 transition-colors bg-gradient-to-br from-primary/5 to-transparent group"
+                    >
+                      <div className="flex items-start mb-2">
+                        {resource.type === 'video' && <Film className="w-5 h-5 mr-2 text-primary" />}
+                        {resource.type === 'article' && <BookOpen className="w-5 h-5 mr-2 text-primary" />}
+                        {resource.type === 'audio' && <Headphones className="w-5 h-5 mr-2 text-primary" />}
+                        {resource.type === 'game' && <Gamepad className="w-5 h-5 mr-2 text-primary" />}
+                        <h4 className="font-medium text-primary">{resource.title}</h4>
                       </div>
-                    </div>
+                      <p className="text-sm mb-3">{resource.description}</p>
+                      <div className="mt-2 text-xs text-primary flex items-center group-hover:translate-x-1 transition-transform">
+                        <span>Collect treasure</span>
+                        <ArrowRightCircle className="w-3 h-3 ml-1" />
+                      </div>
+                    </a>
                   )) || (
-                    <p className="text-muted-foreground">Loading resources...</p>
+                    <div className="col-span-2 p-6 border-2 border-dashed rounded-lg border-primary/20 flex flex-col items-center justify-center text-center">
+                      <Map className="h-12 w-12 text-primary/40 mb-2" />
+                      <p className="text-muted-foreground">The treasure map is empty for this quest. Check back later!</p>
+                    </div>
                   )}
                 </div>
               </div>
               
               <div className="pt-4">
-                <Button onClick={completeSection} disabled={completionStep > 3}>
-                  {completionStep > 3 ? (
+                <Button onClick={completeSection} disabled={completionStep > 4 || completionStep < 4} className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary">
+                  {completionStep > 4 ? (
                     <>
-                      <CheckCircle className="mr-2 h-4 w-4" /> Resources Explored
+                      <CheckCircle className="mr-2 h-4 w-4" /> Quest Complete! +100 XP Gained!
                     </>
                   ) : (
-                    "Mark Resources as Explored"
+                    <>
+                      Complete Your Quest & Earn XP <ArrowRightCircle className="ml-2 h-4 w-4" />
+                    </>
                   )}
                 </Button>
               </div>
