@@ -37,10 +37,216 @@ const domains = [
   { id: 'curriculum-planning', name: 'Curriculum & Planning', icon: Award },
   { id: 'social-emotional', name: 'Social-Emotional Learning', icon: Star },
   { id: 'health-safety', name: 'Health & Safety', icon: AlertCircle },
+  { id: 'chapter-one', name: 'Building Chapter One', icon: Star },
+  { id: 'mindful-teaching', name: 'Mindful Teaching', icon: ClipboardList },
 ];
 
 // Define adaptive assessment questions with increasing difficulty
 const assessmentQuestions: Question[] = [
+  // Building Chapter One - Beginner Level
+  {
+    id: 'ch1-b-1',
+    text: 'What does "Building Chapter One" mean in the context of Raising Arizona Preschool?',
+    domain: 'chapter-one',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'Writing actual books with children as an activity', 
+      'Understanding that we are writing the first chapter of children\'s lives through our interactions', 
+      'A curriculum focused on literacy development', 
+      'A metaphor for creating classroom rules'
+    ],
+    correctAnswer: 'Understanding that we are writing the first chapter of children\'s lives through our interactions',
+    required: true,
+    explanation: 'Building Chapter One means recognizing that preschool educators are writing the first chapter of children\'s life stories through meaningful education and interactions.'
+  },
+  {
+    id: 'ch1-b-2',
+    text: 'How should morning greeting routines contribute to "Building Chapter One" for each child?',
+    domain: 'chapter-one',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'By creating a strict schedule that all children follow', 
+      'By making children feel they are the main character in their learning story each day', 
+      'By focusing only on academic activities during greeting time', 
+      'By minimizing transitions to maximize instructional time'
+    ],
+    correctAnswer: 'By making children feel they are the main character in their learning story each day',
+    required: true,
+    explanation: 'Morning greetings should make each child feel valued and centered in their own learning story - like they\'re the main character in a book we\'re helping to write.'
+  },
+  
+  // Building Chapter One - Intermediate Level
+  {
+    id: 'ch1-i-1',
+    text: 'Which approach aligns best with the "Building Chapter One" framework?',
+    domain: 'chapter-one',
+    type: 'multiple-choice',
+    difficulty: 'intermediate',
+    options: [
+      'Consistently using a teacher-directed curriculum with all children receiving the same instruction', 
+      'Focusing primarily on academic readiness skills through structured lessons', 
+      'Recognizing each child\'s unique narrative and adapting learning experiences accordingly', 
+      'Emphasizing discipline and structure to prepare children for kindergarten'
+    ],
+    correctAnswer: 'Recognizing each child\'s unique narrative and adapting learning experiences accordingly',
+    required: true,
+    explanation: 'Building Chapter One honors each child\'s unique story and journey, requiring teachers to adapt approaches based on individual needs rather than using a one-size-fits-all approach.'
+  },
+  {
+    id: 'ch1-i-2',
+    text: 'How does the concept of narrative influence how we handle challenging behaviors under the "Building Chapter One" approach?',
+    domain: 'chapter-one',
+    type: 'multiple-choice',
+    difficulty: 'intermediate',
+    options: [
+      'We ignore negative behaviors to avoid reinforcing them', 
+      'We view behaviors as communications and part of the child\'s developing story', 
+      'We implement strict consequences to teach appropriate classroom behavior', 
+      'We remove children from the group when they misbehave'
+    ],
+    correctAnswer: 'We view behaviors as communications and part of the child\'s developing story',
+    required: true,
+    explanation: 'Understanding behavior as communication allows us to see challenging moments as part of the child\'s developing narrative, not as isolated incidents that define them.'
+  },
+  
+  // Building Chapter One - Advanced Level
+  {
+    id: 'ch1-a-1',
+    text: 'How would a master teacher implement the "Building Chapter One" philosophy when communicating with parents about their child\'s development?',
+    domain: 'chapter-one',
+    type: 'multiple-choice',
+    difficulty: 'advanced',
+    options: [
+      'Focus only on positive aspects to maintain parent satisfaction', 
+      'Compare the child to peers to provide context for development', 
+      'Discuss developmental concerns using clinical terminology to appear professional', 
+      'Share observations as part of the child\'s unique story, framing challenges as chapters still being written'
+    ],
+    correctAnswer: 'Share observations as part of the child\'s unique story, framing challenges as chapters still being written',
+    required: true,
+    explanation: 'Master teachers communicate with parents by sharing their child\'s story with honesty while maintaining hope and partnership in writing the next parts of their narrative.'
+  },
+  {
+    id: 'ch1-a-2',
+    text: 'Which statement best reflects the advanced application of the "Building Chapter One" philosophy in curriculum planning?',
+    domain: 'chapter-one',
+    type: 'multiple-choice',
+    difficulty: 'advanced',
+    options: [
+      'Creating a year-long plan that covers all required academic standards', 
+      'Developing a standard curriculum that works effectively for most children', 
+      'Weaving children\'s interests, cultural backgrounds, and individual narratives into emergent learning experiences', 
+      'Following established best practices from leading early childhood curriculum models'
+    ],
+    correctAnswer: 'Weaving children\'s interests, cultural backgrounds, and individual narratives into emergent learning experiences',
+    required: true,
+    explanation: 'Advanced implementation of Building Chapter One means creating curriculum that incorporates each child\'s existing story (background, interests, culture) while leaving room for their continued development and voice.'
+  },
+  
+  // Mindful Teaching - Beginner Level
+  {
+    id: 'mt-b-1',
+    text: 'What is the primary purpose of implementing mindfulness practices in the Raising Arizona classroom?',
+    domain: 'mindful-teaching',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'To keep children quiet during transitions', 
+      'To help children learn self-regulation techniques', 
+      'To replace traditional discipline methods', 
+      'To reduce the need for teacher intervention'
+    ],
+    correctAnswer: 'To help children learn self-regulation techniques',
+    required: true,
+    explanation: 'Mindfulness practices help children develop essential self-regulation skills that benefit them academically, socially, and emotionally.'
+  },
+  {
+    id: 'mt-b-2',
+    text: 'Which of the following best describes the "Mindful Morning" approach at Raising Arizona Preschool?',
+    domain: 'mindful-teaching',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'Starting the day with academic work while children are fresh', 
+      'Keeping morning routines highly structured and predictable', 
+      'Beginning each day with intentional connection and presence for each child', 
+      'Minimizing transitions to reduce behavioral issues'
+    ],
+    correctAnswer: 'Beginning each day with intentional connection and presence for each child',
+    required: true,
+    explanation: 'Mindful Morning practices emphasize genuine connection and presence, establishing that each child is valued and seen from the moment they arrive.'
+  },
+  
+  // Mindful Teaching - Intermediate Level
+  {
+    id: 'mt-i-1',
+    text: 'How should a teacher respond when a child is having difficulty managing strong emotions, according to Raising Arizona\'s mindful teaching approach?',
+    domain: 'mindful-teaching',
+    type: 'multiple-choice',
+    difficulty: 'intermediate',
+    options: [
+      'Redirect the child to a different activity to distract them', 
+      'Remove the child from the situation until they calm down', 
+      'Provide co-regulation support while acknowledging and naming the emotion', 
+      'Explain to the child why their reaction is inappropriate'
+    ],
+    correctAnswer: 'Provide co-regulation support while acknowledging and naming the emotion',
+    required: true,
+    explanation: 'Mindful teaching recognizes that children need adult support to develop emotional regulation. Co-regulation (supporting the child through the emotion) while naming feelings builds emotional vocabulary and regulation skills.'
+  },
+  {
+    id: 'mt-i-2',
+    text: 'Which practice best demonstrates the integration of mindfulness and "Building Chapter One" philosophies?',
+    domain: 'mindful-teaching',
+    type: 'multiple-choice',
+    difficulty: 'intermediate',
+    options: [
+      'Having a consistent circle time routine each morning', 
+      'Creating learning activities based on children\'s assessed academic needs', 
+      'Greeting each child by name and with a personalized interaction that recognizes their individuality', 
+      'Maintaining a quiet, orderly classroom environment'
+    ],
+    correctAnswer: 'Greeting each child by name and with a personalized interaction that recognizes their individuality',
+    required: true,
+    explanation: 'This practice combines mindful presence with the recognition that each child has their own unique story, honoring both philosophies simultaneously.'
+  },
+  
+  // Mindful Teaching - Advanced Level
+  {
+    id: 'mt-a-1',
+    text: 'How would a master teacher apply mindfulness principles when addressing challenging classroom dynamics?',
+    domain: 'mindful-teaching',
+    type: 'multiple-choice',
+    difficulty: 'advanced',
+    options: [
+      'Identify and separate children who don\'t get along to minimize conflicts', 
+      'Create more structured activities with clear rules and consequences', 
+      'Pause to observe patterns objectively before responding, then address underlying needs rather than just behaviors', 
+      'Implement a classroom management system with rewards and consequences'
+    ],
+    correctAnswer: 'Pause to observe patterns objectively before responding, then address underlying needs rather than just behaviors',
+    required: true,
+    explanation: 'A master teacher uses mindful observation to understand patterns and underlying needs, responding thoughtfully rather than reactively to challenging dynamics.'
+  },
+  {
+    id: 'mt-a-2',
+    text: 'Which approach to professional growth best exemplifies a teacher committed to mindful teaching practices?',
+    domain: 'mindful-teaching',
+    type: 'multiple-choice',
+    difficulty: 'advanced',
+    options: [
+      'Focusing on acquiring new classroom management techniques', 
+      'Pursuing advanced credentials and certifications in early childhood education', 
+      'Developing greater self-awareness and examining how their own emotions and background influence their teaching', 
+      'Learning more academic instructional strategies to improve outcomes'
+    ],
+    correctAnswer: 'Developing greater self-awareness and examining how their own emotions and background influence their teaching',
+    required: true,
+    explanation: 'Mindful teaching requires ongoing self-reflection and awareness of how a teacher\'s own experiences and emotions affect their interactions with children.'
+  },
+  
   // Child Development - Beginner Level
   {
     id: 'cd-b-1',
@@ -466,9 +672,11 @@ export default function AssessmentPage() {
   // Track difficulty level and performance for adaptive assessment
   const [domainDifficulty, setDomainDifficulty] = useState<Record<string, DifficultyLevel>>({
     'child-development': 'beginner',
-    'curriculum-planning': 'beginner',
+    'curriculum-planning': 'beginner', 
     'social-emotional': 'beginner',
-    'health-safety': 'beginner'
+    'health-safety': 'beginner',
+    'chapter-one': 'beginner',     // Adding new domain for "Building Chapter One" framework
+    'mindful-teaching': 'beginner' // Adding new domain for Raising Arizona mindful teaching approach
   });
   
   // Track correct answers by domain
@@ -476,7 +684,9 @@ export default function AssessmentPage() {
     'child-development': 0,
     'curriculum-planning': 0,
     'social-emotional': 0,
-    'health-safety': 0
+    'health-safety': 0,
+    'chapter-one': 0,     // New domain
+    'mindful-teaching': 0 // New domain
   });
   
   // Track incorrect answers by domain
@@ -484,7 +694,20 @@ export default function AssessmentPage() {
     'child-development': 0,
     'curriculum-planning': 0,
     'social-emotional': 0,
-    'health-safety': 0
+    'health-safety': 0,
+    'chapter-one': 0,     // New domain
+    'mindful-teaching': 0 // New domain
+  });
+  
+  // Track feedback for the current question
+  const [answerFeedback, setAnswerFeedback] = useState<{
+    shown: boolean;
+    correct: boolean;
+    explanation: string;
+  }>({
+    shown: false,
+    correct: false,
+    explanation: ''
   });
   
   // Track answered questions by ID
