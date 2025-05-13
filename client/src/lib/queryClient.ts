@@ -8,19 +8,44 @@ async function throwIfResNotOk(res: Response) {
 }
 
 export async function apiRequest(
-  method: string,
   url: string,
-  data?: unknown | undefined,
-): Promise<Response> {
-  const res = await fetch(url, {
-    method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
+  options?: {
+    method?: string,
+    data?: unknown,
+    headers?: Record<string, string>
+  }
+): Promise<any> {
+  try {
+    const method = options?.method || 'GET';
+    const data = options?.data;
+    const customHeaders = options?.headers || {};
+    
+    // Log request details for debugging
+    console.log(`API Request: ${method} ${url}`, data ? { data } : '');
+    
+    const res = await fetch(url, {
+      method,
+      headers: {
+        ...(data ? { "Content-Type": "application/json" } : {}),
+        ...customHeaders
+      },
+      body: data ? JSON.stringify(data) : undefined,
+      credentials: "include",
+    });
 
-  await throwIfResNotOk(res);
-  return res;
+    await throwIfResNotOk(res);
+    
+    // For non-GET requests, we might not need the response body
+    if (method === 'GET' || method === 'POST') {
+      const result = await res.json().catch(() => ({})); // Safely handle empty responses
+      return result;
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error(`API Request failed: ${url}`, error);
+    throw error;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

@@ -44,7 +44,11 @@ export default function MicroModuleView() {
     mutationFn: async (data: { progress: number, completed: boolean, pointsEarned?: number }) => {
       console.log("Calling progress API with data:", { ...data, moduleId });
       try {
-        return await apiRequest(`/api/progress`, {
+        if (!moduleId || moduleId <= 0) {
+          throw new Error("Invalid module ID for progress update");
+        }
+        
+        return await apiRequest('/api/progress', {
           method: 'POST',
           data: { ...data, moduleId }
         });
@@ -73,6 +77,7 @@ export default function MicroModuleView() {
   // Update user points mutation
   const updateUserPointsMutation = useMutation({
     mutationFn: async (points: number) => {
+      console.log("Adding points:", points);
       try {
         return await apiRequest('/api/users/add-points', {
           method: 'POST',
@@ -85,8 +90,12 @@ export default function MicroModuleView() {
       }
     },
     onSuccess: (data) => {
+      console.log("Points update response:", data);
       if (data.success) {
+        console.log("Points updated successfully");
         queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      } else {
+        console.warn("Points update returned unsuccessful:", data);
       }
     },
     onError: (error) => {
@@ -176,51 +185,66 @@ export default function MicroModuleView() {
       
       const { conceptPrompt, applicationPrompt } = getModulePrompts(module.id);
       
-      // Generate core concept content
-      fetch('/api/perplexity/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: conceptPrompt })
-      })
-      .then(res => res.json())
-      .then(data => {
+      try {
+        console.log("Generating lesson content for module:", module.id, module.title);
+        
+        // Generate core concept content using enhanced apiRequest
+        apiRequest('/api/perplexity/generate', {
+          method: 'POST',
+          data: { prompt: conceptPrompt }
+        })
+        .then(data => {
+          console.log("Core concept response received:", data);
+          setPerplexityContent(prev => ({ 
+            ...prev, 
+            coreConcept: data.content,
+            isLoading: false
+          }));
+        })
+        .catch(err => {
+          console.error("Error fetching concept from Perplexity:", err);
+          setPerplexityContent(prev => ({ 
+            ...prev, 
+            coreConcept: "A positive attitude is contagious in the classroom. When teachers approach each day with optimism and enthusiasm, children absorb this energy and feel more secure and motivated to learn. Studies show that positive teacher-child interactions lead to better cognitive and social-emotional outcomes.",
+            isLoading: false
+          }));
+          toast({
+            title: "Content Generation Issue",
+            description: "We had trouble generating custom content for this lesson. Default content has been loaded.",
+            variant: "destructive"
+          });
+        });
+        
+        // Generate practical application content using enhanced apiRequest
+        apiRequest('/api/perplexity/generate', {
+          method: 'POST',
+          data: { prompt: applicationPrompt }
+        })
+        .then(data => {
+          console.log("Practical application response received:", data);
+          setPerplexityContent(prev => ({ 
+            ...prev, 
+            practicalApplication: data.content,
+            isLoading: false
+          }));
+        })
+        .catch(err => {
+          console.error("Error fetching application content from Perplexity:", err);
+          setPerplexityContent(prev => ({ 
+            ...prev, 
+            practicalApplication: "1. Start each day with a personal positive affirmation and share one thing you're excited about with your class.\n\n2. Use the 'pause and breathe' technique when feeling frustrated - take three deep breaths before responding to challenging behavior.\n\n3. Keep a small notebook to jot down positive moments throughout the day, creating a resource of joy to reflect on during difficult times.",
+            isLoading: false
+          }));
+        });
+      } catch (error) {
+        console.error("Unexpected error in content generation:", error);
         setPerplexityContent(prev => ({ 
           ...prev, 
-          coreConcept: data.content,
+          coreConcept: "A positive attitude creates a supportive learning environment. Your energy and enthusiasm set the tone for the day and influence how children engage with activities and each other.",
+          practicalApplication: "1. Begin each day by greeting each child individually with a smile and using their name.\n\n2. Create a 'gratitude corner' where you and children can share daily moments of appreciation.\n\n3. Use positive language that focuses on what children should do rather than what they shouldn't do.",
           isLoading: false
         }));
-      })
-      .catch(err => {
-        console.error("Error fetching from Perplexity:", err);
-        setPerplexityContent(prev => ({ 
-          ...prev, 
-          coreConcept: "A positive attitude is contagious in the classroom. When teachers approach each day with optimism and enthusiasm, children absorb this energy and feel more secure and motivated to learn. Studies show that positive teacher-child interactions lead to better cognitive and social-emotional outcomes.",
-          isLoading: false
-        }));
-      });
-      
-      // Generate practical application content
-      fetch('/api/perplexity/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: applicationPrompt })
-      })
-      .then(res => res.json())
-      .then(data => {
-        setPerplexityContent(prev => ({ 
-          ...prev, 
-          practicalApplication: data.content,
-          isLoading: false
-        }));
-      })
-      .catch(err => {
-        console.error("Error fetching from Perplexity:", err);
-        setPerplexityContent(prev => ({ 
-          ...prev, 
-          practicalApplication: "1. Start each day with a personal positive affirmation and share one thing you're excited about with your class.\n\n2. Use the 'pause and breathe' technique when feeling frustrated - take three deep breaths before responding to challenging behavior.\n\n3. Keep a small notebook to jot down positive moments throughout the day, creating a resource of joy to reflect on during difficult times.",
-          isLoading: false
-        }));
-      });
+      }
     }
   }, [module]);
 
