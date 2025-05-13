@@ -62,6 +62,18 @@ const getMemoryPairsByTopic = (moduleName: string = "") => {
     ];
   }
   
+  // Mindful Morning Greeting specific pairs
+  else if (topicLower.includes('morning') || topicLower.includes('greeting')) {
+    return [
+      { phrase: "Personal greeting", response: "Good morning Maya, I notice your new shoes!", category: "connection" },
+      { phrase: "Morning routine chart", response: "First we greet, then we share", category: "visual" },
+      { phrase: "Check-in feelings wheel", response: "How are you feeling today?", category: "emotional" },
+      { phrase: "Welcome song", response: "Let's sing our hello song together", category: "music" },
+      { phrase: "Mindfulness moment", response: "Three deep breaths to start our day", category: "calming" },
+      { phrase: "Chapter One greeting", response: "Today is a new page in your story", category: "affirmation" },
+    ];
+  }
+  
   // Positive attitude specific pairs
   else if (topicLower.includes('positive') || topicLower.includes('attitude')) {
     return [
