@@ -145,6 +145,72 @@ const assessmentQuestions: Question[] = [
     explanation: 'Advanced implementation of Building Chapter One means creating curriculum that incorporates each child\'s existing story (background, interests, culture) while leaving room for their continued development and voice.'
   },
   
+  // Building Chapter One - Expert Level
+  {
+    id: 'ch1-e-1',
+    text: 'How might a child\'s attachment style influence your approach to "Building Chapter One" with them?',
+    domain: 'chapter-one',
+    type: 'multiple-choice',
+    difficulty: 'expert',
+    options: [
+      'Treat all attachment styles the same to ensure equity in the classroom', 
+      'Focus exclusively on correcting insecure attachment by creating a highly structured environment', 
+      'Recognize attachment patterns and tailor relationship-building accordingly while maintaining consistent safety and responsiveness',
+      'Refer children with insecure attachment patterns to specialists and focus on academic skills'
+    ],
+    correctAnswer: 'Recognize attachment patterns and tailor relationship-building accordingly while maintaining consistent safety and responsiveness',
+    required: true,
+    explanation: 'Expert teachers understand attachment theory deeply and recognize how different patterns (secure, anxious, avoidant, disorganized) require tailored approaches to building trust, while maintaining the consistent safety and responsiveness that all children need to develop secure attachments.'
+  },
+  {
+    id: 'ch1-e-2',
+    text: 'Based on "The Body Keeps the Score" and trauma research, how should trauma-informed practices be integrated into the "Building Chapter One" approach?',
+    domain: 'chapter-one',
+    type: 'multiple-choice',
+    difficulty: 'expert',
+    options: [
+      'Focus primarily on cognitive interventions since young children need to "think through" their trauma', 
+      'Recognize that trauma is stored in the body and integrate sensory-motor activities, rhythmic movement, and co-regulation opportunities throughout the day', 
+      'Maintain a highly stimulating environment to distract children from trauma triggers',
+      'Avoid discussing emotions or challenging topics that might trigger trauma responses'
+    ],
+    correctAnswer: 'Recognize that trauma is stored in the body and integrate sensory-motor activities, rhythmic movement, and co-regulation opportunities throughout the day',
+    required: true,
+    explanation: 'Expert application of trauma research recognizes that trauma is stored in the body and nervous system, not just cognitively. Building Chapter One for children with trauma histories requires a bottom-up approach that starts with bodily safety, sensory integration, rhythmic activities, and co-regulation before addressing cognitive or emotional processing.'
+  },
+  {
+    id: 'ch1-e-3',
+    text: 'Which statement represents the most expert-level understanding of how early childhood adversity might affect neurobiological development in ways relevant to the "Building Chapter One" philosophy?',
+    domain: 'chapter-one',
+    type: 'multiple-choice',
+    difficulty: 'expert',
+    options: [
+      'Early adversity primarily affects language development, so additional reading instruction can compensate', 
+      'Children are naturally resilient and typically overcome adverse childhood experiences without intervention', 
+      'Adverse experiences alter stress response systems, potentially impacting brain architecture, immune function, and gene expression, requiring multifaceted intervention approaches',
+      'Early adversity only significantly impacts children if it occurs during specific developmental windows'
+    ],
+    correctAnswer: 'Adverse experiences alter stress response systems, potentially impacting brain architecture, immune function, and gene expression, requiring multifaceted intervention approaches',
+    required: true,
+    explanation: 'An expert understanding integrates epigenetics, neurobiology, and developmental psychology to recognize how toxic stress from adverse experiences can fundamentally alter developmental trajectories through multiple biological systems. This understanding informs a comprehensive approach to Building Chapter One that addresses physiological safety, relationship repair, and environmental modification.'
+  },
+  {
+    id: 'ch1-e-4',
+    text: 'When working with a child who exhibits behavioral challenges potentially related to disorganized attachment, which approach best represents mastery of the "Building Chapter One" philosophy?',
+    domain: 'chapter-one',
+    type: 'multiple-choice',
+    difficulty: 'expert',
+    options: [
+      'Implement a consistent behavioral management system with clear rewards and consequences', 
+      'Provide a predictable environment with attentive co-regulation, while scaffolding emotional vocabulary and offering repeated experiences of emotional safety', 
+      'Refer the child for professional diagnosis before attempting significant classroom interventions',
+      'Focus on academic skills to build self-esteem while minimizing attention to behavioral issues'
+    ],
+    correctAnswer: 'Provide a predictable environment with attentive co-regulation, while scaffolding emotional vocabulary and offering repeated experiences of emotional safety',
+    required: true,
+    explanation: 'Mastery in this area recognizes that disorganized attachment often stems from frightening or unpredictable caregiving experiences. The expert response involves creating safety through predictability, offering co-regulation rather than assuming self-regulation capacity, explicitly teaching emotional language, and providing repeated corrective emotional experiences that gradually reshape the child\'s internal working model.'
+  },
+  
   // Mindful Teaching - Beginner Level
   {
     id: 'mt-b-1',
