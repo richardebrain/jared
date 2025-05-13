@@ -740,7 +740,7 @@ export function MiniLessons() {
                       
                       <div className="bg-black rounded-md aspect-video flex items-center justify-center mb-4 overflow-hidden relative">
                         {selectedLesson.category === 'mindful-mornings' ? (
-                          /* Mindful Mornings video */
+                          /* Mindful Mornings video from Raising Arizona */
                           <video 
                             controls 
                             poster="https://placehold.co/600x400/14b8a6/fff?text=Mindful+Mornings+Video"
@@ -749,14 +749,87 @@ export function MiniLessons() {
                             <source src="/attached_assets/Raising Arizona Preschool .mp4" type="video/mp4" />
                             Your browser doesn't support video playback.
                           </video>
+                        ) : selectedLesson.category === 'classroom-management' ? (
+                          /* Classroom management YouTube embed */
+                          <iframe
+                            className="w-full h-full absolute inset-0"
+                            src="https://www.youtube.com/embed/EF1Y-eS-3KU"
+                            title="Classroom Management Strategies for Early Childhood Education"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          ></iframe>
+                        ) : selectedLesson.category === 'social-emotional' ? (
+                          /* Social emotional development YouTube embed */
+                          <iframe
+                            className="w-full h-full absolute inset-0"
+                            src="https://www.youtube.com/embed/H_O1brYwdSY"
+                            title="Supporting Social-Emotional Development in Early Childhood"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          ></iframe>
+                        ) : selectedLesson.category === 'health-safety' ? (
+                          /* Health and safety YouTube embed */
+                          <iframe
+                            className="w-full h-full absolute inset-0"
+                            src="https://www.youtube.com/embed/d_4t3tDcU_o" 
+                            title="Health and Safety Practices in Early Childhood Education"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          ></iframe>
+                        ) : selectedLesson.category === 'family-engagement' ? (
+                          /* Family engagement YouTube embed */
+                          <iframe
+                            className="w-full h-full absolute inset-0"
+                            src="https://www.youtube.com/embed/kin2OdchKMQ" 
+                            title="Family Engagement in Early Childhood Education"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          ></iframe>
+                        ) : selectedLesson.category === 'curriculum-planning' ? (
+                          /* Curriculum planning YouTube embed */
+                          <iframe
+                            className="w-full h-full absolute inset-0"
+                            src="https://www.youtube.com/embed/kKz5yvwH6Ck" 
+                            title="Early Childhood Curriculum Planning and Implementation"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          ></iframe>
+                        ) : selectedLesson.category === 'active-listening' ? (
+                          /* Active listening YouTube embed */
+                          <iframe
+                            className="w-full h-full absolute inset-0"
+                            src="https://www.youtube.com/embed/oWe_ogA5YCU" 
+                            title="Active Listening Techniques for Early Childhood Educators"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          ></iframe>
+                        ) : selectedLesson.category === 'quick-transition-techniques' ? (
+                          /* Quick transition techniques YouTube embed */
+                          <iframe
+                            className="w-full h-full absolute inset-0"
+                            src="https://www.youtube.com/embed/4RfJ-4CJ0ZU" 
+                            title="Effective Transition Techniques for Preschool Classrooms"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          ></iframe>
+                        ) : selectedLesson.category === 'core-values' ? (
+                          /* Core values YouTube embed */
+                          <iframe
+                            className="w-full h-full absolute inset-0"
+                            src="https://www.youtube.com/embed/LbB4QdKW954" 
+                            title="Building Character and Core Values in Early Childhood"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          ></iframe>
                         ) : (
-                          /* Placeholder for other categories */
-                          <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
-                            <Play className="h-16 w-16 text-white opacity-80" />
-                            <span className="absolute bottom-4 left-4 text-white text-sm bg-black bg-opacity-50 px-2 py-1 rounded">
-                              {selectedLesson.title} - Training Video
-                            </span>
-                          </div>
+                          /* Default educational content for other categories */
+                          <iframe
+                            className="w-full h-full absolute inset-0"
+                            src="https://www.youtube.com/embed/djPdXSqHV28" 
+                            title="Early Childhood Education Fundamentals"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          ></iframe>
                         )}
                       </div>
                       
@@ -776,41 +849,199 @@ export function MiniLessons() {
                       <h3 className="text-lg font-semibold text-amber-800 mb-3">Knowledge Check</h3>
                       
                       <div className="space-y-4">
-                        <div className="bg-white p-4 rounded shadow-sm">
-                          <p className="font-medium text-gray-800 mb-3">Question 1: Why is consistency important when implementing these techniques?</p>
-                          <RadioGroup defaultValue="" className="space-y-2">
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="correct" id="q1-correct" />
-                              <Label htmlFor="q1-correct">It builds reliable routines that help children feel secure</Label>
+                        {/* Dynamically show questions based on the category */}
+                        {selectedLesson.category === 'classroom-management' ? (
+                          <>
+                            <div className="bg-white p-4 rounded shadow-sm">
+                              <p className="font-medium text-gray-800 mb-3">Question 1: What is the most effective way to redirect a child who is disrupting the class?</p>
+                              <RadioGroup defaultValue="" className="space-y-2">
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="correct" id="q1-correct" />
+                                  <Label htmlFor="q1-correct">Calmly approach the child and offer an alternative activity that meets their need for engagement</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="incorrect1" id="q1-incorrect1" />
+                                  <Label htmlFor="q1-incorrect1">Immediately remove the child from the activity and apply a consequence</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="incorrect2" id="q1-incorrect2" />
+                                  <Label htmlFor="q1-incorrect2">Ignore the behavior so you don't reinforce it with attention</Label>
+                                </div>
+                              </RadioGroup>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="incorrect1" id="q1-incorrect1" />
-                              <Label htmlFor="q1-incorrect1">It makes the teacher's job easier</Label>
+                            
+                            <div className="bg-white p-4 rounded shadow-sm">
+                              <p className="font-medium text-gray-800 mb-3">Question 2: How can classroom layout contribute to effective management?</p>
+                              <RadioGroup defaultValue="" className="space-y-2">
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="incorrect1" id="q2-incorrect1" />
+                                  <Label htmlFor="q2-incorrect1">By creating a maze-like environment that keeps children occupied</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="correct" id="q2-correct" />
+                                  <Label htmlFor="q2-correct">By creating clearly defined areas with visible boundaries and ensuring good sightlines for supervision</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="incorrect2" id="q2-incorrect2" />
+                                  <Label htmlFor="q2-incorrect2">By segregating children by ability level in different areas</Label>
+                                </div>
+                              </RadioGroup>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="incorrect2" id="q1-incorrect2" />
-                              <Label htmlFor="q1-incorrect2">It impresses parents during observations</Label>
+                          </>
+                        ) : selectedLesson.category === 'social-emotional' ? (
+                          <>
+                            <div className="bg-white p-4 rounded shadow-sm">
+                              <p className="font-medium text-gray-800 mb-3">Question 1: Which approach best supports children's emotional regulation skills?</p>
+                              <RadioGroup defaultValue="" className="space-y-2">
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="incorrect1" id="q1-incorrect1" />
+                                  <Label htmlFor="q1-incorrect1">Having children suppress negative emotions to maintain classroom calm</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="incorrect2" id="q1-incorrect2" />
+                                  <Label htmlFor="q1-incorrect2">Removing children from the group when they show strong emotions</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="correct" id="q1-correct" />
+                                  <Label htmlFor="q1-correct">Labeling emotions, validating feelings, and teaching calming strategies</Label>
+                                </div>
+                              </RadioGroup>
                             </div>
-                          </RadioGroup>
-                        </div>
-                        
-                        <div className="bg-white p-4 rounded shadow-sm">
-                          <p className="font-medium text-gray-800 mb-3">Question 2: How does this technique contribute to "Building Chapter One"?</p>
-                          <RadioGroup defaultValue="" className="space-y-2">
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="incorrect1" id="q2-incorrect1" />
-                              <Label htmlFor="q2-incorrect1">It makes children remember their preschool years</Label>
+                            
+                            <div className="bg-white p-4 rounded shadow-sm">
+                              <p className="font-medium text-gray-800 mb-3">Question 2: How does empathy development relate to "Building Chapter One"?</p>
+                              <RadioGroup defaultValue="" className="space-y-2">
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="correct" id="q2-correct" />
+                                  <Label htmlFor="q2-correct">It creates neural pathways for lifelong compassion and relationship skills that benefit the child's entire future</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="incorrect1" id="q2-incorrect1" />
+                                  <Label htmlFor="q2-incorrect1">It's mainly useful for making children follow classroom rules</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="incorrect2" id="q2-incorrect2" />
+                                  <Label htmlFor="q2-incorrect2">It's only relevant once children reach elementary school</Label>
+                                </div>
+                              </RadioGroup>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="correct" id="q2-correct" />
-                              <Label htmlFor="q2-correct">It builds foundational skills and positive experiences that shape a child's development</Label>
+                          </>
+                        ) : selectedLesson.category === 'health-safety' ? (
+                          <>
+                            <div className="bg-white p-4 rounded shadow-sm">
+                              <p className="font-medium text-gray-800 mb-3">Question 1: What is the proper handwashing technique to teach children?</p>
+                              <RadioGroup defaultValue="" className="space-y-2">
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="incorrect1" id="q1-incorrect1" />
+                                  <Label htmlFor="q1-incorrect1">Quick rinse with water before eating</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="correct" id="q1-correct" />
+                                  <Label htmlFor="q1-correct">Wet hands, apply soap, scrub for 20 seconds, rinse thoroughly, and dry with clean towel</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="incorrect2" id="q1-incorrect2" />
+                                  <Label htmlFor="q1-incorrect2">Using hand sanitizer instead of washing whenever possible</Label>
+                                </div>
+                              </RadioGroup>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="incorrect2" id="q2-incorrect2" />
-                              <Label htmlFor="q2-incorrect2">It prepares children for kindergarten curriculum</Label>
+                            
+                            <div className="bg-white p-4 rounded shadow-sm">
+                              <p className="font-medium text-gray-800 mb-3">Question 2: What should be included in regular playground safety checks?</p>
+                              <RadioGroup defaultValue="" className="space-y-2">
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="incorrect1" id="q2-incorrect1" />
+                                  <Label htmlFor="q2-incorrect1">Just checking that the gate is locked</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="incorrect2" id="q2-incorrect2" />
+                                  <Label htmlFor="q2-incorrect2">Ensuring play equipment is challenging enough for all ages</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="correct" id="q2-correct" />
+                                  <Label htmlFor="q2-correct">Inspecting for proper surfacing depth, broken equipment, entrapment hazards, and foreign objects</Label>
+                                </div>
+                              </RadioGroup>
                             </div>
-                          </RadioGroup>
-                        </div>
+                          </>
+                        ) : selectedLesson.category === 'mindful-mornings' ? (
+                          <>
+                            <div className="bg-white p-4 rounded shadow-sm">
+                              <p className="font-medium text-gray-800 mb-3">Question 1: What is the primary goal of the Mindful Mornings program?</p>
+                              <RadioGroup defaultValue="" className="space-y-2">
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="incorrect1" id="q1-incorrect1" />
+                                  <Label htmlFor="q1-incorrect1">To make mornings more efficient for teachers</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="correct" id="q1-correct" />
+                                  <Label htmlFor="q1-correct">To create a calm, intentional start to each day that helps children self-regulate and prepare for learning</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="incorrect2" id="q1-incorrect2" />
+                                  <Label htmlFor="q1-incorrect2">To extend the outdoor play period into the morning</Label>
+                                </div>
+                              </RadioGroup>
+                            </div>
+                            
+                            <div className="bg-white p-4 rounded shadow-sm">
+                              <p className="font-medium text-gray-800 mb-3">Question 2: Which of these is a key practice in Mindful Mornings?</p>
+                              <RadioGroup defaultValue="" className="space-y-2">
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="incorrect1" id="q2-incorrect1" />
+                                  <Label htmlFor="q2-incorrect1">Immediately starting academic work</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="incorrect2" id="q2-incorrect2" />
+                                  <Label htmlFor="q2-incorrect2">Playing high-energy games to wake children up</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="correct" id="q2-correct" />
+                                  <Label htmlFor="q2-correct">Guided breathing exercises and gentle movement to center attention</Label>
+                                </div>
+                              </RadioGroup>
+                            </div>
+                          </>
+                        ) : (
+                          // Default quiz questions for other categories
+                          <>
+                            <div className="bg-white p-4 rounded shadow-sm">
+                              <p className="font-medium text-gray-800 mb-3">Question 1: Why is consistency important when implementing these techniques?</p>
+                              <RadioGroup defaultValue="" className="space-y-2">
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="correct" id="q1-correct" />
+                                  <Label htmlFor="q1-correct">It builds reliable routines that help children feel secure</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="incorrect1" id="q1-incorrect1" />
+                                  <Label htmlFor="q1-incorrect1">It makes the teacher's job easier</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="incorrect2" id="q1-incorrect2" />
+                                  <Label htmlFor="q1-incorrect2">It impresses parents during observations</Label>
+                                </div>
+                              </RadioGroup>
+                            </div>
+                            
+                            <div className="bg-white p-4 rounded shadow-sm">
+                              <p className="font-medium text-gray-800 mb-3">Question 2: How does this technique contribute to "Building Chapter One"?</p>
+                              <RadioGroup defaultValue="" className="space-y-2">
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="incorrect1" id="q2-incorrect1" />
+                                  <Label htmlFor="q2-incorrect1">It makes children remember their preschool years</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="correct" id="q2-correct" />
+                                  <Label htmlFor="q2-correct">It builds foundational skills and positive experiences that shape a child's development</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="incorrect2" id="q2-incorrect2" />
+                                  <Label htmlFor="q2-incorrect2">It prepares children for kindergarten curriculum</Label>
+                                </div>
+                              </RadioGroup>
+                            </div>
+                          </>
+                        )}
                       </div>
                       
                       <div className="mt-4 flex justify-end">
