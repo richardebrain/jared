@@ -1831,6 +1831,94 @@ Format your response as a complete message I could use, including a greeting and
     }
   });
   
+  // Simple debug endpoint to verify API is working - no db
+  app.get('/api/test', (req, res) => {
+    return res.status(200).json({
+      message: "API is responding",
+      timestamp: new Date().toISOString()
+    });
+  });
+  
+  // Simple debug endpoint
+  app.get('/api/modules/debug', async (req, res) => {
+    try {
+      console.log("Attempting to get all modules...");
+      
+      // Create a try-catch for just the storage operation to pinpoint the issue
+      let modules = [];
+      try {
+        modules = await storage.getAllModules();
+        console.log(`Successfully retrieved ${modules.length} modules`);
+      } catch (storageError) {
+        console.error("Storage error:", storageError);
+        return res.status(500).json({
+          message: "Database error",
+          error: String(storageError)
+        });
+      }
+      
+      // Just return count as a simple test
+      return res.status(200).json({ 
+        message: "Retrieved modules successfully",
+        count: modules.length
+      });
+    } catch (error) {
+      console.error("General error getting modules:", error);
+      return res.status(500).json({ 
+        message: "Internal server error", 
+        error: String(error) 
+      });
+    }
+  });
+  
+  // Debug endpoint to view a single module
+  app.get('/api/modules/:id/debug', async (req, res) => {
+    try {
+      const moduleId = parseInt(req.params.id);
+      if (isNaN(moduleId)) {
+        return res.status(400).json({ message: "Invalid module ID" });
+      }
+      
+      console.log(`Getting module ${moduleId}...`);
+      const module = await storage.getModule(moduleId);
+      
+      if (!module) {
+        return res.status(404).json({ message: "Module not found" });
+      }
+      
+      // Return a simplified module without the full content
+      return res.status(200).json({
+        id: module.id,
+        title: module.title,
+        category: module.category,
+        contentInfo: {
+          type: typeof module.content,
+          length: typeof module.content === 'string' ? 
+            module.content.length : 
+            JSON.stringify(module.content || {}).length,
+          preview: typeof module.content === 'string' ? 
+            module.content.substring(0, 100) + '...' : 
+            JSON.stringify(module.content).substring(0, 100) + '...'
+        },
+        quizInfo: {
+          exists: Boolean(module.quiz),
+          type: typeof module.quiz,
+          hasQuestions: Boolean(module.quiz && module.quiz.questions),
+          questionsType: module.quiz ? typeof module.quiz.questions : null,
+          isQuestionsArray: module.quiz ? Array.isArray(module.quiz.questions) : false,
+          questionCount: module.quiz && module.quiz.questions && Array.isArray(module.quiz.questions) ? 
+            module.quiz.questions.length : 0
+        }
+      });
+    } catch (error) {
+      console.error(`Error getting module ${req.params.id}:`, error);
+      return res.status(500).json({ 
+        message: "Internal server error", 
+        error: String(error) 
+      });
+    }
+  });
+
   // Check all modules for adequate content
   app.get('/api/modules/content-check', async (req, res) => {
     try {
@@ -1849,7 +1937,7 @@ Format your response as a complete message I could use, including a greeting and
           contentType: typeof modules[0].content,
           contentSample: typeof modules[0].content === 'string' ? 
             modules[0].content.substring(0, 100) + '...' : 
-            JSON.stringify(modules[0].content).substring(0, 100) + '...',
+            JSON.stringify(modules[0].content || {}).substring(0, 100) + '...',
           quizType: typeof modules[0].quiz,
           hasQuiz: Boolean(modules[0].quiz && 
                      modules[0].quiz.questions && 
