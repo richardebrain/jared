@@ -1168,7 +1168,7 @@ export function MiniLessons() {
                                 <iframe 
                                   width="100%" 
                                   height="100%" 
-                                  src="https://www.youtube.com/embed/gKuB8ynvSDA" 
+                                  src="https://www.youtube.com/embed/3P4i15SUzLM" 
                                   title="Transition Techniques" 
                                   frameBorder="0" 
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -1187,7 +1187,7 @@ export function MiniLessons() {
                                 <iframe 
                                   width="100%" 
                                   height="100%" 
-                                  src="https://www.youtube.com/embed/4RmQTIXvjnU" 
+                                  src="https://www.youtube.com/embed/r3Rcg6V3E04" 
                                   title="Creative Transition Techniques" 
                                   frameBorder="0" 
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
