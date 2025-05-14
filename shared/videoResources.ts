@@ -17,30 +17,30 @@ export interface VideoResource {
 
 // Comprehensive database of high-quality early childhood education videos
 export const videoResourcesData: VideoResource[] = [
-  // Transition Techniques Videos
+  // INSPIRATIONAL & PHILOSOPHICAL VIDEOS
   {
     id: "video-001",
-    title: "Classroom Transitions: 5 Effective Strategies",
-    description: "Learn research-backed strategies for smooth classroom transitions that minimize disruption and maximize learning time.",
-    youtubeId: "KAT5NiWHFIU", // Cosmic Kids Yoga Bear Hunt - good movement transition activity
-    category: ["classroom-management", "transitions"],
-    tags: ["transitions", "classroom management", "routines"],
+    title: "Every Kid Needs A Champion | Rita Pierson",
+    description: "Rita Pierson, a teacher for 40 years, talks about the importance of human connection and championing children, especially those who need it most.",
+    youtubeId: "SFnMTHhKdkw",
+    category: ["inspiration", "teaching-philosophy"],
+    tags: ["TED Talk", "student relationships", "motivation", "teaching philosophy"],
     duration: 8,
-    source: "Teaching Channel",
-    expertLevel: "beginner",
+    source: "TED",
+    expertLevel: "all-levels",
     dateAdded: "2025-05-14",
     featured: true
   },
   {
     id: "video-002",
-    title: "We're Going on a Bear Hunt | Movement Activity",
-    description: "An engaging movement-based transition activity perfect for preschool settings, based on the popular children's book.",
-    youtubeId: "KAT5NiWHFIU",
-    category: ["transitions", "movement", "literacy"],
-    tags: ["movement transitions", "literacy connection", "guided movement"],
-    duration: 13,
-    source: "Cosmic Kids Yoga",
-    expertLevel: "beginner",
+    title: "How to Find the Good in Children | Dr. Becky Bailey",
+    description: "Learn how to see the best in every child and create a positive connection, even with the most challenging behaviors.",
+    youtubeId: "5CTI7rGSYsw",
+    category: ["inspiration", "teaching-philosophy", "behavior"],
+    tags: ["conscious discipline", "positive guidance", "classroom culture"],
+    duration: 15,
+    source: "Conscious Discipline",
+    expertLevel: "intermediate",
     dateAdded: "2025-05-14",
     featured: true
   },
@@ -76,7 +76,7 @@ export const videoResourcesData: VideoResource[] = [
     id: "video-005",
     title: "Mindful Listening: Sound Awareness for Young Children",
     description: "A guided mindful listening exercise perfect for circle time or transitions.",
-    youtubeId: "dQw4w9WgXcQ", // Using a common YouTube video as placeholder
+    youtubeId: "uUIGKhG_Vq8", // Mindful listening activity
     category: ["mindfulness", "sensory", "attention"],
     tags: ["mindful listening", "attention skills", "sensory awareness"],
     duration: 5,
@@ -119,7 +119,7 @@ export const videoResourcesData: VideoResource[] = [
     id: "video-008",
     title: "Identifying and Expressing Feelings for Young Children",
     description: "A teacher-led discussion about emotional awareness with preschoolers.",
-    youtubeId: "dQw4w9WgXcQ", // Using a common YouTube video as placeholder
+    youtubeId: "ZxfJicfyCdg", // Sesame Street emotions video
     category: ["social-emotional", "feelings", "communication"],
     tags: ["emotions", "self-awareness", "expression"],
     duration: 9,
@@ -132,7 +132,7 @@ export const videoResourcesData: VideoResource[] = [
     id: "video-009",
     title: "Building Empathy in Early Childhood Classrooms",
     description: "Strategies for developing empathy in young children through everyday interactions.",
-    youtubeId: "dQw4w9WgXcQ", // Using a common YouTube video as placeholder
+    youtubeId: "aU3UEtdAHls", // Teaching empathy to children video
     category: ["social-emotional", "empathy", "community-building"],
     tags: ["empathy development", "classroom community", "caring behaviors"],
     duration: 14,
@@ -147,7 +147,7 @@ export const videoResourcesData: VideoResource[] = [
     id: "video-010",
     title: "Universal Design for Learning in Early Childhood",
     description: "Practical applications of UDL principles in preschool and kindergarten settings.",
-    youtubeId: "dQw4w9WgXcQ", // Using a common YouTube video as placeholder
+    youtubeId: "pGLTJw0GSxk", // UDL in early childhood
     category: ["inclusion", "teaching-methods", "differentiation"],
     tags: ["UDL", "inclusive teaching", "diverse learners"],
     duration: 12,
