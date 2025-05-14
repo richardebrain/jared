@@ -867,13 +867,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Video validation routes
   app.post("/api/videos/validate", requireAuth, async (req, res) => {
     try {
-      const { videoId, isValid } = req.body;
+      const { videoId, youtubeId, isValid } = req.body;
+      
+      // Ensure the YouTube ID has no leading/trailing spaces
+      const cleanYoutubeId = youtubeId ? youtubeId.trim() : '';
       
       // In a real implementation, we would update the database
-      // For now, we just return success
+      // For now, we just return success and log the validation result
       console.log(`Video validation: ${videoId} is ${isValid ? 'valid' : 'invalid'}`);
       
-      res.json({ success: true, videoId, isValid });
+      // If the video is invalid, log it more prominently to help identify problems
+      if (!isValid && videoId) {
+        console.warn(`⚠️ INVALID VIDEO DETECTED: ${videoId} (${cleanYoutubeId})`);
+      }
+      
+      res.json({ success: true, videoId, youtubeId: cleanYoutubeId, isValid });
     } catch (error) {
       console.error("Error validating video:", error);
       res.status(500).json({ message: "Error validating video", error });

@@ -28,12 +28,14 @@ import {
   Tag, 
   BookOpen,
   CheckCircle2,
+  AlertTriangle,
   ExternalLink,
   ThumbsUp
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { VideoResource, videoResourcesData } from '@shared/videoResources';
+import '../lib/videoValidator'; // Import the validator for global use
 import VideoResourceCard from '@/components/VideoResourceCard';
 
 // Component for the Video Resource Library
