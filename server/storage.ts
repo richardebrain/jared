@@ -27,6 +27,7 @@ export interface IStorage {
   getAllModules(): Promise<LearningModule[]>;
   getModule(id: number): Promise<LearningModule | undefined>;
   createModule(module: InsertLearningModule): Promise<LearningModule>;
+  updateModule(id: number, moduleData: Partial<LearningModule>): Promise<LearningModule>;
   
   // User progress operations
   getUserProgressByUserId(userId: number): Promise<UserProgress[]>;

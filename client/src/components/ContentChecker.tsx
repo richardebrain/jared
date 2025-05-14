@@ -257,7 +257,7 @@ export default function ContentChecker() {
                   ) : (
                     <>
                       <BookOpen className="mr-2 h-4 w-4" />
-                      Check All Modules ({modules?.length || 0})
+                      Check All Modules ({Array.isArray(modules) ? modules.length : 0})
                     </>
                   )}
                 </Button>
