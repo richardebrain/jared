@@ -837,7 +837,7 @@ export function MiniLessons() {
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <Clock className="h-5 w-5 mr-2 text-primary" />
-              <CardTitle className="text-lg">Quick Mini-Lessons</CardTitle>
+              <CardTitle className="text-lg">Personalized Mini-Lessons</CardTitle>
             </div>
             <Link href="/mini-lessons">
               <Badge variant="outline" className="hover:bg-muted cursor-pointer">
@@ -846,7 +846,7 @@ export function MiniLessons() {
             </Link>
           </div>
           <CardDescription>
-            5-minute activities for when you have a short break. All mini-lessons are shown below. Each one awards points equal to their duration.
+            Customized mini-lessons based on your assessment results. These 5-minute activities are tailored to your growth areas.
           </CardDescription>
         </CardHeader>
         
@@ -870,7 +870,7 @@ export function MiniLessons() {
               )}
               
               {/* Show all mini-lessons */}
-              {allModules.map((lesson: MiniLesson) => {
+              {modules.map((lesson: MiniLesson) => {
                 const userProgress = progressMap[lesson.id];
                 const completed = userProgress?.completed || false;
                 const pointsEarned = userProgress?.pointsEarned || 0;
