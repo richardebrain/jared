@@ -1,6 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useSoundEffects } from "@/hooks/useSoundEffects";
 import { User } from "@shared/schema";
 import { Link, useLocation } from "wouter";
 import Header from "@/components/Header";
@@ -28,8 +27,6 @@ import BearAssistant from "@/components/BearAssistant";
 import { MiniLessons } from "@/components/MiniLessons";
 import MediaSidebar from "@/components/MediaSidebar";
 import AdminTools from "@/components/AdminTools";
-import { BackgroundDecorations } from "@/components/BackgroundDecorations";
-import { RetroDashboardTabs } from "@/components/RetroDashboardTabs";
 
 // Define assessment domains for display purposes
 const domains = [
@@ -47,9 +44,7 @@ const POINTS_PER_BEAR_BUCK = 20;
 export default function Dashboard() {
   // We'll calculate Bear Bucks later once we have the user data
   const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState("learning");
   const { toast } = useToast();
-  const { playTabSelectSound, playUIClickSound } = useSoundEffects();
   
   const { data: user, isLoading: isLoadingUser, isError: isUserError } = useQuery<User>({ 
     queryKey: ["/api/auth/me"],
@@ -131,7 +126,7 @@ export default function Dashboard() {
       if (!weakAreas || weakAreas.length === 0) return [];
       
       // Add modules that match weak domain areas
-      let recommendations: any[] = [];
+      let recommendations = [];
       
       for (const domain of weakAreas) {
         const domainModules = Array.isArray(modules) ? modules.filter(module => 
@@ -185,6 +180,7 @@ export default function Dashboard() {
       email: "demo@example.com",
       points: 750,
       level: 2,
+      role: "teacher",
       language: "en",
       nativeLanguage: "en",
       timeZone: "America/New_York",
@@ -223,63 +219,63 @@ export default function Dashboard() {
   
   return (
     <div className="min-h-screen bg-neutral-50">
-      {/* Add background decorations component */}
-      <BackgroundDecorations />
-      
       <Header />
       
-      {/* Animal Crossing / Farmville Style Dashboard Header */}
-      <div className="py-8 px-4 bg-[#e6f7ff] relative overflow-hidden">
-        {/* Cloud decorations are now handled by BackgroundDecorations component */}
-        
-        <div className="container mx-auto px-4 relative">
-          <div className="flex flex-col md:flex-row justify-between items-center mb-6">
-            {/* Welcome Message */}
-            <div className="bg-white rounded-3xl px-6 py-4 shadow-md mb-4 md:mb-0 border-4 border-[#e2f5ff]">
-              <h1 className="text-2xl md:text-3xl font-game text-[#4a8fe2] drop-shadow-sm">
-                Welcome, {user.firstName || 'Teacher'}! 
-                <span className="ml-2 text-yellow-500">✿</span>
-              </h1>
+      {/* Dashboard Header with Bear Bucks and Progress */}
+      <div className="bg-gradient-to-r from-purple-100 to-indigo-100 p-6">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row justify-between mb-3">
+            <div className="flex items-center justify-between md:justify-start mb-3 md:mb-0">
+              <h1 className="text-2xl font-heading font-bold text-gray-800 mr-4">Welcome, {user.firstName || 'Teacher'}!</h1>
             </div>
             
-            {/* Core Values Button */}
             <Link to="/core-values-shout-out">
-              <div className="ac-button group relative overflow-hidden transform hover:scale-105 transition-all py-3 px-6">
+              <div className="group relative overflow-hidden transform hover:scale-105 transition-all bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white font-bold py-3 px-6 rounded-xl shadow-[0_5px_0_rgb(76,29,149)] hover:shadow-[0_3px_0_rgb(76,29,149)] active:shadow-[0_0px_0_rgb(76,29,149)] active:translate-y-1 border-2 border-purple-200">
+                {/* Pixel-art style decorations */}
+                <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-yellow-400 rounded"></div>
+                <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-yellow-400 rounded"></div>
+                <div className="absolute -top-1 -left-1 w-3 h-3 bg-yellow-400 rounded"></div>
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded"></div>
+                
+                {/* Shimmer effect */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-yellow-300/30 to-transparent opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400/0 via-yellow-400/40 to-yellow-400/0 opacity-0 group-hover:opacity-100 animate-shimmer transition-opacity"></div>
+                
                 <div className="relative flex items-center justify-center">
-                  <span className="mr-3 text-xl">🌟</span>
-                  <span className="text-[#603813] font-game text-base tracking-wider pb-1">CORE VALUES SHOUT OUT!</span>
-                  <span className="ml-3 text-xl">🍃</span>
+                  <span className="mr-3 text-yellow-200 text-xl">🏆</span>
+                  <span className="text-white font-game text-sm md:text-base tracking-wider pb-1">CORE VALUES SHOUT OUT!</span>
+                  <span className="ml-3 text-yellow-200 text-xl">🎮</span>
                 </div>
                 
-                <div className="absolute top-0 right-0 -mt-1 -mr-1 bg-[#ffdb80] text-[#603813] text-xs font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg shadow-sm">NEW!</div>
+                <div className="absolute top-0 right-0 -mt-1 -mr-1 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg shadow-sm">NEW!</div>
               </div>
             </Link>
           </div>
           
-          {/* Stats Cards */}
-          <div className="ac-header">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+          {/* Bear Bucks and Points Progress Bar */}
+          <div className="bg-white rounded-xl shadow-md p-4 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Points */}
-              <div className="ac-stats-card flex items-center">
-                <div className="ac-icon-bg bg-[#fff8e6] p-3 mr-4 float-animation" style={{animationDelay: '0.2s'}}>
-                  <Award className="h-7 w-7 text-[#ffaa33]" />
+              <div className="flex items-center">
+                <div className="bg-amber-100 p-2 rounded-full mr-3">
+                  <Award className="h-5 w-5 text-amber-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-[#6e7f80] font-medium">Your Points</p>
-                  <p className="text-2xl font-game text-[#3a8f7d]">{user?.points || 0}</p>
+                  <p className="text-sm text-gray-500">Your Points</p>
+                  <p className="text-xl font-bold">{user?.points || 0}</p>
                 </div>
               </div>
               
               {/* Bear Bucks */}
-              <div className="ac-stats-card flex items-center">
-                <div className="ac-icon-bg bg-[#ffeed6] p-3 mr-4 float-animation" style={{animationDelay: '0.4s'}}>
-                  <Coins className="h-7 w-7 text-[#e6961e]" />
+              <div className="flex items-center">
+                <div className="bg-yellow-100 p-2 rounded-full mr-3">
+                  <Coins className="h-5 w-5 text-yellow-600" />
                 </div>
                 <div className="flex flex-col">
-                  <p className="text-sm text-[#6e7f80] font-medium">Bear Bucks</p>
+                  <p className="text-sm text-gray-500">Bear Bucks</p>
                   <div className="flex items-center">
-                    <p className="text-2xl font-game text-[#e67e22] mr-2">{bearBucks}</p>
-                    <span className="bg-[#ffe9b0] text-[#b25900] rounded-full px-3 py-1 text-sm font-game">
+                    <p className="text-xl font-bold mr-2">{bearBucks}</p>
+                    <span className="bg-yellow-400 text-yellow-900 rounded-full px-2 py-0.5 text-xs font-semibold">
                       🐻
                     </span>
                   </div>
@@ -287,27 +283,15 @@ export default function Dashboard() {
               </div>
               
               {/* Progress to next level */}
-              <div className="ac-stats-card flex flex-col justify-center">
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-sm font-medium text-[#6e7f80]">Level {user?.level || 1}</span>
-                  <span className="text-sm font-game text-[#6e7f80]">Level {(user?.level || 1) + 1}</span>
+              <div className="flex flex-col justify-center">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-sm text-gray-500">Progress to Level {(user?.level || 1) + 1}</span>
+                  <span className="text-sm font-medium">Level {user?.level || 1}</span>
                 </div>
-                <div className="ac-progress-bg mb-2">
-                  <div 
-                    className="ac-progress-bar" 
-                    style={{width: `${((user?.points || 0) % 300) / 300 * 100}%`}}
-                  ></div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+                  <Progress value={((user?.points || 0) % 300) / 300 * 100} className="h-2.5" />
                 </div>
-                <div className="flex justify-between">
-                  <p className="text-xs font-medium text-[#6e7f80]">
-                    <span className="inline-block mr-1">✓</span>
-                    {((user?.points || 0) % 300)} points earned
-                  </p>
-                  <p className="text-xs font-medium text-[#6e7f80]">
-                    {300 - ((user?.points || 0) % 300)} points to go
-                    <span className="inline-block ml-1">→</span>
-                  </p>
-                </div>
+                <p className="text-xs text-gray-500 text-right">{300 - ((user?.points || 0) % 300)} points needed</p>
               </div>
             </div>
           </div>
@@ -326,9 +310,8 @@ export default function Dashboard() {
             </Button>
             
             <ModuleView 
-              moduleId={selectedModuleId}
-              user={user}
-              onBack={() => setSelectedModuleId(null)}
+              moduleId={selectedModuleId} 
+              onComplete={() => setSelectedModuleId(null)}
             />
           </div>
         ) : (
@@ -351,215 +334,303 @@ export default function Dashboard() {
                 </Link>
               </div>
             ) : (
-              // Use our new RetroDashboardTabs component here
-              <RetroDashboardTabs>
-                {/* Learning Tab Content */}
-                <div>
-                  {/* Personalized Learning Path from Assessment Results - Animal Crossing Style */}
-                  <div className="ac-card mb-6">
-                    <div className="ac-card-header">
-                      <div className="flex items-center">
-                        <div className="bg-blue-100 p-2 rounded-full mr-3 float-animation" style={{animationDelay: '0.3s'}}>
-                          <Award className="h-6 w-6 text-blue-500" />
-                        </div>
-                        <div>
-                          <h3 className="ac-card-title">Your Personalized Learning Path</h3>
-                          <p className="ac-card-description">
-                            Based on your assessment results, we've created a customized learning path for you
-                          </p>
-                        </div>
-                      </div>
+              <>
+                {/* Personalized Learning Path from Assessment Results */}
+                <Card className="mb-4">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center">
+                      <Award className="h-6 w-6 mr-2 text-primary" />
+                      <CardTitle className="text-xl font-bold">Your Personalized Learning Path</CardTitle>
                     </div>
-                    <div className="ac-card-content">
-                      {/* Recommended Focus Areas */}
-                      <div className="mb-4">
-                        <h3 className="text-md font-game text-[#5d4037] mb-3">Recommended Focus Areas</h3>
-                        <div className="flex flex-wrap gap-2">
-                          {assessmentDomains
-                            .filter(d => d.weakArea)
-                            .map(domain => (
-                              <span key={domain.id} className="ac-badge weak">
-                                {domain.name}
-                              </span>
-                            ))}
-                          {assessmentDomains
-                            .filter(d => !d.weakArea)
-                            .slice(0, 2)
-                            .map(domain => (
-                              <span key={domain.id} className="ac-badge">
-                                {domain.name}
-                              </span>
-                            ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                
-                  {/* Mini-Lessons (Top Recommended) */}
-                  {/* Core Values Training Module Card */}
-                  <div className="ac-card mb-6">
-                    <div className="ac-card-header">
-                      <div className="flex items-center">
-                        <div className="bg-amber-100 p-2 rounded-lg mr-3 float-animation" style={{animationDelay: '0.5s'}}>
-                          <Star className="h-6 w-6 text-amber-500" />
-                        </div>
-                        <div>
-                          <h3 className="ac-card-title">Raising Arizona's CORE Values Training</h3>
-                          <p className="ac-card-description">
-                            Our flagship training module on the 5 core values: Consistency, Preparedness, Commitment, Caring, and Positivity
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 mb-4">
-                        {/* Display the single Core Values module */}
-                        <div 
-                          className="bg-white rounded-lg p-3 shadow-sm border border-amber-200 cursor-pointer hover:bg-amber-50 transition col-span-5"
-                          onClick={() => handleModuleSelect(33)}
-                        >
-                          <div className="flex justify-center space-x-6 py-2">
-                            <div className="text-center">
-                              <div className="text-amber-600 mb-1 text-center">
-                                <span className="text-xl">C</span>
-                              </div>
-                              <div className="text-xs font-medium">Consistency</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="text-amber-600 mb-1 text-center">
-                                <span className="text-xl">P</span>
-                              </div>
-                              <div className="text-xs font-medium">Preparedness</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="text-amber-600 mb-1 text-center">
-                                <span className="text-xl">C</span>
-                              </div>
-                              <div className="text-xs font-medium">Commitment</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="text-amber-600 mb-1 text-center">
-                                <span className="text-xl">C</span>
-                              </div>
-                              <div className="text-xs font-medium">Caring</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="text-amber-600 mb-1 text-center">
-                                <span className="text-xl">P</span>
-                              </div>
-                              <div className="text-xs font-medium">Positivity</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex justify-center">
-                        <Link to="/core-values">
-                          <Button 
-                            className="ac-button-primary"
-                          >
-                            Start Full CORE Training
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                
-                  {/* Mindful Mornings Modules */}
-                  <div className="ac-card mb-6">
-                    <div className="ac-card-header">
-                      <div className="flex items-center">
-                        <div className="bg-blue-100 p-2 rounded-lg mr-3 float-animation" style={{animationDelay: '0.3s'}}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 text-blue-500">
-                            <path d="M12 2a3 3 0 0 0-3 3c0 1.6.8 3 2 4l-2 1c-1.2 1-2 2.4-2 4 0 3 2.2 5 5 5s5-2 5-5c0-1.6-.8-3-2-4l-2-1c1.2-1 2-2.4 2-4a3 3 0 0 0-3-3z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <h3 className="ac-card-title">Mindful Mornings Training</h3>
-                          <p className="ac-card-description">
-                            Start each day with intention and presence using our signature Mindful Mornings approach
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                        {/* These are the IDs we verified in the database */}
-                        {[13, 14, 15].map((moduleId) => {
-                          const mindfulModule = modules?.find(m => m.id === moduleId);
-                          let icon = "🧘";
-                          let title = "Mindful Module";
-                          
-                          if (moduleId === 13) {
-                            icon = "🫁";
-                            title = "Breathing Exercises";
-                          } else if (moduleId === 14) {
-                            icon = "💭";
-                            title = "Self-Affirmations";
-                          } else if (moduleId === 15) {
-                            icon = "🙏";
-                            title = "Gratitude Practices";
-                          }
-                          
-                          return (
-                            <div 
-                              key={moduleId}
-                              className="bg-white rounded-lg p-3 shadow-sm border border-blue-200 cursor-pointer hover:bg-blue-50 transition" 
-                              onClick={() => handleModuleSelect(moduleId)}
-                            >
-                              <div className="text-center mb-2">
-                                <span className="text-blue-500 text-xl">{icon}</span>
-                              </div>
-                              <div className="text-center text-sm font-medium">
-                                {title}
-                              </div>
-                              <div className="text-center text-xs text-blue-600 mt-1">
-                                {moduleId === 13 && "Breathe, Smile, Be Present"}
-                                {moduleId === 14 && "I am capable & valued"}
-                                {moduleId === 15 && "Find joy in small moments"}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div className="flex justify-center">
-                        <Link to="/mindful-mornings">
-                          <Button 
-                            className="ac-button-secondary"
-                          >
-                            Start Mindful Mornings Training
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                
-                  <MiniLessons
-                    title="Your Personalized Mini-Lessons"
-                    subtitle="Three mini-lessons tailored just for you based on your assessment results"
-                    modules={recommendedModules}
-                    onSelect={handleModuleSelect}
-                  />
-                
-                  {/* Monthly Content */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <MonthlyNewsletter />
+                    <CardDescription>
+                      Based on your assessment results, we've created a customized learning path for you
+                    </CardDescription>
+                  </CardHeader>
                   
-                    {/* Media Sidebar */}
-                    <MediaSidebar />
+                  <CardContent className="pt-2">
+                    {/* Recommended Focus Areas */}
+                    {weakAreas && weakAreas.length > 0 ? (
+                      <div className="mb-4">
+                        <h3 className="font-semibold text-md mb-1">Recommended Focus Areas</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {weakAreas.map(areaId => {
+                            const domain = domains.find(d => d.id === areaId);
+                            return domain ? (
+                              <Badge key={areaId} variant="outline" className="bg-amber-100 text-amber-800 border-amber-200">
+                                {domain.name}
+                              </Badge>
+                            ) : null;
+                          })}
+                        </div>
+                      </div>
+                    ) : null}
+                    
+                    {/* Recommended Modules */}
+                    {recommendedModules && recommendedModules.length > 0 ? (
+                      <div className="space-y-3">
+                        <h3 className="font-semibold text-md">Suggested Learning Modules</h3>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          {recommendedModules.map(module => (
+                            <div 
+                              key={module.id}
+                              onClick={() => handleModuleSelect(module.id)} 
+                              className="bg-gradient-to-br from-white to-purple-50 border border-purple-200 rounded-lg p-3 cursor-pointer hover:shadow-md transition"
+                            >
+                              <h3 className="font-heading font-semibold mb-1">{module.title}</h3>
+                              <p className="text-sm text-neutral-600 mb-2 line-clamp-2">{module.description}</p>
+                              <Button variant="outline" size="sm" className="w-full">
+                                Start Learning
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-4">
+                        <p className="text-neutral-500 mb-3">No specific recommendations yet. Please complete more assessments or modules.</p>
+                        <Link to="/modules">
+                          <Button>
+                            Browse All Modules
+                          </Button>
+                        </Link>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+                
+                {/* Raising Arizona's CORE Training Module */}
+                <div className="bg-gradient-to-r from-indigo-100 to-purple-100 rounded-xl p-4 md:p-5 mb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center mb-1">
+                        <img 
+                          src="/attached_assets/raising-arizona-logo.jpg" 
+                          alt="Raising Arizona Preschool" 
+                          className="h-7 mr-2 rounded"
+                          onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                            const target = e.currentTarget;
+                            target.onerror = null;
+                            target.src = "https://placehold.co/200x40/4f46e5/fff?text=Raising+Arizona";
+                          }}
+                        />
+                        <h3 className="font-bold text-indigo-800">CORE Values Training</h3>
+                      </div>
+                      <p className="text-sm text-indigo-700 mb-3">
+                        Complete this flagship module to understand Raising Arizona's five core values. 
+                        Required for all teachers during onboarding.
+                      </p>
+                      <div className="flex space-x-3">
+                        <Button 
+                          size="sm" 
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                          onClick={() => {
+                            // Directly access the CORE module by ID
+                            handleModuleSelect(33);
+                          }}
+                        >
+                          Start CORE Training
+                        </Button>
+                      </div>
+                    </div>
+                    <Star className="h-10 w-10 text-indigo-300 flex-shrink-0" />
                   </div>
                 </div>
-              </RetroDashboardTabs>
+                
+                {/* Link to Tools Page */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 md:p-5 mb-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="font-bold text-indigo-900 mb-1">Teacher Tools</h3>
+                      <p className="text-sm text-indigo-700 mb-3">Access helpful tools for your teaching practice.</p>
+                      <Link to="/tools">
+                        <Button variant="outline" size="sm" className="border-indigo-400 text-indigo-700 hover:bg-indigo-100">
+                          View Tools
+                        </Button>
+                      </Link>
+                    </div>
+                    <Book className="h-10 w-10 text-indigo-300 flex-shrink-0" />
+                  </div>
+                </div>
+                
+                {/* Mindful Mornings Training Section */}
+                <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-4 md:p-5 mb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center mb-1">
+                        <img 
+                          src="/attached_assets/mindful-mornings-logo.jpg" 
+                          alt="Mindful Mornings" 
+                          className="h-7 mr-2 rounded"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = "https://placehold.co/200x40/16a34a/fff?text=Mindful+Mornings";
+                          }}
+                        />
+                        <h3 className="font-bold text-emerald-800">Mindful Mornings Training</h3>
+                      </div>
+                      <p className="text-sm text-emerald-700 mb-3">
+                        Start each day with intention. Learn how to implement our signature Mindful Mornings program in your classroom.
+                      </p>
+                      <div className="flex space-x-3">
+                        <Button 
+                          size="sm" 
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                          onClick={() => {
+                            // Find the mindful mornings module
+                            if (modules && Array.isArray(modules)) {
+                              const mindfulModule = modules.find(m => m.category === 'mindful-mornings');
+                              if (mindfulModule) {
+                                setSelectedModuleId(mindfulModule.id);
+                              }
+                            }
+                          }}
+                        >
+                          Start Training
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="bg-white p-2 rounded-lg shadow-sm border border-emerald-200 flex items-center space-x-2 flex-shrink-0">
+                      <div className="h-10 w-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                        <Clock className="h-6 w-6 text-emerald-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-emerald-700">Completion Earns</p>
+                        <p className="font-bold text-emerald-800">75 Points</p>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Progress indicator if user has started the module */}
+                  {userProgress && Array.isArray(userProgress) && modules && Array.isArray(modules) && 
+                   userProgress.some(p => {
+                     const mindfulModule = modules.find(m => m.category === 'mindful-mornings');
+                     return mindfulModule && p.moduleId === mindfulModule.id;
+                   }) && (
+                    <div className="mt-4">
+                      <div className="flex justify-between text-xs text-emerald-700 mb-1">
+                        <span>Your progress</span>
+                        <span>
+                          {(() => {
+                            if (userProgress && modules) {
+                              const mindfulModule = modules.find(m => m.category === 'mindful-mornings');
+                              if (mindfulModule) {
+                                const progress = userProgress.find(p => p.moduleId === mindfulModule.id);
+                                return progress?.progress || 0;
+                              }
+                            }
+                            return 0;
+                          })()}% complete
+                        </span>
+                      </div>
+                      <Progress 
+                        value={(() => {
+                          if (userProgress && modules) {
+                            const mindfulModule = modules.find(m => m.category === 'mindful-mornings');
+                            if (mindfulModule) {
+                              const progress = userProgress.find(p => p.moduleId === mindfulModule.id);
+                              return progress?.progress || 0;
+                            }
+                          }
+                          return 0;
+                        })()} 
+                        className="h-2 bg-emerald-100 [&>[data-indicator]]:bg-emerald-500"
+                      />
+                    </div>
+                  )}
+                </div>
+                
+                {/* Mini-Lessons Section */}
+                <MiniLessons />
+                
+                {/* Dashboard Tools and Stats Section */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                  {/* Left Column (2/3 width) */}
+                  <div className="md:col-span-2 space-y-6">
+                    {/* Learning Resources Card */}
+                    <Card className="overflow-hidden border border-amber-200">
+                      <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-100">
+                        <div className="flex items-center">
+                          <Book className="h-5 w-5 text-amber-500 mr-2" />
+                          <CardTitle className="text-lg">Learning Resources</CardTitle>
+                        </div>
+                        <CardDescription>Quick links to helpful resources</CardDescription>
+                      </CardHeader>
+                      <CardContent className="p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <Link to="/video-resources">
+                            <button className="flex items-center p-3 bg-white rounded-lg border border-amber-200 shadow-sm w-full hover:bg-amber-50 transition">
+                              <div className="bg-purple-100 p-2 rounded-full mr-3">
+                                <i className="ri-video-line text-purple-600"></i>
+                              </div>
+                              <div className="text-left">
+                                <p className="font-medium">Video Library</p>
+                                <p className="text-sm text-gray-500">Browse educational videos</p>
+                              </div>
+                            </button>
+                          </Link>
+                          <Link to="/assessment">
+                            <button className="flex items-center p-3 bg-white rounded-lg border border-amber-200 shadow-sm w-full hover:bg-amber-50 transition">
+                              <div className="bg-blue-100 p-2 rounded-full mr-3">
+                                <i className="ri-file-list-line text-blue-600"></i>
+                              </div>
+                              <div className="text-left">
+                                <p className="font-medium">Assessments</p>
+                                <p className="text-sm text-gray-500">Track your progress</p>
+                              </div>
+                            </button>
+                          </Link>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    {/* Monthly Newsletter */}
+                    <MonthlyNewsletter />
+                  </div>
+                  
+                  {/* Right Column (1/3 width) */}
+                  <div className="md:col-span-1 space-y-6">
+                    {/* Leaderboard */}
+                    <Leaderboard />
+                    
+                    {/* Media Sidebar with Company Song and Video */}
+                    <MediaSidebar />
+                    
+                    {/* Admin Tools */}
+                    <AdminTools />
+                    
+                    {/* Core Values Shout Out Button */}
+                    <div className="mt-4">
+                      <Button 
+                        className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold py-3 hover:from-amber-600 hover:to-orange-600 shadow-md hover:shadow-lg transition-all"
+                        onClick={() => {
+                          toast({
+                            title: "CORE VALUES SHOUT OUT!",
+                            description: "Always remember our 5 values: Be Consistent, Be Prepared, Be Committed, Be Caring, Be Positive!",
+                            variant: "success"
+                          });
+                        }}
+                      >
+                        CORE VALUES SHOUT OUT! 🙌
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </>
             )}
-            
-            {/* Admin Tools (only visible to admin users) */}
-            {user && user.level >= 5 && (
-              <AdminTools />
-            )}
-            
-            {/* Leaderboard */}
-            <Leaderboard />
           </div>
         )}
+      </div>
+      
+      {/* Founder Quote Footer */}
+      <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-t border-amber-100 py-4 mt-8">
+        <div className="container mx-auto px-4 text-center">
+          <p className="text-amber-800 font-serif italic">
+            "I'm curious, therefore I am."
+          </p>
+          <p className="text-amber-700 text-sm mt-1">
+            — Jared Cook, Founder & Owner
+          </p>
+        </div>
       </div>
     </div>
   );

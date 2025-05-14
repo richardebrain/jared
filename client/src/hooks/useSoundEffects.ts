@@ -7,9 +7,7 @@ export function useSoundEffects() {
     success: '/sounds/mario-coin.mp3',
     wrong: '/sounds/mario-wrong.mp3',
     levelComplete: '/sounds/mario-level-complete.mp3',
-    celebration: '/sounds/mario-victory.mp3',
-    uiClick: '/sounds/retro-ui-click.mp3',
-    tabSelect: '/sounds/mario-pipe.mp3'
+    celebration: '/sounds/mario-victory.mp3'
   };
 
   // Function to safely play sounds
@@ -133,23 +131,11 @@ export function useSoundEffects() {
     };
   }, []);
 
-  // For UI click interactions
-  const playUIClickSound = useCallback(() => {
-    playSound(soundUrls.uiClick, 0.3);
-  }, [playSound, soundUrls.uiClick]);
-
-  // For tab selection
-  const playTabSelectSound = useCallback(() => {
-    playSound(soundUrls.tabSelect, 0.4);
-  }, [playSound, soundUrls.tabSelect]);
-
   return {
     playSuccessSound,
     playWrongSound,
     playLevelCompleteSound,
     playCelebrationSound,
-    playUIClickSound,
-    playTabSelectSound,
     speakText
   };
 }
