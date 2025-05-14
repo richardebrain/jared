@@ -4,6 +4,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Raising Arizona Background Style */
+body {
+  background-color: #fcfcfc;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(224, 242, 254, 0.2) 10%, transparent 20%),
+    radial-gradient(circle at 90% 30%, rgba(254, 249, 195, 0.15) 15%, transparent 25%),
+    radial-gradient(circle at 50% 70%, rgba(220, 252, 231, 0.15) 15%, transparent 25%),
+    radial-gradient(circle at 80% 80%, rgba(254, 226, 226, 0.15) 12%, transparent 22%);
+  background-size: 140px 140px, 160px 160px, 170px 170px, 150px 150px;
+  background-position: 0 0, 40px 40px, 80px 80px, 120px 120px;
+}
+
 /* Animal Crossing / Cute Game UI Styles */
 @layer components {
   .font-game {

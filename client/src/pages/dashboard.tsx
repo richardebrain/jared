@@ -28,6 +28,7 @@ import BearAssistant from "@/components/BearAssistant";
 import { MiniLessons } from "@/components/MiniLessons";
 import MediaSidebar from "@/components/MediaSidebar";
 import AdminTools from "@/components/AdminTools";
+import { BackgroundDecorations } from "@/components/BackgroundDecorations";
 import { RetroDashboardTabs } from "@/components/RetroDashboardTabs";
 
 // Define assessment domains for display purposes
