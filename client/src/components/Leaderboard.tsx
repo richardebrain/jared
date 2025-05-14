@@ -15,17 +15,27 @@ export default function Leaderboard() {
   const [timeframe, setTimeframe] = useState<"week" | "month" | "all">("week");
   
   const { data: leaderboardData, isLoading } = useQuery({
-    queryKey: ["/api/leaderboard", timeframe],
-    queryFn: () => {
-      // This would fetch from a real API endpoint in production
-      // For now, we'll provide static data
-      return [
-        { id: 1, firstName: "Sarah", lastName: "Johnson", points: 2850, level: 3 },
-        { id: 2, firstName: "Michael", lastName: "Chen", points: 2340, level: 3 },
-        { id: 3, firstName: "Jessica", lastName: "Williams", points: 1920, level: 2 },
-        { id: 4, firstName: "David", lastName: "Garcia", points: 1780, level: 2 },
-        { id: 5, firstName: "Emily", lastName: "Taylor", points: 1450, level: 2 }
-      ];
+    queryKey: ["/api/users"],
+    queryFn: async () => {
+      // Fetch real user data
+      const response = await fetch('/api/users');
+      if (!response.ok) {
+        throw new Error('Failed to fetch leaderboard data');
+      }
+      const users = await response.json();
+      
+      // Sort users by points (highest first)
+      return users
+        .filter(user => user.points !== null && user.points > 0)
+        .sort((a, b) => (b.points || 0) - (a.points || 0))
+        .slice(0, 5)
+        .map(user => ({
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          points: user.points || 0,
+          level: user.level || (user.points && user.points > 2000 ? 3 : user.points > 1000 ? 2 : 1)
+        }));
     },
   });
   
