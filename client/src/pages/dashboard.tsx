@@ -223,15 +223,14 @@ export default function Dashboard() {
   
   return (
     <div className="min-h-screen bg-neutral-50">
+      {/* Add background decorations component */}
+      <BackgroundDecorations />
+      
       <Header />
       
       {/* Animal Crossing / Farmville Style Dashboard Header */}
       <div className="py-8 px-4 bg-[#e6f7ff] relative overflow-hidden">
-        {/* Cloud decorations */}
-        <div className="hidden md:block absolute top-5 left-[5%] w-20 h-10 bg-white rounded-full opacity-80 float-animation" style={{animationDelay: '0s'}}></div>
-        <div className="hidden md:block absolute top-12 left-[15%] w-32 h-12 bg-white rounded-full opacity-70 float-animation" style={{animationDelay: '0.5s'}}></div>
-        <div className="hidden md:block absolute top-8 left-[60%] w-24 h-10 bg-white rounded-full opacity-60 float-animation" style={{animationDelay: '1s'}}></div>
-        <div className="hidden md:block absolute top-16 left-[80%] w-28 h-11 bg-white rounded-full opacity-80 float-animation" style={{animationDelay: '1.5s'}}></div>
+        {/* Cloud decorations are now handled by BackgroundDecorations component */}
         
         <div className="container mx-auto px-4 relative">
           <div className="flex flex-col md:flex-row justify-between items-center mb-6">

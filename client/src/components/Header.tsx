@@ -61,14 +61,14 @@ export default function Header() {
     : "U";
   
   return (
-    <header className="sticky top-0 bg-white shadow-md z-50">
+    <header className="sticky top-0 bg-sky-100 shadow-md z-50 border-b-4 border-sky-200">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <div className="flex items-center">
           <Link href="/">
             <div className="flex items-center">
-              <img src={raisingArizonaLogo} alt="Raising Arizona Preschool" className="h-14 mr-3" />
+              <img src={raisingArizonaLogo} alt="Raising Arizona Preschool" className="h-14 mr-3 rounded-full shadow-sm" />
               <div>
-                <div className="text-xl md:text-2xl font-bold text-[#532A18]">MentorMe</div>
+                <div className="text-xl md:text-2xl font-bold text-[#532A18] font-['Bubblegum_Sans']">MentorMe</div>
                 <div className="text-xs text-[#532A18]">Raising Arizona Teacher Training</div>
               </div>
             </div>
@@ -77,37 +77,37 @@ export default function Header() {
         
         <nav className="hidden md:flex items-center border-b border-transparent">
           <Link href="/">
-            <div className={`font-heading font-semibold px-4 py-2 ${location === "/" 
-              ? "text-primary border-b-2 border-primary" 
-              : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
+            <div className={`font-['Bubblegum_Sans'] px-4 py-2 text-lg rounded-full mx-1 ${location === "/" 
+              ? "bg-amber-100 text-amber-800 shadow-sm" 
+              : "text-neutral-800 hover:bg-sky-200"} transition cursor-pointer`}>
               Dashboard
             </div>
           </Link>
           <Link href="/progression-map">
-            <div className={`font-heading font-semibold px-4 py-2 ${location === "/progression-map" 
-              ? "text-primary border-b-2 border-primary" 
-              : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
+            <div className={`font-['Bubblegum_Sans'] px-4 py-2 text-lg rounded-full mx-1 ${location === "/progression-map" 
+              ? "bg-green-100 text-green-800 shadow-sm" 
+              : "text-neutral-800 hover:bg-sky-200"} transition cursor-pointer`}>
               Teacher Progression
             </div>
           </Link>
           <Link href="/assessment">
-            <div className={`font-heading font-semibold px-4 py-2 ${location === "/assessment" 
-              ? "text-primary border-b-2 border-primary" 
-              : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
+            <div className={`font-['Bubblegum_Sans'] px-4 py-2 text-lg rounded-full mx-1 ${location === "/assessment" 
+              ? "bg-blue-100 text-blue-800 shadow-sm" 
+              : "text-neutral-800 hover:bg-sky-200"} transition cursor-pointer`}>
               Assessment
             </div>
           </Link>
           <Link href="/tools">
-            <div className={`font-heading font-semibold px-4 py-2 ${location === "/tools" 
-              ? "text-primary border-b-2 border-primary" 
-              : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
+            <div className={`font-['Bubblegum_Sans'] px-4 py-2 text-lg rounded-full mx-1 ${location === "/tools" 
+              ? "bg-purple-100 text-purple-800 shadow-sm" 
+              : "text-neutral-800 hover:bg-sky-200"} transition cursor-pointer`}>
               Teacher Tools
             </div>
           </Link>
           <Link href="/video-resources">
-            <div className={`font-heading font-semibold px-4 py-2 ${location === "/video-resources" 
-              ? "text-primary border-b-2 border-primary" 
-              : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
+            <div className={`font-['Bubblegum_Sans'] px-4 py-2 text-lg rounded-full mx-1 ${location === "/video-resources" 
+              ? "bg-pink-100 text-pink-800 shadow-sm" 
+              : "text-neutral-800 hover:bg-sky-200"} transition cursor-pointer`}>
               Video Library
             </div>
           </Link>
@@ -119,90 +119,102 @@ export default function Header() {
               className="relative text-neutral-800 hover:text-primary transition flex items-center justify-center"
               onClick={() => setLocation("/beary-ai")}
             >
-              <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center hover:bg-amber-200 transition-colors">
-                <span role="img" aria-label="bear" className="text-sm">🐻</span>
+              <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center hover:bg-amber-200 transition-colors shadow-sm border-2 border-amber-200">
+                <span role="img" aria-label="bear" className="text-xl">🐻</span>
               </div>
             </button>
             <div className="absolute top-full right-0 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out">
-              <div className="bg-white shadow-lg rounded-md p-2 whitespace-nowrap text-xs font-semibold border border-amber-200">
+              <div className="bg-amber-50 shadow-lg rounded-xl p-2 whitespace-nowrap text-sm font-['Bubblegum_Sans'] border-2 border-amber-200">
                 Ask me anything! <span className="text-amber-500">📚</span>
               </div>
-              <div className="absolute top-0 right-3 -mt-2 w-3 h-3 bg-white border-t border-l border-amber-200 transform rotate-45"></div>
+              <div className="absolute top-0 right-3 -mt-2 w-3 h-3 bg-amber-50 border-t-2 border-l-2 border-amber-200 transform rotate-45"></div>
             </div>
           </div>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="relative cursor-pointer">
-                <Avatar>
+                <Avatar className="border-2 border-sky-200 shadow-sm w-10 h-10">
                   <AvatarImage src={user?.profilePicture ? user.profilePicture : ""} alt={user?.firstName || ""} />
-                  <AvatarFallback className="bg-primary text-primary-foreground">
+                  <AvatarFallback className="bg-green-100 text-green-800 font-['Bubblegum_Sans']">
                     {userInitials}
                   </AvatarFallback>
                 </Avatar>
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/profile")}>
-                <i className="ri-user-line mr-2"></i>
+            <DropdownMenuContent align="end" className="bg-sky-50 border-2 border-sky-200 rounded-xl p-1 font-['Bubblegum_Sans']">
+              <DropdownMenuLabel className="text-center text-sky-800 border-b-2 border-sky-200 pb-2">My Profile</DropdownMenuLabel>
+              <DropdownMenuItem className="cursor-pointer my-1 rounded-lg hover:bg-sky-100" onClick={() => setLocation("/profile")}>
+                <span className="mr-2">👤</span>
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/settings")}>
-                <i className="ri-settings-line mr-2"></i>
+              <DropdownMenuItem className="cursor-pointer my-1 rounded-lg hover:bg-sky-100" onClick={() => setLocation("/settings")}>
+                <span className="mr-2">⚙️</span>
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
-                <i className="ri-logout-box-line mr-2"></i>
+              <DropdownMenuSeparator className="bg-sky-200" />
+              <DropdownMenuItem className="cursor-pointer my-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-800" onClick={handleLogout}>
+                <span className="mr-2">👋</span>
                 Logout
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           
           <button 
-            className="md:hidden text-neutral-800 hover:text-primary transition"
+            className="md:hidden text-neutral-800 hover:text-primary transition bg-sky-100 p-2 rounded-full shadow-sm border-2 border-sky-200"
             onClick={toggleMobileMenu}
           >
-            <i className={`${isMobileMenuOpen ? "ri-close-line" : "ri-menu-line"} text-2xl`}></i>
+            <span className="text-xl">{isMobileMenuOpen ? "✕" : "☰"}</span>
           </button>
         </div>
       </div>
       
       {/* Mobile navigation */}
       {isMobileMenuOpen && (
-        <div className="bg-white py-3 px-4 md:hidden">
+        <div className="bg-sky-50 py-3 px-4 md:hidden rounded-b-lg shadow-inner">
           <nav className="flex flex-col space-y-3">
             <Link href="/">
-              <div className={`font-heading font-semibold ${location === "/" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
-                Dashboard
+              <div className={`font-['Bubblegum_Sans'] text-lg p-2 rounded-full ${location === "/" 
+                ? "bg-amber-100 text-amber-800 shadow-sm" 
+                : "text-neutral-800 hover:bg-sky-200"} cursor-pointer`}>
+                🏠 Dashboard
               </div>
             </Link>
             <Link href="/progression-map">
-              <div className={`font-heading font-semibold ${location === "/progression-map" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
-                Teacher Progression
+              <div className={`font-['Bubblegum_Sans'] text-lg p-2 rounded-full ${location === "/progression-map" 
+                ? "bg-green-100 text-green-800 shadow-sm" 
+                : "text-neutral-800 hover:bg-sky-200"} cursor-pointer`}>
+                🌱 Teacher Progression
               </div>
             </Link>
             <Link href="/assessment">
-              <div className={`font-heading font-semibold ${location === "/assessment" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
-                Assessment
+              <div className={`font-['Bubblegum_Sans'] text-lg p-2 rounded-full ${location === "/assessment" 
+                ? "bg-blue-100 text-blue-800 shadow-sm" 
+                : "text-neutral-800 hover:bg-sky-200"} cursor-pointer`}>
+                📝 Assessment
               </div>
             </Link>
             <Link href="/tools">
-              <div className={`font-heading font-semibold ${location === "/tools" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
-                Teacher Tools
+              <div className={`font-['Bubblegum_Sans'] text-lg p-2 rounded-full ${location === "/tools" 
+                ? "bg-purple-100 text-purple-800 shadow-sm" 
+                : "text-neutral-800 hover:bg-sky-200"} cursor-pointer`}>
+                🛠️ Teacher Tools
               </div>
             </Link>
             <Link href="/video-resources">
-              <div className={`font-heading font-semibold ${location === "/video-resources" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
-                Video Library
+              <div className={`font-['Bubblegum_Sans'] text-lg p-2 rounded-full ${location === "/video-resources" 
+                ? "bg-pink-100 text-pink-800 shadow-sm" 
+                : "text-neutral-800 hover:bg-sky-200"} cursor-pointer`}>
+                🎬 Video Library
               </div>
             </Link>
-            <div className="pt-2 border-t border-neutral-100">
-              <Button variant="outline" className="w-full justify-start" onClick={handleLogout}>
-                <i className="ri-logout-box-line mr-2"></i>
-                Logout
+            <div className="pt-2 border-t border-sky-200">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start font-['Bubblegum_Sans'] text-lg bg-red-50 hover:bg-red-100 border-red-100 text-red-800" 
+                onClick={handleLogout}
+              >
+                👋 Logout
               </Button>
             </div>
           </nav>
