@@ -246,13 +246,12 @@ Just ask me anything related to teaching preschool!`
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                  placeholder="Ask BearyAI a question..."
+                  placeholder="Ask a question..."
                   className="w-full px-4 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 text-base"
                 />
                 {!input && (
                   <div className="absolute right-4 top-3.5 text-sm text-muted-foreground/40 flex items-center pointer-events-none">
                     <HelpCircle className="h-4 w-4 mr-1" />
-                    <span className="truncate">Ask a question...</span>
                   </div>
                 )}
               </div>
