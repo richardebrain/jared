@@ -528,6 +528,18 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+      
+      {/* Founder Quote Footer */}
+      <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-t border-amber-100 py-4 mt-8">
+        <div className="container mx-auto px-4 text-center">
+          <p className="text-amber-800 font-serif italic">
+            "I'm curious, therefore I am."
+          </p>
+          <p className="text-amber-700 text-sm mt-1">
+            — Jared Cook, Founder & Owner
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
