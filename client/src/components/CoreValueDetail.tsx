@@ -80,18 +80,45 @@ Weeks later, when a new family moved in and Lila once again felt unmoored, she c
         "Having backup plans ensures learning continues despite disruptions",
         "Thoughtful preparation allows for deeper, more meaningful activities"
       ],
+      story: {
+        title: "Mr. Julian's Monday Morning",
+        text: `The classroom door swung open at 6:45 AM as Mr. Julian arrived, a full hour before his preschoolers would bounce through the same door. He set his coffee down and surveyed the quiet room with a satisfied smile. Yesterday evening, he had stayed an extra thirty minutes to arrange everything for today's volcano science activity.
+
+The red and orange tissue paper strips were neatly cut and stored in labeled containers. The baking soda and vinegar sat ready on the counter, safely out of reach. A plastic tarp covered the demonstration table. The children's science journals—simple stapled pages with their names carefully written—were stacked and ready for their observations and drawings.
+
+But Mr. Julian's preparation went beyond materials. He had practiced the demonstration at home with his own children, noting exactly how much baking soda created the perfect eruption. He had prepared simple scientific vocabulary cards with pictures to introduce words like "eruption," "lava," and "chemical reaction." And knowing that four-year-old Zuri had a sensitivity to loud noises, he had brought noise-canceling headphones for her to wear during the demonstration.
+
+At 7:15 AM, his teaching assistant Ms. Rebecca arrived. "Wow, everything's ready to go!" she exclaimed.
+
+"I learned my lesson last year," Mr. Julian laughed. "Remember the butterfly release when I forgot to check if the larvae had all formed chrysalides? Half the children were in tears when they saw caterpillars instead of butterflies!"
+
+The morning flowed smoothly until an unexpected fire drill interrupted their science time. While other classrooms scrambled to line up, Mr. Julian calmly reached for the emergency backpack he kept updated and hanging by the door. Inside were current attendance sheets, emergency contact information, first aid supplies, and even small comfort toys for children who might become anxious.
+
+After returning from the drill, he seamlessly transitioned the children to their volcano activity, pulling out a backup lesson plan he had adjusted for shorter time. Though they had less time for the activity, the children were engaged and excited, their learning undiminished by the interruption.
+
+At pickup time, parent after parent commented on their children's enthusiasm about volcanoes. "Jayden couldn't stop talking about 'chemical reactions,'" one mother shared with a smile.
+
+As Mr. Julian tidied up, his director stepped in. "That fire drill could have derailed your whole morning, but your class hardly missed a beat. What's your secret?"
+
+Mr. Julian smiled. "No secret—just preparation. When I'm prepared, I can handle whatever comes our way, and the children feel that security. They know that even when things change unexpectedly, they're still in capable hands."
+
+That evening, as he planned for tomorrow's extension activity, Mr. Julian reflected on how being prepared wasn't just about having materials ready—it was about creating an environment where children felt secure enough to focus on learning rather than worrying about what might happen next. And that kind of preparation was always worth the extra time.`,
+        duration: "5 minutes"
+      },
       examples: [
         "Create weekly lesson plans with clear objectives",
         "Prepare materials before children arrive",
         "Have backup activities ready for unexpected schedule changes",
         "Know each child's developmental needs and preferences",
-        "Review curriculum and educational goals regularly"
+        "Review curriculum and educational goals regularly",
+        "Keep emergency procedures and materials updated and accessible"
       ],
       reflection: [
         "How does planning ahead impact your teaching effectiveness?",
         "What systems do you use to stay prepared?",
         "How do you handle unexpected situations?",
-        "What areas of preparation could you improve upon?"
+        "What areas of preparation could you improve upon?",
+        "How does your preparation affect children's sense of security?"
       ]
     },
     {
@@ -221,18 +248,41 @@ Years from now, Jaylen—now a teacher himself—would keep that golden block on
         "Positive reinforcement is more effective than punishment",
         "A positive approach builds children's confidence and self-esteem"
       ],
+      story: {
+        title: "The Power of Positivity",
+        text: `Being positive in a preschool means bringing warmth, encouragement, and a calm presence into the classroom every day—even on tough mornings—so each child feels safe, valued, and ready to learn. Even when you're not at your best, showing up with a steady smile tells children they can count on you no matter what.
+
+Why this matters:
+
+• Builds trust and security, so children feel comfortable exploring and growing
+
+• Models emotional resilience, teaching kids how to handle big feelings
+
+• Creates a joyful atmosphere that fuels curiosity and engagement
+
+• Ensures consistency, which is essential for healthy attachment and development
+
+• Reinforces the idea that everyone deserves care and attention, even when life gets hard
+
+Tool for staying positive when you're sad:
+
+"Three Good Things" Practice: At the end of each day, write down or share with a colleague three small moments that went well—no matter how simple (a child's smile, a funny story, a peaceful moment). Focusing on positives rewires your brain to notice joy, making it easier to show up with genuine warmth tomorrow.`,
+        duration: "3 minutes"
+      },
       examples: [
         "Use encouraging language that focuses on effort",
         "Model positive self-talk and problem-solving",
         "Frame challenges as opportunities for growth",
         "Celebrate progress and small victories",
-        "Find joy in everyday moments with children"
+        "Find joy in everyday moments with children",
+        "Practice the 'Three Good Things' exercise daily"
       ],
       reflection: [
         "How does your attitude affect classroom atmosphere?",
         "What strategies do you use to maintain positivity during difficult days?",
         "How do you balance positivity with authenticity?",
-        "What is one way you could bring more positivity to your teaching?"
+        "What is one way you could bring more positivity to your teaching?",
+        "How might you implement the 'Three Good Things' practice in your routine?"
       ]
     }
   ];
