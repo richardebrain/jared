@@ -1377,5 +1377,85 @@ export const videoResourcesData: VideoResource[] = [
     expertLevel: "intermediate",
     dateAdded: "2025-05-14",
     featured: true
+  },
+  
+  // BRENÉ BROWN ON EMPATHY AND VULNERABILITY
+  {
+    id: "video-101",
+    title: "Brené Brown: The Power of Empathy",
+    description: "Brené Brown explains the crucial difference between empathy and sympathy, and why empathy fuels connection while sympathy drives disconnection.",
+    youtubeId: "1Evwgu369Jw",
+    category: ["empathy", "social-emotional", "relationships"],
+    tags: ["empathy", "connection", "vulnerability", "emotional intelligence"],
+    duration: 3,
+    source: "RSA",
+    expertLevel: "all-levels",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  {
+    id: "video-102",
+    title: "Brené Brown: The Power of Vulnerability",
+    description: "Brené Brown shares insights from her research on human connection, vulnerability, courage, and shame, revealing how vulnerability is the path to authentic connection.",
+    youtubeId: "iCvmsMzlF7o",
+    category: ["empathy", "social-emotional", "personal-growth"],
+    tags: ["vulnerability", "connection", "courage", "authenticity"],
+    duration: 20,
+    source: "TED",
+    expertLevel: "all-levels",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  {
+    id: "video-103",
+    title: "Brené Brown: Daring Classrooms",
+    description: "Learn how to create brave spaces in your classroom where vulnerability is seen as courage and empathy is practiced daily.",
+    youtubeId: "DVD8YRgA-ck",
+    category: ["empathy", "classroom-culture", "social-emotional"],
+    tags: ["brave spaces", "vulnerability", "courage", "classroom culture"],
+    duration: 15,
+    source: "SXSW EDU",
+    expertLevel: "intermediate",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  {
+    id: "video-104",
+    title: "Brené Brown: Listening to Shame",
+    description: "Brené Brown explores how shame affects us and why understanding it is crucial for educators who want to create empathetic learning environments.",
+    youtubeId: "psN1DORYYV0",
+    category: ["empathy", "social-emotional", "personal-growth"],
+    tags: ["shame", "vulnerability", "resilience", "emotional awareness"],
+    duration: 20,
+    source: "TED",
+    expertLevel: "intermediate",
+    dateAdded: "2025-05-14",
+    featured: false
+  },
+  {
+    id: "video-105",
+    title: "Brené Brown: Why Your Critics Aren't The Ones Who Count",
+    description: "A powerful short talk about facing criticism and finding the courage to show up even when you can't control the outcome.",
+    youtubeId: "8-JXOnFOXQk",
+    category: ["empathy", "personal-growth", "mindset"],
+    tags: ["criticism", "courage", "vulnerability", "resilience"],
+    duration: 7,
+    source: "The GATE",
+    expertLevel: "all-levels",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  {
+    id: "video-106",
+    title: "Brené Brown: Empathy vs Sympathy",
+    description: "A short animated excerpt that perfectly illustrates the difference between empathy and sympathy in everyday interactions.",
+    youtubeId: "KZBTYViDPlQ",
+    category: ["empathy", "social-emotional", "communication"],
+    tags: ["empathy", "sympathy", "connection", "communication"],
+    duration: 3,
+    source: "The Work of the People",
+    expertLevel: "beginner",
+    dateAdded: "2025-05-14",
+    featured: true
   }
 ];
