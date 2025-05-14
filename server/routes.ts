@@ -863,6 +863,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Internal server error" });
     }
   });
+  
+  // Video validation routes
+  app.post("/api/videos/validate", requireAuth, async (req, res) => {
+    try {
+      const { videoId, isValid } = req.body;
+      
+      // In a real implementation, we would update the database
+      // For now, we just return success
+      console.log(`Video validation: ${videoId} is ${isValid ? 'valid' : 'invalid'}`);
+      
+      res.json({ success: true, videoId, isValid });
+    } catch (error) {
+      console.error("Error validating video:", error);
+      res.status(500).json({ message: "Error validating video", error });
+    }
+  });
+  
+  // Video quiz routes
+  app.post("/api/videos/quiz/complete", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const { videoId, points } = req.body;
+      
+      if (!videoId || typeof points !== 'number' || points < 0 || points > 5) {
+        return res.status(400).json({ 
+          message: "Invalid request. VideoId is required and points must be between 0 and 5" 
+        });
+      }
+      
+      // Get current user
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Calculate new points total
+      const currentPoints = user.points || 0;
+      const newPoints = currentPoints + points;
+      
+      // Update user with new points
+      const updatedUser = await storage.updateUser(userId, { points: newPoints });
+      
+      console.log(`User ${userId} earned ${points} points from video quiz ${videoId}. New total: ${updatedUser.points}`);
+      
+      res.json({ 
+        success: true, 
+        videoId, 
+        pointsAwarded: points,
+        message: `Successfully awarded ${points} points for completing the quiz`,
+        totalPoints: updatedUser.points
+      });
+    } catch (error) {
+      console.error("Error processing quiz results:", error);
+      res.status(500).json({ message: "Error processing quiz results", error });
+    }
+  });
 
   // Dynamic Lesson Generation endpoint
   app.post('/api/lesson/generate', requireAuth, async (req, res) => {

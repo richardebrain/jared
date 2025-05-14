@@ -34,6 +34,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { VideoResource, videoResourcesData } from '@shared/videoResources';
+import VideoResourceCard from '@/components/VideoResourceCard';
 
 // Component for the Video Resource Library
 interface VideoResourceLibraryProps {
@@ -216,82 +217,15 @@ export function VideoResourceLibrary({
       {/* Video Grid */}
       <div className={`grid grid-cols-1 ${compactMode ? 'md:grid-cols-1 lg:grid-cols-2' : 'md:grid-cols-2 lg:grid-cols-3'} gap-6`}>
         {filteredVideos.map(video => (
-          <Card key={video.id} className="overflow-hidden flex flex-col">
-            <div className="relative aspect-video bg-black">
-              <iframe 
-                width="100%" 
-                height="100%" 
-                src={`https://www.youtube.com/embed/${video.youtubeId}`} 
-                title={video.title} 
-                frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowFullScreen
-                onLoad={() => markAsWatched(video.id)}
-              ></iframe>
-              
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className={`absolute top-2 right-2 bg-black/50 hover:bg-black/70 ${
-                  bookmarkedVideos.includes(video.id) ? 'text-yellow-400' : 'text-white'
-                }`}
-                onClick={() => toggleBookmark(video.id)}
-              >
-                <Bookmark className="h-4 w-4 fill-current" />
-              </Button>
-            </div>
-            
-            <CardHeader className="p-4 pb-2">
-              <CardTitle className="text-lg line-clamp-2">{video.title}</CardTitle>
-              <CardDescription className="line-clamp-2">{video.description}</CardDescription>
-            </CardHeader>
-            
-            <CardContent className="p-4 pt-0 flex-grow">
-              <div className="flex flex-wrap gap-1 mb-2">
-                {video.tags.slice(0, 3).map(tag => (
-                  <Badge key={tag} variant="outline" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))}
-                {video.tags.length > 3 && (
-                  <Badge variant="outline" className="text-xs">+{video.tags.length - 3}</Badge>
-                )}
-              </div>
-              
-              <div className="flex items-center text-sm text-muted-foreground gap-4">
-                <div className="flex items-center">
-                  <Clock className="h-3 w-3 mr-1" />
-                  {video.duration} min
-                </div>
-                <div className="flex items-center">
-                  <Tag className="h-3 w-3 mr-1" />
-                  {video.expertLevel}
-                </div>
-              </div>
-            </CardContent>
-            
-            <CardFooter className="p-4 pt-0 flex justify-between items-center">
-              <div className="flex items-center text-sm">
-                <BookOpen className="h-3 w-3 mr-1 text-muted-foreground" />
-                <span className="text-muted-foreground">{video.source}</span>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                {watchedVideos.includes(video.id) && (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                )}
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="flex items-center gap-1"
-                  onClick={() => window.open(`https://www.youtube.com/watch?v=${video.youtubeId}`, '_blank')}
-                >
-                  <ExternalLink className="h-3 w-3" />
-                  <span>Open</span>
-                </Button>
-              </div>
-            </CardFooter>
-          </Card>
+          <VideoResourceCard
+            key={video.id}
+            video={video}
+            isBookmarked={bookmarkedVideos.includes(video.id)}
+            isWatched={watchedVideos.includes(video.id)}
+            onBookmark={toggleBookmark}
+            onWatch={markAsWatched}
+            compactMode={compactMode}
+          />
         ))}
       </div>
       
