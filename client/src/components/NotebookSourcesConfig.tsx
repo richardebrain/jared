@@ -88,7 +88,7 @@ export default function NotebookSourcesConfig({ isAdmin = false }: NotebookSourc
       allowGeneralKnowledge: config.allowGeneralKnowledge,
       relevanceThreshold: config.relevanceThreshold,
     },
-  });
+  } as any);
 
   // Initialize form for adding custom source
   const customSourceForm = useForm<CustomSourceFormValues>({
@@ -99,7 +99,7 @@ export default function NotebookSourcesConfig({ isAdmin = false }: NotebookSourc
       url: '',
       tags: '',
     },
-  });
+  } as any);
 
   // Load initial data
   useEffect(() => {
@@ -158,7 +158,7 @@ export default function NotebookSourcesConfig({ isAdmin = false }: NotebookSourc
     try {
       await apiRequest('/api/notebook-lm/sources/toggle', {
         method: 'POST',
-        body: JSON.stringify({ sourceId, enabled }),
+        data: { sourceId, enabled }
       });
       
       // Update local state
@@ -244,7 +244,7 @@ export default function NotebookSourcesConfig({ isAdmin = false }: NotebookSourc
       
       await apiRequest('/api/notebook-lm/config', {
         method: 'POST',
-        body: JSON.stringify(updatedConfig),
+        data: updatedConfig
       });
       
       setConfig(updatedConfig);

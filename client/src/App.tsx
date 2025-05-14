@@ -19,6 +19,7 @@ import CoreValuesShoutOutPage from "@/pages/core-values-shout-out";
 import BuildingChildPage from "@/pages/building-child";
 import VideoResourcesPage from "@/pages/video-resources";
 import ToolsPage from "@/pages/tools";
+import DataSourcesPage from "@/pages/settings/data-sources";
 import { useAuth } from "@/hooks/use-auth";
 
 function Router() {
@@ -105,6 +106,10 @@ function Router() {
       
       <Route path="/tools">
         {isAuthenticated ? <ToolsPage /> : <Login />}
+      </Route>
+      
+      <Route path="/settings/data-sources">
+        {isAuthenticated ? <DataSourcesPage /> : <Login />}
       </Route>
       
       <Route path="/">
