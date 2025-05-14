@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Lightbulb, 
   Book, 
@@ -43,6 +44,7 @@ const POINTS_PER_BEAR_BUCK = 20;
 export default function Dashboard() {
   // We'll calculate Bear Bucks later once we have the user data
   const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
+  const { toast } = useToast();
   
   const { data: user, isLoading: isLoadingUser, isError: isUserError } = useQuery<User>({ 
     queryKey: ["/api/auth/me"],
@@ -596,8 +598,21 @@ export default function Dashboard() {
                     {/* Admin Tools */}
                     <AdminTools />
                     
-                    {/* Bear Assistant */}
-                    <BearAssistant user={displayUser} initiallyMinimized={false} />
+                    {/* Core Values Shout Out Button */}
+                    <div className="mt-4">
+                      <Button 
+                        className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold py-3 hover:from-amber-600 hover:to-orange-600 shadow-md hover:shadow-lg transition-all"
+                        onClick={() => {
+                          toast({
+                            title: "CORE VALUES SHOUT OUT!",
+                            description: "Always remember our 5 values: Be Consistent, Be Prepared, Be Committed, Be Caring, Be Positive!",
+                            variant: "success"
+                          });
+                        }}
+                      >
+                        CORE VALUES SHOUT OUT! 🙌
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </>
