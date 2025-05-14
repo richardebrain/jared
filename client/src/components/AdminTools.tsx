@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import LinkValidator from '@/components/LinkValidator';
-import { AlertTriangle, Video, Link2 } from 'lucide-react';
+import ContentChecker from '@/components/ContentChecker';
+import { AlertTriangle, Video, Link2, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 /**
@@ -50,8 +51,12 @@ export default function AdminTools() {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-4">
-          <Tabs defaultValue="links">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
+          <Tabs defaultValue="content">
+            <TabsList className="grid w-full grid-cols-3 mb-4">
+              <TabsTrigger value="content" className="flex items-center gap-1">
+                <BookOpen className="h-4 w-4" />
+                Content Checker
+              </TabsTrigger>
               <TabsTrigger value="links" className="flex items-center gap-1">
                 <Link2 className="h-4 w-4" />
                 Link Validator
@@ -61,6 +66,13 @@ export default function AdminTools() {
                 Video Validator
               </TabsTrigger>
             </TabsList>
+            
+            <TabsContent value="content" className="space-y-4">
+              <div className="text-sm text-muted-foreground mb-2">
+                Check all modules for proper educational content, working videos, and quizzes
+              </div>
+              <ContentChecker />
+            </TabsContent>
             
             <TabsContent value="links" className="space-y-4">
               <div className="text-sm text-muted-foreground mb-2">
