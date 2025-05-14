@@ -1202,7 +1202,7 @@ export function MiniLessons() {
                                 <iframe 
                                   width="100%" 
                                   height="100%" 
-                                  src={`https://www.youtube.com/embed/${videoResourcesData.find(v => v.category.includes('transitions') && !v.featured)?.youtubeId || 'r3Rcg6V3E04'}`} 
+                                  src={`https://www.youtube.com/embed/${getRelevantVideos(['transitions', 'quick-transitions'], 2)[1]?.youtubeId || 'r3Rcg6V3E04'}`} 
                                   title="Creative Transition Techniques" 
                                   frameBorder="0" 
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -1221,7 +1221,7 @@ export function MiniLessons() {
                                 <iframe 
                                   width="100%" 
                                   height="100%" 
-                                  src={`https://www.youtube.com/embed/${videoResourcesData.find(v => v.category.includes('classroom-management'))?.youtubeId || 'r_I50m6AQ4A'}`} 
+                                  src={`https://www.youtube.com/embed/${getRelevantVideos(['classroom-management', 'transitions'], 3)[2]?.youtubeId || 'r_I50m6AQ4A'}`} 
                                   title="Managing Classroom Transitions" 
                                   frameBorder="0" 
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 

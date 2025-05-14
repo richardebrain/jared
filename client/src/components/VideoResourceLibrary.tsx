@@ -137,12 +137,7 @@ export function VideoResourceLibrary() {
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-6xl">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold tracking-tight">Video Resource Library</h2>
-        <p className="text-muted-foreground mt-2">
-          Explore our collection of high-quality educational videos covering a variety of early childhood education topics
-        </p>
-      </div>
+      {/* Content filtering controls below */}
       
       {/* Filter and Search Controls */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
