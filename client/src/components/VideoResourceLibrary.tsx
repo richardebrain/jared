@@ -55,6 +55,27 @@ export function VideoResourceLibrary({
   const [selectedExpertLevel, setSelectedExpertLevel] = useState<string>("all");
   const [bookmarkedVideos, setBookmarkedVideos] = useState<string[]>([]);
   const [watchedVideos, setWatchedVideos] = useState<string[]>([]);
+  
+  // Expose videos data globally for the validation utility
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.videoResourcesData = videoResourcesData;
+      
+      // Log instructions for validation in dev mode
+      console.info(
+        '%c🎬 Video Validation Tools Available 🎬',
+        'background: #111; color: #bada55; padding: 4px; border-radius: 4px; font-size: 12px;'
+      );
+      console.info(
+        'Run this command to check all videos: %cwindow.validateAllVideos()',
+        'color: #0099ff; font-weight: bold;'
+      );
+      console.info(
+        'Or check a specific video: %cwindow.checkYouTubeVideo("YOUTUBE_ID")',
+        'color: #0099ff; font-weight: bold;'
+      );
+    }
+  }, []);
 
   // Function to handle search
   const handleSearch = (query: string) => {

@@ -341,7 +341,7 @@ export const videoResourcesData: VideoResource[] = [
     id: "video-024",
     title: "Math Talk: Supporting Mathematical Thinking in Early Childhood",
     description: "Learn strategies for incorporating math language and concepts naturally throughout the day.",
-    youtubeId: "aXSSrIMXJz4",
+    youtubeId: "59sU4lTZFkU", // "Math Talk with Young Children" - NAEYC video
     category: ["stem", "math", "language"],
     tags: ["math talk", "numerical concepts", "spatial reasoning"],
     duration: 18,
