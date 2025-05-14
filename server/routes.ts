@@ -5,7 +5,7 @@ import { db } from "./db";
 import { 
   insertUserSchema, insertLearningModuleSchema, insertUserProgressSchema, 
   insertMeetingSchema, insertAssessmentSchema, type User,
-  spinGameRewards
+  spinGameRewards, videoQuizCompletions
 } from "@shared/schema";
 import express from "express";
 import session from "express-session";

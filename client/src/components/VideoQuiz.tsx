@@ -1,14 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, X, Award, Brain } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CheckCircle, X, Award, Brain, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from '@/lib/queryClient';
 import { queryClient } from '@/lib/queryClient';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
 
 // Quiz interface
 export interface QuizQuestion {
@@ -41,13 +43,40 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
   const [score, setScore] = useState(0);
   const [loading, setLoading] = useState(true);
   const [answeredQuestions, setAnsweredQuestions] = useState<string[]>([]);
+  const [incorrectAttempts, setIncorrectAttempts] = useState<Record<string, number>>({});
+  const [showIncorrectFeedback, setShowIncorrectFeedback] = useState(false);
+  const [videoDuration, setVideoDuration] = useState<number>(0);
   const { toast } = useToast();
+
+  // Import sound effects
+  const { 
+    playSuccessSound, 
+    playWrongSound, 
+    playLevelCompleteSound,
+    playCelebrationSound
+  } = useSoundEffects();
 
   // Generate quiz questions based on video content
   useEffect(() => {
     const generateQuestions = async () => {
       try {
         setLoading(true);
+        
+        // Get video information including duration
+        try {
+          // Try to find the video resource in our data to get duration
+          const response = await apiRequest(`/api/videos/${videoId}`);
+          if (response && response.duration) {
+            setVideoDuration(response.duration);
+          } else {
+            // Default to 5 minutes if we can't find the video duration
+            setVideoDuration(5);
+          }
+        } catch (error) {
+          console.error('Error fetching video duration:', error);
+          setVideoDuration(5); // Default to 5 minutes
+        }
+        
         // In real implementation, this would fetch from the server
         // For now, we generate sample questions
         const generatedQuestions: QuizQuestion[] = generateSampleQuestions(videoTitle);
@@ -140,17 +169,68 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
   };
 
   const handleAnswerSelect = (questionId: string, answer: string) => {
-    setSelectedAnswers({
-      ...selectedAnswers,
-      [questionId]: answer
-    });
+    const currentQuestion = questions.find(q => q.id === questionId);
     
-    if (!answeredQuestions.includes(questionId)) {
-      setAnsweredQuestions([...answeredQuestions, questionId]);
+    if (currentQuestion) {
+      // Check if answer is correct
+      const isCorrect = answer === currentQuestion.correctAnswer;
+      
+      // Store the selected answer
+      setSelectedAnswers({
+        ...selectedAnswers,
+        [questionId]: answer
+      });
+      
+      // Mark question as answered for progress tracking
+      if (!answeredQuestions.includes(questionId)) {
+        setAnsweredQuestions([...answeredQuestions, questionId]);
+      }
+      
+      // Play appropriate sound and provide feedback
+      if (isCorrect) {
+        // Correct answer! Play success sound
+        playSuccessSound();
+        
+        // Reset incorrect attempts for this question
+        setIncorrectAttempts(prev => ({
+          ...prev,
+          [questionId]: 0
+        }));
+        
+        // Hide any error feedback
+        setShowIncorrectFeedback(false);
+      } else {
+        // Wrong answer - check if this is their first attempt
+        const attempts = incorrectAttempts[questionId] || 0;
+        
+        if (attempts === 0) {
+          // First wrong attempt - give them a second chance
+          playWrongSound();
+          
+          // Increment attempt counter
+          setIncorrectAttempts(prev => ({
+            ...prev,
+            [questionId]: 1
+          }));
+          
+          // Show feedback that they have one more chance
+          setShowIncorrectFeedback(true);
+          
+          // Don't advance to next question yet - give them another try
+          return;
+        } else {
+          // Second wrong attempt - move on but keep track of the wrong answer
+          playWrongSound();
+          setShowIncorrectFeedback(false);
+        }
+      }
     }
   };
 
   const handleNextQuestion = () => {
+    // Reset incorrect feedback when moving to next question
+    setShowIncorrectFeedback(false);
+    
     if (currentQuestion < questions.length) {
       setCurrentQuestion(currentQuestion + 1);
     }
@@ -164,39 +244,87 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
 
   const calculateScore = () => {
     let correctCount = 0;
+    let allCorrect = true;
     
     questions.forEach(question => {
       if (selectedAnswers[question.id] === question.correctAnswer) {
         correctCount++;
+      } else {
+        allCorrect = false;
       }
     });
     
     // Calculate percentage score
     const percentage = Math.round((correctCount / questions.length) * 100);
     
-    // Determine points (1-5 based on performance)
-    const earnedPoints = Math.max(1, Math.ceil(correctCount / questions.length * 5));
+    // Play appropriate completion sound
+    if (allCorrect) {
+      playCelebrationSound();
+    } else if (percentage >= 80) {
+      playLevelCompleteSound();
+    }
+    
+    // Set earned points based on video duration and whether all answers are correct
+    let earnedPoints = 0;
+    
+    if (allCorrect) {
+      // They need to get all correct to earn points (after second chances)
+      // Award points based on video duration
+      earnedPoints = videoDuration >= 10 ? 8 : 5;
+    }
     
     setScore(percentage);
     setQuizCompleted(true);
     
     // Save progress and award points
-    saveQuizResults(earnedPoints);
+    saveQuizResults(earnedPoints, allCorrect);
   };
 
-  const saveQuizResults = async (points: number) => {
+  const saveQuizResults = async (points: number, allCorrect: boolean) => {
     try {
       // In a real implementation, this would be an API call to save results
-      // For now, just update UI and trigger the onComplete callback
+      // Now we're using the actual API endpoint with proper data
       
-      toast({
-        title: "Quiz Completed!",
-        description: `You've earned ${points} points for completing this quiz.`,
-        variant: "default",
+      const response = await apiRequest('/api/videos/quiz/complete', {
+        method: 'POST',
+        data: {
+          videoId: videoId,
+          points: allCorrect ? 1 : 0, // Send 1 if all correct, 0 if any wrong - will be calculated properly on server
+          duration: videoDuration
+        }
       });
       
-      // Pass the earned points back to the parent component
-      onComplete(points);
+      if (response.success) {
+        const messagePrefix = allCorrect 
+          ? `Great job! You've answered all questions correctly.` 
+          : `Quiz completed, but some answers were incorrect.`;
+        
+        const pointsMessage = response.pointsAwarded > 0 
+          ? `You've earned ${response.pointsAwarded} points!` 
+          : response.limitReached 
+            ? "You've reached your daily limit of 2 videos." 
+            : "No points awarded for incorrect answers.";
+          
+        toast({
+          title: "Quiz Completed!",
+          description: `${messagePrefix} ${pointsMessage}`,
+          variant: "default",
+        });
+        
+        // Pass the earned points back to the parent component
+        onComplete(response.pointsAwarded || 0);
+        
+        // Refresh user data to update points display
+        queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      } else {
+        toast({
+          title: "Quiz Completed",
+          description: response.message || "Quiz results saved.",
+          variant: "default",
+        });
+        
+        onComplete(0);
+      }
       
     } catch (error) {
       console.error('Error saving quiz results:', error);
@@ -205,6 +333,8 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
         description: "Failed to save quiz results. Please try again.",
         variant: "destructive",
       });
+      
+      onComplete(0);
     }
   };
 
