@@ -4,6 +4,8 @@ import { User, LearningModule, UserProgress } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import DynamicLessonGenerator from "@/components/DynamicLessonGenerator";
+import CoreModuleWrapper from "@/components/CoreModuleWrapper";
+import CoreSongExercise from "@/components/CoreSongExercise";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,8 +26,7 @@ export default function ModuleView({ moduleId, user, onBack }: ModuleViewProps) 
   const { data: module, isLoading: isLoadingModule } = useQuery<LearningModule>({
     queryKey: [`/api/modules/${moduleId}`],
     queryFn: async () => {
-      const response = await apiRequest("GET", `/api/modules/${moduleId}`);
-      return response.json();
+      return await apiRequest(`/api/modules/${moduleId}`);
     }
   });
   
@@ -33,8 +34,7 @@ export default function ModuleView({ moduleId, user, onBack }: ModuleViewProps) 
   const { data: userProgress, isLoading: isLoadingProgress, refetch: refetchProgress } = useQuery<UserProgress[]>({
     queryKey: ["/api/progress", moduleId],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/progress");
-      const allProgress = await response.json();
+      const allProgress = await apiRequest("/api/progress");
       return allProgress.filter((p: UserProgress) => p.moduleId === moduleId && p.userId === user.id);
     },
     enabled: !!user
@@ -43,8 +43,10 @@ export default function ModuleView({ moduleId, user, onBack }: ModuleViewProps) 
   // Update progress mutation
   const { mutate: updateProgress } = useMutation({
     mutationFn: async (data: { moduleId: number; progress: number; completed?: boolean }) => {
-      const response = await apiRequest("POST", "/api/progress", data);
-      return response.json();
+      return await apiRequest("/api/progress", {
+        method: "POST",
+        data: data
+      });
     },
     onSuccess: () => {
       refetchProgress();
@@ -102,7 +104,7 @@ export default function ModuleView({ moduleId, user, onBack }: ModuleViewProps) 
     );
   }
   
-  // If lesson is active, show the dynamic lesson generator
+  // If lesson is active, show the appropriate lesson component
   if (showLesson) {
     return (
       <div className="space-y-6">
@@ -114,11 +116,21 @@ export default function ModuleView({ moduleId, user, onBack }: ModuleViewProps) 
           <h2 className="text-2xl font-bold">{module.title}</h2>
         </div>
         
-        <DynamicLessonGenerator 
-          user={user}
-          moduleId={moduleId}
-          onLessonComplete={handleLessonComplete}
-        />
+        {/* Check if this is the Raising Arizona's CORE module */}
+        {module.title === "Raising Arizona's CORE" ? (
+          // Use the CoreModuleWrapper for the CORE module
+          <CoreModuleWrapper 
+            moduleContent={module.content} 
+            onContinue={handleLessonComplete} 
+          />
+        ) : (
+          // Use the standard DynamicLessonGenerator for other modules
+          <DynamicLessonGenerator 
+            user={user}
+            moduleId={moduleId}
+            onLessonComplete={handleLessonComplete}
+          />
+        )}
       </div>
     );
   }

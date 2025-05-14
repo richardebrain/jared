@@ -3,7 +3,7 @@ import CoreSongExercise from "./CoreSongExercise";
 import { Button } from "@/components/ui/button";
 
 interface CoreModuleWrapperProps {
-  moduleContent: string;
+  moduleContent: string | null;
   onContinue: () => void;
 }
 
