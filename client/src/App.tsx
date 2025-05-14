@@ -18,6 +18,7 @@ import StorytellingDemoPage from "@/pages/storytelling-demo";
 import CoreValuesShoutOutPage from "@/pages/core-values-shout-out";
 import BuildingChildPage from "@/pages/building-child";
 import VideoResourcesPage from "@/pages/video-resources";
+import ToolsPage from "@/pages/tools";
 import { useAuth } from "@/hooks/use-auth";
 
 function Router() {
@@ -100,6 +101,10 @@ function Router() {
       
       <Route path="/video-resources">
         {isAuthenticated ? <VideoResourcesPage /> : <Login />}
+      </Route>
+      
+      <Route path="/tools">
+        {isAuthenticated ? <ToolsPage /> : <Login />}
       </Route>
       
       <Route path="/">

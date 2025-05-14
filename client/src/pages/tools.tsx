@@ -2,16 +2,24 @@ import React, { useState } from "react";
 import { Link } from "wouter";
 import Header from "@/components/Header";
 import { SuessifyGenerator } from "@/components/SuessifyGenerator";
+import { VideoResourceLibrary } from "@/components/VideoResourceLibrary";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageSquare, BookOpen, Heart, ThumbsUp, SendHorizonal } from "lucide-react";
+import { MessageSquare, BookOpen, Heart, ThumbsUp, SendHorizonal, Video } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
+// Define a type for parent scenarios
+interface ParentScenario {
+  title: string;
+  description: string;
+  prompt: string;
+}
+
 // Example scenarios for parent communication
-const PARENT_SCENARIOS = [
+const PARENT_SCENARIOS: ParentScenario[] = [
   {
     title: "Biting Incident",
     description: "How to communicate with a parent about their child biting another student",
@@ -75,7 +83,7 @@ function ParentResponseGenerator() {
     }
   };
 
-  const useScenario = (scenario) => {
+  const useScenario = (scenario: ParentScenario) => {
     setPrompt(scenario.prompt);
   };
 
@@ -177,7 +185,7 @@ export default function ToolsPage() {
         </div>
         
         <Tabs defaultValue="parent-responses" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8">
+          <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="parent-responses" className="flex items-center">
               <MessageSquare className="h-4 w-4 mr-2" />
               Parent Response Generator
@@ -185,6 +193,10 @@ export default function ToolsPage() {
             <TabsTrigger value="suessify" className="flex items-center">
               <BookOpen className="h-4 w-4 mr-2" />
               Suessify Generator
+            </TabsTrigger>
+            <TabsTrigger value="video-library" className="flex items-center">
+              <Video className="h-4 w-4 mr-2" />
+              Video Library
             </TabsTrigger>
           </TabsList>
           
@@ -205,6 +217,23 @@ export default function ToolsPage() {
               </CardHeader>
               <CardContent>
                 <SuessifyGenerator />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="video-library" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Video className="h-5 w-5 text-primary" />
+                  Video Resource Library
+                </CardTitle>
+                <CardDescription>
+                  Browse our extensive collection of high-quality educational videos for professional development
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <VideoResourceLibrary showFilters={true} compactMode={false} />
               </CardContent>
             </Card>
           </TabsContent>
