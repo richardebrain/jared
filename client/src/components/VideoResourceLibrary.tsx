@@ -55,6 +55,8 @@ export function VideoResourceLibrary({
   const [selectedExpertLevel, setSelectedExpertLevel] = useState<string>("all");
   const [bookmarkedVideos, setBookmarkedVideos] = useState<string[]>([]);
   const [watchedVideos, setWatchedVideos] = useState<string[]>([]);
+  const [showAdminTools, setShowAdminTools] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
   
   // Expose videos data globally for the validation utility
   useEffect(() => {
@@ -251,6 +253,64 @@ export function VideoResourceLibrary({
           />
         ))}
       </div>
+      
+      {/* Video validation tool (hidden by default) */}
+      {showAdminTools && (
+        <div className="mb-8 p-4 border border-amber-200 bg-amber-50 rounded-md">
+          <h3 className="text-sm font-medium mb-2 flex items-center">
+            <AlertTriangle className="h-4 w-4 text-amber-500 mr-2" />
+            Video Validation Tools
+          </h3>
+          <p className="text-xs text-muted-foreground mb-3">
+            Use these tools to check for unavailable videos in the library.
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mr-2"
+            disabled={isValidating}
+            onClick={() => {
+              setIsValidating(true);
+              if (typeof window !== 'undefined' && window.validateAllVideos) {
+                window.validateAllVideos()
+                  .then(() => {
+                    setIsValidating(false);
+                  })
+                  .catch((error) => {
+                    console.error('Video validation error:', error);
+                    setIsValidating(false);
+                  });
+              } else {
+                console.error('Validation utility not loaded');
+                setIsValidating(false);
+              }
+            }}
+          >
+            {isValidating ? 'Checking Videos...' : 'Check All Videos'}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowAdminTools(false)}
+          >
+            Hide Tools
+          </Button>
+        </div>
+      )}
+
+      {/* Admin tools toggle (hidden when compact mode is enabled) */}
+      {!compactMode && !showAdminTools && (
+        <div className="mb-4 text-right">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            className="text-xs text-muted-foreground"
+            onClick={() => setShowAdminTools(true)}
+          >
+            Admin Tools
+          </Button>
+        </div>
+      )}
       
       {/* Empty state */}
       {filteredVideos.length === 0 && (
