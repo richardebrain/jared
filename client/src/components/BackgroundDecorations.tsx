@@ -1,19 +1,14 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { 
-  CloudDecorations, 
-  RaisingArizonaBear, 
-  RaisingArizonaTreeDecoration, 
-  RaisingArizonaFlower,
-  AnimalCrossingStyleGrass,
-  AnimalCrossingStyleRock
+  CloudDecorations
 } from "./RaisingArizonaLogos";
 
 /**
  * BackgroundDecorations component
  * 
- * This component adds playful Animal Crossing style decorative elements to the background
- * including floating clouds, trees, and Raising Arizona themed decorations
+ * This component adds subtle Animal Crossing style decorative elements to the background
+ * with just a few clouds for visual interest but not overwhelming
  */
 export function BackgroundDecorations() {
   const [loaded, setLoaded] = useState(false);
@@ -24,87 +19,31 @@ export function BackgroundDecorations() {
   
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-      {/* Clouds from CloudDecorations component */}
-      <CloudDecorations />
-      
-      {/* Trees */}
+      {/* Subtle clouds - only a few for decoration */}
       <motion.div 
-        className="absolute bottom-0 left-[3%]"
-        animate={{ y: [0, -3, 0] }}
-        transition={{ 
-          duration: 2,
-          repeat: Infinity,
-          ease: "easeInOut",
+        className="absolute top-24 right-[15%] w-32 h-16 bg-white rounded-full opacity-30"
+        animate={{ 
+          y: [0, -10, 0]
         }}
-      >
-        <RaisingArizonaTreeDecoration />
-      </motion.div>
-      
-      <motion.div 
-        className="absolute bottom-0 right-[5%]"
-        animate={{ y: [0, -5, 0] }}
-        transition={{ 
-          duration: 3,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 0.7
-        }}
-      >
-        <RaisingArizonaTreeDecoration />
-      </motion.div>
-      
-      {/* Bear logo */}
-      <motion.div 
-        className="absolute top-[75%] left-[10%] opacity-20"
-        animate={{ rotate: [0, 5, 0, -5, 0] }}
         transition={{ 
           duration: 8,
           repeat: Infinity,
-          ease: "easeInOut",
+          ease: "easeInOut"
         }}
-      >
-        <RaisingArizonaBear />
-      </motion.div>
-      
-      {/* Flowers */}
-      <motion.div 
-        className="absolute bottom-[15%] left-[20%]"
-        animate={{ y: [0, -4, 0] }}
-        transition={{ 
-          duration: 2.5,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      >
-        <RaisingArizonaFlower />
-      </motion.div>
+      />
       
       <motion.div 
-        className="absolute bottom-[10%] right-[25%]"
-        animate={{ y: [0, -3, 0] }}
+        className="absolute top-40 left-[10%] w-28 h-14 bg-white rounded-full opacity-30"
+        animate={{ 
+          y: [0, -8, 0]
+        }}
         transition={{ 
-          duration: 2,
+          duration: 10,
           repeat: Infinity,
           ease: "easeInOut",
-          delay: 0.3
+          delay: 1
         }}
-      >
-        <RaisingArizonaFlower />
-      </motion.div>
-      
-      {/* Grass at bottom */}
-      <div className="absolute bottom-0 left-[25%] opacity-50">
-        <AnimalCrossingStyleGrass />
-      </div>
-      
-      {/* Rocks */}
-      <div className="absolute bottom-[5%] left-[40%] opacity-30">
-        <AnimalCrossingStyleRock />
-      </div>
-      
-      <div className="absolute bottom-[8%] right-[15%] opacity-30">
-        <AnimalCrossingStyleRock />
-      </div>
+      />
     </div>
   );
 }

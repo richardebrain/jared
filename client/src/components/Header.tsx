@@ -61,12 +61,12 @@ export default function Header() {
     : "U";
   
   return (
-    <header className="sticky top-0 bg-sky-100 shadow-md z-50 border-b-4 border-sky-200">
+    <header className="sticky top-0 bg-white shadow-md z-50 border-b-4 border-amber-400">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <div className="flex items-center">
           <Link href="/">
             <div className="flex items-center">
-              <img src={raisingArizonaLogo} alt="Raising Arizona Preschool" className="h-14 mr-3 rounded-full shadow-sm" />
+              <img src={raisingArizonaLogo} alt="Raising Arizona Preschool" className="h-16 mr-3 shadow-md rounded-md" />
               <div>
                 <div className="text-xl md:text-2xl font-bold text-[#532A18] font-['Bubblegum_Sans']">MentorMe</div>
                 <div className="text-xs text-[#532A18]">Raising Arizona Teacher Training</div>
@@ -77,37 +77,37 @@ export default function Header() {
         
         <nav className="hidden md:flex items-center border-b border-transparent">
           <Link href="/">
-            <div className={`font-['Bubblegum_Sans'] px-4 py-2 text-lg rounded-full mx-1 ${location === "/" 
-              ? "bg-amber-100 text-amber-800 shadow-sm" 
-              : "text-neutral-800 hover:bg-sky-200"} transition cursor-pointer`}>
+            <div className={`font-['Bubblegum_Sans'] px-4 py-2 text-lg rounded-lg mx-1 ${location === "/" 
+              ? "bg-amber-500 text-white shadow-md border border-amber-600" 
+              : "text-neutral-800 hover:bg-amber-100"} transition cursor-pointer`}>
               Dashboard
             </div>
           </Link>
           <Link href="/progression-map">
-            <div className={`font-['Bubblegum_Sans'] px-4 py-2 text-lg rounded-full mx-1 ${location === "/progression-map" 
-              ? "bg-green-100 text-green-800 shadow-sm" 
-              : "text-neutral-800 hover:bg-sky-200"} transition cursor-pointer`}>
+            <div className={`font-['Bubblegum_Sans'] px-4 py-2 text-lg rounded-lg mx-1 ${location === "/progression-map" 
+              ? "bg-green-600 text-white shadow-md border border-green-700" 
+              : "text-neutral-800 hover:bg-green-100"} transition cursor-pointer`}>
               Teacher Progression
             </div>
           </Link>
           <Link href="/assessment">
-            <div className={`font-['Bubblegum_Sans'] px-4 py-2 text-lg rounded-full mx-1 ${location === "/assessment" 
-              ? "bg-blue-100 text-blue-800 shadow-sm" 
-              : "text-neutral-800 hover:bg-sky-200"} transition cursor-pointer`}>
+            <div className={`font-['Bubblegum_Sans'] px-4 py-2 text-lg rounded-lg mx-1 ${location === "/assessment" 
+              ? "bg-blue-600 text-white shadow-md border border-blue-700" 
+              : "text-neutral-800 hover:bg-blue-100"} transition cursor-pointer`}>
               Assessment
             </div>
           </Link>
           <Link href="/tools">
-            <div className={`font-['Bubblegum_Sans'] px-4 py-2 text-lg rounded-full mx-1 ${location === "/tools" 
-              ? "bg-purple-100 text-purple-800 shadow-sm" 
-              : "text-neutral-800 hover:bg-sky-200"} transition cursor-pointer`}>
+            <div className={`font-['Bubblegum_Sans'] px-4 py-2 text-lg rounded-lg mx-1 ${location === "/tools" 
+              ? "bg-purple-600 text-white shadow-md border border-purple-700" 
+              : "text-neutral-800 hover:bg-purple-100"} transition cursor-pointer`}>
               Teacher Tools
             </div>
           </Link>
           <Link href="/video-resources">
-            <div className={`font-['Bubblegum_Sans'] px-4 py-2 text-lg rounded-full mx-1 ${location === "/video-resources" 
-              ? "bg-pink-100 text-pink-800 shadow-sm" 
-              : "text-neutral-800 hover:bg-sky-200"} transition cursor-pointer`}>
+            <div className={`font-['Bubblegum_Sans'] px-4 py-2 text-lg rounded-lg mx-1 ${location === "/video-resources" 
+              ? "bg-pink-600 text-white shadow-md border border-pink-700" 
+              : "text-neutral-800 hover:bg-pink-100"} transition cursor-pointer`}>
               Video Library
             </div>
           </Link>
@@ -171,47 +171,47 @@ export default function Header() {
       
       {/* Mobile navigation */}
       {isMobileMenuOpen && (
-        <div className="bg-sky-50 py-3 px-4 md:hidden rounded-b-lg shadow-inner">
+        <div className="bg-white py-3 px-4 md:hidden rounded-b-lg shadow-md border-x border-b border-gray-200">
           <nav className="flex flex-col space-y-3">
             <Link href="/">
-              <div className={`font-['Bubblegum_Sans'] text-lg p-2 rounded-full ${location === "/" 
-                ? "bg-amber-100 text-amber-800 shadow-sm" 
-                : "text-neutral-800 hover:bg-sky-200"} cursor-pointer`}>
+              <div className={`font-['Bubblegum_Sans'] text-lg p-2 rounded-lg ${location === "/" 
+                ? "bg-amber-500 text-white shadow-md border border-amber-600" 
+                : "text-neutral-800 hover:bg-amber-100 border border-gray-200"} cursor-pointer`}>
                 🏠 Dashboard
               </div>
             </Link>
             <Link href="/progression-map">
-              <div className={`font-['Bubblegum_Sans'] text-lg p-2 rounded-full ${location === "/progression-map" 
-                ? "bg-green-100 text-green-800 shadow-sm" 
-                : "text-neutral-800 hover:bg-sky-200"} cursor-pointer`}>
+              <div className={`font-['Bubblegum_Sans'] text-lg p-2 rounded-lg ${location === "/progression-map" 
+                ? "bg-green-600 text-white shadow-md border border-green-700" 
+                : "text-neutral-800 hover:bg-green-100 border border-gray-200"} cursor-pointer`}>
                 🌱 Teacher Progression
               </div>
             </Link>
             <Link href="/assessment">
-              <div className={`font-['Bubblegum_Sans'] text-lg p-2 rounded-full ${location === "/assessment" 
-                ? "bg-blue-100 text-blue-800 shadow-sm" 
-                : "text-neutral-800 hover:bg-sky-200"} cursor-pointer`}>
+              <div className={`font-['Bubblegum_Sans'] text-lg p-2 rounded-lg ${location === "/assessment" 
+                ? "bg-blue-600 text-white shadow-md border border-blue-700" 
+                : "text-neutral-800 hover:bg-blue-100 border border-gray-200"} cursor-pointer`}>
                 📝 Assessment
               </div>
             </Link>
             <Link href="/tools">
-              <div className={`font-['Bubblegum_Sans'] text-lg p-2 rounded-full ${location === "/tools" 
-                ? "bg-purple-100 text-purple-800 shadow-sm" 
-                : "text-neutral-800 hover:bg-sky-200"} cursor-pointer`}>
+              <div className={`font-['Bubblegum_Sans'] text-lg p-2 rounded-lg ${location === "/tools" 
+                ? "bg-purple-600 text-white shadow-md border border-purple-700" 
+                : "text-neutral-800 hover:bg-purple-100 border border-gray-200"} cursor-pointer`}>
                 🛠️ Teacher Tools
               </div>
             </Link>
             <Link href="/video-resources">
-              <div className={`font-['Bubblegum_Sans'] text-lg p-2 rounded-full ${location === "/video-resources" 
-                ? "bg-pink-100 text-pink-800 shadow-sm" 
-                : "text-neutral-800 hover:bg-sky-200"} cursor-pointer`}>
+              <div className={`font-['Bubblegum_Sans'] text-lg p-2 rounded-lg ${location === "/video-resources" 
+                ? "bg-pink-600 text-white shadow-md border border-pink-700" 
+                : "text-neutral-800 hover:bg-pink-100 border border-gray-200"} cursor-pointer`}>
                 🎬 Video Library
               </div>
             </Link>
-            <div className="pt-2 border-t border-sky-200">
+            <div className="pt-2 border-t border-gray-200">
               <Button 
                 variant="outline" 
-                className="w-full justify-start font-['Bubblegum_Sans'] text-lg bg-red-50 hover:bg-red-100 border-red-100 text-red-800" 
+                className="w-full justify-start font-['Bubblegum_Sans'] text-lg bg-red-600 hover:bg-red-700 border-red-700 text-white shadow-md" 
                 onClick={handleLogout}
               >
                 👋 Logout
