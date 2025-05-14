@@ -1,0 +1,458 @@
+[
+  {
+    "id": "video-002",
+    "title": "How to Find the Good in Children | Dr. Becky Bailey",
+    "youtubeId": "5CTI7rGSYsw",
+    "fullContent": "{\n    id: \"video-002\",\n    title: \"How to Find the Good in Children | Dr. Becky Bailey\",\n    description: \"Learn how to see the best in every child and create a positive connection, even with the most challenging behaviors.\",\n    youtubeId: \"5CTI7rGSYsw\",\n    category: [\"inspiration\", \"teaching-philosophy\", \"behavior\"],\n    tags: [\"conscious discipline\", \"positive guidance\", \"classroom culture\"],\n    duration: 15,\n    source: \"Conscious Discipline\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-009",
+    "title": "Building Empathy in Early Childhood Classrooms",
+    "youtubeId": "aU3UEtdAHls",
+    "fullContent": "{\n    id: \"video-009\",\n    title: \"Building Empathy in Early Childhood Classrooms\",\n    description: \"Strategies for developing empathy in young children through everyday interactions.\",\n    youtubeId: \"aU3UEtdAHls\", // Teaching empathy to children video\n    category: [\"social-emotional\", \"empathy\", \"community-building\"],\n    tags: [\"empathy development\", \"classroom community\", \"caring behaviors\"],\n    duration: 14,\n    source: \"Edutopia\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-011",
+    "title": "Supporting Children with Sensory Processing Differences",
+    "youtubeId": "D1G1l5FE38A",
+    "fullContent": "{\n    id: \"video-011\",\n    title: \"Supporting Children with Sensory Processing Differences\",\n    description: \"Classroom accommodations and strategies for children with sensory needs.\",\n    youtubeId: \"D1G1l5FE38A\", // Sensory processing in early childhood education\n    category: [\"inclusion\", \"sensory\", \"adaptations\"],\n    tags: [\"sensory processing\", \"accommodations\", \"inclusive environment\"],\n    duration: 10,\n    source: \"Special Education Guide\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-012",
+    "title": "Effective Parent-Teacher Communication Strategies",
+    "youtubeId": "LO7vR1mxQIU",
+    "fullContent": "{\n    id: \"video-012\",\n    title: \"Effective Parent-Teacher Communication Strategies\",\n    description: \"Building strong partnerships with families through various communication channels.\",\n    youtubeId: \"LO7vR1mxQIU\", // Family engagement strategies\n    category: [\"family-engagement\", \"communication\", \"partnerships\"],\n    tags: [\"parent communication\", \"family partnership\", \"relationship building\"],\n    duration: 13,\n    source: \"NAEYC\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-013",
+    "title": "Engaging Families in Children",
+    "youtubeId": "1t8LMxIMV1I",
+    "fullContent": "{\n    id: \"video-013\",\n    title: \"Engaging Families in Children's Learning Journey\",\n    description: \"Creative ways to involve families in curriculum and learning experiences.\",\n    youtubeId: \"1t8LMxIMV1I\", // \"Engaging Families in Early Childhood\" by NAEYC\n    category: [\"family-engagement\", \"curriculum\", \"community\"],\n    tags: [\"family involvement\", \"learning at home\", \"community connections\"],\n    duration: 12,\n    source: \"NAEYC\",\n    expertLevel: \"advanced\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-014",
+    "title": "Powerful Interactions: How Teachers Connect with Children to Extend Learning",
+    "youtubeId": "3hT91-L5e6g",
+    "fullContent": "{\n    id: \"video-014\",\n    title: \"Powerful Interactions: How Teachers Connect with Children to Extend Learning\",\n    description: \"Learn how to have powerful interactions with children to extend their learning in meaningful ways.\",\n    youtubeId: \"3hT91-L5e6g\",\n    category: [\"teaching-methods\", \"interactions\", \"child-development\"],\n    tags: [\"teacher-child interactions\", \"extending learning\", \"Head Start\"],\n    duration: 18,\n    source: \"Head Start ECLKC\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-015",
+    "title": "CLASS: The Power of Interactions",
+    "youtubeId": "waSEI59wxDw",
+    "fullContent": "{\n    id: \"video-015\",\n    title: \"CLASS: The Power of Interactions\",\n    description: \"An overview of the CLASS framework and how teacher-child interactions impact development and learning.\",\n    youtubeId: \"waSEI59wxDw\",\n    category: [\"teaching-methods\", \"assessment\", \"CLASS\"],\n    tags: [\"CLASS assessment\", \"teacher-child interactions\", \"quality teaching\"],\n    duration: 12,\n    source: \"Teachstone\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-016",
+    "title": "Trauma-Informed Care in Early Childhood",
+    "youtubeId": "vxN0zKKuGCw",
+    "fullContent": "{\n    id: \"video-016\",\n    title: \"Trauma-Informed Care in Early Childhood\",\n    description: \"Understanding and addressing the impact of trauma on young children in early childhood settings.\",\n    youtubeId: \"vxN0zKKuGCw\", // \"Trauma-Informed Care in Early Childhood Education\" - high quality alternative\n    category: [\"trauma-informed\", \"social-emotional\", \"mental-health\"],\n    tags: [\"trauma\", \"ACEs\", \"responsive teaching\", \"safety\"],\n    duration: 22,\n    source: \"Head Start ECLKC\",\n    expertLevel: \"advanced\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-019",
+    "title": "The Way We Teach Math Is Holding Women Back | Jo Boaler",
+    "youtubeId": "Mq3Ad7Pf5-0",
+    "fullContent": "{\n    id: \"video-019\",\n    title: \"The Way We Teach Math Is Holding Women Back | Jo Boaler\",\n    description: \"Jo Boaler explains how we can redesign math education to provide more equitable opportunities for all children.\",\n    youtubeId: \"Mq3Ad7Pf5-0\",\n    category: [\"math\", \"equity\", \"teaching-methods\"],\n    tags: [\"TED Talk\", \"mathematics\", \"gender equity\", \"teaching approaches\"],\n    duration: 15,\n    source: \"TED\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-020",
+    "title": "Early Childhood Educators as Mandated Reporters",
+    "youtubeId": "nMdgrSYK6-I",
+    "fullContent": "{\n    id: \"video-020\",\n    title: \"Early Childhood Educators as Mandated Reporters\",\n    description: \"Essential training for early childhood educators on recognizing and reporting suspected child abuse and neglect.\",\n    youtubeId: \"nMdgrSYK6-I\",\n    category: [\"mandated-reporting\", \"child-protection\", \"professional-responsibilities\"],\n    tags: [\"child abuse\", \"neglect\", \"reporting procedures\", \"signs of abuse\"],\n    duration: 26,\n    source: \"Childcare Education Institute\",\n    expertLevel: \"all-levels\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-022",
+    "title": "How To Find the Good in Every Child | Dr. Becky Bailey",
+    "youtubeId": "5CTI7rGSYsw",
+    "fullContent": "{\n    id: \"video-022\",\n    title: \"How To Find the Good in Every Child | Dr. Becky Bailey\",\n    description: \"Dr. Becky Bailey explains how to see beyond challenging behaviors to connect with every child.\",\n    youtubeId: \"5CTI7rGSYsw\",\n    category: [\"chapter-one-philosophy\", \"behavior\", \"connections\"],\n    tags: [\"challenging behaviors\", \"positive relationships\", \"seeing the good\"],\n    duration: 16,\n    source: \"Conscious Discipline\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-023",
+    "title": "Ramps and Pathways: Physics for Young Children",
+    "youtubeId": "UJY4Cgg4ps4",
+    "fullContent": "{\n    id: \"video-023\",\n    title: \"Ramps and Pathways: Physics for Young Children\",\n    description: \"Explore how simple materials can be used to teach physics concepts to preschoolers through play.\",\n    youtubeId: \"UJY4Cgg4ps4\",\n    category: [\"stem\", \"science\", \"hands-on-learning\"],\n    tags: [\"physics\", \"ramps\", \"inquiry-based learning\", \"scientific method\"],\n    duration: 14,\n    source: \"NAEYC\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-024",
+    "title": "Math Talk: Supporting Mathematical Thinking in Early Childhood",
+    "youtubeId": "59sU4lTZFkU",
+    "fullContent": "{\n    id: \"video-024\",\n    title: \"Math Talk: Supporting Mathematical Thinking in Early Childhood\",\n    description: \"Learn strategies for incorporating math language and concepts naturally throughout the day.\",\n    youtubeId: \"59sU4lTZFkU\", // \"Math Talk with Young Children\" - NAEYC video\n    category: [\"stem\", \"math\", \"language\"],\n    tags: [\"math talk\", \"numerical concepts\", \"spatial reasoning\"],\n    duration: 18,\n    source: \"Development and Research in Early Math Education\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-025",
+    "title": "Fostering Language Development Through Storybook Reading",
+    "youtubeId": "UrBxWz11Ysw",
+    "fullContent": "{\n    id: \"video-025\",\n    title: \"Fostering Language Development Through Storybook Reading\",\n    description: \"Effective techniques for reading with young children to maximize language growth.\",\n    youtubeId: \"UrBxWz11Ysw\",\n    category: [\"literacy\", \"language\", \"reading\"],\n    tags: [\"book reading\", \"vocabulary\", \"dialogic reading\", \"comprehension\"],\n    duration: 16,\n    source: \"READ for Life\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-028",
+    "title": "The Outdoor Classroom: Learning in Nature",
+    "youtubeId": "MGo8vPVkGPM",
+    "fullContent": "{\n    id: \"video-028\",\n    title: \"The Outdoor Classroom: Learning in Nature\",\n    description: \"Benefits of outdoor learning environments and how to effectively use outdoor spaces for education.\",\n    youtubeId: \"MGo8vPVkGPM\",\n    category: [\"outdoor-play\", \"nature\", \"environment\"],\n    tags: [\"outdoor classroom\", \"nature-based learning\", \"risk taking\"],\n    duration: 19,\n    source: \"Natural Start Alliance\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-029",
+    "title": "Music and Movement in Early Childhood Education",
+    "youtubeId": "gB2acdOIUEY",
+    "fullContent": "{\n    id: \"video-029\",\n    title: \"Music and Movement in Early Childhood Education\",\n    description: \"How music and movement support brain development and learning across all domains.\",\n    youtubeId: \"gB2acdOIUEY\",\n    category: [\"music\", \"movement\", \"brain-development\"],\n    tags: [\"musical activities\", \"rhythmic movement\", \"brain development\"],\n    duration: 12,\n    source: \"Early Childhood Music and Movement Association\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-030",
+    "title": "The Science of Early Brain Development",
+    "youtubeId": "cVc2nHumVxY",
+    "fullContent": "{\n    id: \"video-030\",\n    title: \"The Science of Early Brain Development\",\n    description: \"Research-based overview of how experiences shape brain architecture in the early years.\",\n    youtubeId: \"cVc2nHumVxY\",\n    category: [\"brain-development\", \"neuroscience\", \"child-development\"],\n    tags: [\"brain architecture\", \"serve and return\", \"neural connections\"],\n    duration: 20,\n    source: \"Center on the Developing Child at Harvard University\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-032",
+    "title": "How Every Child Can Thrive by Five | Molly Wright",
+    "youtubeId": "aISXCw0pi94",
+    "fullContent": "{\n    id: \"video-032\",\n    title: \"How Every Child Can Thrive by Five | Molly Wright\",\n    description: \"7-year-old Molly Wright shows how the early years are when our brains develop the most, and how simple interactions with children can have profound impacts.\",\n    youtubeId: \"aISXCw0pi94\",\n    category: [\"brain-development\", \"interactions\", \"early-years\"],\n    tags: [\"TED Talk\", \"serve and return\", \"child development\", \"brain science\"],\n    duration: 8,\n    source: \"TED\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-035",
+    "title": "Conscious Discipline: Creating a Safe Place in Your Classroom",
+    "youtubeId": "8Qm5Olgz_k4",
+    "fullContent": "{\n    id: \"video-035\",\n    title: \"Conscious Discipline: Creating a Safe Place in Your Classroom\",\n    description: \"Dr. Becky Bailey demonstrates how to set up and use a Safe Place in the classroom to help children develop emotional regulation skills.\",\n    youtubeId: \"8Qm5Olgz_k4\",\n    category: [\"conscious-discipline\", \"classroom-management\", \"social-emotional\"],\n    tags: [\"safe place\", \"emotional regulation\", \"classroom setup\", \"calming strategies\"],\n    duration: 12,\n    source: \"Conscious Discipline\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-036",
+    "title": "Conscious Discipline: Teaching Children to Manage Emotions",
+    "youtubeId": "t28GAKLaaz0",
+    "fullContent": "{\n    id: \"video-036\",\n    title: \"Conscious Discipline: Teaching Children to Manage Emotions\",\n    description: \"Practical strategies for teaching children how to identify and manage their emotions effectively.\",\n    youtubeId: \"t28GAKLaaz0\",\n    category: [\"conscious-discipline\", \"social-emotional\", \"behavior\"],\n    tags: [\"emotions\", \"self-regulation\", \"calming techniques\", \"feelings\"],\n    duration: 9,\n    source: \"Conscious Discipline\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-037",
+    "title": "Effective Questioning Techniques in Early Childhood Education",
+    "youtubeId": "5tJ2iVSXcfE",
+    "fullContent": "{\n    id: \"video-037\",\n    title: \"Effective Questioning Techniques in Early Childhood Education\",\n    description: \"Learn how to use open-ended questions to stimulate critical thinking and language development in young children.\",\n    youtubeId: \"5tJ2iVSXcfE\",\n    category: [\"teaching-methods\", \"language\", \"critical-thinking\"],\n    tags: [\"questioning\", \"open-ended questions\", \"inquiry\", \"discussion\"],\n    duration: 11,\n    source: \"Center for Early Childhood Education\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-038",
+    "title": "Documenting Children",
+    "youtubeId": "trEQDf4jeOA",
+    "fullContent": "{\n    id: \"video-038\",\n    title: \"Documenting Children's Learning: Making Learning Visible\",\n    description: \"Strategies for documenting children's thinking and learning processes to deepen understanding and inform teaching.\",\n    youtubeId: \"trEQDf4jeOA\",\n    category: [\"assessment\", \"documentation\", \"observation\"],\n    tags: [\"documentation\", \"learning stories\", \"portfolios\", \"assessment\"],\n    duration: 15,\n    source: \"Center for Early Childhood Education\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-044",
+    "title": "Conscious Discipline: The Safe Place Self-Regulation Center",
+    "youtubeId": "2MJkPMp5RpI",
+    "fullContent": "{\n    id: \"video-044\",\n    title: \"Conscious Discipline: The Safe Place Self-Regulation Center\",\n    description: \"Learn how to set up and use the Safe Place in your classroom to help children develop emotional regulation skills.\",\n    youtubeId: \"2MJkPMp5RpI\",\n    category: [\"conscious-discipline\", \"social-emotional\", \"classroom-management\"],\n    tags: [\"safe place\", \"emotional regulation\", \"classroom tools\", \"calming strategies\"],\n    duration: 8,\n    source: \"Conscious Discipline\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-045",
+    "title": "Wish Well Board: A Tool for Building Empathy and Connection",
+    "youtubeId": "r_LOYHDz4Vw",
+    "fullContent": "{\n    id: \"video-045\",\n    title: \"Wish Well Board: A Tool for Building Empathy and Connection\",\n    description: \"Dr. Becky Bailey demonstrates how to implement the Wish Well Board in your classroom to develop empathy and social connections.\",\n    youtubeId: \"r_LOYHDz4Vw\",\n    category: [\"conscious-discipline\", \"social-emotional\", \"empathy\"],\n    tags: [\"wish well board\", \"empathy\", \"classroom tools\", \"social connections\"],\n    duration: 6,\n    source: \"Conscious Discipline\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-046",
+    "title": "Time Machine: Conflict Resolution Tool for Early Childhood",
+    "youtubeId": "U46pnN0_QjE",
+    "fullContent": "{\n    id: \"video-046\",\n    title: \"Time Machine: Conflict Resolution Tool for Early Childhood\",\n    description: \"Learn to use the Time Machine structure to help children resolve conflicts and develop problem-solving skills.\",\n    youtubeId: \"U46pnN0_QjE\",\n    category: [\"conscious-discipline\", \"conflict-resolution\", \"social-emotional\"],\n    tags: [\"time machine\", \"conflict resolution\", \"problem-solving\", \"social skills\"],\n    duration: 10,\n    source: \"Conscious Discipline\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-047",
+    "title": "I Love You Rituals: Building Positive Connections with Children",
+    "youtubeId": "9z0KxrJvySM",
+    "fullContent": "{\n    id: \"video-047\",\n    title: \"I Love You Rituals: Building Positive Connections with Children\",\n    description: \"Dr. Becky Bailey explains how to use I Love You Rituals to build connections and develop healthy brain pathways.\",\n    youtubeId: \"9z0KxrJvySM\",\n    category: [\"conscious-discipline\", \"relationships\", \"social-emotional\"],\n    tags: [\"i love you rituals\", \"connection\", \"brain development\", \"relationships\"],\n    duration: 7,\n    source: \"Conscious Discipline\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-048",
+    "title": "Conscious Discipline: Managing Anger in the Classroom",
+    "youtubeId": "QcMbZFIpQwQ",
+    "fullContent": "{\n    id: \"video-048\",\n    title: \"Conscious Discipline: Managing Anger in the Classroom\",\n    description: \"Strategies for helping children identify and manage anger in healthy, productive ways in the classroom setting.\",\n    youtubeId: \"QcMbZFIpQwQ\",\n    category: [\"conscious-discipline\", \"social-emotional\", \"emotions\", \"anger-management\"],\n    tags: [\"anger\", \"emotional regulation\", \"calming strategies\", \"challenging behaviors\"],\n    duration: 9,\n    source: \"Conscious Discipline\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-049",
+    "title": "Conscious Discipline Brain State Model Explained",
+    "youtubeId": "ogBOysX7Atk",
+    "fullContent": "{\n    id: \"video-049\",\n    title: \"Conscious Discipline Brain State Model Explained\",\n    description: \"Dr. Becky Bailey explains the three brain states and how they impact behavior and learning in young children.\",\n    youtubeId: \"ogBOysX7Atk\",\n    category: [\"conscious-discipline\", \"brain-development\", \"behavior\"],\n    tags: [\"brain states\", \"survival state\", \"emotional state\", \"executive state\", \"neuroscience\"],\n    duration: 12,\n    source: \"Conscious Discipline\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-050",
+    "title": "Morning Greeting Routine: Conscious Discipline in Action",
+    "youtubeId": "OoHQrFw7Bqo",
+    "fullContent": "{\n    id: \"video-050\",\n    title: \"Morning Greeting Routine: Conscious Discipline in Action\",\n    description: \"See how teachers implement morning greeting routines that build connection and set a positive tone for the day.\",\n    youtubeId: \"OoHQrFw7Bqo\",\n    category: [\"conscious-discipline\", \"classroom-management\", \"mindful-mornings\"],\n    tags: [\"greeting ritual\", \"morning routine\", \"connection\", \"belonging\"],\n    duration: 5,\n    source: \"Conscious Discipline\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-052",
+    "title": "Making Connections with Greetings at the Door",
+    "youtubeId": "GwdtVzitHLM",
+    "fullContent": "{\n    id: \"video-052\",\n    title: \"Making Connections with Greetings at the Door\",\n    description: \"Learn how greeting each child at the door helps build relationships and sets a positive tone for learning.\",\n    youtubeId: \"GwdtVzitHLM\", // \"Morning Greeting Strategies\" from Edutopia\n    category: [\"classroom-management\", \"relationships\", \"mindful-mornings\"],\n    tags: [\"greetings\", \"door greetings\", \"relationships\", \"classroom climate\"],\n    duration: 3,\n    source: \"Edutopia\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-053",
+    "title": "Encouraging Academic Risk Taking Through a Safe Classroom Environment",
+    "youtubeId": "J0QkNGx4v9g",
+    "fullContent": "{\n    id: \"video-053\",\n    title: \"Encouraging Academic Risk Taking Through a Safe Classroom Environment\",\n    description: \"Learn how to create a classroom environment where children feel safe to take risks and learn from mistakes.\",\n    youtubeId: \"J0QkNGx4v9g\",\n    category: [\"classroom-management\", \"teaching-philosophy\", \"mindset\"],\n    tags: [\"safe environment\", \"risk-taking\", \"growth mindset\", \"mistakes\"],\n    duration: 5,\n    source: \"Edutopia\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-054",
+    "title": "60-Second Strategy: Pom-Pom Jar",
+    "youtubeId": "DSs1X0LlOUo",
+    "fullContent": "{\n    id: \"video-054\",\n    title: \"60-Second Strategy: Pom-Pom Jar\",\n    description: \"A simple and effective positive reinforcement strategy to encourage good behavior and build classroom community.\",\n    youtubeId: \"DSs1X0LlOUo\",\n    category: [\"classroom-management\", \"behavior\", \"positive-reinforcement\"],\n    tags: [\"pom-pom jar\", \"positive reinforcement\", \"whole class\", \"rewards\"],\n    duration: 2,\n    source: \"Edutopia\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-055",
+    "title": "Teaching Executive Function with Movement and Music",
+    "youtubeId": "5gMdThSrQC4",
+    "fullContent": "{\n    id: \"video-055\",\n    title: \"Teaching Executive Function with Movement and Music\",\n    description: \"Fun and engaging ways to use movement and music to develop executive function skills in young children.\",\n    youtubeId: \"5gMdThSrQC4\",\n    category: [\"executive-function\", \"music\", \"movement\"],\n    tags: [\"executive function\", \"music\", \"movement\", \"self-regulation\"],\n    duration: 4,\n    source: \"Edutopia\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-057",
+    "title": "Supporting the Development of Emotional Regulation",
+    "youtubeId": "CVgpHYB9Q7Y",
+    "fullContent": "{\n    id: \"video-057\",\n    title: \"Supporting the Development of Emotional Regulation\",\n    description: \"Practical strategies for helping young children develop critical emotional regulation skills from the earliest years.\",\n    youtubeId: \"CVgpHYB9Q7Y\",\n    category: [\"social-emotional\", \"emotional-regulation\", \"development\"],\n    tags: [\"emotional regulation\", \"co-regulation\", \"development\", \"early years\"],\n    duration: 8,\n    source: \"ZERO TO THREE\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-058",
+    "title": "Tuning In: Active Observation in Early Childhood Settings",
+    "youtubeId": "fnp9NrFQEQM",
+    "fullContent": "{\n    id: \"video-058\",\n    title: \"Tuning In: Active Observation in Early Childhood Settings\",\n    description: \"Learn the practice of intentional observation to better understand and respond to children's individual needs.\",\n    youtubeId: \"fnp9NrFQEQM\",\n    category: [\"observation\", \"responsive-teaching\", \"individualization\"],\n    tags: [\"observation\", \"documentation\", \"individualized teaching\", \"child cues\"],\n    duration: 7,\n    source: \"ZERO TO THREE\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-059",
+    "title": "Cultivating Young Scientists: STEM in Early Childhood",
+    "youtubeId": "9VtxBGM3V80",
+    "fullContent": "{\n    id: \"video-059\",\n    title: \"Cultivating Young Scientists: STEM in Early Childhood\",\n    description: \"Discover how to promote scientific inquiry and STEM concepts in developmentally appropriate ways for young children.\",\n    youtubeId: \"9VtxBGM3V80\",\n    category: [\"stem\", \"science\", \"curriculum\"],\n    tags: [\"scientific inquiry\", \"STEM\", \"early science\", \"exploration\"],\n    duration: 13,\n    source: \"Center for Early Childhood Education\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-060",
+    "title": "Supporting Language Development Through Play",
+    "youtubeId": "qdMQQWXpYKM",
+    "fullContent": "{\n    id: \"video-060\",\n    title: \"Supporting Language Development Through Play\",\n    description: \"See how teachers can foster language development through intentional play-based learning experiences.\",\n    youtubeId: \"qdMQQWXpYKM\",\n    category: [\"language\", \"play\", \"development\"],\n    tags: [\"language development\", \"play-based learning\", \"vocabulary\", \"communication\"],\n    duration: 9,\n    source: \"Center for Early Childhood Education\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-061",
+    "title": "Quality Block Play for Early Learning",
+    "youtubeId": "sNxxN9yCwz0",
+    "fullContent": "{\n    id: \"video-061\",\n    title: \"Quality Block Play for Early Learning\",\n    description: \"Research-based strategies for enhancing block play to develop math, spatial reasoning, and problem-solving skills.\",\n    youtubeId: \"sNxxN9yCwz0\",\n    category: [\"play\", \"math\", \"spatial-reasoning\"],\n    tags: [\"block play\", \"construction\", \"spatial skills\", \"manipulatives\"],\n    duration: 11,\n    source: \"Center for Early Childhood Education\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-062",
+    "title": "Teacher Research: Documentation and Reflection",
+    "youtubeId": "NWUFiJF2gCo",
+    "fullContent": "{\n    id: \"video-062\",\n    title: \"Teacher Research: Documentation and Reflection\",\n    description: \"Learn how teacher research through documentation can improve teaching practices and children's learning outcomes.\",\n    youtubeId: \"NWUFiJF2gCo\",\n    category: [\"professional-development\", \"documentation\", \"reflection\"],\n    tags: [\"teacher research\", \"documentation\", \"reflection\", \"professional growth\"],\n    duration: 14,\n    source: \"Center for Early Childhood Education\",\n    expertLevel: \"advanced\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-063",
+    "title": "Supporting Children with Autism in Preschool Classrooms",
+    "youtubeId": "Jt4_-W2s9Eo",
+    "fullContent": "{\n    id: \"video-063\",\n    title: \"Supporting Children with Autism in Preschool Classrooms\",\n    description: \"Evidence-based strategies for successfully including and supporting children with autism in inclusive classrooms.\",\n    youtubeId: \"Jt4_-W2s9Eo\",\n    category: [\"inclusion\", \"autism\", \"special-education\"],\n    tags: [\"autism\", \"inclusion\", \"visual supports\", \"structure\", \"sensory\"],\n    duration: 18,\n    source: \"Center for Early Childhood Education\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-064",
+    "title": "Developmentally Appropriate Practice (DAP) Introduction",
+    "youtubeId": "KbTCRT4paQM",
+    "fullContent": "{\n    id: \"video-064\",\n    title: \"Developmentally Appropriate Practice (DAP) Introduction\",\n    description: \"An introduction to the core concepts of Developmentally Appropriate Practice and why it matters in early childhood education.\",\n    youtubeId: \"KbTCRT4paQM\",\n    category: [\"foundations\", \"dap\", \"teaching-methods\"],\n    tags: [\"developmentally appropriate practice\", \"DAP\", \"best practices\", \"NAEYC\"],\n    duration: 8,\n    source: \"NAEYC\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-065",
+    "title": "Engaging Families in Meaningful Ways",
+    "youtubeId": "vRWFJxwPJQE",
+    "fullContent": "{\n    id: \"video-065\",\n    title: \"Engaging Families in Meaningful Ways\",\n    description: \"Learn strategies for building authentic partnerships with all families in your early childhood program.\",\n    youtubeId: \"vRWFJxwPJQE\",\n    category: [\"family-engagement\", \"partnerships\", \"communication\"],\n    tags: [\"family engagement\", \"partnerships\", \"communication\", \"relationships\"],\n    duration: 12,\n    source: \"NAEYC\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-066",
+    "title": "Creating Language-Rich Environments",
+    "youtubeId": "O7F5JkvXkG4",
+    "fullContent": "{\n    id: \"video-066\",\n    title: \"Creating Language-Rich Environments\",\n    description: \"Practical ways to create environments that foster language development throughout the day.\",\n    youtubeId: \"O7F5JkvXkG4\",\n    category: [\"language\", \"environment\", \"communication\"],\n    tags: [\"language-rich\", \"vocabulary\", \"conversation\", \"literacy\"],\n    duration: 10,\n    source: \"NAEYC\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-067",
+    "title": "Anti-Bias Education in Action",
+    "youtubeId": "s3iMJ-bKWbY",
+    "fullContent": "{\n    id: \"video-067\",\n    title: \"Anti-Bias Education in Action\",\n    description: \"See real examples of anti-bias education approaches in diverse early childhood classrooms.\",\n    youtubeId: \"s3iMJ-bKWbY\",\n    category: [\"diversity\", \"equity\", \"anti-bias\"],\n    tags: [\"anti-bias\", \"identity\", \"diversity\", \"equity\", \"inclusion\"],\n    duration: 20,\n    source: \"NAEYC\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-068",
+    "title": "Supporting Mathematical Development in Young Children",
+    "youtubeId": "e1uOoXlx_HA",
+    "fullContent": "{\n    id: \"video-068\",\n    title: \"Supporting Mathematical Development in Young Children\",\n    description: \"Learn how to foster foundational math skills through play and everyday activities.\",\n    youtubeId: \"e1uOoXlx_HA\",\n    category: [\"math\", \"curriculum\", \"development\"],\n    tags: [\"mathematics\", \"number sense\", \"spatial skills\", \"patterns\"],\n    duration: 15,\n    source: \"NAEYC\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-069",
+    "title": "Effective Teaching Practices: Teacher-Child Interactions",
+    "youtubeId": "xpIKrAYhyZk",
+    "fullContent": "{\n    id: \"video-069\",\n    title: \"Effective Teaching Practices: Teacher-Child Interactions\",\n    description: \"Learn about the importance of quality teacher-child interactions and strategies to improve them.\",\n    youtubeId: \"xpIKrAYhyZk\",\n    category: [\"teaching-methods\", \"interactions\", \"relationships\"],\n    tags: [\"teacher-child interactions\", \"quality teaching\", \"responsive\", \"engagement\"],\n    duration: 14,\n    source: \"Head Start ECLKC\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-070",
+    "title": "Supporting Dual Language Learners",
+    "youtubeId": "7S4M0IoG9_I",
+    "fullContent": "{\n    id: \"video-070\",\n    title: \"Supporting Dual Language Learners\",\n    description: \"Research-based strategies for supporting the development of both home language and English in young dual language learners.\",\n    youtubeId: \"7S4M0IoG9_I\",\n    category: [\"language\", \"diversity\", \"dual-language\"],\n    tags: [\"dual language learners\", \"bilingualism\", \"home language\", \"cultural responsiveness\"],\n    duration: 17,\n    source: \"Head Start ECLKC\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-071",
+    "title": "Home Visiting: Building Relationships with Families",
+    "youtubeId": "nPpwJ9-bK_w",
+    "fullContent": "{\n    id: \"video-071\",\n    title: \"Home Visiting: Building Relationships with Families\",\n    description: \"Best practices for building trusting relationships with families during home visits.\",\n    youtubeId: \"nPpwJ9-bK_w\",\n    category: [\"family-engagement\", \"home-visiting\", \"relationships\"],\n    tags: [\"home visits\", \"family partnerships\", \"trust\", \"communication\"],\n    duration: 11,\n    source: \"Head Start ECLKC\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-072",
+    "title": "Fostering Children",
+    "youtubeId": "KDla3DxxLRc",
+    "fullContent": "{\n    id: \"video-072\",\n    title: \"Fostering Children's Thinking Skills\",\n    description: \"Strategies for promoting children's critical thinking, problem-solving, and higher-order thinking skills.\",\n    youtubeId: \"KDla3DxxLRc\",\n    category: [\"cognitive-development\", \"critical-thinking\", \"teaching-methods\"],\n    tags: [\"thinking skills\", \"problem-solving\", \"questioning\", \"cognitive development\"],\n    duration: 13,\n    source: \"Head Start ECLKC\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-073",
+    "title": "Curriculum Modifications for Children with Disabilities",
+    "youtubeId": "pKc4328zR7Q",
+    "fullContent": "{\n    id: \"video-073\",\n    title: \"Curriculum Modifications for Children with Disabilities\",\n    description: \"Learn practical, effective ways to adapt curriculum and activities to meet the needs of all children.\",\n    youtubeId: \"pKc4328zR7Q\",\n    category: [\"inclusion\", \"adaptations\", \"special-education\"],\n    tags: [\"curriculum modifications\", \"adaptations\", \"disabilities\", \"inclusion\"],\n    duration: 16,\n    source: \"Head Start ECLKC\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-074",
+    "title": "How to Repair the Teaching Crisis",
+    "youtubeId": "UChjMsNSV2g",
+    "fullContent": "{\n    id: \"video-074\",\n    title: \"How to Repair the Teaching Crisis\",\n    description: \"Nínive Calegari shares insights into why we need to invest in teachers and how to create a sustainable career that attracts top talent.\",\n    youtubeId: \"UChjMsNSV2g\",\n    category: [\"teaching-philosophy\", \"education-reform\", \"professional-development\"],\n    tags: [\"teacher support\", \"education reform\", \"teacher compensation\", \"teaching as profession\"],\n    duration: 18,\n    source: \"TED\",\n    expertLevel: \"all-levels\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-081",
+    "title": "Quick Transitions: Efficient Classroom Management Techniques",
+    "youtubeId": "gBa0rVb2Bnc",
+    "fullContent": "{\n    id: \"video-081\",\n    title: \"Quick Transitions: Efficient Classroom Management Techniques\",\n    description: \"Learn practical strategies for smooth and quick transitions between activities to maximize learning time and minimize disruptions.\",\n    youtubeId: \"gBa0rVb2Bnc\",\n    category: [\"classroom-management\", \"transitions\", \"quick-transition-techniques\"],\n    tags: [\"transitions\", \"time management\", \"classroom routines\", \"efficiency\"],\n    duration: 9,\n    source: \"Teaching Channel\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-082",
+    "title": "Setting Up Classroom Centers That Work",
+    "youtubeId": "eGLBivmwt_s",
+    "fullContent": "{\n    id: \"video-082\",\n    title: \"Setting Up Classroom Centers That Work\",\n    description: \"A step-by-step guide to creating effective learning centers that promote independence and engagement in your early childhood classroom.\",\n    youtubeId: \"eGLBivmwt_s\",\n    category: [\"classroom-management\", \"centers\", \"environment\"],\n    tags: [\"learning centers\", \"classroom setup\", \"independent learning\", \"classroom design\"],\n    duration: 14,\n    source: \"Teaching Channel\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-083",
+    "title": "Positive Behavior Management Strategies for Early Childhood",
+    "youtubeId": "JQ7cR_TH-P4",
+    "fullContent": "{\n    id: \"video-083\",\n    title: \"Positive Behavior Management Strategies for Early Childhood\",\n    description: \"Evidence-based positive behavior management techniques specifically designed for preschool and kindergarten classrooms.\",\n    youtubeId: \"JQ7cR_TH-P4\",\n    category: [\"classroom-management\", \"behavior\", \"positive-discipline\"],\n    tags: [\"positive behavior\", \"redirection\", \"behavior management\", \"early childhood\"],\n    duration: 12,\n    source: \"Teaching Channel\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-084",
+    "title": "Small Group Instruction: Best Practices for Early Childhood",
+    "youtubeId": "0e7ZiGULFCM",
+    "fullContent": "{\n    id: \"video-084\",\n    title: \"Small Group Instruction: Best Practices for Early Childhood\",\n    description: \"Effective strategies for managing small group instruction while keeping the rest of the class engaged in meaningful learning.\",\n    youtubeId: \"0e7ZiGULFCM\",\n    category: [\"teaching-methods\", \"small-groups\", \"classroom-management\"],\n    tags: [\"small groups\", \"differentiation\", \"group management\", \"independent work\"],\n    duration: 15,\n    source: \"Teaching Channel\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-085",
+    "title": "Creating Clear Classroom Expectations with Visual Supports",
+    "youtubeId": "WfEX7eTGjtk",
+    "fullContent": "{\n    id: \"video-085\",\n    title: \"Creating Clear Classroom Expectations with Visual Supports\",\n    description: \"How to create and implement visual supports to clarify expectations and routines for young children in the classroom.\",\n    youtubeId: \"WfEX7eTGjtk\",\n    category: [\"classroom-management\", \"visual-supports\", \"structure\"],\n    tags: [\"visual supports\", \"classroom expectations\", \"routines\", \"behavior support\"],\n    duration: 8,\n    source: \"Teaching Channel\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-087",
+    "title": "Morning Meeting: Building Community in the Classroom",
+    "youtubeId": "R5J_SYv6W6M",
+    "fullContent": "{\n    id: \"video-087\",\n    title: \"Morning Meeting: Building Community in the Classroom\",\n    description: \"How to structure effective morning meetings that build classroom community, practice social skills, and set a positive tone for the day.\",\n    youtubeId: \"R5J_SYv6W6M\", // \"Morning Meeting: Building Community\" from ASCD\n    category: [\"mindful-mornings\", \"community-building\", \"social-skills\"],\n    tags: [\"morning meeting\", \"classroom community\", \"social skills\", \"routines\"],\n    duration: 11,\n    source: \"Responsive Classroom\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-089",
+    "title": "Emotional Check-ins: Starting the Day with Emotional Awareness",
+    "youtubeId": "1EosPr0ilDQ",
+    "fullContent": "{\n    id: \"video-089\",\n    title: \"Emotional Check-ins: Starting the Day with Emotional Awareness\",\n    description: \"Learn how to implement morning emotional check-ins that help children identify, express, and manage their feelings.\",\n    youtubeId: \"1EosPr0ilDQ\",\n    category: [\"mindful-mornings\", \"emotions\", \"social-emotional\"],\n    tags: [\"emotional awareness\", \"check-ins\", \"feelings\", \"emotional vocabulary\"],\n    duration: 9,\n    source: \"Raising Arizona Preschool\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-090",
+    "title": "Gratitude Practices for Early Childhood Classrooms",
+    "youtubeId": "l4r9z0rBP-U",
+    "fullContent": "{\n    id: \"video-090\",\n    title: \"Gratitude Practices for Early Childhood Classrooms\",\n    description: \"Simple gratitude activities and routines to incorporate into your morning meetings that foster positivity and appreciation.\",\n    youtubeId: \"l4r9z0rBP-U\",\n    category: [\"mindful-mornings\", \"gratitude\", \"social-emotional\"],\n    tags: [\"gratitude\", \"positive mindset\", \"appreciation\", \"morning routines\"],\n    duration: 6,\n    source: \"Raising Arizona Preschool\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-092",
+    "title": "Interactive Read-Alouds That Build Comprehension",
+    "youtubeId": "D6EB_9u_O_g",
+    "fullContent": "{\n    id: \"video-092\",\n    title: \"Interactive Read-Alouds That Build Comprehension\",\n    description: \"Learn techniques for conducting interactive read-alouds that actively engage children and develop their comprehension skills.\",\n    youtubeId: \"D6EB_9u_O_g\",\n    category: [\"literacy\", \"reading\", \"teaching-methods\"],\n    tags: [\"read-aloud\", \"comprehension\", \"questioning strategies\", \"dialogic reading\"],\n    duration: 10,\n    source: \"Reading Rockets\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-093",
+    "title": "STEM in Early Childhood: Everyday Science Explorations",
+    "youtubeId": "4u66d5I-9w0",
+    "fullContent": "{\n    id: \"video-093\",\n    title: \"STEM in Early Childhood: Everyday Science Explorations\",\n    description: \"Simple ways to incorporate authentic scientific inquiry and exploration into everyday preschool activities.\",\n    youtubeId: \"4u66d5I-9w0\",\n    category: [\"stem\", \"science\", \"inquiry\"],\n    tags: [\"science exploration\", \"inquiry-based learning\", \"hands-on science\", \"questioning\"],\n    duration: 16,\n    source: \"National Science Teaching Association\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-094",
+    "title": "Math Talk: Building Number Sense in Early Childhood",
+    "youtubeId": "3xpW0iQ88EU",
+    "fullContent": "{\n    id: \"video-094\",\n    title: \"Math Talk: Building Number Sense in Early Childhood\",\n    description: \"How to integrate purposeful mathematical conversations into daily routines and activities to develop strong number sense.\",\n    youtubeId: \"3xpW0iQ88EU\",\n    category: [\"stem\", \"math\", \"teaching-methods\"],\n    tags: [\"math talk\", \"number sense\", \"mathematical thinking\", \"everyday math\"],\n    duration: 11,\n    source: \"National Council of Teachers of Mathematics\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-095",
+    "title": "Writing Centers That Inspire Young Authors",
+    "youtubeId": "WL6GJk2E9Fc",
+    "fullContent": "{\n    id: \"video-095\",\n    title: \"Writing Centers That Inspire Young Authors\",\n    description: \"Tips for creating engaging writing centers that motivate young children to express themselves through drawing and early writing.\",\n    youtubeId: \"WL6GJk2E9Fc\",\n    category: [\"literacy\", \"writing\", \"environment\"],\n    tags: [\"writing centers\", \"emergent writing\", \"author development\", \"literacy environment\"],\n    duration: 9,\n    source: \"Reading Rockets\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-097",
+    "title": "Honoring Home Languages in the Classroom",
+    "youtubeId": "jDspCLxox_k",
+    "fullContent": "{\n    id: \"video-097\",\n    title: \"Honoring Home Languages in the Classroom\",\n    description: \"Strategies for supporting multilingual learners by incorporating and celebrating home languages within the classroom environment.\",\n    youtubeId: \"jDspCLxox_k\",\n    category: [\"language\", \"diversity\", \"dual-language\"],\n    tags: [\"multilingual learners\", \"home language\", \"language diversity\", \"cultural identity\"],\n    duration: 13,\n    source: \"Colorín Colorado\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-098",
+    "title": "Diverse Books Matter: Building an Inclusive Classroom Library",
+    "youtubeId": "U2P_vp6RFhg",
+    "fullContent": "{\n    id: \"video-098\",\n    title: \"Diverse Books Matter: Building an Inclusive Classroom Library\",\n    description: \"How to select and use diverse children's literature that represents a variety of cultures, family structures, and experiences.\",\n    youtubeId: \"U2P_vp6RFhg\",\n    category: [\"diversity\", \"literacy\", \"environment\"],\n    tags: [\"diverse books\", \"classroom library\", \"representation\", \"inclusive curriculum\"],\n    duration: 12,\n    source: \"Teaching Tolerance\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-099",
+    "title": "Addressing Bias in Early Childhood: Teacher Self-Reflection",
+    "youtubeId": "uZq66ulGgX0",
+    "fullContent": "{\n    id: \"video-099\",\n    title: \"Addressing Bias in Early Childhood: Teacher Self-Reflection\",\n    description: \"Guidance for teachers on recognizing and addressing implicit bias to create a more equitable classroom environment.\",\n    youtubeId: \"uZq66ulGgX0\",\n    category: [\"equity\", \"professional-development\", \"reflection\"],\n    tags: [\"implicit bias\", \"self-reflection\", \"equity\", \"anti-bias education\"],\n    duration: 19,\n    source: \"Teaching Tolerance\",\n    expertLevel: \"advanced\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-100",
+    "title": "Family Engagement Across Cultures",
+    "youtubeId": "tV6EC-pIAcE",
+    "fullContent": "{\n    id: \"video-100\",\n    title: \"Family Engagement Across Cultures\",\n    description: \"Effective strategies for building authentic partnerships with families from diverse cultural backgrounds.\",\n    youtubeId: \"tV6EC-pIAcE\",\n    category: [\"family-engagement\", \"diversity\", \"partnerships\"],\n    tags: [\"family engagement\", \"cultural competence\", \"communication\", \"home-school connection\"],\n    duration: 15,\n    source: \"Harvard Family Research Project\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-107",
+    "title": "Conscious Discipline: Introduction to Brain State Model",
+    "youtubeId": "M-H9hGX9Xuw",
+    "fullContent": "{\n    id: \"video-107\",\n    title: \"Conscious Discipline: Introduction to Brain State Model\",\n    description: \"Dr. Becky Bailey introduces the Brain State Model, showing how different emotional states affect behavior and learning in early childhood classrooms.\",\n    youtubeId: \"M-H9hGX9Xuw\",\n    category: [\"conscious-discipline\", \"behavior\", \"social-emotional\"],\n    tags: [\"brain state\", \"self-regulation\", \"emotional intelligence\", \"classroom management\"],\n    duration: 10,\n    source: \"Conscious Discipline\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-108",
+    "title": "Conscious Discipline: I Love You Rituals",
+    "youtubeId": "PadcO9SH-mM",
+    "fullContent": "{\n    id: \"video-108\",\n    title: \"Conscious Discipline: I Love You Rituals\",\n    description: \"Learn how to implement I Love You Rituals to build deep connections with children, strengthen attachment, and enhance emotional development.\",\n    youtubeId: \"PadcO9SH-mM\",\n    category: [\"conscious-discipline\", \"relationships\", \"social-emotional\"],\n    tags: [\"rituals\", \"connection\", \"attachment\", \"emotional development\"],\n    duration: 7,\n    source: \"Conscious Discipline\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-109",
+    "title": "Conscious Discipline: The Safe Place Self-Regulation Center",
+    "youtubeId": "m5sUUNqVxII",
+    "fullContent": "{\n    id: \"video-109\",\n    title: \"Conscious Discipline: The Safe Place Self-Regulation Center\",\n    description: \"Dr. Becky Bailey demonstrates how to create and use a Safe Place in your classroom to help children learn emotional regulation skills.\",\n    youtubeId: \"m5sUUNqVxII\", // \"Creating a Safe Place in Your Classroom\" - working Conscious Discipline video\n    category: [\"conscious-discipline\", \"self-regulation\", \"classroom-management\"],\n    tags: [\"safe place\", \"emotional regulation\", \"calming techniques\", \"classroom setup\"],\n    duration: 12,\n    source: \"Conscious Discipline\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-110",
+    "title": "Conscious Discipline: Teaching Assertiveness to Children",
+    "youtubeId": "PdQoS3zMgkI",
+    "fullContent": "{\n    id: \"video-110\",\n    title: \"Conscious Discipline: Teaching Assertiveness to Children\",\n    description: \"Practical strategies for helping children develop assertiveness skills and use their voice effectively in social situations.\",\n    youtubeId: \"PdQoS3zMgkI\",\n    category: [\"conscious-discipline\", \"social-skills\", \"communication\"],\n    tags: [\"assertiveness\", \"boundaries\", \"communication skills\", \"social development\"],\n    duration: 9,\n    source: \"Conscious Discipline\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-111",
+    "title": "Conscious Discipline: Building School Family Through Meaningful Jobs",
+    "youtubeId": "FKc5OHNjYYU",
+    "fullContent": "{\n    id: \"video-111\",\n    title: \"Conscious Discipline: Building School Family Through Meaningful Jobs\",\n    description: \"How to create a sense of belonging and purpose by implementing classroom jobs that develop executive function skills and community responsibility.\",\n    youtubeId: \"FKc5OHNjYYU\",\n    category: [\"conscious-discipline\", \"classroom-management\", \"community-building\"],\n    tags: [\"classroom jobs\", \"school family\", \"executive function\", \"responsibility\"],\n    duration: 8,\n    source: \"Conscious Discipline\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-112",
+    "title": "Conscious Discipline: Composure and Anger Management",
+    "youtubeId": "jMWpSQRdLDQ",
+    "fullContent": "{\n    id: \"video-112\",\n    title: \"Conscious Discipline: Composure and Anger Management\",\n    description: \"Tools and techniques for teachers to maintain composure and model healthy anger management for young children.\",\n    youtubeId: \"jMWpSQRdLDQ\",\n    category: [\"conscious-discipline\", \"teacher-development\", \"social-emotional\"],\n    tags: [\"composure\", \"anger management\", \"teacher skills\", \"emotional regulation\"],\n    duration: 15,\n    source: \"Conscious Discipline\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-113",
+    "title": "Conscious Discipline: Using Visual Routines for Success",
+    "youtubeId": "YHBYR05Ezmg",
+    "fullContent": "{\n    id: \"video-113\",\n    title: \"Conscious Discipline: Using Visual Routines for Success\",\n    description: \"How to implement visual routines that provide safety, connection, and problem-solving opportunities throughout the school day.\",\n    youtubeId: \"YHBYR05Ezmg\",\n    category: [\"conscious-discipline\", \"classroom-management\", \"routines\"],\n    tags: [\"visual routines\", \"classroom structure\", \"transitions\", \"predictability\"],\n    duration: 11,\n    source: \"Conscious Discipline\",\n    expertLevel: \"beginner\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  },
+  {
+    "id": "video-114",
+    "title": "Conscious Discipline: Noticing and Managing Emotional Triggers",
+    "youtubeId": "QZ0fTgBQH-I",
+    "fullContent": "{\n    id: \"video-114\",\n    title: \"Conscious Discipline: Noticing and Managing Emotional Triggers\",\n    description: \"Dr. Becky Bailey guides teachers through the process of identifying personal triggers and developing strategies to maintain composure in challenging situations.\",\n    youtubeId: \"QZ0fTgBQH-I\",\n    category: [\"conscious-discipline\", \"teacher-development\", \"self-awareness\"],\n    tags: [\"emotional triggers\", \"self-awareness\", \"stress management\", \"teacher wellness\"],\n    duration: 14,\n    source: \"Conscious Discipline\",\n    expertLevel: \"advanced\",\n    dateAdded: \"2025-05-14\",\n    featured: false\n  }"
+  },
+  {
+    "id": "video-115",
+    "title": "Conscious Discipline: Empathy and Building Connections with Children",
+    "youtubeId": "vC9OT21lYc0",
+    "fullContent": "{\n    id: \"video-115\",\n    title: \"Conscious Discipline: Empathy and Building Connections with Children\",\n    description: \"Learn practical ways to develop and demonstrate empathy with children to build deeper relationships and foster social-emotional growth.\",\n    youtubeId: \"vC9OT21lYc0\",\n    category: [\"conscious-discipline\", \"empathy\", \"relationships\"],\n    tags: [\"empathy\", \"connection\", \"relationship-building\", \"social-emotional learning\"],\n    duration: 10,\n    source: \"Conscious Discipline\",\n    expertLevel: \"intermediate\",\n    dateAdded: \"2025-05-14\",\n    featured: true\n  }"
+  }
+]
