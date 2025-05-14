@@ -229,7 +229,7 @@ export const videoResourcesData: VideoResource[] = [
     id: "video-016",
     title: "Trauma-Informed Care in Early Childhood",
     description: "Understanding and addressing the impact of trauma on young children in early childhood settings.",
-    youtubeId: "lsLH8M2NovM",
+    youtubeId: "vxN0zKKuGCw", // "Trauma-Informed Care in Early Childhood Education" - high quality alternative
     category: ["trauma-informed", "social-emotional", "mental-health"],
     tags: ["trauma", "ACEs", "responsive teaching", "safety"],
     duration: 22,
@@ -1490,7 +1490,7 @@ export const videoResourcesData: VideoResource[] = [
     id: "video-109",
     title: "Conscious Discipline: The Safe Place Self-Regulation Center",
     description: "Dr. Becky Bailey demonstrates how to create and use a Safe Place in your classroom to help children learn emotional regulation skills.",
-    youtubeId: "0ImHVqCpUH4",
+    youtubeId: "m5sUUNqVxII", // "Creating a Safe Place in Your Classroom" - working Conscious Discipline video
     category: ["conscious-discipline", "self-regulation", "classroom-management"],
     tags: ["safe place", "emotional regulation", "calming techniques", "classroom setup"],
     duration: 12,
