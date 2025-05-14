@@ -89,7 +89,19 @@ interface UserProgress {
   lastAccessed: Date | null;
 }
 
-export function MiniLessons() {
+interface MiniLessonsProps {
+  title?: string;
+  subtitle?: string;
+  modules?: any[];
+  onSelect?: (moduleId: number) => void;
+}
+
+export function MiniLessons({ 
+  title = "Personalized Mini-Lessons", 
+  subtitle = "Quick lessons based on your interests and assessment results",
+  modules: providedModules = [],
+  onSelect
+}: MiniLessonsProps) {
   const [location, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const [selectedLesson, setSelectedLesson] = useState<MiniLesson | null>(null);
@@ -640,7 +652,7 @@ export function MiniLessons() {
   }, [recentAssessment]);
   
   // Filter modules to show only three recommended ones
-  const modules = useMemo(() => {
+  const computedModules = useMemo(() => {
     // If we have growth areas, prioritize mini-lessons from those categories
     if (growthAreas.length > 0) {
       // Create a map of category to its modules
@@ -864,13 +876,13 @@ export function MiniLessons() {
                 <div className="col-span-3 p-2 mb-4 bg-gray-100 text-xs rounded overflow-auto max-h-40">
                   <p>Growth Areas: {growthAreas.join(', ') || 'None'}</p>
                   <p>Total Modules: {allModules.length}</p>
-                  <p>Selected Modules: {modules.length}</p>
+                  <p>Selected Modules: {providedModules && providedModules.length > 0 ? providedModules.length : computedModules.length}</p>
                   <p>Progress Records: {Array.isArray(progress) ? progress.length : 0}</p>
                 </div>
               )}
               
               {/* Show all mini-lessons */}
-              {modules.map((lesson: MiniLesson) => {
+              {(providedModules && providedModules.length > 0 ? providedModules : computedModules).map((lesson: MiniLesson) => {
                 const userProgress = progressMap[lesson.id];
                 const completed = userProgress?.completed || false;
                 const pointsEarned = userProgress?.pointsEarned || 0;
