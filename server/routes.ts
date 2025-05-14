@@ -1839,61 +1839,22 @@ Format your response as a complete message I could use, including a greeting and
       const modules = await storage.getAllModules();
       console.log(`Retrieved ${modules.length} modules`);
       
-      // Add more detailed logging for first module
-      if (modules.length > 0) {
-        const sampleModule = modules[0];
-        console.log("Sample module structure:", JSON.stringify({
-          id: sampleModule.id,
-          title: sampleModule.title,
-          contentType: typeof sampleModule.content,
-          contentLength: sampleModule.content ? 
-            (typeof sampleModule.content === 'string' ? sampleModule.content.length : '[object]') 
-            : 0,
-          quizType: typeof sampleModule.quiz,
-          hasQuizQuestions: sampleModule.quiz && 
-                           sampleModule.quiz.questions && 
-                           Array.isArray(sampleModule.quiz.questions)
-        }));
-      }
-      
-      // Map each module to its content check result
-      console.log("Checking module content...");
-      const results = [];
-      
-      for (const module of modules) {
-        try {
-          console.log(`Checking module ${module.id} - ${module.title}...`);
-          const result = checkModuleContent(module);
-          console.log(`Module ${module.id} check result:`, result.hasAdequateContent ? "OK" : "Needs improvement");
-          results.push(result);
-        } catch (moduleError) {
-          console.error(`Error checking module ${module.id}:`, moduleError);
-          results.push({
-            moduleId: module.id,
-            title: module.title,
-            hasAdequateContent: false,
-            contentLength: 0,
-            contentType: typeof module.content,
-            hasVideo: false,
-            hasQuiz: false,
-            quizQuestionCount: 0,
-            hasLearningObjectives: false,
-            fixed: false,
-            error: String(moduleError)
-          });
-        }
-      }
-      
-      // Count modules with inadequate content
-      const inadequateCount = results.filter(r => !r.hasAdequateContent).length;
-      
-      console.log(`Content check completed: ${inadequateCount} of ${results.length} modules need improvement`);
-      
+      // Create a simple debug endpoint first to check if modules are being retrieved
       return res.status(200).json({ 
-        message: "Module content check completed",
+        message: "Retrieved modules successfully",
         moduleCount: modules.length,
-        inadequateCount,
-        results
+        sampleModule: modules.length > 0 ? {
+          id: modules[0].id,
+          title: modules[0].title,
+          contentType: typeof modules[0].content,
+          contentSample: typeof modules[0].content === 'string' ? 
+            modules[0].content.substring(0, 100) + '...' : 
+            JSON.stringify(modules[0].content).substring(0, 100) + '...',
+          quizType: typeof modules[0].quiz,
+          hasQuiz: Boolean(modules[0].quiz && 
+                     modules[0].quiz.questions && 
+                     Array.isArray(modules[0].quiz.questions))
+        } : null
       });
     } catch (error) {
       console.error("Error checking module content:", error);
