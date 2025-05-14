@@ -5,6 +5,7 @@ import {
   InsertLearningModule, 
   InsertUser
 } from "@shared/schema";
+import { createRaisingArizonaCoreModule } from "./createCoreModule";
 
 async function seedDatabase() {
   console.log("Starting database seeding");
@@ -211,6 +212,10 @@ async function seedDatabase() {
     // Add mini-modules to the database
     await db.insert(learningModules).values([...moduleData, ...miniModuleData]);
     console.log("Learning modules and mini-modules created");
+    
+    // Create the Raising Arizona's CORE training module
+    await createRaisingArizonaCoreModule();
+    console.log("Raising Arizona's CORE training module created");
 
     console.log("Database seeded successfully");
   } catch (error) {

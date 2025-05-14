@@ -25,6 +25,7 @@ import {
   addCustomDataSource,
   deleteCustomDataSource
 } from "./notebookLmPlugin";
+import { createRaisingArizonaCoreModule } from "./createCoreModule";
 import { 
   checkModuleContent, 
   checkAllModulesContent,
