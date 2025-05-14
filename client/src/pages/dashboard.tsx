@@ -222,11 +222,35 @@ export default function Dashboard() {
       {/* Dashboard Header with Bear Bucks */}
       <div className="bg-gradient-to-r from-purple-100 to-indigo-100 p-6">
         <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-3">
-            <h1 className="text-2xl font-heading font-bold text-gray-800">Welcome, {user.firstName || 'Teacher'}!</h1>
-            <div className="bg-yellow-400 text-yellow-900 rounded-full px-3 py-1 text-sm font-semibold flex items-center">
-              <span className="mr-1">{bearBucks}</span> <span className="text-xs">Bear Bucks</span>
+          <div className="flex flex-col md:flex-row justify-between mb-3">
+            <div className="flex items-center justify-between md:justify-start mb-3 md:mb-0">
+              <h1 className="text-2xl font-heading font-bold text-gray-800 mr-4">Welcome, {user.firstName || 'Teacher'}!</h1>
+              <div className="bg-yellow-400 text-yellow-900 rounded-full px-3 py-1 text-sm font-semibold flex items-center">
+                <span className="mr-1">{bearBucks}</span> <span className="text-xs">Bear Bucks</span>
+              </div>
             </div>
+            
+            <Link to="/core-values-shout-out">
+              <div className="group relative overflow-hidden transform hover:scale-105 transition-all bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white font-bold py-3 px-6 rounded-xl shadow-[0_5px_0_rgb(76,29,149)] hover:shadow-[0_3px_0_rgb(76,29,149)] active:shadow-[0_0px_0_rgb(76,29,149)] active:translate-y-1 border-2 border-purple-200">
+                {/* Pixel-art style decorations */}
+                <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-yellow-400 rounded"></div>
+                <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-yellow-400 rounded"></div>
+                <div className="absolute -top-1 -left-1 w-3 h-3 bg-yellow-400 rounded"></div>
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded"></div>
+                
+                {/* Shimmer effect */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-yellow-300/30 to-transparent opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400/0 via-yellow-400/40 to-yellow-400/0 opacity-0 group-hover:opacity-100 animate-shimmer transition-opacity"></div>
+                
+                <div className="relative flex items-center justify-center">
+                  <span className="mr-3 text-yellow-200 text-xl">🏆</span>
+                  <span className="text-white font-game text-sm md:text-base tracking-wider pb-1">CORE VALUES SHOUT OUT!</span>
+                  <span className="ml-3 text-yellow-200 text-xl">🎮</span>
+                </div>
+                
+                <div className="absolute top-0 right-0 -mt-1 -mr-1 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg shadow-sm">NEW!</div>
+              </div>
+            </Link>
           </div>
         </div>
       </div>
