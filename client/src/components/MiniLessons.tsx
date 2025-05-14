@@ -898,7 +898,10 @@ export function MiniLessons() {
                 
                 {/* Tabs for different content types */}
                 <Tabs defaultValue="video" className="w-full" value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="grid w-full grid-cols-2">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="study" className="flex items-center gap-2">
+                      <BookOpen className="h-4 w-4" /> Study Materials
+                    </TabsTrigger>
                     <TabsTrigger value="video" className="flex items-center gap-2">
                       <Play className="h-4 w-4" /> Video Content
                     </TabsTrigger>
@@ -916,6 +919,184 @@ export function MiniLessons() {
                       {isGeneratingContent && <Loader2 className="h-4 w-4 ml-2 animate-spin" />}
                     </TabsTrigger>
                   </TabsList>
+                  
+                  <TabsContent value="study" className="mt-4">
+                    {/* Study materials based on the lesson category */}
+                    {selectedLesson.category === 'quick-transition-techniques' && (
+                      <div className="space-y-6">
+                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-5 border border-blue-100 shadow-sm">
+                          <h3 className="text-lg font-semibold text-blue-800 mb-3">Transition Techniques in Early Childhood Education</h3>
+                          
+                          <div className="prose prose-sm max-w-none">
+                            <p>
+                              Transitions between activities are crucial moments in early childhood education that can significantly impact the 
+                              flow of the day and children's learning experiences. When handled poorly, transitions can lead to behavior 
+                              issues, wasted time, and frustrated teachers and students. When managed effectively, they become valuable 
+                              learning opportunities that help children develop self-regulation, listening skills, and independence.
+                            </p>
+                            
+                            <h4>Why Transitions Matter</h4>
+                            <p>
+                              Young children thrive on predictability and clear expectations. Transitions help them:
+                            </p>
+                            <ul>
+                              <li>Develop a sense of time and sequence</li>
+                              <li>Build executive functioning skills</li>
+                              <li>Practice following multi-step directions</li>
+                              <li>Experience autonomy within safe boundaries</li>
+                              <li>Reduce anxiety about what comes next</li>
+                            </ul>
+                            
+                            <h4>Key Principles for Effective Transitions</h4>
+                            <ol>
+                              <li><strong>Consistency:</strong> Use the same signals and routines for similar transitions.</li>
+                              <li><strong>Advance Notice:</strong> Give children time to mentally prepare for the upcoming change.</li>
+                              <li><strong>Clear Expectations:</strong> Explicitly teach what successful transitions look and sound like.</li>
+                              <li><strong>Engagement:</strong> Make transitions fun and meaningful rather than "down time."</li>
+                              <li><strong>Visual Supports:</strong> Provide visual cues alongside verbal instructions.</li>
+                              <li><strong>Positive Reinforcement:</strong> Acknowledge children who transition successfully.</li>
+                              <li><strong>Individualization:</strong> Consider modifications for children who struggle with transitions.</li>
+                            </ol>
+                            
+                            <h4>Types of Transitions in Early Childhood Settings</h4>
+                            <p>
+                              Transitions occur throughout the day in early childhood settings:
+                            </p>
+                            <ul>
+                              <li><strong>Arrival/Departure:</strong> Transitioning between home and school</li>
+                              <li><strong>Activity Transitions:</strong> Moving from one learning experience to another</li>
+                              <li><strong>Location Transitions:</strong> Moving from one space to another (classroom to playground, etc.)</li>
+                              <li><strong>Waiting Times:</strong> Managing short periods between activities</li>
+                              <li><strong>Cleanup Transitions:</strong> Shifting from activity to organization</li>
+                            </ul>
+                            
+                            <p>
+                              The techniques described in this module focus primarily on activity transitions but can be modified for other transition types.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {selectedLesson.category === 'mindful-mornings' && (
+                      <div className="space-y-6">
+                        <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-5 border border-purple-100 shadow-sm">
+                          <h3 className="text-lg font-semibold text-purple-800 mb-3">Mindful Mornings: Starting the Day with Intention</h3>
+                          
+                          <div className="prose prose-sm max-w-none">
+                            <p>
+                              How children start their day can significantly impact their learning, behavior, and emotional regulation throughout the school day. 
+                              Mindful morning routines provide structure, predictability, and opportunities for connection that help children transition from 
+                              home to school and prepare their bodies and minds for learning.
+                            </p>
+                            
+                            <h4>The Science Behind Mindful Mornings</h4>
+                            <p>
+                              Research in neuroscience and child development supports the importance of mindful beginnings:
+                            </p>
+                            <ul>
+                              <li>Morning routines activate the prefrontal cortex, which helps with focus and emotional regulation</li>
+                              <li>Predictable routines reduce stress hormones like cortisol</li>
+                              <li>Mindfulness practices increase activity in brain regions associated with attention and awareness</li>
+                              <li>Group rituals foster social connection and belonging</li>
+                            </ul>
+                            
+                            <h4>Core Components of Mindful Mornings</h4>
+                            <ol>
+                              <li><strong>Welcoming Rituals:</strong> Practices that acknowledge each child individually</li>
+                              <li><strong>Grounding Activities:</strong> Brief practices that help children connect with their bodies and the present moment</li>
+                              <li><strong>Community Building:</strong> Group activities that foster connection and belonging</li>
+                              <li><strong>Intention Setting:</strong> Helping children identify goals or focus areas for the day</li>
+                              <li><strong>Schedule Preview:</strong> Reviewing the day's activities to build predictability</li>
+                            </ol>
+                            
+                            <h4>Benefits of Mindful Morning Routines</h4>
+                            <p>
+                              Implementing mindful morning practices supports children in multiple ways:
+                            </p>
+                            <ul>
+                              <li>Eases separation anxiety for children and families</li>
+                              <li>Creates a sense of safety and belonging</li>
+                              <li>Develops self-regulation and executive function skills</li>
+                              <li>Builds social-emotional vocabulary and awareness</li>
+                              <li>Promotes focus and readiness for learning</li>
+                              <li>Reduces behavior challenges throughout the day</li>
+                              <li>Supports mental health and emotional wellbeing</li>
+                            </ul>
+                            
+                            <p>
+                              The mindfulness practices described in this module can be adapted based on children's ages, developmental needs, and cultural backgrounds.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {selectedLesson.category === 'active-listening' && (
+                      <div className="space-y-6">
+                        <div className="bg-gradient-to-br from-green-50 to-teal-50 rounded-lg p-5 border border-green-100 shadow-sm">
+                          <h3 className="text-lg font-semibold text-green-800 mb-3">Active Listening Skills for Early Childhood</h3>
+                          
+                          <div className="prose prose-sm max-w-none">
+                            <p>
+                              Active listening is a foundational skill that supports all areas of child development. In early childhood, 
+                              active listening goes beyond simply hearing words—it involves teaching children to focus attention, process information, 
+                              and respond appropriately to communication. These skills are essential for academic success, social relationships, 
+                              and emotional development.
+                            </p>
+                            
+                            <h4>Developmental Considerations for Active Listening</h4>
+                            <p>
+                              Active listening skills develop progressively:
+                            </p>
+                            <ul>
+                              <li><strong>Toddlers (2-3 years):</strong> Beginning to focus on speakers for short periods and follow simple instructions</li>
+                              <li><strong>Preschoolers (3-5 years):</strong> Developing ability to attend to longer communications and remember details</li>
+                              <li><strong>Early Elementary (5-7 years):</strong> Refining comprehension and beginning to connect listening with reading skills</li>
+                            </ul>
+                            
+                            <h4>Components of Active Listening</h4>
+                            <ol>
+                              <li><strong>Physical Readiness:</strong> Body positioning, eye contact, and other nonverbal cues</li>
+                              <li><strong>Attentional Focus:</strong> Directing and maintaining attention on the speaker</li>
+                              <li><strong>Comprehension:</strong> Understanding the message being communicated</li>
+                              <li><strong>Response:</strong> Appropriate verbal and nonverbal reactions to what was heard</li>
+                              <li><strong>Self-regulation:</strong> Managing distractions and impulses to interrupt</li>
+                            </ol>
+                            
+                            <h4>The Connection to "Building Chapter One"</h4>
+                            <p>
+                              Active listening directly contributes to "Building Chapter One" in children's lives by:
+                            </p>
+                            <ul>
+                              <li>Creating cognitive frameworks for processing information</li>
+                              <li>Establishing habits of engagement and attention</li>
+                              <li>Developing neural pathways for language processing</li>
+                              <li>Building foundations for literacy and communication</li>
+                              <li>Fostering respect for others through attentive listening</li>
+                            </ul>
+                            
+                            <h4>Benefits Beyond the Classroom</h4>
+                            <p>
+                              Teaching active listening benefits children across contexts:
+                            </p>
+                            <ul>
+                              <li>Improves family communication and relationships</li>
+                              <li>Supports conflict resolution and problem-solving</li>
+                              <li>Enhances empathy development</li>
+                              <li>Prepares children for future academic and career success</li>
+                              <li>Builds leadership capabilities</li>
+                            </ul>
+                            
+                            <p>
+                              The strategies in this module provide developmentally appropriate ways to teach active listening through explicit instruction, 
+                              modeling, and playful practice.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </TabsContent>
                   
                   <TabsContent value="video" className="mt-4">
                     {/* Interactive content based on the lesson category */}
