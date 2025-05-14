@@ -455,24 +455,30 @@ export function generateDefaultModuleContent(module: LearningModule): ModuleCont
  * @returns Boolean indicating if content meets minimum standards
  */
 export function hasAdequateContent(module: any): boolean {
-  // If no content at all, definitely inadequate
-  if (!module.content) return false;
+  // If no content at all or module is invalid, definitely inadequate
+  if (!module || !module.content || typeof module.content !== 'string') return false;
   
   // Check for minimum length (500 characters is pretty minimal)
   if (module.content.length < 500) return false;
   
   // Check for presence of key sections
-  const hasLearningObjectives = module.content.includes('Learning Objectives') || 
-                               module.content.includes('learning objectives') || 
-                               module.content.includes('objectives');
+  const hasLearningObjectives = 
+    module.content.includes('Learning Objectives') || 
+    module.content.includes('learning objectives') || 
+    module.content.includes('objectives');
                                
-  const hasVideoEmbed = module.content.includes('youtube.com/embed/') || 
-                        module.content.includes('youtu.be/');
+  const hasVideoEmbed = 
+    module.content.includes('youtube.com/embed/') || 
+    module.content.includes('youtu.be/');
                         
-  const hasQuiz = module.quiz && 
-                 Array.isArray(module.quiz.questions) && 
-                 module.quiz.questions.length >= 5;
+  const hasQuiz = 
+    module.quiz !== null && 
+    module.quiz !== undefined &&
+    typeof module.quiz === 'object' &&
+    module.quiz.questions !== undefined &&
+    Array.isArray(module.quiz.questions) && 
+    module.quiz.questions.length >= 5;
                  
   // A complete module should have objectives, video, and quiz
-  return hasLearningObjectives && hasVideoEmbed && hasQuiz;
+  return Boolean(hasLearningObjectives && hasVideoEmbed && hasQuiz);
 }
