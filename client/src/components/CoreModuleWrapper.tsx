@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import CoreSongExercise from "./CoreSongExercise";
 import CoreValueDetail from "./CoreValueDetail";
+import CoreValueQuiz from "./CoreValueQuiz";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Award, Music, BookOpen } from "lucide-react";
+import { Award, Music, BookOpen, FileQuestion } from "lucide-react";
 
 interface CoreModuleWrapperProps {
   moduleContent: string | null;
@@ -11,9 +12,10 @@ interface CoreModuleWrapperProps {
 }
 
 export default function CoreModuleWrapper({ moduleContent, onContinue }: CoreModuleWrapperProps) {
-  const [currentStage, setCurrentStage] = useState<"intro" | "song-exercise" | "core-values-detail" | "completed">("intro");
+  const [currentStage, setCurrentStage] = useState<"intro" | "song-exercise" | "core-values-detail" | "quiz" | "completed">("intro");
   const [songExerciseCompleted, setSongExerciseCompleted] = useState(false);
   const [coreValuesDetailCompleted, setCoreValuesDetailCompleted] = useState(false);
+  const [quizCompleted, setQuizCompleted] = useState(false);
   
   // Parse module content as HTML, with a fallback if content is null
   const contentHtml = { __html: moduleContent || '<p>Loading module content...</p>' } as { __html: string };
@@ -38,6 +40,11 @@ export default function CoreModuleWrapper({ moduleContent, onContinue }: CoreMod
   
   const handleCoreValuesDetailComplete = () => {
     setCoreValuesDetailCompleted(true);
+    setCurrentStage("quiz");
+  };
+  
+  const handleQuizComplete = () => {
+    setQuizCompleted(true);
     setCurrentStage("completed");
   };
   
