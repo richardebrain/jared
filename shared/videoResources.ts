@@ -160,7 +160,7 @@ export const videoResourcesData: VideoResource[] = [
     id: "video-011",
     title: "Supporting Children with Sensory Processing Differences",
     description: "Classroom accommodations and strategies for children with sensory needs.",
-    youtubeId: "dQw4w9WgXcQ", // Using a common YouTube video as placeholder
+    youtubeId: "D1G1l5FE38A", // Sensory processing in early childhood education
     category: ["inclusion", "sensory", "adaptations"],
     tags: ["sensory processing", "accommodations", "inclusive environment"],
     duration: 10,
@@ -175,7 +175,7 @@ export const videoResourcesData: VideoResource[] = [
     id: "video-012",
     title: "Effective Parent-Teacher Communication Strategies",
     description: "Building strong partnerships with families through various communication channels.",
-    youtubeId: "dQw4w9WgXcQ", // Using a common YouTube video as placeholder
+    youtubeId: "LO7vR1mxQIU", // Family engagement strategies
     category: ["family-engagement", "communication", "partnerships"],
     tags: ["parent communication", "family partnership", "relationship building"],
     duration: 13,
@@ -188,12 +188,363 @@ export const videoResourcesData: VideoResource[] = [
     id: "video-013",
     title: "Engaging Families in Children's Learning Journey",
     description: "Creative ways to involve families in curriculum and learning experiences.",
-    youtubeId: "dQw4w9WgXcQ", // Using a common YouTube video as placeholder
+    youtubeId: "kBzZENz7BlA", // Harvard Family Research Project on family engagement
     category: ["family-engagement", "curriculum", "community"],
     tags: ["family involvement", "learning at home", "community connections"],
     duration: 15,
     source: "Harvard Family Research Project",
     expertLevel: "advanced",
+    dateAdded: "2025-05-14",
+    featured: false
+  },
+  
+  // HEAD START TRAINING VIDEOS
+  {
+    id: "video-014",
+    title: "Powerful Interactions: How Teachers Connect with Children to Extend Learning",
+    description: "Learn how to have powerful interactions with children to extend their learning in meaningful ways.",
+    youtubeId: "3hT91-L5e6g",
+    category: ["teaching-methods", "interactions", "child-development"],
+    tags: ["teacher-child interactions", "extending learning", "Head Start"],
+    duration: 18,
+    source: "Head Start ECLKC",
+    expertLevel: "intermediate",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  {
+    id: "video-015",
+    title: "CLASS: The Power of Interactions",
+    description: "An overview of the CLASS framework and how teacher-child interactions impact development and learning.",
+    youtubeId: "waSEI59wxDw",
+    category: ["teaching-methods", "assessment", "CLASS"],
+    tags: ["CLASS assessment", "teacher-child interactions", "quality teaching"],
+    duration: 12,
+    source: "Teachstone",
+    expertLevel: "intermediate",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  {
+    id: "video-016",
+    title: "Trauma-Informed Care in Early Childhood",
+    description: "Understanding and addressing the impact of trauma on young children in early childhood settings.",
+    youtubeId: "lsLH8M2NovM",
+    category: ["trauma-informed", "social-emotional", "mental-health"],
+    tags: ["trauma", "ACEs", "responsive teaching", "safety"],
+    duration: 22,
+    source: "Head Start ECLKC",
+    expertLevel: "advanced",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  
+  // TED TALKS FOR TEACHERS
+  {
+    id: "video-017",
+    title: "How to Escape Education's Death Valley | Sir Ken Robinson",
+    description: "Sir Ken Robinson outlines three principles crucial for the human mind to flourish, and how education currently works against them.",
+    youtubeId: "wX78iKhInsc",
+    category: ["inspiration", "teaching-philosophy", "education-reform"],
+    tags: ["TED Talk", "creativity", "education reform", "personalized learning"],
+    duration: 19,
+    source: "TED",
+    expertLevel: "all-levels",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  {
+    id: "video-018",
+    title: "The Power of Play | Dr. Stuart Brown",
+    description: "Dr. Stuart Brown explores how play is essential for development and shapes the brain.",
+    youtubeId: "HHwXlcHcTHc",
+    category: ["play", "child-development", "neuroscience"],
+    tags: ["TED Talk", "play-based learning", "brain development", "creativity"],
+    duration: 27,
+    source: "TED",
+    expertLevel: "all-levels",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  {
+    id: "video-019",
+    title: "The Way We Teach Math Is Holding Women Back | Jo Boaler",
+    description: "Jo Boaler explains how we can redesign math education to provide more equitable opportunities for all children.",
+    youtubeId: "Mq3Ad7Pf5-0",
+    category: ["math", "equity", "teaching-methods"],
+    tags: ["TED Talk", "mathematics", "gender equity", "teaching approaches"],
+    duration: 15,
+    source: "TED",
+    expertLevel: "intermediate",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  
+  // MANDATED REPORTER TRAINING
+  {
+    id: "video-020",
+    title: "Early Childhood Educators as Mandated Reporters",
+    description: "Essential training for early childhood educators on recognizing and reporting suspected child abuse and neglect.",
+    youtubeId: "nMdgrSYK6-I",
+    category: ["mandated-reporting", "child-protection", "professional-responsibilities"],
+    tags: ["child abuse", "neglect", "reporting procedures", "signs of abuse"],
+    duration: 26,
+    source: "Childcare Education Institute",
+    expertLevel: "all-levels",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  
+  // BUILDING CHAPTER ONE PHILOSOPHY VIDEOS
+  {
+    id: "video-021",
+    title: "Every Child Needs a Champion | Rita Pierson",
+    description: "Rita Pierson's powerful message about the importance of building strong relationships with every child and becoming their champion.",
+    youtubeId: "SFnMTHhKdkw",
+    category: ["chapter-one-philosophy", "relationships", "inspiration"],
+    tags: ["TED Talk", "student connections", "relationships", "making a difference"],
+    duration: 8,
+    source: "TED",
+    expertLevel: "all-levels",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  {
+    id: "video-022",
+    title: "How To Find the Good in Every Child | Dr. Becky Bailey",
+    description: "Dr. Becky Bailey explains how to see beyond challenging behaviors to connect with every child.",
+    youtubeId: "5CTI7rGSYsw",
+    category: ["chapter-one-philosophy", "behavior", "connections"],
+    tags: ["challenging behaviors", "positive relationships", "seeing the good"],
+    duration: 16,
+    source: "Conscious Discipline",
+    expertLevel: "intermediate",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  
+  // STEM AND SCIENCE TEACHING
+  {
+    id: "video-023",
+    title: "Ramps and Pathways: Physics for Young Children",
+    description: "Explore how simple materials can be used to teach physics concepts to preschoolers through play.",
+    youtubeId: "UJY4Cgg4ps4",
+    category: ["stem", "science", "hands-on-learning"],
+    tags: ["physics", "ramps", "inquiry-based learning", "scientific method"],
+    duration: 14,
+    source: "NAEYC",
+    expertLevel: "beginner",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  {
+    id: "video-024",
+    title: "Math Talk: Supporting Mathematical Thinking in Early Childhood",
+    description: "Learn strategies for incorporating math language and concepts naturally throughout the day.",
+    youtubeId: "aXSSrIMXJz4",
+    category: ["stem", "math", "language"],
+    tags: ["math talk", "numerical concepts", "spatial reasoning"],
+    duration: 18,
+    source: "Development and Research in Early Math Education",
+    expertLevel: "intermediate",
+    dateAdded: "2025-05-14",
+    featured: false
+  },
+  
+  // LANGUAGE AND LITERACY
+  {
+    id: "video-025",
+    title: "Fostering Language Development Through Storybook Reading",
+    description: "Effective techniques for reading with young children to maximize language growth.",
+    youtubeId: "UrBxWz11Ysw",
+    category: ["literacy", "language", "reading"],
+    tags: ["book reading", "vocabulary", "dialogic reading", "comprehension"],
+    duration: 16,
+    source: "READ for Life",
+    expertLevel: "beginner",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  {
+    id: "video-026",
+    title: "Supporting Dual Language Learners in the Preschool Classroom",
+    description: "Strategies for creating an inclusive and supportive environment for children learning multiple languages.",
+    youtubeId: "09PrmLppQ1A",
+    category: ["language", "diversity", "inclusion"],
+    tags: ["dual language learners", "bilingualism", "cultural responsiveness"],
+    duration: 22,
+    source: "Head Start ECLKC",
+    expertLevel: "intermediate",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  
+  // HEALTH AND SAFETY
+  {
+    id: "video-027",
+    title: "Handwashing in Child Care Settings: Best Practices",
+    description: "Proper handwashing techniques and strategies for teaching handwashing to young children.",
+    youtubeId: "_KirHm_sYfI",
+    category: ["health-safety", "routines", "hygiene"],
+    tags: ["handwashing", "disease prevention", "health practices", "routines"],
+    duration: 7,
+    source: "CDC",
+    expertLevel: "beginner",
+    dateAdded: "2025-05-14",
+    featured: false
+  },
+  
+  // OUTDOOR AND NATURE PLAY
+  {
+    id: "video-028",
+    title: "The Outdoor Classroom: Learning in Nature",
+    description: "Benefits of outdoor learning environments and how to effectively use outdoor spaces for education.",
+    youtubeId: "MGo8vPVkGPM",
+    category: ["outdoor-play", "nature", "environment"],
+    tags: ["outdoor classroom", "nature-based learning", "risk taking"],
+    duration: 19,
+    source: "Natural Start Alliance",
+    expertLevel: "intermediate",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  
+  // MUSIC AND MOVEMENT
+  {
+    id: "video-029",
+    title: "Music and Movement in Early Childhood Education",
+    description: "How music and movement support brain development and learning across all domains.",
+    youtubeId: "gB2acdOIUEY",
+    category: ["music", "movement", "brain-development"],
+    tags: ["musical activities", "rhythmic movement", "brain development"],
+    duration: 12,
+    source: "Early Childhood Music and Movement Association",
+    expertLevel: "beginner",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  
+  // CHILD DEVELOPMENT
+  {
+    id: "video-030",
+    title: "The Science of Early Brain Development",
+    description: "Research-based overview of how experiences shape brain architecture in the early years.",
+    youtubeId: "cVc2nHumVxY",
+    category: ["brain-development", "neuroscience", "child-development"],
+    tags: ["brain architecture", "serve and return", "neural connections"],
+    duration: 20,
+    source: "Center on the Developing Child at Harvard University",
+    expertLevel: "intermediate",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  
+  // ADDITIONAL INSPIRATIONAL TALKS
+  {
+    id: "video-031",
+    title: "Do Schools Kill Creativity? | Sir Ken Robinson",
+    description: "Sir Ken Robinson makes an entertaining and profoundly moving case for creating an education system that nurtures (rather than undermines) creativity.",
+    youtubeId: "iG9CE55wbtY",
+    category: ["inspiration", "creativity", "teaching-philosophy"],
+    tags: ["TED Talk", "creativity", "arts education", "innovative thinking"],
+    duration: 20,
+    source: "TED",
+    expertLevel: "all-levels",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  {
+    id: "video-032",
+    title: "How Every Child Can Thrive by Five | Molly Wright",
+    description: "7-year-old Molly Wright shows how the early years are when our brains develop the most, and how simple interactions with children can have profound impacts.",
+    youtubeId: "aISXCw0pi94",
+    category: ["brain-development", "interactions", "early-years"],
+    tags: ["TED Talk", "serve and return", "child development", "brain science"],
+    duration: 8,
+    source: "TED",
+    expertLevel: "beginner",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  {
+    id: "video-033",
+    title: "Wiring the Brain for Success | Dr. Becky Bailey",
+    description: "Dr. Becky Bailey explains the brain science behind self-regulation and connection that underpins effective classroom management.",
+    youtubeId: "sr-OXkk3i8E",
+    category: ["brain-development", "self-regulation", "conscious-discipline"],
+    tags: ["TEDx Talk", "brain science", "emotional regulation", "connection"],
+    duration: 17,
+    source: "TEDx",
+    expertLevel: "intermediate",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  {
+    id: "video-034",
+    title: "Grit: The Power of Passion and Perseverance | Angela Lee Duckworth",
+    description: "Psychologist Angela Lee Duckworth explains her theory of 'grit' as a predictor of success and how to develop it in children.",
+    youtubeId: "H14bBuluwB8",
+    category: ["social-emotional", "mindset", "motivation"],
+    tags: ["TED Talk", "grit", "perseverance", "growth mindset"],
+    duration: 6,
+    source: "TED",
+    expertLevel: "all-levels",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  
+  // CONSCIOUS DISCIPLINE PRACTICAL EXAMPLES
+  {
+    id: "video-035",
+    title: "Conscious Discipline: Creating a Safe Place in Your Classroom",
+    description: "Dr. Becky Bailey demonstrates how to set up and use a Safe Place in the classroom to help children develop emotional regulation skills.",
+    youtubeId: "8Qm5Olgz_k4",
+    category: ["conscious-discipline", "classroom-management", "social-emotional"],
+    tags: ["safe place", "emotional regulation", "classroom setup", "calming strategies"],
+    duration: 12,
+    source: "Conscious Discipline",
+    expertLevel: "beginner",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  {
+    id: "video-036",
+    title: "Conscious Discipline: Teaching Children to Manage Emotions",
+    description: "Practical strategies for teaching children how to identify and manage their emotions effectively.",
+    youtubeId: "t28GAKLaaz0",
+    category: ["conscious-discipline", "social-emotional", "behavior"],
+    tags: ["emotions", "self-regulation", "calming techniques", "feelings"],
+    duration: 9,
+    source: "Conscious Discipline",
+    expertLevel: "intermediate",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  
+  // EFFECTIVE TEACHING STRATEGIES
+  {
+    id: "video-037",
+    title: "Effective Questioning Techniques in Early Childhood Education",
+    description: "Learn how to use open-ended questions to stimulate critical thinking and language development in young children.",
+    youtubeId: "5tJ2iVSXcfE",
+    category: ["teaching-methods", "language", "critical-thinking"],
+    tags: ["questioning", "open-ended questions", "inquiry", "discussion"],
+    duration: 11,
+    source: "Center for Early Childhood Education",
+    expertLevel: "intermediate",
+    dateAdded: "2025-05-14",
+    featured: false
+  },
+  {
+    id: "video-038",
+    title: "Documenting Children's Learning: Making Learning Visible",
+    description: "Strategies for documenting children's thinking and learning processes to deepen understanding and inform teaching.",
+    youtubeId: "trEQDf4jeOA",
+    category: ["assessment", "documentation", "observation"],
+    tags: ["documentation", "learning stories", "portfolios", "assessment"],
+    duration: 15,
+    source: "Center for Early Childhood Education",
+    expertLevel: "intermediate",
     dateAdded: "2025-05-14",
     featured: false
   }
