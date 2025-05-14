@@ -204,6 +204,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
         callbackURL: "/api/auth/google/callback",
         scope: ["profile", "email"],
+        // Add proper params for Replit environment
+        proxy: true,
       },
       async (accessToken: string, refreshToken: string, profile: any, done: any) => {
         try {
@@ -268,24 +270,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Google OAuth routes
-  app.get('/api/auth/google', 
-    passport.authenticate('google', { scope: ['profile', 'email'] })
-  );
+  app.get('/api/auth/google', (req, res, next) => {
+    console.log('Google OAuth request initiated');
+    passport.authenticate('google', { 
+      scope: ['profile', 'email'],
+      prompt: 'select_account'
+    })(req, res, next);
+  });
   
   // Google OAuth callback route
-  app.get('/api/auth/google/callback', 
+  app.get('/api/auth/google/callback', (req, res, next) => {
+    console.log('Google OAuth callback received');
     passport.authenticate('google', { 
-      failureRedirect: '/login',
+      failureRedirect: '/login?auth_error=google_failed',
       session: true
-    }),
-    (req, res) => {
-      // Successful authentication
-      if (req.user) {
-        req.session.userId = (req.user as User).id;
-      }
-      res.redirect('/dashboard');
+    })(req, res, next);
+  }, (req, res) => {
+    // Successful authentication
+    console.log('Google auth successful, user:', req.user ? 'exists' : 'null');
+    if (req.user) {
+      req.session.userId = (req.user as User).id;
+      console.log('Session userId set:', req.session.userId);
     }
-  );
+    res.redirect('/dashboard');
+  });
 
   app.get("/api/auth/me", requireAuth, async (req, res) => {
     try {

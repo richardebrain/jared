@@ -190,11 +190,18 @@ export default function Login() {
               console.error("Google auth error:", error);
               toast({
                 title: "Authentication failed",
-                description: "Google authentication failed. Please try again.",
+                description: "Please try logging in with username/password instead.",
                 variant: "destructive",
               });
             }}
           />
+          
+          <div className="mt-3 p-3 bg-amber-50 rounded-md border border-amber-100">
+            <p className="text-sm text-amber-800">
+              <span className="font-semibold block mb-1">Note:</span>
+              For testing, please use username: <strong>jlcookie20</strong> password: <strong>password</strong>
+            </p>
+          </div>
           
           <div className="mt-4 text-center">
             <p className="text-sm text-neutral-800">
