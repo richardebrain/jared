@@ -21,11 +21,13 @@ export interface ModuleContentCheckResult {
   title: string;
   hasAdequateContent: boolean;
   contentLength: number;
+  contentType?: string;  // Added to help debugging
   hasVideo: boolean;
   hasQuiz: boolean;
   quizQuestionCount: number;
   hasLearningObjectives: boolean;
   fixed: boolean;
+  error?: string;  // Added to capture any errors during check
 }
 
 /**
@@ -35,13 +37,37 @@ export interface ModuleContentCheckResult {
  * @returns Content check result
  */
 export function checkModuleContent(module: LearningModule): ModuleContentCheckResult {
-  // Safely extract values with null/undefined checking
-  const content = typeof module.content === 'string' ? module.content : '';
+  // Convert content to string, handling both string and object types
+  let contentString = '';
+  
+  if (typeof module.content === 'string') {
+    contentString = module.content;
+  } else if (typeof module.content === 'object' && module.content !== null) {
+    try {
+      contentString = typeof module.content.toString === 'function' 
+        ? module.content.toString()
+        : JSON.stringify(module.content);
+    } catch (error) {
+      console.error('Error converting module content to string:', error);
+      contentString = '';
+    }
+  }
+  
+  // Log content type for debugging
+  console.log(`Module ${module.id} content type: ${typeof module.content}`);
+  if (typeof module.content === 'object' && module.content !== null) {
+    try {
+      const keys = Object.keys(module.content);
+      console.log('Content object keys:', keys.length > 0 ? keys : '[empty object]');
+    } catch (error) {
+      console.log('Unable to get content object keys:', error);
+    }
+  }
   
   // Check for video embeds in content
   const hasVideo = 
-    content.includes('youtube.com/embed/') || 
-    content.includes('youtu.be/');
+    contentString.includes('youtube.com/embed/') || 
+    contentString.includes('youtu.be/');
   
   // Safely check for quiz structure
   const hasQuiz = 
@@ -61,9 +87,9 @@ export function checkModuleContent(module: LearningModule): ModuleContentCheckRe
   
   // Check for learning objectives in content
   const hasLearningObjectives = 
-    content.includes('Learning Objectives') || 
-    content.includes('learning objectives') || 
-    content.includes('objectives');
+    contentString.includes('Learning Objectives') || 
+    contentString.includes('learning objectives') || 
+    contentString.includes('objectives');
   
   // Check if content is adequate using helper from templates
   const isAdequate = Boolean(hasAdequateContent(module));
@@ -72,7 +98,8 @@ export function checkModuleContent(module: LearningModule): ModuleContentCheckRe
     moduleId: module.id,
     title: module.title,
     hasAdequateContent: isAdequate,
-    contentLength: content.length,
+    contentLength: contentString.length,
+    contentType: typeof module.content,
     hasVideo,
     hasQuiz,
     quizQuestionCount,

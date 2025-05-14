@@ -455,21 +455,43 @@ export function generateDefaultModuleContent(module: LearningModule): ModuleCont
  * @returns Boolean indicating if content meets minimum standards
  */
 export function hasAdequateContent(module: any): boolean {
-  // If no content at all or module is invalid, definitely inadequate
-  if (!module || !module.content || typeof module.content !== 'string') return false;
+  // If module is completely invalid, definitely inadequate
+  if (!module || module.content === null || module.content === undefined) return false;
+  
+  // Extract content as string, handling both string and object types
+  let contentString = '';
+  
+  if (typeof module.content === 'string') {
+    // If content is already a string, use it directly
+    contentString = module.content;
+  } else if (typeof module.content === 'object') {
+    // If content is an object, try to convert it to a string representation
+    try {
+      // For safety, try to stringify or use toString() if available
+      contentString = typeof module.content.toString === 'function' 
+        ? module.content.toString()
+        : JSON.stringify(module.content);
+    } catch (error) {
+      console.error('Error converting module content to string:', error);
+      return false;
+    }
+  } else {
+    // Unsupported content type
+    return false;
+  }
   
   // Check for minimum length (500 characters is pretty minimal)
-  if (module.content.length < 500) return false;
+  if (contentString.length < 500) return false;
   
   // Check for presence of key sections
   const hasLearningObjectives = 
-    module.content.includes('Learning Objectives') || 
-    module.content.includes('learning objectives') || 
-    module.content.includes('objectives');
+    contentString.includes('Learning Objectives') || 
+    contentString.includes('learning objectives') || 
+    contentString.includes('objectives');
                                
   const hasVideoEmbed = 
-    module.content.includes('youtube.com/embed/') || 
-    module.content.includes('youtu.be/');
+    contentString.includes('youtube.com/embed/') || 
+    contentString.includes('youtu.be/');
                         
   const hasQuiz = 
     module.quiz !== null && 
