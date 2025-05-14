@@ -298,12 +298,12 @@ export default function NotebookSourcesConfig({ isAdmin = false }: NotebookSourc
     try {
       const newSource = await apiRequest<DataSource>('/api/notebook-lm/sources/custom', {
         method: 'POST',
-        body: JSON.stringify({
+        data: {
           name: values.name,
           description: values.description,
           url: values.url,
           tags: values.tags,
-        }),
+        }
       });
       
       setSources(prev => [...prev, newSource]);

@@ -14,12 +14,24 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { z } from "zod";
 import MemoryStore from "memorystore";
 import { generateLessonPrompt, generateLessonContent } from "./lessonGenerator";
-import { generateRestrictedLessonContent, getConfig, updateConfig, resetConfig } from "./notebookLmPlugin";
-import { checkModuleContent } from "./moduleContentService";
 import { 
-  authorizedSources, customSources, DataSource, addCustomDataSource, 
-  toggleDataSourceStatus, getEnabledDataSources 
-} from "@shared/dataSources";
+  generateRestrictedLessonContent, 
+  getConfig, 
+  updateConfig, 
+  resetConfig, 
+  getAllDataSources,
+  toggleDataSource,
+  addCustomDataSource,
+  deleteCustomDataSource
+} from "./notebookLmPlugin";
+import { 
+  checkModuleContent, 
+  checkAllModulesContent,
+  fixModuleContent, 
+  fixAllModulesContent,
+  ModuleContentCheckResult 
+} from "./moduleContentService";
+import { DataSource, DataSourceCategory } from "@shared/dataSources";
 
 // Define our session data structure
 declare module 'express-session' {

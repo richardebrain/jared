@@ -6,7 +6,8 @@
  * language models like Perplexity AI to ensure educational integrity.
  */
 
-import { DataSource, getEnabledDataSources, getDataSourcesByTags, getDataSourcesByCategory, DataSourceCategory } from '@shared/dataSources';
+import axios from 'axios';
+import { DataSource, DataSourceCategory, defaultEducationalSources } from '@shared/dataSources';
 
 /**
  * Configuration for the notebook LM plugin
@@ -27,38 +28,36 @@ interface NotebookLmConfig {
  */
 const defaultConfig: NotebookLmConfig = {
   useStrictMode: true,
-  prioritizedSources: ['naeyc', 'zero-to-three', 'class', 'iters', 'ecers'],
+  prioritizedSources: [],
   excludedSources: [],
   allowGeneralKnowledge: false,
-  requiredSources: ['raising-arizona-preschool'],
+  requiredSources: ['raising-arizona-handbook', 'building-chapter-one'],
   relevanceThreshold: 0.7,
   categories: [
-    DataSourceCategory.EDUCATIONAL,
     DataSourceCategory.CURRICULUM,
+    DataSourceCategory.EDUCATIONAL,
     DataSourceCategory.ASSESSMENT
   ],
-  tags: ['early childhood', 'development', 'quality']
+  tags: []
 };
 
-// Store current configuration
 let currentConfig: NotebookLmConfig = { ...defaultConfig };
+let availableSources: DataSource[] = [...defaultEducationalSources];
+let customSources: DataSource[] = [];
 
 /**
  * Get the current configuration
  */
 export function getConfig(): NotebookLmConfig {
-  return { ...currentConfig };
+  return currentConfig;
 }
 
 /**
  * Update the configuration
  */
 export function updateConfig(config: Partial<NotebookLmConfig>): NotebookLmConfig {
-  currentConfig = {
-    ...currentConfig,
-    ...config
-  };
-  return { ...currentConfig };
+  currentConfig = { ...currentConfig, ...config };
+  return currentConfig;
 }
 
 /**
@@ -66,98 +65,167 @@ export function updateConfig(config: Partial<NotebookLmConfig>): NotebookLmConfi
  */
 export function resetConfig(): NotebookLmConfig {
   currentConfig = { ...defaultConfig };
-  return { ...currentConfig };
+  return currentConfig;
+}
+
+/**
+ * Get all available data sources
+ */
+export function getAllDataSources(): DataSource[] {
+  return [...availableSources, ...customSources];
 }
 
 /**
  * Get all available data sources based on current configuration
  */
 export function getAvailableDataSources(): DataSource[] {
-  const { categories, tags, excludedSources } = currentConfig;
-  
-  // Get sources by category and tags
-  let sources = getEnabledDataSources();
-  
-  if (categories && categories.length > 0) {
-    sources = sources.filter(source => 
-      categories.includes(source.category)
-    );
+  return getAllDataSources().filter(source => {
+    // Filter out explicitly excluded sources
+    if (currentConfig.excludedSources.includes(source.id)) {
+      return false;
+    }
+    
+    // If source is disabled, filter it out
+    if (!source.enabled) {
+      return false;
+    }
+    
+    // If strictMode is on, filter by categories
+    if (currentConfig.useStrictMode && currentConfig.categories.length > 0) {
+      if (!currentConfig.categories.includes(source.category)) {
+        return false;
+      }
+    }
+    
+    // If tags are specified, filter by tags
+    if (currentConfig.tags.length > 0) {
+      const hasMatchingTag = currentConfig.tags.some(tag => 
+        source.tags.includes(tag)
+      );
+      
+      if (!hasMatchingTag) {
+        return false;
+      }
+    }
+    
+    return true;
+  });
+}
+
+/**
+ * Toggle data source status (enabled/disabled)
+ */
+export function toggleDataSource(sourceId: string, enabled: boolean): DataSource | null {
+  // Check default sources
+  const defaultSourceIndex = availableSources.findIndex(s => s.id === sourceId);
+  if (defaultSourceIndex >= 0) {
+    availableSources[defaultSourceIndex].enabled = enabled;
+    return availableSources[defaultSourceIndex];
   }
   
-  if (tags && tags.length > 0) {
-    sources = sources.filter(source => 
-      tags.some(tag => source.tags.includes(tag))
-    );
+  // Check custom sources
+  const customSourceIndex = customSources.findIndex(s => s.id === sourceId);
+  if (customSourceIndex >= 0) {
+    customSources[customSourceIndex].enabled = enabled;
+    return customSources[customSourceIndex];
   }
   
-  // Filter out excluded sources
-  sources = sources.filter(source => 
-    !excludedSources.includes(source.id)
-  );
+  return null;
+}
+
+/**
+ * Add a custom data source
+ */
+export function addCustomDataSource(source: Omit<DataSource, 'id' | 'enabled' | 'isCustom'>): DataSource {
+  const newSource: DataSource = {
+    ...source,
+    id: `custom-${Date.now()}`,
+    enabled: true,
+    isCustom: true,
+    category: source.category || DataSourceCategory.CUSTOM
+  };
   
-  return sources;
+  customSources.push(newSource);
+  return newSource;
+}
+
+/**
+ * Delete a custom data source
+ */
+export function deleteCustomDataSource(sourceId: string): boolean {
+  const initialLength = customSources.length;
+  customSources = customSources.filter(s => s.id !== sourceId);
+  return customSources.length < initialLength;
 }
 
 /**
  * Create Perplexity API payload with data source restrictions
  */
 export function createPerplexityPayload(
-  userPrompt: string, 
-  systemPrompt: string = "You are an expert early childhood education mentor who creates personalized learning content for preschool teachers."
-): any {
-  // Get available data sources based on current config
-  const sources = getAvailableDataSources();
-  const sourceUrls = sources
-    .filter(s => s.url)
-    .map(s => s.url)
-    .filter(Boolean);
+  userQuery: string,
+  systemMessage: string = 'You are an experienced early childhood education expert. Answer questions thoroughly and accurately using only information from approved educational sources.'
+): Record<string, any> {
+  const approvedSources = getAvailableDataSources();
   
-  // Add required context about data sources
-  const sourceNames = sources.map(s => s.name).join(", ");
-  const sourceContext = `Use information exclusively from these trusted educational sources: ${sourceNames}.`;
+  // Add information about required sources
+  const requiredSourcesInfo = currentConfig.requiredSources
+    .map(id => approvedSources.find(s => s.id === id))
+    .filter(s => s !== undefined)
+    .map(s => `- ${s.name}: ${s.description}`);
   
-  // Create enhanced system prompt with source guidelines
-  let enhancedSystemPrompt = systemPrompt;
+  // Add information about prioritized sources
+  const prioritizedSourcesInfo = currentConfig.prioritizedSources
+    .map(id => approvedSources.find(s => s.id === id))
+    .filter(s => s !== undefined)
+    .map(s => `- ${s.name}: ${s.description}`);
   
-  if (currentConfig.useStrictMode) {
-    enhancedSystemPrompt = `${systemPrompt}\n\nIMPORTANT: ${sourceContext}`;
-    
-    if (!currentConfig.allowGeneralKnowledge) {
-      enhancedSystemPrompt += "\nDo NOT use information from sources outside this list. If you don't have relevant information from these sources, acknowledge the limitation.";
-    }
+  // Create augmented system message
+  let augmentedSystem = systemMessage;
+  
+  if (approvedSources.length > 0) {
+    augmentedSystem += '\n\nYou may ONLY use information from these approved sources:';
+    approvedSources.forEach(source => {
+      augmentedSystem += `\n- ${source.name}: ${source.description}`;
+    });
   }
   
-  // Add required sources emphasis if needed
-  if (currentConfig.requiredSources.length > 0) {
-    const requiredSourceNames = sources
-      .filter(s => currentConfig.requiredSources.includes(s.id))
-      .map(s => s.name)
-      .join(", ");
-    
-    enhancedSystemPrompt += `\n\nYou MUST incorporate information from these specific sources: ${requiredSourceNames}.`;
+  if (requiredSourcesInfo.length > 0) {
+    augmentedSystem += '\n\nYou MUST use information from these required sources:';
+    augmentedSystem += '\n' + requiredSourcesInfo.join('\n');
   }
   
-  // Create the payload
+  if (prioritizedSourcesInfo.length > 0) {
+    augmentedSystem += '\n\nPrioritize information from these sources:';
+    augmentedSystem += '\n' + prioritizedSourcesInfo.join('\n');
+  }
+  
+  if (!currentConfig.allowGeneralKnowledge) {
+    augmentedSystem += '\n\nDo NOT use general knowledge or information outside of these approved sources. If you cannot answer using only approved sources, say "I do not have enough information from approved sources to answer this question."';
+  } else {
+    augmentedSystem += '\n\nYou may supplement with general knowledge where approved sources are insufficient, but prioritize approved sources.';
+  }
+  
+  // Key focus on Building Chapter One
+  augmentedSystem += '\n\nAlways emphasize the "Building Chapter One" philosophy when relevant - the concept that teachers are writing the first chapter in each child\'s life story through their care and education.';
+  
+  // Create the final payload
   return {
     model: "llama-3.1-sonar-small-128k-online",
     messages: [
       {
         role: "system",
-        content: enhancedSystemPrompt
+        content: augmentedSystem
       },
       {
         role: "user",
-        content: userPrompt
+        content: userQuery
       }
     ],
     temperature: 0.2,
     top_p: 0.9,
-    max_tokens: 2500,
-    // Add domain filtering if strict mode is enabled and we have source URLs
-    ...(currentConfig.useStrictMode && sourceUrls.length > 0 ? {
-      search_domain_filter: sourceUrls
-    } : {}),
-    stream: false
+    max_tokens: 2048,
+    search_recency_filter: "month",
+    return_related_questions: false
   };
 }
 
@@ -166,41 +234,34 @@ export function createPerplexityPayload(
  */
 export async function generateRestrictedLessonContent(prompt: string): Promise<any> {
   try {
-    // Create payload with data source restrictions
-    const payload = createPerplexityPayload(prompt);
+    if (!process.env.PERPLEXITY_API_KEY) {
+      throw new Error('PERPLEXITY_API_KEY is not set');
+    }
     
-    // Fetch from Perplexity API
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
+    const systemMessage = `You are an expert early childhood educator with deep knowledge of teaching practices and child development. 
+Generate detailed, practical, and insightful lesson content for early childhood education teachers based on approved educational sources.
+Your content should be structured, comprehensive, and directly applicable to classroom settings.
+Include learning objectives, key concepts, implementation strategies, and reflection questions.
+Always emphasize the "Building Chapter One" philosophy - the concept that teachers are writing the first chapter in each child's life story.`;
+    
+    const payload = createPerplexityPayload(prompt, systemMessage);
+    
+    const response = await axios.post('https://api.perplexity.ai/chat/completions', payload, {
       headers: {
         'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
         'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
+      }
     });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Perplexity API error:", errorData);
-      throw new Error(`API request failed with status ${response.status}`);
-    }
-
-    const data = await response.json();
     
-    // Extract citations if present to verify sources being used
-    const citations = data.citations || [];
-    console.log("Content generated using these sources:", citations);
+    const generatedContent = response.data.choices[0].message.content;
+    const citations = response.data.citations || [];
     
-    // Parse the response content as JSON
-    try {
-      const content = data.choices[0].message.content;
-      return JSON.parse(content);
-    } catch (e) {
-      console.error("Failed to parse AI response as JSON:", e);
-      throw new Error("Failed to parse response from language model");
-    }
+    return {
+      content: generatedContent,
+      citations: citations
+    };
   } catch (error) {
-    console.error("Error calling Perplexity API with restricted sources:", error);
+    console.error('Error generating restricted lesson content:', error);
     throw error;
   }
 }

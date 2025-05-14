@@ -1,228 +1,131 @@
 /**
- * Data Sources Management System
+ * Data source management for the notebook LM plugin
  * 
- * This file defines the authorized data sources that can be used
- * by the language model when generating content.
+ * This file defines the data source types and categories used by the
+ * notebook LM plugin to restrict language models to only use data
+ * from selected pools of information.
  */
 
-/**
- * Interface for a data source
- */
-export interface DataSource {
-  id: string;
-  name: string;
-  description: string;
-  category: DataSourceCategory;
-  url?: string;
-  tags: string[];
-  enabled: boolean;
-}
-
-/**
- * Data source categories
- */
+// Data source categories
 export enum DataSourceCategory {
   EDUCATIONAL = 'educational',
+  CURRICULUM = 'curriculum', 
   ASSESSMENT = 'assessment',
-  CURRICULUM = 'curriculum',
   RESEARCH = 'research',
   PROFESSIONAL = 'professional',
   MEDIA = 'media',
   CUSTOM = 'custom'
 }
 
-/**
- * List of authorized educational data sources
- */
-export const authorizedSources: DataSource[] = [
-  // Educational Organizations
+// Data source interface
+export interface DataSource {
+  id: string;
+  name: string;
+  description: string;
+  url?: string;
+  category: DataSourceCategory;
+  tags: string[];
+  enabled: boolean;
+  isCustom: boolean;
+}
+
+// Default educational data sources
+export const defaultEducationalSources: DataSource[] = [
   {
     id: 'naeyc',
-    name: 'National Association for the Education of Young Children',
-    description: 'Professional organization that promotes excellence in early childhood education',
-    category: DataSourceCategory.EDUCATIONAL,
+    name: 'NAEYC Resources',
+    description: 'National Association for the Education of Young Children standards and resources',
     url: 'https://www.naeyc.org',
-    tags: ['early childhood', 'professional development', 'standards'],
-    enabled: true
-  },
-  {
-    id: 'zero-to-three',
-    name: 'ZERO TO THREE',
-    description: 'National nonprofit organization focused on infant and toddler development',
     category: DataSourceCategory.EDUCATIONAL,
-    url: 'https://www.zerotothree.org',
-    tags: ['infant', 'toddler', 'development', 'research'],
-    enabled: true
+    tags: ['standards', 'best practices', 'early childhood'],
+    enabled: true,
+    isCustom: false
   },
   {
-    id: 'head-start',
-    name: 'Head Start ECLKC',
-    description: 'Early Childhood Learning and Knowledge Center',
-    category: DataSourceCategory.EDUCATIONAL,
-    url: 'https://eclkc.ohs.acf.hhs.gov',
-    tags: ['early childhood', 'federal program', 'resources'],
-    enabled: true
+    id: 'ecers',
+    name: 'ECERS Assessment Framework',
+    description: 'Early Childhood Environment Rating Scale resources and guidelines',
+    url: 'https://ers.fpg.unc.edu',
+    category: DataSourceCategory.ASSESSMENT,
+    tags: ['assessment', 'environment', 'quality rating'],
+    enabled: true,
+    isCustom: false
   },
-  
-  // Curriculum Resources
   {
-    id: 'creative-curriculum',
-    name: 'The Creative Curriculum',
-    description: 'Research-based curriculum approach for early childhood education',
+    id: 'class',
+    name: 'CLASS Framework',
+    description: 'Classroom Assessment Scoring System resources and guidelines',
+    url: 'https://teachstone.com/class',
+    category: DataSourceCategory.ASSESSMENT,
+    tags: ['assessment', 'teacher-child interactions', 'quality rating'],
+    enabled: true,
+    isCustom: false
+  },
+  {
+    id: 'raising-arizona-handbook',
+    name: 'Raising Arizona Handbook',
+    description: 'Official Raising Arizona Preschool handbook and materials',
     category: DataSourceCategory.CURRICULUM,
-    tags: ['curriculum', 'developmentally appropriate', 'framework'],
-    enabled: true
-  },
-  {
-    id: 'highscope',
-    name: 'HighScope',
-    description: 'Active learning educational approach for early childhood',
-    category: DataSourceCategory.CURRICULUM,
-    url: 'https://highscope.org',
-    tags: ['curriculum', 'active learning', 'plan-do-review'],
-    enabled: true
+    tags: ['handbook', 'policies', 'procedures', 'core values'],
+    enabled: true,
+    isCustom: false
   },
   {
     id: 'conscious-discipline',
     name: 'Conscious Discipline',
-    description: 'Comprehensive classroom management program and social-emotional curriculum',
-    category: DataSourceCategory.CURRICULUM,
+    description: 'Evidence-based social and emotional learning methodology',
     url: 'https://consciousdiscipline.com',
-    tags: ['social-emotional', 'classroom management', 'brain-based'],
-    enabled: true
-  },
-  
-  // Assessment Tools
-  {
-    id: 'iters',
-    name: 'Infant/Toddler Environment Rating Scale (ITERS)',
-    description: 'Assessment tool for evaluating infant and toddler care settings',
-    category: DataSourceCategory.ASSESSMENT,
-    tags: ['assessment', 'environment', 'quality'],
-    enabled: true
+    category: DataSourceCategory.CURRICULUM,
+    tags: ['social-emotional', 'classroom management', 'self-regulation'],
+    enabled: true,
+    isCustom: false
   },
   {
-    id: 'ecers',
-    name: 'Early Childhood Environment Rating Scale (ECERS)',
-    description: 'Assessment tool for evaluating early childhood environments',
-    category: DataSourceCategory.ASSESSMENT,
-    tags: ['assessment', 'environment', 'quality'],
-    enabled: true
+    id: 'highscope',
+    name: 'HighScope Curriculum',
+    description: 'Active learning educational approach',
+    url: 'https://highscope.org',
+    category: DataSourceCategory.CURRICULUM,
+    tags: ['curriculum', 'active learning', 'child-centered'],
+    enabled: true,
+    isCustom: false
   },
   {
-    id: 'class',
-    name: 'Classroom Assessment Scoring System (CLASS)',
-    description: 'Observation tool for assessing classroom quality',
-    category: DataSourceCategory.ASSESSMENT,
-    url: 'https://teachstone.com/class',
-    tags: ['assessment', 'teacher-child interactions', 'quality'],
-    enabled: true
+    id: 'head-start',
+    name: 'Head Start Framework',
+    description: 'Early Learning Outcomes Framework and resources',
+    url: 'https://eclkc.ohs.acf.hhs.gov',
+    category: DataSourceCategory.EDUCATIONAL,
+    tags: ['framework', 'outcomes', 'standards'],
+    enabled: true,
+    isCustom: false
   },
-  
-  // Research Resources
   {
-    id: 'cdc-early',
-    name: 'CDC Learn the Signs. Act Early',
-    description: 'CDC resources on child development milestones',
+    id: 'zero-to-three',
+    name: 'Zero to Three',
+    description: 'Resources for infant and toddler development',
+    url: 'https://zerotothree.org',
     category: DataSourceCategory.RESEARCH,
-    url: 'https://www.cdc.gov/ncbddd/actearly',
-    tags: ['development', 'milestones', 'screening'],
-    enabled: true
+    tags: ['infant', 'toddler', 'development'],
+    enabled: true,
+    isCustom: false
   },
   {
-    id: 'harvard-center',
-    name: 'Harvard Center on the Developing Child',
-    description: 'Research on early childhood development and policy',
-    category: DataSourceCategory.RESEARCH,
-    url: 'https://developingchild.harvard.edu',
-    tags: ['brain development', 'research', 'policy'],
-    enabled: true
+    id: 'mindful-mornings',
+    name: 'Mindful Mornings',
+    description: 'Raising Arizona mindfulness practices and core values',
+    category: DataSourceCategory.CURRICULUM,
+    tags: ['mindfulness', 'core values', 'social-emotional'],
+    enabled: true,
+    isCustom: false
   },
-  
-  // Professional Development
   {
-    id: 'pbs-teachers',
-    name: 'PBS Teachers',
-    description: 'Educational resources from PBS',
-    category: DataSourceCategory.PROFESSIONAL,
-    url: 'https://az.pbslearningmedia.org',
-    tags: ['resources', 'media', 'activities'],
-    enabled: true
-  },
-  
-  // Media Resources
-  {
-    id: 'raising-arizona-preschool',
-    name: 'Raising Arizona Preschool',
-    description: 'Custom content from Raising Arizona Preschool',
-    category: DataSourceCategory.MEDIA,
-    tags: ['raising arizona', 'custom', 'philosophy'],
-    enabled: true
+    id: 'building-chapter-one',
+    name: 'Building Chapter One',
+    description: 'Raising Arizona philosophy of building Chapter One into each child',
+    category: DataSourceCategory.CURRICULUM,
+    tags: ['philosophy', 'development', 'core values'],
+    enabled: true,
+    isCustom: false
   }
 ];
-
-/**
- * Custom data sources added by the organization
- */
-export const customSources: DataSource[] = [];
-
-/**
- * Get all enabled data sources
- */
-export function getEnabledDataSources(): DataSource[] {
-  return [...authorizedSources, ...customSources].filter(source => source.enabled);
-}
-
-/**
- * Get data sources by category
- */
-export function getDataSourcesByCategory(category: DataSourceCategory): DataSource[] {
-  return getEnabledDataSources().filter(source => source.category === category);
-}
-
-/**
- * Get data sources by tags
- */
-export function getDataSourcesByTags(tags: string[]): DataSource[] {
-  if (!tags || tags.length === 0) return getEnabledDataSources();
-  
-  return getEnabledDataSources().filter(source => 
-    tags.some(tag => source.tags.includes(tag))
-  );
-}
-
-/**
- * Add a custom data source
- */
-export function addCustomDataSource(source: Omit<DataSource, 'id' | 'category'>): DataSource {
-  const newSource: DataSource = {
-    ...source,
-    id: `custom-${Date.now()}`,
-    category: DataSourceCategory.CUSTOM,
-    enabled: true
-  };
-  
-  customSources.push(newSource);
-  return newSource;
-}
-
-/**
- * Toggle data source enabled status
- */
-export function toggleDataSourceStatus(sourceId: string, enabled: boolean): boolean {
-  // Try to find in authorized sources
-  const authSource = authorizedSources.find(s => s.id === sourceId);
-  if (authSource) {
-    authSource.enabled = enabled;
-    return true;
-  }
-  
-  // Try to find in custom sources
-  const customSource = customSources.find(s => s.id === sourceId);
-  if (customSource) {
-    customSource.enabled = enabled;
-    return true;
-  }
-  
-  return false;
-}
