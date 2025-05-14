@@ -70,13 +70,21 @@ export default function VideoResourceCard({
             // A real implementation would do more thorough checks
             // Here we're simulating by checking if the iframe loads
             setTimeout(() => {
+              // Make sure the YouTube ID is clean (trim any whitespace)
+              const cleanYoutubeId = video.youtubeId.trim();
+              
               // Report the validation result
               apiRequest('/api/videos/validate', {
                 method: 'POST',
                 data: {
                   videoId: video.id,
-                  youtubeId: video.youtubeId,
+                  youtubeId: cleanYoutubeId,
                   isValid: !videoError
+                }
+              }).then(() => {
+                if (videoError) {
+                  // Log unavailable videos to help identify them for replacement
+                  console.warn(`Video unavailable: ${video.id} (${cleanYoutubeId}) - "${video.title}"`);
                 }
               }).catch(err => console.error('Error validating video:', err));
             }, 3000); // Wait 3 seconds to check

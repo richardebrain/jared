@@ -727,7 +727,7 @@ export const videoResourcesData: VideoResource[] = [
     id: "video-052",
     title: "Making Connections with Greetings at the Door",
     description: "Learn how greeting each child at the door helps build relationships and sets a positive tone for learning.",
-    youtubeId: " cistNfEvPHk",
+    youtubeId: "GwdtVzitHLM", // "Morning Greeting Strategies" from Edutopia
     category: ["classroom-management", "relationships", "mindful-mornings"],
     tags: ["greetings", "door greetings", "relationships", "classroom climate"],
     duration: 3,
