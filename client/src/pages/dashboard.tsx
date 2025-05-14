@@ -217,7 +217,7 @@ export default function Dashboard() {
   
   return (
     <div className="min-h-screen bg-neutral-50">
-      <Header user={user} />
+      <Header />
       
       {/* Dashboard Header with Bear Bucks and Progress */}
       <div className="bg-gradient-to-r from-purple-100 to-indigo-100 p-6">
@@ -287,7 +287,7 @@ export default function Dashboard() {
                   <span className="text-sm font-medium">Level {user?.level || 1}</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2.5 mb-1">
-                  <Progress value={(user?.points || 0) % 300 / 300 * 100} className="h-2.5" />
+                  <Progress value={((user?.points || 0) % 300) / 300 * 100} className="h-2.5" />
                 </div>
                 <p className="text-xs text-gray-500 text-right">{300 - ((user?.points || 0) % 300)} points needed</p>
               </div>

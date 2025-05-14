@@ -108,8 +108,7 @@ export default function LearningModulePage() {
   // Update progress mutation
   const { mutate: updateProgress, isPending } = useMutation({
     mutationFn: async (data: { moduleId: number; progress: number; completed: boolean }) => {
-      const response = await apiRequest("POST", "/api/progress", data);
-      return await response.json();
+      return await apiRequest("/api/progress", { method: "POST", data });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
