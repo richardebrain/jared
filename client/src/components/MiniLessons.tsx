@@ -1333,7 +1333,7 @@ export function MiniLessons() {
                             </div>
                             
                             <div>
-                              <h4 className="text-md font-medium mb-2">Body Awareness Activities for Early Childhood</h4>
+                              <h4 className="text-md font-medium mb-2">Building Classroom Community Through Morning Routines</h4>
                               <div className="aspect-video bg-black rounded-lg overflow-hidden">
                                 <iframe 
                                   width="100%" 
@@ -1347,7 +1347,7 @@ export function MiniLessons() {
                                 ></iframe>
                               </div>
                               <p className="text-sm text-muted-foreground mt-1">
-                                Age-appropriate body scan and awareness activities that help children connect with their physical sensations in a mindful way.
+                                Learn how consistent morning routines help foster a strong sense of community and belonging in preschool classrooms.
                               </p>
                             </div>
                           </div>
