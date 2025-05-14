@@ -684,8 +684,22 @@ export function MiniLessons() {
   });
 
   // Handle completing a mini-lesson
+  // Track if the user has watched a video or played a matching game
+  const [hasWatchedVideo, setHasWatchedVideo] = useState(false);
+  const [hasPlayedMatchingGame, setHasPlayedMatchingGame] = useState(false);
+  
   const handleCompleteMiniLesson = () => {
     if (!selectedLesson) return;
+    
+    // Check if the user has watched a video or played the matching game
+    if (!hasWatchedVideo && !hasPlayedMatchingGame && !quizCompleted) {
+      toast({
+        title: "Action Required",
+        description: "Please watch at least one video or complete the matching game before finishing this lesson.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     // Award points equal to the duration plus any bonus points from the quiz
     const basePoints = selectedLesson.duration;
