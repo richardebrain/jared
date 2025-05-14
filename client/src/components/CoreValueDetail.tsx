@@ -18,6 +18,8 @@ export default function CoreValueDetail({ onComplete }: CoreValueDetailProps) {
   const [audioPlaying, setAudioPlaying] = useState(false);
   const [selectedActor, setSelectedActor] = useState("morgan-freeman");
   const [completedValues, setCompletedValues] = useState<string[]>([]);
+  const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
+  const [storySelections, setStorySelections] = useState<Record<string, number>>({});
   const { speakText } = useSoundEffects();
   const narrationRef = useRef<{ cancel: () => void } | null>(null);
 
@@ -79,6 +81,66 @@ Weeks later, when a new family moved in and Lila once again felt unmoored, she c
         "Well-prepared teachers can adapt to unexpected situations",
         "Having backup plans ensures learning continues despite disruptions",
         "Thoughtful preparation allows for deeper, more meaningful activities"
+      ],
+      stories: [
+        {
+          title: "Mr. Julian's Monday Morning",
+          text: `The classroom door swung open at 6:45 AM as Mr. Julian arrived, a full hour before his preschoolers would bounce through the same door. He set his coffee down and surveyed the quiet room with a satisfied smile. Yesterday evening, he had stayed an extra thirty minutes to arrange everything for today's volcano science activity.
+
+The red and orange tissue paper strips were neatly cut and stored in labeled containers. The baking soda and vinegar sat ready on the counter, safely out of reach. A plastic tarp covered the demonstration table. The children's science journals—simple stapled pages with their names carefully written—were stacked and ready for their observations and drawings.
+
+But Mr. Julian's preparation went beyond materials. He had practiced the demonstration at home with his own children, noting exactly how much baking soda created the perfect eruption. He had prepared simple scientific vocabulary cards with pictures to introduce words like "eruption," "lava," and "chemical reaction." And knowing that four-year-old Zuri had a sensitivity to loud noises, he had brought noise-canceling headphones for her to wear during the demonstration.
+
+At 7:15 AM, his teaching assistant Ms. Rebecca arrived. "Wow, everything's ready to go!" she exclaimed.
+
+"I learned my lesson last year," Mr. Julian laughed. "Remember the butterfly release when I forgot to check if the larvae had all formed chrysalides? Half the children were in tears when they saw caterpillars instead of butterflies!"
+
+The morning flowed smoothly until an unexpected fire drill interrupted their science time. While other classrooms scrambled to line up, Mr. Julian calmly reached for the emergency backpack he kept updated and hanging by the door. Inside were current attendance sheets, emergency contact information, first aid supplies, and even small comfort toys for children who might become anxious.
+
+After returning from the drill, he seamlessly transitioned the children to their volcano activity, pulling out a backup lesson plan he had adjusted for shorter time. Though they had less time for the activity, the children were engaged and excited, their learning undiminished by the interruption.
+
+At pickup time, parent after parent commented on their children's enthusiasm about volcanoes. "Jayden couldn't stop talking about 'chemical reactions,'" one mother shared with a smile.
+
+As Mr. Julian tidied up, his director stepped in. "That fire drill could have derailed your whole morning, but your class hardly missed a beat. What's your secret?"
+
+Mr. Julian smiled. "No secret—just preparation. When I'm prepared, I can handle whatever comes our way, and the children feel that security. They know that even when things change unexpectedly, they're still in capable hands."
+
+That evening, as he planned for tomorrow's extension activity, Mr. Julian reflected on how being prepared wasn't just about having materials ready—it was about creating an environment where children felt secure enough to focus on learning rather than worrying about what might happen next. And that kind of preparation was always worth the extra time.`,
+          duration: "5 minutes"
+        },
+        {
+          title: "Ms. June's Prepared Morning",
+          text: `"Ms. June's Prepared Morning"
+
+The Story:
+Ms. June loved teaching toddlers—tiny shoes, tiny chairs, and big feelings everywhere. One afternoon at nap time, she did her prep:
+
+Sketched tomorrow's songs and fingerplays on a sticky note.
+
+Restocked her "oops" bag with diapers, wipes, spare clothes, and a small toy.
+
+Took three deep breaths, thinking of one thing she was grateful for.
+
+The next morning, the classroom door barely opened when little Rosa toddled in—barely awake and with a fresh diaper rash. Rosa screamed at circle time, wiggling so much Ms. June almost lost her patience.
+
+But because Ms. June had prepared:
+
+Spare Clothes & Comfort Toy: She slipped Rosa into clean shorts and handed her the soft frog toy. Instantly, Rosa's crying slowed to sniffles.
+
+Planned Calming Song: When the group got noisy, Ms. June started the "Quiet as a Mouse" fingerplay she'd jotted down. The toddlers hushed, watched her calm movements, and joined in.
+
+Mindful Moment: Before snack time, she led the children in "five little breaths"—breathe in like smelling cookies, breathe out like blowing out candles. Even Rosa joined, sitting quietly.
+
+The Difference:
+
+For Rosa: She felt seen and safe—her discomfort soothed by quick care and gentle rhythm.
+
+For Ms. June: No tears of frustration—just relief and pride in a smooth morning. She knew her prep had turned chaos into calm.
+
+Takeaway:
+A few minutes of nap-time planning, a well-stocked bag, and a mindful breath can transform a rocky morning into a loving, laughter-filled day—for both teacher and child.`,
+          duration: "3 minutes"
+        }
       ],
       story: {
         title: "Mr. Julian's Monday Morning",
@@ -300,11 +362,26 @@ Tool for staying positive when you're sad:
     setCurrentTab(value);
     setActiveStory(null);
     setAudioPlaying(false);
+    
+    // Use saved story selection for this tab if available, otherwise default to 0
+    const savedSelection = storySelections[value] || 0;
+    setSelectedStoryIndex(savedSelection);
   };
 
   const playStoryAudio = (valueId: string) => {
     const currentValue = coreValues.find(value => value.id === valueId);
-    if (!currentValue || !currentValue.story) return;
+    if (!currentValue) return;
+    
+    let storyText = '';
+    
+    // Get the appropriate story text based on what's available
+    if (currentValue.stories && currentValue.stories.length > 0) {
+      storyText = currentValue.stories[selectedStoryIndex].text;
+    } else if (currentValue.story) {
+      storyText = currentValue.story.text;
+    } else {
+      return; // No story available
+    }
     
     setActiveStory(valueId);
     setAudioPlaying(true);
@@ -314,7 +391,7 @@ Tool for staying positive when you're sad:
     
     // Start text-to-speech narration
     narrationRef.current = speakText(
-      currentValue.story.text,
+      storyText,
       actorName,
       () => {
         // When narration is complete
@@ -408,80 +485,184 @@ Tool for staying positive when you're sad:
                     </ul>
                   </div>
                   
-                  {value.story && (
+                  {(value.story || (value.stories && value.stories.length > 0)) && (
                     <div className="mt-6">
-                      <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-lg font-semibold">Story: {value.story.title}</h3>
-                        <Badge variant="outline" className="text-xs">
-                          <Clock className="h-3 w-3 mr-1 inline" />
-                          {value.story.duration}
-                        </Badge>
-                      </div>
-                      
-                      <Card className="bg-slate-50">
-                        <CardHeader className="pb-2">
-                          <div className="flex justify-between items-center">
-                            <div className="flex space-x-4">
-                              <div>
-                                <Label htmlFor="actor-voice" className="text-xs">Listen in your favorite actor's voice</Label>
-                                <Select value={selectedActor} onValueChange={setSelectedActor}>
-                                  <SelectTrigger id="actor-voice" className="w-[180px] mt-1">
-                                    <SelectValue placeholder="Select actor" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {actorVoices.map(actor => (
-                                      <SelectItem key={actor.id} value={actor.id}>
-                                        {actor.name}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
+                      {value.stories && value.stories.length > 0 ? (
+                        <>
+                          <div className="flex justify-between items-center mb-2">
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-lg font-semibold">Story:</h3>
+                              <Select 
+                                value={selectedStoryIndex.toString()} 
+                                onValueChange={(val) => {
+                                  const index = parseInt(val);
+                                  setSelectedStoryIndex(index);
+                                  // Save the selection for this tab
+                                  setStorySelections({
+                                    ...storySelections,
+                                    [value.id]: index
+                                  });
+                                }}
+                              >
+                                <SelectTrigger className="w-[250px]">
+                                  <SelectValue placeholder="Select a story" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {value.stories.map((story, index) => (
+                                    <SelectItem key={index} value={index.toString()}>
+                                      {story.title}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <Badge variant="outline" className="text-xs">
+                              <Clock className="h-3 w-3 mr-1 inline" />
+                              {value.stories[selectedStoryIndex].duration}
+                            </Badge>
+                          </div>
+                          
+                          <Card className="bg-slate-50">
+                            <CardHeader className="pb-2">
+                              <div className="flex justify-between items-center">
+                                <div className="flex space-x-4">
+                                  <div>
+                                    <Label htmlFor="actor-voice" className="text-xs">Listen in your favorite actor's voice</Label>
+                                    <Select value={selectedActor} onValueChange={setSelectedActor}>
+                                      <SelectTrigger id="actor-voice" className="w-[180px] mt-1">
+                                        <SelectValue placeholder="Select actor" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {actorVoices.map(actor => (
+                                          <SelectItem key={actor.id} value={actor.id}>
+                                            {actor.name}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  
+                                  <div className="flex items-end">
+                                    {audioPlaying && activeStory === value.id ? (
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        onClick={stopStoryAudio}
+                                        className="flex items-center"
+                                      >
+                                        <PauseCircle className="h-4 w-4 mr-1" />
+                                        Stop Narration
+                                      </Button>
+                                    ) : (
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        onClick={() => playStoryAudio(value.id)}
+                                        className="flex items-center"
+                                      >
+                                        <Volume2 className="h-4 w-4 mr-1" />
+                                        Read Aloud
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
-                              
-                              <div className="flex items-end">
+                            </CardHeader>
+                            
+                            <CardContent>
+                              <div className="prose max-w-none">
                                 {audioPlaying && activeStory === value.id ? (
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    onClick={stopStoryAudio}
-                                    className="flex items-center"
-                                  >
-                                    <PauseCircle className="h-4 w-4 mr-1" />
-                                    Stop Narration
-                                  </Button>
+                                  <div className="text-center py-6">
+                                    <div className="animate-pulse mb-2">
+                                      <Volume2 className="h-8 w-8 mx-auto text-primary" />
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">
+                                      {actorVoices.find(a => a.id === selectedActor)?.name} is narrating the story...
+                                    </p>
+                                  </div>
                                 ) : (
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    onClick={() => playStoryAudio(value.id)}
-                                    className="flex items-center"
-                                  >
-                                    <Volume2 className="h-4 w-4 mr-1" />
-                                    Read Aloud
-                                  </Button>
+                                  <p className="whitespace-pre-line text-sm">{value.stories[selectedStoryIndex].text}</p>
                                 )}
                               </div>
-                            </div>
+                            </CardContent>
+                          </Card>
+                        </>
+                      ) : value.story && (
+                        <>
+                          <div className="flex justify-between items-center mb-2">
+                            <h3 className="text-lg font-semibold">Story: {value.story.title}</h3>
+                            <Badge variant="outline" className="text-xs">
+                              <Clock className="h-3 w-3 mr-1 inline" />
+                              {value.story.duration}
+                            </Badge>
                           </div>
-                        </CardHeader>
-                        
-                        <CardContent>
-                          <div className="prose max-w-none">
-                            {audioPlaying && activeStory === value.id ? (
-                              <div className="text-center py-6">
-                                <div className="animate-pulse mb-2">
-                                  <Volume2 className="h-8 w-8 mx-auto text-primary" />
+                          
+                          <Card className="bg-slate-50">
+                            <CardHeader className="pb-2">
+                              <div className="flex justify-between items-center">
+                                <div className="flex space-x-4">
+                                  <div>
+                                    <Label htmlFor="actor-voice" className="text-xs">Listen in your favorite actor's voice</Label>
+                                    <Select value={selectedActor} onValueChange={setSelectedActor}>
+                                      <SelectTrigger id="actor-voice" className="w-[180px] mt-1">
+                                        <SelectValue placeholder="Select actor" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {actorVoices.map(actor => (
+                                          <SelectItem key={actor.id} value={actor.id}>
+                                            {actor.name}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  
+                                  <div className="flex items-end">
+                                    {audioPlaying && activeStory === value.id ? (
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        onClick={stopStoryAudio}
+                                        className="flex items-center"
+                                      >
+                                        <PauseCircle className="h-4 w-4 mr-1" />
+                                        Stop Narration
+                                      </Button>
+                                    ) : (
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        onClick={() => playStoryAudio(value.id)}
+                                        className="flex items-center"
+                                      >
+                                        <Volume2 className="h-4 w-4 mr-1" />
+                                        Read Aloud
+                                      </Button>
+                                    )}
+                                  </div>
                                 </div>
-                                <p className="text-sm text-muted-foreground">
-                                  {actorVoices.find(a => a.id === selectedActor)?.name} is narrating the story...
-                                </p>
                               </div>
-                            ) : (
-                              <p className="whitespace-pre-line text-sm">{value.story.text}</p>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
+                            </CardHeader>
+                            
+                            <CardContent>
+                              <div className="prose max-w-none">
+                                {audioPlaying && activeStory === value.id ? (
+                                  <div className="text-center py-6">
+                                    <div className="animate-pulse mb-2">
+                                      <Volume2 className="h-8 w-8 mx-auto text-primary" />
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">
+                                      {actorVoices.find(a => a.id === selectedActor)?.name} is narrating the story...
+                                    </p>
+                                  </div>
+                                ) : (
+                                  <p className="whitespace-pre-line text-sm">{value.story.text}</p>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </>
+                      )}
                     </div>
                   )}
                   
