@@ -406,34 +406,51 @@ export default function Dashboard() {
                         <div>
                           <h3 className="ac-card-title">Raising Arizona's CORE Values Training</h3>
                           <p className="ac-card-description">
-                            Our flagship training module on the 5 core values: Consistency, Organization, Responsibility, Engagement, and Support
+                            Our flagship training module on the 5 core values: Consistency, Preparedness, Commitment, Caring, and Positivity
                           </p>
                         </div>
                       </div>
                     </div>
                     <div className="p-4">
                       <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 mb-4">
-                        {[18, 19, 20, 21, 22].map((moduleId) => {
-                          const coreModule = modules?.find(m => m.id === moduleId);
-                          return (
-                            <div 
-                              key={moduleId}
-                              className="bg-white rounded-lg p-3 shadow-sm border border-amber-200 cursor-pointer hover:bg-amber-50 transition" 
-                              onClick={() => handleModuleSelect(moduleId)}
-                            >
+                        {/* Display the single Core Values module */}
+                        <div 
+                          className="bg-white rounded-lg p-3 shadow-sm border border-amber-200 cursor-pointer hover:bg-amber-50 transition col-span-5"
+                          onClick={() => handleModuleSelect(33)}
+                        >
+                          <div className="flex justify-center space-x-6 py-2">
+                            <div className="text-center">
                               <div className="text-amber-600 mb-1 text-center">
-                                {moduleId === 18 && <span className="text-xl">C</span>}
-                                {moduleId === 19 && <span className="text-xl">O</span>}
-                                {moduleId === 20 && <span className="text-xl">R</span>}
-                                {moduleId === 21 && <span className="text-xl">E</span>}
-                                {moduleId === 22 && <span className="text-xl">+</span>}
+                                <span className="text-xl">C</span>
                               </div>
-                              <div className="text-center text-sm font-medium">
-                                {coreModule?.title.split(":")[1] || coreModule?.title || "Core Value"}
-                              </div>
+                              <div className="text-xs font-medium">Consistency</div>
                             </div>
-                          );
-                        })}
+                            <div className="text-center">
+                              <div className="text-amber-600 mb-1 text-center">
+                                <span className="text-xl">P</span>
+                              </div>
+                              <div className="text-xs font-medium">Preparedness</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-amber-600 mb-1 text-center">
+                                <span className="text-xl">C</span>
+                              </div>
+                              <div className="text-xs font-medium">Commitment</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-amber-600 mb-1 text-center">
+                                <span className="text-xl">C</span>
+                              </div>
+                              <div className="text-xs font-medium">Caring</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-amber-600 mb-1 text-center">
+                                <span className="text-xl">P</span>
+                              </div>
+                              <div className="text-xs font-medium">Positivity</div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                       <div className="flex justify-center">
                         <Link to="/core-values">
@@ -465,9 +482,24 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div className="p-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4">
-                        {[13, 14, 15, 24].map((moduleId) => {
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                        {/* These are the IDs we verified in the database */}
+                        {[13, 14, 15].map((moduleId) => {
                           const mindfulModule = modules?.find(m => m.id === moduleId);
+                          let icon = "🧘";
+                          let title = "Mindful Module";
+                          
+                          if (moduleId === 13) {
+                            icon = "🫁";
+                            title = "Breathing Exercises";
+                          } else if (moduleId === 14) {
+                            icon = "💭";
+                            title = "Self-Affirmations";
+                          } else if (moduleId === 15) {
+                            icon = "🙏";
+                            title = "Gratitude Practices";
+                          }
+                          
                           return (
                             <div 
                               key={moduleId}
@@ -475,17 +507,28 @@ export default function Dashboard() {
                               onClick={() => handleModuleSelect(moduleId)}
                             >
                               <div className="text-center mb-2">
-                                {moduleId === 13 && <span className="text-blue-500 text-xl">🫁</span>}
-                                {moduleId === 14 && <span className="text-blue-500 text-xl">💭</span>}
-                                {moduleId === 15 && <span className="text-blue-500 text-xl">🙏</span>}
-                                {moduleId === 24 && <span className="text-blue-500 text-xl">👋</span>}
+                                <span className="text-blue-500 text-xl">{icon}</span>
                               </div>
                               <div className="text-center text-sm font-medium">
-                                {mindfulModule?.title.split(":")[1] || mindfulModule?.title || "Mindful Practice"}
+                                {title}
+                              </div>
+                              <div className="text-center text-xs text-blue-600 mt-1">
+                                {moduleId === 13 && "Breathe, Smile, Be Present"}
+                                {moduleId === 14 && "I am capable & valued"}
+                                {moduleId === 15 && "Find joy in small moments"}
                               </div>
                             </div>
                           );
                         })}
+                      </div>
+                      <div className="flex justify-center">
+                        <Link to="/mindful-mornings">
+                          <Button 
+                            className="ac-button-secondary"
+                          >
+                            Start Mindful Mornings Training
+                          </Button>
+                        </Link>
                       </div>
                     </div>
                   </div>
