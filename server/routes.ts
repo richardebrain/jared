@@ -20,6 +20,7 @@ import {
   updateConfig, 
   resetConfig, 
   getAllDataSources,
+  getAvailableDataSources,
   toggleDataSource,
   addCustomDataSource,
   deleteCustomDataSource
@@ -2334,7 +2335,7 @@ Format your response as a complete message I could use, including a greeting and
   // Get all data sources
   app.get("/api/notebook-lm/sources", async (req, res) => {
     try {
-      const allSources = [...authorizedSources, ...customSources];
+      const allSources = getAllDataSources();
       res.json(allSources);
     } catch (error) {
       console.error("Error fetching data sources:", error);
@@ -2345,7 +2346,7 @@ Format your response as a complete message I could use, including a greeting and
   // Get enabled data sources
   app.get("/api/notebook-lm/sources/enabled", async (req, res) => {
     try {
-      const enabledSources = getEnabledDataSources();
+      const enabledSources = getAvailableDataSources();
       res.json(enabledSources);
     } catch (error) {
       console.error("Error fetching enabled data sources:", error);
@@ -2362,7 +2363,7 @@ Format your response as a complete message I could use, including a greeting and
         return res.status(400).json({ error: "Source ID is required" });
       }
       
-      const result = toggleDataSourceStatus(sourceId, !!enabled);
+      const result = toggleDataSource(sourceId, !!enabled);
       
       if (!result) {
         return res.status(404).json({ error: "Data source not found" });
@@ -2389,8 +2390,8 @@ Format your response as a complete message I could use, including a greeting and
         name,
         description,
         url,
-        tags: Array.isArray(tags) ? tags : [],
-        enabled: true
+        category: DataSourceCategory.CUSTOM,
+        tags: Array.isArray(tags) ? tags : []
       });
       
       res.json(newSource);
@@ -2439,6 +2440,352 @@ Format your response as a complete message I could use, including a greeting and
     } catch (error) {
       console.error("Error resetting notebook LM configuration:", error);
       res.status(500).json({ error: "Failed to reset notebook LM configuration" });
+    }
+  });
+  
+  // Delete custom data source
+  app.post("/api/notebook-lm/sources/delete", async (req, res) => {
+    try {
+      const { sourceId } = req.body;
+      
+      if (!sourceId) {
+        return res.status(400).json({ error: "Source ID is required" });
+      }
+      
+      const result = deleteCustomDataSource(sourceId);
+      
+      if (!result) {
+        return res.status(404).json({ error: "Custom data source not found or could not be deleted" });
+      }
+      
+      res.json({ success: true, sourceId });
+    } catch (error) {
+      console.error("Error deleting custom data source:", error);
+      res.status(500).json({ error: "Failed to delete custom data source" });
+    }
+  });
+  
+  // Discussion Feature API Routes
+  
+  // Get all discussion threads with pagination
+  app.get("/api/discussions/threads", async (req, res) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
+      const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
+      const category = req.query.category as string || undefined;
+      
+      const threads = await storage.getAllThreads({ limit, offset, category });
+      res.json(threads);
+    } catch (error) {
+      console.error("Error fetching discussion threads:", error);
+      res.status(500).json({ error: "Failed to fetch discussion threads" });
+    }
+  });
+  
+  // Get a single discussion thread by ID
+  app.get("/api/discussions/threads/:id", async (req, res) => {
+    try {
+      const threadId = parseInt(req.params.id);
+      
+      if (isNaN(threadId)) {
+        return res.status(400).json({ error: "Invalid thread ID" });
+      }
+      
+      const thread = await storage.getThreadById(threadId);
+      
+      if (!thread) {
+        return res.status(404).json({ error: "Thread not found" });
+      }
+      
+      // Increment view count when thread is viewed
+      await storage.incrementThreadViewCount(threadId);
+      
+      res.json(thread);
+    } catch (error) {
+      console.error("Error fetching discussion thread:", error);
+      res.status(500).json({ error: "Failed to fetch discussion thread" });
+    }
+  });
+  
+  // Create a new discussion thread
+  app.post("/api/discussions/threads", requireAuth, async (req, res) => {
+    try {
+      const { title, content, category, tags } = req.body;
+      const session = req.session as any;
+      
+      if (!title || !content || !category) {
+        return res.status(400).json({ error: "Title, content, and category are required" });
+      }
+      
+      const thread = await storage.createThread({
+        title,
+        content,
+        category,
+        authorId: session.userId,
+        tags: Array.isArray(tags) ? tags : [],
+        pinned: false
+      });
+      
+      res.status(201).json(thread);
+    } catch (error) {
+      console.error("Error creating discussion thread:", error);
+      res.status(500).json({ error: "Failed to create discussion thread" });
+    }
+  });
+  
+  // Update a discussion thread
+  app.patch("/api/discussions/threads/:id", requireAuth, async (req, res) => {
+    try {
+      const threadId = parseInt(req.params.id);
+      const { title, content, category, tags, pinned } = req.body;
+      const session = req.session as any;
+      
+      if (isNaN(threadId)) {
+        return res.status(400).json({ error: "Invalid thread ID" });
+      }
+      
+      // Check if thread exists and user is the author
+      const thread = await storage.getThreadById(threadId);
+      
+      if (!thread) {
+        return res.status(404).json({ error: "Thread not found" });
+      }
+      
+      if (thread.authorId !== session.userId) {
+        return res.status(403).json({ error: "You are not authorized to edit this thread" });
+      }
+      
+      const updatedThread = await storage.updateThread(threadId, {
+        title,
+        content,
+        category,
+        tags: Array.isArray(tags) ? tags : undefined,
+        pinned
+      });
+      
+      res.json(updatedThread);
+    } catch (error) {
+      console.error("Error updating discussion thread:", error);
+      res.status(500).json({ error: "Failed to update discussion thread" });
+    }
+  });
+  
+  // Delete a discussion thread
+  app.delete("/api/discussions/threads/:id", requireAuth, async (req, res) => {
+    try {
+      const threadId = parseInt(req.params.id);
+      const session = req.session as any;
+      
+      if (isNaN(threadId)) {
+        return res.status(400).json({ error: "Invalid thread ID" });
+      }
+      
+      // Check if thread exists and user is the author
+      const thread = await storage.getThreadById(threadId);
+      
+      if (!thread) {
+        return res.status(404).json({ error: "Thread not found" });
+      }
+      
+      if (thread.authorId !== session.userId) {
+        return res.status(403).json({ error: "You are not authorized to delete this thread" });
+      }
+      
+      await storage.deleteThread(threadId);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting discussion thread:", error);
+      res.status(500).json({ error: "Failed to delete discussion thread" });
+    }
+  });
+  
+  // Get all comments for a thread
+  app.get("/api/discussions/threads/:id/comments", async (req, res) => {
+    try {
+      const threadId = parseInt(req.params.id);
+      
+      if (isNaN(threadId)) {
+        return res.status(400).json({ error: "Invalid thread ID" });
+      }
+      
+      const comments = await storage.getCommentsByThreadId(threadId);
+      res.json(comments);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      res.status(500).json({ error: "Failed to fetch comments" });
+    }
+  });
+  
+  // Create a new comment
+  app.post("/api/discussions/comments", requireAuth, async (req, res) => {
+    try {
+      const { threadId, content, parentCommentId } = req.body;
+      const session = req.session as any;
+      
+      if (!threadId || !content) {
+        return res.status(400).json({ error: "Thread ID and content are required" });
+      }
+      
+      const comment = await storage.createComment({
+        threadId,
+        content,
+        authorId: session.userId,
+        parentCommentId: parentCommentId || null,
+        endorsed: false
+      });
+      
+      res.status(201).json(comment);
+    } catch (error) {
+      console.error("Error creating comment:", error);
+      res.status(500).json({ error: "Failed to create comment" });
+    }
+  });
+  
+  // Update a comment
+  app.patch("/api/discussions/comments/:id", requireAuth, async (req, res) => {
+    try {
+      const commentId = parseInt(req.params.id);
+      const { content } = req.body;
+      const session = req.session as any;
+      
+      if (isNaN(commentId)) {
+        return res.status(400).json({ error: "Invalid comment ID" });
+      }
+      
+      // Check if comment exists and user is the author
+      const comment = await storage.getCommentById(commentId);
+      
+      if (!comment) {
+        return res.status(404).json({ error: "Comment not found" });
+      }
+      
+      if (comment.authorId !== session.userId) {
+        return res.status(403).json({ error: "You are not authorized to edit this comment" });
+      }
+      
+      const updatedComment = await storage.updateComment(commentId, { content });
+      
+      res.json(updatedComment);
+    } catch (error) {
+      console.error("Error updating comment:", error);
+      res.status(500).json({ error: "Failed to update comment" });
+    }
+  });
+  
+  // Delete a comment
+  app.delete("/api/discussions/comments/:id", requireAuth, async (req, res) => {
+    try {
+      const commentId = parseInt(req.params.id);
+      const session = req.session as any;
+      
+      if (isNaN(commentId)) {
+        return res.status(400).json({ error: "Invalid comment ID" });
+      }
+      
+      // Check if comment exists and user is the author
+      const comment = await storage.getCommentById(commentId);
+      
+      if (!comment) {
+        return res.status(404).json({ error: "Comment not found" });
+      }
+      
+      if (comment.authorId !== session.userId) {
+        return res.status(403).json({ error: "You are not authorized to delete this comment" });
+      }
+      
+      await storage.deleteComment(commentId);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      res.status(500).json({ error: "Failed to delete comment" });
+    }
+  });
+  
+  // Endorse a comment (for teachers/admins)
+  app.post("/api/discussions/comments/:id/endorse", requireAuth, async (req, res) => {
+    try {
+      const commentId = parseInt(req.params.id);
+      const { endorsed } = req.body;
+      const session = req.session as any;
+      
+      if (isNaN(commentId)) {
+        return res.status(400).json({ error: "Invalid comment ID" });
+      }
+      
+      // Check if user has permission to endorse (would add role check here)
+      const user = await storage.getUser(session.userId);
+      
+      if (!user) {
+        return res.status(403).json({ error: "User not found" });
+      }
+      
+      // For now allow any user to endorse, but would restrict based on role in production
+      await storage.endorseComment(commentId, endorsed === true);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error endorsing comment:", error);
+      res.status(500).json({ error: "Failed to endorse comment" });
+    }
+  });
+  
+  // Vote on a comment
+  app.post("/api/discussions/comments/:id/vote", requireAuth, async (req, res) => {
+    try {
+      const commentId = parseInt(req.params.id);
+      const { voteType } = req.body;
+      const session = req.session as any;
+      
+      if (isNaN(commentId)) {
+        return res.status(400).json({ error: "Invalid comment ID" });
+      }
+      
+      if (voteType !== "upvote" && voteType !== "downvote" && voteType !== "none") {
+        return res.status(400).json({ error: "Invalid vote type" });
+      }
+      
+      if (voteType === "none") {
+        // Remove vote
+        await storage.deleteVote(session.userId, commentId);
+      } else {
+        // Add or update vote
+        await storage.createOrUpdateVote({
+          userId: session.userId,
+          commentId,
+          voteType
+        });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error voting on comment:", error);
+      res.status(500).json({ error: "Failed to vote on comment" });
+    }
+  });
+  
+  // Get user's discussion threads
+  app.get("/api/discussions/my-threads", requireAuth, async (req, res) => {
+    try {
+      const session = req.session as any;
+      const threads = await storage.getThreadsByAuthor(session.userId);
+      res.json(threads);
+    } catch (error) {
+      console.error("Error fetching user's threads:", error);
+      res.status(500).json({ error: "Failed to fetch user's threads" });
+    }
+  });
+  
+  // Get user's comments
+  app.get("/api/discussions/my-comments", requireAuth, async (req, res) => {
+    try {
+      const session = req.session as any;
+      const comments = await storage.getCommentsByAuthor(session.userId);
+      res.json(comments);
+    } catch (error) {
+      console.error("Error fetching user's comments:", error);
+      res.status(500).json({ error: "Failed to fetch user's comments" });
     }
   });
   
