@@ -1774,6 +1774,50 @@ Format your response as a complete message I could use, including a greeting and
       });
     }
   });
+  
+  // Module content validation API endpoints
+  
+  // Check all modules for adequate content
+  app.get('/api/modules/content-check', async (req, res) => {
+    try {
+      // Admin check should go here in production
+      const results = await checkAllModulesContent();
+      return res.status(200).json(results);
+    } catch (error) {
+      console.error("Error checking module content:", error);
+      return res.status(500).json({ message: "Error checking module content" });
+    }
+  });
+  
+  // Fix a specific module's content
+  app.post('/api/modules/:id/fix-content', async (req, res) => {
+    try {
+      // Admin check should go here in production
+      const moduleId = parseInt(req.params.id);
+      
+      if (isNaN(moduleId)) {
+        return res.status(400).json({ message: "Invalid module ID" });
+      }
+      
+      const fixedModule = await fixModuleContent(moduleId);
+      return res.status(200).json(fixedModule);
+    } catch (error) {
+      console.error(`Error fixing module content: ${error}`);
+      return res.status(500).json({ message: "Error fixing module content" });
+    }
+  });
+  
+  // Fix all modules with inadequate content
+  app.post('/api/modules/fix-all-content', async (req, res) => {
+    try {
+      // Admin check should go here in production
+      const results = await fixAllModulesContent();
+      return res.status(200).json(results);
+    } catch (error) {
+      console.error(`Error fixing all module content: ${error}`);
+      return res.status(500).json({ message: "Error fixing all module content" });
+    }
+  });
 
   // Create HTTP server
   const httpServer = createServer(app);

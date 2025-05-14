@@ -11,3 +11,8 @@ ADD COLUMN IF NOT EXISTS "growth_areas" jsonb,
 ADD COLUMN IF NOT EXISTS "recommended_modules" jsonb,
 ADD COLUMN IF NOT EXISTS "assessment_type" text DEFAULT 'ITERS_ECERS_CLASS',
 ADD COLUMN IF NOT EXISTS "notes" text;
+
+-- Add content and quiz columns to learning_modules
+ALTER TABLE IF EXISTS "learning_modules"
+ADD COLUMN IF NOT EXISTS "content" text,
+ADD COLUMN IF NOT EXISTS "quiz" jsonb;
