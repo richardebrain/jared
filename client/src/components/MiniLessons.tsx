@@ -600,7 +600,7 @@ export function MiniLessons() {
       };
       
       // For each growth area, try to find a mini-lesson
-      growthAreas.forEach(area => {
+      growthAreas.forEach((area: string) => {
         const category = growthAreaToCategory[area] || area;
         if (categoryModules[category] && categoryModules[category].length > 0) {
           // Get a random module from this category
@@ -736,12 +736,13 @@ export function MiniLessons() {
     const basePoints = selectedLesson.duration;
     const totalPoints = quizCompleted ? basePoints + bonusPoints : basePoints;
     
+    // Since pointsEarned is not in the type, we need to use type assertion
     progressMutation.mutate({
       moduleId: selectedLesson.id,
       progress: 100,
       completed: true,
-      pointsEarned: totalPoints // Award points based on duration and quiz performance
-    });
+      ...(totalPoints ? { pointsEarned: totalPoints } : {}) // Award points based on duration and quiz performance
+    } as any);
   };
 
   // Categories with their corresponding colors
@@ -1300,7 +1301,7 @@ export function MiniLessons() {
                               Additional Resources
                             </h4>
                             <ul className="space-y-2">
-                              {aiGeneratedContent.resources.map((resource, i) => (
+                              {aiGeneratedContent.resources.map((resource: { title: string, url: string, description?: string }, i: number) => (
                                 <li key={i}>
                                   <a 
                                     href={resource.url} 
@@ -1367,7 +1368,7 @@ export function MiniLessons() {
                             onValueChange={(value) => handleAnswerSelect(currentQuestionIndex, parseInt(value))}
                             className="space-y-3"
                           >
-                            {quizQuestions[currentQuestionIndex]?.options.map((option, index) => (
+                            {quizQuestions[currentQuestionIndex]?.options.map((option: string, index: number) => (
                               <div key={index} className="flex items-start">
                                 <RadioGroupItem 
                                   value={index.toString()} 
