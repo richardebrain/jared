@@ -219,15 +219,12 @@ export default function Dashboard() {
     <div className="min-h-screen bg-neutral-50">
       <Header user={user} />
       
-      {/* Dashboard Header with Bear Bucks */}
+      {/* Dashboard Header with Bear Bucks and Progress */}
       <div className="bg-gradient-to-r from-purple-100 to-indigo-100 p-6">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between mb-3">
             <div className="flex items-center justify-between md:justify-start mb-3 md:mb-0">
               <h1 className="text-2xl font-heading font-bold text-gray-800 mr-4">Welcome, {user.firstName || 'Teacher'}!</h1>
-              <div className="bg-yellow-400 text-yellow-900 rounded-full px-3 py-1 text-sm font-semibold flex items-center">
-                <span className="mr-1">{bearBucks}</span> <span className="text-xs">Bear Bucks</span>
-              </div>
             </div>
             
             <Link to="/core-values-shout-out">
@@ -251,6 +248,50 @@ export default function Dashboard() {
                 <div className="absolute top-0 right-0 -mt-1 -mr-1 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg shadow-sm">NEW!</div>
               </div>
             </Link>
+          </div>
+          
+          {/* Bear Bucks and Points Progress Bar */}
+          <div className="bg-white rounded-xl shadow-md p-4 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Points */}
+              <div className="flex items-center">
+                <div className="bg-amber-100 p-2 rounded-full mr-3">
+                  <Award className="h-5 w-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Your Points</p>
+                  <p className="text-xl font-bold">{user?.points || 0}</p>
+                </div>
+              </div>
+              
+              {/* Bear Bucks */}
+              <div className="flex items-center">
+                <div className="bg-yellow-100 p-2 rounded-full mr-3">
+                  <Coins className="h-5 w-5 text-yellow-600" />
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-sm text-gray-500">Bear Bucks</p>
+                  <div className="flex items-center">
+                    <p className="text-xl font-bold mr-2">{bearBucks}</p>
+                    <span className="bg-yellow-400 text-yellow-900 rounded-full px-2 py-0.5 text-xs font-semibold">
+                      🐻
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Progress to next level */}
+              <div className="flex flex-col justify-center">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-sm text-gray-500">Progress to Level {(user?.level || 1) + 1}</span>
+                  <span className="text-sm font-medium">Level {user?.level || 1}</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+                  <Progress value={(user?.points || 0) % 300 / 300 * 100} className="h-2.5" />
+                </div>
+                <p className="text-xs text-gray-500 text-right">{300 - ((user?.points || 0) % 300)} points needed</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
