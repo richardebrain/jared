@@ -14,7 +14,12 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { z } from "zod";
 import MemoryStore from "memorystore";
 import { generateLessonPrompt, generateLessonContent } from "./lessonGenerator";
+import { generateRestrictedLessonContent, getConfig, updateConfig, resetConfig } from "./notebookLmPlugin";
 import { checkModuleContent } from "./moduleContentService";
+import { 
+  authorizedSources, customSources, DataSource, addCustomDataSource, 
+  toggleDataSourceStatus, getEnabledDataSources 
+} from "@shared/dataSources";
 
 // Define our session data structure
 declare module 'express-session' {
@@ -2308,6 +2313,178 @@ Format your response as a complete message I could use, including a greeting and
       return res.status(500).json({ 
         message: "Error fixing all module content",
         error: String(error)
+      });
+    }
+  });
+
+  // Notebook LM Plugin API Routes
+  
+  // Get all data sources
+  app.get("/api/notebook-lm/sources", async (req, res) => {
+    try {
+      const allSources = [...authorizedSources, ...customSources];
+      res.json(allSources);
+    } catch (error) {
+      console.error("Error fetching data sources:", error);
+      res.status(500).json({ error: "Failed to fetch data sources" });
+    }
+  });
+  
+  // Get enabled data sources
+  app.get("/api/notebook-lm/sources/enabled", async (req, res) => {
+    try {
+      const enabledSources = getEnabledDataSources();
+      res.json(enabledSources);
+    } catch (error) {
+      console.error("Error fetching enabled data sources:", error);
+      res.status(500).json({ error: "Failed to fetch enabled data sources" });
+    }
+  });
+  
+  // Toggle data source status
+  app.post("/api/notebook-lm/sources/toggle", async (req, res) => {
+    try {
+      const { sourceId, enabled } = req.body;
+      
+      if (!sourceId) {
+        return res.status(400).json({ error: "Source ID is required" });
+      }
+      
+      const result = toggleDataSourceStatus(sourceId, !!enabled);
+      
+      if (!result) {
+        return res.status(404).json({ error: "Data source not found" });
+      }
+      
+      res.json({ success: true, sourceId, enabled });
+    } catch (error) {
+      console.error("Error toggling data source status:", error);
+      res.status(500).json({ error: "Failed to toggle data source status" });
+    }
+  });
+  
+  // Add custom data source
+  app.post("/api/notebook-lm/sources/custom", async (req, res) => {
+    try {
+      const { name, description, url, tags } = req.body;
+      
+      if (!name || !description) {
+        return res.status(400).json({ error: "Name and description are required" });
+      }
+      
+      // Add the custom source
+      const newSource = addCustomDataSource({
+        name,
+        description,
+        url,
+        tags: Array.isArray(tags) ? tags : [],
+        enabled: true
+      });
+      
+      res.json(newSource);
+    } catch (error) {
+      console.error("Error adding custom data source:", error);
+      res.status(500).json({ error: "Failed to add custom data source" });
+    }
+  });
+  
+  // Get notebook LM plugin configuration
+  app.get("/api/notebook-lm/config", async (req, res) => {
+    try {
+      const config = getConfig();
+      res.json(config);
+    } catch (error) {
+      console.error("Error fetching notebook LM configuration:", error);
+      res.status(500).json({ error: "Failed to fetch notebook LM configuration" });
+    }
+  });
+  
+  // Update notebook LM plugin configuration
+  app.post("/api/notebook-lm/config", async (req, res) => {
+    try {
+      const config = req.body;
+      
+      // Validate config
+      if (typeof config !== 'object') {
+        return res.status(400).json({ error: "Invalid configuration format" });
+      }
+      
+      // Update the configuration
+      const updatedConfig = updateConfig(config);
+      
+      res.json(updatedConfig);
+    } catch (error) {
+      console.error("Error updating notebook LM configuration:", error);
+      res.status(500).json({ error: "Failed to update notebook LM configuration" });
+    }
+  });
+  
+  // Reset notebook LM plugin configuration to defaults
+  app.post("/api/notebook-lm/config/reset", async (req, res) => {
+    try {
+      const defaultConfig = resetConfig();
+      res.json(defaultConfig);
+    } catch (error) {
+      console.error("Error resetting notebook LM configuration:", error);
+      res.status(500).json({ error: "Failed to reset notebook LM configuration" });
+    }
+  });
+  
+  // Generate content with restricted sources
+  app.post("/api/generate-restricted-lesson", requireAuth, async (req, res) => {
+    try {
+      const { challenge, moduleId } = req.body;
+      
+      if (!challenge || !moduleId) {
+        return res.status(400).json({ 
+          error: "Challenge prompt and module ID are required" 
+        });
+      }
+      
+      // Get user and module info
+      if (!req.session.userId) {
+        return res.status(401).json({ 
+          error: "Unauthorized access" 
+        });
+      }
+      
+      const user = await storage.getUser(req.session.userId);
+      const module = await storage.getModule(moduleId);
+      
+      if (!user || !module) {
+        return res.status(404).json({ 
+          error: "User or module not found" 
+        });
+      }
+      
+      // Get assessment data if available
+      let assessment = null;
+      const assessments = await storage.getAssessmentsByUserId(user.id);
+      if (assessments && assessments.length > 0) {
+        assessment = assessments[assessments.length - 1]; // Get most recent
+      }
+      
+      // Get user progress data
+      const progress = await storage.getUserProgressByUserId(user.id);
+      
+      // Generate the prompt
+      const prompt = generateLessonPrompt(
+        user,
+        module,
+        challenge,
+        assessment,
+        progress
+      );
+      
+      // Generate content with restricted sources
+      const lessonContent = await generateRestrictedLessonContent(prompt);
+      
+      res.json(lessonContent);
+    } catch (error: any) {
+      console.error("Error generating restricted lesson:", error);
+      res.status(500).json({ 
+        error: "Failed to generate content",
+        details: error?.message || "Unknown error"
       });
     }
   });
