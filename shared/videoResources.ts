@@ -547,5 +547,72 @@ export const videoResourcesData: VideoResource[] = [
     expertLevel: "intermediate",
     dateAdded: "2025-05-14",
     featured: false
+  },
+  
+  // MINDFUL MORNINGS SPECIFIC VIDEOS
+  {
+    id: "video-039",
+    title: "Morning Meeting Ideas for Preschool",
+    description: "Engaging morning meeting activities and ideas specifically designed for preschool classrooms.",
+    youtubeId: "RuLudWAjGA0",
+    category: ["mindful-mornings", "classroom-management", "community-building"],
+    tags: ["morning meeting", "classroom routines", "community building", "Raising Arizona"],
+    duration: 11,
+    source: "Raising Arizona Preschool",
+    expertLevel: "beginner",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  {
+    id: "video-040",
+    title: "Morning Circle Time with Preschoolers",
+    description: "Effective strategies for conducting engaging and productive morning circle time in early childhood settings.",
+    youtubeId: "IgA1zhnn5AQ",
+    category: ["mindful-mornings", "circle-time", "classroom-routine"],
+    tags: ["circle time", "morning routine", "group activities", "Raising Arizona"],
+    duration: 8,
+    source: "Raising Arizona Preschool",
+    expertLevel: "beginner",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  {
+    id: "video-041",
+    title: "Building Classroom Community Through Morning Routines",
+    description: "Learn how consistent morning routines help foster a strong sense of community and belonging in preschool classrooms.",
+    youtubeId: "Ocyqu5ceH3Y",
+    category: ["mindful-mornings", "community-building", "classroom-management"],
+    tags: ["classroom community", "belonging", "morning routines", "Raising Arizona"],
+    duration: 14,
+    source: "Raising Arizona Preschool",
+    expertLevel: "intermediate",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  {
+    id: "video-042",
+    title: "Mindfulness Activities for Young Children",
+    description: "Simple and effective mindfulness activities that can be incorporated into preschool morning routines.",
+    youtubeId: "eqtzqg6dlFk",
+    category: ["mindful-mornings", "social-emotional", "self-regulation"],
+    tags: ["mindfulness", "breathing exercises", "calming techniques", "Raising Arizona"],
+    duration: 9,
+    source: "Raising Arizona Preschool",
+    expertLevel: "beginner",
+    dateAdded: "2025-05-14",
+    featured: true
+  },
+  {
+    id: "video-043",
+    title: "Mindful Morning Example Session",
+    description: "Watch a complete example of a Mindful Morning session as implemented at Raising Arizona Preschool.",
+    youtubeId: "C7HZuJpvNk0",
+    category: ["mindful-mornings", "demonstration", "example"],
+    tags: ["demonstration", "example session", "complete routine", "Raising Arizona"],
+    duration: 16,
+    source: "Raising Arizona Preschool",
+    expertLevel: "all-levels",
+    dateAdded: "2025-05-14",
+    featured: true
   }
 ];

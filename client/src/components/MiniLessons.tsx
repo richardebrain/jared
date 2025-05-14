@@ -3,9 +3,23 @@ import { videoResourcesData, VideoResource } from '@shared/videoResources';
 
 // Utility function to get relevant videos by category
 const getRelevantVideos = (categories: string[], limit: number = 3): VideoResource[] => {
+  // Get videos that match any of the provided categories
   const matchingVideos = videoResourcesData.filter(video => 
-    video.category.some(cat => categories.includes(cat.toLowerCase()))
+    video.category.some(cat => categories.some(c => cat.toLowerCase().includes(c.toLowerCase())))
   );
+  
+  // If we have no matches with the exact categories, try a more flexible search
+  if (matchingVideos.length === 0) {
+    // Look for partial matches in categories, tags, or title
+    return videoResourcesData.filter(video => 
+      // Check for partial matches in categories
+      video.category.some(cat => categories.some(c => cat.toLowerCase().includes(c.toLowerCase()))) ||
+      // Check for partial matches in tags
+      video.tags.some(tag => categories.some(c => tag.toLowerCase().includes(c.toLowerCase()))) ||
+      // Check for partial matches in title
+      categories.some(c => video.title.toLowerCase().includes(c.toLowerCase()))
+    ).sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0)).slice(0, limit);
+  }
   
   // Prioritize featured videos
   const featuredVideos = matchingVideos.filter(v => v.featured);
