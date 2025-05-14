@@ -184,6 +184,11 @@ export default function Header() {
                 Teacher Tools
               </a>
             </Link>
+            <Link href="/video-resources">
+              <a className={`font-heading font-semibold ${location === "/video-resources" ? "text-primary" : "text-neutral-800"}`}>
+                Video Library
+              </a>
+            </Link>
             <div className="pt-2 border-t border-neutral-100">
               <Button variant="outline" className="w-full justify-start" onClick={handleLogout}>
                 <i className="ri-logout-box-line mr-2"></i>
