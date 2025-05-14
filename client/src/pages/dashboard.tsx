@@ -355,42 +355,45 @@ export default function Dashboard() {
               <RetroDashboardTabs>
                 {/* Learning Tab Content */}
                 <div>
-                  {/* Personalized Learning Path from Assessment Results */}
-                  <Card className="mb-4">
-                    <CardHeader className="pb-2">
+                  {/* Personalized Learning Path from Assessment Results - Animal Crossing Style */}
+                  <div className="ac-card mb-6">
+                    <div className="ac-card-header">
                       <div className="flex items-center">
-                        <Award className="h-6 w-6 mr-2 text-primary" />
-                        <CardTitle className="text-xl font-bold">Your Personalized Learning Path</CardTitle>
+                        <div className="bg-blue-100 p-2 rounded-full mr-3 float-animation" style={{animationDelay: '0.3s'}}>
+                          <Award className="h-6 w-6 text-blue-500" />
+                        </div>
+                        <div>
+                          <h3 className="ac-card-title">Your Personalized Learning Path</h3>
+                          <p className="ac-card-description">
+                            Based on your assessment results, we've created a customized learning path for you
+                          </p>
+                        </div>
                       </div>
-                      <CardDescription>
-                        Based on your assessment results, we've created a customized learning path for you
-                      </CardDescription>
-                    </CardHeader>
-                
-                    <CardContent className="pt-2">
+                    </div>
+                    <div className="ac-card-content">
                       {/* Recommended Focus Areas */}
                       <div className="mb-4">
-                        <h3 className="text-md font-semibold mb-2">Recommended Focus Areas</h3>
+                        <h3 className="text-md font-game text-[#5d4037] mb-3">Recommended Focus Areas</h3>
                         <div className="flex flex-wrap gap-2">
                           {assessmentDomains
                             .filter(d => d.weakArea)
                             .map(domain => (
-                              <Badge key={domain.id} variant="outline" className="bg-red-50">
+                              <span key={domain.id} className="ac-badge weak">
                                 {domain.name}
-                              </Badge>
+                              </span>
                             ))}
                           {assessmentDomains
                             .filter(d => !d.weakArea)
                             .slice(0, 2)
                             .map(domain => (
-                              <Badge key={domain.id} variant="outline" className="bg-green-50">
+                              <span key={domain.id} className="ac-badge">
                                 {domain.name}
-                              </Badge>
+                              </span>
                             ))}
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 
                   {/* Mini-Lessons (Top Recommended) */}
                   <MiniLessons
