@@ -154,6 +154,29 @@ export async function createRaisingArizonaCoreModule() {
           </div>
         </div>
         
+        <!-- Core Values Song Exercise -->
+        <div class="my-8 p-6 border rounded-lg bg-indigo-50">
+          <h2 class="text-2xl font-bold mb-4 text-indigo-700">Company Song: "Sunrise paints the Glendale sky gold"</h2>
+          <p class="mb-4">
+            Our company song beautifully captures all five of our core values. Listen to the song and 
+            see if you can identify all five core values mentioned in the lyrics. This interactive 
+            exercise will help you internalize our values while enjoying our creative expression of 
+            the Raising Arizona spirit.
+          </p>
+          <div class="p-4 bg-white rounded shadow-sm">
+            <h3 class="font-bold text-lg">Song Exercise:</h3>
+            <p class="mb-2">
+              1. Listen to our company song "Sunrise paints the Glendale sky gold"<br>
+              2. Follow along with the lyrics provided<br>
+              3. Identify all five core values mentioned in the song<br>
+              4. Complete the interactive exercise that follows
+            </p>
+            <p class="text-sm text-gray-600 mt-2">
+              Note: This exercise is presented as a separate interactive component in the app.
+            </p>
+          </div>
+        </div>
+
         <div class="mt-8 p-4 bg-gray-100 rounded-lg">
           <h3 class="font-bold text-xl mb-2">Ready to Test Your Knowledge?</h3>
           <p>

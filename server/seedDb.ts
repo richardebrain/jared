@@ -14,7 +14,20 @@ async function seedDatabase() {
     // Check if we already have data
     const existingModules = await db.select().from(learningModules);
     if (existingModules.length > 0) {
-      console.log("Database already seeded. Skipping seed operation.");
+      console.log("Database already seeded. Checking for CORE module.");
+      
+      // Check if CORE module exists
+      const coreModule = await db.query.learningModules.findFirst({
+        where: (modules, { eq }) => eq(modules.title, "Raising Arizona's CORE")
+      });
+      
+      if (!coreModule) {
+        console.log("Creating missing Raising Arizona's CORE module.");
+        await createRaisingArizonaCoreModule();
+      } else {
+        console.log("Raising Arizona's CORE module already exists with ID:", coreModule.id);
+      }
+      
       return;
     }
 

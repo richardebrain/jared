@@ -2900,6 +2900,62 @@ Format your response as a complete message I could use, including a greeting and
     }
   });
 
+  // Endpoint to create or update the Raising Arizona's CORE module
+  app.post("/api/admin/core-module", requireAuth, async (req, res) => {
+    try {
+      // Verify user is an admin
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const user = await storage.getUser(req.session.userId);
+      
+      // For now, allow any authenticated user to create/update the CORE module
+      // In a production system, we would check for admin role
+      if (!user) {
+        return res.status(403).json({ error: "User not found" });
+      }
+      
+      // Create or update the CORE module
+      const coreModule = await createRaisingArizonaCoreModule();
+      
+      res.json({
+        success: true,
+        message: "Raising Arizona's CORE module created/updated successfully",
+        moduleId: coreModule.id
+      });
+    } catch (error: any) {
+      console.error("Error creating/updating CORE module:", error);
+      res.status(500).json({ 
+        error: "Failed to create/update CORE module",
+        details: error?.message || "Unknown error"
+      });
+    }
+  });
+  
+  // Get the Raising Arizona's CORE module
+  app.get("/api/modules/core", async (req, res) => {
+    try {
+      // Find the CORE module by title
+      const modules = await db.query.learningModules.findMany({
+        where: (modules, { eq }) => eq(modules.title, "Raising Arizona's CORE")
+      });
+      
+      if (modules.length === 0) {
+        return res.status(404).json({ error: "CORE module not found" });
+      }
+      
+      // Return the first matching module (should be only one)
+      res.json(modules[0]);
+    } catch (error: any) {
+      console.error("Error fetching CORE module:", error);
+      res.status(500).json({ 
+        error: "Failed to fetch CORE module",
+        details: error?.message || "Unknown error"
+      });
+    }
+  });
+
   // Create HTTP server
   const httpServer = createServer(app);
 
