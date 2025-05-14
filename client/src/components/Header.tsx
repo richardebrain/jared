@@ -75,34 +75,39 @@ export default function Header() {
           </Link>
         </div>
         
-        <nav className="hidden md:flex space-x-6 items-center">
+        <nav className="hidden md:flex items-center border-b border-transparent">
           <Link href="/">
-            <div className={`font-heading font-semibold ${location === "/" ? "text-primary" : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
+            <div className={`font-heading font-semibold px-4 py-2 ${location === "/" 
+              ? "text-primary border-b-2 border-primary" 
+              : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
               Dashboard
             </div>
           </Link>
           <Link href="/progression-map">
-            <div className={`font-heading font-semibold ${location === "/progression-map" ? "text-primary" : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
+            <div className={`font-heading font-semibold px-4 py-2 ${location === "/progression-map" 
+              ? "text-primary border-b-2 border-primary" 
+              : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
               Teacher Progression
             </div>
           </Link>
           <Link href="/assessment">
-            <div className={`font-heading font-semibold ${location === "/assessment" ? "text-primary" : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
+            <div className={`font-heading font-semibold px-4 py-2 ${location === "/assessment" 
+              ? "text-primary border-b-2 border-primary" 
+              : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
               Assessment
             </div>
           </Link>
-          <Link href="/core-values-shout-out">
-            <div className={`font-heading font-semibold ${location === "/core-values-shout-out" ? "text-primary" : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
-              Core Values Shout Out
-            </div>
-          </Link>
           <Link href="/tools">
-            <div className={`font-heading font-semibold ${location === "/tools" ? "text-primary" : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
+            <div className={`font-heading font-semibold px-4 py-2 ${location === "/tools" 
+              ? "text-primary border-b-2 border-primary" 
+              : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
               Teacher Tools
             </div>
           </Link>
           <Link href="/video-resources">
-            <div className={`font-heading font-semibold ${location === "/video-resources" ? "text-primary" : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
+            <div className={`font-heading font-semibold px-4 py-2 ${location === "/video-resources" 
+              ? "text-primary border-b-2 border-primary" 
+              : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
               Video Library
             </div>
           </Link>
@@ -172,11 +177,6 @@ export default function Header() {
             <Link href="/assessment">
               <div className={`font-heading font-semibold ${location === "/assessment" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
                 Assessment
-              </div>
-            </Link>
-            <Link href="/core-values-shout-out">
-              <div className={`font-heading font-semibold ${location === "/core-values-shout-out" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
-                Core Values Shout Out
               </div>
             </Link>
             <Link href="/tools">

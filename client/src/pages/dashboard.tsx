@@ -221,11 +221,11 @@ export default function Dashboard() {
       
       {/* Dashboard Header with Bear Bucks */}
       <div className="bg-gradient-to-r from-purple-100 to-indigo-100 p-6">
-        <div className="container mx-auto">
+        <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-3">
-            <h1 className="text-2xl font-heading font-bold text-gray-800">Welcome, {user.name || 'Teacher'}!</h1>
-            <div className="bg-yellow-400 text-yellow-900 rounded-full px-3 py-1 text-sm font-semibold">
-              {bearBucks} <span className="text-xs">Bear Bucks</span>
+            <h1 className="text-2xl font-heading font-bold text-gray-800">Welcome, {user.firstName || 'Teacher'}!</h1>
+            <div className="bg-yellow-400 text-yellow-900 rounded-full px-3 py-1 text-sm font-semibold flex items-center">
+              <span className="mr-1">{bearBucks}</span> <span className="text-xs">Bear Bucks</span>
             </div>
           </div>
         </div>
@@ -269,22 +269,22 @@ export default function Dashboard() {
             ) : (
               <>
                 {/* Personalized Learning Path from Assessment Results */}
-                <Card className="mb-6">
-                  <CardHeader className="pb-3">
+                <Card className="mb-4">
+                  <CardHeader className="pb-2">
                     <div className="flex items-center">
                       <Award className="h-6 w-6 mr-2 text-primary" />
                       <CardTitle className="text-xl font-bold">Your Personalized Learning Path</CardTitle>
                     </div>
                     <CardDescription>
-                      Based on your assessment results, we've created a customized learning path for your professional growth
+                      Based on your assessment results, we've created a customized learning path for you
                     </CardDescription>
                   </CardHeader>
                   
-                  <CardContent>
+                  <CardContent className="pt-2">
                     {/* Recommended Focus Areas */}
                     {weakAreas && weakAreas.length > 0 ? (
-                      <div className="mb-6">
-                        <h3 className="font-semibold text-md mb-2">Recommended Focus Areas</h3>
+                      <div className="mb-4">
+                        <h3 className="font-semibold text-md mb-1">Recommended Focus Areas</h3>
                         <div className="flex flex-wrap gap-2">
                           {weakAreas.map(areaId => {
                             const domain = domains.find(d => d.id === areaId);
@@ -300,18 +300,18 @@ export default function Dashboard() {
                     
                     {/* Recommended Modules */}
                     {recommendedModules && recommendedModules.length > 0 ? (
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         <h3 className="font-semibold text-md">Suggested Learning Modules</h3>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                           {recommendedModules.map(module => (
                             <div 
                               key={module.id}
                               onClick={() => handleModuleSelect(module.id)} 
-                              className="bg-gradient-to-br from-white to-purple-50 border border-purple-200 rounded-lg p-4 cursor-pointer hover:shadow-md transition"
+                              className="bg-gradient-to-br from-white to-purple-50 border border-purple-200 rounded-lg p-3 cursor-pointer hover:shadow-md transition"
                             >
-                              <h3 className="font-heading font-semibold mb-2">{module.title}</h3>
-                              <p className="text-sm text-neutral-600 mb-3 line-clamp-2">{module.description}</p>
+                              <h3 className="font-heading font-semibold mb-1">{module.title}</h3>
+                              <p className="text-sm text-neutral-600 mb-2 line-clamp-2">{module.description}</p>
                               <Button variant="outline" size="sm" className="w-full">
                                 Start Learning
                               </Button>
@@ -320,8 +320,8 @@ export default function Dashboard() {
                         </div>
                       </div>
                     ) : (
-                      <div className="text-center py-6">
-                        <p className="text-neutral-500 mb-4">No specific recommendations yet. Please complete more assessments or modules.</p>
+                      <div className="text-center py-4">
+                        <p className="text-neutral-500 mb-3">No specific recommendations yet. Please complete more assessments or modules.</p>
                         <Link to="/modules">
                           <Button>
                             Browse All Modules
@@ -333,10 +333,10 @@ export default function Dashboard() {
                 </Card>
                 
                 {/* Raising Arizona's CORE Training Module */}
-                <div className="bg-gradient-to-r from-indigo-100 to-purple-100 rounded-xl p-6 mb-6">
-                  <div className="flex items-start justify-between">
+                <div className="bg-gradient-to-r from-indigo-100 to-purple-100 rounded-xl p-4 md:p-5 mb-4">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <div className="flex items-center mb-2">
+                      <div className="flex items-center mb-1">
                         <img 
                           src="/attached_assets/raising-arizona-logo.jpg" 
                           alt="Raising Arizona Preschool" 
@@ -349,7 +349,7 @@ export default function Dashboard() {
                         />
                         <h3 className="font-bold text-indigo-800">CORE Values Training</h3>
                       </div>
-                      <p className="text-sm text-indigo-700 mb-4">
+                      <p className="text-sm text-indigo-700 mb-3">
                         Complete this flagship module to understand Raising Arizona's five core values. 
                         Required for all teachers during onboarding.
                       </p>
@@ -366,31 +366,31 @@ export default function Dashboard() {
                         </Button>
                       </div>
                     </div>
-                    <Star className="h-12 w-12 text-indigo-300" />
+                    <Star className="h-10 w-10 text-indigo-300 flex-shrink-0" />
                   </div>
                 </div>
                 
                 {/* Link to Tools Page */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 mb-6">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 md:p-5 mb-4">
                   <div className="flex justify-between items-center">
                     <div>
-                      <h3 className="font-bold text-indigo-900 mb-2">Teacher Tools</h3>
-                      <p className="text-sm text-indigo-700 mb-4">Access helpful tools for your teaching practice.</p>
+                      <h3 className="font-bold text-indigo-900 mb-1">Teacher Tools</h3>
+                      <p className="text-sm text-indigo-700 mb-3">Access helpful tools for your teaching practice.</p>
                       <Link to="/tools">
                         <Button variant="outline" size="sm" className="border-indigo-400 text-indigo-700 hover:bg-indigo-100">
                           View Tools
                         </Button>
                       </Link>
                     </div>
-                    <Book className="h-12 w-12 text-indigo-300" />
+                    <Book className="h-10 w-10 text-indigo-300 flex-shrink-0" />
                   </div>
                 </div>
                 
                 {/* Mindful Mornings Training Section */}
-                <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-6 mb-6">
-                  <div className="flex items-start justify-between">
+                <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-4 md:p-5 mb-4">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <div className="flex items-center mb-2">
+                      <div className="flex items-center mb-1">
                         <img 
                           src="/attached_assets/mindful-mornings-logo.jpg" 
                           alt="Mindful Mornings" 
@@ -402,13 +402,13 @@ export default function Dashboard() {
                         />
                         <h3 className="font-bold text-emerald-800">Mindful Mornings Training</h3>
                       </div>
-                      <p className="text-sm text-emerald-700 mb-4">
+                      <p className="text-sm text-emerald-700 mb-3">
                         Start each day with intention. Learn how to implement our signature Mindful Mornings program in your classroom.
                       </p>
                       <div className="flex space-x-3">
                         <Button 
                           size="sm" 
-                          className="bg-emerald-600 hover:bg-emerald-700"
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white"
                           onClick={() => {
                             // Find the mindful mornings module
                             if (modules && Array.isArray(modules)) {
@@ -423,9 +423,9 @@ export default function Dashboard() {
                         </Button>
                       </div>
                     </div>
-                    <div className="bg-white p-3 rounded-lg shadow-sm border border-emerald-200 flex items-center space-x-3">
-                      <div className="h-12 w-12 bg-emerald-100 rounded-full flex items-center justify-center">
-                        <Clock className="h-7 w-7 text-emerald-600" />
+                    <div className="bg-white p-2 rounded-lg shadow-sm border border-emerald-200 flex items-center space-x-2 flex-shrink-0">
+                      <div className="h-10 w-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                        <Clock className="h-6 w-6 text-emerald-600" />
                       </div>
                       <div>
                         <p className="text-xs text-emerald-700">Completion Earns</p>
