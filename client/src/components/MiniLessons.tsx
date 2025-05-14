@@ -1168,7 +1168,7 @@ export function MiniLessons() {
                                 <iframe 
                                   width="100%" 
                                   height="100%" 
-                                  src="https://www.youtube.com/embed/3P4i15SUzLM" 
+                                  src="https://www.youtube.com/embed/KAT5NiWHFIU" 
                                   title="Transition Techniques" 
                                   frameBorder="0" 
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
