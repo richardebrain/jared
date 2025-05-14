@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import CoreSongExercise from "./CoreSongExercise";
 import CoreValueDetail from "./CoreValueDetail";
 import CoreValueQuiz from "./CoreValueQuiz";
+import FounderStory from "./FounderStory";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Award, Music, BookOpen, FileQuestion } from "lucide-react";
+import { Award, Music, BookOpen, FileQuestion, History } from "lucide-react";
 
 interface CoreModuleWrapperProps {
   moduleContent: string | null;
@@ -12,8 +13,9 @@ interface CoreModuleWrapperProps {
 }
 
 export default function CoreModuleWrapper({ moduleContent, onContinue }: CoreModuleWrapperProps) {
-  const [currentStage, setCurrentStage] = useState<"intro" | "song-exercise" | "core-values-detail" | "quiz" | "completed">("intro");
+  const [currentStage, setCurrentStage] = useState<"intro" | "song-exercise" | "founder-story" | "core-values-detail" | "quiz" | "completed">("intro");
   const [songExerciseCompleted, setSongExerciseCompleted] = useState(false);
+  const [founderStoryCompleted, setFounderStoryCompleted] = useState(false);
   const [coreValuesDetailCompleted, setCoreValuesDetailCompleted] = useState(false);
   const [quizCompleted, setQuizCompleted] = useState(false);
   
@@ -27,7 +29,13 @@ export default function CoreModuleWrapper({ moduleContent, onContinue }: CoreMod
   const handleSongExerciseComplete = (success: boolean) => {
     if (success) {
       setSongExerciseCompleted(true);
+      setCurrentStage("founder-story");
     }
+  };
+  
+  const handleFounderStoryComplete = () => {
+    setFounderStoryCompleted(true);
+    setCurrentStage("core-values-detail");
   };
   
   const handleReturnFromSongExercise = () => {
@@ -54,10 +62,11 @@ export default function CoreModuleWrapper({ moduleContent, onContinue }: CoreMod
   
   // Calculate overall progress
   const getProgressPercentage = () => {
-    if (currentStage === "intro") return 10;
-    if (currentStage === "song-exercise") return songExerciseCompleted ? 30 : 20;
-    if (currentStage === "core-values-detail") return coreValuesDetailCompleted ? 60 : 40;
-    if (currentStage === "quiz") return quizCompleted ? 90 : 70;
+    if (currentStage === "intro") return 5;
+    if (currentStage === "song-exercise") return songExerciseCompleted ? 20 : 15;
+    if (currentStage === "founder-story") return founderStoryCompleted ? 35 : 30;
+    if (currentStage === "core-values-detail") return coreValuesDetailCompleted ? 65 : 50;
+    if (currentStage === "quiz") return quizCompleted ? 90 : 75;
     if (currentStage === "completed") return 100;
     return 0;
   };
@@ -93,16 +102,14 @@ export default function CoreModuleWrapper({ moduleContent, onContinue }: CoreMod
                 >
                   Go Back
                 </Button>
-                <Button 
-                  onClick={handleStartCoreValuesDetail}
-                  className="bg-indigo-600 hover:bg-indigo-700"
-                >
-                  Continue to CORE Values Detail
-                </Button>
               </div>
             </div>
           )}
         </div>
+      )}
+      
+      {currentStage === "founder-story" && (
+        <FounderStory onComplete={handleFounderStoryComplete} />
       )}
       
       {currentStage === "core-values-detail" && (
@@ -160,6 +167,34 @@ export default function CoreModuleWrapper({ moduleContent, onContinue }: CoreMod
               </Button>
             </div>
             
+            <div className="bg-blue-50 p-6 rounded-lg border border-blue-100 shadow-sm hover:shadow-md transition">
+              <div className="flex items-center mb-4">
+                <div className="bg-blue-100 p-2 rounded-full mr-3">
+                  <History className="h-5 w-5 text-blue-600" />
+                </div>
+                <h3 className="font-bold text-lg">Founder's Story: Craig's Journey</h3>
+              </div>
+              <p className="text-blue-800 mb-4">
+                Read the inspiring story that led to the founding of Raising Arizona Preschool. Learn how a young boy named Craig helped shape our approach to early childhood education.
+              </p>
+              <Button 
+                onClick={() => setCurrentStage("founder-story")}
+                variant="default"
+                disabled={!songExerciseCompleted}
+                className={`${founderStoryCompleted 
+                  ? 'bg-green-600 hover:bg-green-700' 
+                  : songExerciseCompleted 
+                    ? 'bg-blue-600 hover:bg-blue-700' 
+                    : 'bg-gray-400'} w-full`}
+              >
+                {founderStoryCompleted 
+                  ? 'Founder\'s Story Completed ✓' 
+                  : songExerciseCompleted 
+                    ? 'Read Founder\'s Story' 
+                    : 'Complete Song Exercise First'}
+              </Button>
+            </div>
+            
             <div className="bg-purple-50 p-6 rounded-lg border border-purple-100 shadow-sm hover:shadow-md transition">
               <div className="flex items-center mb-4">
                 <div className="bg-purple-100 p-2 rounded-full mr-3">
@@ -173,18 +208,18 @@ export default function CoreModuleWrapper({ moduleContent, onContinue }: CoreMod
               <Button 
                 onClick={handleStartCoreValuesDetail}
                 variant="default"
-                disabled={!songExerciseCompleted}
+                disabled={!founderStoryCompleted}
                 className={`${coreValuesDetailCompleted 
                   ? 'bg-green-600 hover:bg-green-700' 
-                  : songExerciseCompleted 
+                  : founderStoryCompleted 
                     ? 'bg-purple-600 hover:bg-purple-700' 
                     : 'bg-gray-400'} w-full`}
               >
                 {coreValuesDetailCompleted 
                   ? 'Values Exploration Completed ✓' 
-                  : songExerciseCompleted 
+                  : founderStoryCompleted 
                     ? 'Start Values Exploration' 
-                    : 'Complete Song Exercise First'}
+                    : 'Complete Founder\'s Story First'}
               </Button>
             </div>
 
