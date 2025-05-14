@@ -221,6 +221,49 @@ export function MiniLessons() {
           correctAnswer: 0
         }
       );
+    } else if (selectedLesson.category === 'empathy') {
+      questions.push(
+        {
+          question: "According to Brené Brown, what is the key difference between empathy and sympathy?",
+          options: [
+            "Sympathy is more effective in building connections",
+            "Empathy involves feeling with people, while sympathy is feeling for them",
+            "They are essentially the same thing",
+            "Sympathy requires more emotional intelligence"
+          ],
+          correctAnswer: 1
+        },
+        {
+          question: "Which of these is an example of practicing empathy with a child who is upset?",
+          options: [
+            "Telling them everything will be fine",
+            "Distracting them with a toy or activity",
+            "Getting down to their level and saying 'I can see you're really upset'",
+            "Explaining why they shouldn't be upset"
+          ],
+          correctAnswer: 2
+        },
+        {
+          question: "What does Brené Brown say is required for empathy?",
+          options: [
+            "Advanced psychology training",
+            "Having experienced the same situation yourself",
+            "The ability to solve the other person's problem",
+            "Vulnerability and connecting with something in yourself that knows that feeling"
+          ],
+          correctAnswer: 3
+        },
+        {
+          question: "How can teachers model empathy in the classroom?",
+          options: [
+            "By focusing only on academic achievement",
+            "By quickly solving problems for children",
+            "By listening fully and validating children's feelings",
+            "By maintaining strict emotional boundaries"
+          ],
+          correctAnswer: 2
+        }
+      );
     } else if (selectedLesson.category === 'mindful-mornings') {
       questions.push(
         {
