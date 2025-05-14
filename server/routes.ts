@@ -14,7 +14,7 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { z } from "zod";
 import MemoryStore from "memorystore";
 import { generateLessonPrompt, generateLessonContent } from "./lessonGenerator";
-import { checkAllModulesContent, fixModuleContent, fixAllModulesContent } from "./moduleContentService";
+import { checkModuleContent, checkAllModulesContent, fixModuleContent, fixAllModulesContent } from "./moduleContentService";
 
 // Define our session data structure
 declare module 'express-session' {
@@ -1804,12 +1804,33 @@ Format your response as a complete message I could use, including a greeting and
   app.get('/api/modules/content-check', async (req, res) => {
     try {
       // Admin check should go here in production
+      console.log("Getting all modules...");
       const modules = await storage.getAllModules();
+      console.log(`Retrieved ${modules.length} modules`);
+      
+      // Add more detailed logging for first module
+      if (modules.length > 0) {
+        const sampleModule = modules[0];
+        console.log("Sample module structure:", JSON.stringify({
+          id: sampleModule.id,
+          title: sampleModule.title,
+          contentType: typeof sampleModule.content,
+          contentLength: sampleModule.content ? sampleModule.content.length : 0,
+          quizType: typeof sampleModule.quiz,
+          hasQuizQuestions: sampleModule.quiz && 
+                           sampleModule.quiz.questions && 
+                           Array.isArray(sampleModule.quiz.questions)
+        }));
+      }
       
       // Map each module to its content check result
+      console.log("Checking module content...");
       const results = modules.map(module => {
         try {
-          return checkModuleContent(module);
+          // Import the function directly to avoid any scope issues
+          const result = checkModuleContent(module);
+          console.log(`Module ${module.id} check result:`, result.hasAdequateContent ? "OK" : "Needs improvement");
+          return result;
         } catch (moduleError) {
           console.error(`Error checking module ${module.id}:`, moduleError);
           return {
@@ -1830,6 +1851,8 @@ Format your response as a complete message I could use, including a greeting and
       // Count modules with inadequate content
       const inadequateCount = results.filter(r => !r.hasAdequateContent).length;
       
+      console.log(`Content check completed: ${inadequateCount} of ${modules.length} modules need improvement`);
+      
       return res.status(200).json({ 
         message: "Module content check completed",
         moduleCount: modules.length,
@@ -1839,8 +1862,9 @@ Format your response as a complete message I could use, including a greeting and
     } catch (error) {
       console.error("Error checking module content:", error);
       return res.status(500).json({ 
-        message: "Error checking module content",
-        error: String(error) 
+        message: "Internal server error",
+        errorMessage: String(error),
+        errorStack: error instanceof Error ? error.stack : undefined
       });
     }
   });
