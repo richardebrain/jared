@@ -3,6 +3,7 @@ import CoreSongExercise from "./CoreSongExercise";
 import CoreValueDetail from "./CoreValueDetail";
 import CoreValueQuiz from "./CoreValueQuiz";
 import FounderStory from "./FounderStory";
+import TrainingCompletion from "./TrainingCompletion";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Award, Music, BookOpen, FileQuestion, History } from "lucide-react";
@@ -13,7 +14,7 @@ interface CoreModuleWrapperProps {
 }
 
 export default function CoreModuleWrapper({ moduleContent, onContinue }: CoreModuleWrapperProps) {
-  const [currentStage, setCurrentStage] = useState<"intro" | "song-exercise" | "founder-story" | "core-values-detail" | "quiz" | "completed">("intro");
+  const [currentStage, setCurrentStage] = useState<"intro" | "song-exercise" | "founder-story" | "core-values-detail" | "quiz" | "completed" | "training-completion">("intro");
   const [songExerciseCompleted, setSongExerciseCompleted] = useState(false);
   const [founderStoryCompleted, setFounderStoryCompleted] = useState(false);
   const [coreValuesDetailCompleted, setCoreValuesDetailCompleted] = useState(false);
@@ -53,6 +54,10 @@ export default function CoreModuleWrapper({ moduleContent, onContinue }: CoreMod
   
   const handleQuizComplete = () => {
     setQuizCompleted(true);
+    setCurrentStage("training-completion");
+  };
+  
+  const handleTrainingCompletionFinish = () => {
     setCurrentStage("completed");
   };
   
@@ -66,7 +71,8 @@ export default function CoreModuleWrapper({ moduleContent, onContinue }: CoreMod
     if (currentStage === "song-exercise") return songExerciseCompleted ? 20 : 15;
     if (currentStage === "founder-story") return founderStoryCompleted ? 35 : 30;
     if (currentStage === "core-values-detail") return coreValuesDetailCompleted ? 65 : 50;
-    if (currentStage === "quiz") return quizCompleted ? 90 : 75;
+    if (currentStage === "quiz") return quizCompleted ? 85 : 75;
+    if (currentStage === "training-completion") return 95;
     if (currentStage === "completed") return 100;
     return 0;
   };
@@ -118,6 +124,10 @@ export default function CoreModuleWrapper({ moduleContent, onContinue }: CoreMod
       
       {currentStage === "quiz" && (
         <CoreValueQuiz onComplete={handleQuizComplete} />
+      )}
+      
+      {currentStage === "training-completion" && (
+        <TrainingCompletion onContinue={handleTrainingCompletionFinish} />
       )}
       
       {currentStage === "completed" && (
