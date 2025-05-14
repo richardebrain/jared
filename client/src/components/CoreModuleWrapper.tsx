@@ -55,8 +55,9 @@ export default function CoreModuleWrapper({ moduleContent, onContinue }: CoreMod
   // Calculate overall progress
   const getProgressPercentage = () => {
     if (currentStage === "intro") return 10;
-    if (currentStage === "song-exercise") return songExerciseCompleted ? 40 : 25;
-    if (currentStage === "core-values-detail") return coreValuesDetailCompleted ? 90 : 60;
+    if (currentStage === "song-exercise") return songExerciseCompleted ? 30 : 20;
+    if (currentStage === "core-values-detail") return coreValuesDetailCompleted ? 60 : 40;
+    if (currentStage === "quiz") return quizCompleted ? 90 : 70;
     if (currentStage === "completed") return 100;
     return 0;
   };
@@ -108,6 +109,10 @@ export default function CoreModuleWrapper({ moduleContent, onContinue }: CoreMod
         <CoreValueDetail onComplete={handleCoreValuesDetailComplete} />
       )}
       
+      {currentStage === "quiz" && (
+        <CoreValueQuiz onComplete={handleQuizComplete} />
+      )}
+      
       {currentStage === "completed" && (
         <div className="text-center py-8">
           <div className="inline-block p-4 bg-yellow-50 rounded-full mb-4">
@@ -115,7 +120,7 @@ export default function CoreModuleWrapper({ moduleContent, onContinue }: CoreMod
           </div>
           <h2 className="text-2xl font-bold mb-2">Congratulations!</h2>
           <p className="text-lg mb-6">
-            You've completed the detailed exploration of Raising Arizona's CORE values.
+            You've successfully completed Raising Arizona's CORE values training and quiz!
             You now have a deeper understanding of how to implement these values in your teaching practice.
           </p>
           
@@ -124,7 +129,7 @@ export default function CoreModuleWrapper({ moduleContent, onContinue }: CoreMod
             size="lg"
             className="bg-green-600 hover:bg-green-700"
           >
-            Continue to Quiz
+            Complete Training
           </Button>
         </div>
       )}
@@ -135,7 +140,7 @@ export default function CoreModuleWrapper({ moduleContent, onContinue }: CoreMod
             <div dangerouslySetInnerHTML={contentHtml} />
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-indigo-50 p-6 rounded-lg border border-indigo-100 shadow-sm hover:shadow-md transition">
               <div className="flex items-center mb-4">
                 <div className="bg-indigo-100 p-2 rounded-full mr-3">
@@ -180,6 +185,34 @@ export default function CoreModuleWrapper({ moduleContent, onContinue }: CoreMod
                   : songExerciseCompleted 
                     ? 'Start Values Exploration' 
                     : 'Complete Song Exercise First'}
+              </Button>
+            </div>
+
+            <div className="bg-amber-50 p-6 rounded-lg border border-amber-100 shadow-sm hover:shadow-md transition">
+              <div className="flex items-center mb-4">
+                <div className="bg-amber-100 p-2 rounded-full mr-3">
+                  <FileQuestion className="h-5 w-5 text-amber-600" />
+                </div>
+                <h3 className="font-bold text-lg">CORE Values Knowledge Quiz</h3>
+              </div>
+              <p className="text-amber-800 mb-4">
+                Test your understanding of Raising Arizona's CORE values with an interactive quiz featuring Nintendo-style sound effects and a second chance feature!
+              </p>
+              <Button 
+                onClick={() => setCurrentStage("quiz")}
+                variant="default"
+                disabled={!coreValuesDetailCompleted}
+                className={`${quizCompleted 
+                  ? 'bg-green-600 hover:bg-green-700' 
+                  : coreValuesDetailCompleted 
+                    ? 'bg-amber-600 hover:bg-amber-700' 
+                    : 'bg-gray-400'} w-full`}
+              >
+                {quizCompleted 
+                  ? 'Quiz Completed ✓' 
+                  : coreValuesDetailCompleted 
+                    ? 'Start Knowledge Quiz' 
+                    : 'Complete Values Exploration First'}
               </Button>
             </div>
           </div>
