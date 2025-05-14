@@ -437,6 +437,15 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
           <div className="space-y-4">
             <h3 className="font-medium text-lg">{currentQuestionData.question}</h3>
             
+            {showIncorrectFeedback && (
+              <Alert className="border-amber-500 bg-amber-50 dark:bg-amber-950/30">
+                <AlertTriangle className="h-4 w-4 text-amber-500" />
+                <AlertDescription className="text-amber-600 dark:text-amber-300">
+                  That's not quite right. You have one more chance to select the correct answer!
+                </AlertDescription>
+              </Alert>
+            )}
+            
             <RadioGroup 
               value={selectedAnswers[currentQuestionData.id] || ""}
               onValueChange={(value) => handleAnswerSelect(currentQuestionData.id, value)}

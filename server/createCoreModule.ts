@@ -2,13 +2,13 @@ import { db } from "./db";
 import { learningModules, type InsertLearningModule } from "@shared/schema";
 
 /**
- * Raising Arizona's CORE Values - derived from mission statement and handbook
+ * Raising Arizona's CORE Values - aligned with the school's mission and values
  * 
- * 1. Curiosity-Driven Learning: Inspire wonder through curiosity, play and experimentation
- * 2. Emotional Intelligence: Teach emotional regulation through mindfulness and meditation
- * 3. Relationship-Based Teaching: Develop caring relationships, "children don't care what you know until they know that you care"
- * 4. Excellence in Education: Focus on developing future leaders through structured, interactive learning
- * 5. Writing Chapter One: Recognize that we are writing the first chapter of children's lives
+ * 1. Be Consistent: Provide stable, predictable environments where children can thrive
+ * 2. Be Prepared: Plan effectively and come ready to deliver excellent educational experiences
+ * 3. Be Committed: Demonstrate dedication to each child's growth and development
+ * 4. Be Caring: Show genuine compassion and empathy for every child
+ * 5. Be Positive: Maintain an optimistic attitude that inspires and encourages children
  */
 
 /**
@@ -58,95 +58,98 @@ export async function createRaisingArizonaCoreModule() {
 
         <!-- Core Value 1 -->
         <div class="mb-8 p-6 border rounded-lg bg-blue-50">
-          <h2 class="text-2xl font-bold mb-4 text-blue-700">Core Value 1: Curiosity-Driven Learning</h2>
+          <h2 class="text-2xl font-bold mb-4 text-blue-700">Core Value 1: Be Consistent</h2>
           <p class="mb-4">
-            We try each and every day to inspire wonder and thought, not through vain repetition, 
-            but through curiosity, play and experimentation. We believe learning is not about filling 
-            an empty vessel, but about kindling a fire within a young mind.
+            Children thrive in environments where they know what to expect. Consistency in our 
+            routines, rules, and responses creates a sense of security that allows children to focus 
+            on learning and growing. When we are consistent, children develop trust in their environment 
+            and the adults who care for them.
           </p>
           <div class="p-4 bg-white rounded shadow-sm">
-            <h3 class="font-bold text-lg">Key Principles:</h3>
+            <h3 class="font-bold text-lg">Key Practices:</h3>
             <ul class="list-disc pl-6 mt-2">
-              <li>Encourage children's natural curiosity</li>
-              <li>Use play as a primary learning method</li>
-              <li>Promote hands-on experimentation</li>
-              <li>Create environments that inspire wonder</li>
+              <li>Maintaining predictable daily schedules and routines</li>
+              <li>Enforcing classroom rules uniformly and fairly</li>
+              <li>Following through on promises and commitments</li>
+              <li>Providing clear expectations for behavior and learning</li>
             </ul>
           </div>
         </div>
         
         <!-- Core Value 2 -->
         <div class="mb-8 p-6 border rounded-lg bg-green-50">
-          <h2 class="text-2xl font-bold mb-4 text-green-700">Core Value 2: Emotional Intelligence</h2>
+          <h2 class="text-2xl font-bold mb-4 text-green-700">Core Value 2: Be Prepared</h2>
           <p class="mb-4">
-            We believe that the most important thing we can teach our students is emotional regulation. 
-            Through mindfulness and meditation practices, we help children develop self-regulation techniques
-            to make them more successful in all aspects of life.
+            Effective teaching requires thoughtful preparation. When we come to school prepared with 
+            well-designed lesson plans, organized materials, and a clear understanding of each child's 
+            needs, we create optimal conditions for learning and growth. Preparation demonstrates our 
+            professionalism and commitment to excellence.
           </p>
           <div class="p-4 bg-white rounded shadow-sm">
-            <h3 class="font-bold text-lg">Key Approaches:</h3>
+            <h3 class="font-bold text-lg">Essential Preparations:</h3>
             <ul class="list-disc pl-6 mt-2">
-              <li>Teaching breathing techniques for emotional regulation</li>
-              <li>Practicing mindfulness throughout the day</li>
-              <li>Creating a calm, supportive environment</li>
-              <li>Helping children identify and express their feelings</li>
+              <li>Creating detailed weekly lesson plans aligned with learning objectives</li>
+              <li>Preparing learning materials before children arrive</li>
+              <li>Reviewing and reflecting on previous lessons to inform future planning</li>
+              <li>Anticipating potential challenges and preparing appropriate responses</li>
             </ul>
           </div>
         </div>
         
         <!-- Core Value 3 -->
         <div class="mb-8 p-6 border rounded-lg bg-purple-50">
-          <h2 class="text-2xl font-bold mb-4 text-purple-700">Core Value 3: Relationship-Based Teaching</h2>
+          <h2 class="text-2xl font-bold mb-4 text-purple-700">Core Value 3: Be Committed</h2>
           <p class="mb-4">
-            We believe that children do not care what you know until they know that you care about them. 
-            Each day starts and ends with developing a caring relationship with your children, creating 
-            trust and a foundation for learning.
+            Our commitment to early childhood education goes beyond simply doing a job. We are dedicated to 
+            each child's growth, development, and well-being. This commitment drives us to continue learning, 
+            improving our practices, and advocating for the best interests of children and families.
           </p>
           <div class="p-4 bg-white rounded shadow-sm">
-            <h3 class="font-bold text-lg">Daily Practices:</h3>
+            <h3 class="font-bold text-lg">Demonstrations of Commitment:</h3>
             <ul class="list-disc pl-6 mt-2">
-              <li>Greeting each child individually every morning</li>
-              <li>Taking time to listen to children's thoughts and concerns</li>
-              <li>Building trust through consistency and warmth</li>
-              <li>Collaborating with families to ensure continuity of care</li>
+              <li>Pursuing ongoing professional development</li>
+              <li>Persisting with challenging children to help them succeed</li>
+              <li>Going above and beyond minimum requirements</li>
+              <li>Advocating for children's needs with families and colleagues</li>
             </ul>
           </div>
         </div>
         
         <!-- Core Value 4 -->
         <div class="mb-8 p-6 border rounded-lg bg-amber-50">
-          <h2 class="text-2xl font-bold mb-4 text-amber-700">Core Value 4: Excellence in Education</h2>
+          <h2 class="text-2xl font-bold mb-4 text-amber-700">Core Value 4: Be Caring</h2>
           <p class="mb-4">
-            Our school is built to inspire and develop future leaders. We provide high-quality educational 
-            experiences through a structured, interactive curriculum that prepares children for success 
-            in kindergarten and beyond.
+            At the heart of effective early childhood education is genuine care for children. 
+            We believe that children don't care what you know until they know that you care about them. 
+            Our compassionate, responsive relationships with children create the foundation for all learning 
+            and development.
           </p>
           <div class="p-4 bg-white rounded shadow-sm">
-            <h3 class="font-bold text-lg">Educational Foundations:</h3>
+            <h3 class="font-bold text-lg">Ways We Show We Care:</h3>
             <ul class="list-disc pl-6 mt-2">
-              <li>Teaching basic Math and beginning reading skills</li>
-              <li>Engaging children in hands-on Science exploration</li>
-              <li>Supporting language development through rich conversations</li>
-              <li>Continuous professional development for all staff (minimum 24 hours per year)</li>
+              <li>Greeting each child warmly by name every day</li>
+              <li>Listening attentively to children's thoughts, feelings, and ideas</li>
+              <li>Responding promptly and sensitively to children's needs</li>
+              <li>Celebrating each child's unique qualities and achievements</li>
             </ul>
           </div>
         </div>
         
         <!-- Core Value 5 -->
         <div class="mb-8 p-6 border rounded-lg bg-rose-50">
-          <h2 class="text-2xl font-bold mb-4 text-rose-700">Core Value 5: Writing Chapter One</h2>
+          <h2 class="text-2xl font-bold mb-4 text-rose-700">Core Value 5: Be Positive</h2>
           <p class="mb-4">
-            Raising Arizona Preschool is a passageway to your child's future. Together, we are writing your 
-            child's first chapter. We recognize the profound responsibility and privilege of being part of 
-            these formative early years.
+            Our positive attitude sets the tone for the entire classroom environment. When we approach 
+            challenges with optimism, model constructive problem-solving, and focus on children's strengths, 
+            we inspire them to develop resilience, confidence, and a lifelong love of learning.
           </p>
           <div class="p-4 bg-white rounded shadow-sm">
-            <h3 class="font-bold text-lg">Our Commitment:</h3>
+            <h3 class="font-bold text-lg">Positive Practices:</h3>
             <ul class="list-disc pl-6 mt-2">
-              <li>Creating positive first experiences with education</li>
-              <li>Building a strong foundation for lifelong learning</li>
-              <li>Treating each child with respect and dignity</li>
-              <li>Recognizing that our influence extends far beyond the classroom</li>
+              <li>Using encouraging language that emphasizes effort and growth</li>
+              <li>Modeling positive self-talk and constructive problem-solving</li>
+              <li>Finding the good in every child, especially when facing challenges</li>
+              <li>Creating a joyful, engaging learning environment</li>
             </ul>
           </div>
         </div>
@@ -169,18 +172,18 @@ export async function createRaisingArizonaCoreModule() {
     const quiz = {
       questions: [
         {
-          question: "What is the primary approach to learning at Raising Arizona Preschool?",
+          question: "Why is consistency important in early childhood education?",
           options: [
-            "Rote memorization and repetition",
-            "Curiosity, play, and experimentation",
-            "Strict adherence to textbooks",
-            "Competition between students"
+            "It makes the teacher's job easier",
+            "It creates a sense of security that allows children to focus on learning",
+            "It minimizes the need for parent involvement",
+            "It reduces the energy level in the classroom"
           ],
           correctAnswer: 1,
-          explanation: "At Raising Arizona, we inspire wonder through curiosity, play and experimentation rather than rote repetition."
+          explanation: "Consistency in routines, rules, and responses creates security that allows children to focus on learning and growing."
         },
         {
-          question: "According to Raising Arizona's philosophy, what must children know before they care what you know?",
+          question: "According to Raising Arizona's Core Values, what must children know before they care what you know?",
           options: [
             "That you have a college degree",
             "That you have many years of experience",
@@ -188,51 +191,62 @@ export async function createRaisingArizonaCoreModule() {
             "That you know the curriculum"
           ],
           correctAnswer: 2,
-          explanation: "We believe children don't care what you know until they know that you care about them."
+          explanation: "Our 'Be Caring' value emphasizes that children don't care what you know until they know that you care about them."
         },
         {
-          question: "What does Raising Arizona consider 'the most important thing' to teach students?",
+          question: "How does being prepared demonstrate professionalism?",
           options: [
-            "Academic skills",
-            "Emotional regulation",
-            "Social etiquette",
-            "Physical coordination"
+            "It impresses administrators during evaluations",
+            "It allows for more free time during the day",
+            "It shows credentials to parents",
+            "It creates optimal conditions for learning and demonstrates commitment to excellence"
           ],
-          correctAnswer: 1,
-          explanation: "We believe that the most important thing we can teach our students is emotional regulation."
+          correctAnswer: 3,
+          explanation: "Being prepared with well-designed lessons and organized materials creates optimal conditions for learning and demonstrates our commitment to excellence."
         },
         {
-          question: "What is the first tool Raising Arizona uses to teach emotional regulation?",
+          question: "Which of the following is NOT one of the ways we show we care?",
           options: [
-            "Time-out",
-            "Reward charts",
-            "Breathing techniques",
-            "Lecture"
-          ],
-          correctAnswer: 2,
-          explanation: "The first tool we use is breathing. We teach students to take deep breaths and control their breathing when upset."
-        },
-        {
-          question: "What metaphor does Raising Arizona use to describe their approach to learning?",
-          options: [
-            "Building a tower brick by brick",
-            "Filling an empty vessel",
-            "Kindling a fire within a young mind",
-            "Planting seeds in a garden"
+            "Greeting each child warmly by name every day",
+            "Listening attentively to children's thoughts and feelings",
+            "Assigning the same activities to all children regardless of interest or ability",
+            "Celebrating each child's unique qualities and achievements"
           ],
           correctAnswer: 2,
-          explanation: "We believe learning is not about filling an empty vessel, but about kindling a fire within a young mind."
+          explanation: "Assigning the same activities to all children regardless of interest or ability does not show caring. Truly caring for children means recognizing and responding to their individual needs."
         },
         {
-          question: "How will you implement the 'Writing Chapter One' philosophy in your classroom?",
+          question: "What is one key practice of being consistent?",
           options: [
-            "By focusing only on academic readiness for kindergarten",
-            "By recognizing my profound influence and creating positive first experiences with education",
-            "By letting children do whatever they want",
-            "By focusing primarily on discipline and obedience"
+            "Changing classroom rules frequently to keep children engaged",
+            "Allowing some children to break rules if they're having a bad day",
+            "Maintaining predictable daily schedules and routines",
+            "Letting each day unfold spontaneously without planning"
+          ],
+          correctAnswer: 2,
+          explanation: "Maintaining predictable daily schedules and routines is a key practice of the 'Be Consistent' value."
+        },
+        {
+          question: "How can teachers demonstrate the 'Be Positive' value?",
+          options: [
+            "By ignoring negative behaviors",
+            "By using encouraging language that emphasizes effort and growth",
+            "By focusing only on academic achievements",
+            "By maintaining a serious classroom environment"
           ],
           correctAnswer: 1,
-          explanation: "The 'Writing Chapter One' philosophy recognizes our profound responsibility in creating positive first experiences that will influence a child's entire educational journey."
+          explanation: "Using encouraging language that emphasizes effort and growth is a positive practice that helps children develop resilience and confidence."
+        },
+        {
+          question: "Which of the following best demonstrates the 'Be Committed' value?",
+          options: [
+            "Leaving work exactly at the end of your shift every day",
+            "Doing only what is required in your job description",
+            "Pursuing ongoing professional development",
+            "Avoiding challenging children"
+          ],
+          correctAnswer: 2,
+          explanation: "Pursuing ongoing professional development demonstrates commitment to improving our practices for the benefit of children."
         }
       ]
     };
