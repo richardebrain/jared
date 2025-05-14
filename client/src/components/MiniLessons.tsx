@@ -1300,7 +1300,7 @@ export function MiniLessons() {
                                 <iframe 
                                   width="100%" 
                                   height="100%" 
-                                  src="https://www.youtube.com/embed/iEEJT9cYsm0" 
+                                  src={`https://www.youtube.com/embed/${getRelevantVideos(['mindful-mornings', 'morning-meeting'], 1)[0]?.youtubeId || 'RuLudWAjGA0'}`} 
                                   title="Morning Mindfulness for Children" 
                                   frameBorder="0" 
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -1319,7 +1319,7 @@ export function MiniLessons() {
                                 <iframe 
                                   width="100%" 
                                   height="100%" 
-                                  src="https://www.youtube.com/embed/RVA2N6tX2cg" 
+                                  src={`https://www.youtube.com/embed/${getRelevantVideos(['mindful-mornings', 'circle-time'], 2)[1]?.youtubeId || 'IgA1zhnn5AQ'}`} 
                                   title="Breathing Exercises for the Classroom" 
                                   frameBorder="0" 
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -1338,8 +1338,8 @@ export function MiniLessons() {
                                 <iframe 
                                   width="100%" 
                                   height="100%" 
-                                  src="https://www.youtube.com/embed/ihwcw_ofuME" 
-                                  title="Body Awareness Activities" 
+                                  src={`https://www.youtube.com/embed/${getRelevantVideos(['mindful-mornings', 'community-building'], 2)[0]?.youtubeId || 'Ocyqu5ceH3Y'}`} 
+                                  title="Building Classroom Community" 
                                   frameBorder="0" 
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                   allowFullScreen
