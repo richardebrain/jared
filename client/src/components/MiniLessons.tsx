@@ -1,5 +1,19 @@
 import { useState, useEffect, useMemo } from "react";
-import { videoResourcesData } from '@shared/videoResources';
+import { videoResourcesData, VideoResource } from '@shared/videoResources';
+
+// Utility function to get relevant videos by category
+const getRelevantVideos = (categories: string[], limit: number = 3): VideoResource[] => {
+  const matchingVideos = videoResourcesData.filter(video => 
+    video.category.some(cat => categories.includes(cat.toLowerCase()))
+  );
+  
+  // Prioritize featured videos
+  const featuredVideos = matchingVideos.filter(v => v.featured);
+  const otherVideos = matchingVideos.filter(v => !v.featured);
+  
+  // Return a mix of featured and other videos, with featured ones first
+  return [...featuredVideos, ...otherVideos].slice(0, limit);
+};
 import { 
   Clock, 
   ArrowRight, 
@@ -1169,7 +1183,7 @@ export function MiniLessons() {
                                 <iframe 
                                   width="100%" 
                                   height="100%" 
-                                  src="https://www.youtube.com/embed/KAT5NiWHFIU" 
+                                  src={`https://www.youtube.com/embed/${getRelevantVideos(['transitions', 'quick-transitions'], 1)[0]?.youtubeId || 'KAT5NiWHFIU'}`} 
                                   title="Transition Techniques" 
                                   frameBorder="0" 
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -1188,7 +1202,7 @@ export function MiniLessons() {
                                 <iframe 
                                   width="100%" 
                                   height="100%" 
-                                  src="https://www.youtube.com/embed/r3Rcg6V3E04" 
+                                  src={`https://www.youtube.com/embed/${videoResourcesData.find(v => v.category.includes('transitions') && !v.featured)?.youtubeId || 'r3Rcg6V3E04'}`} 
                                   title="Creative Transition Techniques" 
                                   frameBorder="0" 
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -1207,7 +1221,7 @@ export function MiniLessons() {
                                 <iframe 
                                   width="100%" 
                                   height="100%" 
-                                  src="https://www.youtube.com/embed/r_I50m6AQ4A" 
+                                  src={`https://www.youtube.com/embed/${videoResourcesData.find(v => v.category.includes('classroom-management'))?.youtubeId || 'r_I50m6AQ4A'}`} 
                                   title="Managing Classroom Transitions" 
                                   frameBorder="0" 
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 

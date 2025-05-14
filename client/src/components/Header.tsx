@@ -28,7 +28,7 @@ export default function Header() {
   
   const { mutate: logout } = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/auth/logout");
+      const response = await apiRequest("/api/auth/logout", { method: "POST" });
       return response;
     },
     onSuccess: () => {
