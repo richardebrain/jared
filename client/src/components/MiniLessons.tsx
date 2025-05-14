@@ -987,7 +987,7 @@ export function MiniLessons() {
                                 <iframe 
                                   width="100%" 
                                   height="100%" 
-                                  src="https://www.youtube.com/embed/bWte1oMd4Qk" 
+                                  src="https://www.youtube.com/embed/gKuB8ynvSDA" 
                                   title="Transition Techniques" 
                                   frameBorder="0" 
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -1006,7 +1006,7 @@ export function MiniLessons() {
                                 <iframe 
                                   width="100%" 
                                   height="100%" 
-                                  src="https://www.youtube.com/embed/21XaUIOnR-s" 
+                                  src="https://www.youtube.com/embed/4RmQTIXvjnU" 
                                   title="Creative Transition Techniques" 
                                   frameBorder="0" 
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -1025,7 +1025,7 @@ export function MiniLessons() {
                                 <iframe 
                                   width="100%" 
                                   height="100%" 
-                                  src="https://www.youtube.com/embed/S-sKRTAe-Sio" 
+                                  src="https://www.youtube.com/embed/r_I50m6AQ4A" 
                                   title="Managing Classroom Transitions" 
                                   frameBorder="0" 
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
