@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Award, Trophy, BookOpen, Video, Target, Users, Wrench, Star } from "lucide-react";
+import { Award, Trophy, BookOpen, Video, Target, Users, Wrench, Star, Plus } from "lucide-react";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 interface TrainingCompletionProps {
@@ -11,7 +11,24 @@ interface TrainingCompletionProps {
 
 export default function TrainingCompletion({ onContinue }: TrainingCompletionProps) {
   const [currentTab, setCurrentTab] = useState("points");
+  const [showPointsAnimation, setShowPointsAnimation] = useState(false);
   const { playCelebrationSound } = useSoundEffects();
+  
+  // Play victory sound when component mounts
+  useEffect(() => {
+    // Play sound with slight delay to ensure it loads properly
+    const timer = setTimeout(() => {
+      playCelebrationSound();
+      setShowPointsAnimation(true);
+      
+      // Hide the animation after a few seconds
+      setTimeout(() => {
+        setShowPointsAnimation(false);
+      }, 3000);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [playCelebrationSound]);
   
   return (
     <div className="max-w-4xl mx-auto p-4">
