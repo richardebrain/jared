@@ -188,11 +188,11 @@ export const videoResourcesData: VideoResource[] = [
     id: "video-013",
     title: "Engaging Families in Children's Learning Journey",
     description: "Creative ways to involve families in curriculum and learning experiences.",
-    youtubeId: "kBzZENz7BlA", // Harvard Family Research Project on family engagement
+    youtubeId: "1t8LMxIMV1I", // "Engaging Families in Early Childhood" by NAEYC
     category: ["family-engagement", "curriculum", "community"],
     tags: ["family involvement", "learning at home", "community connections"],
-    duration: 15,
-    source: "Harvard Family Research Project",
+    duration: 12,
+    source: "NAEYC",
     expertLevel: "advanced",
     dateAdded: "2025-05-14",
     featured: false
