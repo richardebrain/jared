@@ -87,12 +87,29 @@ export default function ModuleView({ moduleId, user, onBack }: ModuleViewProps) 
   
   // Handle lesson completion
   const handleLessonComplete = () => {
-    toast({
-      title: "Lesson Completed!",
-      description: "Great job! You've completed this lesson.",
+    // Mark the module as 100% complete and award points
+    updateProgress({
+      moduleId,
+      progress: 100,
+      completed: true,
+      // Set explicit points for Core module
+      ...(module?.title === "Raising Arizona's CORE" ? { pointsEarned: 50 } : {})
     });
     
-    refetchProgress();
+    toast({
+      title: "Lesson Completed!",
+      description: module?.title === "Raising Arizona's CORE" 
+        ? "Congratulations! You've earned 50 points for completing the CORE Values training!"
+        : "Great job! You've completed this lesson."
+    });
+    
+    // After short delay, notify parent component to return to dashboard
+    setTimeout(() => {
+      refetchProgress();
+      if (onBack) {
+        onBack();
+      }
+    }, 1500);
   };
   
   if (isLoadingModule || !module) {

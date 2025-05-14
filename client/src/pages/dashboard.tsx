@@ -311,7 +311,8 @@ export default function Dashboard() {
             
             <ModuleView 
               moduleId={selectedModuleId} 
-              onComplete={() => setSelectedModuleId(null)}
+              onBack={() => setSelectedModuleId(null)}
+              user={user}
             />
           </div>
         ) : (

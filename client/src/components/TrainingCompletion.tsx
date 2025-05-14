@@ -32,10 +32,21 @@ export default function TrainingCompletion({ onContinue }: TrainingCompletionPro
   
   return (
     <div className="max-w-4xl mx-auto p-4">
-      <div className="text-center mb-8">
+      <div className="text-center mb-8 relative">
         <div className="inline-block p-5 bg-gradient-to-br from-yellow-50 to-amber-100 rounded-full mb-6 shadow-inner">
           <Trophy className="h-12 w-12 text-yellow-500" />
         </div>
+        
+        {/* Points animation overlay */}
+        {showPointsAnimation && (
+          <div className="absolute top-0 right-0 left-0 flex justify-center">
+            <div className="animate-bounce-slide-up flex items-center bg-yellow-100 px-4 py-2 rounded-full shadow-lg border border-yellow-300">
+              <Plus className="h-5 w-5 text-yellow-600 mr-1" />
+              <span className="text-xl font-bold text-yellow-600">50 points!</span>
+            </div>
+          </div>
+        )}
+        
         <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
           Congratulations!
         </h1>
