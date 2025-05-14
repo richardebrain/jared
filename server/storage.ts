@@ -418,6 +418,22 @@ export class MemStorage implements IStorage {
     this.learningModules.set(id, module);
     return module;
   }
+  
+  async updateModule(id: number, moduleData: Partial<LearningModule>): Promise<LearningModule> {
+    const existingModule = await this.getModule(id);
+    
+    if (!existingModule) {
+      throw new Error(`Module with ID ${id} not found`);
+    }
+    
+    const updatedModule: LearningModule = {
+      ...existingModule,
+      ...moduleData
+    };
+    
+    this.learningModules.set(id, updatedModule);
+    return updatedModule;
+  }
 
   // User progress operations
   async getUserProgressByUserId(userId: number): Promise<UserProgress[]> {
@@ -606,6 +622,20 @@ export class DatabaseStorage implements IStorage {
       .values(module)
       .returning();
     return newModule;
+  }
+  
+  async updateModule(id: number, moduleData: Partial<LearningModule>): Promise<LearningModule> {
+    const [updatedModule] = await db
+      .update(learningModules)
+      .set(moduleData)
+      .where(eq(learningModules.id, id))
+      .returning();
+      
+    if (!updatedModule) {
+      throw new Error(`Module with ID ${id} not found`);
+    }
+    
+    return updatedModule;
   }
   
   async getUserProgressByUserId(userId: number): Promise<UserProgress[]> {

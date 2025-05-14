@@ -46,6 +46,15 @@ export const learningModules = pgTable("learning_modules", {
   featured: boolean("featured").default(false),
   difficulty: text("difficulty").notNull(), // beginner, intermediate, advanced
   category: text("category").notNull(),
+  content: text("content"), // HTML content of the module
+  quiz: json("quiz").$type<{
+    questions: {
+      question: string;
+      options: string[];
+      correctAnswer: number;
+      explanation?: string;
+    }[]
+  }>(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

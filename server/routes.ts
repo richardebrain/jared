@@ -14,6 +14,7 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { z } from "zod";
 import MemoryStore from "memorystore";
 import { generateLessonPrompt, generateLessonContent } from "./lessonGenerator";
+import { checkAllModulesContent, fixModuleContent, fixAllModulesContent } from "./moduleContentService";
 
 // Define our session data structure
 declare module 'express-session' {
