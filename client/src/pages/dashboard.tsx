@@ -544,54 +544,39 @@ export default function Dashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                   {/* Left Column (2/3 width) */}
                   <div className="md:col-span-2 space-y-6">
-                    {/* Points Tracker Card */}
+                    {/* Learning Resources Card */}
                     <Card className="overflow-hidden border border-amber-200">
                       <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-100">
                         <div className="flex items-center">
-                          <Star className="h-5 w-5 text-amber-500 mr-2" />
-                          <CardTitle className="text-lg">Points & Progress</CardTitle>
+                          <Book className="h-5 w-5 text-amber-500 mr-2" />
+                          <CardTitle className="text-lg">Learning Resources</CardTitle>
                         </div>
-                        <CardDescription>Track your learning accomplishments</CardDescription>
+                        <CardDescription>Quick links to helpful resources</CardDescription>
                       </CardHeader>
                       <CardContent className="p-4">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center">
-                            <div className="bg-amber-100 p-2 rounded-full">
-                              <Award className="h-5 w-5 text-amber-600" />
-                            </div>
-                            <div className="ml-3">
-                              <p className="text-sm text-muted-foreground">Your Points</p>
-                              <p className="text-2xl font-bold">{user?.points || 0}</p>
-                            </div>
-                          </div>
-                          
-                          <div className="bg-white px-3 py-2 rounded-lg border border-amber-200 shadow-sm">
-                            <div className="flex items-center">
-                              <img 
-                                src="https://em-content.zobj.net/source/microsoft-teams/363/teddy-bear_1f9f8.png" 
-                                alt="Bear Bucks"
-                                className="w-6 h-6 mr-2"
-                              />
-                              <span className="font-bold">{bearBucks}</span>
-                              <span className="ml-1 text-muted-foreground text-sm">Bear Bucks</span>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-3">
-                          <div>
-                            <div className="flex justify-between mb-1 text-sm">
-                              <span>Progress to next level</span>
-                              <span className="font-medium">Level {user?.level || 1}</span>
-                            </div>
-                            <Progress value={(user?.points || 0) % 300 / 300 * 100} className="h-2" />
-                          </div>
-                          
-                          <div className="bg-muted/30 p-3 rounded-lg text-center">
-                            <p className="text-sm text-muted-foreground">
-                              300 more points until Level {(user?.level || 1) + 1}
-                            </p>
-                          </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <Link to="/video-resources">
+                            <button className="flex items-center p-3 bg-white rounded-lg border border-amber-200 shadow-sm w-full hover:bg-amber-50 transition">
+                              <div className="bg-purple-100 p-2 rounded-full mr-3">
+                                <i className="ri-video-line text-purple-600"></i>
+                              </div>
+                              <div className="text-left">
+                                <p className="font-medium">Video Library</p>
+                                <p className="text-sm text-gray-500">Browse educational videos</p>
+                              </div>
+                            </button>
+                          </Link>
+                          <Link to="/assessment">
+                            <button className="flex items-center p-3 bg-white rounded-lg border border-amber-200 shadow-sm w-full hover:bg-amber-50 transition">
+                              <div className="bg-blue-100 p-2 rounded-full mr-3">
+                                <i className="ri-file-list-line text-blue-600"></i>
+                              </div>
+                              <div className="text-left">
+                                <p className="font-medium">Assessments</p>
+                                <p className="text-sm text-gray-500">Track your progress</p>
+                              </div>
+                            </button>
+                          </Link>
                         </div>
                       </CardContent>
                     </Card>
