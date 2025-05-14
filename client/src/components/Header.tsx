@@ -101,6 +101,11 @@ export default function Header() {
               Teacher Tools
             </a>
           </Link>
+          <Link href="/video-resources">
+            <a className={`font-heading font-semibold ${location === "/video-resources" ? "text-primary" : "text-neutral-800 hover:text-primary"} transition`}>
+              Video Library
+            </a>
+          </Link>
         </nav>
         
         <div className="flex items-center space-x-4">
