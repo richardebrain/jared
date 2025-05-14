@@ -839,6 +839,9 @@ export default function AssessmentPage() {
   const [completedQuestions, setCompletedQuestions] = useState<string[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   
+  // Check if user has completed an assessment before
+  const assessmentCompleted = assessments && Array.isArray(assessments) && assessments.length > 0;
+  
   // Function to update domain questions based on difficulty - improved with better error handling
   const updateDomainQuestions = (domainId: string, difficulty: DifficultyLevel) => {
     try {
@@ -2257,6 +2260,64 @@ export default function AssessmentPage() {
                   Overall Progress: {overallProgress}%
                 </CardDescription>
                 <Progress value={overallProgress} className="h-2" />
+                
+                {/* Take Assessment Again Button */}
+                {assessmentCompleted && (
+                  <div className="mt-4 pt-4 border-t">
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Already completed an assessment? Start fresh:
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => {
+                        // Reset assessment state
+                        setCurrentDomainIndex(0);
+                        setAnswers({});
+                        setCompletedQuestions([]);
+                        setCurrentQuestionIndex(0);
+                        setDomainQuestions([]);
+                        setCorrectByDomain({
+                          'child-development': 0,
+                          'curriculum-planning': 0, 
+                          'social-emotional': 0,
+                          'health-safety': 0,
+                          'chapter-one': 0,
+                          'mindful-teaching': 0
+                        });
+                        setIncorrectByDomain({
+                          'child-development': 0,
+                          'curriculum-planning': 0, 
+                          'social-emotional': 0,
+                          'health-safety': 0,
+                          'chapter-one': 0,
+                          'mindful-teaching': 0
+                        });
+                        
+                        // Reset difficulties
+                        setDomainDifficulty({
+                          'child-development': 'beginner',
+                          'curriculum-planning': 'beginner', 
+                          'social-emotional': 'beginner',
+                          'health-safety': 'beginner',
+                          'chapter-one': 'beginner',
+                          'mindful-teaching': 'beginner'
+                        });
+                        
+                        // Initialize assessment with first domain
+                        initializeAssessment();
+                        
+                        toast({
+                          title: "Assessment Reset",
+                          description: "You can now take the assessment again.",
+                        });
+                      }}
+                    >
+                      Take Assessment Again
+                    </Button>
+                  </div>
+                )}
               </CardHeader>
               <CardContent>
                 <div className="space-y-1">

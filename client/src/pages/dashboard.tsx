@@ -332,15 +332,48 @@ export default function Dashboard() {
                   </CardContent>
                 </Card>
                 
-                {/* Take Another Assessment */}
-                <div className="bg-primary/10 rounded-xl p-6 text-center mb-6">
-                  <h3 className="font-bold text-primary mb-2">Ready to update your learning path?</h3>
-                  <p className="text-sm mb-4">Take another assessment to refine your personalized recommendations.</p>
-                  <Link to="/assessment">
-                    <Button variant="outline" size="sm">
-                      Take Assessment Again
-                    </Button>
-                  </Link>
+                {/* Raising Arizona's CORE Training Module */}
+                <div className="bg-gradient-to-r from-indigo-100 to-purple-100 rounded-xl p-6 mb-6">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center mb-2">
+                        <img 
+                          src="/attached_assets/raising-arizona-logo.jpg" 
+                          alt="Raising Arizona Preschool" 
+                          className="h-7 mr-2 rounded"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = "https://placehold.co/200x40/4f46e5/fff?text=Raising+Arizona";
+                          }}
+                        />
+                        <h3 className="font-bold text-indigo-800">CORE Values Training</h3>
+                      </div>
+                      <p className="text-sm text-indigo-700 mb-4">
+                        Complete this flagship module to understand Raising Arizona's five core values. 
+                        Required for all teachers during onboarding.
+                      </p>
+                      <div className="flex space-x-3">
+                        <Button 
+                          size="sm" 
+                          className="bg-indigo-600 hover:bg-indigo-700"
+                          onClick={() => {
+                            // Find the CORE module
+                            if (modules && Array.isArray(modules)) {
+                              const coreModule = modules.find(m => m.title === "Raising Arizona's CORE");
+                              if (coreModule) {
+                                handleModuleSelect(coreModule.id);
+                              } else {
+                                console.error("CORE module not found");
+                              }
+                            }
+                          }}
+                        >
+                          Start CORE Training
+                        </Button>
+                      </div>
+                    </div>
+                    <Star className="h-12 w-12 text-indigo-300" />
+                  </div>
                 </div>
                 
                 {/* Link to Tools Page */}
