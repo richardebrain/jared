@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LinkValidator } from '@/components/LinkValidator';
+import LinkValidator from '@/components/LinkValidator';
 import { AlertTriangle, Video, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
  * - Link validation tool
  * - Other administrative functions
  */
-export function AdminTools() {
+export default function AdminTools() {
   const [isOpen, setIsOpen] = useState(false);
 
   // If the tools are closed, show just a button to open them
@@ -132,4 +132,4 @@ export function AdminTools() {
   );
 }
 
-export default AdminTools;
+// Already exported as default above

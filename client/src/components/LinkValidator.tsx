@@ -13,7 +13,7 @@ import { Link } from 'wouter';
  * LinkValidator component for testing and validating internal application links
  * Can be used as an admin tool for identifying 404 errors
  */
-export function LinkValidator() {
+export default function LinkValidator() {
   const [results, setResults] = useState<ValidationResult[]>([]);
   const [isValidating, setIsValidating] = useState(false);
   const [filter, setFilter] = useState<string>("all");
@@ -235,4 +235,4 @@ export function LinkValidator() {
   );
 }
 
-export default LinkValidator;
+// Already exported as default above
