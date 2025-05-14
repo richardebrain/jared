@@ -4,6 +4,7 @@ import CoreValueDetail from "./CoreValueDetail";
 import CoreValueQuiz from "./CoreValueQuiz";
 import FounderStory from "./FounderStory";
 import TrainingCompletion from "./TrainingCompletion";
+import CorePromotionalVideo from "./CorePromotionalVideo";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Award, Music, BookOpen, FileQuestion, History } from "lucide-react";
