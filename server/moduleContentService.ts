@@ -38,11 +38,14 @@ export function checkModuleContent(module: LearningModule): ModuleContentCheckRe
   const content = module.content || '';
   const hasVideo = content.includes('youtube.com/embed/') || content.includes('youtu.be/');
   
-  const hasQuiz = module.quiz && 
+  const hasQuiz = module.quiz !== null && 
+                 module.quiz !== undefined && 
+                 typeof module.quiz === 'object' &&
+                 module.quiz.questions !== undefined &&
                  Array.isArray(module.quiz.questions) && 
                  module.quiz.questions.length > 0;
                  
-  const quizQuestionCount = hasQuiz ? module.quiz.questions.length : 0;
+  const quizQuestionCount = hasQuiz && module.quiz && module.quiz.questions ? module.quiz.questions.length : 0;
   
   const hasLearningObjectives = content.includes('Learning Objectives') || 
                                content.includes('learning objectives') || 
@@ -51,13 +54,13 @@ export function checkModuleContent(module: LearningModule): ModuleContentCheckRe
   return {
     moduleId: module.id,
     title: module.title,
-    hasAdequateContent: hasAdequateContent(module),
+    hasAdequateContent: Boolean(hasAdequateContent(module)),
     contentLength: content.length,
     hasVideo,
     hasQuiz,
     quizQuestionCount,
     hasLearningObjectives,
-    fixed: false
+    fixed: false // Will be set to true if fixed
   };
 }
 
@@ -92,7 +95,7 @@ export async function fixModuleContent(moduleId: number): Promise<LearningModule
     }
     
     // Don't fix if content is already adequate
-    if (hasAdequateContent(module)) {
+    if (Boolean(hasAdequateContent(module))) {
       return module;
     }
     
