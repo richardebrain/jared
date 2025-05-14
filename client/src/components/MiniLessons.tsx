@@ -464,7 +464,8 @@ export function MiniLessons() {
     const firstCard = matchingPairs.find(card => card.id === selectedCard);
     const secondCard = matchingPairs.find(card => card.id === id);
     
-    if (firstCard && secondCard && firstCard.matchId === secondCard.id) {
+    // Check if the cards have the same text (which means they match)
+    if (firstCard && secondCard && firstCard.text === secondCard.text && firstCard.id !== secondCard.id) {
       // It's a match!
       setMatchingPairs(matchingPairs.map(card => 
         (card.id === selectedCard || card.id === id) 
@@ -507,7 +508,7 @@ export function MiniLessons() {
   });
   
   // Get assessments to determine recommended categories
-  const { data: assessmentData, isLoading: assessmentsLoading } = useQuery({
+  const { data: assessmentData, isLoading: assessmentsLoading } = useQuery<any>({
     queryKey: ['/api/assessments'],
   });
   
@@ -527,15 +528,16 @@ export function MiniLessons() {
     }
     
     // Handle case where assessments are nested in a property
-    if (assessmentData?.assessments && Array.isArray(assessmentData.assessments)) {
-      return assessmentData.assessments.length > 0 
-        ? assessmentData.assessments[assessmentData.assessments.length - 1] 
+    if (assessmentData && 'assessments' in assessmentData && Array.isArray((assessmentData as any).assessments)) {
+      const assessments = (assessmentData as any).assessments;
+      return assessments.length > 0 
+        ? assessments[assessments.length - 1] 
         : null;
     }
     
     // Handle case where a single assessment is returned
-    if (assessmentData?.id && assessmentData?.userId) {
-      return assessmentData;
+    if (assessmentData && typeof assessmentData === 'object' && 'id' in assessmentData && 'userId' in assessmentData) {
+      return assessmentData as any;
     }
     
     // No valid assessment found
