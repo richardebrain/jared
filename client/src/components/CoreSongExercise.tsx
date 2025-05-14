@@ -35,12 +35,25 @@ export default function CoreSongExercise({ onComplete }: CoreSongExerciseProps) 
   const checkAnswers = () => {
     setSubmitted(true);
     
-    // Check if all answers are correct (case insensitive)
-    const allCorrect = coreValues.every((value, index) => 
-      values[index].toLowerCase() === value.toLowerCase()
+    // Create an array of normalized user values (lowercase and trimmed)
+    const normalizedUserValues = values.map(value => value.toLowerCase().trim());
+    
+    // Create an array of normalized expected values (lowercase)
+    const normalizedCoreValues = coreValues.map(value => value.toLowerCase());
+    
+    // Check if all expected values are present in user input (regardless of order)
+    const allValuesPresent = normalizedCoreValues.every(expectedValue => 
+      normalizedUserValues.includes(expectedValue)
     );
     
-    if (allCorrect) {
+    // Also check if user provided exactly 5 valid values (no duplicates or empty inputs)
+    const uniqueValues = new Set(normalizedUserValues.filter(value => value !== ""));
+    const hasCorrectCount = uniqueValues.size === coreValues.length;
+    
+    // User is correct if they found all values and provided exactly 5 unique answers
+    const isCorrect = allValuesPresent && hasCorrectCount;
+    
+    if (isCorrect) {
       playSuccessSound();
       onComplete(true);
     } else {
@@ -84,7 +97,7 @@ export default function CoreSongExercise({ onComplete }: CoreSongExerciseProps) 
       <h2 className="text-2xl font-bold">Raising Arizona's Core Values Song Exercise</h2>
       
       <p className="text-lg">
-        Listen to our company song "Sunrise paints the Glendale sky gold" and identify the 5 core values mentioned in the lyrics. Type each core value in the corresponding box below.
+        Listen to our company song "Sunrise paints the Glendale sky gold" and identify the 5 core values mentioned in the lyrics. Type each core value in any of the boxes below. You can enter the values in any order!
       </p>
       
       <Card className="p-4 bg-amber-50">
@@ -195,7 +208,9 @@ Watch them grow..`}
                 disabled={submitted}
                 className={
                   submitted
-                    ? values[index].toLowerCase() === coreValues[index].toLowerCase()
+                    ? coreValues.some(value => 
+                        value.toLowerCase() === values[index].toLowerCase().trim()
+                      )
                       ? "pr-10 border-green-500"
                       : "pr-10 border-red-500"
                     : ""
@@ -203,16 +218,21 @@ Watch them grow..`}
               />
               {submitted && (
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  {values[index].toLowerCase() === coreValues[index].toLowerCase() ? (
+                  {coreValues.some(value => 
+                    value.toLowerCase() === values[index].toLowerCase().trim()
+                  ) ? (
                     <Check className="h-5 w-5 text-green-500" />
                   ) : (
                     <X className="h-5 w-5 text-red-500" />
                   )}
                 </div>
               )}
-              {submitted && values[index].toLowerCase() !== coreValues[index].toLowerCase() && (
+              {submitted && 
+                !coreValues.some(value => 
+                  value.toLowerCase() === values[index].toLowerCase().trim()
+                ) && (
                 <p className="text-sm text-red-500 mt-1">
-                  Correct: {coreValues[index]}
+                  Must be one of: {coreValues.join(", ")}
                 </p>
               )}
             </div>
