@@ -94,6 +94,7 @@ export default function CoreSongExercise({ onComplete }: CoreSongExerciseProps) 
             src="/assets/Sunrise paints the Glendale sky gold.mp3"
             className="w-full"
             controls
+            onError={(e) => console.error("Audio error:", e)}
           />
           
           <Button 

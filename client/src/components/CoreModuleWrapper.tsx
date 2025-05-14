@@ -11,8 +11,8 @@ export default function CoreModuleWrapper({ moduleContent, onContinue }: CoreMod
   const [showSongExercise, setShowSongExercise] = useState(false);
   const [songExerciseCompleted, setSongExerciseCompleted] = useState(false);
   
-  // Parse module content as HTML
-  const contentHtml = { __html: moduleContent };
+  // Parse module content as HTML, with a fallback if content is null
+  const contentHtml = { __html: moduleContent || '<p>Loading module content...</p>' } as { __html: string };
   
   const handleSongExerciseClick = () => {
     setShowSongExercise(true);
