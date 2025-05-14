@@ -19,11 +19,11 @@ export default function CoreSongExercise({ onComplete }: CoreSongExerciseProps) 
   const { playSuccessSound, playWrongSound } = useSoundEffects();
   
   const coreValues = [
-    "Be Prepared",
-    "Be Consistent",
-    "Be Caring",
-    "Be Positive",
-    "Be Committed"
+    "Prepared",
+    "Consistent",
+    "Caring",
+    "Positive",
+    "Committed"
   ];
   
   const handleValueChange = (index: number, value: string) => {
@@ -97,7 +97,7 @@ export default function CoreSongExercise({ onComplete }: CoreSongExerciseProps) 
       <h2 className="text-2xl font-bold">Raising Arizona's Core Values Song Exercise</h2>
       
       <p className="text-lg">
-        Listen to our company song "Sunrise paints the Glendale sky gold" and identify the 5 core values mentioned in the lyrics. Type each core value in any of the boxes below. You can enter the values in any order!
+        Listen to our company song "Sunrise paints the Glendale sky gold" and identify the 5 core values mentioned in the lyrics. Type each core value in any of the boxes below. You can enter the values in any order! <span className="text-primary font-semibold">Just enter the value (Prepared, Caring, etc.) - you don't need to add "Be" before each value.</span>
       </p>
       
       <Card className="p-4 bg-amber-50">

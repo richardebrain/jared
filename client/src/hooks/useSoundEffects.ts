@@ -7,9 +7,7 @@ export function useSoundEffects() {
     success: '/sounds/mario-coin.mp3',
     wrong: '/sounds/mario-wrong.mp3',
     levelComplete: '/sounds/mario-level-complete.mp3',
-    celebration: '/sounds/mario-victory.mp3',
-    voiceStart: '/sounds/voice-start.mp3',
-    voiceEnd: '/sounds/voice-end.mp3'
+    celebration: '/sounds/mario-victory.mp3'
   };
 
   // Function to safely play sounds
@@ -48,49 +46,96 @@ export function useSoundEffects() {
     playSound(soundUrls.celebration, 0.7);
   }, [playSound, soundUrls.celebration]);
 
-  // For starting voice narration
-  const playVoiceStartSound = useCallback(() => {
-    playSound(soundUrls.voiceStart, 0.4);
-  }, [playSound, soundUrls.voiceStart]);
+  // Voice narration is handled by the browser's Speech Synthesis API
 
-  // For ending voice narration
-  const playVoiceEndSound = useCallback(() => {
-    playSound(soundUrls.voiceEnd, 0.4);
-  }, [playSound, soundUrls.voiceEnd]);
+  // For text-to-speech functionality using Web Speech API
+  const speakText = useCallback((text: string, voicePreference: string, onComplete?: () => void) => {
+    // Check if browser supports speech synthesis
+    if (!window.speechSynthesis) {
+      console.error("This browser doesn't support speech synthesis");
+      if (onComplete) onComplete();
+      return { cancel: () => {} };
+    }
 
-  // For text-to-speech functionality
-  const speakText = useCallback((text: string, voice: string, onComplete?: () => void) => {
-    // In a real implementation, this would use a text-to-speech API with various voices
-    // For now, we simulate the voice narration with console logs and callbacks
+    // Create a new utterance
+    const utterance = new SpeechSynthesisUtterance(text);
     
-    playVoiceStartSound();
-    console.log(`Speaking text with ${voice} voice: ${text.substring(0, 100)}...`);
+    // Set voice properties based on preference
+    utterance.rate = 0.9; // slightly slower than default
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
     
-    // Simulate completion after 5 seconds (or based on text length)
-    const simulatedDuration = Math.max(5000, text.length * 20); // Rough estimate of reading time
+    // Select a voice - map actor names to voice characteristics
+    const voices = window.speechSynthesis.getVoices();
     
-    setTimeout(() => {
-      playVoiceEndSound();
+    if (voices.length === 0) {
+      // If voices aren't loaded yet, wait for them
+      speechSynthesis.onvoiceschanged = () => {
+        const availableVoices = window.speechSynthesis.getVoices();
+        selectVoice(availableVoices);
+        speak();
+      };
+    } else {
+      selectVoice(voices);
+      speak();
+    }
+    
+    function selectVoice(availableVoices: SpeechSynthesisVoice[]) {
+      let selectedVoice = null;
+      
+      // Map actor preferences to different voice types
+      switch(voicePreference) {
+        case "Morgan Freeman":
+          // Deep, male voice for Morgan Freeman
+          selectedVoice = availableVoices.find(v => v.lang.includes('en') && v.name.includes('Male') && !v.name.includes('high'));
+          break;
+        case "Jennifer Lawrence":
+          // Female voice for Jennifer Lawrence
+          selectedVoice = availableVoices.find(v => v.lang.includes('en') && v.name.includes('Female'));
+          break;
+        case "Samuel L. Jackson":
+          // Bold male voice for Samuel L. Jackson
+          selectedVoice = availableVoices.find(v => v.lang.includes('en') && v.name.includes('Male'));
+          break;
+        case "Meryl Streep":
+          // Alternative female voice for Meryl Streep
+          selectedVoice = availableVoices.find(v => v.lang.includes('en') && v.name.includes('Female') && !v.name.includes('high'));
+          break;
+        default:
+          // Default to first English voice
+          selectedVoice = availableVoices.find(v => v.lang.includes('en'));
+      }
+      
+      // Fallback to first voice if no match
+      utterance.voice = selectedVoice || availableVoices[0];
+    }
+    
+    // Set up completion callback
+    utterance.onend = () => {
       if (onComplete) {
         onComplete();
       }
-    }, simulatedDuration);
+    };
     
+    function speak() {
+      console.log(`Speaking text with ${voicePreference} voice: ${text.substring(0, 100)}...`);
+      window.speechSynthesis.speak(utterance);
+    }
+    
+    // Return cancel function
     return {
       cancel: () => {
+        window.speechSynthesis.cancel();
         console.log('Narration canceled');
-        // In a real implementation, this would stop the audio
       }
     };
-  }, [playVoiceStartSound, playVoiceEndSound]);
+  }, []);
 
   return {
     playSuccessSound,
     playWrongSound,
     playLevelCompleteSound,
     playCelebrationSound,
-    playVoiceStartSound,
-    playVoiceEndSound,
     speakText
   };
 }

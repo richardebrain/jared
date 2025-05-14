@@ -386,8 +386,9 @@ Tool for staying positive when you're sad:
     setActiveStory(valueId);
     setAudioPlaying(true);
     
-    // Get the actor's voice name for display
-    const actorName = actorVoices.find(a => a.id === selectedActor)?.name || 'Default Voice';
+    // Get the actor's voice name for display and speech
+    const actorVoice = actorVoices.find(a => a.id === selectedActor);
+    const actorName = actorVoice?.name || 'Default Voice';
     
     // Start text-to-speech narration
     narrationRef.current = speakText(
