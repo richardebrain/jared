@@ -261,9 +261,24 @@ export function MiniLessons() {
       );
     }
     
-    // Randomize questions order
-    const shuffledQuestions = [...questions].sort(() => 0.5 - Math.random());
-    setQuizQuestions(shuffledQuestions.slice(0, 5)); // Limit to 5 questions
+    // Add an implementation question as the final question
+    const implementationQuestion = {
+      question: `How will you implement what you've learned about ${selectedLesson.title} in your classroom?`,
+      options: [
+        "I will try one new strategy tomorrow in my classroom",
+        "I will share these ideas with my teaching team this week",
+        "I will create materials or visual aids to support this approach",
+        "I will incorporate this into my lesson plans for next month"
+      ],
+      correctAnswer: -1 // No correct answer - all answers are valid implementations
+    };
+    
+    // Add the implementation question to our set
+    questions.push(implementationQuestion);
+    
+    // Select 4 random content questions plus the implementation question (total 5)
+    const contentQuestions = [...questions.slice(0, -1)].sort(() => 0.5 - Math.random()).slice(0, 4);
+    setQuizQuestions([...contentQuestions, implementationQuestion]);
     setCurrentQuestionIndex(0);
     setSelectedAnswers({});
     setQuizCompleted(false);
@@ -284,16 +299,30 @@ export function MiniLessons() {
     if (currentQuestionIndex < quizQuestions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      // Calculate score
+      // Calculate score - implementation question doesn't count toward score
       let correctAnswers = 0;
+      let contentQuestionsCount = 0;
+      
       Object.entries(selectedAnswers).forEach(([qIndex, answerIndex]) => {
         const questionIndex = parseInt(qIndex);
-        if (quizQuestions[questionIndex].correctAnswer === answerIndex) {
+        const question = quizQuestions[questionIndex];
+        
+        // Skip implementation question (has correctAnswer === -1)
+        if (question.correctAnswer === -1) {
+          return;
+        }
+        
+        contentQuestionsCount++;
+        if (question.correctAnswer === answerIndex) {
           correctAnswers++;
         }
       });
       
-      const score = Math.round((correctAnswers / quizQuestions.length) * 100);
+      // Prevent division by zero if somehow there are no content questions
+      const score = contentQuestionsCount > 0 
+        ? Math.round((correctAnswers / contentQuestionsCount) * 100)
+        : 0;
+      
       setQuizScore(score);
       
       // Calculate bonus points based on score
@@ -960,6 +989,7 @@ export function MiniLessons() {
                                   frameBorder="0" 
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                   allowFullScreen
+                                  onLoad={() => setHasWatchedVideo(true)}
                                 ></iframe>
                               </div>
                               <p className="text-sm text-muted-foreground mt-1">
@@ -973,11 +1003,12 @@ export function MiniLessons() {
                                 <iframe 
                                   width="100%" 
                                   height="100%" 
-                                  src="https://www.youtube.com/embed/yYHT-TF--og" 
+                                  src="https://www.youtube.com/embed/21XaUIOnR-s" 
                                   title="Creative Transition Techniques" 
                                   frameBorder="0" 
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                   allowFullScreen
+                                  onLoad={() => setHasWatchedVideo(true)}
                                 ></iframe>
                               </div>
                               <p className="text-sm text-muted-foreground mt-1">
@@ -991,11 +1022,12 @@ export function MiniLessons() {
                                 <iframe 
                                   width="100%" 
                                   height="100%" 
-                                  src="https://www.youtube.com/embed/4IpNZlAkmns" 
+                                  src="https://www.youtube.com/embed/S-sKRTAe-Sio" 
                                   title="Managing Classroom Transitions" 
                                   frameBorder="0" 
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                   allowFullScreen
+                                  onLoad={() => setHasWatchedVideo(true)}
                                 ></iframe>
                               </div>
                               <p className="text-sm text-muted-foreground mt-1">
@@ -1523,13 +1555,6 @@ export function MiniLessons() {
                 <DialogFooter>
                   {!lessonCompleted ? (
                     <div className="flex space-x-2">
-                      <Button 
-                        variant="outline" 
-                        onClick={handleCompleteMiniLesson} 
-                        disabled={progressMutation.isPending}
-                      >
-                        {progressMutation.isPending ? 'Saving...' : 'Skip Games & Complete'}
-                      </Button>
                       <div className="flex space-x-2">
                         <Button 
                           onClick={() => {
