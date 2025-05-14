@@ -911,35 +911,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/videos/quiz/complete", requireAuth, async (req, res) => {
     try {
       const userId = req.session.userId as number;
-      const { videoId, points } = req.body;
+      const { videoId, points, duration } = req.body;
       
-      if (!videoId || typeof points !== 'number' || points < 0 || points > 5) {
-        return res.status(400).json({ 
-          message: "Invalid request. VideoId is required and points must be between 0 and 5" 
+      // Validate request data
+      if (!videoId) {
+        return res.status(400).json({ message: "VideoId is required" });
+      }
+
+      // Find video information from database or videoResources if necessary
+      const videoDuration = duration || 0; // In minutes
+      
+      // Calculate points based on video duration (5 points for <10min, 8 points for 10min+)
+      // But only award points if they answered all questions correctly (handled client-side)
+      let pointsToAward = 0;
+      
+      if (points > 0) { // User answered all questions correctly
+        pointsToAward = videoDuration >= 10 ? 8 : 5;
+      }
+      
+      // Check daily video completion limit (2 videos per day)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Start of today
+      
+      // Query completions for today
+      const todayCompletions = await db.query.videoQuizCompletions.findMany({
+        where: (completions, { eq, and, gte }) => and(
+          eq(completions.userId, userId),
+          gte(completions.completedAt, today)
+        ),
+      });
+      
+      // Check if user already completed 2 videos today
+      const dailyLimit = 2;
+      let limitReached = false;
+      let pointsAwarded = 0;
+      
+      if (todayCompletions.length >= dailyLimit) {
+        // User already reached daily limit
+        limitReached = true;
+        pointsAwarded = 0; // Don't award any points if limit reached
+        console.log(`User ${userId} reached daily video quiz limit. Not awarding points.`);
+      } else {
+        // User is within daily limit, award points
+        pointsAwarded = pointsToAward;
+        
+        // Get current user
+        const user = await storage.getUser(userId);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+        
+        // Calculate new points total
+        const currentPoints = user.points || 0;
+        const newPoints = currentPoints + pointsAwarded;
+        
+        // Update user with new points
+        const updatedUser = await storage.updateUser(userId, { points: newPoints });
+        
+        // Record this video completion for tracking daily limits
+        await db.insert(videoQuizCompletions).values({
+          userId,
+          videoId,
+          pointsEarned: pointsAwarded,
         });
+        
+        console.log(`User ${userId} earned ${pointsAwarded} points from video quiz ${videoId}. New total: ${updatedUser.points}`);
       }
-      
-      // Get current user
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      // Calculate new points total
-      const currentPoints = user.points || 0;
-      const newPoints = currentPoints + points;
-      
-      // Update user with new points
-      const updatedUser = await storage.updateUser(userId, { points: newPoints });
-      
-      console.log(`User ${userId} earned ${points} points from video quiz ${videoId}. New total: ${updatedUser.points}`);
       
       res.json({ 
         success: true, 
         videoId, 
-        pointsAwarded: points,
-        message: `Successfully awarded ${points} points for completing the quiz`,
-        totalPoints: updatedUser.points
+        pointsAwarded,
+        limitReached,
+        dailyCompletionsCount: todayCompletions.length + (limitReached ? 0 : 1),
+        dailyLimit,
+        message: limitReached 
+          ? "Daily video limit reached. No points awarded." 
+          : `Successfully awarded ${pointsAwarded} points for completing the quiz`,
+        totalPoints: limitReached 
+          ? (await storage.getUser(userId))?.points 
+          : (await storage.getUser(userId))?.points
       });
     } catch (error) {
       console.error("Error processing quiz results:", error);

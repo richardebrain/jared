@@ -459,8 +459,45 @@ export type InsertDiscussionComment = z.infer<typeof insertDiscussionCommentSche
 export type CommentVote = typeof commentVotes.$inferSelect;
 export type InsertCommentVote = z.infer<typeof insertCommentVoteSchema>;
 
-export type SpinGameReward = typeof spinGameRewards.$inferSelect;
-export type InsertSpinGameReward = z.infer<typeof insertSpinGameRewardSchema>;
+// Video Quiz Completions for tracking daily limits (only 2 videos per day)
+export const videoQuizCompletions = pgTable("video_quiz_completions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  videoId: text("video_id").notNull(), // ID of the video from videoResources
+  pointsEarned: integer("points_earned").notNull(),
+  completedAt: timestamp("completed_at").defaultNow().notNull(),
+});
+
+export const insertVideoQuizCompletionSchema = createInsertSchema(videoQuizCompletions).omit({
+  id: true,
+  completedAt: true,
+});
+
+export const videoQuizCompletionsRelations = relations(videoQuizCompletions, ({ one }) => ({
+  user: one(users, {
+    fields: [videoQuizCompletions.userId],
+    references: [users.id],
+  }),
+}));
+
+// Update user relations to include video completions
+export const usersRelationsWithVideos = relations(users, ({ many }) => ({
+  progress: many(userProgress),
+  meetings: many(meetings),
+  assessments: many(assessments),
+  userAchievements: many(userAchievements),
+  userItems: many(userItems),
+  threads: many(discussionThreads),
+  comments: many(discussionComments),
+  votes: many(commentVotes),
+  spinGameRewards: many(spinGameRewards),
+  videoQuizCompletions: many(videoQuizCompletions),
+  nominatorShoutOuts: many(coreValuesShoutOuts, { relationName: "nominator" }),
+  nomineeShoutOuts: many(coreValuesShoutOuts, { relationName: "nominee" }),
+}));
+
+export type VideoQuizCompletion = typeof videoQuizCompletions.$inferSelect;
+export type InsertVideoQuizCompletion = z.infer<typeof insertVideoQuizCompletionSchema>;
 
 // Core Values Shout Out schema
 export const coreValuesShoutOuts = pgTable("core_values_shout_outs", {
