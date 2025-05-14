@@ -1087,11 +1087,12 @@ export function MiniLessons() {
                                 <iframe 
                                   width="100%" 
                                   height="100%" 
-                                  src="https://www.youtube.com/embed/ryuuaifO8MQ" 
+                                  src="https://www.youtube.com/embed/0Sn_UhcXZm4" 
                                   title="Morning Mindfulness for Children" 
                                   frameBorder="0" 
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                   allowFullScreen
+                                  onLoad={() => setHasWatchedVideo(true)}
                                 ></iframe>
                               </div>
                               <p className="text-sm text-muted-foreground mt-1">
@@ -1105,11 +1106,12 @@ export function MiniLessons() {
                                 <iframe 
                                   width="100%" 
                                   height="100%" 
-                                  src="https://www.youtube.com/embed/RVA2N6tX2cg" 
+                                  src="https://www.youtube.com/embed/JTQJACsXPiw" 
                                   title="Breathing Exercises for the Classroom" 
                                   frameBorder="0" 
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                   allowFullScreen
+                                  onLoad={() => setHasWatchedVideo(true)}
                                 ></iframe>
                               </div>
                               <p className="text-sm text-muted-foreground mt-1">
@@ -1123,11 +1125,12 @@ export function MiniLessons() {
                                 <iframe 
                                   width="100%" 
                                   height="100%" 
-                                  src="https://www.youtube.com/embed/ihwcw_ofuME" 
+                                  src="https://www.youtube.com/embed/xd4ZHVJDAII" 
                                   title="Body Awareness Activities" 
                                   frameBorder="0" 
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                   allowFullScreen
+                                  onLoad={() => setHasWatchedVideo(true)}
                                 ></iframe>
                               </div>
                               <p className="text-sm text-muted-foreground mt-1">
@@ -1177,11 +1180,12 @@ export function MiniLessons() {
                                 <iframe 
                                   width="100%" 
                                   height="100%" 
-                                  src="https://www.youtube.com/embed/owppju3jwPE" 
+                                  src="https://www.youtube.com/embed/ZwSHAIb_qO8" 
                                   title="Active Listening Skills for Preschool" 
                                   frameBorder="0" 
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                   allowFullScreen
+                                  onLoad={() => setHasWatchedVideo(true)}
                                 ></iframe>
                               </div>
                               <p className="text-sm text-muted-foreground mt-1">
@@ -1195,11 +1199,12 @@ export function MiniLessons() {
                                 <iframe 
                                   width="100%" 
                                   height="100%" 
-                                  src="https://www.youtube.com/embed/1unmHDO8_Qs" 
+                                  src="https://www.youtube.com/embed/AxrX8vinxHE" 
                                   title="Active Listening Visual Cues" 
                                   frameBorder="0" 
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                   allowFullScreen
+                                  onLoad={() => setHasWatchedVideo(true)}
                                 ></iframe>
                               </div>
                               <p className="text-sm text-muted-foreground mt-1">
@@ -1213,11 +1218,12 @@ export function MiniLessons() {
                                 <iframe 
                                   width="100%" 
                                   height="100%" 
-                                  src="https://www.youtube.com/embed/cSADcOZ5D2Y" 
+                                  src="https://www.youtube.com/embed/oWe_ogA5YCU" 
                                   title="Active Listening Games" 
                                   frameBorder="0" 
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                   allowFullScreen
+                                  onLoad={() => setHasWatchedVideo(true)}
                                 ></iframe>
                               </div>
                               <p className="text-sm text-muted-foreground mt-1">
@@ -1257,11 +1263,12 @@ export function MiniLessons() {
                             <iframe 
                               width="100%" 
                               height="100%" 
-                              src="https://www.youtube.com/embed/Z4aD4RKoeLU" 
+                              src="https://www.youtube.com/embed/EV5-PVjrAoE" 
                               title={selectedLesson.title} 
                               frameBorder="0" 
                               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                               allowFullScreen
+                              onLoad={() => setHasWatchedVideo(true)}
                             ></iframe>
                           </div>
                           <p className="text-sm text-muted-foreground mt-2">
