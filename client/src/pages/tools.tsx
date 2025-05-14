@@ -83,7 +83,7 @@ function ParentResponseGenerator() {
     }
   };
 
-  const useScenario = (scenario: ParentScenario) => {
+  const useScenario = (scenario: ParentScenario): void => {
     setPrompt(scenario.prompt);
   };
 
@@ -232,8 +232,8 @@ export default function ToolsPage() {
                   Browse our extensive collection of high-quality educational videos for professional development
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <VideoResourceLibrary showFilters={true} compactMode={false} />
+              <CardContent className="p-0 pt-4">
+                <VideoResourceLibrary showFilters={true} compactMode={true} />
               </CardContent>
             </Card>
           </TabsContent>
