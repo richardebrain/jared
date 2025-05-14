@@ -528,7 +528,7 @@ export function MiniLessons() {
     }
     
     // Handle case where assessments are nested in a property
-    if (assessmentData && 'assessments' in assessmentData && Array.isArray((assessmentData as any).assessments)) {
+    if (assessmentData && typeof assessmentData === 'object' && assessmentData !== null && 'assessments' in assessmentData && Array.isArray((assessmentData as any).assessments)) {
       const assessments = (assessmentData as any).assessments;
       return assessments.length > 0 
         ? assessments[assessments.length - 1] 
@@ -554,9 +554,9 @@ export function MiniLessons() {
     // Fallback: Extract from domain scores if available
     if (recentAssessment?.domainScores) {
       // Find domains with low scores (below 70%)
-      const lowScoreDomains = Object.entries(recentAssessment.domainScores)
-        .filter(([domain, data]) => data.score < 70)
-        .map(([domain]) => domain);
+      const lowScoreDomains = Object.entries((recentAssessment as any).domainScores)
+        .filter(([domain, data]: [string, any]) => data.score < 70)
+        .map(([domain]: [string, any]) => domain);
       
       if (lowScoreDomains.length > 0) {
         return lowScoreDomains;
@@ -657,7 +657,7 @@ export function MiniLessons() {
   // Mutation for updating progress
   // Generate personalized lesson content
   // Get the user's profile data for learning style preferences
-  const { data: userData } = useQuery({
+  const { data: userData } = useQuery<any>({
     queryKey: ['/api/auth/me'],
   });
   
