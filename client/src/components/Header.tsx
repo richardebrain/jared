@@ -114,10 +114,12 @@ export default function Header() {
         </nav>
         
         <div className="flex items-center space-x-4">
-          <button className="relative text-neutral-800 hover:text-primary transition">
-            <i className="ri-notification-3-line text-xl"></i>
-            <div className="absolute -top-1 -right-1 w-4 h-4 bg-destructive rounded-full flex items-center justify-center">
-              <span className="text-white text-xs">3</span>
+          <button 
+            className="relative text-neutral-800 hover:text-primary transition flex items-center justify-center"
+            onClick={() => setLocation("/beary-ai")}
+          >
+            <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center hover:bg-amber-200 transition-colors">
+              <span role="img" aria-label="bear" className="text-sm">🐻</span>
             </div>
           </button>
           

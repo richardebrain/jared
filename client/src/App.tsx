@@ -20,6 +20,7 @@ import BuildingChildPage from "@/pages/building-child";
 import VideoResourcesPage from "@/pages/video-resources";
 import ToolsPage from "@/pages/tools";
 import DataSourcesPage from "@/pages/settings/data-sources";
+import BearyAIPage from "@/pages/beary-ai";
 import { useAuth } from "@/hooks/use-auth";
 
 function Router() {
@@ -110,6 +111,10 @@ function Router() {
       
       <Route path="/settings/data-sources">
         {isAuthenticated ? <DataSourcesPage /> : <Login />}
+      </Route>
+      
+      <Route path="/beary-ai">
+        {isAuthenticated ? <BearyAIPage /> : <Login />}
       </Route>
       
       <Route path="/">
