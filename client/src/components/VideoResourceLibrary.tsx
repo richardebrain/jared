@@ -36,7 +36,15 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { VideoResource, videoResourcesData } from '@shared/videoResources';
 
 // Component for the Video Resource Library
-export function VideoResourceLibrary() {
+interface VideoResourceLibraryProps {
+  showFilters?: boolean;
+  compactMode?: boolean;
+}
+
+export function VideoResourceLibrary({ 
+  showFilters = true, 
+  compactMode = false 
+}: VideoResourceLibraryProps) {
   const [filteredVideos, setFilteredVideos] = useState<VideoResource[]>(videoResourcesData);
   const [activeFilter, setActiveFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -136,73 +144,77 @@ export function VideoResourceLibrary() {
   ).sort();
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-6xl">
+    <div className={compactMode ? "w-full" : "container mx-auto px-4 py-6 max-w-6xl"}>
       {/* Content filtering controls below */}
       
-      {/* Filter and Search Controls */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder="Search videos by title, description or tags..."
-            className="pl-10"
-            value={searchQuery}
-            onChange={(e) => handleSearch(e.target.value)}
-          />
-        </div>
-        
-        <div className="flex gap-2">
-          <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map(category => (
-                <SelectItem key={category} value={category}>
-                  {category.split('-').map(word => 
-                    word.charAt(0).toUpperCase() + word.slice(1)
-                  ).join(' ')}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      {showFilters && (
+        <>
+          {/* Filter and Search Controls */}
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Search videos by title, description or tags..."
+                className="pl-10"
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+              />
+            </div>
+            
+            <div className="flex gap-2">
+              <Select value={selectedCategory} onValueChange={handleCategoryChange}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map(category => (
+                    <SelectItem key={category} value={category}>
+                      {category.split('-').map(word => 
+                        word.charAt(0).toUpperCase() + word.slice(1)
+                      ).join(' ')}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select value={selectedExpertLevel} onValueChange={handleExpertLevelChange}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Levels</SelectItem>
+                  <SelectItem value="beginner">Beginner</SelectItem>
+                  <SelectItem value="intermediate">Intermediate</SelectItem>
+                  <SelectItem value="advanced">Advanced</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Button variant="outline" size="icon" title="More Filters">
+                <Filter className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
           
-          <Select value={selectedExpertLevel} onValueChange={handleExpertLevelChange}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Level" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Levels</SelectItem>
-              <SelectItem value="beginner">Beginner</SelectItem>
-              <SelectItem value="intermediate">Intermediate</SelectItem>
-              <SelectItem value="advanced">Advanced</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Tabs for different views */}
+          <Tabs defaultValue="all" value={activeFilter} onValueChange={handleTabChange} className="mb-6">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="all">All Videos</TabsTrigger>
+              <TabsTrigger value="featured">Featured</TabsTrigger>
+              <TabsTrigger value="bookmarked">Bookmarked</TabsTrigger>
+              <TabsTrigger value="watched">Watched</TabsTrigger>
+            </TabsList>
+          </Tabs>
           
-          <Button variant="outline" size="icon" title="More Filters">
-            <Filter className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      
-      {/* Tabs for different views */}
-      <Tabs defaultValue="all" value={activeFilter} onValueChange={handleTabChange} className="mb-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="all">All Videos</TabsTrigger>
-          <TabsTrigger value="featured">Featured</TabsTrigger>
-          <TabsTrigger value="bookmarked">Bookmarked</TabsTrigger>
-          <TabsTrigger value="watched">Watched</TabsTrigger>
-        </TabsList>
-      </Tabs>
-      
-      {/* Results count */}
-      <div className="mb-4 text-sm text-muted-foreground">
-        Showing {filteredVideos.length} video resources
-      </div>
+          {/* Results count */}
+          <div className="mb-4 text-sm text-muted-foreground">
+            Showing {filteredVideos.length} video resources
+          </div>
+        </>
+      )}
       
       {/* Video Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className={`grid grid-cols-1 ${compactMode ? 'md:grid-cols-1 lg:grid-cols-2' : 'md:grid-cols-2 lg:grid-cols-3'} gap-6`}>
         {filteredVideos.map(video => (
           <Card key={video.id} className="overflow-hidden flex flex-col">
             <div className="relative aspect-video bg-black">
