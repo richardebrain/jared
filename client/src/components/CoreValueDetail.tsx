@@ -106,6 +106,41 @@ Weeks later, when a new family moved in and Lila once again felt unmoored, she c
         "Long-term commitment allows for deeper understanding of each child's needs",
         "Commitment often means going above and beyond basic requirements"
       ],
+      story: {
+        title: "Commitment's Whistle-Stop Rap",
+        text: `"Commitment's Whistle-Stop Rap (Extended)"
+
+Rain or shine, snow or heat,
+I lace my boots—won't face defeat.
+6AM rise, coffee in hand,
+Promise made—I take my stand.
+
+Cold or hot, glitch or flop,
+A promise kept means you don't stop.
+Blocks may crash—bam!, songs may skip,
+But I stay true—no quick flip.
+
+When you say "I'm here," kids feel safe,
+Their hearts light up—no shadow's chafe.
+Miss one day—thud!—their trust shakes,
+A lonely tear is what it takes.
+
+In preschool halls or office rooms,
+Keeping your word brightens the glooms.
+Show up for work, show up for life,
+Your "I will" cuts through any strife.
+
+Story-time call—tap, tap, they wait,
+When you break that word, they feel the weight.
+A broken promise—a child can cry,
+Their little world asks "why, oh why?"
+
+So rain or shine, day or night,
+Commitment means you hold the light.
+Your promise gold, your word the key—
+Be the guard of someone's dream, always be`,
+        duration: "3 minutes"
+      },
       examples: [
         "Pursue professional development opportunities",
         "Adapt teaching approaches to meet individual needs",
