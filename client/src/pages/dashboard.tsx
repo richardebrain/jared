@@ -341,9 +341,10 @@ export default function Dashboard() {
                           src="/attached_assets/raising-arizona-logo.jpg" 
                           alt="Raising Arizona Preschool" 
                           className="h-7 mr-2 rounded"
-                          onError={(e) => {
-                            e.currentTarget.onerror = null;
-                            e.currentTarget.src = "https://placehold.co/200x40/4f46e5/fff?text=Raising+Arizona";
+                          onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                            const target = e.currentTarget;
+                            target.onerror = null;
+                            target.src = "https://placehold.co/200x40/4f46e5/fff?text=Raising+Arizona";
                           }}
                         />
                         <h3 className="font-bold text-indigo-800">CORE Values Training</h3>
@@ -355,17 +356,10 @@ export default function Dashboard() {
                       <div className="flex space-x-3">
                         <Button 
                           size="sm" 
-                          className="bg-indigo-600 hover:bg-indigo-700"
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white"
                           onClick={() => {
-                            // Find the CORE module
-                            if (modules && Array.isArray(modules)) {
-                              const coreModule = modules.find(m => m.title === "Raising Arizona's CORE");
-                              if (coreModule) {
-                                handleModuleSelect(coreModule.id);
-                              } else {
-                                console.error("CORE module not found");
-                              }
-                            }
+                            // Directly access the CORE module by ID
+                            handleModuleSelect(33);
                           }}
                         >
                           Start CORE Training
