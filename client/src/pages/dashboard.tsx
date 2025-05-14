@@ -396,6 +396,100 @@ export default function Dashboard() {
                   </div>
                 
                   {/* Mini-Lessons (Top Recommended) */}
+                  {/* Core Values Training Module Card */}
+                  <div className="ac-card mb-6">
+                    <div className="ac-card-header">
+                      <div className="flex items-center">
+                        <div className="bg-amber-100 p-2 rounded-lg mr-3 float-animation" style={{animationDelay: '0.5s'}}>
+                          <Star className="h-6 w-6 text-amber-500" />
+                        </div>
+                        <div>
+                          <h3 className="ac-card-title">Raising Arizona's CORE Values Training</h3>
+                          <p className="ac-card-description">
+                            Our flagship training module on the 5 core values: Consistency, Organization, Responsibility, Engagement, and Support
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 mb-4">
+                        {[18, 19, 20, 21, 22].map((moduleId) => {
+                          const coreModule = modules?.find(m => m.id === moduleId);
+                          return (
+                            <div 
+                              key={moduleId}
+                              className="bg-white rounded-lg p-3 shadow-sm border border-amber-200 cursor-pointer hover:bg-amber-50 transition" 
+                              onClick={() => handleModuleSelect(moduleId)}
+                            >
+                              <div className="text-amber-600 mb-1 text-center">
+                                {moduleId === 18 && <span className="text-xl">C</span>}
+                                {moduleId === 19 && <span className="text-xl">O</span>}
+                                {moduleId === 20 && <span className="text-xl">R</span>}
+                                {moduleId === 21 && <span className="text-xl">E</span>}
+                                {moduleId === 22 && <span className="text-xl">+</span>}
+                              </div>
+                              <div className="text-center text-sm font-medium">
+                                {coreModule?.title.split(":")[1] || coreModule?.title || "Core Value"}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="flex justify-center">
+                        <Link to="/core-values">
+                          <Button 
+                            className="ac-button-primary"
+                          >
+                            Start Full CORE Training
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                
+                  {/* Mindful Mornings Modules */}
+                  <div className="ac-card mb-6">
+                    <div className="ac-card-header">
+                      <div className="flex items-center">
+                        <div className="bg-blue-100 p-2 rounded-lg mr-3 float-animation" style={{animationDelay: '0.3s'}}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 text-blue-500">
+                            <path d="M12 2a3 3 0 0 0-3 3c0 1.6.8 3 2 4l-2 1c-1.2 1-2 2.4-2 4 0 3 2.2 5 5 5s5-2 5-5c0-1.6-.8-3-2-4l-2-1c1.2-1 2-2.4 2-4a3 3 0 0 0-3-3z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="ac-card-title">Mindful Mornings Training</h3>
+                          <p className="ac-card-description">
+                            Start each day with intention and presence using our signature Mindful Mornings approach
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4">
+                        {[13, 14, 15, 24].map((moduleId) => {
+                          const mindfulModule = modules?.find(m => m.id === moduleId);
+                          return (
+                            <div 
+                              key={moduleId}
+                              className="bg-white rounded-lg p-3 shadow-sm border border-blue-200 cursor-pointer hover:bg-blue-50 transition" 
+                              onClick={() => handleModuleSelect(moduleId)}
+                            >
+                              <div className="text-center mb-2">
+                                {moduleId === 13 && <span className="text-blue-500 text-xl">🫁</span>}
+                                {moduleId === 14 && <span className="text-blue-500 text-xl">💭</span>}
+                                {moduleId === 15 && <span className="text-blue-500 text-xl">🙏</span>}
+                                {moduleId === 24 && <span className="text-blue-500 text-xl">👋</span>}
+                              </div>
+                              <div className="text-center text-sm font-medium">
+                                {mindfulModule?.title.split(":")[1] || mindfulModule?.title || "Mindful Practice"}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                
                   <MiniLessons
                     title="Your Personalized Mini-Lessons"
                     subtitle="Three mini-lessons tailored just for you based on your assessment results"
