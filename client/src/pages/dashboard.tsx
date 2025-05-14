@@ -24,6 +24,7 @@ import { MonthlyNewsletter } from "@/components/MonthlyNewsletter";
 import Leaderboard from "@/components/Leaderboard";
 import BearAssistant from "@/components/BearAssistant";
 import { MiniLessons } from "@/components/MiniLessons";
+import MediaSidebar from "@/components/MediaSidebar";
 
 // Define assessment domains for display purposes
 const domains = [
@@ -510,6 +511,9 @@ export default function Dashboard() {
                   <div className="md:col-span-1 space-y-6">
                     {/* Leaderboard */}
                     <Leaderboard />
+                    
+                    {/* Media Sidebar with Company Song and Video */}
+                    <MediaSidebar />
                     
                     {/* Bear Assistant */}
                     <BearAssistant user={displayUser} initiallyMinimized={false} />

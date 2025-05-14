@@ -5,8 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Volume2, Play, Pause, SkipForward, SkipBack, Video, Music } from "lucide-react";
 
 // Import media assets
-import raisingArizonaVideo from "../assets/media/raising-arizona-preschool.mp4";
-import sunriseAudio from "../assets/media/sunrise-paints-glendale-sky-gold.mp3";
+import raisingArizonaVideo from "@assets/Raising Arizona Preschool .mp4";
+import sunriseAudio from "@assets/Sunrise paints the Glendale sky gold.mp3";
 
 export default function MediaSidebar() {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
@@ -182,7 +182,7 @@ export default function MediaSidebar() {
       
       <CardFooter>
         <p className="text-xs text-muted-foreground w-full text-center">
-          School sucks, but mentors rule!
+          Building Chapter One for every child!
         </p>
       </CardFooter>
     </Card>
