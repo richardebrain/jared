@@ -35,26 +35,43 @@ export interface ModuleContentCheckResult {
  * @returns Content check result
  */
 export function checkModuleContent(module: LearningModule): ModuleContentCheckResult {
-  const content = module.content || '';
-  const hasVideo = content.includes('youtube.com/embed/') || content.includes('youtu.be/');
+  // Safely extract values with null/undefined checking
+  const content = typeof module.content === 'string' ? module.content : '';
   
-  const hasQuiz = module.quiz !== null && 
-                 module.quiz !== undefined && 
-                 typeof module.quiz === 'object' &&
-                 module.quiz.questions !== undefined &&
-                 Array.isArray(module.quiz.questions) && 
-                 module.quiz.questions.length > 0;
+  // Check for video embeds in content
+  const hasVideo = 
+    content.includes('youtube.com/embed/') || 
+    content.includes('youtu.be/');
+  
+  // Safely check for quiz structure
+  const hasQuiz = 
+    module.quiz !== null && 
+    module.quiz !== undefined && 
+    typeof module.quiz === 'object' &&
+    module.quiz.questions !== undefined &&
+    Array.isArray(module.quiz.questions) && 
+    module.quiz.questions.length > 0;
                  
-  const quizQuestionCount = hasQuiz && module.quiz && module.quiz.questions ? module.quiz.questions.length : 0;
+  // Count quiz questions
+  const quizQuestionCount = 
+    hasQuiz && 
+    module.quiz && 
+    module.quiz.questions ? 
+    module.quiz.questions.length : 0;
   
-  const hasLearningObjectives = content.includes('Learning Objectives') || 
-                               content.includes('learning objectives') || 
-                               content.includes('objectives');
+  // Check for learning objectives in content
+  const hasLearningObjectives = 
+    content.includes('Learning Objectives') || 
+    content.includes('learning objectives') || 
+    content.includes('objectives');
+  
+  // Check if content is adequate using helper from templates
+  const isAdequate = Boolean(hasAdequateContent(module));
   
   return {
     moduleId: module.id,
     title: module.title,
-    hasAdequateContent: Boolean(hasAdequateContent(module)),
+    hasAdequateContent: isAdequate,
     contentLength: content.length,
     hasVideo,
     hasQuiz,

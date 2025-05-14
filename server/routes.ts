@@ -1777,15 +1777,71 @@ Format your response as a complete message I could use, including a greeting and
   
   // Module content validation API endpoints
   
+  // Debug endpoint to check database connection
+  app.get('/api/debug/modules', async (req, res) => {
+    try {
+      const modules = await storage.getAllModules();
+      return res.status(200).json({ 
+        message: "Modules retrieved successfully",
+        moduleCount: modules.length,
+        firstModule: modules.length > 0 ? {
+          id: modules[0].id,
+          title: modules[0].title,
+          hasContent: modules[0].content ? true : false,
+          hasQuiz: modules[0].quiz ? true : false
+        } : null
+      });
+    } catch (error) {
+      console.error("Error retrieving modules:", error);
+      return res.status(500).json({ 
+        message: "Error retrieving modules", 
+        error: String(error)
+      });
+    }
+  });
+  
   // Check all modules for adequate content
   app.get('/api/modules/content-check', async (req, res) => {
     try {
       // Admin check should go here in production
-      const results = await checkAllModulesContent();
-      return res.status(200).json(results);
+      const modules = await storage.getAllModules();
+      
+      // Map each module to its content check result
+      const results = modules.map(module => {
+        try {
+          return checkModuleContent(module);
+        } catch (moduleError) {
+          console.error(`Error checking module ${module.id}:`, moduleError);
+          return {
+            moduleId: module.id,
+            title: module.title,
+            hasAdequateContent: false,
+            contentLength: 0,
+            hasVideo: false,
+            hasQuiz: false,
+            quizQuestionCount: 0,
+            hasLearningObjectives: false,
+            fixed: false,
+            error: String(moduleError)
+          };
+        }
+      });
+      
+      // Count modules with inadequate content
+      const inadequateCount = results.filter(r => !r.hasAdequateContent).length;
+      
+      return res.status(200).json({ 
+        message: "Module content check completed",
+        moduleCount: modules.length,
+        inadequateCount,
+        results
+      });
     } catch (error) {
       console.error("Error checking module content:", error);
-      return res.status(500).json({ message: "Error checking module content" });
+      return res.status(500).json({ 
+        message: "Error checking module content",
+        error: String(error) 
+      });
     }
   });
   
