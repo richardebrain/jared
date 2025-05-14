@@ -1800,6 +1800,37 @@ Format your response as a complete message I could use, including a greeting and
     }
   });
   
+  // Simple endpoint to check a single module's content
+  app.get('/api/debug/module/:id/check', async (req, res) => {
+    try {
+      const moduleId = parseInt(req.params.id);
+      if (isNaN(moduleId)) {
+        return res.status(400).json({ message: "Invalid module ID" });
+      }
+      
+      const module = await storage.getModule(moduleId);
+      if (!module) {
+        return res.status(404).json({ message: "Module not found" });
+      }
+      
+      // Return basic module info without running complex validation
+      return res.status(200).json({
+        id: module.id,
+        title: module.title,
+        contentType: typeof module.content,
+        contentLength: module.content ? module.content.length : 0,
+        quizType: typeof module.quiz,
+        hasQuiz: module.quiz !== null && module.quiz !== undefined
+      });
+    } catch (error) {
+      console.error(`Error checking module ${req.params.id}:`, error);
+      return res.status(500).json({ 
+        message: "Error checking module",
+        error: String(error)
+      });
+    }
+  });
+  
   // Check all modules for adequate content
   app.get('/api/modules/content-check', async (req, res) => {
     try {
