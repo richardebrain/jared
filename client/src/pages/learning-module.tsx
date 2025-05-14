@@ -184,7 +184,10 @@ export default function LearningModulePage() {
               </CardDescription>
             </CardHeader>
             <CardFooter>
-              <Button onClick={() => setLocation("/")}>Return to Dashboard</Button>
+              <Button onClick={() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                setTimeout(() => setLocation("/"), 300);
+              }}>Return to Dashboard</Button>
             </CardFooter>
           </Card>
         </main>
@@ -204,7 +207,10 @@ export default function LearningModulePage() {
         <Button 
           variant="ghost" 
           className="mb-4 flex items-center" 
-          onClick={() => setLocation("/")}
+          onClick={() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setTimeout(() => setLocation("/"), 300);
+          }}
         >
           <i className="ri-arrow-left-line mr-2"></i>
           Back to Dashboard

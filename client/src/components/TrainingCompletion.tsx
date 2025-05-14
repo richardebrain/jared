@@ -320,7 +320,12 @@ export default function TrainingCompletion({ onContinue }: TrainingCompletionPro
         <Button 
           onClick={() => {
             playCelebrationSound();
-            onContinue();
+            // Scroll to top before continuing
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Small delay to allow smooth scrolling before transition
+            setTimeout(() => {
+              onContinue();
+            }, 300);
           }}
           size="lg"
           className="bg-green-600 hover:bg-green-700"

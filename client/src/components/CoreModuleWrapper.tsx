@@ -62,7 +62,12 @@ export default function CoreModuleWrapper({ moduleContent, onContinue }: CoreMod
   };
   
   const handleContinue = () => {
-    onContinue();
+    // Scroll to top before continuing
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Small delay to allow smooth scrolling before transition
+    setTimeout(() => {
+      onContinue();
+    }, 300);
   };
   
   // Calculate overall progress
