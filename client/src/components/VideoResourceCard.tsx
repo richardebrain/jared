@@ -60,13 +60,47 @@ export default function VideoResourceCard({
       iframeRef.current.addEventListener('error', () => {
         setVideoError(true);
       });
+      
+      // Additional check for validity by attempting to load
+      try {
+        // Create an API call to validate the video
+        const validateVideo = async () => {
+          try {
+            // Check YouTube API for video status
+            // A real implementation would do more thorough checks
+            // Here we're simulating by checking if the iframe loads
+            setTimeout(() => {
+              // Report the validation result
+              apiRequest('/api/videos/validate', {
+                method: 'POST',
+                data: {
+                  videoId: video.id,
+                  youtubeId: video.youtubeId,
+                  isValid: !videoError
+                }
+              }).catch(err => console.error('Error validating video:', err));
+            }, 3000); // Wait 3 seconds to check
+          } catch (error) {
+            console.error('Video validation error:', error);
+          }
+        };
+        
+        validateVideo();
+      } catch (error) {
+        console.error('Video validation setup error:', error);
+      }
     }
   };
 
   useEffect(() => {
     // Initialize video validation
     checkVideoAvailability();
-  }, []);
+    
+    // Check if this video has already been watched
+    if (isWatched) {
+      setVideoCompleted(true);
+    }
+  }, [isWatched]);
 
   const handleVideoError = () => {
     setVideoError(true);
@@ -88,35 +122,69 @@ export default function VideoResourceCard({
     });
   };
 
-  const handleQuizComplete = (points: number) => {
+  const handleQuizComplete = async (points: number) => {
     setQuizCompleted(true);
     setPointsEarned(points);
     setShowQuiz(false);
     
-    // In a real implementation, we would make an API call to save the points
-    toast({
-      title: "Points Earned!",
-      description: `You've earned ${points} points for completing this quiz.`,
-      variant: "default",
-    });
-    
-    // Update user points and progress in a real implementation
-    // For now, we'll just close the quiz
+    try {
+      // Submit quiz results to the API
+      const response = await apiRequest('/api/videos/quiz/complete', {
+        method: 'POST',
+        data: {
+          videoId: video.id,
+          points: points
+        }
+      });
+      
+      // Update local state and notify the user
+      if (response.success) {
+        toast({
+          title: "Points Earned!",
+          description: `You've earned ${points} points for completing this quiz. Your total points: ${response.totalPoints}`,
+          variant: "default",
+        });
+        
+        // Invalidate user data to refresh points display
+        queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      } else {
+        toast({
+          title: "Something went wrong",
+          description: "We couldn't save your quiz results. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Failed to save quiz results:', error);
+      toast({
+        title: "Error Saving Quiz",
+        description: "There was a problem saving your quiz results. Please try again later.",
+        variant: "destructive",
+      });
+    }
   };
 
-  // For the watching time, a real implementation would track actual view time,
-  // but for the demo we'll simulate completion after 75% of the video duration
-  const handleProgress = (event: any) => {
-    // Only register completion once
-    if (videoCompleted) return;
+  // Track video watching progress
+  const handleProgress = () => {
+    // Only proceed if video isn't already marked as completed
+    if (videoCompleted || videoError) return;
     
-    // This is a simplified version - in real implementation, we would use the YouTube API
-    // to track watch time more accurately
-    setTimeout(() => {
-      if (Math.random() > 0.3) { // Simulate 70% chance of completing the video
+    // Create a more realistic simulation of video watching
+    // In a real implementation, you would use the YouTube Player API
+    const videoDurationMs = video.duration * 60 * 1000; // Convert minutes to milliseconds
+    const watchThreshold = 0.6; // 60% threshold to count as "watched"
+    const simulatedWatchTimeMs = videoDurationMs * watchThreshold;
+    
+    // Set a timer to mark the video as watched after the threshold time
+    const watchTimer = setTimeout(() => {
+      // Don't complete if there was an error or user navigated away
+      if (!videoError) {
         handleVideoComplete();
       }
-    }, video.duration * 1000 * 0.5); // Simulate 50% of actual video time
+    }, Math.min(simulatedWatchTimeMs, 10000)); // Cap at 10 seconds for demo purposes
+    
+    // Clean up the timer if component unmounts
+    return () => clearTimeout(watchTimer);
   };
 
   return (
@@ -125,9 +193,20 @@ export default function VideoResourceCard({
         {videoError ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-white p-4">
             <AlertCircle className="h-12 w-12 mb-2 text-red-400" />
-            <p className="text-center text-sm">
+            <p className="text-center font-medium mb-1">
               This video is currently unavailable.
             </p>
+            <p className="text-center text-sm text-muted-foreground mb-3">
+              We've logged this issue and will find a replacement video soon.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-transparent border-white text-white hover:bg-white/20"
+              onClick={() => window.open(`https://www.youtube.com/watch?v=${video.youtubeId}`, '_blank')}
+            >
+              Try on YouTube
+            </Button>
           </div>
         ) : (
           <iframe 
