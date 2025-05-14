@@ -77,34 +77,34 @@ export default function Header() {
         
         <nav className="hidden md:flex space-x-6 items-center">
           <Link href="/">
-            <a className={`font-heading font-semibold ${location === "/" ? "text-primary" : "text-neutral-800 hover:text-primary"} transition`}>
+            <div className={`font-heading font-semibold ${location === "/" ? "text-primary" : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
               Dashboard
-            </a>
+            </div>
           </Link>
           <Link href="/progression-map">
-            <a className={`font-heading font-semibold ${location === "/progression-map" ? "text-primary" : "text-neutral-800 hover:text-primary"} transition`}>
+            <div className={`font-heading font-semibold ${location === "/progression-map" ? "text-primary" : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
               Teacher Progression
-            </a>
+            </div>
           </Link>
           <Link href="/assessment">
-            <a className={`font-heading font-semibold ${location === "/assessment" ? "text-primary" : "text-neutral-800 hover:text-primary"} transition`}>
+            <div className={`font-heading font-semibold ${location === "/assessment" ? "text-primary" : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
               Assessment
-            </a>
+            </div>
           </Link>
           <Link href="/core-values-shout-out">
-            <a className={`font-heading font-semibold ${location === "/core-values-shout-out" ? "text-primary" : "text-neutral-800 hover:text-primary"} transition`}>
+            <div className={`font-heading font-semibold ${location === "/core-values-shout-out" ? "text-primary" : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
               Core Values Shout Out
-            </a>
+            </div>
           </Link>
           <Link href="/tools">
-            <a className={`font-heading font-semibold ${location === "/tools" ? "text-primary" : "text-neutral-800 hover:text-primary"} transition`}>
+            <div className={`font-heading font-semibold ${location === "/tools" ? "text-primary" : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
               Teacher Tools
-            </a>
+            </div>
           </Link>
           <Link href="/video-resources">
-            <a className={`font-heading font-semibold ${location === "/video-resources" ? "text-primary" : "text-neutral-800 hover:text-primary"} transition`}>
+            <div className={`font-heading font-semibold ${location === "/video-resources" ? "text-primary" : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
               Video Library
-            </a>
+            </div>
           </Link>
         </nav>
         
@@ -160,34 +160,34 @@ export default function Header() {
         <div className="bg-white py-3 px-4 md:hidden">
           <nav className="flex flex-col space-y-3">
             <Link href="/">
-              <a className={`font-heading font-semibold ${location === "/" ? "text-primary" : "text-neutral-800"}`}>
+              <div className={`font-heading font-semibold ${location === "/" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
                 Dashboard
-              </a>
+              </div>
             </Link>
             <Link href="/progression-map">
-              <a className={`font-heading font-semibold ${location === "/progression-map" ? "text-primary" : "text-neutral-800"}`}>
+              <div className={`font-heading font-semibold ${location === "/progression-map" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
                 Teacher Progression
-              </a>
+              </div>
             </Link>
             <Link href="/assessment">
-              <a className={`font-heading font-semibold ${location === "/assessment" ? "text-primary" : "text-neutral-800"}`}>
+              <div className={`font-heading font-semibold ${location === "/assessment" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
                 Assessment
-              </a>
+              </div>
             </Link>
             <Link href="/core-values-shout-out">
-              <a className={`font-heading font-semibold ${location === "/core-values-shout-out" ? "text-primary" : "text-neutral-800"}`}>
+              <div className={`font-heading font-semibold ${location === "/core-values-shout-out" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
                 Core Values Shout Out
-              </a>
+              </div>
             </Link>
             <Link href="/tools">
-              <a className={`font-heading font-semibold ${location === "/tools" ? "text-primary" : "text-neutral-800"}`}>
+              <div className={`font-heading font-semibold ${location === "/tools" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
                 Teacher Tools
-              </a>
+              </div>
             </Link>
             <Link href="/video-resources">
-              <a className={`font-heading font-semibold ${location === "/video-resources" ? "text-primary" : "text-neutral-800"}`}>
+              <div className={`font-heading font-semibold ${location === "/video-resources" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
                 Video Library
-              </a>
+              </div>
             </Link>
             <div className="pt-2 border-t border-neutral-100">
               <Button variant="outline" className="w-full justify-start" onClick={handleLogout}>
