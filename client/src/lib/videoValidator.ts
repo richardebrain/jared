@@ -41,32 +41,46 @@ export const validateAllVideos = async (videos: VideoResource[]) => {
       id: string;
       title: string;
       youtubeId: string;
+      category: string[];
     }>
   };
   
   console.log(`Validating ${videos.length} videos...`);
+  console.log('This may take some time. Check progress in the console...');
   
-  for (let i = 0; i < videos.length; i++) {
-    const video = videos[i];
-    console.log(`Checking video ${i+1}/${videos.length}: ${video.title}`);
+  // Process videos in batches to avoid rate limiting
+  const batchSize = 5;
+  
+  for (let i = 0; i < videos.length; i += batchSize) {
+    const batch = videos.slice(i, Math.min(i + batchSize, videos.length));
+    const batchPromises = batch.map(async (video) => {
+      const isValid = await checkYouTubeVideo(video.youtubeId);
+      return { video, isValid };
+    });
     
-    const isValid = await checkYouTubeVideo(video.youtubeId);
+    const batchResults = await Promise.all(batchPromises);
     
-    if (isValid) {
-      results.available++;
-      console.log(`✅ Video ${video.id} is valid`);
-    } else {
-      results.unavailable.push({
-        id: video.id,
-        title: video.title,
-        youtubeId: video.youtubeId
-      });
-      console.warn(`❌ Video ${video.id} is INVALID: "${video.title}" (${video.youtubeId})`);
+    for (const { video, isValid } of batchResults) {
+      if (isValid) {
+        results.available++;
+        console.log(`✅ Video ${video.id} is valid: "${video.title}"`);
+      } else {
+        results.unavailable.push({
+          id: video.id,
+          title: video.title,
+          youtubeId: video.youtubeId,
+          category: video.category
+        });
+        console.warn(`❌ Video ${video.id} is INVALID: "${video.title}" (${video.youtubeId})`);
+      }
     }
     
-    // Add a small delay to avoid rate limiting
-    if (i < videos.length - 1) {
-      await new Promise(resolve => setTimeout(resolve, 500));
+    // Log progress
+    console.log(`Checked ${Math.min(i + batchSize, videos.length)}/${videos.length} videos...`);
+    
+    // Add a small delay between batches to avoid rate limiting
+    if (i + batchSize < videos.length) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
   
@@ -79,6 +93,23 @@ export const validateAllVideos = async (videos: VideoResource[]) => {
     console.log('\nUnavailable videos:');
     results.unavailable.forEach(video => {
       console.log(`- ${video.id}: "${video.title}" (${video.youtubeId})`);
+    });
+    
+    // Generate a consolidated list in a format easy to copy/paste for fixing
+    console.log('\n=== UNAVAILABLE VIDEOS (REPLACEMENT NEEDED) ===');
+    results.unavailable.forEach(video => {
+      console.log(`
+Found unavailable video:
+ID: ${video.id}
+YouTube ID: ${video.youtubeId}
+Title: ${video.title}
+Category: ${video.category.join(', ')}
+
+// Suggested fix:
+str_replace_editor with:
+old: youtubeId: "${video.youtubeId}",
+new: youtubeId: "NEW_YOUTUBE_ID", // Replacement for "${video.title}"
+      `);
     });
   }
   

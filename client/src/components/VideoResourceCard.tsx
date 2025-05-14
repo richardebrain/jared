@@ -54,49 +54,51 @@ export default function VideoResourceCard({
   const { toast } = useToast();
 
   // Check if the video is available
-  const checkVideoAvailability = () => {
+  const checkVideoAvailability = async () => {
+    // First, ensure the YouTube ID is clean (trim whitespace)
+    const cleanYoutubeId = video.youtubeId.trim();
+    
+    try {
+      // Use oEmbed API to check if video is available
+      const response = await fetch(
+        `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${cleanYoutubeId}&format=json`,
+        { method: 'GET' }
+      );
+      
+      // If the response isn't ok, the video is unavailable
+      if (!response.ok) {
+        console.warn(`Video unavailable: ${video.id} (${cleanYoutubeId}) - "${video.title}"`);
+        setVideoError(true);
+        
+        // Report the unavailable video to the console in a format that's easy to copy/paste
+        console.error(`
+=== UNAVAILABLE VIDEO ===
+ID: ${video.id}
+YouTube ID: ${cleanYoutubeId}
+Title: ${video.title}
+Category: ${video.category.join(', ')}
+        `);
+        
+        // If we had an API endpoint for reporting, we would call it here:
+        // apiRequest('/api/videos/report-unavailable', {
+        //   method: 'POST',
+        //   data: { videoId: video.id, youtubeId: cleanYoutubeId }
+        // });
+      } else {
+        // Video is available
+        const data = await response.json();
+        console.log(`✅ Video verified: ${video.id} - ${data.title}`);
+      }
+    } catch (error) {
+      console.error('Video validation error:', error);
+      setVideoError(true);
+    }
+    
+    // Also set up error handling for the iframe as a backup
     if (iframeRef.current) {
-      // Add event listener to detect errors
       iframeRef.current.addEventListener('error', () => {
         setVideoError(true);
       });
-      
-      // Additional check for validity by attempting to load
-      try {
-        // Create an API call to validate the video
-        const validateVideo = async () => {
-          try {
-            // Check YouTube API for video status
-            // A real implementation would do more thorough checks
-            // Here we're simulating by checking if the iframe loads
-            setTimeout(() => {
-              // Make sure the YouTube ID is clean (trim any whitespace)
-              const cleanYoutubeId = video.youtubeId.trim();
-              
-              // Report the validation result
-              apiRequest('/api/videos/validate', {
-                method: 'POST',
-                data: {
-                  videoId: video.id,
-                  youtubeId: cleanYoutubeId,
-                  isValid: !videoError
-                }
-              }).then(() => {
-                if (videoError) {
-                  // Log unavailable videos to help identify them for replacement
-                  console.warn(`Video unavailable: ${video.id} (${cleanYoutubeId}) - "${video.title}"`);
-                }
-              }).catch(err => console.error('Error validating video:', err));
-            }, 3000); // Wait 3 seconds to check
-          } catch (error) {
-            console.error('Video validation error:', error);
-          }
-        };
-        
-        validateVideo();
-      } catch (error) {
-        console.error('Video validation setup error:', error);
-      }
     }
   };
 
