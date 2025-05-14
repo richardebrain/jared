@@ -17,6 +17,7 @@ import MindfulMorningsPage from "@/pages/mindful-mornings";
 import StorytellingDemoPage from "@/pages/storytelling-demo";
 import CoreValuesShoutOutPage from "@/pages/core-values-shout-out";
 import BuildingChildPage from "@/pages/building-child";
+import VideoResourcesPage from "@/pages/video-resources";
 import { useAuth } from "@/hooks/use-auth";
 
 function Router() {
@@ -95,6 +96,10 @@ function Router() {
       
       <Route path="/building-child">
         {isAuthenticated ? <BuildingChildPage /> : <Login />}
+      </Route>
+      
+      <Route path="/video-resources">
+        {isAuthenticated ? <VideoResourcesPage /> : <Login />}
       </Route>
       
       <Route path="/">

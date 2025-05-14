@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { videoResourcesData } from '@shared/videoResources';
 import { 
   Clock, 
   ArrowRight, 
