@@ -1196,7 +1196,7 @@ export const videoResourcesData: VideoResource[] = [
     id: "video-087",
     title: "Morning Meeting: Building Community in the Classroom",
     description: "How to structure effective morning meetings that build classroom community, practice social skills, and set a positive tone for the day.",
-    youtubeId: "lJbGk2qc3-g",
+    youtubeId: "R5J_SYv6W6M", // "Morning Meeting: Building Community" from ASCD
     category: ["mindful-mornings", "community-building", "social-skills"],
     tags: ["morning meeting", "classroom community", "social skills", "routines"],
     duration: 11,
