@@ -14,6 +14,41 @@ import {
 } from './moduleContentTemplates';
 
 /**
+ * Safely converts any content type to a string
+ * 
+ * @param content The content to convert to string
+ * @returns String representation of the content
+ */
+function safeToString(content: any): string {
+  if (content === null || content === undefined) {
+    return '';
+  }
+  
+  if (typeof content === 'string') {
+    return content;
+  }
+  
+  if (typeof content === 'object') {
+    try {
+      // For objects with toString() method
+      if (content.toString && typeof content.toString === 'function' && 
+          content.toString !== Object.prototype.toString) {
+        return content.toString();
+      }
+      
+      // For regular objects that can be stringified
+      return JSON.stringify(content);
+    } catch (error) {
+      console.error('Error stringifying content:', error);
+      return '[Object conversion error]';
+    }
+  }
+  
+  // For other primitive types
+  return String(content);
+}
+
+/**
  * Interface for a module content check result
  */
 export interface ModuleContentCheckResult {
@@ -37,75 +72,79 @@ export interface ModuleContentCheckResult {
  * @returns Content check result
  */
 export function checkModuleContent(module: LearningModule): ModuleContentCheckResult {
-  // Convert content to string, handling both string and object types
-  let contentString = '';
-  
-  if (typeof module.content === 'string') {
-    contentString = module.content;
-  } else if (typeof module.content === 'object' && module.content !== null) {
-    try {
-      contentString = typeof module.content.toString === 'function' 
-        ? module.content.toString()
-        : JSON.stringify(module.content);
-    } catch (error) {
-      console.error('Error converting module content to string:', error);
-      contentString = '';
+  try {
+    // Convert content to string using our safe utility function
+    const contentString = safeToString(module.content);
+    
+    // Log content type for debugging
+    console.log(`Module ${module.id} content type: ${typeof module.content}`);
+    if (typeof module.content === 'object' && module.content !== null) {
+      try {
+        const keys = Object.keys(module.content);
+        console.log('Content object keys:', keys.length > 0 ? keys : '[empty object]');
+      } catch (error) {
+        console.log('Unable to get content object keys:', error);
+      }
     }
+    
+    // Check for video embeds in content
+    const hasVideo = 
+      contentString.includes('youtube.com/embed/') || 
+      contentString.includes('youtu.be/');
+    
+    // Safely check for quiz structure
+    const hasQuiz = 
+      module.quiz !== null && 
+      module.quiz !== undefined && 
+      typeof module.quiz === 'object' &&
+      module.quiz.questions !== undefined &&
+      Array.isArray(module.quiz.questions) && 
+      module.quiz.questions.length > 0;
+                   
+    // Count quiz questions
+    const quizQuestionCount = 
+      hasQuiz && 
+      module.quiz && 
+      module.quiz.questions ? 
+      module.quiz.questions.length : 0;
+    
+    // Check for learning objectives in content
+    const hasLearningObjectives = 
+      contentString.includes('Learning Objectives') || 
+      contentString.includes('learning objectives') || 
+      contentString.includes('objectives');
+    
+    // Check if content is adequate using helper from templates
+    const isAdequate = Boolean(hasAdequateContent(module));
+    
+    return {
+      moduleId: module.id,
+      title: module.title,
+      hasAdequateContent: isAdequate,
+      contentLength: contentString.length,
+      contentType: typeof module.content,
+      hasVideo,
+      hasQuiz,
+      quizQuestionCount,
+      hasLearningObjectives,
+      fixed: false // Will be set to true if fixed
+    };
+  } catch (error) {
+    console.error(`Error checking module ${module?.id || 'unknown'}:`, error);
+    return {
+      moduleId: module?.id || 0,
+      title: module?.title || 'Unknown module',
+      hasAdequateContent: false,
+      contentLength: 0,
+      contentType: typeof module?.content,
+      hasVideo: false,
+      hasQuiz: false,
+      quizQuestionCount: 0,
+      hasLearningObjectives: false,
+      fixed: false,
+      error: String(error)
+    };
   }
-  
-  // Log content type for debugging
-  console.log(`Module ${module.id} content type: ${typeof module.content}`);
-  if (typeof module.content === 'object' && module.content !== null) {
-    try {
-      const keys = Object.keys(module.content);
-      console.log('Content object keys:', keys.length > 0 ? keys : '[empty object]');
-    } catch (error) {
-      console.log('Unable to get content object keys:', error);
-    }
-  }
-  
-  // Check for video embeds in content
-  const hasVideo = 
-    contentString.includes('youtube.com/embed/') || 
-    contentString.includes('youtu.be/');
-  
-  // Safely check for quiz structure
-  const hasQuiz = 
-    module.quiz !== null && 
-    module.quiz !== undefined && 
-    typeof module.quiz === 'object' &&
-    module.quiz.questions !== undefined &&
-    Array.isArray(module.quiz.questions) && 
-    module.quiz.questions.length > 0;
-                 
-  // Count quiz questions
-  const quizQuestionCount = 
-    hasQuiz && 
-    module.quiz && 
-    module.quiz.questions ? 
-    module.quiz.questions.length : 0;
-  
-  // Check for learning objectives in content
-  const hasLearningObjectives = 
-    contentString.includes('Learning Objectives') || 
-    contentString.includes('learning objectives') || 
-    contentString.includes('objectives');
-  
-  // Check if content is adequate using helper from templates
-  const isAdequate = Boolean(hasAdequateContent(module));
-  
-  return {
-    moduleId: module.id,
-    title: module.title,
-    hasAdequateContent: isAdequate,
-    contentLength: contentString.length,
-    contentType: typeof module.content,
-    hasVideo,
-    hasQuiz,
-    quizQuestionCount,
-    hasLearningObjectives,
-    fixed: false // Will be set to true if fixed
-  };
 }
 
 /**

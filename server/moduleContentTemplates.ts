@@ -454,31 +454,42 @@ export function generateDefaultModuleContent(module: LearningModule): ModuleCont
  * @param module The module to check
  * @returns Boolean indicating if content meets minimum standards
  */
+// Helper function to safely convert any content to string (copy of the one in moduleContentService.ts)
+function safeToStringLocal(content: any): string {
+  if (content === null || content === undefined) {
+    return '';
+  }
+  
+  if (typeof content === 'string') {
+    return content;
+  }
+  
+  if (typeof content === 'object') {
+    try {
+      // For objects with toString() method
+      if (content.toString && typeof content.toString === 'function' && 
+          content.toString !== Object.prototype.toString) {
+        return content.toString();
+      }
+      
+      // For regular objects that can be stringified
+      return JSON.stringify(content);
+    } catch (error) {
+      console.error('Error stringifying content:', error);
+      return '[Object conversion error]';
+    }
+  }
+  
+  // For other primitive types
+  return String(content);
+}
+
 export function hasAdequateContent(module: any): boolean {
   // If module is completely invalid, definitely inadequate
   if (!module || module.content === null || module.content === undefined) return false;
   
-  // Extract content as string, handling both string and object types
-  let contentString = '';
-  
-  if (typeof module.content === 'string') {
-    // If content is already a string, use it directly
-    contentString = module.content;
-  } else if (typeof module.content === 'object') {
-    // If content is an object, try to convert it to a string representation
-    try {
-      // For safety, try to stringify or use toString() if available
-      contentString = typeof module.content.toString === 'function' 
-        ? module.content.toString()
-        : JSON.stringify(module.content);
-    } catch (error) {
-      console.error('Error converting module content to string:', error);
-      return false;
-    }
-  } else {
-    // Unsupported content type
-    return false;
-  }
+  // Extract content as string using our utility function
+  const contentString = safeToStringLocal(module.content);
   
   // Check for minimum length (500 characters is pretty minimal)
   if (contentString.length < 500) return false;
