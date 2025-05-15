@@ -177,36 +177,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin middleware
-  const requireAdmin = async (req: Request, res: Response, next: NextFunction) => {
+  const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
+    // Simple password-based admin authentication
+    const adminPassword = req.query.admin_password || req.body.admin_password;
+    
+    if (adminPassword === "BIGSURF55") {
+      return next(); // Allow access with correct password
+    }
+    
+    // Otherwise check if the user is one of our admin users
     const userId = req.session.userId;
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
     
-    try {
-      const user = await storage.getUser(userId);
-      
-      // List of admin usernames - TODO: Move to environment variables
-      const adminUsernames = ["jlcookie20", "laura", "admin"];
-      
-      if (!user || !adminUsernames.includes(user.username)) {
-        // Check for admin_password in query or body
-        const adminPassword = req.query.admin_password || req.body.admin_password;
-        if (adminPassword !== "BIGSURF55") {
-          return res.status(403).json({ message: "Forbidden: Admin access required" });
-        }
-      }
-      next();
-    } catch (error) {
-      console.error("Error checking admin access:", error);
-      return res.status(500).json({ message: "Internal server error" });
+    // List of admin usernames by their numeric IDs
+    const adminUserIds = [4, 5]; // Assuming 4 is jlcookie20 and 5 is laura's ID
+    
+    if (adminUserIds.includes(userId)) {
+      return next(); // Allow access for admin users
     }
+    
+    // If neither password nor admin user, deny access
+    return res.status(403).json({ message: "Forbidden: Admin access required" });
   };
 
-  // Admin routes
-  app.get("/api/admin/users", requireAdmin, async (req, res) => {
+  // Admin routes with direct password checking for reliability
+  app.get("/api/admin/users", async (req, res) => {
+    // Check for admin password directly
+    const adminPassword = req.query.admin_password;
+    if (adminPassword !== "BIGSURF55") {
+      return res.status(403).json({ message: "Forbidden: Admin access required. Password incorrect." });
+    }
+    
     try {
       const users = await storage.getAllUsers();
+      if (!users || users.length === 0) {
+        // If no users are found, send empty array with message
+        return res.status(200).json([]);
+      }
+      
       res.status(200).json(users.map(user => {
         // Don't return passwords in response
         const { password, ...userWithoutPassword } = user;

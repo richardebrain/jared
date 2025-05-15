@@ -188,7 +188,14 @@ function UserManagement() {
   
   // Fetch all users with admin password
   const { data: users, isLoading: isLoadingUsers } = useQuery({ 
-    queryKey: ["/api/admin/users?admin_password=BIGSURF55"],
+    queryKey: ["/api/admin/users"],
+    queryFn: async () => {
+      const response = await fetch("/api/admin/users?admin_password=BIGSURF55");
+      if (!response.ok) {
+        throw new Error(`Admin fetch failed: ${response.status}`);
+      }
+      return response.json();
+    },
     refetchOnWindowFocus: false
   });
   
@@ -227,7 +234,7 @@ function UserManagement() {
       return apiRequest(`/api/admin/reset-points/${userId}?admin_password=BIGSURF55`, { method: 'POST' });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users?admin_password=BIGSURF55"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
       toast({
         title: "Points Reset",
@@ -244,7 +251,7 @@ function UserManagement() {
       return apiRequest(`/api/admin/reset-progress/${userId}?admin_password=BIGSURF55`, { method: 'POST' });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users?admin_password=BIGSURF55"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/user-progress", selectedUser] });
       queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
       toast({
