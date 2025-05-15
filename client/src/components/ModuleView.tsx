@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { User, LearningModule, UserProgress } from "@shared/schema";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import DynamicLessonGenerator from "@/components/DynamicLessonGenerator";
 import CoreModuleWrapper from "@/components/CoreModuleWrapper";
@@ -42,18 +42,29 @@ export default function ModuleView({ moduleId, user, onBack }: ModuleViewProps) 
   
   // Update progress mutation
   const { mutate: updateProgress } = useMutation({
-    mutationFn: async (data: { moduleId: number; progress: number; completed?: boolean }) => {
+    mutationFn: async (data: { 
+      moduleId: number; 
+      progress: number; 
+      completed?: boolean;
+      pointsEarned?: number;
+    }) => {
       return await apiRequest("/api/progress", {
         method: "POST",
         data: data
       });
     },
-    onSuccess: () => {
+    onSuccess: (result, variables) => {
+      // Refresh user data to update points in header
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       refetchProgress();
-      toast({
-        title: "Progress updated",
-        description: "Your learning progress has been saved.",
-      });
+      
+      // Don't show generic toast for lesson completion as we'll show a custom one
+      if (!variables.completed) {
+        toast({
+          title: "Progress updated",
+          description: "Your learning progress has been saved.",
+        });
+      }
     }
   });
   
