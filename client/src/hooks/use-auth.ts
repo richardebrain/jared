@@ -7,6 +7,8 @@ import { User } from "@shared/schema";
 interface UseAuthReturn {
   isLoading: boolean;
   isAuthenticated: boolean;
+  isOwner: boolean;
+  isAdmin: boolean;
   user: User | null;
   login: (credentials: { username: string; password: string }) => Promise<void>;
   register: (userData: any) => Promise<void>;
@@ -16,6 +18,8 @@ interface UseAuthReturn {
 export function useAuth(): UseAuthReturn {
   const { toast } = useToast();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isOwner, setIsOwner] = useState<boolean>(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   
   // Query to get the current user
   const { 
@@ -42,9 +46,29 @@ export function useAuth(): UseAuthReturn {
     console.log("Checking auth state - localStorage auth:", storedAuth);
     console.log("Checking auth state - localStorage user:", storedUser);
     
+    // Authorization check functions
+    const checkOwner = (userData: any) => {
+      // List of usernames or emails that are considered owners
+      const ownerUsernames = ['Emma', 'Paije', 'Janiece', 'Krystal'];
+      const ownerEmails = ['@raisingarizonapreschool.com'];
+      
+      return ownerUsernames.includes(userData.username) || 
+             (userData.email && ownerEmails.some(email => userData.email.includes(email)));
+    };
+    
+    const checkAdmin = (userData: any) => {
+      // Admin check includes owners plus any other admin users
+      return checkOwner(userData) || userData.username === 'admin';
+    };
+    
     if (user) {
       console.log("User authenticated from API:", user);
       setIsAuthenticated(true);
+      
+      // Check if user is owner/admin
+      setIsOwner(checkOwner(user));
+      setIsAdmin(checkAdmin(user));
+      
       // Update localStorage in case it's missing
       localStorage.setItem('user', JSON.stringify(user));
       localStorage.setItem('isAuthenticated', 'true');
@@ -55,15 +79,23 @@ export function useAuth(): UseAuthReturn {
         console.log("Parsed localStorage user:", parsedUser);
         queryClient.setQueryData(["/api/auth/me"], parsedUser);
         setIsAuthenticated(true);
+        
+        // Check if user is owner/admin
+        setIsOwner(checkOwner(parsedUser));
+        setIsAdmin(checkAdmin(parsedUser));
       } catch (e) {
         console.error("Error parsing stored user:", e);
         localStorage.removeItem('user');
         localStorage.removeItem('isAuthenticated');
         setIsAuthenticated(false);
+        setIsOwner(false);
+        setIsAdmin(false);
       }
     } else if (isError) {
       console.log("Authentication error from API:", error);
       setIsAuthenticated(false);
+      setIsOwner(false);
+      setIsAdmin(false);
     }
   }, [user, isError, error]);
   
@@ -191,6 +223,8 @@ export function useAuth(): UseAuthReturn {
   return {
     isLoading,
     isAuthenticated,
+    isOwner,
+    isAdmin,
     user: typedUser,
     login,
     register,

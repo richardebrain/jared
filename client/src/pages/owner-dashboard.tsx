@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 import {
   Building2,
   DollarSign,
@@ -176,6 +177,7 @@ const mockFinancial: FinancialData = {
 
 export default function OwnerDashboardStandalone() {
   const { toast } = useToast();
+  const { user, isLoading: authLoading, isOwner } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [isLoading, setIsLoading] = useState(false);
   const [showConnections, setShowConnections] = useState(false);
@@ -183,7 +185,20 @@ export default function OwnerDashboardStandalone() {
   const [bankApiToken, setBankApiToken] = useState('');
   const [payrollApiKey, setPayrollApiKey] = useState('');
   const [bankName, setBankName] = useState('');
+  const [_, setLocation] = useLocation();
   
+  // Check if the user is authorized to view the owner dashboard
+  useEffect(() => {
+    if (user && !isOwner) {
+      toast({
+        title: "Access Restricted",
+        description: "You do not have permission to access the Owner Dashboard.",
+        variant: "destructive"
+      });
+      setLocation('/dashboard');
+    }
+  }, [user, isOwner, toast, setLocation]);
+
   const handleApiConnect = (service: string) => {
     setIsLoading(true);
     
@@ -199,6 +214,20 @@ export default function OwnerDashboardStandalone() {
       });
     }, 1500);
   };
+
+  // Show loading state while auth is being checked
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+  
+  // If user is not an owner, don't render anything - redirect happens in useEffect
+  if (user && !isOwner) {
+    return null;
+  }
 
   return (
     <>
