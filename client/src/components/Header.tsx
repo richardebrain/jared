@@ -124,14 +124,7 @@ export default function Header() {
               Video Library
             </div>
           </Link>
-          <Link href="/platform-integrations">
-            <div className={`font-medium px-4 py-2 rounded-full mx-1 text-sm relative ${location === "/platform-integrations" 
-              ? "bg-amber-600 text-white shadow-sm" 
-              : "text-neutral-700 hover:bg-amber-100"} transition-all duration-200 cursor-pointer`}>
-              Integrations
-              <span className="absolute -top-2 right-0 px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[9px] rounded-full font-semibold">NEW</span>
-            </div>
-          </Link>
+
           {/* Games section hidden until more games are available
           <Link href="/games">
             <div className={`font-medium px-4 py-2 rounded-full mx-1 text-sm ${location === "/games" 

@@ -79,6 +79,22 @@ export default function PlatformIntegrationsPage() {
   const { toast } = useToast();
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('all');
+  const [_, setLocation] = useLocation();
+  
+  // Check if the user is authorized (owner/admin)
+  const isAuthorized = user?.username === 'Emma' || user?.email?.includes('@raisingarizonapreschool.com');
+
+  // Redirect unauthorized users
+  useEffect(() => {
+    if (user && !isAuthorized) {
+      setLocation('/dashboard');
+      toast({
+        title: "Access Restricted",
+        description: "Platform integrations are only accessible by administrators.",
+        variant: "destructive"
+      });
+    }
+  }, [user, isAuthorized, setLocation, toast]);
   
   // Filter platforms based on active tab
   const filteredPlatforms = activeTab === 'all' 

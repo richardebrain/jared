@@ -43,6 +43,8 @@ function Router() {
   // Check if authenticated based on user data
   const isAuthenticated = !!user;
   
+  // We'll handle admin check in the platform integration component instead
+  
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -144,7 +146,7 @@ function Router() {
         {isAuthenticated ? <DataSourcesPage /> : <Login />}
       </Route>
       
-      <Route path="/platform-integrations">
+      <Route path="/settings/platform-integrations">
         {isAuthenticated ? <PlatformIntegrationsPage /> : <Login />}
       </Route>
       

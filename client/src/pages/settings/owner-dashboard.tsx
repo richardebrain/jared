@@ -622,7 +622,7 @@ export default function OwnerDashboardPage() {
                   <Button
                     variant="outline"
                     className="w-full"
-                    onClick={() => setLocation('/platform-integrations')}
+                    onClick={() => setLocation('/settings/platform-integrations')}
                   >
                     Launch Integration Wizard
                   </Button>
