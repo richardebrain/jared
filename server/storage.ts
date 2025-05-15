@@ -622,10 +622,6 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return user;
   }
-
-  async getAllUsers(): Promise<User[]> {
-    return await db.select().from(users);
-  }
   
   async getAllModules(): Promise<LearningModule[]> {
     return await db.select().from(learningModules);
