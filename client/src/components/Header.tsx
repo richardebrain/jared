@@ -79,56 +79,56 @@ export default function Header() {
         <div className="flex items-center">
           <Link href="/">
             <div className="flex items-center">
-              <img src={raisingArizonaLogo} alt="Raising Arizona Preschool" className="h-14 mr-3" />
-              <div>
-                <div className="text-xl md:text-2xl font-bold text-[#532A18]">MentorMe</div>
-                <div className="text-xs text-[#532A18]">Raising Arizona Teacher Training</div>
+              <img src={raisingArizonaLogo} alt="Raising Arizona Preschool" className="h-12 mr-3 rounded-md shadow-sm" />
+              <div className="flex flex-col">
+                <div className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-amber-800 bg-clip-text text-transparent">MentorMe</div>
+                <div className="text-xs text-neutral-600 font-medium">Raising Arizona Teacher Training</div>
               </div>
             </div>
           </Link>
         </div>
         
-        <nav className="hidden md:flex items-center border-b border-transparent">
+        <nav className="hidden md:flex items-center bg-amber-50 rounded-full px-2 shadow-inner">
           <Link href="/">
-            <div className={`font-heading font-semibold px-4 py-2 ${location === "/" 
-              ? "text-primary border-b-2 border-primary" 
-              : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
+            <div className={`font-medium px-4 py-2 rounded-full mx-1 text-sm ${location === "/" 
+              ? "bg-amber-600 text-white shadow-sm" 
+              : "text-neutral-700 hover:bg-amber-100"} transition-all duration-200 cursor-pointer`}>
               Dashboard
             </div>
           </Link>
           <Link href="/progression-map">
-            <div className={`font-heading font-semibold px-4 py-2 ${location === "/progression-map" 
-              ? "text-primary border-b-2 border-primary" 
-              : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
+            <div className={`font-medium px-4 py-2 rounded-full mx-1 text-sm ${location === "/progression-map" 
+              ? "bg-amber-600 text-white shadow-sm" 
+              : "text-neutral-700 hover:bg-amber-100"} transition-all duration-200 cursor-pointer`}>
               Teacher Progression
             </div>
           </Link>
           <Link href="/assessment">
-            <div className={`font-heading font-semibold px-4 py-2 ${location === "/assessment" 
-              ? "text-primary border-b-2 border-primary" 
-              : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
+            <div className={`font-medium px-4 py-2 rounded-full mx-1 text-sm ${location === "/assessment" 
+              ? "bg-amber-600 text-white shadow-sm" 
+              : "text-neutral-700 hover:bg-amber-100"} transition-all duration-200 cursor-pointer`}>
               Assessment
             </div>
           </Link>
           <Link href="/tools">
-            <div className={`font-heading font-semibold px-4 py-2 ${location === "/tools" 
-              ? "text-primary border-b-2 border-primary" 
-              : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
+            <div className={`font-medium px-4 py-2 rounded-full mx-1 text-sm ${location === "/tools" 
+              ? "bg-amber-600 text-white shadow-sm" 
+              : "text-neutral-700 hover:bg-amber-100"} transition-all duration-200 cursor-pointer`}>
               Teacher Tools
             </div>
           </Link>
           <Link href="/video-resources">
-            <div className={`font-heading font-semibold px-4 py-2 ${location === "/video-resources" 
-              ? "text-primary border-b-2 border-primary" 
-              : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
+            <div className={`font-medium px-4 py-2 rounded-full mx-1 text-sm ${location === "/video-resources" 
+              ? "bg-amber-600 text-white shadow-sm" 
+              : "text-neutral-700 hover:bg-amber-100"} transition-all duration-200 cursor-pointer`}>
               Video Library
             </div>
           </Link>
           {/* Games section hidden until more games are available
           <Link href="/games">
-            <div className={`font-heading font-semibold px-4 py-2 ${location === "/games" 
-              ? "text-primary border-b-2 border-primary" 
-              : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
+            <div className={`font-medium px-4 py-2 rounded-full mx-1 text-sm ${location === "/games" 
+              ? "bg-amber-600 text-white shadow-sm" 
+              : "text-neutral-700 hover:bg-amber-100"} transition-all duration-200 cursor-pointer`}>
               Games
             </div>
           </Link>
@@ -198,46 +198,58 @@ export default function Header() {
       
       {/* Mobile navigation */}
       {isMobileMenuOpen && (
-        <div className="bg-white py-3 px-4 md:hidden">
-          <nav className="flex flex-col space-y-3">
+        <div className="bg-amber-50 py-4 px-4 md:hidden shadow-inner">
+          <nav className="flex flex-col space-y-2">
             <Link href="/">
-              <div className={`font-heading font-semibold ${location === "/" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
+              <div className={`py-2 px-4 rounded-md ${location === "/" 
+                ? "bg-amber-600 text-white font-medium shadow-sm" 
+                : "text-neutral-700 hover:bg-amber-100"} cursor-pointer transition-colors`}>
                 Dashboard
               </div>
             </Link>
             <Link href="/progression-map">
-              <div className={`font-heading font-semibold ${location === "/progression-map" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
+              <div className={`py-2 px-4 rounded-md ${location === "/progression-map" 
+                ? "bg-amber-600 text-white font-medium shadow-sm" 
+                : "text-neutral-700 hover:bg-amber-100"} cursor-pointer transition-colors`}>
                 Teacher Progression
               </div>
             </Link>
             <Link href="/assessment">
-              <div className={`font-heading font-semibold ${location === "/assessment" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
+              <div className={`py-2 px-4 rounded-md ${location === "/assessment" 
+                ? "bg-amber-600 text-white font-medium shadow-sm" 
+                : "text-neutral-700 hover:bg-amber-100"} cursor-pointer transition-colors`}>
                 Assessment
               </div>
             </Link>
             <Link href="/tools">
-              <div className={`font-heading font-semibold ${location === "/tools" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
+              <div className={`py-2 px-4 rounded-md ${location === "/tools" 
+                ? "bg-amber-600 text-white font-medium shadow-sm" 
+                : "text-neutral-700 hover:bg-amber-100"} cursor-pointer transition-colors`}>
                 Teacher Tools
               </div>
             </Link>
             <Link href="/video-resources">
-              <div className={`font-heading font-semibold ${location === "/video-resources" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
+              <div className={`py-2 px-4 rounded-md ${location === "/video-resources" 
+                ? "bg-amber-600 text-white font-medium shadow-sm" 
+                : "text-neutral-700 hover:bg-amber-100"} cursor-pointer transition-colors`}>
                 Video Library
               </div>
             </Link>
             {/* Games section hidden until more games are available
             <Link href="/games">
-              <div className={`font-heading font-semibold ${location === "/games" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
+              <div className={`py-2 px-4 rounded-md ${location === "/games" 
+                ? "bg-amber-600 text-white font-medium shadow-sm" 
+                : "text-neutral-700 hover:bg-amber-100"} cursor-pointer transition-colors`}>
                 Games
               </div>
             </Link>
             */}
-            <div className="pt-2 border-t border-neutral-100">
-              <Button variant="outline" className="w-full justify-start mb-2" onClick={() => setLocation("/admin")}>
+            <div className="pt-3 mt-2 border-t border-amber-200">
+              <Button variant="ghost" className="w-full justify-start mb-2 hover:bg-amber-200 hover:text-amber-900" onClick={() => setLocation("/admin")}>
                 <i className="ri-shield-keyhole-line mr-2"></i>
                 Admin Access
               </Button>
-              <Button variant="outline" className="w-full justify-start" onClick={handleLogout}>
+              <Button variant="ghost" className="w-full justify-start hover:bg-amber-200 hover:text-amber-900" onClick={handleLogout}>
                 <i className="ri-logout-box-line mr-2"></i>
                 Logout
               </Button>
