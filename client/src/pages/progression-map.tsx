@@ -132,7 +132,7 @@ export default function ProgressionMap() {
   
   // Query to get user progress for all modules
   const { data: userProgress } = useQuery({
-    queryKey: ["/api/progress/by-user", user?.id],
+    queryKey: ["/api/progress"],
     enabled: !!user,
   });
   
@@ -168,19 +168,44 @@ export default function ProgressionMap() {
   // Calculate stats for the current user
   const calculateCompletedModules = () => {
     if (!userProgress) return 0;
-    return Object.values(userProgress).filter((progress: any) => progress.completed).length;
+    return userProgress.filter((progress: any) => progress.progress === 100 || progress.completed).length;
   };
   
   const calculateTotalHours = () => {
-    if (!userProgress) return 0;
-    // Assuming 1 hour per 3 completed modules as an estimate
-    return Math.round(calculateCompletedModules() / 3);
+    if (!userProgress || !modules) return 0;
+    
+    // Calculate hours based on completed module durations
+    const completedModuleIds = userProgress
+      .filter((progress: any) => progress.progress === 100 || progress.completed)
+      .map((progress: any) => progress.moduleId);
+    
+    // Sum up durations of completed modules (in minutes), then convert to hours
+    const totalMinutes = modules
+      .filter((module: any) => completedModuleIds.includes(module.id))
+      .reduce((sum: number, module: any) => sum + (module.duration || 30), 0);
+    
+    return Math.round(totalMinutes / 60);
   };
   
+  // Get assessment data
+  const { data: assessments } = useQuery({
+    queryKey: ["/api/assessments"],
+    enabled: !!user,
+  });
+  
+  // Calculate highest assessment score
   const getHighestAssessmentScore = () => {
     if (!user) return 0;
-    // This would normally come from assessment data, using a placeholder for now
-    return user.points ? Math.min(Math.floor(user.points / 10), 100) : 0;
+    
+    // If we have assessment data, use it
+    if (assessments && assessments.length > 0) {
+      // Find the highest score
+      const highestScore = Math.max(...assessments.map((a: any) => a.overallScore || 0));
+      return highestScore;
+    }
+    
+    // Fallback based on points - users with more points likely have better scores
+    return user.points ? Math.min(Math.floor(user.points / 10) + 50, 100) : 0;
   };
   
   // Check if the master level assessment is unlocked
