@@ -2,6 +2,9 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, Medal, Award } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Define teacher ranks and their icons
 const TEACHER_RANKS = [
@@ -10,36 +13,15 @@ const TEACHER_RANKS = [
   { icon: <Award className="h-5 w-5 text-emerald-500" />, name: "Lead Teacher" }
 ];
 
-// Hard-coded leaderboard data from database
-const teachers = [
-  {
-    id: 4,
-    firstName: "Jared",
-    lastName: "Cook",
-    points: 77,
-    level: 1,
-    isCurrentUser: true
-  },
-  {
-    id: 3,
-    firstName: "Demo",
-    lastName: "Teacher",
-    points: 0,
-    level: 1,
-    isCurrentUser: false
-  },
-  {
-    id: 5,
-    firstName: "Laura",
-    lastName: "Book",
-    points: 0,
-    level: 1,
-    isCurrentUser: false
-  }
-];
-
 export default function SimpleLeaderboard() {
   const [timeframe, setTimeframe] = React.useState("all");
+  const { user } = useAuth();
+  
+  // Fetch all users for the leaderboard
+  const { data: teachers, isLoading } = useQuery({
+    queryKey: ["/api/users"],
+    refetchOnWindowFocus: false
+  });
   
   // Get rank icon and name based on level
   const getRankDetails = (level: number) => {
@@ -47,6 +29,17 @@ export default function SimpleLeaderboard() {
     if (level >= 2) return TEACHER_RANKS[1]; // Senior Teacher
     return TEACHER_RANKS[2]; // Lead Teacher
   };
+
+  // Sort teachers by points in descending order
+  const sortedTeachers = React.useMemo(() => {
+    if (!teachers) return [];
+    
+    return [...teachers].sort((a, b) => {
+      const pointsA = a.points || 0;
+      const pointsB = b.points || 0;
+      return pointsB - pointsA;
+    });
+  }, [teachers]);
 
   return (
     <Card className="w-full">
@@ -83,44 +76,66 @@ export default function SimpleLeaderboard() {
       </CardHeader>
       
       <CardContent className="p-4">
-        <div className="space-y-3">
-          {teachers.map((teacher, index) => {
-            const rankDetails = getRankDetails(teacher.level);
-                
-            return (
-              <div 
-                key={teacher.id}
-                className={`flex items-center justify-between p-2 rounded-md border 
-                  ${teacher.id === 4
-                    ? "bg-gradient-to-r from-purple-100 to-indigo-100 border-purple-300" 
-                    : "bg-card hover:bg-accent/10"} transition-colors`}
-              >
-                <div className="flex items-center">
-                  <div className="w-6 text-center font-medium text-muted-foreground">
-                    {index + 1}
-                  </div>
-                  <div className="ml-3 flex items-center">
-                    <div className="bg-muted rounded-full h-8 w-8 flex items-center justify-center mr-3">
-                      {rankDetails.icon}
-                    </div>
-                    <div className="flex flex-col">
-                      <div className="flex items-center">
-                        <p className="text-sm font-medium">{teacher.firstName} {teacher.lastName}</p>
-                        {teacher.id === 4 && (
-                          <span className="ml-2 text-[10px] rounded-full bg-purple-500 text-white px-1.5 py-0.5">
-                            YOU
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground">{rankDetails.name}</p>
-                    </div>
+        {isLoading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center justify-between p-2 rounded-md border">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                  <div>
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-20 mt-1" />
                   </div>
                 </div>
-                <div className="font-semibold">{teacher.points}</div>
+                <Skeleton className="h-4 w-8" />
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        ) : sortedTeachers.length === 0 ? (
+          <div className="p-4 text-center text-muted-foreground">
+            No teachers found
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {sortedTeachers.map((teacher, index) => {
+              const rankDetails = getRankDetails(teacher.level || 1);
+              const isCurrentUser = user && user.id === teacher.id;
+                  
+              return (
+                <div 
+                  key={teacher.id}
+                  className={`flex items-center justify-between p-2 rounded-md border 
+                    ${isCurrentUser
+                      ? "bg-gradient-to-r from-purple-100 to-indigo-100 border-purple-300" 
+                      : "bg-card hover:bg-accent/10"} transition-colors`}
+                >
+                  <div className="flex items-center">
+                    <div className="w-6 text-center font-medium text-muted-foreground">
+                      {index + 1}
+                    </div>
+                    <div className="ml-3 flex items-center">
+                      <div className="bg-muted rounded-full h-8 w-8 flex items-center justify-center mr-3">
+                        {rankDetails.icon}
+                      </div>
+                      <div className="flex flex-col">
+                        <div className="flex items-center">
+                          <p className="text-sm font-medium">{teacher.firstName} {teacher.lastName}</p>
+                          {isCurrentUser && (
+                            <span className="ml-2 text-[10px] rounded-full bg-purple-500 text-white px-1.5 py-0.5">
+                              YOU
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">{rankDetails.name}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="font-semibold">{teacher.points || 0}</div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

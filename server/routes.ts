@@ -3233,6 +3233,89 @@ Format your response as a complete message I could use, including a greeting and
     }
   });
 
+  // Admin routes
+  // Middleware to check for admin role
+  const requireAdmin = async (req: Request, res: Response, next: NextFunction) => {
+    const session = req.session as SessionData;
+    if (!session.userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    
+    // Get user to check if they are admin (ID 4 is admin for demo purposes)
+    const user = await storage.getUser(session.userId);
+    if (!user || user.id !== 4) {  // In a real app, check user.isAdmin
+      return res.status(403).json({ message: 'Forbidden: Admin access required' });
+    }
+    
+    next();
+  };
+
+  // Get all users (admin only)
+  app.get('/api/admin/users', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.status(200).json(users);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      res.status(500).json({ message: 'Failed to fetch users' });
+    }
+  });
+
+  // Get user progress (admin only)
+  app.get('/api/admin/user-progress/:userId', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: 'Invalid user ID' });
+      }
+      
+      const progress = await storage.getProgressByUserId(userId);
+      res.status(200).json(progress);
+    } catch (error) {
+      console.error('Error fetching user progress:', error);
+      res.status(500).json({ message: 'Failed to fetch user progress' });
+    }
+  });
+
+  // Reset user points (admin only)
+  app.post('/api/admin/reset-points/:userId', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: 'Invalid user ID' });
+      }
+
+      // Reset user points to zero
+      await storage.updateUser(userId, { points: 0 });
+      
+      // Get updated user info
+      const user = await storage.getUser(userId);
+      res.status(200).json(user);
+    } catch (error) {
+      console.error('Error resetting user points:', error);
+      res.status(500).json({ message: 'Failed to reset user points' });
+    }
+  });
+
+  // Reset user progress (admin only)
+  app.post('/api/admin/reset-progress/:userId', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: 'Invalid user ID' });
+      }
+
+      // Delete all user progress
+      await storage.deleteAllUserProgress(userId);
+      
+      // Return success message
+      res.status(200).json({ message: 'User progress reset successfully' });
+    } catch (error) {
+      console.error('Error resetting user progress:', error);
+      res.status(500).json({ message: 'Failed to reset user progress' });
+    }
+  });
+
   // Create HTTP server
   const httpServer = createServer(app);
 

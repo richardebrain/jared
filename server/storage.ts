@@ -690,6 +690,18 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  // Used for admin functionality to reset a user's progress
+  async deleteAllUserProgress(userId: number): Promise<void> {
+    await db
+      .delete(userProgress)
+      .where(eq(userProgress.userId, userId));
+  }
+  
+  // Alias method for API endpoint naming consistency
+  async getProgressByUserId(userId: number): Promise<UserProgress[]> {
+    return this.getUserProgressByUserId(userId);
+  }
+  
   async getMeetingsByUserId(userId: number): Promise<Meeting[]> {
     return await db
       .select()
