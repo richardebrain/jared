@@ -24,6 +24,7 @@ import {
 import { MonthlyNewsletter } from "@/components/MonthlyNewsletter";
 import Leaderboard from "@/components/Leaderboard";
 import SimpleLeaderboard from "@/components/SimpleLeaderboard";
+import CoreValuesShoutOuts from "@/components/CoreValuesShoutOuts";
 import BearAssistant from "@/components/BearAssistant";
 import { MiniLessons } from "@/components/MiniLessons";
 import MediaSidebar from "@/components/MediaSidebar";
@@ -593,6 +594,9 @@ export default function Dashboard() {
                   <div className="md:col-span-1 space-y-6">
                     {/* Leaderboard */}
                     <SimpleLeaderboard />
+                    
+                    {/* Core Values Shout Outs */}
+                    <CoreValuesShoutOuts />
                     
                     {/* Media Sidebar with Company Song and Video */}
                     <MediaSidebar />

@@ -3232,6 +3232,23 @@ Format your response as a complete message I could use, including a greeting and
       res.status(500).json({ message: "Failed to create game completion" });
     }
   });
+  
+  // Core Values Shout Outs
+  app.get('/api/core-values-shoutouts', async (req, res) => {
+    try {
+      const shoutOuts = await storage.getAllCoreValuesShoutOuts();
+      
+      // Sort by newest first
+      const sortedShoutOuts = Array.isArray(shoutOuts) 
+        ? shoutOuts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) 
+        : [];
+        
+      res.status(200).json(sortedShoutOuts);
+    } catch (error) {
+      console.error('Error fetching core values shout outs:', error);
+      res.status(500).json({ message: 'Failed to fetch core values shout outs' });
+    }
+  });
 
   // Admin routes
   // Middleware to check for admin role
