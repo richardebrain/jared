@@ -131,13 +131,6 @@ export default function Header() {
               Games
             </div>
           </Link>
-          <Link href="/admin">
-            <div className={`font-heading font-semibold px-4 py-2 ${location === "/admin" 
-              ? "text-primary border-b-2 border-primary" 
-              : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
-              Admin
-            </div>
-          </Link>
         </nav>
         
         <div className="flex items-center space-x-4">
@@ -179,6 +172,10 @@ export default function Header() {
               <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/settings")}>
                 <i className="ri-settings-line mr-2"></i>
                 Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/admin")}>
+                <i className="ri-shield-keyhole-line mr-2"></i>
+                Admin Access
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
@@ -231,12 +228,11 @@ export default function Header() {
                 Games
               </div>
             </Link>
-            <Link href="/admin">
-              <div className={`font-heading font-semibold ${location === "/admin" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
-                Admin
-              </div>
-            </Link>
             <div className="pt-2 border-t border-neutral-100">
+              <Button variant="outline" className="w-full justify-start mb-2" onClick={() => setLocation("/admin")}>
+                <i className="ri-shield-keyhole-line mr-2"></i>
+                Admin Access
+              </Button>
               <Button variant="outline" className="w-full justify-start" onClick={handleLogout}>
                 <i className="ri-logout-box-line mr-2"></i>
                 Logout
