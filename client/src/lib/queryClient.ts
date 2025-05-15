@@ -35,16 +35,13 @@ export async function apiRequest<T = any>(
   try {
     const response = await axios({
       url,
-      withCredentials: true, // Important for cookies/sessions
       ...config,
+      withCredentials: true, // Important for cookies/sessions
     });
+    
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      // Extract the error message from the response, if available
-      const errorMessage = error.response.data?.message || error.message;
-      throw new Error(errorMessage);
-    }
+    console.error("API Error:", error);
     throw error;
   }
 }
