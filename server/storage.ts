@@ -593,6 +593,29 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
   }
+  
+  /**
+   * Reset all progress for a specific user
+   * This deletes all module progress for the user
+   * @param userId The user ID to reset progress for
+   * @returns Boolean indicating success
+   */
+  async resetUserProgress(userId: number): Promise<boolean> {
+    try {
+      console.log(`Resetting progress for user ID: ${userId}`);
+      
+      // Delete all user progress for this user
+      const deletedProgress = await db.execute(
+        sql`DELETE FROM user_progress WHERE user_id = ${userId}`
+      );
+      
+      console.log(`Successfully reset progress for user ID: ${userId}`);
+      return true;
+    } catch (error) {
+      console.error(`Error resetting progress for user ID ${userId}:`, error);
+      return false;
+    }
+  }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
