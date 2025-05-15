@@ -1,269 +1,358 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
-import { User } from "@shared/schema";
-import { getDaysInMonth, formatTimeToUserFriendly, convertTime } from "@/lib/time-utils";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { CalendarDays, Clock, Mail, School, Users } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from '@/lib/queryClient';
 
-interface MeetingSchedulerProps {
-  timeZone: string;
-}
+// Schema for meeting request validation
+const meetingRequestSchema = z.object({
+  schoolLocation: z.string({
+    required_error: "Please select your school location",
+  }),
+  meetingPurpose: z.string({
+    required_error: "Please provide a brief purpose for the meeting",
+  }).min(10, {
+    message: "Meeting purpose must be at least 10 characters",
+  }).max(200, {
+    message: "Meeting purpose must not exceed 200 characters",
+  }),
+  preferredDate: z.date({
+    required_error: "Please select a preferred date",
+  }),
+  preferredTimeSlot: z.string({
+    required_error: "Please select a preferred time slot",
+  }),
+  notes: z.string().max(500, {
+    message: "Notes must not exceed 500 characters",
+  }).optional(),
+});
 
-interface AvailableSlot {
-  time: string; // ISO string
-  isAvailable: boolean;
-}
+type MeetingRequestFormValues = z.infer<typeof meetingRequestSchema>;
 
-const HOURS = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
+// School location to director email mapping
+const schoolDirectorMap: Record<string, { name: string, email: string }> = {
+  "bell": { 
+    name: "Paije",
+    email: "Paije@raisingarizonapreschool.com"
+  },
+  "olive": { 
+    name: "Janiece",
+    email: "Janiece@raisingarizonapreschool.com"
+  },
+  "mcdowell": { 
+    name: "Emma",
+    email: "Emma@raisingarizonapreschool.com"
+  },
+  "mesa": { 
+    name: "Krystal",
+    email: "Krystal@raisingarizonapreschool.com"
+  },
+};
 
-export function MeetingScheduler({ timeZone }: MeetingSchedulerProps) {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([]);
+// Available time slots
+const timeSlots = [
+  "8:00 AM - 8:15 AM",
+  "8:30 AM - 8:45 AM",
+  "9:00 AM - 9:15 AM",
+  "9:30 AM - 9:45 AM",
+  "1:00 PM - 1:15 PM",
+  "1:30 PM - 1:45 PM",
+  "2:00 PM - 2:15 PM",
+  "2:30 PM - 2:45 PM",
+  "3:00 PM - 3:15 PM",
+  "3:30 PM - 3:45 PM",
+  "4:00 PM - 4:15 PM",
+  "4:30 PM - 4:45 PM",
+];
+
+export function MeetingScheduler() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [isSubmitted, setIsSubmitted] = useState(false);
   
-  // Fetch all users for potential practice partners
-  const { data: user } = useQuery<User>({
-    queryKey: ["/api/auth/me"]
+  // Initialize the form
+  const form = useForm<MeetingRequestFormValues>({
+    resolver: zodResolver(meetingRequestSchema),
+    defaultValues: {
+      schoolLocation: "",
+      meetingPurpose: "",
+      notes: "",
+    },
   });
-  
-  // Generate calendar days
-  const generateCalendarDays = () => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    
-    // Get days in current month
-    const daysInMonth = getDaysInMonth(year, month);
-    
-    // Get day of week of the first day (0 = Sunday, 1 = Monday, etc.)
-    const firstDayOfMonth = new Date(year, month, 1).getDay();
-    
-    // Calculate days from previous month to show
-    const daysFromPrevMonth = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
-    
-    // Get days in previous month
-    const prevMonth = month === 0 ? 11 : month - 1;
-    const prevMonthYear = month === 0 ? year - 1 : year;
-    const daysInPrevMonth = getDaysInMonth(prevMonthYear, prevMonth);
-    
-    const days = [];
-    
-    // Add days from previous month
-    for (let i = daysInPrevMonth - daysFromPrevMonth + 1; i <= daysInPrevMonth; i++) {
-      days.push({
-        day: i,
-        month: prevMonth,
-        year: prevMonthYear,
-        isCurrentMonth: false,
-        isToday: false,
-        isPast: true
-      });
-    }
-    
-    // Add days from current month
-    const today = new Date();
-    for (let i = 1; i <= daysInMonth; i++) {
-      const date = new Date(year, month, i);
-      const isToday = date.getDate() === today.getDate() && 
-                      date.getMonth() === today.getMonth() && 
-                      date.getFullYear() === today.getFullYear();
-      const isPast = date < new Date(today.setHours(0, 0, 0, 0));
+
+  // Handle meeting request submission
+  const submitMeetingRequest = useMutation({
+    mutationFn: async (values: MeetingRequestFormValues) => {
+      // Get director info based on selected school
+      const director = schoolDirectorMap[values.schoolLocation];
       
-      days.push({
-        day: i,
-        month,
-        year,
-        isCurrentMonth: true,
-        isToday,
-        isPast
-      });
-    }
-    
-    // Fill in days from next month if needed to complete the grid (6 rows)
-    const totalDaysToShow = 42; // 6 rows x 7 days
-    const remainingDays = totalDaysToShow - days.length;
-    
-    if (remainingDays > 0) {
-      const nextMonth = month === 11 ? 0 : month + 1;
-      const nextMonthYear = month === 11 ? year + 1 : year;
-      
-      for (let i = 1; i <= remainingDays; i++) {
-        days.push({
-          day: i,
-          month: nextMonth,
-          year: nextMonthYear,
-          isCurrentMonth: false,
-          isToday: false,
-          isPast: false
-        });
+      if (!director) {
+        throw new Error("Invalid school location selected");
       }
-    }
-    
-    return days;
-  };
-  
-  // Generate time slots based on selected date
-  useEffect(() => {
-    if (!selectedDate) {
-      setAvailableSlots([]);
-      return;
-    }
-    
-    // Generate slots for the selected date
-    const slots: AvailableSlot[] = [];
-    const today = new Date();
-    const isToday = selectedDate.getDate() === today.getDate() && 
-                    selectedDate.getMonth() === today.getMonth() && 
-                    selectedDate.getFullYear() === today.getFullYear();
-    
-    // Get current hour if it's today
-    const currentHour = isToday ? today.getHours() : 0;
-    
-    for (const hour of HOURS) {
-      // Skip past hours if it's today
-      if (isToday && hour <= currentHour) continue;
+
+      // Format the meeting request data for sending
+      const meetingData = {
+        teacherId: user?.id,
+        teacherName: `${user?.firstName} ${user?.lastName}`,
+        teacherEmail: user?.email,
+        directorName: director.name,
+        directorEmail: director.email,
+        schoolLocation: values.schoolLocation,
+        meetingPurpose: values.meetingPurpose,
+        preferredDate: values.preferredDate,
+        preferredTimeSlot: values.preferredTimeSlot,
+        notes: values.notes || "",
+      };
+
+      // In a real app, we would send this to the server
+      // For now, we'll just simulate success
+      console.log("Meeting request:", meetingData);
       
-      const date = new Date(selectedDate);
-      date.setHours(hour, 0, 0, 0);
+      // This would normally hit the API endpoint
+      // return await apiRequest("/api/meetings/request", {
+      //   method: "POST",
+      //   data: meetingData,
+      // });
       
-      // Generate a random availability, more slots available in morning and evening
-      // In a real app, this would come from API
-      const randomAvailability = Math.random() < (hour < 12 || hour > 17 ? 0.8 : 0.4);
-      
-      slots.push({
-        time: date.toISOString(),
-        isAvailable: randomAvailability
+      // For demo purposes, just wait a moment and return success
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return { success: true };
+    },
+    onSuccess: () => {
+      setIsSubmitted(true);
+      toast({
+        title: "Meeting Request Sent",
+        description: "Your director will review your request and confirm the meeting soon.",
+        variant: "default",
       });
-    }
-    
-    setAvailableSlots(slots);
-  }, [selectedDate]);
-  
-  // Handle date navigation
-  const goToPreviousMonth = () => {
-    setCurrentDate(prev => {
-      const prevMonth = prev.getMonth() === 0 ? 11 : prev.getMonth() - 1;
-      const prevYear = prev.getMonth() === 0 ? prev.getFullYear() - 1 : prev.getFullYear();
-      return new Date(prevYear, prevMonth, 1);
-    });
-  };
-  
-  const goToNextMonth = () => {
-    setCurrentDate(prev => {
-      const nextMonth = prev.getMonth() === 11 ? 0 : prev.getMonth() + 1;
-      const nextYear = prev.getMonth() === 11 ? prev.getFullYear() + 1 : prev.getFullYear();
-      return new Date(nextYear, nextMonth, 1);
-    });
-  };
-  
-  // Handle date selection
-  const handleDateSelect = (day: number, month: number, year: number) => {
-    setSelectedDate(new Date(year, month, day));
-  };
-  
-  // Format month and year for display
-  const formatMonthYear = (date: Date) => {
-    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  };
-  
-  // Calendar days
-  const calendarDays = generateCalendarDays();
-  
+    },
+    onError: (error) => {
+      console.error("Error submitting meeting request:", error);
+      toast({
+        title: "Request Failed",
+        description: "There was an error submitting your meeting request. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle form submission
+  function onSubmit(values: MeetingRequestFormValues) {
+    submitMeetingRequest.mutate(values);
+  }
+
+  // Reset the form and allow creating a new meeting request
+  function handleCreateNewRequest() {
+    form.reset();
+    setIsSubmitted(false);
+  }
+
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
-        <CardTitle className="flex justify-between items-center">
-          <Button variant="ghost" size="icon" onClick={goToPreviousMonth}>
-            <i className="ri-arrow-left-s-line"></i>
-          </Button>
-          <span>{formatMonthYear(currentDate)}</span>
-          <Button variant="ghost" size="icon" onClick={goToNextMonth}>
-            <i className="ri-arrow-right-s-line"></i>
-          </Button>
+        <CardTitle className="text-lg font-semibold">
+          <div className="flex items-center">
+            <CalendarDays className="mr-2 h-5 w-5 text-primary" />
+            Schedule a Director Meeting
+          </div>
         </CardTitle>
+        <CardDescription>
+          Request a 15-minute meeting with your school director.
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-7 gap-1 mb-4">
-          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-            <div key={day} className="text-center font-medium text-sm py-1">
-              {day}
-            </div>
-          ))}
-        </div>
-        
-        <div className="grid grid-cols-7 gap-1 mb-6">
-          {calendarDays.map((day, index) => {
-            const isSelected = selectedDate && 
-                              day.day === selectedDate.getDate() && 
-                              day.month === selectedDate.getMonth() && 
-                              day.year === selectedDate.getFullYear();
-            
-            return (
-              <Button
-                key={index}
-                variant="ghost"
-                className={`
-                  h-10 p-0 
-                  ${!day.isCurrentMonth ? 'text-neutral-400' : ''} 
-                  ${day.isToday ? 'bg-primary/10 text-primary font-bold' : ''} 
-                  ${isSelected ? 'bg-primary text-white' : ''} 
-                  ${day.isPast ? 'opacity-50 cursor-not-allowed' : ''}
-                `}
-                disabled={day.isPast}
-                onClick={() => handleDateSelect(day.day, day.month, day.year)}
-              >
-                {day.day}
-              </Button>
-            );
-          })}
-        </div>
-        
-        {selectedDate && (
-          <div>
-            <h3 className="font-heading font-semibold mb-4">
-              Available Times for {selectedDate.toLocaleDateString()}
-            </h3>
-            
-            {availableSlots.length > 0 ? (
-              <div className="grid grid-cols-3 gap-2">
-                {availableSlots.map((slot, index) => (
-                  <Button
-                    key={index}
-                    variant={slot.isAvailable ? "outline" : "ghost"}
-                    className={`text-sm ${!slot.isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    disabled={!slot.isAvailable}
-                    onClick={() => {
-                      if (slot.isAvailable) {
-                        // In a real app, this would open a modal or form to schedule the meeting
-                        const date = new Date(slot.time);
-                        const formattedTime = formatTimeToUserFriendly(date, timeZone);
-                        
-                        // Set the form values
-                        const startTimeInput = document.querySelector('input[name="startTime"]') as HTMLInputElement;
-                        if (startTimeInput) {
-                          startTimeInput.value = date.toISOString().slice(0, 16);
-                          
-                          // Also set the end time to an hour later
-                          const endTime = new Date(date);
-                          endTime.setHours(endTime.getHours() + 1);
-                          
-                          const endTimeInput = document.querySelector('input[name="endTime"]') as HTMLInputElement;
-                          if (endTimeInput) {
-                            endTimeInput.value = endTime.toISOString().slice(0, 16);
-                          }
-                        }
-                      }
-                    }}
-                  >
-                    {formatTimeToUserFriendly(new Date(slot.time), timeZone)}
-                  </Button>
-                ))}
+        {isSubmitted ? (
+          <div className="py-6 text-center space-y-4">
+            <div className="mb-4 flex justify-center">
+              <div className="rounded-full bg-green-100 p-3">
+                <Mail className="h-6 w-6 text-green-600" />
               </div>
-            ) : (
-              <p className="text-center text-muted-foreground py-4">
-                No available slots for this date. Please select another date.
-              </p>
-            )}
+            </div>
+            <h3 className="text-lg font-medium">Meeting Request Submitted</h3>
+            <p className="text-muted-foreground">
+              Your director will review your request and confirm the meeting time via email.
+            </p>
+            <Button onClick={handleCreateNewRequest} className="mt-4">
+              Request Another Meeting
+            </Button>
           </div>
+        ) : (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="schoolLocation"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>School Location</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select your school location" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="bell">Bell School</SelectItem>
+                        <SelectItem value="olive">Olive School</SelectItem>
+                        <SelectItem value="mcdowell">McDowell School</SelectItem>
+                        <SelectItem value="mesa">Mesa School</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      {field.value && schoolDirectorMap[field.value] ? 
+                        `Your meeting will be with Director ${schoolDirectorMap[field.value].name}` : 
+                        "Select your school to see your director"
+                      }
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="meetingPurpose"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Meeting Purpose</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Briefly describe what you'd like to discuss..."
+                        className="resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Keep it brief but specific to help your director prepare.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid gap-6 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="preferredDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Preferred Date</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarDays className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) => 
+                              date < new Date(Date.now() + 86400000) || // Disable dates before tomorrow
+                              date.getDay() === 0 || // Disable Sundays
+                              date.getDay() === 6    // Disable Saturdays
+                            }
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormDescription>
+                        Select a weekday at least one day in advance.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="preferredTimeSlot"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Preferred Time</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a time slot" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {timeSlots.map((slot) => (
+                            <SelectItem key={slot} value={slot}>
+                              {slot}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        All meetings are 15 minutes long.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Additional Notes (Optional)</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Any additional information or context..."
+                        className="resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Include any relevant information that might help your director prepare.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={submitMeetingRequest.isPending}
+              >
+                {submitMeetingRequest.isPending ? "Submitting..." : "Request Meeting"}
+              </Button>
+            </form>
+          </Form>
         )}
       </CardContent>
     </Card>
