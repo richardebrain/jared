@@ -857,6 +857,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Assessment routes
+  app.get("/api/assessments", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const assessments = await storage.getAssessmentsByUserId(userId);
+      console.log(`Retrieved ${assessments?.length || 0} assessments for user ${userId}`);
+      res.status(200).json(assessments || []);
+    } catch (error) {
+      console.error("Error fetching assessments:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/assessments", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      console.log(`Creating assessment for user ${userId}`);
+      
+      // Get all modules to generate recommendations
+      const allModules = await storage.getAllModules();
+      
+      // Process and enhance the assessment data with recommendations
+      const { strengthAreas, growthAreas, overallScore, ...otherData } = req.body;
+      
+      // Import assessment utility
+      const { generateModuleRecommendations } = await import("./assessmentUtils");
+      
+      // Generate module recommendations based on assessment results
+      const recommendedModules = generateModuleRecommendations(
+        strengthAreas || [], 
+        growthAreas || [],
+        allModules
+      );
+      
+      // Create and save the assessment with all data
+      const assessmentData = {
+        userId,
+        strengthAreas: strengthAreas || [],
+        growthAreas: growthAreas || [],
+        recommendedModules,
+        overallScore: overallScore || 0,
+        completed: true,
+        ...otherData
+      };
+      
+      const assessment = await storage.createAssessment(assessmentData);
+      
+      // Create progress entries for recommended modules
+      if (recommendedModules && recommendedModules.length > 0) {
+        for (const moduleId of recommendedModules) {
+          // Check if progress entry already exists
+          const allProgress = await storage.getProgressByUserId(userId);
+          const existingProgress = allProgress.find(p => p.moduleId === moduleId);
+          
+          if (!existingProgress) {
+            await storage.createUserProgress({
+              userId,
+              moduleId,
+              progress: 0,
+              completed: null,
+              recommended: true,
+              pointsEarned: null,
+              lastAccessed: new Date()
+            });
+          } else if (!existingProgress.recommended) {
+            // Update existing progress to mark as recommended
+            await storage.updateUserProgress(existingProgress.id, {
+              recommended: true
+            });
+          }
+        }
+      }
+      
+      console.log(`Assessment created successfully for user ${userId}`);
+      res.status(201).json(assessment);
+    } catch (error) {
+      console.error("Error creating assessment:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   // Return server for use in tests and closing
   return httpServer;
 }
