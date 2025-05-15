@@ -67,6 +67,10 @@ export default function Login() {
     onSuccess: (data) => {
       console.log("Login successful, user data:", data);
       
+      // Store user data in localStorage as a fallback authentication method
+      localStorage.setItem('user', JSON.stringify(data));
+      localStorage.setItem('isAuthenticated', 'true');
+      
       // Update the auth cache with the new user data
       queryClient.setQueryData(["/api/auth/me"], data);
       

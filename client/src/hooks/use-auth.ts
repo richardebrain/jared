@@ -34,14 +34,36 @@ export function useAuth(): UseAuthReturn {
   // Typed user (prevent TypeScript errors)
   const typedUser = user as User | null;
   
-  // Update authentication state based on query results
+  // Update authentication state based on query results or localStorage fallback
   useEffect(() => {
     if (user) {
-      console.log("User authenticated:", user);
+      console.log("User authenticated from API:", user);
       setIsAuthenticated(true);
+      // Update localStorage in case it's missing
+      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('isAuthenticated', 'true');
     } else if (isError) {
-      console.log("Authentication error:", error);
-      setIsAuthenticated(false);
+      console.log("Authentication error from API:", error);
+      
+      // Check localStorage as fallback if API fails
+      const storedAuth = localStorage.getItem('isAuthenticated');
+      const storedUser = localStorage.getItem('user');
+      
+      if (storedAuth === 'true' && storedUser) {
+        console.log("Found user in localStorage, using as fallback");
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          queryClient.setQueryData(["/api/auth/me"], parsedUser);
+          setIsAuthenticated(true);
+        } catch (e) {
+          console.error("Error parsing stored user:", e);
+          localStorage.removeItem('user');
+          localStorage.removeItem('isAuthenticated');
+          setIsAuthenticated(false);
+        }
+      } else {
+        setIsAuthenticated(false);
+      }
     }
   }, [user, isError, error]);
   
@@ -125,6 +147,10 @@ export function useAuth(): UseAuthReturn {
       setIsAuthenticated(false);
       // Clear any cached queries when logging out
       queryClient.clear();
+      
+      // Clear localStorage authentication data
+      localStorage.removeItem('user');
+      localStorage.removeItem('isAuthenticated');
       
       toast({
         title: "Logout successful",

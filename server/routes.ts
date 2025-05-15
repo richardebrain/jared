@@ -39,7 +39,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         secure: false, // Always false for development to work with HTTP
         httpOnly: true,
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        sameSite: "none", // Allow cross-domain cookies
+        sameSite: "lax",
         path: '/' // Ensure cookie is available on all paths
       }, 
       store: new PgSession({
