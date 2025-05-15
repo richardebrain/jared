@@ -10,7 +10,8 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useLocation } from "wouter";
 import { Gamepad2, Trophy, Clock, Award, Brain, Zap, Timer, BarChart } from "lucide-react";
-import MilestoneMatchingGame from "@/components/games/MilestoneMatchingGame";
+// Import the milestone matching game directly with the updated path
+import MilestoneMatchingGame from "../components/games/MilestoneMatchingGame";
 
 export default function GamesPage() {
   const { isAuthenticated, user } = useAuth();

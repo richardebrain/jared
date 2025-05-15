@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Brain, Clock, ChevronRight, RotateCcw, CheckCircle, Timer, Trophy } from "lucide-react";
+import confetti from "canvas-confetti";
 
 // Define milestone types for game data
 interface Milestone {
@@ -118,7 +119,7 @@ export default function MilestoneMatchingGame({ game, onClose }: GameProps) {
     mutationFn: async (data: any) => {
       return apiRequest('/api/game-completions', {
         method: 'POST',
-        body: JSON.stringify(data),
+        data: data,
       });
     },
     onSuccess: (data) => {
@@ -178,8 +179,8 @@ export default function MilestoneMatchingGame({ game, onClose }: GameProps) {
     setCurrentMilestone(milestone);
     
     // Create options including the correct age and 3 incorrect ones
-    const allAges = [...new Set(milestones.map(m => m.age))];
-    const wrongAges = allAges.filter(age => age !== milestone.age);
+    const uniqueAges = Array.from(new Set(milestones.map(m => m.age)));
+    const wrongAges = uniqueAges.filter(age => age !== milestone.age);
     
     // Shuffle and take 3 wrong ages
     const shuffledWrongAges = wrongAges.sort(() => Math.random() - 0.5).slice(0, 3);
