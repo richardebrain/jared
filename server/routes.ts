@@ -10,10 +10,13 @@ import { eq, sql } from "drizzle-orm";
 import { users } from "@shared/schema";
 import * as notebookLmPlugin from "./notebookLmPlugin";
 
-// Define our session data structure
+// Define our session data structure with proper typing
 declare module "express-session" {
   interface SessionData {
     userId: number;
+    loginTime?: string;  // ISO string for login timestamp
+    registeredAt?: string;  // ISO string for registration timestamp
+    lastActive?: string;  // Last activity timestamp
   }
 }
 
@@ -67,12 +70,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User routes
   app.post("/api/auth/register", async (req, res) => {
     try {
-      const { username, password, firstName, lastName, email, language, nativeLanguage, timeZone } = req.body;
+      // Extract and trim all input fields for consistency
+      const username = req.body.username?.trim();
+      const password = req.body.password?.trim();
+      const firstName = req.body.firstName?.trim();
+      const lastName = req.body.lastName?.trim();
+      const email = req.body.email?.trim();
+      const language = req.body.language?.trim() || "English";
+      const nativeLanguage = req.body.nativeLanguage?.trim() || "English";
+      const timeZone = req.body.timeZone?.trim() || "UTC-05:00";
       
       console.log(`Registration attempt for username: "${username}"`);
       
       if (!username || !password || !firstName || !lastName || !email) {
-        console.log("Registration failed: Missing required fields");
+        console.log("Registration failed: Missing required fields", {
+          hasUsername: !!username,
+          hasPassword: !!password,
+          hasFirstName: !!firstName,
+          hasLastName: !!lastName,
+          hasEmail: !!email
+        });
         return res.status(400).json({ message: "Required fields are missing" });
       }
       
@@ -107,6 +124,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Automatically log in the user
       req.session.userId = newUser.id;
       
+      // Add registration timestamp for tracking
+      const registrationTime = new Date();
+      req.session.registeredAt = registrationTime.toISOString();
+      
+      // Force session save to ensure it's properly saved
+      req.session.save(err => {
+        if (err) {
+          console.error('Session save error during registration:', err);
+        } else {
+          console.log('Session saved successfully during registration for userId:', newUser.id);
+        }
+      });
+      
       res.status(201).json(userWithoutPassword);
     } catch (error) {
       console.error("Registration error:", error);
@@ -116,12 +146,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/login", async (req, res) => {
     try {
-      const { username, password } = req.body;
+      // Extract and trim credentials for consistency
+      const username = req.body.username?.trim();
+      const password = req.body.password?.trim();
       
       console.log(`Login attempt for username: "${username}"`);
       
       if (!username || !password) {
-        console.log("Login failed: Missing username or password");
+        console.log("Login failed: Missing username or password", {
+          hasUsername: !!username,
+          hasPassword: !!password
+        });
         return res.status(400).json({ message: "Username and password are required" });
       }
       
@@ -129,24 +164,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!user) {
         console.log(`Login failed: User not found for username: "${username}"`);
-        return res.status(401).json({ message: "Invalid username or password" });
+        return res.status(401).json({ 
+          message: "Invalid username or password",
+          details: "No account found with this username. Please check your spelling or register for an account."
+        });
       }
       
       // In a real app, we would use bcrypt to compare password hash
       if (user.password !== password) {
         console.log(`Login failed: Password mismatch for user: "${username}"`);
-        return res.status(401).json({ message: "Invalid username or password" });
+        return res.status(401).json({ 
+          message: "Invalid username or password",
+          details: "Password is incorrect. Please try again or use the forgot password link."
+        });
       }
       
-      // Set the user session
+      // Set the user session with userId
       req.session.userId = user.id;
       
-      // Force session save to ensure it's written to the database
+      // Add a login timestamp for better tracking
+      const loginTime = new Date();
+      req.session.loginTime = loginTime.toISOString();
+      
+      // Force session save to ensure it's properly written to the database
       req.session.save(err => {
         if (err) {
           console.error('Session save error:', err);
         } else {
-          console.log('Session saved successfully');
+          console.log('Session saved successfully with userId:', user.id);
         }
       });
       

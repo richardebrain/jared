@@ -91,12 +91,20 @@ export default function Login() {
       // Redirect to dashboard using direct window location for more reliable navigation
       window.location.href = "/dashboard";
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
       console.error("Login error:", error);
+      
+      // Extract more detailed error information if available
+      let errorDetails = error.message || "Please check your credentials and try again.";
+      
+      // Check if there's a more detailed message in the response data
+      if (error.response?.data?.details) {
+        errorDetails = error.response.data.details;
+      }
       
       toast({
         title: "Login failed",
-        description: error.message || "Please check your credentials and try again.",
+        description: errorDetails,
         variant: "destructive",
       });
     },
