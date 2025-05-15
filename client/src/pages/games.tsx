@@ -86,8 +86,8 @@ export default function GamesPage() {
     setSelectedGame(null);
   };
 
-  const renderGameCard = (game) => {
-    let GameIcon = PuzzlePiece;
+  const renderGameCard = (game: any) => {
+    let GameIcon = Brain;
     
     // Assign icon based on game type
     if (game.type === "milestone-matching") {
@@ -131,7 +131,7 @@ export default function GamesPage() {
   const renderGameInterface = () => {
     if (!selectedGame) return null;
     
-    const game = games?.find((g) => g.id === selectedGame);
+    const game = games?.find((g: any) => g.id === selectedGame);
     if (!game) return null;
     
     // Render the appropriate game component based on type
@@ -167,8 +167,8 @@ export default function GamesPage() {
 
     return (
       <div className="space-y-4">
-        {completions.map((completion) => {
-          const game = games?.find((g) => g.id === completion.gameId);
+        {completions.map((completion: any) => {
+          const game = games?.find((g: any) => g.id === completion.gameId);
           return (
             <Card key={completion.id} className="overflow-hidden">
               <CardHeader className="pb-2">
@@ -222,11 +222,11 @@ export default function GamesPage() {
           <div className="flex items-center mb-1">
             <Clock className="mr-2 h-4 w-4" />
             <span className="text-sm text-muted-foreground">
-              Daily Games: {isLoadingCompletions ? "Loading..." : `${dailyCompletions?.count || 0}/${dailyCompletions?.limit || 2}`}
+              Daily Games: {isLoadingCompletions ? "Loading..." : `${dailyCompletions && 'count' in dailyCompletions ? dailyCompletions.count : 0}/${dailyCompletions && 'limit' in dailyCompletions ? dailyCompletions.limit : 2}`}
             </span>
           </div>
           <Progress 
-            value={isLoadingCompletions ? 0 : ((dailyCompletions?.count || 0) / (dailyCompletions?.limit || 2)) * 100} 
+            value={isLoadingCompletions ? 0 : ((dailyCompletions && 'count' in dailyCompletions ? dailyCompletions.count : 0) / (dailyCompletions && 'limit' in dailyCompletions ? dailyCompletions.limit : 2)) * 100} 
             className="h-2 w-[150px]" 
           />
         </div>

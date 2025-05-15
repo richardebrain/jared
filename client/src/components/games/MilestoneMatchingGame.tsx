@@ -209,6 +209,14 @@ export default function MilestoneMatchingGame({ game, onClose }: GameProps) {
     // Update score
     if (correct) {
       setGameScore(prev => prev + 1);
+      
+      // Show a small confetti celebration for correct answers
+      confetti({
+        particleCount: 50,
+        spread: 45,
+        origin: { y: 0.7 },
+        colors: ['#4CAF50', '#8BC34A', '#CDDC39']
+      });
     }
   };
 
@@ -241,6 +249,13 @@ export default function MilestoneMatchingGame({ game, onClose }: GameProps) {
     // Calculate points based on score
     const basePoints = game.pointsValue;
     const earnedPoints = Math.round((scorePercentage / 100) * basePoints);
+    
+    // Show confetti celebration
+    confetti({
+      particleCount: 150,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
     
     // Submit completion to the server
     submitCompletionMutation.mutate({
