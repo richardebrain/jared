@@ -24,7 +24,7 @@ import {
 import { MonthlyNewsletter } from "@/components/MonthlyNewsletter";
 import Leaderboard from "@/components/Leaderboard";
 import SimpleLeaderboard from "@/components/SimpleLeaderboard";
-import CoreValuesShoutOuts from "@/components/CoreValuesShoutOuts";
+import RecentShoutOuts from "@/components/RecentShoutOuts";
 import BearAssistant from "@/components/BearAssistant";
 import { MiniLessons } from "@/components/MiniLessons";
 import MediaSidebar from "@/components/MediaSidebar";
@@ -595,8 +595,8 @@ export default function Dashboard() {
                     {/* Leaderboard */}
                     <SimpleLeaderboard />
                     
-                    {/* Core Values Shout Outs */}
-                    <CoreValuesShoutOuts />
+                    {/* Recent Core Values Shout Outs */}
+                    <RecentShoutOuts />
                     
                     {/* Media Sidebar with Company Song and Video */}
                     <MediaSidebar />
