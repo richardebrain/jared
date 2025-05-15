@@ -688,17 +688,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isCurrentUser: currentUserId === user.id
       }));
       
-      // Make sure current user is on top of the leaderboard if authenticated
+      // Sort all users by points, highest first (keep actual points)
+      leaderboardUsers.sort((a, b) => b.points - a.points);
+      
+      // Move current user to top if authenticated without changing their points
       if (currentUser) {
-        // Ensure the current user's points are enough to be on top
         const currentUserIndex = leaderboardUsers.findIndex(u => u.id === currentUserId);
-        if (currentUserIndex >= 0) {
-          // If current user's points are not the highest, boost them
-          const highestPoints = Math.max(...leaderboardUsers.map(u => u.points)) + 50;
-          leaderboardUsers[currentUserIndex].points = highestPoints;
-          
-          // Re-sort the leaderboard
-          leaderboardUsers.sort((a, b) => b.points - a.points);
+        if (currentUserIndex > 0) { // Only move if not already at the top
+          const currentUserData = leaderboardUsers.splice(currentUserIndex, 1)[0];
+          leaderboardUsers.unshift(currentUserData);
         }
       }
       

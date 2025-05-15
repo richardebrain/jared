@@ -31,9 +31,8 @@ export default function Leaderboard() {
       }
       const users = await response.json();
       
-      // Process users for display
+      // Process users for display - include all users, even those with 0 points
       const filteredUsers = users
-        .filter(user => user.points !== null && user.points > 0)
         .map(user => ({
           id: user.id,
           firstName: user.firstName,
@@ -41,15 +40,7 @@ export default function Leaderboard() {
           points: user.points || 0,
           level: user.level || (user.points && user.points > 2000 ? 3 : user.points > 1000 ? 2 : 1),
           isCurrentUser: user.isCurrentUser || false
-        }))
-        .sort((a, b) => {
-          // Always put current user first
-          if (a.isCurrentUser) return -1;
-          if (b.isCurrentUser) return 1;
-          // Otherwise sort by points
-          return (b.points - a.points);
-        })
-        .slice(0, 5);
+        }));
         
       return filteredUsers;
     },
