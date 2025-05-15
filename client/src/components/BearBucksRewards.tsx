@@ -186,6 +186,18 @@ const BearBucksRewards: React.FC<BearBucksRewardsProps> = ({
             </div>
           </div>
           
+          <div className="mt-6 bg-white p-4 rounded-lg border border-blue-100">
+            <h4 className="font-medium text-blue-800 mb-2">How to Earn Points</h4>
+            <ul className="text-sm text-gray-700 space-y-2 pl-5 list-disc">
+              <li><span className="font-medium">Complete learning modules</span> (10-20 points based on difficulty)</li>
+              <li><span className="font-medium">Watch training videos</span> (5 points for videos under 10 min, 8 points for longer videos)</li>
+              <li><span className="font-medium">Play educational games</span> (5-10 points per game)</li>
+              <li><span className="font-medium">Receive Core Values Shout-Outs</span> (5 points per shout-out)</li>
+              <li><span className="font-medium">Pass assessments</span> (up to 50 points based on difficulty & score)</li>
+            </ul>
+            <p className="text-xs text-gray-500 mt-2">Note: Limited to 2 videos and 2 games per day for points.</p>
+          </div>
+          
           <div className="mt-4 text-center">
             <p className="text-sm text-blue-700">
               You currently have <span className="font-bold">{points} points</span>, 
