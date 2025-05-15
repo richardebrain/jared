@@ -13,6 +13,32 @@ import { Gamepad2, Trophy, Clock, Award, Brain, Zap, Timer, BarChart } from "luc
 // Import the milestone matching game directly with the updated path
 import MilestoneMatchingGame from "../components/games/MilestoneMatchingGame";
 
+interface Game {
+  id: number;
+  title: string;
+  description: string;
+  type: string;
+  category: string;
+  difficulty: string;
+  pointsValue: number;
+  timeLimit?: number;
+}
+
+interface GameCompletion {
+  id: number;
+  gameId: number;
+  userId: number;
+  score: number;
+  pointsEarned: number;
+  completedAt: string | Date;
+  timeTaken?: number;
+}
+
+interface DailyCount {
+  count: number;
+  limit: number;
+}
+
 export default function GamesPage() {
   const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
@@ -21,19 +47,19 @@ export default function GamesPage() {
   const [showGameInterface, setShowGameInterface] = useState(false);
 
   // Fetch all available games
-  const { data: games, isLoading: isLoadingGames } = useQuery({
+  const { data: games, isLoading: isLoadingGames } = useQuery<Game[]>({
     queryKey: ["/api/games"],
     enabled: isAuthenticated,
   });
 
   // Fetch user's daily game completions count
-  const { data: dailyCompletions, isLoading: isLoadingCompletions } = useQuery({
+  const { data: dailyCompletions, isLoading: isLoadingCompletions } = useQuery<DailyCount>({
     queryKey: ["/api/game-completions/daily-count"],
     enabled: isAuthenticated,
   });
   
   // Fetch user's recent game completions
-  const { data: completions, isLoading: isLoadingHistory } = useQuery({
+  const { data: completions, isLoading: isLoadingHistory } = useQuery<GameCompletion[]>({
     queryKey: ["/api/game-completions"],
     enabled: isAuthenticated,
   });
@@ -68,7 +94,7 @@ export default function GamesPage() {
       return;
     }
 
-    if (dailyCompletions?.count >= dailyCompletions?.limit) {
+    if (dailyCompletions && dailyCompletions.count >= dailyCompletions.limit) {
       toast({
         title: "Daily Limit Reached",
         description: "You've reached your daily limit of 2 educational games. Please come back tomorrow!",
@@ -86,7 +112,7 @@ export default function GamesPage() {
     setSelectedGame(null);
   };
 
-  const renderGameCard = (game: any) => {
+  const renderGameCard = (game: Game) => {
     let GameIcon = Brain;
     
     // Assign icon based on game type
@@ -131,7 +157,7 @@ export default function GamesPage() {
   const renderGameInterface = () => {
     if (!selectedGame) return null;
     
-    const game = games?.find((g: any) => g.id === selectedGame);
+    const game = games?.find((g: Game) => g.id === selectedGame);
     if (!game) return null;
     
     // Render the appropriate game component based on type
@@ -167,8 +193,8 @@ export default function GamesPage() {
 
     return (
       <div className="space-y-4">
-        {completions.map((completion: any) => {
-          const game = games?.find((g: any) => g.id === completion.gameId);
+        {completions && completions.map((completion: GameCompletion) => {
+          const game = games?.find((g: Game) => g.id === completion.gameId);
           return (
             <Card key={completion.id} className="overflow-hidden">
               <CardHeader className="pb-2">
