@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { apiRequest } from '@/lib/queryClient';
-import IntegrationWizard from '@/components/IntegrationWizard';
+import SimpleIntegrationWizard from '@/components/SimpleIntegrationWizard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
@@ -599,13 +599,69 @@ export default function OwnerDashboardPage() {
             </TabsContent>
           </Tabs>
           
-          <div className="text-xs text-center text-muted-foreground">
-            <p>Last updated: May 15, 2025 at 6:40 PM</p>
-            <p className="mt-1">
-              <Button variant="link" size="sm" className="h-auto p-0" onClick={() => setIsApiConnected(false)}>
-                Manage API Connections
-              </Button>
-            </p>
+          <div className="mt-8 space-y-4">
+            <div className="border-t pt-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-medium">Third-Party Platform Integration</h3>
+                  <p className="text-sm text-muted-foreground">Connect to external systems with our integration wizard</p>
+                </div>
+                <Badge variant="outline" className="bg-blue-50">New</Badge>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Quick Connect</CardTitle>
+                  <CardDescription>Seamlessly integrate with your business tools</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <SimpleIntegrationWizard />
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Connection Status</CardTitle>
+                  <CardDescription>Monitor your active connections</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
+                      <span className="text-sm">Banking Systems</span>
+                    </div>
+                    <Badge variant="outline" className="bg-green-50 text-green-700">Connected</Badge>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
+                      <span className="text-sm">Procare</span>
+                    </div>
+                    <Badge variant="outline" className="bg-green-50 text-green-700">Connected</Badge>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 rounded-full bg-amber-500 mr-2"></div>
+                      <span className="text-sm">Payroll</span>
+                    </div>
+                    <Badge variant="outline" className="bg-amber-50 text-amber-700">Partial</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            
+            <div className="text-xs text-center text-muted-foreground">
+              <p>Last updated: May 15, 2025 at 6:40 PM</p>
+              <p className="mt-1">
+                <Button variant="link" size="sm" className="h-auto p-0" onClick={() => setIsApiConnected(false)}>
+                  Manage API Connections
+                </Button>
+              </p>
+            </div>
           </div>
         </div>
       )}
