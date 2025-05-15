@@ -248,11 +248,11 @@ export default function GamesPage() {
           <div className="flex items-center mb-1">
             <Clock className="mr-2 h-4 w-4" />
             <span className="text-sm text-muted-foreground">
-              Daily Games: {isLoadingCompletions ? "Loading..." : `${dailyCompletions && 'count' in dailyCompletions ? dailyCompletions.count : 0}/${dailyCompletions && 'limit' in dailyCompletions ? dailyCompletions.limit : 2}`}
+              Daily Games: {isLoadingCompletions ? "Loading..." : `${dailyCompletions?.count ?? 0}/${dailyCompletions?.limit ?? 2}`}
             </span>
           </div>
           <Progress 
-            value={isLoadingCompletions ? 0 : ((dailyCompletions && 'count' in dailyCompletions ? dailyCompletions.count : 0) / (dailyCompletions && 'limit' in dailyCompletions ? dailyCompletions.limit : 2)) * 100} 
+            value={isLoadingCompletions ? 0 : ((dailyCompletions?.count ?? 0) / (dailyCompletions?.limit ?? 2)) * 100} 
             className="h-2 w-[150px]" 
           />
         </div>

@@ -93,7 +93,16 @@ const milestones: Milestone[] = [
 ];
 
 interface GameProps {
-  game: any;
+  game: {
+    id: number;
+    title: string;
+    description: string;
+    type: string;
+    category: string;
+    difficulty: string;
+    pointsValue: number;
+    timeLimit?: number;
+  };
   onClose: () => void;
 }
 
@@ -114,15 +123,34 @@ export default function MilestoneMatchingGame({ game, onClose }: GameProps) {
   const [gameStarted, setGameStarted] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
 
+  // Define the completion data type
+  interface GameCompletionData {
+    gameId: number;
+    score: number;
+    timeTaken: number;
+    pointsEarned: number;
+  }
+  
+  // Define the game completion response type
+  interface GameCompletion {
+    id: number;
+    gameId: number;
+    userId: number;
+    score: number;
+    pointsEarned: number;
+    completedAt: string | Date;
+    timeTaken?: number;
+  }
+
   // Submit game completion
   const submitCompletionMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: GameCompletionData) => {
       return apiRequest('/api/game-completions', {
         method: 'POST',
         data: data,
       });
     },
-    onSuccess: (data) => {
+    onSuccess: (data: { completion: GameCompletion }) => {
       // Invalidate relevant queries to refetch updated data
       queryClient.invalidateQueries({ queryKey: ['/api/game-completions'] });
       queryClient.invalidateQueries({ queryKey: ['/api/game-completions/daily-count'] });
@@ -134,7 +162,7 @@ export default function MilestoneMatchingGame({ game, onClose }: GameProps) {
         variant: "default",
       });
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error",
         description: "Failed to submit game completion",
