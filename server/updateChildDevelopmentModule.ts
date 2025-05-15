@@ -478,9 +478,212 @@ function generateMilestonesContent() {
 `;
 }
 
-function generateMilestonesQuiz() {
-  return {
-    questions: [
+/**
+ * Generates adaptive content using Perplexity AI based on teacher's skill level
+ * 
+ * @param teacherLevel The current skill level of the teacher
+ * @param userProgress Optional progress data if the teacher has previously accessed this module
+ * @returns Promise resolving to HTML content for the adaptive section
+ */
+async function generateAdaptiveContent(teacherLevel: string, userProgress: any = null): Promise<string> {
+  if (!process.env.PERPLEXITY_API_KEY) {
+    console.log('No Perplexity API key found, using fallback content');
+    return createFallbackAdaptiveContent(teacherLevel);
+  }
+
+  try {
+    const completionPercentage = userProgress?.progress || 0;
+    const isRetaking = completionPercentage >= 100;
+    
+    // Craft prompt based on teacher level
+    let prompt = '';
+    
+    if (teacherLevel === 'assistant') {
+      prompt = `Generate beginner-level content about child development milestones for a preschool teacher assistant. 
+      Focus on basic milestones that they should observe in their classroom. Include simple, practical tips for supporting development.
+      ${isRetaking ? 'This is their second time taking this training, so add slightly more advanced content than pure basics.' : ''}
+      Format the content with HTML headings, paragraphs, and bullet points.`;
+    } else if (teacherLevel === 'teacher') {
+      prompt = `Generate intermediate-level content about child development milestones for a preschool teacher.
+      Include specific age-appropriate activities that support development milestones and signs of potential developmental delays.
+      ${isRetaking ? 'This is their second time taking this training, so include more nuanced content and recognition of individual differences in development.' : ''}
+      Format the content with HTML headings, paragraphs, and bullet points.`;
+    } else if (teacherLevel === 'lead') {
+      prompt = `Generate advanced content about child development milestones for a lead preschool teacher.
+      Include strategies for developing personalized development plans, working with parents on concerns, and adapting classroom activities.
+      ${isRetaking ? 'This is their second time taking this training, so include content about mentoring other teachers in recognizing and supporting development.' : ''}
+      Format the content with HTML headings, paragraphs, and bullet points.`;
+    } else if (teacherLevel === 'master') {
+      prompt = `Generate expert-level content about child development milestones for a master preschool teacher.
+      Include critical analysis of different developmental theories, latest research findings, and strategies for curriculum development.
+      ${isRetaking ? 'This is their second time taking this training, so include content about program development and training strategies for other teachers.' : ''}
+      Format the content with HTML headings, paragraphs, and bullet points.`;
+    }
+    
+    // Call Perplexity API
+    const response = await fetch('https://api.perplexity.ai/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-sonar-small-128k-online',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an early childhood education expert specializing in child development milestones. Generate educational content appropriate for the specified teacher skill level.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        max_tokens: 1500,
+        temperature: 0.7
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok || !data.choices || !data.choices[0]?.message?.content) {
+      console.error('Perplexity API error:', data);
+      return createFallbackAdaptiveContent(teacherLevel);
+    }
+    
+    // Extract the generated content
+    const content = data.choices[0].message.content;
+    
+    // Format it as a section for the module
+    return `
+    <div class="adaptive-content-container">
+      <div class="adaptive-content-header">
+        <h3>Personalized Content For Your Level: ${teacherLevel.charAt(0).toUpperCase() + teacherLevel.slice(1)}</h3>
+        <div class="skill-badge ${teacherLevel}-badge">${teacherLevel.toUpperCase()}</div>
+      </div>
+      <div class="adaptive-content">
+        ${content}
+      </div>
+    </div>
+    `;
+  } catch (error) {
+    console.error('Error generating adaptive content with Perplexity:', error);
+    return createFallbackAdaptiveContent(teacherLevel);
+  }
+}
+
+/**
+ * Creates fallback content if the Perplexity API call fails
+ * 
+ * @param teacherLevel The skill level of the teacher
+ * @returns HTML content as a string
+ */
+function createFallbackAdaptiveContent(teacherLevel: string): string {
+  let content = '';
+  
+  if (teacherLevel === 'assistant') {
+    content = `
+      <h3>Key Milestones for Teacher Assistants to Observe</h3>
+      <p>As a teacher assistant, you play an important role in observing children's development. Here are some key milestones to watch for:</p>
+      <ul>
+        <li>Physical: Walking, climbing, holding crayons, building blocks</li>
+        <li>Language: First words, simple sentences, following directions</li>
+        <li>Social: Sharing, taking turns, playing alongside others</li>
+        <li>Emotional: Expressing feelings, self-soothing, showing affection</li>
+      </ul>
+      <p>Report any concerns to your lead teacher and document your observations in the daily logs.</p>
+    `;
+  } else if (teacherLevel === 'teacher') {
+    content = `
+      <h3>Supporting Developmental Milestones in Your Classroom</h3>
+      <p>As a teacher, you can create targeted activities that support development:</p>
+      <ul>
+        <li>Fine Motor: Threading activities, play dough, finger painting</li>
+        <li>Gross Motor: Obstacle courses, dance activities, outdoor play</li>
+        <li>Language: Story time with questions, song circles, word games</li>
+        <li>Cognitive: Sorting activities, matching games, counting exercises</li>
+      </ul>
+      <p>Watch for children who consistently struggle with age-appropriate activities and consider if adaptations are needed.</p>
+    `;
+  } else if (teacherLevel === 'lead') {
+    content = `
+      <h3>Developing Individualized Support Plans</h3>
+      <p>As a lead teacher, you'll need to identify when development isn't following typical patterns:</p>
+      <ul>
+        <li>Systematically observe and document developmental progress</li>
+        <li>Implement supportive interventions before referring for assessment</li>
+        <li>Communicate concerns with parents effectively and professionally</li>
+        <li>Create adaptation plans that address specific developmental needs</li>
+      </ul>
+      <p>Use developmental screening tools like ASQ-3 to identify potential concerns early.</p>
+    `;
+  } else if (teacherLevel === 'master') {
+    content = `
+      <h3>Advanced Developmental Support and Program Integration</h3>
+      <p>As a master teacher, you should integrate developmental knowledge across your program:</p>
+      <ul>
+        <li>Train staff to recognize developmental milestones and appropriate responses</li>
+        <li>Design curriculum that addresses all developmental domains</li>
+        <li>Create progress monitoring systems to ensure no child falls through the cracks</li>
+        <li>Stay current with research on early intervention approaches</li>
+      </ul>
+      <p>Develop relationships with early intervention specialists to create a support network for children needing additional assistance.</p>
+    `;
+  }
+  
+  return `
+  <div class="adaptive-content-container">
+    <div class="adaptive-content-header">
+      <h3>Personalized Content For Your Level: ${teacherLevel.charAt(0).toUpperCase() + teacherLevel.slice(1)}</h3>
+      <div class="skill-badge ${teacherLevel}-badge">${teacherLevel.toUpperCase()}</div>
+    </div>
+    <div class="adaptive-content">
+      ${content}
+    </div>
+  </div>
+  `;
+}
+
+/**
+ * Injects the adaptive content into the base content at the appropriate location
+ * 
+ * @param baseContent The full module HTML content
+ * @param adaptiveContent The personalized adaptive content
+ * @param teacherLevel The skill level of the teacher
+ * @returns Combined HTML content
+ */
+function injectAdaptiveContent(baseContent: string, adaptiveContent: string, teacherLevel: string): string {
+  // Find a good injection point - after the first main section
+  const injectionPoint = baseContent.indexOf('</section>');
+  
+  if (injectionPoint === -1) {
+    // If we can't find a good injection point, just append it
+    return baseContent + `
+      <section class="personalized-content">
+        <h2>Personalized Content for Your Professional Level</h2>
+        ${adaptiveContent}
+      </section>
+    `;
+  }
+  
+  // Insert after the first section
+  return baseContent.slice(0, injectionPoint + 10) + `
+    <section class="personalized-content">
+      <h2>Personalized Content for Your Professional Level</h2>
+      ${adaptiveContent}
+    </section>
+  ` + baseContent.slice(injectionPoint + 10);
+}
+
+/**
+ * Generates quiz questions with appropriate difficulty based on teacher level
+ * 
+ * @param teacherLevel Optional skill level of the teacher (defaults to assistant)
+ * @returns Quiz object with questions of appropriate difficulty
+ */
+function generateMilestonesQuiz(teacherLevel: string = 'assistant') {
+  // Base questions for all levels - these appear for everyone
+  const baseQuestions = [
       {
         question: "At what age should a child typically begin to walk independently?",
         options: [
