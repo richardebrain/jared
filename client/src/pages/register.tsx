@@ -106,10 +106,28 @@ export default function Register() {
       // Redirect to dashboard using direct window location for consistent navigation
       window.location.href = "/dashboard";
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
+      console.error("Registration error details:", error);
+      
+      // Extract more detailed error information if available
+      let errorDetails = error.message || "There was an error creating your account.";
+      
+      // Check if there's a more detailed message in the response data
+      if (error.response?.data?.details) {
+        errorDetails = error.response.data.details;
+      } else if (error.response?.data?.message) {
+        // Handle common registration errors
+        const message = error.response.data.message;
+        if (message === "Username already exists") {
+          errorDetails = "This username is already taken. Please try a different username.";
+        } else if (message === "Required fields are missing") {
+          errorDetails = "Please fill in all required fields (username, password, first name, last name, email).";
+        }
+      }
+      
       toast({
         title: "Registration failed",
-        description: error.message || "There was an error creating your account.",
+        description: errorDetails,
         variant: "destructive",
       });
     },

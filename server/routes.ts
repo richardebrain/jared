@@ -83,21 +83,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Registration attempt for username: "${username}"`);
       
       if (!username || !password || !firstName || !lastName || !email) {
-        console.log("Registration failed: Missing required fields", {
+        // Log which fields are missing for debugging
+        const missingFields = {
           hasUsername: !!username,
           hasPassword: !!password,
           hasFirstName: !!firstName,
           hasLastName: !!lastName,
           hasEmail: !!email
+        };
+        
+        console.log("Registration failed: Missing required fields", missingFields);
+        
+        // Create a more specific error message about which fields are missing
+        const missingFieldNames = [];
+        if (!username) missingFieldNames.push("username");
+        if (!password) missingFieldNames.push("password");
+        if (!firstName) missingFieldNames.push("first name");
+        if (!lastName) missingFieldNames.push("last name");
+        if (!email) missingFieldNames.push("email");
+        
+        const missingFieldsList = missingFieldNames.join(", ");
+        
+        return res.status(400).json({ 
+          message: "Required fields are missing",
+          details: `Please provide all required fields. Missing: ${missingFieldsList}.`,
+          missingFields: missingFieldNames
         });
-        return res.status(400).json({ message: "Required fields are missing" });
       }
       
       // Check if user with this username already exists
       const existingUser = await storage.getUserByUsername(username);
       if (existingUser) {
         console.log(`Registration failed: Username "${username}" already exists`);
-        return res.status(400).json({ message: "Username already exists" });
+        return res.status(400).json({ 
+          message: "Username already exists",
+          details: "This username is already taken. Please choose a different username for your account."
+        });
+      }
+      
+      // Validate email format
+      if (!email.includes('@') || !email.includes('.')) {
+        console.log(`Registration failed: Invalid email format "${email}"`);
+        return res.status(400).json({ 
+          message: "Invalid email format",
+          details: "Please provide a valid email address (example: name@domain.com)."
+        });
       }
       
       // Create new user
@@ -210,11 +240,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/auth/logout", (req, res) => {
+    console.log(`Logout attempt - Session ID: ${req.session.id}`);
+    console.log(`Logout attempt - User ID: ${req.session.userId || 'none'}`);
+    
+    // Clear session data
     req.session.destroy((err) => {
       if (err) {
-        return res.status(500).json({ message: "Failed to logout" });
+        console.error('Logout error:', err);
+        return res.status(500).json({ 
+          message: "Failed to logout", 
+          details: "There was a problem ending your session. Please try again."
+        });
       }
-      res.status(200).json({ message: "Logged out successfully" });
+      
+      console.log("Logout successful - Session destroyed");
+      
+      // Clear cookies by setting expiration in the past
+      res.clearCookie('connect.sid');
+      
+      res.status(200).json({ 
+        message: "Logged out successfully",
+        details: "Your session has been ended successfully."
+      });
     });
   });
   
