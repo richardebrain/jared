@@ -7,6 +7,7 @@ import session from "express-session";
 import MemoryStore from "memorystore";
 import { updateChildDevelopmentModule } from "./updateChildDevelopmentModule";
 import { eq, sql } from "drizzle-orm";
+import { users } from "@shared/schema";
 
 // Define our session data structure
 declare module "express-session" {
@@ -206,28 +207,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/admin/users", async (req, res) => {
     // Check for admin password directly
     const adminPassword = req.query.admin_password;
+    console.log("Admin password received:", adminPassword);
+    
     if (adminPassword !== "BIGSURF55") {
+      console.log("Admin password incorrect, access denied");
       return res.status(403).json({ message: "Forbidden: Admin access required. Password incorrect." });
     }
     
+    console.log("Admin password correct, proceeding to fetch users");
+    
     try {
-      const users = await storage.getAllUsers();
-      if (!users || users.length === 0) {
+      // First check raw SQL query to confirm users exist
+      const rawUsers = await db.select().from(users);
+      console.log("Raw SQL users count:", rawUsers.length);
+      
+      const allUsers = await storage.getAllUsers();
+      console.log("Storage getAllUsers count:", allUsers ? allUsers.length : 'null or undefined');
+      
+      if (!allUsers || allUsers.length === 0) {
         // If no users are found, send empty array with message
+        console.log("No users found in system");
         return res.status(200).json([]);
       }
       
-      res.status(200).json(users.map(user => {
+      const sanitizedUsers = allUsers.map(user => {
         // Don't return passwords in response
         const { password, ...userWithoutPassword } = user;
         return userWithoutPassword;
-      }));
+      });
+      
+      console.log("Returning users count:", sanitizedUsers.length);
+      res.status(200).json(sanitizedUsers);
     } catch (error) {
       console.error("Error fetching all users:", error);
-      res.status(500).json({ message: "Internal server error" });
+      res.status(500).json({ message: "Internal server error", details: error.message });
     }
   });
 
+  // Direct admin password check reset endpoints
+  app.post("/api/admin/reset-points/:userId", async (req, res) => {
+    // Check for admin password directly
+    const adminPassword = req.query.admin_password;
+    console.log("Reset points - Admin password received:", adminPassword);
+    
+    if (adminPassword !== "BIGSURF55") {
+      console.log("Reset points - Admin password incorrect, access denied");
+      return res.status(403).json({ message: "Forbidden: Admin access required" });
+    }
+    
+    try {
+      const userId = parseInt(req.params.userId);
+      console.log("Resetting points for user ID:", userId);
+      
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Reset user points to zero
+      await storage.updateUser(userId, { points: 0 });
+      console.log("Reset points successful for user ID:", userId);
+      
+      res.status(200).json({ message: "User points reset successfully" });
+    } catch (error) {
+      console.error("Error resetting user points:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  app.post("/api/admin/reset-progress/:userId", async (req, res) => {
+    // Check for admin password directly
+    const adminPassword = req.query.admin_password;
+    console.log("Reset progress - Admin password received:", adminPassword);
+    
+    if (adminPassword !== "BIGSURF55") {
+      console.log("Reset progress - Admin password incorrect, access denied");
+      return res.status(403).json({ message: "Forbidden: Admin access required" });
+    }
+    
+    try {
+      const userId = parseInt(req.params.userId);
+      console.log("Resetting progress for user ID:", userId);
+      
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Delete all progress records for this user
+      await storage.resetUserProgress(userId);
+      console.log("Reset progress successful for user ID:", userId);
+      
+      res.status(200).json({ message: "User progress reset successfully" });
+    } catch (error) {
+      console.error("Error resetting user progress:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Legacy endpoint for backward compatibility
   app.post("/api/admin/reset-user-points", requireAdmin, async (req, res) => {
     try {
       const { userId } = req.body;

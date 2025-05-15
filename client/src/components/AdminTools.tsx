@@ -187,14 +187,27 @@ function UserManagement() {
   const queryClient = useQueryClient();
   
   // Fetch all users with admin password
-  const { data: users, isLoading: isLoadingUsers } = useQuery({ 
+  const { data: users, isLoading: isLoadingUsers, isError } = useQuery({ 
     queryKey: ["/api/admin/users"],
     queryFn: async () => {
-      const response = await fetch("/api/admin/users?admin_password=BIGSURF55");
-      if (!response.ok) {
-        throw new Error(`Admin fetch failed: ${response.status}`);
+      try {
+        console.log("Fetching admin users...");
+        const response = await fetch("/api/admin/users?admin_password=BIGSURF55");
+        
+        if (!response.ok) {
+          console.error("Admin fetch failed:", response.status, response.statusText);
+          const errorBody = await response.text();
+          console.error("Error details:", errorBody);
+          throw new Error(`Admin fetch failed: ${response.status} - ${errorBody}`);
+        }
+        
+        const data = await response.json();
+        console.log("Admin users fetched successfully:", data.length);
+        return data;
+      } catch (err) {
+        console.error("Exception in admin users fetch:", err);
+        throw err;
       }
-      return response.json();
     },
     refetchOnWindowFocus: false
   });
