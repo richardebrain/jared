@@ -5,7 +5,7 @@ import { db } from "./db";
 import { 
   insertUserSchema, insertLearningModuleSchema, insertUserProgressSchema, 
   insertMeetingSchema, insertAssessmentSchema, type User,
-  spinGameRewards, videoQuizCompletions
+  spinGameRewards, videoQuizCompletions, insertVideoQuizCompletionSchema
 } from "@shared/schema";
 import express from "express";
 import session from "express-session";
@@ -1042,23 +1042,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check daily video completion limit (2 videos per day)
-      const today = new Date();
-      today.setHours(0, 0, 0, 0); // Start of today
-      
-      // Query completions for today
-      const todayCompletions = await db.query.videoQuizCompletions.findMany({
-        where: (completions, { eq, and, gte }) => and(
-          eq(completions.userId, userId),
-          gte(completions.completedAt, today)
-        ),
-      });
+      // Get today's completion count using our new storage method
+      const dailyLimit = 2;
+      const todayCompletionsCount = await storage.getDailyVideoCompletionsCount(userId);
       
       // Check if user already completed 2 videos today
-      const dailyLimit = 2;
       let limitReached = false;
       let pointsAwarded = 0;
       
-      if (todayCompletions.length >= dailyLimit) {
+      if (todayCompletionsCount >= dailyLimit) {
         // User already reached daily limit
         limitReached = true;
         pointsAwarded = 0; // Don't award any points if limit reached
@@ -1081,7 +1073,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const updatedUser = await storage.updateUser(userId, { points: newPoints });
         
         // Record this video completion for tracking daily limits
-        await db.insert(videoQuizCompletions).values({
+        await storage.createVideoQuizCompletion({
           userId,
           videoId,
           pointsEarned: pointsAwarded,
@@ -1090,12 +1082,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`User ${userId} earned ${pointsAwarded} points from video quiz ${videoId}. New total: ${updatedUser.points}`);
       }
       
+      // Get updated completion count or current count
+      const completionsCount = limitReached ? todayCompletionsCount : todayCompletionsCount + 1;
+      
       res.json({ 
         success: true, 
         videoId, 
         pointsAwarded,
         limitReached,
-        dailyCompletionsCount: todayCompletions.length + (limitReached ? 0 : 1),
+        dailyCompletionsCount: completionsCount,
         dailyLimit,
         message: limitReached 
           ? "Daily video limit reached. No points awarded." 

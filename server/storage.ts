@@ -15,7 +15,7 @@ import {
   videoQuizCompletions, type VideoQuizCompletion, type InsertVideoQuizCompletion
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, gte, lt } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
