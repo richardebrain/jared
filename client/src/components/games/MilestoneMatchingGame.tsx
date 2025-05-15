@@ -9,7 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Brain, Clock, ChevronRight, RotateCcw, CheckCircle, Timer, Trophy } from "lucide-react";
-import confetti from "canvas-confetti";
+import confetti, { ConfettiOptions } from "canvas-confetti";
 
 // Define milestone types for game data
 interface Milestone {
@@ -239,12 +239,13 @@ export default function MilestoneMatchingGame({ game, onClose }: GameProps) {
       setGameScore(prev => prev + 1);
       
       // Show a small confetti celebration for correct answers
-      confetti({
+      const correctAnswerConfettiOptions: ConfettiOptions = {
         particleCount: 50,
         spread: 45,
         origin: { y: 0.7 },
         colors: ['#4CAF50', '#8BC34A', '#CDDC39']
-      });
+      };
+      confetti(correctAnswerConfettiOptions);
     }
   };
 
@@ -286,12 +287,13 @@ export default function MilestoneMatchingGame({ game, onClose }: GameProps) {
     });
     
     // Submit completion to the server
-    submitCompletionMutation.mutate({
+    const completionData: GameCompletionData = {
       gameId: game.id,
       score: scorePercentage,
       timeTaken: timer,
       pointsEarned: earnedPoints
-    });
+    };
+    submitCompletionMutation.mutate(completionData);
   };
 
   // Reset game to start over
