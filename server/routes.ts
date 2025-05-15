@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { db } from "./db";
 import express from "express";
 import session from "express-session";
-import MemoryStore from "memorystore";
+import connectPgSimple from "connect-pg-simple";
 import { updateChildDevelopmentModule } from "./updateChildDevelopmentModule";
 import { eq, sql } from "drizzle-orm";
 import { users } from "@shared/schema";
@@ -28,21 +28,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create an HTTP server for the Express app (needed for WebSockets)
   const httpServer = createServer(app);
   
-  // Setup session middleware
-  const MemoryStoreSession = MemoryStore(session);
+  // Setup session middleware using PostgreSQL for persistent sessions
+  const PgSession = connectPgSimple(session);
   app.use(
     session({
       secret: process.env.SESSION_SECRET || "mentor-me-secret",
-      resave: true,
-      saveUninitialized: true,
+      resave: false,
+      saveUninitialized: false,
       cookie: { 
-        secure: false, // Set to false for development
+        secure: process.env.NODE_ENV === 'production', // Set to true in production
         httpOnly: true,
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         sameSite: "lax"
       }, 
-      store: new MemoryStoreSession({
-        checkPeriod: 86400000, // prune expired entries every 24h
+      store: new PgSession({
+        conString: process.env.DATABASE_URL,
+        tableName: 'sessions',
+        createTableIfMissing: true,
       }),
     })
   );
