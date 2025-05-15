@@ -592,7 +592,7 @@ export default function Dashboard() {
                   {/* Right Column (1/3 width) */}
                   <div className="md:col-span-1 space-y-6">
                     {/* Leaderboard */}
-                    <Leaderboard />
+                    <SimpleLeaderboard />
                     
                     {/* Media Sidebar with Company Song and Video */}
                     <MediaSidebar />
