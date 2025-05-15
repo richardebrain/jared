@@ -39,7 +39,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         secure: false, // Always false for development to work with HTTP
         httpOnly: true,
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        sameSite: "lax"
+        sameSite: "none", // Allow cross-domain cookies
+        path: '/' // Ensure cookie is available on all paths
       }, 
       store: new PgSession({
         conString: process.env.DATABASE_URL,
@@ -51,9 +52,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Auth middleware
   const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+    console.log('Auth check - Session ID:', req.session.id);
+    console.log('Auth check - Session data:', req.session);
+    
     if (!req.session.userId) {
+      console.log('Auth failed - No userId in session');
       return res.status(401).json({ message: "Unauthorized" });
     }
+    
+    console.log(`Auth successful - User ID: ${req.session.userId}`);
     next();
   };
   
@@ -134,7 +141,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set the user session
       req.session.userId = user.id;
       
+      // Force session save to ensure it's written to the database
+      req.session.save(err => {
+        if (err) {
+          console.error('Session save error:', err);
+        } else {
+          console.log('Session saved successfully');
+        }
+      });
+      
       console.log(`Login successful for user: "${username}" (ID: ${user.id})`);
+      console.log(`Session ID: ${req.session.id}`);
+      console.log(`Session data:`, req.session);
       
       // Do not return password in response
       const { password: _, ...userWithoutPassword } = user;
@@ -155,21 +173,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
   
-  app.get("/api/auth/me", requireAuth, async (req, res) => {
+  app.get("/api/auth/me", async (req, res) => {
+    console.log('GET /api/auth/me - Session ID:', req.session.id);
+    console.log('GET /api/auth/me - Session data:', req.session);
+    
+    // Check if session has userId
+    if (!req.session.userId) {
+      console.log('GET /api/auth/me - No userId in session');
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
     try {
       const userId = req.session.userId as number;
+      console.log(`GET /api/auth/me - Looking up user with ID: ${userId}`);
+      
       const user = await storage.getUser(userId);
       
       if (!user) {
-        req.session.destroy(() => {});
+        console.log(`GET /api/auth/me - User with ID ${userId} not found in database`);
+        req.session.destroy(() => {
+          console.log('GET /api/auth/me - Session destroyed due to user not found');
+        });
         return res.status(404).json({ message: "User not found" });
       }
+      
+      console.log(`GET /api/auth/me - Found user: ${user.username} (ID: ${user.id})`);
       
       // Do not return password in response
       const { password, ...userWithoutPassword } = user;
       
       res.status(200).json(userWithoutPassword);
     } catch (error) {
+      console.error('GET /api/auth/me - Error:', error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
