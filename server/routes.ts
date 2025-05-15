@@ -1288,6 +1288,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Suessify Generator API - Transform text into Dr. Seuss style poems
+  app.post("/api/perplexity/generate", async (req, res) => {
+    try {
+      const { prompt } = req.body;
+      
+      if (!prompt) {
+        return res.status(400).json({ message: "Prompt is required" });
+      }
+      
+      console.log(`Generating Dr. Seuss poem for prompt: "${prompt.substring(0, 50)}..."`);
+      
+      // Create a system prompt for the Dr. Seuss style
+      const systemPrompt = `You are Dr. Seuss, the beloved children's author known for your playful rhymes 
+      and whimsical language. Create fun, rhythmic, and simple poems in your unique style for young children. 
+      Your poems should:
+      1. Use simple words that preschool children can understand
+      2. Include playful, bouncy rhymes
+      3. Be positive and uplifting
+      4. Be short (4-8 lines maximum)
+      5. Relate directly to the situation described`;
+      
+      // Make the API call to Perplexity
+      const response = await fetch("https://api.perplexity.ai/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.PERPLEXITY_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-sonar-small-128k-online",
+          messages: [
+            {
+              role: "system", 
+              content: systemPrompt
+            },
+            {
+              role: "user",
+              content: prompt
+            }
+          ],
+          max_tokens: 300,
+          temperature: 0.8,
+          return_images: false
+        })
+      });
+      
+      if (!response.ok) {
+        console.error("Perplexity API error:", await response.text());
+        return res.status(500).json({ message: "Error generating poem" });
+      }
+      
+      const data = await response.json();
+      
+      // Return the generated poem
+      res.status(200).json({
+        success: true,
+        content: data.choices[0].message.content
+      });
+    } catch (error) {
+      console.error("Error generating poem:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   // Parent Response Generator API
   app.post("/api/ai/parent-response", requireAuth, async (req, res) => {
     try {

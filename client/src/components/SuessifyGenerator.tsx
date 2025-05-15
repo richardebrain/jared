@@ -102,7 +102,17 @@ export function SuessifyGenerator() {
       }
 
       const data = await response.json();
-      setPoem(data.content);
+      
+      // Handle both response formats for backward compatibility
+      if (data.content) {
+        setPoem(data.content);
+      } else if (data.success && data.content) {
+        setPoem(data.content);
+      } else if (data.choices && data.choices[0] && data.choices[0].message) {
+        setPoem(data.choices[0].message.content);
+      } else {
+        setPoem("Oh my, oh dear! A poem should be here!\nBut something went wrong, I fear!");
+      }
     } catch (error) {
       console.error('Error generating poem:', error);
       toast({

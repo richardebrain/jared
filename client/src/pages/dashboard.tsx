@@ -43,7 +43,7 @@ const domains = [
 ];
 
 // Define the BearBuck conversion rate
-const POINTS_PER_BEAR_BUCK = 20;
+const POINTS_PER_BEAR_BUCK = 50;
 
 export default function Dashboard() {
   // We'll calculate Bear Bucks later once we have the user data
