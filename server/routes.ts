@@ -84,15 +84,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         language: language || "English",
         nativeLanguage: nativeLanguage || "English",
         timeZone: timeZone || "UTC-05:00",
-        roles: ["teacher"], // Default role
         points: 0,
         bearBucks: 0,
-        level: "Beginner",
-        avatarUrl: null,
-        isActive: true,
-        lastLoginAt: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date()
+        level: 1, // 1 = Beginner level (integer, not string)
+        createdAt: new Date()
       });
       
       console.log(`Registration successful for user: "${username}" (ID: ${newUser.id})`);
