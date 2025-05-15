@@ -124,45 +124,100 @@ export default function Dashboard() {
   
   // Get recommended modules from user progress
   const recommendedModules = useMemo(() => {
-    if (!modules || !userProgress) return [];
+    if (!modules || !Array.isArray(modules)) return [];
     
-    // Get modules that are marked as recommended in user progress
+    // Find Core Values and Mindful Mornings modules
+    const coreValuesModule = modules.find(m => 
+      m.title?.toLowerCase().includes("core value") || 
+      m.title?.toLowerCase().includes("raising arizona's core")
+    );
+    
+    const mindfulMorningsModule = modules.find(m => 
+      m.title?.toLowerCase().includes("mindful morning")
+    );
+    
+    // Get user progress on these modules
+    let hasCompletedCoreValues = false;
+    let hasCompletedMindfulMornings = false;
+    
+    if (userProgress && Array.isArray(userProgress)) {
+      hasCompletedCoreValues = userProgress.some(p => 
+        coreValuesModule && p.moduleId === coreValuesModule.id && p.completed
+      );
+      
+      hasCompletedMindfulMornings = userProgress.some(p => 
+        mindfulMorningsModule && p.moduleId === mindfulMorningsModule.id && p.completed
+      );
+    }
+    
+    // Start building our recommendations with required modules
+    // Define a proper type for our enhanced module
+    type EnhancedModule = typeof modules[0] & { required?: boolean };
+    
+    let recommendations: EnhancedModule[] = [];
+    
+    // Always prioritize Core Values if not completed
+    if (coreValuesModule && !hasCompletedCoreValues) {
+      recommendations.push({
+        ...coreValuesModule,
+        required: true
+      });
+    }
+    
+    // Then Mindful Mornings if not completed
+    if (mindfulMorningsModule && !hasCompletedMindfulMornings) {
+      recommendations.push({
+        ...mindfulMorningsModule,
+        required: true
+      });
+    }
+    
+    // Check user progress for explicitly recommended modules
     const recommendedProgressEntries = Array.isArray(userProgress) 
       ? userProgress.filter(progress => progress.recommended === true)
       : [];
     
-    if (recommendedProgressEntries.length === 0) {
-      // Fall back to old recommendation logic if no entries marked as recommended
-      if (!weakAreas || weakAreas.length === 0) return [];
+    // If we have explicit recommendations, add those next
+    if (recommendedProgressEntries.length > 0) {
+      const recommendedModuleIds = recommendedProgressEntries.map(progress => progress.moduleId);
       
+      const explicitRecommendations = modules.filter(module => 
+        recommendedModuleIds.includes(module.id) &&
+        // Avoid duplicating modules that are already in our recommendations
+        !recommendations.some(r => r.id === module.id)
+      );
+      
+      recommendations = [...recommendations, ...explicitRecommendations];
+    } 
+    // Otherwise fall back to domain-based recommendations
+    else if (weakAreas && weakAreas.length > 0) {
       // Add modules that match weak domain areas
-      let recommendations = [];
+      let domainRecommendations: EnhancedModule[] = [];
       
       for (const domain of weakAreas) {
-        const domainModules = Array.isArray(modules) ? modules.filter(module => 
+        const domainModules = modules.filter(module => 
           module.domains && module.domains.includes(domain)
-        ).sort((a, b) => a.sequence - b.sequence) : [];
+        ).sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
         
         if (domainModules.length > 0) {
-          recommendations = [...recommendations, ...domainModules.slice(0, 2)];
+          domainRecommendations = [...domainRecommendations, ...domainModules.slice(0, 2)];
         }
       }
       
       // Deduplicate modules
-      recommendations = recommendations.filter((module, index, self) =>
-        index === self.findIndex((m) => m.id === module.id)
+      domainRecommendations = domainRecommendations.filter(module => 
+        // Avoid including modules that are already in our recommendations
+        !recommendations.some(r => r.id === module.id)
       );
       
-      // Limit to top 3 recommendations
-      return recommendations.slice(0, 3);
+      recommendations = [...recommendations, ...domainRecommendations];
     }
     
-    // Map recommended progress entries to actual modules
-    const recommendedModuleIds = recommendedProgressEntries.map(progress => progress.moduleId);
+    // Limit to a reasonable number of recommendations (keep 2 mandatory + up to 3 others)
+    const mandatoryCount = recommendations.filter(m => m.required).length;
+    const maxOptionalCount = Math.max(0, 5 - mandatoryCount);
     
-    return Array.isArray(modules) 
-      ? modules.filter(module => recommendedModuleIds.includes(module.id))
-      : [];
+    return recommendations.slice(0, mandatoryCount + maxOptionalCount);
   }, [modules, userProgress, weakAreas]);
   
   if (isLoadingUser) {
@@ -190,7 +245,7 @@ export default function Dashboard() {
       email: "demo@example.com",
       points: 750,
       level: 2,
-      role: "teacher",
+      // role property is not in the user type anymore, so we omit it
       language: "en",
       nativeLanguage: "en",
       timeZone: "America/New_York",
@@ -382,19 +437,42 @@ export default function Dashboard() {
                         <h3 className="font-semibold text-md">Suggested Learning Modules</h3>
                         
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                          {recommendedModules.map(module => (
-                            <div 
-                              key={module.id}
-                              onClick={() => handleModuleSelect(module.id)} 
-                              className="bg-gradient-to-br from-white to-purple-50 border border-purple-200 rounded-lg p-3 cursor-pointer hover:shadow-md transition"
-                            >
-                              <h3 className="font-heading font-semibold mb-1">{module.title}</h3>
-                              <p className="text-sm text-neutral-600 mb-2 line-clamp-2">{module.description}</p>
-                              <Button variant="outline" size="sm" className="w-full">
-                                Start Learning
-                              </Button>
-                            </div>
-                          ))}
+                          {recommendedModules.map(module => {
+                            // Check if this is a required module (Core Values or Mindful Mornings)
+                            const isRequired = module.required === true;
+                            
+                            return (
+                              <div 
+                                key={module.id}
+                                onClick={() => handleModuleSelect(module.id)} 
+                                className={`${
+                                  isRequired 
+                                    ? "bg-gradient-to-br from-white to-amber-50 border-2 border-amber-300" 
+                                    : "bg-gradient-to-br from-white to-purple-50 border border-purple-200"
+                                } rounded-lg p-3 cursor-pointer hover:shadow-md transition relative`}
+                              >
+                                {isRequired && (
+                                  <div className="absolute -top-2 -right-2 bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
+                                    Required
+                                  </div>
+                                )}
+                                <h3 className="font-heading font-semibold mb-1">{module.title}</h3>
+                                <p className="text-sm text-neutral-600 mb-2 line-clamp-2">{module.description}</p>
+                                <div className="flex items-center justify-between mt-2">
+                                  <div className="text-xs text-neutral-500">
+                                    {module.duration ? `${module.duration} min` : ""}
+                                  </div>
+                                  <Button 
+                                    variant={isRequired ? "default" : "outline"} 
+                                    size="sm" 
+                                    className={isRequired ? "w-3/4" : "w-full"}
+                                  >
+                                    {isRequired ? "Start Required Training" : "Start Learning"}
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     ) : (
@@ -620,7 +698,7 @@ export default function Dashboard() {
                           toast({
                             title: "CORE VALUES SHOUT OUT!",
                             description: "Always remember our 5 values: Be Consistent, Be Prepared, Be Committed, Be Caring, Be Positive!",
-                            variant: "success"
+                            variant: "default"
                           });
                         }}
                       >
