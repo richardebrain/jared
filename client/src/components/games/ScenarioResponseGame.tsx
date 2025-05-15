@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { 
-  LightbulbIcon, 
+  Lightbulb, 
   Clock, 
   ChevronRight, 
   RotateCcw, 
@@ -339,7 +339,7 @@ export default function ScenarioResponseGame({ game, onClose }: GameProps): Reac
     <Card className="mx-auto max-w-2xl">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <LightbulbIcon className="text-primary" />
+          <Lightbulb className="text-primary" />
           {game.title}
         </CardTitle>
         <CardDescription>
