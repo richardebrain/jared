@@ -109,7 +109,7 @@ const BearBucksRewards: React.FC<BearBucksRewardsProps> = ({
             </CardDescription>
           </div>
           <div className="flex items-center gap-2 bg-amber-200 px-4 py-2 rounded-lg">
-            <CoinIcon className="h-5 w-5 text-amber-700" />
+            <CoinsIcon className="h-5 w-5 text-amber-700" />
             <span className="font-bold text-lg text-amber-800">{bearBucks}</span>
           </div>
         </div>
@@ -166,7 +166,7 @@ const BearBucksRewards: React.FC<BearBucksRewardsProps> = ({
                   <TableRow key={idx} className={bearBucks >= option.bucksRequired ? "" : "opacity-60"}>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-1">
-                        <CoinIcon className="h-4 w-4 text-amber-500" />
+                        <CoinsIcon className="h-4 w-4 text-amber-500" />
                         {option.bucksRequired}
                       </div>
                     </TableCell>
@@ -195,7 +195,7 @@ const BearBucksRewards: React.FC<BearBucksRewardsProps> = ({
                       <span className="font-medium">{option.reward}</span>
                     </div>
                     <div className="flex items-center gap-1 bg-amber-100 px-2 py-1 rounded">
-                      <CoinIcon className="h-4 w-4 text-amber-500" />
+                      <CoinsIcon className="h-4 w-4 text-amber-500" />
                       <span className="font-bold">{option.bucksRequired}</span>
                     </div>
                   </div>
@@ -226,7 +226,7 @@ const BearBucksRewards: React.FC<BearBucksRewardsProps> = ({
                       <span className="font-medium">{option.reward}</span>
                     </div>
                     <div className="flex items-center gap-1 bg-amber-100 px-2 py-1 rounded">
-                      <CoinIcon className="h-4 w-4 text-amber-500" />
+                      <CoinsIcon className="h-4 w-4 text-amber-500" />
                       <span className="font-bold">{option.bucksRequired}</span>
                     </div>
                   </div>
