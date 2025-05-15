@@ -63,7 +63,7 @@ export default function AccountPage() {
             </div>
             <div className="col-span-9">
               <div className="rounded-md border border-input px-3 py-2">
-                {user?.role || 'Teacher'}
+                {user?.email?.includes('@raisingarizonapreschool.com') ? 'Admin' : 'Teacher'}
               </div>
             </div>
           </div>

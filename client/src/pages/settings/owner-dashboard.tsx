@@ -171,7 +171,7 @@ export default function OwnerDashboardPage() {
   const [payrollApiKey, setPayrollApiKey] = useState('');
   const [bankName, setBankName] = useState('');
   
-  // Owner check (in a real app, you would check for owner role)
+  // Owner check based on username or email
   const isOwner = user?.username === 'Emma' || user?.email?.includes('@raisingarizonapreschool.com');
   
   const handleApiConnect = (service: string) => {

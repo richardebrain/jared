@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
-import { Settings, Database, BookCopy, Shield, User } from 'lucide-react';
+import { Settings, Database, BookCopy, Shield, User, Building2 } from 'lucide-react';
 
 interface SettingsLayoutProps {
   title: string;

@@ -20,6 +20,8 @@ import BuildingChildPage from "@/pages/building-child";
 import VideoResourcesPage from "@/pages/video-resources";
 import ToolsPage from "@/pages/tools";
 import DataSourcesPage from "@/pages/settings/data-sources";
+import OwnerDashboardPage from "@/pages/settings/owner-dashboard";
+import AccountPage from "@/pages/settings/account";
 import BearyAIPage from "@/pages/beary-ai";
 import GamesPage from "@/pages/games";
 import AdminPage from "@/pages/admin";
@@ -112,6 +114,14 @@ function Router() {
       
       <Route path="/tools">
         {isAuthenticated ? <ToolsPage /> : <Login />}
+      </Route>
+      
+      <Route path="/settings/account">
+        {isAuthenticated ? <AccountPage /> : <Login />}
+      </Route>
+      
+      <Route path="/settings/owner-dashboard">
+        {isAuthenticated ? <OwnerDashboardPage /> : <Login />}
       </Route>
       
       <Route path="/settings/data-sources">
