@@ -22,10 +22,17 @@ export default function Leaderboard() {
   });
   
   const { data: leaderboardData, isLoading } = useQuery({
-    queryKey: ["/api/users"],
+    queryKey: ["/api/users", Date.now()], // Add timestamp to prevent caching
     queryFn: async () => {
-      // Fetch leaderboard data
-      const response = await fetch('/api/users');
+      // Fetch leaderboard data with cache buster
+      const timestamp = Date.now();
+      const response = await fetch(`/api/users?_=${timestamp}`, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch leaderboard data');
       }

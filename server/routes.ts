@@ -678,7 +678,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentUserId = req.session.userId as number | undefined;
       const currentUser = currentUserId ? await storage.getUser(currentUserId) : null;
       
-      // Filter sensitive information
+      // Filter sensitive information and ensure accurate points
       const leaderboardUsers = allUsers.map(user => ({
         id: user.id,
         firstName: user.firstName,
@@ -699,6 +699,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           leaderboardUsers.unshift(currentUserData);
         }
       }
+      
+      // Disable caching to ensure fresh data
+      res.set({
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Surrogate-Control': 'no-store'
+      });
       
       res.status(200).json(leaderboardUsers);
     } catch (error) {
