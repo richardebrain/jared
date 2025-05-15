@@ -23,6 +23,7 @@ import DataSourcesPage from "@/pages/settings/data-sources";
 import BearyAIPage from "@/pages/beary-ai";
 import GamesPage from "@/pages/games";
 import AdminPage from "@/pages/admin";
+import LessonPlanMakerPage from "@/pages/lesson-plan-maker";
 import { useAuth } from "@/hooks/use-auth";
 
 function Router() {

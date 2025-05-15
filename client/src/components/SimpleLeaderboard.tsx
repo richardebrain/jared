@@ -20,7 +20,11 @@ export default function SimpleLeaderboard() {
   // Fetch all users for the leaderboard
   const { data: teachers, isLoading } = useQuery({
     queryKey: ["/api/users"],
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+    select: (data) => {
+      // Ensure we always have an array to work with
+      return Array.isArray(data) ? data : [];
+    }
   });
   
   // Get rank icon and name based on level

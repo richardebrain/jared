@@ -121,6 +121,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Internal server error" });
     }
   });
+  
+  // Get all users (for leaderboard)
+  app.get("/api/users", async (req, res) => {
+    try {
+      const allUsers = await storage.getAllUsers();
+      
+      if (!allUsers || allUsers.length === 0) {
+        console.log("No users found in system");
+        return res.status(200).json([]);
+      }
+      
+      const sanitizedUsers = allUsers.map(user => {
+        // Don't return passwords in response
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      });
+      
+      console.log("Returning users count for leaderboard:", sanitizedUsers.length);
+      res.status(200).json(sanitizedUsers);
+    } catch (error) {
+      console.error("Error fetching all users:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
 
   // Learning modules routes
   app.get("/api/modules", async (req, res) => {
