@@ -78,12 +78,18 @@ export default function Register() {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Store user data in localStorage as a fallback authentication method
+      localStorage.setItem('user', JSON.stringify(data));
+      localStorage.setItem('isAuthenticated', 'true');
+      
       toast({
         title: "Registration successful!",
         description: "Welcome to MentorMe. Let's start your teacher training journey!",
       });
-      setLocation("/");
+      
+      // Redirect to dashboard using direct window location for consistent navigation
+      window.location.href = "/dashboard";
     },
     onError: (error: Error) => {
       toast({
@@ -159,7 +165,13 @@ export default function Register() {
                     <FormItem>
                       <FormLabel>First Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter your first name" {...field} />
+                        <Input 
+                          placeholder="Enter your first name" 
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e.target.value.trim());
+                          }}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -173,7 +185,13 @@ export default function Register() {
                     <FormItem>
                       <FormLabel>Last Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter your last name" {...field} />
+                        <Input 
+                          placeholder="Enter your last name" 
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e.target.value.trim());
+                          }}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

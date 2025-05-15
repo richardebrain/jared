@@ -53,10 +53,19 @@ export default function Login() {
       console.log("Attempting login with:", { username: data.username, password: "***" });
       
       try {
+        // Trim inputs for consistency
+        const cleanData = {
+          username: data.username.trim(),
+          password: data.password.trim()
+        };
+        
+        console.log("Sending cleaned login data:", { username: cleanData.username, password: "***" });
+        
         const responseData = await apiRequest("/api/auth/login", {
           method: "POST",
-          data: data
+          data: cleanData
         });
+        
         console.log("Login response:", responseData);
         return responseData;
       } catch (error) {
