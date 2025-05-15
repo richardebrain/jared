@@ -28,9 +28,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Award } from "lucide-react";
+import { Award, Home } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
 
 const CORE_VALUES = [
   { id: "Be Consistent", name: "Be Consistent" },
@@ -51,6 +52,7 @@ export default function CreateShoutOutForm() {
   const [open, setOpen] = React.useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   
   // Fetch users for the select dropdown
   const { data: users } = useQuery({
@@ -104,10 +106,35 @@ export default function CreateShoutOutForm() {
     mutation.mutate(values);
   }
   
+  // Handle dialog close and provide option to return home
+  const handleOpenChange = (open: boolean) => {
+    setOpen(open);
+    if (!open) {
+      // Show toast with option to go home when dialog is closed
+      toast({
+        title: "Form closed",
+        description: (
+          <div className="flex flex-col gap-2">
+            <p>You can return to the home page or continue creating a shout out.</p>
+            <Button 
+              variant="outline" 
+              onClick={() => setLocation("/")}
+              className="mt-2"
+            >
+              <Home className="mr-2 h-4 w-4" />
+              Return to Home
+            </Button>
+          </div>
+        ),
+        duration: 5000,
+      });
+    }
+  }
+  
   const selfId = queryClient.getQueryData<{ id: number }>(["/api/auth/me"])?.id;
   
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button className="w-full" variant="default">
           <Award className="mr-2 h-4 w-4" />
@@ -194,9 +221,21 @@ export default function CreateShoutOutForm() {
               )}
             />
             
-            <Button type="submit" className="w-full" disabled={mutation.isPending}>
-              {mutation.isPending ? "Submitting..." : "Submit Shout Out"}
-            </Button>
+            <div className="flex flex-col gap-3">
+              <Button type="submit" className="w-full" disabled={mutation.isPending}>
+                {mutation.isPending ? "Submitting..." : "Submit Shout Out"}
+              </Button>
+              
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full" 
+                onClick={() => setLocation("/")}
+              >
+                <Home className="mr-2 h-4 w-4" />
+                Return to Home
+              </Button>
+            </div>
           </form>
         </Form>
       </DialogContent>
