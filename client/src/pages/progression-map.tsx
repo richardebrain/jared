@@ -36,6 +36,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import BearAssistant from "@/components/BearAssistant";
+import BearBucksRewards from "@/components/BearBucksRewards";
 
 interface LevelRequirement {
   points: number;
@@ -660,7 +661,18 @@ export default function ProgressionMap() {
           </div>
           
           <div className="lg:col-span-1">
-            <BearAssistant user={user} />
+            {/* Bear Bucks Rewards Section */}
+            <BearBucksRewards 
+              bearBucks={user?.bearBucks || 0} 
+              points={user?.points || 0}
+            />
+            
+            <div className="mt-6">
+              <BearAssistant 
+                user={user || undefined} 
+                initiallyMinimized={true}
+              />
+            </div>
             
             {/* Motivation card */}
             <Card className="mt-6">
