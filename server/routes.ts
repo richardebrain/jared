@@ -1620,6 +1620,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get all shout outs (used for the leaderboard)
+  app.get("/api/core-values/all", requireAuth, async (req, res) => {
+    try {
+      // In a real app, we'd check if the user has permission to view all shout outs
+      const allShoutOuts = await storage.getAllCoreValuesShoutOuts();
+      return res.status(200).json(allShoutOuts);
+    } catch (error) {
+      console.error("Error fetching all shout outs:", error);
+      return res.status(500).json({ message: "Error fetching all shout outs" });
+    }
+  });
+  
   // Create a new shout out
   app.post("/api/core-values/nominate", async (req, res) => {
     try {

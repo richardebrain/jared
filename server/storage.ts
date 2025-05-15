@@ -81,6 +81,7 @@ export interface IStorage {
   // Core Values Shout Out operations
   getCoreValuesShoutOutsByNominatorId(nominatorId: number): Promise<CoreValuesShoutOut[]>;
   getCoreValuesShoutOutsByNomineeId(nomineeId: number): Promise<CoreValuesShoutOut[]>;
+  getAllCoreValuesShoutOuts(): Promise<CoreValuesShoutOut[]>;
   createCoreValuesShoutOut(shoutOut: InsertCoreValuesShoutOut & { pointsAwarded: number }): Promise<CoreValuesShoutOut>;
 }
 
@@ -1077,6 +1078,13 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(coreValuesShoutOuts)
       .where(eq(coreValuesShoutOuts.nomineeId, nomineeId))
+      .orderBy(desc(coreValuesShoutOuts.createdAt));
+  }
+  
+  async getAllCoreValuesShoutOuts(): Promise<CoreValuesShoutOut[]> {
+    return db
+      .select()
+      .from(coreValuesShoutOuts)
       .orderBy(desc(coreValuesShoutOuts.createdAt));
   }
 
