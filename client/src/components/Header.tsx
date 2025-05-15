@@ -175,6 +175,10 @@ export default function Header() {
                 <i className="ri-settings-line mr-2"></i>
                 Settings
               </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/settings/owner-dashboard")}>
+                <i className="ri-building-line mr-2"></i>
+                Owner Dashboard
+              </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/admin")}>
                 <i className="ri-shield-keyhole-line mr-2"></i>
                 Admin Access

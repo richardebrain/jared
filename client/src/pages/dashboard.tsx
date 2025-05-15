@@ -19,7 +19,9 @@ import {
   Coins, 
   Clock, 
   ArrowRight,
-  CheckCircle
+  CheckCircle,
+  Building2,
+  Shield
 } from "lucide-react";
 import { MonthlyNewsletter } from "@/components/MonthlyNewsletter";
 import Leaderboard from "@/components/Leaderboard";
