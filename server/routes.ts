@@ -3249,6 +3249,75 @@ Format your response as a complete message I could use, including a greeting and
       res.status(500).json({ message: 'Failed to fetch core values shout outs' });
     }
   });
+  
+  // Create Core Values Shout Out
+  app.post('/api/core-values/nominate', requireAuth, async (req, res) => {
+    try {
+      const session = req.session as SessionData;
+      const { nomineeId, coreValue, message } = req.body;
+      
+      if (!nomineeId || !coreValue || !message) {
+        return res.status(400).json({ message: 'Missing required fields' });
+      }
+      
+      // Award points based on core value
+      // More points for harder-to-achieve core values
+      let pointsAwarded = 5;
+      if (coreValue === 'Be Committed' || coreValue === 'Be Consistent') {
+        pointsAwarded = 8;
+      }
+      
+      const shoutOut = await storage.createCoreValuesShoutOut({
+        nominatorId: session.userId,
+        nomineeId,
+        coreValue,
+        message,
+        pointsAwarded
+      });
+      
+      // Update the nominee's points as well
+      const nominee = await storage.getUser(nomineeId);
+      if (nominee) {
+        await storage.updateUser(nomineeId, {
+          points: (nominee.points || 0) + pointsAwarded
+        });
+      }
+      
+      res.status(201).json({ 
+        message: 'Core Value Shout Out created successfully', 
+        shoutOut 
+      });
+    } catch (error) {
+      console.error('Error creating core value shout out:', error);
+      res.status(500).json({ message: 'Failed to create core value shout out' });
+    }
+  });
+  
+  // Get Core Values Shout Outs received by user
+  app.get('/api/core-values/nominations-received', requireAuth, async (req, res) => {
+    try {
+      const session = req.session as SessionData;
+      const shoutOuts = await storage.getCoreValuesShoutOutsByNomineeId(session.userId);
+      
+      res.status(200).json(shoutOuts);
+    } catch (error) {
+      console.error('Error fetching received nominations:', error);
+      res.status(500).json({ message: 'Failed to fetch received nominations' });
+    }
+  });
+  
+  // Get Core Values Shout Outs made by user
+  app.get('/api/core-values/nominations-made', requireAuth, async (req, res) => {
+    try {
+      const session = req.session as SessionData;
+      const shoutOuts = await storage.getCoreValuesShoutOutsByNominatorId(session.userId);
+      
+      res.status(200).json(shoutOuts);
+    } catch (error) {
+      console.error('Error fetching made nominations:', error);
+      res.status(500).json({ message: 'Failed to fetch made nominations' });
+    }
+  });
 
   // Admin routes
   // Middleware to check for admin role

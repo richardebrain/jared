@@ -1,10 +1,13 @@
 import React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Award, Star, Clock } from "lucide-react";
+import { Award, Star, Clock, Home } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
+import CreateShoutOutForm from "./CreateShoutOutForm";
 
 const CORE_VALUES = [
   { name: "Be Consistent", color: "bg-blue-100 text-blue-800 border-blue-300" },
@@ -15,6 +18,7 @@ const CORE_VALUES = [
 ];
 
 export default function CoreValuesShoutOuts() {
+  const [, setLocation] = useLocation();
   // Fetch all shoutouts
   const { data: shoutouts, isLoading } = useQuery({
     queryKey: ["/api/core-values-shoutouts"],
@@ -84,9 +88,9 @@ export default function CoreValuesShoutOuts() {
         ) : (
           <div className="space-y-4">
             {shoutouts.map((shoutout) => (
-              <div key={shoutout.id} className="p-3 border rounded-md hover:bg-accent/5 transition-colors">
-                <div className="flex justify-between mb-1">
-                  <div className="font-medium">
+              <div key={shoutout.id} className="p-4 border rounded-md hover:bg-accent/5 transition-colors">
+                <div className="flex justify-between mb-2">
+                  <div className="font-medium text-base">
                     To: {getUserName(shoutout.nomineeId)}
                   </div>
                   <div className="flex items-center text-xs text-muted-foreground">
@@ -94,21 +98,42 @@ export default function CoreValuesShoutOuts() {
                     {formatDistanceToNow(new Date(shoutout.createdAt), { addSuffix: true })}
                   </div>
                 </div>
-                <div className="mb-2">
+                <div className="mb-3">
                   {getCoreValueBadge(shoutout.coreValue)}
                   <span className="text-xs text-muted-foreground ml-2">
                     +{shoutout.pointsAwarded} points
                   </span>
                 </div>
-                <div className="text-sm">{shoutout.message}</div>
-                <div className="text-xs text-muted-foreground mt-2">
-                  From: {getUserName(shoutout.nominatorId)}
+                
+                <div className="bg-accent/10 p-3 rounded-md mb-3 text-sm italic border-l-4 border-accent">
+                  "{shoutout.message}"
+                </div>
+                
+                <div className="flex items-center justify-end text-sm font-medium mt-2">
+                  From: <span className="text-primary ml-1">{getUserName(shoutout.nominatorId)}</span>
                 </div>
               </div>
             ))}
           </div>
         )}
+        
+        <div className="mt-4 space-y-3">
+          <CreateShoutOutForm />
+          
+          <Button 
+            variant="outline" 
+            className="w-full" 
+            onClick={() => setLocation("/")}
+          >
+            <Home className="mr-2 h-4 w-4" />
+            Return to Home
+          </Button>
+        </div>
       </CardContent>
+      
+      <CardFooter className="border-t pt-4 flex justify-center text-sm text-muted-foreground">
+        Acknowledge and celebrate our core values
+      </CardFooter>
     </Card>
   );
 }
