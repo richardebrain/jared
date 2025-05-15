@@ -319,7 +319,7 @@ function generateMilestonesContent() {
     <p>These free, evidence-based resources can help you track children's development and communicate with families:</p>
     
     <div class="resource-card">
-      <h3>CDC's "Learn the Signs. Act Early." Program</h3>
+      <h3>CDC's Learn the Signs. Act Early. Program</h3>
       <p><strong>Website:</strong> <a href="https://www.cdc.gov/ncbddd/actearly/" target="_blank">https://www.cdc.gov/ncbddd/actearly/</a></p>
       <p>This comprehensive resource provides free milestone checklists, tracking apps, and materials for both educators and parents.</p>
       <p><strong>Key Tools:</strong></p>
@@ -699,7 +699,7 @@ function generateMilestonesQuiz(teacherLevel: string = 'assistant') {
         question: "Which resource provides free developmental milestone checklists, tracking apps, and materials for educators?",
         options: [
           "National Association for the Education of Young Children (NAEYC)",
-          "CDC's 'Learn the Signs. Act Early.' Program",
+          "CDC's Learn the Signs. Act Early. Program",
           "American Academy of Pediatrics",
           "National Institute of Child Health"
         ],
