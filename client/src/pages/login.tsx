@@ -52,6 +52,11 @@ export default function Login() {
     mutationFn: async (data: z.infer<typeof loginSchema>) => {
       console.log("Attempting login with:", { username: data.username, password: "***" });
       
+      // Clear any previous auth state first
+      localStorage.removeItem('user');
+      localStorage.removeItem('isAuthenticated');
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      
       try {
         // Trim inputs for consistency
         const cleanData = {
@@ -61,16 +66,40 @@ export default function Login() {
         
         console.log("Sending cleaned login data:", { username: cleanData.username, password: "***" });
         
+        // Handle special demo case directly in client
+        if (cleanData.username === 'jlcookie20' && cleanData.password !== 'password') {
+          console.log("Demo user detected but with incorrect password, providing hint");
+          throw new Error("For the demo user 'jlcookie20', please use password: 'password'");
+        }
+        
         const responseData = await apiRequest("/api/auth/login", {
           method: "POST",
-          data: cleanData
+          data: cleanData,
+          // Add a longer timeout for login requests
+          timeout: 10000,
         });
         
         console.log("Login response:", responseData);
         return responseData;
-      } catch (error) {
+      } catch (error: any) {
         console.error("Login error:", error);
-        throw error;
+        
+        // Enhanced error handling with specific messages
+        if (error.code === "ECONNABORTED") {
+          throw new Error("Login request timed out. Please try again.");
+        }
+        
+        if (error.response?.status === 401) {
+          const message = error.response.data?.details || "Invalid username or password";
+          throw new Error(message);
+        }
+        
+        // Pass through any already formatted errors
+        if (error.message) {
+          throw error;
+        }
+        
+        throw new Error("An unexpected error occurred. Please try again later.");
       }
     },
     onSuccess: (data) => {
@@ -83,16 +112,25 @@ export default function Login() {
       // Update the auth cache with the new user data
       queryClient.setQueryData(["/api/auth/me"], data);
       
+      // Set a more personal greeting
+      const greeting = data.firstName 
+        ? `Welcome back, ${data.firstName}!` 
+        : "Welcome back!";
+      
       toast({
         title: "Login successful!",
-        description: `Welcome back${data.firstName ? ", " + data.firstName : ""}!`,
+        description: greeting,
+        variant: "default",
       });
       
-      // Redirect to dashboard using direct window location for more reliable navigation
-      window.location.href = "/dashboard";
+      // Add a slight delay before redirect to ensure toast is seen
+      setTimeout(() => {
+        // Redirect to dashboard using direct window location for more reliable navigation
+        window.location.href = "/dashboard";
+      }, 800);
     },
     onError: (error: any) => {
-      console.error("Login error:", error);
+      console.error("Login error in mutation:", error);
       
       // Extract more detailed error information if available
       let errorDetails = error.message || "Please check your credentials and try again.";
@@ -100,6 +138,11 @@ export default function Login() {
       // Check if there's a more detailed message in the response data
       if (error.response?.data?.details) {
         errorDetails = error.response.data.details;
+      }
+      
+      // Special case for network errors
+      if (error.message && error.message.includes("Network Error")) {
+        errorDetails = "Can't connect to the server. Please check your internet connection and try again.";
       }
       
       toast({
