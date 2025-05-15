@@ -44,7 +44,7 @@ export default function GamesPage() {
   const { toast } = useToast();
   const [_, navigate] = useLocation();
   const [selectedGame, setSelectedGame] = useState<number | null>(null);
-  const [showGameInterface, setShowGameInterface] = useState(false);
+  const [showGameInterface, setShowGameInterface] = useState<boolean>(false);
 
   // Fetch all available games
   const { data: games, isLoading: isLoadingGames } = useQuery<Game[]>({
@@ -84,7 +84,7 @@ export default function GamesPage() {
     );
   }
 
-  const handleStartGame = (gameId: number) => {
+  const handleStartGame = (gameId: number): void => {
     if (!isAuthenticated) {
       toast({
         title: "Authentication Required",
@@ -112,7 +112,8 @@ export default function GamesPage() {
     setSelectedGame(null);
   };
 
-  const renderGameCard = (game: Game) => {
+  const renderGameCard = (game: Game): React.ReactNode => {
+    // Using a simpler typing approach for Lucide icons
     let GameIcon = Brain;
     
     // Assign icon based on game type
@@ -154,10 +155,10 @@ export default function GamesPage() {
     );
   };
 
-  const renderGameInterface = () => {
+  const renderGameInterface = (): React.ReactNode => {
     if (!selectedGame) return null;
     
-    const game = games?.find((g: Game) => g.id === selectedGame);
+    const game = games?.find((g) => g.id === selectedGame);
     if (!game) return null;
     
     // Render the appropriate game component based on type
@@ -182,7 +183,7 @@ export default function GamesPage() {
     );
   };
 
-  const renderGameHistory = () => {
+  const renderGameHistory = (): React.ReactNode => {
     if (!completions || completions.length === 0) {
       return (
         <div className="text-center py-8">
@@ -194,7 +195,7 @@ export default function GamesPage() {
     return (
       <div className="space-y-4">
         {completions && completions.map((completion: GameCompletion) => {
-          const game = games?.find((g: Game) => g.id === completion.gameId);
+          const game = games?.find((g) => g.id === completion.gameId);
           return (
             <Card key={completion.id} className="overflow-hidden">
               <CardHeader className="pb-2">
