@@ -36,6 +36,7 @@ export interface IStorage {
   getUserProgressByUserId(userId: number): Promise<UserProgress[]>;
   getUserProgressByModuleId(moduleId: number): Promise<UserProgress[]>;
   updateUserProgress(progress: InsertUserProgress): Promise<UserProgress>;
+  resetUserProgress(userId: number): Promise<boolean>;
   
   // Meeting operations
   getMeetingsByUserId(userId: number): Promise<Meeting[]>;

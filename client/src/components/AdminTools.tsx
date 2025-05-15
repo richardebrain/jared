@@ -304,7 +304,17 @@ function UserManagement() {
       {isLoadingAllUsers ? (
         <div className="py-8 text-center text-muted-foreground">Loading users...</div>
       ) : !allUsers || allUsers.length === 0 ? (
-        <div className="py-8 text-center text-muted-foreground">No users found</div>
+        <div className="py-8 text-center text-muted-foreground">
+          <p>No users found</p>
+          <p className="text-sm mt-2">Debug: {JSON.stringify({
+            usersLoaded: users ? "yes" : "no", 
+            usersCount: users?.length || 0,
+            fallbackLoaded: fallbackUsers ? "yes" : "no",
+            fallbackCount: fallbackUsers?.length || 0,
+            allUsersCount: allUsers?.length || 0,
+            error: isError ? "yes" : "no"
+          })}</p>
+        </div>
       ) : (
         <div className="overflow-x-auto">
           <Table>
