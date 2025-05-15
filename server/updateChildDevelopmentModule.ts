@@ -3,10 +3,18 @@
  * Focused on providing teachers with age-appropriate milestone information and government resources
  */
 
-const { db } = require('./db');
-const { storage } = require('./storage');
+import { db } from './db';
+import { storage } from './storage';
 
-async function updateChildDevelopmentModule() {
+/**
+ * Updates the Child Development Milestones module with content that adapts to teacher skill level.
+ * This creates a hybrid approach:
+ * 1. Static, comprehensive information about milestones (accessible to all teachers)
+ * 2. Dynamic, skill-level appropriate content generated via Perplexity
+ *
+ * @param userId Optional user ID to create personalized content (if not provided, creates base module)
+ */
+async function updateChildDevelopmentModule(userId?: number) {
   try {
     console.log('Starting Child Development Milestones module update...');
     
@@ -21,19 +29,73 @@ async function updateChildDevelopmentModule() {
       return;
     }
     
-    // Prepare comprehensive module content with government resources
+    // If a userId is provided, get their skill level to personalize content
+    let teacherLevel = 'assistant'; // Default level for new teachers
+    let userProgress = null;
+    
+    if (userId) {
+      try {
+        // Get user data
+        const user = await storage.getUser(userId);
+        
+        // Get their progress records
+        const progressRecords = await storage.getUserProgressByUserId(userId);
+        
+        // Get progress specifically for this module
+        userProgress = progressRecords.find(p => p.moduleId === moduleId);
+        
+        // Determine teacher level from their achievements/points
+        if (user && user.points) {
+          if (user.points >= 500) {
+            teacherLevel = 'master';
+          } else if (user.points >= 250) {
+            teacherLevel = 'lead';
+          } else if (user.points >= 100) {
+            teacherLevel = 'teacher';
+          }
+        }
+        
+        console.log(`Generating content for user ID ${userId} with teacher level: ${teacherLevel}`);
+      } catch (userError) {
+        console.error('Error getting user data for personalization:', userError);
+        // Continue with default level if there's an error
+      }
+    }
+    
+    // Generate the base content that will be available to all teachers
+    const baseContent = generateMilestonesContent();
+    
+    // Create dynamic section based on teacher level (will be populated by Perplexity API)
+    let adaptiveContent = '';
+    try {
+      adaptiveContent = await generateAdaptiveContent(teacherLevel, userProgress);
+    } catch (adaptiveError) {
+      console.error('Error generating adaptive content:', adaptiveError);
+      // If there's an error, create simple adaptive content without API
+      adaptiveContent = createFallbackAdaptiveContent(teacherLevel);
+    }
+    
+    // Combine the static and dynamic content
+    const combinedContent = injectAdaptiveContent(baseContent, adaptiveContent, teacherLevel);
+    
+    // Generate quiz with appropriate difficulty
+    const quiz = generateMilestonesQuiz(teacherLevel);
+    
+    // Prepare comprehensive module content
     const updatedModule = {
       ...module,
-      content: generateMilestonesContent(),
-      quiz: generateMilestonesQuiz()
+      content: combinedContent,
+      quiz: quiz
     };
     
     // Update the module
     await storage.updateModule(moduleId, updatedModule);
     
     console.log('Child Development Milestones module updated successfully!');
+    return updatedModule;
   } catch (error) {
     console.error('Error updating Child Development Milestones module:', error);
+    throw error;
   }
 }
 
@@ -511,13 +573,18 @@ function generateMilestonesQuiz() {
   };
 }
 
-// Run the update
-updateChildDevelopmentModule()
-  .then(() => {
-    console.log('Update script completed successfully');
-    process.exit(0);
-  })
-  .catch(error => {
-    console.error('Update script failed:', error);
-    process.exit(1);
-  });
+// Export the function
+export { updateChildDevelopmentModule };
+
+// When run directly, execute the update
+if (require.main === module) {
+  updateChildDevelopmentModule()
+    .then(() => {
+      console.log('Update script completed successfully');
+      process.exit(0);
+    })
+    .catch(error => {
+      console.error('Update script failed:', error);
+      process.exit(1);
+    });
+}

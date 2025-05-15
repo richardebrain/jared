@@ -338,6 +338,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Internal server error" });
     }
   });
+  
+  // Endpoint to update the Child Development Milestones module content
+  app.post('/api/modules/update-child-development', async (req, res) => {
+    try {
+      // Import the update function directly from the TypeScript module
+      const { updateChildDevelopmentModule } = await import('./updateChildDevelopmentModule');
+      
+      // Run the update function
+      await updateChildDevelopmentModule();
+      
+      res.status(200).json({ 
+        success: true, 
+        message: "Child Development Milestones module updated successfully" 
+      });
+    } catch (error) {
+      console.error("Error updating Child Development module:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to update Child Development module", 
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
 
   // User progress routes
   app.get("/api/progress", requireAuth, async (req, res) => {
