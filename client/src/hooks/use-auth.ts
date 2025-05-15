@@ -36,34 +36,34 @@ export function useAuth(): UseAuthReturn {
   
   // Update authentication state based on query results or localStorage fallback
   useEffect(() => {
+    // Check localStorage first on component mount
+    const storedAuth = localStorage.getItem('isAuthenticated');
+    const storedUser = localStorage.getItem('user');
+    console.log("Checking auth state - localStorage auth:", storedAuth);
+    console.log("Checking auth state - localStorage user:", storedUser);
+    
     if (user) {
       console.log("User authenticated from API:", user);
       setIsAuthenticated(true);
       // Update localStorage in case it's missing
       localStorage.setItem('user', JSON.stringify(user));
       localStorage.setItem('isAuthenticated', 'true');
-    } else if (isError) {
-      console.log("Authentication error from API:", error);
-      
-      // Check localStorage as fallback if API fails
-      const storedAuth = localStorage.getItem('isAuthenticated');
-      const storedUser = localStorage.getItem('user');
-      
-      if (storedAuth === 'true' && storedUser) {
-        console.log("Found user in localStorage, using as fallback");
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          queryClient.setQueryData(["/api/auth/me"], parsedUser);
-          setIsAuthenticated(true);
-        } catch (e) {
-          console.error("Error parsing stored user:", e);
-          localStorage.removeItem('user');
-          localStorage.removeItem('isAuthenticated');
-          setIsAuthenticated(false);
-        }
-      } else {
+    } else if (storedAuth === 'true' && storedUser) {
+      console.log("Found user in localStorage, using as fallback");
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        console.log("Parsed localStorage user:", parsedUser);
+        queryClient.setQueryData(["/api/auth/me"], parsedUser);
+        setIsAuthenticated(true);
+      } catch (e) {
+        console.error("Error parsing stored user:", e);
+        localStorage.removeItem('user');
+        localStorage.removeItem('isAuthenticated');
         setIsAuthenticated(false);
       }
+    } else if (isError) {
+      console.log("Authentication error from API:", error);
+      setIsAuthenticated(false);
     }
   }, [user, isError, error]);
   

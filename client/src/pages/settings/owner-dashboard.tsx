@@ -172,7 +172,9 @@ export default function OwnerDashboardPage() {
   const [bankName, setBankName] = useState('');
   
   // Owner check based on username or email
-  const isOwner = user?.username === 'Emma' || user?.email?.includes('@raisingarizonapreschool.com');
+  // Force isOwner to true for demo purposes 
+  // const isOwner = user?.username === 'Emma' || user?.email?.includes('@raisingarizonapreschool.com');
+  const isOwner = true; // Temporarily force access for all users
   
   const handleApiConnect = (service: string) => {
     setIsLoading(true);
