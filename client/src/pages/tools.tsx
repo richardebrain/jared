@@ -3,11 +3,12 @@ import { Link } from "wouter";
 import Header from "@/components/Header";
 import { SuessifyGenerator } from "@/components/SuessifyGenerator";
 import { VideoResourceLibrary } from "@/components/VideoResourceLibrary";
+import { MeetingScheduler } from "@/components/MeetingScheduler";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageSquare, BookOpen, Heart, ThumbsUp, SendHorizonal, Video } from "lucide-react";
+import { MessageSquare, BookOpen, Heart, ThumbsUp, SendHorizonal, Video, CalendarDays } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -185,7 +186,7 @@ export default function ToolsPage() {
         </div>
         
         <Tabs defaultValue="parent-responses" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
+          <TabsList className="grid w-full grid-cols-4 mb-8">
             <TabsTrigger value="parent-responses" className="flex items-center">
               <MessageSquare className="h-4 w-4 mr-2" />
               Parent Response Generator
@@ -197,6 +198,10 @@ export default function ToolsPage() {
             <TabsTrigger value="video-library" className="flex items-center">
               <Video className="h-4 w-4 mr-2" />
               Video Library
+            </TabsTrigger>
+            <TabsTrigger value="meeting-scheduler" className="flex items-center">
+              <CalendarDays className="h-4 w-4 mr-2" />
+              Meeting Scheduler
             </TabsTrigger>
           </TabsList>
           
@@ -234,6 +239,23 @@ export default function ToolsPage() {
               </CardHeader>
               <CardContent className="p-0 pt-4">
                 <VideoResourceLibrary showFilters={true} compactMode={true} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="meeting-scheduler" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CalendarDays className="h-5 w-5 text-primary" />
+                  Schedule a Meeting with Your Director
+                </CardTitle>
+                <CardDescription>
+                  Request a 15-minute meeting with your school director to discuss professional development, classroom concerns, or other topics
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <MeetingScheduler />
               </CardContent>
             </Card>
           </TabsContent>
