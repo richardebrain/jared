@@ -374,7 +374,7 @@ export default function MilestoneMatchingGame({ game, onClose }: GameProps) {
   );
 
   // Render the game interface
-  const renderGame = () => (
+  const renderGame = (): React.ReactNode => (
     <Card className="mx-auto max-w-2xl">
       <CardHeader>
         <div className="flex justify-between items-center">
