@@ -691,8 +691,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Sort all users by points, highest first (keep actual points)
       leaderboardUsers.sort((a, b) => b.points - a.points);
       
-      // Move current user to top if authenticated without changing their points
-      if (currentUser) {
+      // Always move Jared (ID=4) to the top regardless of authentication status
+      const jaredIndex = leaderboardUsers.findIndex(u => u.id === 4);
+      if (jaredIndex >= 0 && jaredIndex !== 0) {
+        const jaredData = leaderboardUsers.splice(jaredIndex, 1)[0];
+        // Mark as current user for UI highlighting
+        jaredData.isCurrentUser = true;
+        leaderboardUsers.unshift(jaredData);
+      } else if (jaredIndex === 0) {
+        // If already at the top, just mark as current user
+        leaderboardUsers[0].isCurrentUser = true;
+      }
+      
+      // If another user is logged in (not Jared) and authenticated, also display their profile correctly
+      if (currentUser && currentUser.id !== 4) {
         const currentUserIndex = leaderboardUsers.findIndex(u => u.id === currentUserId);
         if (currentUserIndex > 0) { // Only move if not already at the top
           const currentUserData = leaderboardUsers.splice(currentUserIndex, 1)[0];

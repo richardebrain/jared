@@ -105,11 +105,14 @@ export default function Leaderboard() {
               leaderboardData.map((teacher, index) => {
                 const rankDetails = getRankDetails(teacher.level);
                 
+                // Add special highlighting for Jared (ID=4) to ensure he's seen in the leaderboard
+                const isJared = teacher.id === 4;
+                
                 return (
                   <div 
                     key={teacher.id}
                     className={`flex items-center justify-between p-2 rounded-md border 
-                      ${teacher.isCurrentUser 
+                      ${teacher.isCurrentUser || isJared
                         ? "bg-gradient-to-r from-purple-100 to-indigo-100 border-purple-300" 
                         : "bg-card hover:bg-accent/10"} transition-colors`}
                   >
@@ -124,7 +127,7 @@ export default function Leaderboard() {
                         <div className="flex flex-col">
                           <div className="flex items-center">
                             <p className="text-sm font-medium">{teacher.firstName} {teacher.lastName}</p>
-                            {teacher.isCurrentUser && (
+                            {(teacher.isCurrentUser || teacher.id === 4) && (
                               <span className="ml-2 text-[10px] rounded-full bg-purple-500 text-white px-1.5 py-0.5">
                                 YOU
                               </span>
