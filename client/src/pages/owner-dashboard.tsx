@@ -22,9 +22,13 @@ import {
   Download,
   Upload,
   Star,
-  Info
+  Info,
+  AlarmClock,
+  GraduationCap,
+  Watch
 } from "lucide-react";
 import Header from "@/components/Header";
+import IntegrationWizard from "@/components/IntegrationWizard";
 
 // Mock data types
 interface LocationData {
@@ -700,7 +704,7 @@ export default function OwnerDashboardStandalone() {
                       <p className="text-3xl font-bold">{mockFinancial.pendingTransactions}</p>
                     </div>
                     <div className="bg-amber-100 p-2 rounded-lg">
-                      <Clock className="h-6 w-6 text-amber-700" />
+                      <AlarmClock className="h-6 w-6 text-amber-700" />
                     </div>
                   </div>
                   <div className="mt-4">
@@ -992,6 +996,20 @@ export default function OwnerDashboardStandalone() {
                       <span className="text-sm">Log in with IntellAKid Account</span>
                     </div>
                   </Button>
+                </div>
+                
+                <div className="mt-8 border-t pt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="font-medium">Advanced Platform Integration</h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Configure and manage all your third-party integrations in one place
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="bg-blue-50">New</Badge>
+                  </div>
+                  
+                  <IntegrationWizard />
                 </div>
               </CardContent>
               <div className="p-6 flex justify-end">
