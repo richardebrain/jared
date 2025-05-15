@@ -1,24 +1,15 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "wouter";
 import Header from "@/components/Header";
 import { SuessifyGenerator } from "@/components/SuessifyGenerator";
 import { VideoResourceLibrary } from "@/components/VideoResourceLibrary";
 import { MeetingScheduler } from "@/components/MeetingScheduler";
 import LessonPlanMaker from "@/components/LessonPlanMaker";
+import ParentResponseGenerator, { ParentScenario } from "@/components/ParentResponseGenerator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { MessageSquare, BookOpen, Heart, ThumbsUp, SendHorizonal, Video, CalendarDays, ClipboardCheck } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-
-// Define a type for parent scenarios
-interface ParentScenario {
-  title: string;
-  description: string;
-  prompt: string;
-}
+import { MessageSquare, BookOpen, Video, CalendarDays, ClipboardCheck } from "lucide-react";
 
 // Example scenarios for parent communication
 const PARENT_SCENARIOS: ParentScenario[] = [
@@ -48,130 +39,6 @@ const PARENT_SCENARIOS: ParentScenario[] = [
     prompt: "A child has been showing aggressive behavior toward peers for two weeks. I need to discuss this with parents in a way that focuses on solutions."
   }
 ];
-
-function ParentResponseGenerator() {
-  const [prompt, setPrompt] = useState("");
-  const [response, setResponse] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const { toast } = useToast();
-
-  const generateResponse = async () => {
-    if (!prompt.trim()) {
-      toast({
-        title: "Empty prompt",
-        description: "Please enter a situation to generate a response.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsGenerating(true);
-    try {
-      const result = await apiRequest("/api/ai/parent-response", {
-        method: "POST",
-        data: { prompt }
-      });
-      
-      setResponse(result.response);
-    } catch (error) {
-      toast({
-        title: "Generation failed",
-        description: "Failed to generate response. Please try again.",
-        variant: "destructive"
-      });
-      console.error("Error generating parent response:", error);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const useScenario = (scenario: ParentScenario): void => {
-    setPrompt(scenario.prompt);
-  };
-
-  return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-primary" />
-            Parent Response Generator
-          </CardTitle>
-          <CardDescription>
-            Generate thoughtful, professional responses for parent communications in challenging situations
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Describe the situation or concern you need to communicate:
-              </label>
-              <Textarea
-                placeholder="E.g., I need to inform a parent that their child pushed another student today..."
-                className="min-h-[120px]"
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <h3 className="text-sm font-medium mb-2">Common Scenarios:</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {PARENT_SCENARIOS.map((scenario, index) => (
-                  <Button 
-                    key={index} 
-                    variant="outline" 
-                    className="justify-start h-auto text-left py-2"
-                    onClick={() => useScenario(scenario)}
-                  >
-                    <div>
-                      <div className="font-medium">{scenario.title}</div>
-                      <div className="text-xs text-muted-foreground">{scenario.description}</div>
-                    </div>
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            <Button 
-              className="w-full" 
-              onClick={generateResponse}
-              disabled={isGenerating || !prompt.trim()}
-            >
-              {isGenerating ? (
-                <>Generating Response...</>
-              ) : (
-                <>
-                  <SendHorizonal className="mr-2 h-4 w-4" />
-                  Generate Response
-                </>
-              )}
-            </Button>
-
-            {response && (
-              <div className="mt-4 p-4 border rounded-md bg-primary/5">
-                <h3 className="font-medium mb-2 flex items-center">
-                  <Heart className="h-4 w-4 text-primary mr-2" />
-                  Suggested Parent Response:
-                </h3>
-                <div className="whitespace-pre-wrap text-sm">
-                  {response}
-                </div>
-                <div className="mt-4 text-xs text-muted-foreground">
-                  <p className="flex items-center">
-                    <ThumbsUp className="h-3 w-3 mr-1" />
-                    Remember to personalize this response for your specific situation and relationship with the parent.
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
 
 export default function ToolsPage() {
   return (
@@ -211,7 +78,20 @@ export default function ToolsPage() {
           </TabsList>
           
           <TabsContent value="parent-responses" className="space-y-4">
-            <ParentResponseGenerator />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5 text-primary" />
+                  Parent Response Generator
+                </CardTitle>
+                <CardDescription>
+                  Generate thoughtful, professional responses for parent communications in challenging situations
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ParentResponseGenerator scenarios={PARENT_SCENARIOS} />
+              </CardContent>
+            </Card>
           </TabsContent>
           
           <TabsContent value="lesson-plan" className="space-y-4">
