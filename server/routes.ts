@@ -56,6 +56,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
   
   // User routes
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const { username, password, firstName, lastName, email, language, nativeLanguage, timeZone } = req.body;
+      
+      console.log(`Registration attempt for username: "${username}"`);
+      
+      if (!username || !password || !firstName || !lastName || !email) {
+        console.log("Registration failed: Missing required fields");
+        return res.status(400).json({ message: "Required fields are missing" });
+      }
+      
+      // Check if user with this username already exists
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        console.log(`Registration failed: Username "${username}" already exists`);
+        return res.status(400).json({ message: "Username already exists" });
+      }
+      
+      // Create new user
+      const newUser = await storage.createUser({
+        username,
+        password, // In a production app, we would hash this password
+        firstName,
+        lastName,
+        email,
+        language: language || "English",
+        nativeLanguage: nativeLanguage || "English",
+        timeZone: timeZone || "UTC-05:00",
+        roles: ["teacher"], // Default role
+        points: 0,
+        bearBucks: 0,
+        level: "Beginner",
+        avatarUrl: null,
+        isActive: true,
+        lastLoginAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      
+      console.log(`Registration successful for user: "${username}" (ID: ${newUser.id})`);
+      
+      // Don't return password in response
+      const { password: _, ...userWithoutPassword } = newUser;
+      
+      // Automatically log in the user
+      req.session.userId = newUser.id;
+      
+      res.status(201).json(userWithoutPassword);
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { username, password } = req.body;
