@@ -8,6 +8,7 @@ import MemoryStore from "memorystore";
 import { updateChildDevelopmentModule } from "./updateChildDevelopmentModule";
 import { eq, sql } from "drizzle-orm";
 import { users } from "@shared/schema";
+import * as notebookLmPlugin from "./notebookLmPlugin";
 
 // Define our session data structure
 declare module "express-session" {
@@ -1174,6 +1175,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error generating parent response:", error);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Notebook LM Plugin routes
+  app.get("/api/notebook-lm/sources", async (req, res) => {
+    try {
+      const sources = notebookLmPlugin.getAllDataSources();
+      res.status(200).json(sources);
+    } catch (error) {
+      console.error("Error getting notebook LM sources:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/notebook-lm/config", async (req, res) => {
+    try {
+      const config = notebookLmPlugin.getConfig();
+      res.status(200).json(config);
+    } catch (error) {
+      console.error("Error getting notebook LM config:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/notebook-lm/config", requireAuth, async (req, res) => {
+    try {
+      const config = req.body;
+      const updatedConfig = notebookLmPlugin.updateConfig(config);
+      res.status(200).json(updatedConfig);
+    } catch (error) {
+      console.error("Error updating notebook LM config:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/notebook-lm/config/reset", requireAuth, async (req, res) => {
+    try {
+      const defaultConfig = notebookLmPlugin.resetConfig();
+      res.status(200).json(defaultConfig);
+    } catch (error) {
+      console.error("Error resetting notebook LM config:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/notebook-lm/sources/toggle", requireAuth, async (req, res) => {
+    try {
+      const { sourceId, enabled } = req.body;
+      const source = notebookLmPlugin.toggleDataSource(sourceId, enabled);
+      
+      if (!source) {
+        return res.status(404).json({ message: "Source not found" });
+      }
+      
+      res.status(200).json(source);
+    } catch (error) {
+      console.error("Error toggling notebook LM source:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // AI response endpoint that uses notebook LM plugin for restricted responses
+  app.post("/api/bear-assistant/ask", async (req, res) => {
+    try {
+      const { question } = req.body;
+      
+      if (!question) {
+        return res.status(400).json({ message: "Question is required" });
+      }
+      
+      // Use the restricted content generation
+      const result = await notebookLmPlugin.generateRestrictedLessonContent(question);
+      
+      res.status(200).json({
+        content: result.content,
+        citations: result.citations || []
+      });
+    } catch (error) {
+      console.error("Error generating AI response:", error);
+      res.status(500).json({ 
+        message: "Error generating response",
+        content: "I'm sorry, I encountered an error processing your question. Please try asking about our mindful morning practices, classroom management techniques, or about our Building Chapter One philosophy."
+      });
     }
   });
 
