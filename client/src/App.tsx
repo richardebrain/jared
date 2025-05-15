@@ -126,6 +126,10 @@ function Router() {
         {isAuthenticated ? <GamesPage /> : <Login />}
       </Route>
       
+      <Route path="/lesson-plan-maker">
+        {isAuthenticated ? <LessonPlanMakerPage /> : <Login />}
+      </Route>
+      
       <Route path="/admin">
         {isAuthenticated ? <AdminPage /> : <Login />}
       </Route>

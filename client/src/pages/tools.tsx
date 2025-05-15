@@ -4,11 +4,12 @@ import Header from "@/components/Header";
 import { SuessifyGenerator } from "@/components/SuessifyGenerator";
 import { VideoResourceLibrary } from "@/components/VideoResourceLibrary";
 import { MeetingScheduler } from "@/components/MeetingScheduler";
+import LessonPlanMaker from "@/components/LessonPlanMaker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageSquare, BookOpen, Heart, ThumbsUp, SendHorizonal, Video, CalendarDays } from "lucide-react";
+import { MessageSquare, BookOpen, Heart, ThumbsUp, SendHorizonal, Video, CalendarDays, ClipboardCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -186,10 +187,14 @@ export default function ToolsPage() {
         </div>
         
         <Tabs defaultValue="parent-responses" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-8">
+          <TabsList className="grid w-full grid-cols-5 mb-8">
             <TabsTrigger value="parent-responses" className="flex items-center">
               <MessageSquare className="h-4 w-4 mr-2" />
-              Parent Response Generator
+              Parent Responses
+            </TabsTrigger>
+            <TabsTrigger value="lesson-plan" className="flex items-center">
+              <ClipboardCheck className="h-4 w-4 mr-2" />
+              Lesson Plan Maker
             </TabsTrigger>
             <TabsTrigger value="suessify" className="flex items-center">
               <BookOpen className="h-4 w-4 mr-2" />
@@ -201,12 +206,29 @@ export default function ToolsPage() {
             </TabsTrigger>
             <TabsTrigger value="meeting-scheduler" className="flex items-center">
               <CalendarDays className="h-4 w-4 mr-2" />
-              Meeting Scheduler
+              Scheduler
             </TabsTrigger>
           </TabsList>
           
           <TabsContent value="parent-responses" className="space-y-4">
             <ParentResponseGenerator />
+          </TabsContent>
+          
+          <TabsContent value="lesson-plan" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ClipboardCheck className="h-5 w-5 text-primary" />
+                  Lesson Plan Maker
+                </CardTitle>
+                <CardDescription>
+                  Create detailed, age-appropriate weekly lesson plans for your classroom with a theme of your choice
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <LessonPlanMaker />
+              </CardContent>
+            </Card>
           </TabsContent>
           
           <TabsContent value="suessify" className="space-y-4">

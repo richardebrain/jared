@@ -2,17 +2,19 @@ import React from "react";
 import { Helmet } from "react-helmet";
 import { useAuth } from "@/hooks/use-auth";
 import LessonPlanMaker from "@/components/LessonPlanMaker";
-import { Navigate } from "wouter";
+import { useLocation } from "wouter";
 
 export default function LessonPlanMakerPage() {
   const { user, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
   
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
   
   if (!user) {
-    return <Navigate to="/" />;
+    setLocation("/");
+    return null;
   }
   
   return (
