@@ -32,12 +32,18 @@ export default function Header() {
       return response;
     },
     onSuccess: () => {
+      // Clear user data from query cache
+      queryClient.setQueryData(["/api/auth/me"], null);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      
+      // Show success message
       toast({
         title: "Logged out",
         description: "You have been successfully logged out.",
       });
-      setLocation("/");
+      
+      // Redirect to login page
+      setLocation("/login");
     },
     onError: (error: Error) => {
       toast({

@@ -105,7 +105,15 @@ export function useAuth(): UseAuthReturn {
       return response;
     },
     onSuccess: () => {
+      // Clear user data and update authentication state
+      queryClient.setQueryData(["/api/auth/me"], null);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      
+      // Clear any cached auth-dependent queries
+      queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/modules"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
+      
       setIsAuthenticated(false);
       toast({
         title: "Logged out",
