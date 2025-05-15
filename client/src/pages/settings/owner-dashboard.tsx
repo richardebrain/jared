@@ -14,10 +14,12 @@ import {
   Calendar, 
   RefreshCcw,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  Shield
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { apiRequest } from '@/lib/queryClient';
+import IntegrationWizard from '@/components/IntegrationWizard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
