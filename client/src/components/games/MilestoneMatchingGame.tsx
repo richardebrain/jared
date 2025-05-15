@@ -109,18 +109,18 @@ interface GameProps {
 export default function MilestoneMatchingGame({ game, onClose }: GameProps) {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [currentRound, setCurrentRound] = useState(0);
-  const [totalRounds] = useState(10); // 10 rounds per game
-  const [timer, setTimer] = useState(0);
-  const [isRunning, setIsRunning] = useState(false);
-  const [gameScore, setGameScore] = useState(0);
+  const [currentRound, setCurrentRound] = useState<number>(0);
+  const [totalRounds] = useState<number>(10); // 10 rounds per game
+  const [timer, setTimer] = useState<number>(0);
+  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [gameScore, setGameScore] = useState<number>(0);
   const [currentMilestone, setCurrentMilestone] = useState<Milestone | null>(null);
   const [options, setOptions] = useState<string[]>([]);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [showResult, setShowResult] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(false);
-  const [gameOver, setGameOver] = useState(false);
-  const [gameStarted, setGameStarted] = useState(false);
+  const [showResult, setShowResult] = useState<boolean>(false);
+  const [isCorrect, setIsCorrect] = useState<boolean>(false);
+  const [gameOver, setGameOver] = useState<boolean>(false);
+  const [gameStarted, setGameStarted] = useState<boolean>(false);
   const [startTime, setStartTime] = useState<number | null>(null);
 
   // Define the completion data type
@@ -280,11 +280,12 @@ export default function MilestoneMatchingGame({ game, onClose }: GameProps) {
     const earnedPoints = Math.round((scorePercentage / 100) * basePoints);
     
     // Show confetti celebration
-    confetti({
+    const gameCompletionConfettiOptions: ConfettiOptions = {
       particleCount: 150,
       spread: 70,
       origin: { y: 0.6 }
-    });
+    };
+    confetti(gameCompletionConfettiOptions);
     
     // Submit completion to the server
     const completionData: GameCompletionData = {
