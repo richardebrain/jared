@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import LinkValidator from '@/components/LinkValidator';
 import ContentChecker from '@/components/ContentChecker';
-import { AlertTriangle, Video, Link2, BookOpen, Users, RefreshCw, Award, Check } from 'lucide-react';
+import { AlertTriangle, Video, Link2, BookOpen, Users, RefreshCw, Award, Check, Clipboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -188,13 +188,24 @@ function UserManagement() {
   
   // Fetch all users
   const { data: users, isLoading: isLoadingUsers } = useQuery({ 
-    queryKey: ["/api/users"], // Using public endpoint for demo
+    queryKey: ["/api/admin/users"],
     refetchOnWindowFocus: false
   });
   
-  // Fetch user progress when a user is selected
+  // Fallback to regular users endpoint if admin endpoint fails
+  const { data: fallbackUsers, isLoading: isLoadingFallbackUsers } = useQuery({ 
+    queryKey: ["/api/users"],
+    enabled: !users && !isLoadingUsers,
+    refetchOnWindowFocus: false
+  });
+  
+  // Use fallback data if needed
+  const allUsers = users || fallbackUsers || [];
+  const isLoadingAllUsers = isLoadingUsers || isLoadingFallbackUsers;
+  
+  // Fetch all user progress
   const { data: allProgress, isLoading: isLoadingProgress } = useQuery({
-    queryKey: ["/api/progress"], // Using public endpoint for demo
+    queryKey: ["/api/progress"],
     refetchOnWindowFocus: false
   });
   
@@ -268,9 +279,9 @@ function UserManagement() {
         </h3>
       </div>
       
-      {isLoadingUsers ? (
+      {isLoadingAllUsers ? (
         <div className="py-8 text-center text-muted-foreground">Loading users...</div>
-      ) : !users || users.length === 0 ? (
+      ) : !allUsers || allUsers.length === 0 ? (
         <div className="py-8 text-center text-muted-foreground">No users found</div>
       ) : (
         <div className="overflow-x-auto">
@@ -283,74 +294,84 @@ function UserManagement() {
                 <TableHead>Level</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Hours in System</TableHead>
+                <TableHead>Completed Modules</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id} className={user.id === selectedUser ? "bg-muted" : ""}>
-                  <TableCell className="font-medium">
-                    {user.firstName} {user.lastName}
-                  </TableCell>
-                  <TableCell>{user.username}</TableCell>
-                  <TableCell>{user.points || 0}</TableCell>
-                  <TableCell>
-                    <Badge>{user.level || 1}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    {user.points >= 500 ? (
-                      <Badge className="bg-amber-500">Master Lead Teacher</Badge>
-                    ) : user.points >= 300 ? (
-                      <Badge className="bg-indigo-500">Lead Teacher</Badge>
-                    ) : user.points >= 150 ? (
-                      <Badge className="bg-emerald-500">Associate Teacher</Badge>
-                    ) : (
-                      <Badge>Assistant Teacher</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {/* Calculate hours based on account creation date */}
-                    {user.createdAt ? (
-                      <span className="text-sm">
-                        {Math.floor((new Date().getTime() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60))} hours
-                      </span>
-                    ) : (
-                      "N/A"
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => setSelectedUser(selectedUser === user.id ? null : user.id)}
-                    >
-                      {selectedUser === user.id ? "Hide" : "View"}
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setResetDialog({open: true, userId: user.id, type: 'points'})}
-                        className="h-8"
-                      >
-                        <RefreshCw className="h-4 w-4 mr-1" />
-                        Reset Points
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setResetDialog({open: true, userId: user.id, type: 'progress'})}
-                        className="h-8"
-                      >
-                        <Award className="h-4 w-4 mr-1" />
-                        Reset Progress
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {allUsers.map((user) => {
+                // Calculate completed modules count for each user
+                const userCompletedModules = allProgress 
+                  ? allProgress.filter(p => p.userId === user.id && p.completed).length 
+                  : 0;
+                
+                return (
+                  <TableRow key={user.id} className={user.id === selectedUser ? "bg-muted" : ""}>
+                    <TableCell className="font-medium">
+                      {user.firstName} {user.lastName}
+                    </TableCell>
+                    <TableCell>{user.username}</TableCell>
+                    <TableCell>{user.points || 0}</TableCell>
+                    <TableCell>
+                      <Badge>{user.level || 1}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      {user.points >= 500 ? (
+                        <Badge className="bg-amber-500">Master Lead Teacher</Badge>
+                      ) : user.points >= 300 ? (
+                        <Badge className="bg-indigo-500">Lead Teacher</Badge>
+                      ) : user.points >= 150 ? (
+                        <Badge className="bg-emerald-500">Associate Teacher</Badge>
+                      ) : (
+                        <Badge>Assistant Teacher</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {/* Calculate hours based on account creation date */}
+                      {user.createdAt ? (
+                        <span className="text-sm">
+                          {Math.floor((new Date().getTime() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60))} hours
+                        </span>
+                      ) : (
+                        "N/A"
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="font-mono">
+                        {userCompletedModules}/{modules ? modules.length : '?'} modules
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-1">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => setSelectedUser(selectedUser === user.id ? null : user.id)}
+                        >
+                          {selectedUser === user.id ? "Hide" : "View"}
+                        </Button>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setResetDialog({open: true, userId: user.id, type: 'points'})}
+                        >
+                          <RefreshCw className="h-4 w-4 mr-1" />
+                          Reset Points
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setResetDialog({open: true, userId: user.id, type: 'progress'})}
+                        >
+                          <Award className="h-4 w-4 mr-1" />
+                          Reset Progress
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
@@ -359,28 +380,161 @@ function UserManagement() {
       {/* Display user progress when expanded */}
       {selectedUser && (
         <div className="mt-6 border rounded-md p-4 bg-muted/20">
-          <h4 className="font-medium mb-3">Completed Modules</h4>
+          <div className="flex justify-between items-center mb-4">
+            <h4 className="font-medium">Teacher Learning Progress</h4>
+            
+            <div className="flex space-x-2">
+              <Button variant="outline" size="sm" onClick={() => {
+                // Fetch completed modules data for the selected user
+                if (allUsers && selectedUser) {
+                  const user = allUsers.find(u => u.id === selectedUser);
+                  if (user) {
+                    const username = user.username;
+                    const email = user.email;
+                    const completedModules = userProgress
+                      .filter(p => p.completed)
+                      .map(p => getModuleName(p.moduleId));
+                    
+                    // Format data for copy
+                    const data = `Teacher: ${user.firstName} ${user.lastName}
+Username: ${username}
+Email: ${email}
+Points: ${user.points || 0}
+Level: ${user.level || 1}
+Status: ${user.points >= 500 ? "Master Lead Teacher" : 
+          user.points >= 300 ? "Lead Teacher" : 
+          user.points >= 150 ? "Associate Teacher" : 
+          "Assistant Teacher"}
+Completed Modules: ${completedModules.length}/${modules ? modules.length : '?'}
+${completedModules.map((name, i) => `${i+1}. ${name}`).join('\n')}`;
+                    
+                    // Copy to clipboard
+                    navigator.clipboard.writeText(data)
+                      .then(() => {
+                        toast({
+                          title: "Copied to clipboard",
+                          description: "Teacher progress data has been copied.",
+                        });
+                      })
+                      .catch(err => {
+                        console.error('Failed to copy:', err);
+                        toast({
+                          title: "Copy failed",
+                          description: "Could not copy data to clipboard.",
+                          variant: "destructive",
+                        });
+                      });
+                  }
+                }
+              }}>
+                <Clipboard className="h-4 w-4 mr-2" />
+                Copy report
+              </Button>
+            </div>
+          </div>
           
           {isLoadingProgress ? (
             <div className="py-4 text-center text-muted-foreground">Loading progress...</div>
           ) : !userProgress || userProgress.length === 0 ? (
             <div className="py-4 text-center text-muted-foreground">No modules completed yet</div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {userProgress
-                .filter(p => p.completed)
-                .map(progress => (
-                  <div key={progress.id} className="flex items-center border p-3 rounded-md bg-card">
-                    <Check className="h-4 w-4 text-green-500 mr-2" />
-                    <div>
-                      <div className="font-medium">{getModuleName(progress.moduleId)}</div>
-                      <div className="text-xs text-muted-foreground">
-                        Points earned: {progress.pointsEarned || 0}
-                      </div>
-                    </div>
+            <>
+              {/* Summary statistics */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                <div className="p-3 rounded-md bg-card">
+                  <div className="text-sm text-muted-foreground">Completed Modules</div>
+                  <div className="text-2xl font-bold">
+                    {userProgress.filter(p => p.completed).length}
+                    <span className="text-sm font-normal text-muted-foreground">/{modules ? modules.length : '?'}</span>
                   </div>
-                ))}
-            </div>
+                </div>
+                
+                <div className="p-3 rounded-md bg-card">
+                  <div className="text-sm text-muted-foreground">Completion %</div>
+                  <div className="text-2xl font-bold">
+                    {modules && modules.length > 0 
+                      ? Math.round((userProgress.filter(p => p.completed).length / modules.length) * 100)
+                      : 0}
+                    <span className="text-sm font-normal text-muted-foreground">%</span>
+                  </div>
+                </div>
+                
+                <div className="p-3 rounded-md bg-card">
+                  <div className="text-sm text-muted-foreground">Total Points Earned</div>
+                  <div className="text-2xl font-bold">
+                    {userProgress.reduce((sum, p) => sum + (p.pointsEarned || 0), 0)}
+                  </div>
+                </div>
+                
+                <div className="p-3 rounded-md bg-card">
+                  <div className="text-sm text-muted-foreground">In Progress</div>
+                  <div className="text-2xl font-bold">
+                    {userProgress.filter(p => !p.completed && p.progress > 0).length}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Module progress list */}
+              <div className="space-y-1 mt-4">
+                <h5 className="text-sm font-medium mb-2">Completed Modules</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {userProgress
+                    .filter(p => p.completed)
+                    .map(progress => (
+                      <div key={progress.id} className="flex items-center border p-3 rounded-md bg-card">
+                        <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <div className="font-medium truncate">{getModuleName(progress.moduleId)}</div>
+                          <div className="text-xs text-muted-foreground flex items-center">
+                            <span>Points earned: {progress.pointsEarned || 0}</span>
+                            <span className="inline-block mx-1">•</span>
+                            <span>Last accessed: {
+                              progress.lastAccessed 
+                                ? new Date(progress.lastAccessed).toLocaleDateString() 
+                                : 'Unknown'
+                            }</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+                
+                {userProgress.filter(p => !p.completed && p.progress > 0).length > 0 && (
+                  <>
+                    <h5 className="text-sm font-medium mt-4 mb-2">In Progress Modules</h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {userProgress
+                        .filter(p => !p.completed && p.progress > 0)
+                        .map(progress => (
+                          <div key={progress.id} className="flex items-center border p-3 rounded-md bg-card">
+                            <div className="w-4 h-4 mr-2 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                              <div 
+                                className="bg-amber-500 rounded-full" 
+                                style={{
+                                  width: `${Math.max(4, Math.min(16, progress.progress * 16))}px`,
+                                  height: `${Math.max(4, Math.min(16, progress.progress * 16))}px`,
+                                }}
+                              ></div>
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-medium truncate">{getModuleName(progress.moduleId)}</div>
+                              <div className="text-xs text-muted-foreground">
+                                <span>Progress: {Math.round(progress.progress * 100)}%</span>
+                                <span className="inline-block mx-1">•</span>
+                                <span>Last accessed: {
+                                  progress.lastAccessed 
+                                    ? new Date(progress.lastAccessed).toLocaleDateString() 
+                                    : 'Unknown'
+                                }</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </>
           )}
         </div>
       )}
