@@ -615,7 +615,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
-      const userShoutOutsToday = await storage.getUserShoutOutsToday(nominatorId, today);
+      // Get all shout-outs by the nominator
+      const userShoutOuts = await storage.getCoreValuesShoutOutsByNominatorId(nominatorId);
+      
+      // Filter to get only today's shout-outs
+      const userShoutOutsToday = userShoutOuts.filter(shoutOut => {
+        const shoutOutDate = new Date(shoutOut.createdAt);
+        return shoutOutDate >= today;
+      });
       
       if (userShoutOutsToday.length >= 1) {
         return res.status(400).json({ 
@@ -626,17 +633,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create the shout-out
       const pointsAwarded = 5; // Standard points for a shout-out
-      const shoutOut = await storage.createShoutOut({
+      const shoutOut = await storage.createCoreValuesShoutOut({
         nominatorId,
         nomineeId,
         coreValue,
         description,
         pointsAwarded
       });
-      
-      // Add points to both nominator and nominee
-      await storage.addUserPoints(nominatorId, pointsAwarded);
-      await storage.addUserPoints(nomineeId, pointsAwarded);
       
       res.status(201).json({ 
         success: true, 
@@ -663,7 +666,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
-      const userShoutOutsToday = await storage.getUserShoutOutsToday(nominatorId, today);
+      // Get all shout-outs by the nominator
+      const userShoutOuts = await storage.getCoreValuesShoutOutsByNominatorId(nominatorId);
+      
+      // Filter to get only today's shout-outs
+      const userShoutOutsToday = userShoutOuts.filter(shoutOut => {
+        const shoutOutDate = new Date(shoutOut.createdAt);
+        return shoutOutDate >= today;
+      });
       
       if (userShoutOutsToday.length >= 1) {
         return res.status(400).json({ 
@@ -674,17 +684,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create the shout-out
       const pointsAwarded = 5; // Standard points for a shout-out
-      const shoutOut = await storage.createShoutOut({
+      const shoutOut = await storage.createCoreValuesShoutOut({
         nominatorId,
         nomineeId,
         coreValue,
         description,
         pointsAwarded
       });
-      
-      // Add points to both nominator and nominee
-      await storage.addUserPoints(nominatorId, pointsAwarded);
-      await storage.addUserPoints(nomineeId, pointsAwarded);
       
       res.status(201).json({ 
         success: true, 
