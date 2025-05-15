@@ -699,12 +699,12 @@ function generateMilestonesQuiz(teacherLevel: string = 'assistant') {
         question: "Which resource provides free developmental milestone checklists, tracking apps, and materials for educators?",
         options: [
           "National Association for the Education of Young Children (NAEYC)",
-          "CDC's "Learn the Signs. Act Early." Program",
+          "CDC's 'Learn the Signs. Act Early.' Program",
           "American Academy of Pediatrics",
           "National Institute of Child Health"
         ],
         correctAnswer: 1,
-        explanation: "The CDC's "Learn the Signs. Act Early." Program offers free milestone checklists, a mobile tracking app, and various materials for both educators and parents."
+        explanation: "The CDC's Learn the Signs. Act Early. Program offers free milestone checklists, a mobile tracking app, and various materials for both educators and parents."
       },
       {
         question: "Which of the following would be considered a 'red flag' for a 2-year-old child?",
@@ -773,6 +773,107 @@ function generateMilestonesQuiz(teacherLevel: string = 'assistant') {
         explanation: "Language development is best supported through a language-rich environment that includes multiple daily read-alouds and meaningful back-and-forth conversations throughout the day."
       }
     ]
+  };
+  
+  // Additional questions based on teacher level
+  const teacherQuestions = [
+    {
+      question: "Which development theory emphasizes the role of social interaction in cognitive development?",
+      options: [
+        "Piaget's Theory",
+        "Psychoanalytic Theory",
+        "Vygotsky's Sociocultural Theory",
+        "Behaviorist Theory"
+      ],
+      correctAnswer: 2,
+      explanation: "Vygotsky's Sociocultural Theory emphasizes that social interaction plays a fundamental role in the development of cognition, highlighting concepts like the Zone of Proximal Development."
+    },
+    {
+      question: "What is the purpose of executive function skills in early childhood?",
+      options: [
+        "To strengthen muscles for physical activities",
+        "To develop leadership qualities for group play",
+        "To develop mental skills that help with planning, focus, and self-control",
+        "To express creativity through arts and dramatic play"
+      ],
+      correctAnswer: 2,
+      explanation: "Executive function skills are mental processes that help children plan, focus attention, remember instructions, and juggle multiple tasks - they're crucial for academic and social success."
+    }
+  ];
+  
+  const leadQuestions = [
+    {
+      question: "Which assessment approach is most appropriate when evaluating development in culturally diverse classrooms?",
+      options: [
+        "Standardized assessments with national norms",
+        "Observation-based assessment with culturally responsive interpretation",
+        "Academic readiness tests focusing on universal skills",
+        "Computer-based assessment tools with automatic scoring"
+      ],
+      correctAnswer: 1,
+      explanation: "Observation-based assessment with culturally responsive interpretation allows teachers to consider cultural context and values while evaluating development, avoiding cultural bias that may be present in standardized assessments."
+    },
+    {
+      question: "When creating an Individual Development Plan for a child with potential language delays, which approach is most effective?",
+      options: [
+        "Focusing exclusively on the delayed skill area with intensive intervention",
+        "Creating a comprehensive plan addressing all developmental domains",
+        "Waiting for formal diagnosis before implementing any specialized strategies",
+        "Comparing the child to peers to establish clear developmental goals"
+      ],
+      correctAnswer: 1,
+      explanation: "Creating a comprehensive development plan is most effective as development is interconnected. Even when addressing a specific delay, considering all developmental domains creates a holistic approach that can support the targeted area."
+    }
+  ];
+  
+  const masterQuestions = [
+    {
+      question: "Which approach to developmental screening shows the strongest evidence base for early identification of autism spectrum disorder?",
+      options: [
+        "General developmental screening at 9, 18, and 24-30 months with autism-specific screening at 18 and 24 months",
+        "Autism-specific screening once at 36 months when language skills are fully developed",
+        "Wait-and-see approach until school age when behaviors are more consistent",
+        "Reactive screening only when parents express specific concerns"
+      ],
+      correctAnswer: 0,
+      explanation: "The American Academy of Pediatrics recommends general developmental screening at 9, 18, and 24-30 months with autism-specific screening at 18 and 24 months, as research shows this approach provides the best chance for early identification and intervention."
+    },
+    {
+      question: "Which assessment framework best evaluates the quality of early childhood education environments?",
+      options: [
+        "ECERS-R (Early Childhood Environment Rating Scale, Revised)",
+        "BRIGANCE Early Childhood Screens",
+        "Portfolio Assessment",
+        "The Denver Developmental Screening Test"
+      ],
+      correctAnswer: 0,
+      explanation: "The ECERS-R is specifically designed to assess the quality of early childhood education environments, examining space and furnishing, personal care routines, language-reasoning, activities, interactions, program structure, and parents and staff."
+    }
+  ];
+  
+  // Determine which questions to include based on teacher level
+  let allQuestions = [...baseQuestions]; // Start with base questions for everyone
+  
+  if (teacherLevel === 'teacher' || teacherLevel === 'lead' || teacherLevel === 'master') {
+    allQuestions = [...allQuestions, ...teacherQuestions];
+  }
+  
+  if (teacherLevel === 'lead' || teacherLevel === 'master') {
+    allQuestions = [...allQuestions, ...leadQuestions];
+  }
+  
+  if (teacherLevel === 'master') {
+    allQuestions = [...allQuestions, ...masterQuestions];
+  }
+  
+  // Limit the number of questions based on teacher level
+  const questionCount = 
+    teacherLevel === 'assistant' ? 7 : 
+    teacherLevel === 'teacher' ? 9 : 
+    teacherLevel === 'lead' ? 11 : 13;
+  
+  return {
+    questions: allQuestions.slice(0, questionCount)
   };
 }
 
