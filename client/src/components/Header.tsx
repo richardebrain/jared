@@ -219,6 +219,11 @@ export default function Header() {
                 Video Library
               </div>
             </Link>
+            <Link href="/games">
+              <div className={`font-heading font-semibold ${location === "/games" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
+                Games
+              </div>
+            </Link>
             <div className="pt-2 border-t border-neutral-100">
               <Button variant="outline" className="w-full justify-start" onClick={handleLogout}>
                 <i className="ri-logout-box-line mr-2"></i>
