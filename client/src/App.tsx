@@ -22,6 +22,7 @@ import VideoResourcesPage from "@/pages/video-resources";
 import ToolsPage from "@/pages/tools";
 import DataSourcesPage from "@/pages/settings/data-sources";
 import OwnerDashboardPage from "@/pages/settings/owner-dashboard";
+import OwnerDashboardStandalone from "@/pages/owner-dashboard";
 import AccountPage from "@/pages/settings/account";
 import BearyAIPage from "@/pages/beary-ai";
 import GamesPage from "@/pages/games";
@@ -132,6 +133,10 @@ function Router() {
       
       <Route path="/settings/owner-dashboard">
         {isAuthenticated ? <OwnerDashboardPage /> : <Login />}
+      </Route>
+      
+      <Route path="/owner-dashboard">
+        {isAuthenticated ? <OwnerDashboardStandalone /> : <Login />}
       </Route>
       
       <Route path="/settings/data-sources">

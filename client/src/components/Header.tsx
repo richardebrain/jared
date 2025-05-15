@@ -136,21 +136,33 @@ export default function Header() {
         </nav>
         
         <div className="flex items-center space-x-4">
-          <div className="relative group">
-            <button 
-              className="relative text-neutral-800 hover:text-primary transition flex items-center justify-center"
-              onClick={() => setLocation("/beary-ai")}
-            >
-              <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center hover:bg-amber-200 transition-colors">
-                <span role="img" aria-label="bear" className="text-sm">🐻</span>
+          <div className="flex items-center space-x-2">
+            {/* Beary AI Assistant */}
+            <div className="relative group">
+              <button 
+                className="relative text-neutral-800 hover:text-primary transition flex items-center justify-center"
+                onClick={() => setLocation("/beary-ai")}
+              >
+                <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center hover:bg-amber-200 transition-colors">
+                  <span role="img" aria-label="bear" className="text-sm">🐻</span>
+                </div>
+              </button>
+              <div className="absolute top-full right-0 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out">
+                <div className="bg-white shadow-lg rounded-md p-2 whitespace-nowrap text-xs font-semibold border border-amber-200">
+                  Ask me anything! <span className="text-amber-500">📚</span>
+                </div>
+                <div className="absolute top-0 right-3 -mt-2 w-3 h-3 bg-white border-t border-l border-amber-200 transform rotate-45"></div>
               </div>
-            </button>
-            <div className="absolute top-full right-0 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out">
-              <div className="bg-white shadow-lg rounded-md p-2 whitespace-nowrap text-xs font-semibold border border-amber-200">
-                Ask me anything! <span className="text-amber-500">📚</span>
-              </div>
-              <div className="absolute top-0 right-3 -mt-2 w-3 h-3 bg-white border-t border-l border-amber-200 transform rotate-45"></div>
             </div>
+            
+            {/* Owner Dashboard Link */}
+            <button 
+              className="hidden md:flex items-center px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+              onClick={() => setLocation("/owner-dashboard")}
+            >
+              <i className="ri-building-line mr-1"></i>
+              Owner Portal
+            </button>
           </div>
           
           <DropdownMenu>
