@@ -938,6 +938,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Lesson Plan Generator API
+  app.post("/api/lesson-plan", requireAuth, async (req, res) => {
+    try {
+      const { theme, ageGroup, additionalNotes } = req.body;
+      
+      if (!theme || !ageGroup) {
+        return res.status(400).json({ message: "Theme and age group are required" });
+      }
+      
+      console.log(`Generating lesson plan for theme: "${theme}", age group: "${ageGroup}"`);
+      
+      // Create a system prompt for Perplexity
+      const systemPrompt = `You are an expert early childhood educator at Raising Arizona Preschool. 
+      Create a detailed, creative, and age-appropriate weekly lesson plan for ${ageGroup} children 
+      based on the theme: "${theme}". 
+      
+      The lesson plan should:
+      1. Align with early childhood education standards and best practices
+      2. Include engaging activities for each day of the week (Monday-Friday)
+      3. Cover different developmental domains (cognitive, physical, social-emotional, language)
+      4. Include required materials for each activity
+      5. Specify learning objectives for each activity
+      6. Incorporate both indoor and outdoor activities
+      7. Include at least one art project, one science experiment, and one sensory activity
+      8. Be presented in a structured, organized format that's easy for teachers to follow
+      
+      Format the response as properly structured HTML, using h1, h2, h3 tags appropriately, 
+      along with lists, tables, and other formatting to make it visually organized.`;
+      
+      const userPrompt = `Theme: ${theme}
+      Age Group: ${ageGroup}
+      Additional Notes: ${additionalNotes || "None provided"}
+      
+      Please create a comprehensive weekly lesson plan that a preschool teacher can implement immediately.`;
+      
+      // Make the API call to Perplexity
+      const response = await fetch("https://api.perplexity.ai/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.PERPLEXITY_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-sonar-small-128k-online",
+          messages: [
+            {
+              role: "system", 
+              content: systemPrompt
+            },
+            {
+              role: "user",
+              content: userPrompt
+            }
+          ],
+          max_tokens: 5000,
+          temperature: 0.2,
+          return_images: false,
+          search_domain_filter: ["perplexity.ai"]
+        })
+      });
+      
+      if (!response.ok) {
+        console.error("Perplexity API error:", await response.text());
+        return res.status(500).json({ message: "Error generating lesson plan" });
+      }
+      
+      const data = await response.json();
+      
+      // Return the generated lesson plan
+      res.status(200).json({
+        success: true,
+        lessonPlan: data.choices[0].message.content,
+        citations: data.citations || []
+      });
+    } catch (error) {
+      console.error("Error generating lesson plan:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   // Return server for use in tests and closing
   return httpServer;
 }
