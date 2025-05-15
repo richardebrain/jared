@@ -106,7 +106,7 @@ export default function CoreValuesShoutOuts() {
                 </div>
                 
                 <div className="bg-accent/10 p-3 rounded-md mb-3 text-sm italic border-l-4 border-accent">
-                  "{shoutout.message}"
+                  "{shoutout.description || shoutout.message}"
                 </div>
                 
                 <div className="flex items-center justify-end text-sm font-medium mt-2">
