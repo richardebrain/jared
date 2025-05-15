@@ -34,8 +34,8 @@ const BearBucksRewards: React.FC<BearBucksRewardsProps> = ({
   points = 0,
   className = "",
 }) => {
-  // Define the conversion rate: 25 points = 1 Bear Buck
-  const conversionRate = 25;
+  // Define the conversion rate: 50 points = 1 Bear Buck
+  const conversionRate = 50;
   
   // Initialize state for conversion in progress
   const [isConverting, setIsConverting] = useState(false);
@@ -176,7 +176,7 @@ const BearBucksRewards: React.FC<BearBucksRewardsProps> = ({
           <h3 className="font-medium text-blue-800 mb-2">Points to Bear Bucks Conversion</h3>
           <div className="flex items-center justify-center gap-4 p-3">
             <div className="text-center p-3 bg-white rounded-lg shadow border border-blue-100">
-              <span className="block text-xl font-bold text-gray-700">25 Points</span>
+              <span className="block text-xl font-bold text-gray-700">50 Points</span>
               <span className="text-gray-500 text-sm">converts to</span>
             </div>
             <div className="text-2xl text-blue-500">→</div>

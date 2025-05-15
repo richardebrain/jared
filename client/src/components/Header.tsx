@@ -124,6 +124,7 @@ export default function Header() {
               Video Library
             </div>
           </Link>
+          {/* Games section hidden until more games are available
           <Link href="/games">
             <div className={`font-heading font-semibold px-4 py-2 ${location === "/games" 
               ? "text-primary border-b-2 border-primary" 
@@ -131,6 +132,7 @@ export default function Header() {
               Games
             </div>
           </Link>
+          */}
         </nav>
         
         <div className="flex items-center space-x-4">
@@ -223,11 +225,13 @@ export default function Header() {
                 Video Library
               </div>
             </Link>
+            {/* Games section hidden until more games are available
             <Link href="/games">
               <div className={`font-heading font-semibold ${location === "/games" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
                 Games
               </div>
             </Link>
+            */}
             <div className="pt-2 border-t border-neutral-100">
               <Button variant="outline" className="w-full justify-start mb-2" onClick={() => setLocation("/admin")}>
                 <i className="ri-shield-keyhole-line mr-2"></i>
