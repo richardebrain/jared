@@ -1,264 +1,195 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import React, { useState } from "react";
 import { z } from "zod";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Copy, Check } from "lucide-react";
+import { LoaderCircle, Download, Share } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { apiRequest } from "@/lib/queryClient";
 
+// Pre-defined scenarios for the parent response generator
+export interface ParentScenario {
+  title: string;
+  description: string;
+  prompt: string;
+}
+
+// Form schema for parent response generator
 const formSchema = z.object({
-  situation: z.string().min(10, {
-    message: "Situation must be at least 10 characters.",
+  prompt: z.string().min(10, {
+    message: "Prompt must be at least 10 characters",
+  }).max(1000, {
+    message: "Prompt is limited to 1000 characters",
   }),
-  tone: z.string().min(1, {
-    message: "Please select a tone.",
-  }),
-  audience: z.string().min(1, {
-    message: "Please select an audience.",
-  }),
-  includeResources: z.boolean().optional(),
 });
 
+// Type for form values
 type FormValues = z.infer<typeof formSchema>;
 
-export default function ParentResponseGenerator() {
-  const [response, setResponse] = useState<string>("");
-  const [copied, setCopied] = useState(false);
+interface ParentResponseGeneratorProps {
+  scenarios: ParentScenario[];
+}
+
+export default function ParentResponseGenerator({ scenarios }: ParentResponseGeneratorProps) {
+  const [response, setResponse] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
+  // Initialize form with default values
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      situation: "",
-      tone: "professional",
-      audience: "parent",
-      includeResources: true,
-    },
+      prompt: "",
+    }
   });
 
-  const { isPending, mutate } = useQuery({
-    queryKey: ["parent-response"],
-    queryFn: async () => {
-      try {
-        const values = form.getValues();
-        // In a real implementation, you would call your API here
-        // For now, we'll simulate a response
-        const simulatedResponse = generateSimulatedResponse(values);
-        setResponse(simulatedResponse);
-        return simulatedResponse;
-      } catch (error) {
-        console.error("Error generating response:", error);
-        throw error;
+  // Handle form submission
+  const onSubmit = async (data: FormValues) => {
+    setIsGenerating(true);
+    setResponse(null);
+    
+    try {
+      const result = await apiRequest("/api/ai/parent-response", {
+        method: "POST",
+        data: {
+          prompt: data.prompt
+        }
+      });
+      
+      if (result.response) {
+        setResponse(result.response);
+      } else {
+        throw new Error("Failed to generate response");
       }
-    },
-    enabled: false,
-  });
-
-  function generateSimulatedResponse(values: FormValues): string {
-    // This is a placeholder function that would be replaced with a real API call to Perplexity
-    const { situation, tone, audience } = values;
-    
-    let responseText = "";
-    
-    // Greeting based on audience
-    if (audience === "parent") {
-      responseText += "Dear Parent,\n\n";
-    } else if (audience === "guardian") {
-      responseText += "Dear Guardian,\n\n";
-    } else if (audience === "family") {
-      responseText += "Dear Family,\n\n";
+    } catch (error) {
+      console.error("Error generating parent response:", error);
+      toast({
+        title: "Error generating response",
+        description: "There was a problem creating your response. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
     }
-    
-    // Introduction based on tone
-    if (tone === "professional") {
-      responseText += "I wanted to reach out regarding a situation in our classroom that I believe is important to address in a constructive manner.\n\n";
-    } else if (tone === "supportive") {
-      responseText += "I'm writing to share something that happened today. Please know that I'm here to support both you and your child through this.\n\n";
-    } else if (tone === "celebratory") {
-      responseText += "I'm thrilled to share some wonderful news with you about a special moment in our classroom!\n\n";
-    }
-    
-    // Custom content based on the situation (simplified for this example)
-    responseText += `Regarding the situation you described: "${situation}"\n\n`;
-    
-    if (situation.toLowerCase().includes("behavior")) {
-      responseText += "I've observed this behavior pattern and wanted to discuss some positive strategies we can implement both at school and at home. Our goal is to help your child develop self-regulation skills in a supportive environment.\n\n";
-    } else if (situation.toLowerCase().includes("progress")) {
-      responseText += "I've been carefully tracking this progress and am pleased to see the development. Our Chapter One philosophy emphasizes these foundational skills as crucial building blocks for future learning.\n\n";
-    } else if (situation.toLowerCase().includes("concern")) {
-      responseText += "I understand this may be concerning, and I want to assure you that we are addressing it thoughtfully. Early childhood is a time of tremendous growth and learning, and we're committed to guiding your child through these challenges.\n\n";
-    } else {
-      responseText += "We at Raising Arizona Preschool believe in building Chapter One of each child's life with intention and care. I'd be happy to discuss this further and answer any questions you might have.\n\n";
-    }
-    
-    // Conclusion
-    responseText += "Please feel free to schedule a time to talk more about this if you'd like. I'm available during my planning period (1-2pm) or after school.\n\n";
-    
-    // Closing
-    responseText += "Warmly,\n[Your Name]\nRaising Arizona Preschool Teacher";
-    
-    return responseText;
-  }
+  };
 
-  function onSubmit(values: FormValues) {
-    mutate();
-  }
+  // Load a pre-defined scenario
+  const useScenario = (scenario: ParentScenario) => {
+    form.setValue("prompt", scenario.prompt);
+    // Scroll to form
+    document.getElementById("prompt-field")?.scrollIntoView({ behavior: "smooth" });
+  };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(response);
-    setCopied(true);
-    toast({
-      title: "Copied!",
-      description: "Response copied to clipboard",
-    });
-    setTimeout(() => setCopied(false), 2000);
+  // Handle copying the response to clipboard
+  const handleCopyToClipboard = () => {
+    if (!response) return;
+    
+    navigator.clipboard.writeText(response)
+      .then(() => {
+        toast({
+          title: "Copied to clipboard",
+          description: "Response has been copied and is ready to share",
+        });
+      })
+      .catch(() => {
+        toast({
+          title: "Copy failed",
+          description: "Failed to copy response. Please try again.",
+          variant: "destructive"
+        });
+      });
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardContent className="pt-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="situation"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Describe the situation</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="e.g., A child in my class has been having difficulty sharing toys during free play, which has led to some conflicts with peers."
-                        className="min-h-[120px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="tone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Communication tone</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select tone" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="professional">Professional</SelectItem>
-                          <SelectItem value="supportive">Supportive</SelectItem>
-                          <SelectItem value="celebratory">Celebratory</SelectItem>
-                          <SelectItem value="concerned">Concerned</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="audience"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Intended audience</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select audience" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="parent">Parent</SelectItem>
-                          <SelectItem value="guardian">Guardian</SelectItem>
-                          <SelectItem value="family">Family</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isPending}
+    <div className="space-y-8">
+      <div className="space-y-4">
+        <h2 className="text-2xl font-semibold">Common Parent Scenarios</h2>
+        <p className="text-muted-foreground">
+          Select a pre-defined scenario or write your own below.
+        </p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {scenarios.map((scenario, index) => (
+            <Card key={index} className="cursor-pointer hover:shadow-md transition-shadow">
+              <CardContent 
+                className="p-4 space-y-2"
+                onClick={() => useScenario(scenario)}
               >
-                {isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating response...
-                  </>
-                ) : (
-                  "Generate Professional Response"
-                )}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+                <h3 className="font-medium">{scenario.title}</h3>
+                <p className="text-sm text-muted-foreground">{scenario.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="prompt"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Describe the parent communication scenario</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    id="prompt-field"
+                    placeholder="Describe the situation, what the parent said, and what information you need to communicate..."
+                    className="min-h-[150px]"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormDescription>
+                  Provide context and key details about the situation to generate a professional response
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <Button 
+            type="submit" 
+            className="w-full"
+            disabled={isGenerating}
+          >
+            {isGenerating ? (
+              <>
+                <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                Crafting Response...
+              </>
+            ) : (
+              "Generate Professional Response"
+            )}
+          </Button>
+        </form>
+      </Form>
 
       {response && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Generated Response</h3>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleCopy}
-                className="flex items-center"
-              >
-                {copied ? (
-                  <>
-                    <Check className="h-4 w-4 mr-1" />
-                    Copied
-                  </>
-                ) : (
-                  <>
-                    <Copy className="h-4 w-4 mr-1" />
-                    Copy
-                  </>
-                )}
-              </Button>
-            </div>
-            <div className="whitespace-pre-wrap bg-muted p-4 rounded-md">
-              {response}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-medium">Your Professional Response</h3>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center gap-1"
+              onClick={handleCopyToClipboard}
+            >
+              <Share className="h-4 w-4" />
+              Copy
+            </Button>
+          </div>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="whitespace-pre-wrap text-sm font-light">
+                {response}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   );

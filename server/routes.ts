@@ -963,9 +963,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Lesson Plan Generator API
-  app.post("/api/lesson-plan", requireAuth, async (req, res) => {
+  app.post("/api/ai/lesson-plan", requireAuth, async (req, res) => {
     try {
-      const { theme, ageGroup, additionalNotes } = req.body;
+      const { theme, ageGroup, details, additionalRequests } = req.body;
       
       if (!theme || !ageGroup) {
         return res.status(400).json({ message: "Theme and age group are required" });
@@ -988,12 +988,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       7. Include at least one art project, one science experiment, and one sensory activity
       8. Be presented in a structured, organized format that's easy for teachers to follow
       
-      Format the response as properly structured HTML, using h1, h2, h3 tags appropriately, 
-      along with lists, tables, and other formatting to make it visually organized.`;
+      Format the response in a clean, well-structured format with clear headings, 
+      organized by day of the week, with each activity clearly defined.`;
       
       const userPrompt = `Theme: ${theme}
       Age Group: ${ageGroup}
-      Additional Notes: ${additionalNotes || "None provided"}
+      Additional Details: ${details || "None provided"}
+      Special Requests: ${additionalRequests || "None"}
       
       Please create a comprehensive weekly lesson plan that a preschool teacher can implement immediately.`;
       
@@ -1042,6 +1043,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Parent Response Generator API
+  app.post("/api/ai/parent-response", requireAuth, async (req, res) => {
+    try {
+      const { prompt } = req.body;
+      
+      if (!prompt) {
+        return res.status(400).json({ message: "Prompt is required" });
+      }
+      
+      console.log(`Generating parent response for prompt: "${prompt.substring(0, 50)}..."`);
+      
+      // Create a system prompt for Perplexity
+      const systemPrompt = `You are an experienced early childhood educator at Raising Arizona Preschool 
+      with excellent parent communication skills. Your goal is to help teachers craft professional, 
+      empathetic, and effective responses to parents about challenging or sensitive topics.
+      
+      When generating a response:
+      1. Start with a warm, personal greeting
+      2. Show empathy and understanding for the parent's perspective
+      3. Be clear and straightforward about the situation without blame
+      4. Offer constructive solutions or next steps
+      5. End with a positive note and invitation for further discussion
+      6. Keep the tone professional but warm and approachable
+      7. Aim for a response length of 150-250 words`;
+      
+      // Make the API call to Perplexity
+      const response = await fetch("https://api.perplexity.ai/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.PERPLEXITY_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-sonar-small-128k-online",
+          messages: [
+            {
+              role: "system", 
+              content: systemPrompt
+            },
+            {
+              role: "user",
+              content: prompt
+            }
+          ],
+          max_tokens: 1000,
+          temperature: 0.7,
+          return_images: false
+        })
+      });
+      
+      if (!response.ok) {
+        console.error("Perplexity API error:", await response.text());
+        return res.status(500).json({ message: "Error generating parent response" });
+      }
+      
+      const data = await response.json();
+      
+      // Return the generated parent response
+      res.status(200).json({
+        success: true,
+        response: data.choices[0].message.content
+      });
+    } catch (error) {
+      console.error("Error generating parent response:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Return server for use in tests and closing
   return httpServer;
 }
