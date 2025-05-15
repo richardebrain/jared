@@ -2999,6 +2999,160 @@ Format your response as a complete message I could use, including a greeting and
     }
   });
 
+  // Educational games endpoints
+  app.get("/api/games", requireAuth, async (req, res) => {
+    try {
+      const category = req.query.category as string;
+      const difficulty = req.query.difficulty as string;
+      
+      const options: { category?: string, difficulty?: string } = {};
+      if (category) options.category = category;
+      if (difficulty) options.difficulty = difficulty;
+      
+      const games = await storage.getAllGames(options);
+      res.status(200).json(games);
+    } catch (error) {
+      console.error("Error fetching games:", error);
+      res.status(500).json({ message: "Failed to fetch games" });
+    }
+  });
+  
+  app.get("/api/games/:id", requireAuth, async (req, res) => {
+    try {
+      const gameId = parseInt(req.params.id);
+      if (isNaN(gameId)) {
+        return res.status(400).json({ message: "Invalid game ID" });
+      }
+      
+      const game = await storage.getGameById(gameId);
+      if (!game) {
+        return res.status(404).json({ message: "Game not found" });
+      }
+      
+      res.status(200).json(game);
+    } catch (error) {
+      console.error("Error fetching game:", error);
+      res.status(500).json({ message: "Failed to fetch game" });
+    }
+  });
+  
+  app.post("/api/games", requireAuth, async (req, res) => {
+    try {
+      const gameData = req.body;
+      
+      // Validate the data
+      if (!gameData.title || !gameData.description || !gameData.type || !gameData.difficulty || !gameData.category || !gameData.pointsValue) {
+        return res.status(400).json({ message: "Missing required game data" });
+      }
+      
+      const newGame = await storage.createGame(gameData);
+      res.status(201).json(newGame);
+    } catch (error) {
+      console.error("Error creating game:", error);
+      res.status(500).json({ message: "Failed to create game" });
+    }
+  });
+  
+  app.patch("/api/games/:id", requireAuth, async (req, res) => {
+    try {
+      const gameId = parseInt(req.params.id);
+      if (isNaN(gameId)) {
+        return res.status(400).json({ message: "Invalid game ID" });
+      }
+      
+      const gameData = req.body;
+      const updatedGame = await storage.updateGame(gameId, gameData);
+      
+      res.status(200).json(updatedGame);
+    } catch (error) {
+      console.error("Error updating game:", error);
+      res.status(500).json({ message: "Failed to update game" });
+    }
+  });
+  
+  app.delete("/api/games/:id", requireAuth, async (req, res) => {
+    try {
+      const gameId = parseInt(req.params.id);
+      if (isNaN(gameId)) {
+        return res.status(400).json({ message: "Invalid game ID" });
+      }
+      
+      await storage.deleteGame(gameId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting game:", error);
+      res.status(500).json({ message: "Failed to delete game" });
+    }
+  });
+  
+  // Game completions endpoints
+  app.get("/api/game-completions", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const completions = await storage.getGameCompletionsByUserId(userId);
+      res.status(200).json(completions);
+    } catch (error) {
+      console.error("Error fetching game completions:", error);
+      res.status(500).json({ message: "Failed to fetch game completions" });
+    }
+  });
+  
+  app.get("/api/game-completions/daily-count", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const count = await storage.getDailyGameCompletionsCount(userId);
+      res.status(200).json({ count, limit: 2 }); // 2 games per day limit 
+    } catch (error) {
+      console.error("Error fetching daily game completions count:", error);
+      res.status(500).json({ message: "Failed to fetch daily game completions count" });
+    }
+  });
+  
+  app.post("/api/game-completions", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const { gameId, score, timeTaken, pointsEarned } = req.body;
+      
+      // Check daily limit
+      const dailyCompletionsCount = await storage.getDailyGameCompletionsCount(userId);
+      if (dailyCompletionsCount >= 2) {
+        return res.status(403).json({ 
+          message: "Daily game limit reached", 
+          completionsToday: dailyCompletionsCount,
+          limit: 2
+        });
+      }
+      
+      // Verify the game exists
+      const game = await storage.getGameById(gameId);
+      if (!game) {
+        return res.status(404).json({ message: "Game not found" });
+      }
+      
+      // Create the completion record
+      const completion = await storage.createGameCompletion({
+        userId,
+        gameId,
+        score,
+        timeTaken,
+        pointsEarned
+      });
+      
+      // Get updated user info with new points total
+      const user = await storage.getUser(userId);
+      
+      res.status(201).json({ 
+        completion,
+        userPoints: user?.points,
+        completionsToday: dailyCompletionsCount + 1,
+        limit: 2
+      });
+    } catch (error) {
+      console.error("Error creating game completion:", error);
+      res.status(500).json({ message: "Failed to create game completion" });
+    }
+  });
+
   // Create HTTP server
   const httpServer = createServer(app);
 

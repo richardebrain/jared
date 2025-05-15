@@ -21,6 +21,7 @@ import VideoResourcesPage from "@/pages/video-resources";
 import ToolsPage from "@/pages/tools";
 import DataSourcesPage from "@/pages/settings/data-sources";
 import BearyAIPage from "@/pages/beary-ai";
+import GamesPage from "@/pages/games";
 import { useAuth } from "@/hooks/use-auth";
 
 function Router() {
@@ -117,6 +118,10 @@ function Router() {
       
       <Route path="/beary-ai">
         {isAuthenticated ? <BearyAIPage /> : <Login />}
+      </Route>
+      
+      <Route path="/games">
+        {isAuthenticated ? <GamesPage /> : <Login />}
       </Route>
       
       <Route path="/">
