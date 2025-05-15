@@ -837,73 +837,161 @@ export default function OwnerDashboardStandalone() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <h3 className="font-medium">Banking Integration</h3>
-                  <div className="grid grid-cols-1 gap-2">
-                    <div className="flex items-center space-x-2">
-                      <Input 
-                        placeholder="Bank Name" 
-                        value={bankName}
-                        onChange={(e) => setBankName(e.target.value)}
-                      />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Input 
-                        placeholder="API Token" 
-                        type="password" 
-                        value={bankApiToken}
-                        onChange={(e) => setBankApiToken(e.target.value)}
-                      />
-                      <Button 
-                        onClick={() => handleApiConnect('banking')}
-                        disabled={isLoading || !bankName || !bankApiToken}
-                      >
-                        {isLoading ? 'Connecting...' : 'Connect'}
-                      </Button>
-                    </div>
-                    {connectedAPIs.includes('banking') && (
-                      <div className="flex items-center text-green-600 text-sm">
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        <span>Successfully connected to banking API</span>
+                  <div className="grid grid-cols-2 gap-3 mt-2">
+                    <Button 
+                      variant="outline" 
+                      className="flex justify-center items-center py-4 border-dashed border-2"
+                      onClick={() => window.open('https://secure.bankofamerica.com/login/', '_blank')}
+                    >
+                      <div className="flex flex-col items-center">
+                        <span className="text-sm font-bold text-blue-800 mb-1">Bank of America</span>
+                        <span className="text-xs">Login to Account</span>
                       </div>
-                    )}
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="flex justify-center items-center py-4 border-dashed border-2"
+                      onClick={() => window.open('https://banking.wellsfargo.com/signin', '_blank')}
+                    >
+                      <div className="flex flex-col items-center">
+                        <span className="text-sm font-bold text-red-700 mb-1">Wells Fargo</span>
+                        <span className="text-xs">Login to Account</span>
+                      </div>
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="flex justify-center items-center py-4 border-dashed border-2"
+                      onClick={() => window.open('https://www.chase.com/personal/sign-in', '_blank')}
+                    >
+                      <div className="flex flex-col items-center">
+                        <span className="text-sm font-bold text-blue-700 mb-1">Chase</span>
+                        <span className="text-xs">Login to Account</span>
+                      </div>
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="flex justify-center items-center py-4 border-dashed border-2"
+                      onClick={() => window.open('https://www.usbank.com/index.html', '_blank')}
+                    >
+                      <div className="flex flex-col items-center">
+                        <span className="text-sm font-bold text-blue-900 mb-1">US Bank</span>
+                        <span className="text-xs">Login to Account</span>
+                      </div>
+                    </Button>
+                  </div>
+                  
+                  <div className="mt-3">
+                    <Button 
+                      variant="outline" 
+                      className="w-full flex justify-center items-center py-2"
+                      onClick={() => {
+                        const bankName = prompt("Enter your bank's website URL:");
+                        if (bankName) {
+                          // Add https:// if not present
+                          const url = bankName.startsWith('http') ? bankName : `https://${bankName}`;
+                          window.open(url, '_blank');
+                          toast({
+                            title: "Opening Bank Website",
+                            description: `Redirecting to ${url}`,
+                          });
+                        }
+                      }}
+                    >
+                      <div className="flex items-center">
+                        <i className="ri-bank-line mr-2"></i>
+                        <span>Connect to Other Bank</span>
+                      </div>
+                    </Button>
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <h3 className="font-medium">Payroll System</h3>
-                  <div className="flex items-center space-x-2">
-                    <Input 
-                      placeholder="API Key" 
-                      type="password" 
-                      value={payrollApiKey}
-                      onChange={(e) => setPayrollApiKey(e.target.value)}
-                    />
+                  <h3 className="font-medium">Payroll Systems</h3>
+                  <div className="grid grid-cols-2 gap-3 mt-2">
                     <Button 
-                      onClick={() => handleApiConnect('payroll')}
-                      disabled={isLoading || !payrollApiKey}
+                      variant="outline" 
+                      className="flex justify-center items-center py-4 border-dashed border-2"
+                      onClick={() => window.open('https://login.adp.com/welcome', '_blank')}
                     >
-                      {isLoading ? 'Connecting...' : 'Connect'}
+                      <div className="flex flex-col items-center">
+                        <span className="text-sm font-bold text-red-600 mb-1">ADP</span>
+                        <span className="text-xs">Login to Account</span>
+                      </div>
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="flex justify-center items-center py-4 border-dashed border-2"
+                      onClick={() => window.open('https://www.paychex.com/login', '_blank')}
+                    >
+                      <div className="flex flex-col items-center">
+                        <span className="text-sm font-bold text-blue-600 mb-1">Paychex</span>
+                        <span className="text-xs">Login to Account</span>
+                      </div>
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="flex justify-center items-center py-4 border-dashed border-2"
+                      onClick={() => window.open('https://quickbooks.intuit.com/login/', '_blank')}
+                    >
+                      <div className="flex flex-col items-center">
+                        <span className="text-sm font-bold text-green-600 mb-1">QuickBooks</span>
+                        <span className="text-xs">Login to Account</span>
+                      </div>
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="flex justify-center items-center py-4 border-dashed border-2"
+                      onClick={() => window.open('https://app.gusto.com/login', '_blank')}
+                    >
+                      <div className="flex flex-col items-center">
+                        <span className="text-sm font-bold text-purple-600 mb-1">Gusto</span>
+                        <span className="text-xs">Login to Account</span>
+                      </div>
                     </Button>
                   </div>
-                  {connectedAPIs.includes('payroll') && (
-                    <div className="flex items-center text-green-600 text-sm">
-                      <CheckCircle className="h-4 w-4 mr-1" />
-                      <span>Successfully connected to payroll API</span>
-                    </div>
-                  )}
                 </div>
                 
                 <div className="space-y-2">
                   <h3 className="font-medium">Procare Integration</h3>
-                  <div className="flex items-center space-x-2">
-                    <Input placeholder="Procare API Key" type="password" />
-                    <Button onClick={() => handleApiConnect('procare')}>Connect</Button>
-                  </div>
-                  {connectedAPIs.includes('procare') && (
-                    <div className="flex items-center text-green-600 text-sm">
-                      <CheckCircle className="h-4 w-4 mr-1" />
-                      <span>Successfully connected to Procare</span>
+                  <Button 
+                    variant="outline" 
+                    className="w-full flex justify-center items-center py-6 border-dashed border-2"
+                    onClick={() => window.open('https://www.procaresoftware.com/auth/login', '_blank')}
+                  >
+                    <div className="flex flex-col items-center">
+                      <img 
+                        src="https://www.procaresoftware.com/wp-content/themes/procare-2018/img/procare-logo.svg" 
+                        alt="Procare Software" 
+                        className="h-6 mb-2"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          target.onerror = null;
+                          target.src = "https://placehold.co/120x30/4f46e5/fff?text=Procare";
+                        }}
+                      />
+                      <span className="text-sm">Log in with Procare Account</span>
                     </div>
-                  )}
+                  </Button>
+                </div>
+                
+                <div className="space-y-2 mt-4">
+                  <h3 className="font-medium">IntellAKid Integration</h3>
+                  <Button 
+                    variant="outline" 
+                    className="w-full flex justify-center items-center py-6 border-dashed border-2"
+                    onClick={() => window.open('https://intellakid.com/login', '_blank')}
+                  >
+                    <div className="flex flex-col items-center">
+                      <span className="text-lg font-bold text-blue-600 mb-1">IntellAKid</span>
+                      <span className="text-sm">Log in with IntellAKid Account</span>
+                    </div>
+                  </Button>
                 </div>
               </CardContent>
               <div className="p-6 flex justify-end">
