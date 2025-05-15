@@ -1218,9 +1218,9 @@ export class DatabaseStorage implements IStorage {
         and(
           eq(gameCompletions.userId, userId),
           // Greater than or equal to today at 00:00:00
-          gameCompletions.completedAt >= today,
+          sql`${gameCompletions.completedAt} >= ${today}`,
           // Less than tomorrow at 00:00:00
-          gameCompletions.completedAt < tomorrow
+          sql`${gameCompletions.completedAt} < ${tomorrow}`
         )
       );
     
@@ -1288,8 +1288,8 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(videoQuizCompletions.userId, userId),
-          gte(videoQuizCompletions.completedAt, today),
-          lt(videoQuizCompletions.completedAt, tomorrow)
+          sql`${videoQuizCompletions.completedAt} >= ${today}`,
+          sql`${videoQuizCompletions.completedAt} < ${tomorrow}`
         )
       );
     
