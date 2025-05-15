@@ -250,9 +250,69 @@ export const insertSpinGameRewardSchema = createInsertSchema(spinGameRewards).om
   createdAt: true,
 });
 
+// Educational games schema
+export const educationalGames = pgTable("educational_games", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  type: text("type").notNull(), // milestone-matching, scenario-response, knowledge-quiz, etc.
+  difficulty: text("difficulty").notNull(), // easy, medium, hard
+  category: text("category").notNull(), // child-development, classroom-management, etc.
+  pointsValue: integer("points_value").notNull(), // How many points is this game worth
+  config: json("config").$type<{
+    questions?: any[],
+    timeLimit?: number,
+    attempts?: number,
+    passingScore?: number,
+    [key: string]: any;
+  }>(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertEducationalGameSchema = createInsertSchema(educationalGames).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Game completions to track user progress and daily limits
+export const gameCompletions = pgTable("game_completions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  gameId: integer("game_id").notNull().references(() => educationalGames.id),
+  score: integer("score"), // The user's score (percentage or points)
+  timeTaken: integer("time_taken"), // Time in seconds
+  pointsEarned: integer("points_earned").notNull(), // Points earned from this game
+  completedAt: timestamp("completed_at").defaultNow(),
+});
+
+export const insertGameCompletionSchema = createInsertSchema(gameCompletions).omit({
+  id: true,
+  completedAt: true,
+});
+
+export type EducationalGame = typeof educationalGames.$inferSelect;
+export type InsertEducationalGame = z.infer<typeof insertEducationalGameSchema>;
+export type GameCompletion = typeof gameCompletions.$inferSelect;
+export type InsertGameCompletion = z.infer<typeof insertGameCompletionSchema>;
+
 export const assessmentsRelations = relations(assessments, ({ one }) => ({
   user: one(users, {
     fields: [assessments.userId],
+    references: [users.id]
+  })
+}));
+
+export const educationalGamesRelations = relations(educationalGames, ({ many }) => ({
+  completions: many(gameCompletions)
+}));
+
+export const gameCompletionsRelations = relations(gameCompletions, ({ one }) => ({
+  game: one(educationalGames, {
+    fields: [gameCompletions.gameId],
+    references: [educationalGames.id]
+  }),
+  user: one(users, {
+    fields: [gameCompletions.userId],
     references: [users.id]
   })
 }));
