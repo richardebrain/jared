@@ -15,7 +15,7 @@ import {
   videoQuizCompletions, type VideoQuizCompletion, type InsertVideoQuizCompletion
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, gte, lt, sql } from "drizzle-orm";
+import { eq, and, desc, gte, lt, or, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -24,6 +24,8 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, userData: Partial<InsertUser>): Promise<User>;
+  addUserPoints(userId: number, points: number): Promise<User>;
+  getUserPointsEarnedToday(userId: number): Promise<number>;
   getAllUsers(): Promise<User[]>;
   
   // Learning modules operations
@@ -1318,6 +1320,130 @@ export class DatabaseStorage implements IStorage {
       );
     
     return completions.length;
+  }
+  
+  /**
+   * Get the total points earned by a user today
+   * Used to enforce the daily points cap of 20
+   * 
+   * @param userId The user ID to check
+   * @returns Promise with the total points earned today
+   */
+  async getUserPointsEarnedToday(userId: number): Promise<number> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    // First check video points
+    const videoPoints = await db
+      .select({
+        totalPoints: sql<number>`sum(${videoQuizCompletions.pointsEarned})`,
+      })
+      .from(videoQuizCompletions)
+      .where(
+        and(
+          eq(videoQuizCompletions.userId, userId),
+          sql`${videoQuizCompletions.completedAt} >= ${today}`,
+          sql`${videoQuizCompletions.completedAt} < ${tomorrow}`
+        )
+      );
+    
+    // Check game points
+    const gamePoints = await db
+      .select({
+        totalPoints: sql<number>`sum(${gameCompletions.pointsEarned})`,
+      })
+      .from(gameCompletions)
+      .where(
+        and(
+          eq(gameCompletions.userId, userId),
+          sql`${gameCompletions.completedAt} >= ${today}`,
+          sql`${gameCompletions.completedAt} < ${tomorrow}`
+        )
+      );
+    
+    // Check shout-out points
+    const shoutoutPoints = await db
+      .select({
+        totalPoints: sql<number>`sum(${coreValuesShoutOuts.pointsAwarded})`,
+      })
+      .from(coreValuesShoutOuts)
+      .where(
+        and(
+          or(
+            eq(coreValuesShoutOuts.nominatorId, userId),
+            eq(coreValuesShoutOuts.nomineeId, userId)
+          ),
+          sql`${coreValuesShoutOuts.createdAt} >= ${today}`,
+          sql`${coreValuesShoutOuts.createdAt} < ${tomorrow}`
+        )
+      );
+      
+    // Sum up all points from different sources
+    const videoTotal = videoPoints[0]?.totalPoints || 0;
+    const gameTotal = gamePoints[0]?.totalPoints || 0;
+    const shoutoutTotal = shoutoutPoints[0]?.totalPoints || 0;
+    
+    return videoTotal + gameTotal + shoutoutTotal;
+  }
+  
+  /**
+   * Add points to a user, respecting the daily points cap
+   * 
+   * @param userId The user ID to add points to
+   * @param points Number of points to add
+   * @returns Updated user record
+   */
+  async addUserPoints(userId: number, points: number): Promise<User> {
+    // If deducting points (negative), don't apply the daily cap
+    if (points <= 0) {
+      const user = await this.getUser(userId);
+      if (!user) {
+        throw new Error(`User with ID ${userId} not found`);
+      }
+      
+      const currentPoints = user.points || 0;
+      const newPoints = currentPoints + points;
+      
+      // Update the user's points
+      return await this.updateUser(userId, { points: newPoints });
+    }
+    
+    // Get the total points earned today so far
+    const pointsEarnedToday = await this.getUserPointsEarnedToday(userId);
+    
+    // Calculate how many points can be added before hitting the cap
+    const maxDailyPoints = 20;
+    const pointsAvailable = Math.max(0, maxDailyPoints - pointsEarnedToday);
+    
+    // Cap the points to add
+    const pointsToAdd = Math.min(points, pointsAvailable);
+    
+    // If no points can be added, return the user without changes
+    if (pointsToAdd <= 0) {
+      console.log(`User ${userId} has reached the daily points cap of ${maxDailyPoints}. No points added.`);
+      const user = await this.getUser(userId);
+      if (!user) {
+        throw new Error(`User with ID ${userId} not found`);
+      }
+      return user;
+    }
+    
+    console.log(`Adding ${pointsToAdd} points to user ${userId}. Today's total: ${pointsEarnedToday + pointsToAdd}/${maxDailyPoints}`);
+    
+    // Update the user's points
+    const user = await this.getUser(userId);
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    
+    const currentPoints = user.points || 0;
+    const newPoints = currentPoints + pointsToAdd;
+    
+    // Update the user's points
+    return await this.updateUser(userId, { points: newPoints });
   }
 }
 

@@ -407,75 +407,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Video Watch routes
-  app.get("/api/videos", async (req, res) => {
-    try {
-      const videos = await storage.getAllVideos();
-      res.status(200).json(videos);
-    } catch (error) {
-      console.error("Error fetching videos:", error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-  
-  app.post("/api/videos/watched/:videoId", requireAuth, async (req, res) => {
+  // Video Quiz Completion routes
+  app.post("/api/videos/quiz-complete/:videoId", requireAuth, async (req, res) => {
     try {
       const userId = req.session.userId as number;
-      const videoId = parseInt(req.params.videoId);
-      const { minutesWatched } = req.body;
+      const videoId = req.params.videoId; // Using videoId as string (YouTube ID)
       
-      if (!minutesWatched || minutesWatched <= 0) {
-        return res.status(400).json({ message: "Minutes watched must be greater than 0" });
-      }
+      // Check if user has already completed 2 video quizzes today
+      const completionsToday = await storage.getDailyVideoCompletionsCount(userId);
       
-      // Check if user has already watched 2 videos today
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const userVideoWatchesToday = await storage.getUserVideoWatchesToday(userId, today);
-      
-      if (userVideoWatchesToday.length >= 2) {
+      if (completionsToday >= 2) {
         return res.status(400).json({ 
           message: "You can only earn points for 2 videos per day",
           remaining: 0
         });
       }
       
-      // Get the video
-      const video = await storage.getVideo(videoId);
-      if (!video) {
-        return res.status(404).json({ message: "Video not found" });
-      }
+      // Determine points based on video duration
+      // For simplicity, we're using a fixed value based on video length
+      // In a real implementation, you'd look up the video's duration from your data
+      const videoDuration = req.body.duration || 5; // Default to 5 minutes if not provided
+      const pointsEarned = videoDuration >= 10 ? 8 : 5; // 8 points for videos 10+ minutes, 5 points for shorter videos
       
-      // Record the watch
-      const videoWatch = await storage.recordVideoWatch({
+      // Record the completion
+      const completion = await storage.createVideoQuizCompletion({
         userId,
         videoId,
-        minutesWatched,
-        pointsEarned: video.duration >= 10 ? 8 : 5 // 8 points for videos 10+ minutes, 5 points for shorter videos
+        pointsEarned,
+        completedAt: new Date()
       });
       
-      // Add points to user
-      await storage.addUserPoints(userId, videoWatch.pointsEarned);
+      // Add points to user (respecting daily cap)
+      await storage.addUserPoints(userId, pointsEarned);
       
       res.status(201).json({ 
         success: true, 
-        videoWatch,
-        remaining: 2 - (userVideoWatchesToday.length + 1) // Remaining videos for today
+        completion,
+        remaining: 2 - (completionsToday + 1) // Remaining videos for today
       });
     } catch (error) {
-      console.error("Error recording video watch:", error);
+      console.error("Error recording video quiz completion:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
   
-  app.get("/api/videos/history", requireAuth, async (req, res) => {
+  app.get("/api/videos/completions", requireAuth, async (req, res) => {
     try {
       const userId = req.session.userId as number;
-      const videoHistory = await storage.getUserVideoHistory(userId);
-      res.status(200).json(videoHistory);
+      const completions = await storage.getVideoQuizCompletionsByUserId(userId);
+      res.status(200).json(completions);
     } catch (error) {
-      console.error("Error fetching video history:", error);
+      console.error("Error fetching video completions:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
