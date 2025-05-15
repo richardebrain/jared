@@ -1,0 +1,127 @@
+import React from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Trophy, Medal, Award } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+
+// Define teacher ranks and their icons
+const TEACHER_RANKS = [
+  { icon: <Trophy className="h-5 w-5 text-amber-500" />, name: "Master Lead Teacher" },
+  { icon: <Medal className="h-5 w-5 text-indigo-500" />, name: "Senior Teacher" },
+  { icon: <Award className="h-5 w-5 text-emerald-500" />, name: "Lead Teacher" }
+];
+
+// Hard-coded leaderboard data from database
+const teachers = [
+  {
+    id: 4,
+    firstName: "Jared",
+    lastName: "Cook",
+    points: 77,
+    level: 1,
+    isCurrentUser: true
+  },
+  {
+    id: 3,
+    firstName: "Demo",
+    lastName: "Teacher",
+    points: 0,
+    level: 1,
+    isCurrentUser: false
+  },
+  {
+    id: 5,
+    firstName: "Laura",
+    lastName: "Book",
+    points: 0,
+    level: 1,
+    isCurrentUser: false
+  }
+];
+
+export default function SimpleLeaderboard() {
+  const [timeframe, setTimeframe] = React.useState("all");
+  
+  // Get rank icon and name based on level
+  const getRankDetails = (level: number) => {
+    if (level >= 3) return TEACHER_RANKS[0]; // Master Lead Teacher
+    if (level >= 2) return TEACHER_RANKS[1]; // Senior Teacher
+    return TEACHER_RANKS[2]; // Lead Teacher
+  };
+
+  return (
+    <Card className="w-full">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg font-bold">
+          Teacher Leaderboard
+        </CardTitle>
+        <CardDescription>
+          See how your training progress compares to other teachers.
+        </CardDescription>
+        <div className="flex space-x-2 mt-2">
+          <Badge 
+            variant={timeframe === "week" ? "default" : "outline"} 
+            className={timeframe === "week" ? "" : "hover:bg-muted cursor-pointer"}
+            onClick={() => setTimeframe("week")}
+          >
+            This Week
+          </Badge>
+          <Badge 
+            variant={timeframe === "month" ? "default" : "outline"} 
+            className={timeframe === "month" ? "" : "hover:bg-muted cursor-pointer"}
+            onClick={() => setTimeframe("month")}
+          >
+            This Month
+          </Badge>
+          <Badge 
+            variant={timeframe === "all" ? "default" : "outline"} 
+            className={timeframe === "all" ? "" : "hover:bg-muted cursor-pointer"}
+            onClick={() => setTimeframe("all")}
+          >
+            All Time
+          </Badge>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="p-4">
+        <div className="space-y-3">
+          {teachers.map((teacher, index) => {
+            const rankDetails = getRankDetails(teacher.level);
+                
+            return (
+              <div 
+                key={teacher.id}
+                className={`flex items-center justify-between p-2 rounded-md border 
+                  ${teacher.id === 4
+                    ? "bg-gradient-to-r from-purple-100 to-indigo-100 border-purple-300" 
+                    : "bg-card hover:bg-accent/10"} transition-colors`}
+              >
+                <div className="flex items-center">
+                  <div className="w-6 text-center font-medium text-muted-foreground">
+                    {index + 1}
+                  </div>
+                  <div className="ml-3 flex items-center">
+                    <div className="bg-muted rounded-full h-8 w-8 flex items-center justify-center mr-3">
+                      {rankDetails.icon}
+                    </div>
+                    <div className="flex flex-col">
+                      <div className="flex items-center">
+                        <p className="text-sm font-medium">{teacher.firstName} {teacher.lastName}</p>
+                        {teacher.id === 4 && (
+                          <span className="ml-2 text-[10px] rounded-full bg-purple-500 text-white px-1.5 py-0.5">
+                            YOU
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{rankDetails.name}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="font-semibold">{teacher.points}</div>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

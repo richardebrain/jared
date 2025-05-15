@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { MonthlyNewsletter } from "@/components/MonthlyNewsletter";
 import Leaderboard from "@/components/Leaderboard";
+import SimpleLeaderboard from "@/components/SimpleLeaderboard";
 import BearAssistant from "@/components/BearAssistant";
 import { MiniLessons } from "@/components/MiniLessons";
 import MediaSidebar from "@/components/MediaSidebar";
