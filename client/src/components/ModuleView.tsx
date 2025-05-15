@@ -54,8 +54,14 @@ export default function ModuleView({ moduleId, user, onBack }: ModuleViewProps) 
       });
     },
     onSuccess: (result, variables) => {
-      // Refresh user data to update points in header
+      // Refresh user data to update points in header and progression pages
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      
+      // Also invalidate progress data for the progression map page
+      queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/progress/by-user"] });
+      
+      // Refresh local progress data
       refetchProgress();
       
       // Don't show generic toast for lesson completion as we'll show a custom one
