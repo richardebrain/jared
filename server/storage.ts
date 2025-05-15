@@ -103,6 +103,7 @@ export interface IStorage {
   // Video Quiz Completions operations
   getVideoQuizCompletionsByUserId(userId: number): Promise<VideoQuizCompletion[]>;
   createVideoQuizCompletion(completion: InsertVideoQuizCompletion): Promise<VideoQuizCompletion>;
+  getDailyVideoCompletionsCount(userId: number): Promise<number>;
 }
 
 export class MemStorage implements IStorage {
@@ -1244,6 +1245,55 @@ export class DatabaseStorage implements IStorage {
     }
     
     return newCompletion;
+  }
+  
+  // Video Quiz Completions implementation
+  async getVideoQuizCompletionsByUserId(userId: number): Promise<VideoQuizCompletion[]> {
+    return await db
+      .select()
+      .from(videoQuizCompletions)
+      .where(eq(videoQuizCompletions.userId, userId));
+  }
+
+  async createVideoQuizCompletion(completion: InsertVideoQuizCompletion): Promise<VideoQuizCompletion> {
+    const [result] = await db
+      .insert(videoQuizCompletions)
+      .values(completion)
+      .returning();
+    
+    // Also update the user's points
+    if (completion.pointsEarned) {
+      const user = await this.getUser(completion.userId);
+      if (user && user.points !== null) {
+        await db
+          .update(users)
+          .set({ points: user.points + completion.pointsEarned })
+          .where(eq(users.id, completion.userId));
+      }
+    }
+    
+    return result;
+  }
+  
+  async getDailyVideoCompletionsCount(userId: number): Promise<number> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const completions = await db
+      .select()
+      .from(videoQuizCompletions)
+      .where(
+        and(
+          eq(videoQuizCompletions.userId, userId),
+          gte(videoQuizCompletions.completedAt, today),
+          lt(videoQuizCompletions.completedAt, tomorrow)
+        )
+      );
+    
+    return completions.length;
   }
 }
 
