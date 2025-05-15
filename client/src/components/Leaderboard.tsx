@@ -14,28 +14,44 @@ const TEACHER_RANKS = [
 export default function Leaderboard() {
   const [timeframe, setTimeframe] = useState<"week" | "month" | "all">("week");
   
+  // Get current user data from auth context or query
+  const { data: userData } = useQuery({
+    queryKey: ["/api/auth/me"],
+    // Don't retry if unauthorized (user not logged in)
+    retry: (failureCount, error: any) => error?.status !== 401 && failureCount < 3
+  });
+  
   const { data: leaderboardData, isLoading } = useQuery({
     queryKey: ["/api/users"],
     queryFn: async () => {
-      // Fetch real user data
+      // Fetch leaderboard data
       const response = await fetch('/api/users');
       if (!response.ok) {
         throw new Error('Failed to fetch leaderboard data');
       }
       const users = await response.json();
       
-      // Sort users by points (highest first)
-      return users
+      // Process users for display
+      const filteredUsers = users
         .filter(user => user.points !== null && user.points > 0)
-        .sort((a, b) => (b.points || 0) - (a.points || 0))
-        .slice(0, 5)
         .map(user => ({
           id: user.id,
           firstName: user.firstName,
           lastName: user.lastName,
           points: user.points || 0,
-          level: user.level || (user.points && user.points > 2000 ? 3 : user.points > 1000 ? 2 : 1)
-        }));
+          level: user.level || (user.points && user.points > 2000 ? 3 : user.points > 1000 ? 2 : 1),
+          isCurrentUser: user.isCurrentUser || false
+        }))
+        .sort((a, b) => {
+          // Always put current user first
+          if (a.isCurrentUser) return -1;
+          if (b.isCurrentUser) return 1;
+          // Otherwise sort by points
+          return (b.points - a.points);
+        })
+        .slice(0, 5);
+        
+      return filteredUsers;
     },
   });
   
@@ -94,7 +110,10 @@ export default function Leaderboard() {
                 return (
                   <div 
                     key={teacher.id}
-                    className="flex items-center justify-between p-2 rounded-md border bg-card hover:bg-accent/10 transition-colors"
+                    className={`flex items-center justify-between p-2 rounded-md border 
+                      ${teacher.isCurrentUser 
+                        ? "bg-gradient-to-r from-purple-100 to-indigo-100 border-purple-300" 
+                        : "bg-card hover:bg-accent/10"} transition-colors`}
                   >
                     <div className="flex items-center">
                       <div className="w-6 text-center font-medium text-muted-foreground">
@@ -104,8 +123,15 @@ export default function Leaderboard() {
                         <div className="bg-muted rounded-full h-8 w-8 flex items-center justify-center mr-3">
                           {rankDetails.icon}
                         </div>
-                        <div>
-                          <p className="text-sm font-medium">{teacher.firstName} {teacher.lastName}</p>
+                        <div className="flex flex-col">
+                          <div className="flex items-center">
+                            <p className="text-sm font-medium">{teacher.firstName} {teacher.lastName}</p>
+                            {teacher.isCurrentUser && (
+                              <span className="ml-2 text-[10px] rounded-full bg-purple-500 text-white px-1.5 py-0.5">
+                                YOU
+                              </span>
+                            )}
+                          </div>
                           <p className="text-xs text-muted-foreground">{rankDetails.name}</p>
                         </div>
                       </div>
