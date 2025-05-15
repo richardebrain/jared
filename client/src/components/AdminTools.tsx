@@ -188,16 +188,21 @@ function UserManagement() {
   
   // Fetch all users
   const { data: users, isLoading: isLoadingUsers } = useQuery({ 
-    queryKey: ["/api/admin/users"],
+    queryKey: ["/api/users"], // Using public endpoint for demo
     refetchOnWindowFocus: false
   });
   
   // Fetch user progress when a user is selected
-  const { data: userProgress, isLoading: isLoadingProgress } = useQuery({
-    queryKey: ["/api/admin/user-progress", selectedUser],
-    enabled: !!selectedUser,
+  const { data: allProgress, isLoading: isLoadingProgress } = useQuery({
+    queryKey: ["/api/progress"], // Using public endpoint for demo
     refetchOnWindowFocus: false
   });
+  
+  // Filter progress for the selected user
+  const userProgress = React.useMemo(() => {
+    if (!allProgress || !selectedUser) return [];
+    return allProgress.filter((p) => p.userId === selectedUser);
+  }, [allProgress, selectedUser]);
 
   // Fetch all modules for reference
   const { data: modules } = useQuery({
@@ -276,7 +281,8 @@ function UserManagement() {
                 <TableHead>Username</TableHead>
                 <TableHead>Points</TableHead>
                 <TableHead>Level</TableHead>
-                <TableHead>Completed Modules</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Hours in System</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -290,6 +296,27 @@ function UserManagement() {
                   <TableCell>{user.points || 0}</TableCell>
                   <TableCell>
                     <Badge>{user.level || 1}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    {user.points >= 500 ? (
+                      <Badge className="bg-amber-500">Master Lead Teacher</Badge>
+                    ) : user.points >= 300 ? (
+                      <Badge className="bg-indigo-500">Lead Teacher</Badge>
+                    ) : user.points >= 150 ? (
+                      <Badge className="bg-emerald-500">Associate Teacher</Badge>
+                    ) : (
+                      <Badge>Assistant Teacher</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {/* Calculate hours based on account creation date */}
+                    {user.createdAt ? (
+                      <span className="text-sm">
+                        {Math.floor((new Date().getTime() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60))} hours
+                      </span>
+                    ) : (
+                      "N/A"
+                    )}
                   </TableCell>
                   <TableCell>
                     <Button 
