@@ -86,7 +86,7 @@ export default function ProgressionMap() {
       modules: ["classroom-management", "child-development-basics", "curriculum-planning"],
       icon: Medal,
       color: "bg-purple-500",
-      description: "Qualified teacher capable of independently managing a classroom and implementing curriculum.",
+      description: "Qualified teacher capable of independently managing a classroom and implementing curriculum. Requires 1 year of experience.",
       benefits: [
         "Full classroom leadership",
         "Curriculum development input",
@@ -130,9 +130,15 @@ export default function ProgressionMap() {
     }
   };
   
-  // Query to get user progress for all modules
-  const { data: userProgress } = useQuery({
+  // Query to get user progress and modules
+  const { data: userProgress = [] } = useQuery({
     queryKey: ["/api/progress"],
+    enabled: !!user,
+  });
+  
+  // Get modules data
+  const { data: modules = [] } = useQuery({
+    queryKey: ["/api/modules"],
     enabled: !!user,
   });
   
@@ -167,28 +173,35 @@ export default function ProgressionMap() {
   
   // Calculate stats for the current user
   const calculateCompletedModules = () => {
-    if (!userProgress) return 0;
-    return userProgress.filter((progress: any) => progress.progress === 100 || progress.completed).length;
+    if (!userProgress || !Array.isArray(userProgress) || userProgress.length === 0) return 0;
+    return userProgress.filter((progress: any) => 
+      progress && (progress.progress === 100 || progress.completed)
+    ).length;
   };
   
   const calculateTotalHours = () => {
-    if (!userProgress || !modules) return 0;
+    if (!userProgress || !Array.isArray(userProgress) || userProgress.length === 0 || 
+        !modules || !Array.isArray(modules) || modules.length === 0) {
+      return 0;
+    }
     
     // Calculate hours based on completed module durations
     const completedModuleIds = userProgress
-      .filter((progress: any) => progress.progress === 100 || progress.completed)
+      .filter((progress: any) => progress && (progress.progress === 100 || progress.completed))
       .map((progress: any) => progress.moduleId);
+    
+    if (completedModuleIds.length === 0) return 0;
     
     // Sum up durations of completed modules (in minutes), then convert to hours
     const totalMinutes = modules
-      .filter((module: any) => completedModuleIds.includes(module.id))
+      .filter((module: any) => module && module.id && completedModuleIds.includes(module.id))
       .reduce((sum: number, module: any) => sum + (module.duration || 30), 0);
     
     return Math.round(totalMinutes / 60);
   };
   
   // Get assessment data
-  const { data: assessments } = useQuery({
+  const { data: assessments = [] } = useQuery({
     queryKey: ["/api/assessments"],
     enabled: !!user,
   });
@@ -198,10 +211,14 @@ export default function ProgressionMap() {
     if (!user) return 0;
     
     // If we have assessment data, use it
-    if (assessments && assessments.length > 0) {
-      // Find the highest score
-      const highestScore = Math.max(...assessments.map((a: any) => a.overallScore || 0));
-      return highestScore;
+    if (Array.isArray(assessments) && assessments.length > 0) {
+      try {
+        // Find the highest score
+        const highestScore = Math.max(...assessments.map((a: any) => a.overallScore || 0));
+        return isNaN(highestScore) ? 0 : highestScore;
+      } catch (error) {
+        console.error("Error calculating assessment score:", error);
+      }
     }
     
     // Fallback based on points - users with more points likely have better scores
@@ -246,10 +263,23 @@ export default function ProgressionMap() {
   }
   
   function isModuleCompleted(moduleSlug: string) {
-    // This would normally check against user progress
-    // Using a simple simulation for now
-    if (!userProgress) return false;
-    return Math.random() > 0.5; // Simulating 50% chance of completion
+    if (!userProgress || !modules || !Array.isArray(userProgress) || !Array.isArray(modules)) return false;
+
+    try {
+      // Look up the module ID by slug
+      const module = modules.find((m: any) => 
+        m && m.title && m.title.toLowerCase().includes(moduleSlug.replace('-', ' '))
+      );
+      
+      if (!module) return false;
+      
+      // Check if there's progress for this module
+      const progress = userProgress.find((p: any) => p && p.moduleId === module.id);
+      return progress ? (progress.progress === 100 || progress.completed) : false;
+    } catch (error) {
+      console.error("Error checking module completion:", error);
+      return false;
+    }
   }
   
   return (
@@ -458,6 +488,24 @@ export default function ProgressionMap() {
                                   {calculateTotalHours()}/{teacherLevels[selectedLevel].hoursRequired} hours
                                 </Badge>
                               )}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Experience requirement for Lead Teacher and above */}
+                        {(selectedLevel === "lead" || selectedLevel === "senior" || selectedLevel === "master") && (
+                          <div className="flex items-center p-3 bg-neutral-50 rounded-lg">
+                            <BookIcon className="h-5 w-5 text-indigo-500 mr-3" />
+                            <div>
+                              <div className="font-medium">Experience Requirement</div>
+                              <div className="text-sm text-neutral-600">
+                                {selectedLevel === "lead" && "Minimum 1 year of classroom experience"}
+                                {selectedLevel === "senior" && "Minimum 2 years of classroom experience"}
+                                {selectedLevel === "master" && "Minimum 4 years of classroom experience"}
+                              </div>
+                            </div>
+                            <div className="ml-auto">
+                              <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">Required</Badge>
                             </div>
                           </div>
                         )}
