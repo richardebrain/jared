@@ -704,7 +704,7 @@ export default function OwnerDashboardStandalone() {
                       <p className="text-3xl font-bold">{mockFinancial.pendingTransactions}</p>
                     </div>
                     <div className="bg-amber-100 p-2 rounded-lg">
-                      <AlarmClock className="h-6 w-6 text-amber-700" />
+                      <AlertCircle className="h-6 w-6 text-amber-700" />
                     </div>
                   </div>
                   <div className="mt-4">
