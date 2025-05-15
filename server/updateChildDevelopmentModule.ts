@@ -772,8 +772,7 @@ function generateMilestonesQuiz(teacherLevel: string = 'assistant') {
         correctAnswer: 2,
         explanation: "Language development is best supported through a language-rich environment that includes multiple daily read-alouds and meaningful back-and-forth conversations throughout the day."
       }
-    ]
-  };
+    ];
   
   // Additional questions based on teacher level
   const teacherQuestions = [
@@ -880,15 +879,5 @@ function generateMilestonesQuiz(teacherLevel: string = 'assistant') {
 // Export the function
 export { updateChildDevelopmentModule };
 
-// When run directly, execute the update
-if (require.main === module) {
-  updateChildDevelopmentModule()
-    .then(() => {
-      console.log('Update script completed successfully');
-      process.exit(0);
-    })
-    .catch(error => {
-      console.error('Update script failed:', error);
-      process.exit(1);
-    });
-}
+// In ES modules, we can't check if a module is the main module the same way as in CommonJS
+// Instead, we just export the function and call it from the route handler
