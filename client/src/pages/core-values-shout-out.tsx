@@ -42,12 +42,11 @@ import { formatDistanceToNow } from "date-fns";
 
 // Define the core values for Raising Arizona Preschool
 const coreValues = [
-  { value: "breathe", label: "Breathe", icon: <Star className="h-5 w-5 text-blue-500" /> },
-  { value: "smile", label: "Smile", icon: <Heart className="h-5 w-5 text-red-500" /> },
-  { value: "be-present", label: "Be Present", icon: <Medal className="h-5 w-5 text-amber-500" /> },
-  { value: "respect", label: "Respect", icon: <UserCheck className="h-5 w-5 text-green-500" /> },
-  { value: "growth", label: "Growth Mindset", icon: <Trophy className="h-5 w-5 text-purple-500" /> },
-  { value: "connection", label: "Connection", icon: <ThumbsUp className="h-5 w-5 text-indigo-500" /> },
+  { value: "Be Consistent", label: "Be Consistent", icon: <Star className="h-5 w-5 text-blue-500" /> },
+  { value: "Be Prepared", label: "Be Prepared", icon: <Medal className="h-5 w-5 text-amber-500" /> },
+  { value: "Be Committed", label: "Be Committed", icon: <Trophy className="h-5 w-5 text-purple-500" /> },
+  { value: "Be Caring", label: "Be Caring", icon: <Heart className="h-5 w-5 text-red-500" /> },
+  { value: "Be Positive", label: "Be Positive", icon: <ThumbsUp className="h-5 w-5 text-green-500" /> },
 ];
 
 // Form schema

@@ -37,35 +37,35 @@ import { Label } from "@/components/ui/label";
 // Define the core values with their details
 const coreValues = [
   {
-    id: "breathe",
-    name: "Breathe",
-    icon: <Wind className="h-10 w-10 text-blue-500" />,
+    id: "be-consistent",
+    name: "Be Consistent",
+    icon: <Star className="h-10 w-10 text-blue-500" />,
     color: "bg-blue-500",
-    description: "We pause and breathe to center ourselves, creating calm and mindful moments throughout the day.",
+    description: "We provide stable, predictable environments where children can thrive with consistent routines and expectations.",
     examples: [
-      "Taking a deep breath before responding to challenging behavior",
-      "Leading children in mindful breathing exercises",
-      "Pausing to reset when the classroom energy gets too high",
-      "Using breathing techniques to manage stress"
+      "Maintaining the same daily schedule for predictability",
+      "Applying classroom rules fairly and consistently",
+      "Being reliable with routines and transitions",
+      "Following through on what we say we will do"
     ],
     quiz: [
       {
-        question: "A child in your classroom is having a tantrum. What would be the best first response that embodies our 'Breathe' value?",
+        question: "A child repeatedly tests boundaries by running indoors. What response best demonstrates the 'Be Consistent' value?",
         options: [
           {
-            text: "Immediately try to reason with the child about their behavior",
+            text: "Let it go sometimes when you're tired",
             correct: false
           },
           {
-            text: "Take a deep breath yourself, then calmly approach the child at their level",
+            text: "Remind the child of the walking rule and redirect them every time it happens",
             correct: true
           },
           {
-            text: "Remove the child from the classroom immediately",
+            text: "Punish the child differently each time based on how disruptive it is",
             correct: false
           },
           {
-            text: "Tell the child to be quiet so they don't disrupt others",
+            text: "Ignore it unless another teacher is watching",
             correct: false
           }
         ]
@@ -73,11 +73,11 @@ const coreValues = [
     ]
   },
   {
-    id: "smile",
-    name: "Smile",
-    icon: <Smile className="h-10 w-10 text-yellow-500" />,
-    color: "bg-yellow-500",
-    description: "We bring joy and positivity to each interaction, creating a happy learning environment.",
+    id: "be-prepared",
+    name: "Be Prepared",
+    icon: <Briefcase className="h-10 w-10 text-amber-500" />,
+    color: "bg-amber-500",
+    description: "We plan effectively and come ready to deliver excellent educational experiences for every child.",
     examples: [
       "Greeting each child with a warm smile every morning",
       "Finding joy in small moments throughout the day",
