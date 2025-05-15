@@ -195,7 +195,7 @@ const BearBucksRewards: React.FC<BearBucksRewardsProps> = ({
               <li><span className="font-medium">Receive Core Values Shout-Outs</span> (5 points per shout-out)</li>
               <li><span className="font-medium">Pass assessments</span> (up to 50 points based on difficulty & score)</li>
             </ul>
-            <p className="text-xs text-gray-500 mt-2">Note: Limited to 2 videos and 2 games per day for points.</p>
+            <p className="text-xs text-gray-500 mt-2">Note: Maximum of 20 points can be earned per day. Limited to 2 videos and 2 games per day for points.</p>
           </div>
           
           <div className="mt-4 text-center">
