@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Video, Link2, BookOpen } from 'lucide-react';
 
 export default function AdminPage() {
   const { user, isLoading } = useAuth();
@@ -180,10 +181,10 @@ export default function AdminPage() {
           <Card>
             <CardHeader>
               <CardTitle>User Management</CardTitle>
-              <CardDescription>Manage system users and permissions</CardDescription>
+              <CardDescription>Manage teacher accounts, progress, and performance</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground mb-4">This section is under development. Coming soon!</p>
+              <AdminTools />
             </CardContent>
           </Card>
         </TabsContent>
@@ -203,11 +204,54 @@ export default function AdminPage() {
         <TabsContent value="tools">
           <Card>
             <CardHeader>
-              <CardTitle>Admin Tools</CardTitle>
+              <CardTitle>System Tools</CardTitle>
               <CardDescription>System validation and maintenance tools</CardDescription>
             </CardHeader>
             <CardContent>
-              <AdminTools />
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-medium mb-3">Content Validation</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Validate links, videos, and learning content across the platform
+                  </p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <Button variant="outline" className="h-auto py-4 flex flex-col items-center">
+                      <Video className="h-8 w-8 mb-2" />
+                      <span>Validate Videos</span>
+                    </Button>
+                    
+                    <Button variant="outline" className="h-auto py-4 flex flex-col items-center">
+                      <Link2 className="h-8 w-8 mb-2" />
+                      <span>Check Links</span>
+                    </Button>
+                    
+                    <Button variant="outline" className="h-auto py-4 flex flex-col items-center">
+                      <BookOpen className="h-8 w-8 mb-2" />
+                      <span>Validate Module Content</span>
+                    </Button>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-medium mb-3">Database Maintenance</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Database tools for system maintenance and optimization
+                  </p>
+                  
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      toast({
+                        title: "Feature Coming Soon",
+                        description: "Database tools will be available in a future update."
+                      });
+                    }}
+                  >
+                    Database Maintenance
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
