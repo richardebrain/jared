@@ -79,29 +79,29 @@ const coreValues = [
     color: "bg-amber-500",
     description: "We plan effectively and come ready to deliver excellent educational experiences for every child.",
     examples: [
-      "Greeting each child with a warm smile every morning",
-      "Finding joy in small moments throughout the day",
-      "Using humor appropriately to engage children",
-      "Celebrating progress and achievements with enthusiasm"
+      "Having lesson plans prepared in advance",
+      "Setting up the classroom environment before children arrive",
+      "Organizing materials for easy access during activities",
+      "Anticipating potential challenges and having solutions ready"
     ],
     quiz: [
       {
-        question: "Why is smiling and positive affect especially important in early childhood education?",
+        question: "Which action best demonstrates the 'Be Prepared' value in the classroom?",
         options: [
           {
-            text: "It's just part of being professional and doing your job",
+            text: "Improvising activities on the spot when children seem bored",
             correct: false
           },
           {
-            text: "It creates a secure attachment bond and fosters a positive learning environment",
+            text: "Having backup activities ready in case planned lessons finish early or don't engage the children",
             correct: true
           },
           {
-            text: "It makes the day go by faster",
+            text: "Asking another teacher for supplies when you run out during an art project",
             correct: false
           },
           {
-            text: "It impresses the parents when they visit",
+            text: "Canceling an outdoor activity when weather doesn't cooperate",
             correct: false
           }
         ]
@@ -109,35 +109,35 @@ const coreValues = [
     ]
   },
   {
-    id: "be-present",
-    name: "Be Present",
-    icon: <Eye className="h-10 w-10 text-purple-500" />,
+    id: "be-committed",
+    name: "Be Committed",
+    icon: <Award className="h-10 w-10 text-purple-500" />,
     color: "bg-purple-500",
-    description: "We give our full attention to the children and the moment, noticing needs and opportunities.",
+    description: "We demonstrate dedication to each child's growth and development with unwavering commitment.",
     examples: [
-      "Putting away personal devices during class time",
-      "Making eye contact when children are speaking",
-      "Observing and documenting children's learning and development",
-      "Being fully engaged in activities alongside children"
+      "Seeking professional development to improve teaching skills",
+      "Going the extra mile to support struggling children",
+      "Maintaining enthusiasm and energy throughout the day",
+      "Following through on individual learning goals for each child"
     ],
     quiz: [
       {
-        question: "A child in your class is crying because they miss their parent. Which response best demonstrates the caring value?",
+        question: "What action best demonstrates the 'Be Committed' value in early childhood education?",
         options: [
           {
-            text: "Tell them to stop crying because their parent will be back soon",
+            text: "Only focusing on the children who show the most potential",
             correct: false
           },
           {
-            text: "Ignore the behavior so they learn independence",
+            text: "Attending only mandatory training sessions",
             correct: false
           },
           {
-            text: "Acknowledge their feelings, comfort them, and gently redirect to an engaging activity",
+            text: "Consistently tracking each child's progress and adjusting your approach to meet their unique needs",
             correct: true
           },
           {
-            text: "Call the parent immediately to come pick them up",
+            text: "Leaving precisely when your shift ends regardless of what's happening",
             correct: false
           }
         ]
@@ -145,11 +145,11 @@ const coreValues = [
     ]
   },
   {
-    id: "positive",
-    name: "Positive",
-    icon: <ThumbsUp className="h-10 w-10 text-yellow-500" />,
-    color: "bg-yellow-500",
-    description: "We foster optimism and joy, finding opportunities for growth in every challenge.",
+    id: "be-positive",
+    name: "Be Positive",
+    icon: <ThumbsUp className="h-10 w-10 text-green-500" />,
+    color: "bg-green-500",
+    description: "We maintain an optimistic attitude that inspires and encourages children.",
     examples: [
       "Using encouraging language and positive reinforcement",
       "Modeling optimistic problem-solving",
@@ -181,35 +181,35 @@ const coreValues = [
     ]
   },
   {
-    id: "prepared",
-    name: "Prepared",
-    icon: <Briefcase className="h-10 w-10 text-purple-500" />,
-    color: "bg-purple-500",
-    description: "We plan thoroughly and anticipate needs, creating seamless learning experiences.",
+    id: "be-caring",
+    name: "Be Caring",
+    icon: <Heart className="h-10 w-10 text-red-500" />,
+    color: "bg-red-500",
+    description: "We show genuine compassion and empathy for every child in our care.",
     examples: [
-      "Having lesson plans and materials ready before children arrive",
-      "Anticipating potential challenges and planning solutions",
-      "Organizing the classroom environment for optimal learning",
-      "Continuously learning and developing new skills"
+      "Taking time to listen to children's concerns and worries",
+      "Offering comfort when children are upset or hurt",
+      "Building relationships with every child in the classroom",
+      "Showing patience and understanding with challenging behaviors"
     ],
     quiz: [
       {
-        question: "You plan an outdoor activity, but it starts raining unexpectedly. Being prepared means:",
+        question: "A child in your class is crying because they miss their parent. Which response best demonstrates the 'Be Caring' value?",
         options: [
           {
-            text: "Letting the children have free play since your plans were ruined",
+            text: "Tell them to stop crying because their parent will be back soon",
             correct: false
           },
           {
-            text: "Having an alternate indoor activity ready that achieves similar learning objectives",
+            text: "Ignore the behavior so they learn independence",
+            correct: false
+          },
+          {
+            text: "Acknowledge their feelings, comfort them, and gently redirect to an engaging activity",
             correct: true
           },
           {
-            text: "Asking another teacher what to do",
-            correct: false
-          },
-          {
-            text: "Showing a video until the rain stops",
+            text: "Call the parent immediately to come pick them up",
             correct: false
           }
         ]
