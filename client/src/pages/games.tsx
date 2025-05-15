@@ -9,9 +9,11 @@ import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useLocation } from "wouter";
-import { Gamepad2, Trophy, Clock, Award, Brain, Zap, Timer, BarChart } from "lucide-react";
+import { Gamepad2, Trophy, Clock, Award, Brain, Zap, Timer, BarChart, Lightbulb } from "lucide-react";
 // Import the milestone matching game directly with the updated path
 import MilestoneMatchingGame from "../components/games/MilestoneMatchingGame";
+import KnowledgeQuizGame from "../components/games/KnowledgeQuizGame";
+import ScenarioResponseGame from "../components/games/ScenarioResponseGame";
 
 interface Game {
   id: number;
@@ -21,7 +23,13 @@ interface Game {
   category: string;
   difficulty: string;
   pointsValue: number;
-  timeLimit?: number;
+  config?: {
+    questions?: any[];
+    scenarios?: any[];
+    items?: any[];
+    timeLimit?: number;
+    passingScore?: number;
+  };
 }
 
 interface GameCompletion {
@@ -117,10 +125,16 @@ export default function GamesPage() {
     let GameIcon = Brain;
     
     // Assign icon based on game type
-    if (game.type === "milestone-matching") {
-      GameIcon = Brain;
-    } else if (game.type === "knowledge-quiz") {
-      GameIcon = Zap;
+    switch (game.type) {
+      case "milestone-matching":
+        GameIcon = Brain;
+        break;
+      case "knowledge-quiz":
+        GameIcon = Zap;
+        break;
+      case "scenario-response":
+        GameIcon = Lightbulb;
+        break;
     }
     
     return (
@@ -162,25 +176,39 @@ export default function GamesPage() {
     if (!game) return null;
     
     // Render the appropriate game component based on type
-    if (game.type === "milestone-matching") {
-      return (
-        <MilestoneMatchingGame 
-          game={game} 
-          onClose={handleCloseGame} 
-        />
-      );
+    switch (game.type) {
+      case "milestone-matching":
+        return (
+          <MilestoneMatchingGame 
+            game={game} 
+            onClose={handleCloseGame} 
+          />
+        );
+      case "knowledge-quiz":
+        return (
+          <KnowledgeQuizGame
+            game={game}
+            onClose={handleCloseGame}
+          />
+        );
+      case "scenario-response":
+        return (
+          <ScenarioResponseGame
+            game={game}
+            onClose={handleCloseGame}
+          />
+        );
+      default:
+        return (
+          <div className="text-center p-8">
+            <h3 className="text-xl font-bold mb-4">Game Not Available</h3>
+            <p>The selected game type "{game.type}" is not currently implemented.</p>
+            <Button onClick={handleCloseGame} className="mt-4">
+              Go Back
+            </Button>
+          </div>
+        );
     }
-    
-    // Default fallback
-    return (
-      <div className="text-center p-8">
-        <h3 className="text-xl font-bold mb-4">Game Not Available</h3>
-        <p>The selected game type is not currently implemented.</p>
-        <Button onClick={handleCloseGame} className="mt-4">
-          Go Back
-        </Button>
-      </div>
-    );
   };
 
   const renderGameHistory = (): React.ReactNode => {
