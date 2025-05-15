@@ -107,7 +107,7 @@ export default function GamesPage() {
     setShowGameInterface(true);
   };
 
-  const handleCloseGame = () => {
+  const handleCloseGame = (): void => {
     setShowGameInterface(false);
     setSelectedGame(null);
   };

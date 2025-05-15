@@ -200,7 +200,7 @@ export default function MilestoneMatchingGame({ game, onClose }: GameProps) {
   }, [isRunning]);
 
   // Generate a new round with 1 milestone and 4 age options
-  const generateRound = () => {
+  const generateRound = (): void => {
     // Choose a random milestone
     const randomIndex = Math.floor(Math.random() * milestones.length);
     const milestone = milestones[randomIndex];
@@ -222,12 +222,12 @@ export default function MilestoneMatchingGame({ game, onClose }: GameProps) {
   };
 
   // Handle selecting an age option
-  const handleSelectOption = (option: string) => {
+  const handleSelectOption = (option: string): void => {
     setSelectedOption(option);
   };
 
   // Submit answer and check if correct
-  const submitAnswer = () => {
+  const submitAnswer = (): void => {
     if (!selectedOption || !currentMilestone) return;
     
     const correct = selectedOption === currentMilestone.age;
@@ -250,7 +250,7 @@ export default function MilestoneMatchingGame({ game, onClose }: GameProps) {
   };
 
   // Go to next round or end game
-  const nextRound = () => {
+  const nextRound = (): void => {
     if (currentRound < totalRounds - 1) {
       setCurrentRound(prev => prev + 1);
     } else {
