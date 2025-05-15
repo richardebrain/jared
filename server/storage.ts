@@ -9,7 +9,9 @@ import {
   discussionThreads, type DiscussionThread, type InsertDiscussionThread,
   discussionComments, type DiscussionComment, type InsertDiscussionComment,
   commentVotes, type CommentVote, type InsertCommentVote,
-  coreValuesShoutOuts, type CoreValuesShoutOut, type InsertCoreValuesShoutOut
+  coreValuesShoutOuts, type CoreValuesShoutOut, type InsertCoreValuesShoutOut,
+  educationalGames, type EducationalGame, type InsertEducationalGame,
+  gameCompletions, type GameCompletion, type InsertGameCompletion
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -83,6 +85,19 @@ export interface IStorage {
   getCoreValuesShoutOutsByNomineeId(nomineeId: number): Promise<CoreValuesShoutOut[]>;
   getAllCoreValuesShoutOuts(): Promise<CoreValuesShoutOut[]>;
   createCoreValuesShoutOut(shoutOut: InsertCoreValuesShoutOut & { pointsAwarded: number }): Promise<CoreValuesShoutOut>;
+  
+  // Educational Games operations
+  getAllGames(options?: { category?: string, difficulty?: string }): Promise<EducationalGame[]>;
+  getGameById(id: number): Promise<EducationalGame | undefined>;
+  createGame(game: InsertEducationalGame): Promise<EducationalGame>;
+  updateGame(id: number, gameData: Partial<InsertEducationalGame>): Promise<EducationalGame>;
+  deleteGame(id: number): Promise<void>;
+  
+  // Game Completions operations
+  getGameCompletionsByUserId(userId: number): Promise<GameCompletion[]>;
+  getRecentGameCompletions(userId: number, limit?: number): Promise<GameCompletion[]>;
+  getDailyGameCompletionsCount(userId: number): Promise<number>;
+  createGameCompletion(completion: InsertGameCompletion): Promise<GameCompletion>;
 }
 
 export class MemStorage implements IStorage {
@@ -1113,6 +1128,105 @@ export class DatabaseStorage implements IStorage {
     }
     
     return newShoutOut;
+  }
+  
+  // Educational Games operations
+  async getAllGames(options?: { category?: string, difficulty?: string }): Promise<EducationalGame[]> {
+    let query = db.select().from(educationalGames);
+    
+    if (options?.category) {
+      query = query.where(eq(educationalGames.category, options.category));
+    }
+    
+    if (options?.difficulty) {
+      query = query.where(eq(educationalGames.difficulty, options.difficulty));
+    }
+    
+    return await query;
+  }
+  
+  async getGameById(id: number): Promise<EducationalGame | undefined> {
+    const [game] = await db.select().from(educationalGames).where(eq(educationalGames.id, id));
+    return game;
+  }
+  
+  async createGame(game: InsertEducationalGame): Promise<EducationalGame> {
+    const [newGame] = await db.insert(educationalGames).values(game).returning();
+    return newGame;
+  }
+  
+  async updateGame(id: number, gameData: Partial<InsertEducationalGame>): Promise<EducationalGame> {
+    const [updatedGame] = await db
+      .update(educationalGames)
+      .set(gameData)
+      .where(eq(educationalGames.id, id))
+      .returning();
+    return updatedGame;
+  }
+  
+  async deleteGame(id: number): Promise<void> {
+    await db.delete(educationalGames).where(eq(educationalGames.id, id));
+  }
+  
+  // Game Completions operations
+  async getGameCompletionsByUserId(userId: number): Promise<GameCompletion[]> {
+    return await db
+      .select()
+      .from(gameCompletions)
+      .where(eq(gameCompletions.userId, userId))
+      .orderBy(desc(gameCompletions.completedAt));
+  }
+  
+  async getRecentGameCompletions(userId: number, limit: number = 10): Promise<GameCompletion[]> {
+    return await db
+      .select()
+      .from(gameCompletions)
+      .where(eq(gameCompletions.userId, userId))
+      .orderBy(desc(gameCompletions.completedAt))
+      .limit(limit);
+  }
+  
+  async getDailyGameCompletionsCount(userId: number): Promise<number> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const completions = await db
+      .select()
+      .from(gameCompletions)
+      .where(
+        and(
+          eq(gameCompletions.userId, userId),
+          // Greater than or equal to today at 00:00:00
+          gameCompletions.completedAt >= today,
+          // Less than tomorrow at 00:00:00
+          gameCompletions.completedAt < tomorrow
+        )
+      );
+    
+    return completions.length;
+  }
+  
+  async createGameCompletion(completion: InsertGameCompletion): Promise<GameCompletion> {
+    const [newCompletion] = await db
+      .insert(gameCompletions)
+      .values(completion)
+      .returning();
+    
+    // Also update the user's points
+    if (completion.pointsEarned) {
+      const user = await this.getUser(completion.userId);
+      if (user && user.points !== null) {
+        await db
+          .update(users)
+          .set({ points: user.points + completion.pointsEarned })
+          .where(eq(users.id, completion.userId));
+      }
+    }
+    
+    return newCompletion;
   }
 }
 
