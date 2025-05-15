@@ -259,7 +259,7 @@ export default function MilestoneMatchingGame({ game, onClose }: GameProps) {
   };
 
   // Start the game
-  const startGame = () => {
+  const startGame = (): void => {
     setGameStarted(true);
     setCurrentRound(0);
     setGameScore(0);
@@ -268,7 +268,7 @@ export default function MilestoneMatchingGame({ game, onClose }: GameProps) {
   };
 
   // End the game and show results
-  const endGame = () => {
+  const endGame = (): void => {
     setIsRunning(false);
     setGameOver(true);
     
