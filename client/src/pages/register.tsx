@@ -69,9 +69,24 @@ export default function Register() {
   const { mutate: register, isPending } = useMutation({
     mutationFn: async (data: z.infer<typeof registerSchema>) => {
       try {
+        // Make sure all form data is clean and trimmed
+        const cleanData = {
+          ...data,
+          username: data.username.trim(),
+          password: data.password.trim(),
+          firstName: data.firstName.trim(),
+          lastName: data.lastName.trim(),
+          email: data.email.trim(),
+        };
+        
+        console.log("Sending registration data:", { 
+          ...cleanData, 
+          password: "***" // Don't log actual password
+        });
+        
         return await apiRequest("/api/auth/register", {
           method: "POST",
-          data: data
+          data: cleanData
         });
       } catch (error) {
         console.error("Registration error:", error);
@@ -206,7 +221,13 @@ export default function Register() {
                   <FormItem>
                     <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <Input placeholder="Choose a username" {...field} />
+                      <Input 
+                        placeholder="Choose a username" 
+                        {...field} 
+                        onChange={(e) => {
+                          field.onChange(e.target.value.trim());
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -220,7 +241,14 @@ export default function Register() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="Enter your email" {...field} />
+                      <Input 
+                        type="email" 
+                        placeholder="Enter your email" 
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e.target.value.trim());
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -234,7 +262,14 @@ export default function Register() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="Create a password" {...field} />
+                      <Input 
+                        type="password" 
+                        placeholder="Create a password" 
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e.target.value.trim());
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
