@@ -34,9 +34,10 @@ function Router() {
     );
   }
 
-  // Much simpler routing approach to avoid redirection loops
+  // Handle public routes vs. protected routes
   return (
     <Switch>
+      {/* Public routes - accessible when logged out */}
       <Route path="/login">
         {isAuthenticated ? <Dashboard /> : <Login />}
       </Route>
@@ -45,6 +46,7 @@ function Router() {
         {isAuthenticated ? <Dashboard /> : <Register />}
       </Route>
       
+      {/* Protected routes - redirect to login when not authenticated */}
       <Route path="/dashboard">
         {isAuthenticated ? <Dashboard /> : <Login />}
       </Route>

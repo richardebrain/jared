@@ -28,13 +28,17 @@ export default function Header() {
   
   const { mutate: logout } = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("/api/auth/logout", { method: "POST" });
-      return response;
+      try {
+        const response = await apiRequest("/api/auth/logout", { method: "POST" });
+        return response;
+      } catch (error) {
+        console.error("Logout error:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
-      // Clear user data from query cache
-      queryClient.setQueryData(["/api/auth/me"], null);
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      // Clear all cached data to force a complete reset
+      queryClient.clear();
       
       // Show success message
       toast({
@@ -42,10 +46,13 @@ export default function Header() {
         description: "You have been successfully logged out.",
       });
       
-      // Redirect to login page
-      setLocation("/login");
+      // Force redirect to login page with a slight delay to ensure cache is cleared
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 100);
     },
     onError: (error: Error) => {
+      console.error("Logout error in mutation:", error);
       toast({
         title: "Logout failed",
         description: error.message || "There was an error logging out.",

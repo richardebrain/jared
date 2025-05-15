@@ -43,11 +43,13 @@ export function useAuth(): UseAuthReturn {
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: async (credentials: { username: string; password: string }) => {
-      console.log("Authenticating user:", credentials.username);
-      const response = await apiRequest("POST", "/api/auth/login", credentials);
-      const userData = await response.json();
-      console.log("Authentication response:", userData);
-      return userData;
+      console.log("Attempting login with:", { username: credentials.username, password: "***" });
+      const response = await apiRequest("/api/auth/login", { 
+        method: "POST", 
+        data: credentials 
+      });
+      console.log("Login response:", response);
+      return response;
     },
     onSuccess: (data: User) => {
       console.log("Authentication successful in hook, updating state");
@@ -77,8 +79,11 @@ export function useAuth(): UseAuthReturn {
   // Register mutation
   const registerMutation = useMutation({
     mutationFn: async (userData: any) => {
-      const response = await apiRequest("POST", "/api/auth/register", userData);
-      return await response.json();
+      const response = await apiRequest("/api/auth/register", { 
+        method: "POST", 
+        data: userData 
+      });
+      return response;
     },
     onSuccess: (data: User) => {
       queryClient.setQueryData(["/api/auth/me"], data);
@@ -101,7 +106,9 @@ export function useAuth(): UseAuthReturn {
   // Logout mutation
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/auth/logout", {});
+      const response = await apiRequest("/api/auth/logout", { 
+        method: "POST"
+      });
       return response;
     },
     onSuccess: () => {
@@ -141,20 +148,8 @@ export function useAuth(): UseAuthReturn {
     await logoutMutation.mutateAsync();
   };
   
-  // Create a correctly typed user object for the return value
-  const typedUser: User | null = user ? {
-    id: user.id,
-    username: user.username,
-    password: user.password,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    language: user.language,
-    nativeLanguage: user.nativeLanguage,
-    timeZone: user.timeZone,
-    profilePicture: user.profilePicture,
-    createdAt: user.createdAt
-  } : null;
+  // Return the user as is - it should already match the User type
+  const typedUser: User | null = user || null;
 
   return {
     isLoading,
