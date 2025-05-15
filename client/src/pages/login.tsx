@@ -3,9 +3,9 @@ import { Link, useLocation } from "wouter";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "../lib/queryClient";
+import { useMutation } from "@tanstack/react-query";
 
 import {
   Form,
@@ -92,7 +92,6 @@ export default function Login() {
   // Form submission handler
   function onSubmit(values: z.infer<typeof loginSchema>) {
     login(values);
-    // Let the onSuccess handle navigation
   }
 
   return (

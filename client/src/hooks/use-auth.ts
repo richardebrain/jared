@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { User } from "@shared/schema";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { User } from "@shared/schema";
 
 interface UseAuthReturn {
   isLoading: boolean;
@@ -25,9 +25,14 @@ export function useAuth(): UseAuthReturn {
     error 
   } = useQuery<User>({
     queryKey: ["/api/auth/me"],
-    // Don't rely on callback handlers since they cause TS errors with TanStack Query v5
     retry: false, // Don't retry if we get an auth error
+    refetchOnMount: true, // Always refetch when component mounts
+    refetchOnWindowFocus: true, // Refresh when window gets focus
+    refetchOnReconnect: true, // Refresh on reconnect
   });
+  
+  // Typed user (prevent TypeScript errors)
+  const typedUser = user as User | null;
   
   // Update authentication state based on query results
   useEffect(() => {
@@ -73,6 +78,7 @@ export function useAuth(): UseAuthReturn {
         description: error.message || "Invalid username or password",
         variant: "destructive",
       });
+      throw error;
     },
   });
   
@@ -100,6 +106,7 @@ export function useAuth(): UseAuthReturn {
         description: error.message || "There was an error creating your account",
         variant: "destructive",
       });
+      throw error; 
     },
   });
   
@@ -112,45 +119,49 @@ export function useAuth(): UseAuthReturn {
       return response;
     },
     onSuccess: () => {
-      // Clear user data and update authentication state
+      console.log("Logout successful");
+      // Clear the user from the cache
       queryClient.setQueryData(["/api/auth/me"], null);
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      
-      // Clear any cached auth-dependent queries
-      queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/modules"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
-      
       setIsAuthenticated(false);
+      // Clear any cached queries when logging out
+      queryClient.clear();
+      
       toast({
-        title: "Logged out",
-        description: "You have been successfully logged out",
+        title: "Logout successful",
+        description: "You have been logged out",
       });
+      
+      // Perform a complete reload of the application to clear any state
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 500);
     },
     onError: (error: Error) => {
+      console.error("Logout error:", error);
       toast({
         title: "Logout failed",
-        description: error.message || "There was an error logging out",
+        description: "Failed to log out. Please try again.",
         variant: "destructive",
       });
-    },
+      throw error;
+    }
   });
   
+  // Login function
   const login = async (credentials: { username: string; password: string }): Promise<void> => {
     await loginMutation.mutateAsync(credentials);
   };
   
+  // Register function
   const register = async (userData: any): Promise<void> => {
     await registerMutation.mutateAsync(userData);
   };
   
+  // Logout function
   const logout = async (): Promise<void> => {
     await logoutMutation.mutateAsync();
   };
   
-  // Return the user as is - it should already match the User type
-  const typedUser: User | null = user || null;
-
   return {
     isLoading,
     isAuthenticated,

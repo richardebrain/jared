@@ -1,6 +1,7 @@
 import { Switch, Route } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useQuery } from "@tanstack/react-query";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import Login from "@/pages/login";
@@ -26,10 +27,19 @@ import BearyAIPage from "@/pages/beary-ai";
 import GamesPage from "@/pages/games";
 import AdminPage from "@/pages/admin";
 import LessonPlanMakerPage from "@/pages/lesson-plan-maker";
-import { useAuth } from "@/hooks/use-auth";
 
 function Router() {
-  const { isLoading, isAuthenticated } = useAuth();
+  // Use React Query directly to check authenticated state
+  const { 
+    data: user,
+    isLoading 
+  } = useQuery({
+    queryKey: ["/api/auth/me"],
+    retry: false, // Don't retry auth errors
+  });
+  
+  // Check if authenticated based on user data
+  const isAuthenticated = !!user;
   
   if (isLoading) {
     return (
