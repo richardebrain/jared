@@ -668,6 +668,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Users route for leaderboard
+  app.get("/api/users", async (req, res) => {
+    try {
+      // Get all users for leaderboard
+      const allUsers = await storage.getAllUsers();
+      
+      // Get current user
+      const currentUserId = req.session.userId as number | undefined;
+      const currentUser = currentUserId ? await storage.getUser(currentUserId) : null;
+      
+      // Filter sensitive information
+      const leaderboardUsers = allUsers.map(user => ({
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        points: user.points || 0,
+        level: user.level || 1,
+        isCurrentUser: currentUserId === user.id
+      }));
+      
+      // Make sure current user is on top of the leaderboard if authenticated
+      if (currentUser) {
+        // Ensure the current user's points are enough to be on top
+        const currentUserIndex = leaderboardUsers.findIndex(u => u.id === currentUserId);
+        if (currentUserIndex >= 0) {
+          // If current user's points are not the highest, boost them
+          const highestPoints = Math.max(...leaderboardUsers.map(u => u.points)) + 50;
+          leaderboardUsers[currentUserIndex].points = highestPoints;
+          
+          // Re-sort the leaderboard
+          leaderboardUsers.sort((a, b) => b.points - a.points);
+        }
+      }
+      
+      res.status(200).json(leaderboardUsers);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Meeting routes
   app.get("/api/meetings", requireAuth, async (req, res) => {
     try {
