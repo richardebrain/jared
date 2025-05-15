@@ -298,7 +298,7 @@ export default function MilestoneMatchingGame({ game, onClose }: GameProps) {
   };
 
   // Reset game to start over
-  const resetGame = () => {
+  const resetGame = (): void => {
     setGameStarted(false);
     setGameOver(false);
     setCurrentRound(0);
@@ -307,20 +307,20 @@ export default function MilestoneMatchingGame({ game, onClose }: GameProps) {
   };
 
   // Restart the current game
-  const restartGame = () => {
+  const restartGame = (): void => {
     resetGame();
     startGame();
   };
 
   // Format timer as minutes and seconds
-  const formatTime = (seconds: number) => {
+  const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs < 10 ? '0' + secs : secs}`;
   };
 
   // Render game instructions
-  const renderInstructions = () => (
+  const renderInstructions = (): React.ReactNode => (
     <Card className="mx-auto max-w-2xl">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
@@ -474,7 +474,7 @@ export default function MilestoneMatchingGame({ game, onClose }: GameProps) {
   );
 
   // Render game results
-  const renderGameResults = () => {
+  const renderGameResults = (): React.ReactNode => {
     const scorePercentage = Math.round((gameScore / totalRounds) * 100);
     const basePoints = game.pointsValue;
     const earnedPoints = Math.round((scorePercentage / 100) * basePoints);
