@@ -33,6 +33,7 @@ import {
   fixAllModulesContent,
   ModuleContentCheckResult 
 } from "./moduleContentService";
+import { updateChildDevelopmentModule } from "./updateChildDevelopmentModule";
 import { DataSource, DataSourceCategory } from "@shared/dataSources";
 
 // Define our session data structure
@@ -342,20 +343,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint to update the Child Development Milestones module content
   app.post('/api/modules/update-child-development', async (req, res) => {
     try {
-      // Module ID for Child Development module
-      const moduleId = 6;
+      // Get user ID from session if available (for personalization)
+      const userId = req.session?.userId;
       
-      // Get current module data
-      const module = await storage.getModule(moduleId);
+      // Use the specialized function to update the Child Development module
+      const updatedModule = await updateChildDevelopmentModule(userId);
       
-      if (!module) {
+      if (!updatedModule) {
         return res.status(404).json({ 
           success: false,
-          message: "Child Development module not found" 
+          message: "Failed to update Child Development module" 
         });
       }
       
-      // Generate the base content for the module
+      return res.status(200).json({
+        success: true,
+        message: "Child Development module updated successfully",
+        moduleId: updatedModule.id
+      });
+      
+      /* Original hardcoded content preserved as reference:
       const baseContent = `
 <div class="module-content">
   <section class="learning-objectives">

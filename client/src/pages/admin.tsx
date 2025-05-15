@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useLocation } from 'wouter';
 import AdminTools from '@/components/AdminTools';
@@ -7,14 +7,20 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function AdminPage() {
   const { user, isLoading } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const [password, setPassword] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+  // Admin password
+  const ADMIN_PASSWORD = 'BIGSURF55';
 
-  // All users can access admin page for now - we'll add proper role-based access later
-  // This ensures everyone can use the admin features
+  // User must be logged in to access admin page
   React.useEffect(() => {
     if (!isLoading && !user) {
       toast({
@@ -25,6 +31,23 @@ export default function AdminPage() {
       navigate('/login');
     }
   }, [user, isLoading, navigate, toast]);
+
+  const verifyPassword = () => {
+    if (password === ADMIN_PASSWORD) {
+      setIsAuthenticated(true);
+      toast({
+        title: "Access Granted",
+        description: "Welcome to the admin dashboard.",
+      });
+    } else {
+      toast({
+        title: "Access Denied",
+        description: "Incorrect password. Please try again.",
+        variant: "destructive"
+      });
+      setPassword('');
+    }
+  };
 
   const updateChildDevelopmentModule = async () => {
     try {
@@ -47,6 +70,38 @@ export default function AdminPage() {
   };
 
   if (isLoading || !user) return <div>Loading...</div>;
+  
+  // Password protection screen
+  if (!isAuthenticated) {
+    return (
+      <div className="container max-w-md mx-auto py-20">
+        <Card>
+          <CardHeader>
+            <CardTitle>Admin Access</CardTitle>
+            <CardDescription>Enter the admin password to continue</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input 
+                  id="password" 
+                  type="password" 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => {if (e.key === 'Enter') verifyPassword()}}
+                  placeholder="Enter admin password"
+                />
+              </div>
+              <Button onClick={verifyPassword} className="w-full">
+                Access Admin Dashboard
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container py-10">
