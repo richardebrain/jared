@@ -31,7 +31,7 @@ export default function CoreValuesPage() {
               <div className="mt-4 p-3 bg-amber-50 rounded-md border border-amber-100">
                 <p className="text-sm text-amber-800">
                   <span className="font-semibold block mb-1">Remember:</span>
-                  Successful completion of this Core Values training module awards 30 XP points toward your teacher progression!
+                  Successful completion of this Core Values training module awards 20 XP points toward your teacher progression!
                 </p>
               </div>
             </div>

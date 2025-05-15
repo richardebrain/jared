@@ -325,12 +325,12 @@ export function MindfulMorningsTraining() {
   const handleCompletion = () => {
     // Award points for completing all sections
     if (completedSections.breathing && completedSections.affirmations && completedSections.gratitude) {
-      // Award 15 points for completing Mindful Mornings
-      addPoints(15);
+      // Award 20 points for completing Mindful Mornings
+      addPoints(20);
       
       toast({
         title: "Training Complete!",
-        description: "You've earned 15 XP for completing the Mindful Mornings training.",
+        description: "You've earned 20 XP for completing the Mindful Mornings training.",
       });
     }
     
@@ -861,7 +861,7 @@ export function MindfulMorningsTraining() {
           </div>
           
           <div className="bg-green-50 p-5 rounded-lg border border-green-200 max-w-xl mx-auto mt-8">
-            <p className="text-green-800 font-medium mb-2">You've earned 15 points for completing Mindful Mornings!</p>
+            <p className="text-green-800 font-medium mb-2">You've earned 20 points for completing Mindful Mornings!</p>
             <p className="text-sm text-green-700">
               Remember: Teachers who consistently practice the "Breathe, smile, be present" mantra during lunchtime will receive an extra surprise!
             </p>

@@ -287,8 +287,8 @@ export function CoreValuesTraining() {
     
     // Award points for completing the training
     if (user) {
-      // Award 30 points for completing the core values training
-      const pointsEarned = 30;
+      // Award 20 points for completing the core values training
+      const pointsEarned = 20;
       addPoints(pointsEarned);
       
       toast({
