@@ -23,6 +23,7 @@ import ToolsPage from "@/pages/tools";
 import DataSourcesPage from "@/pages/settings/data-sources";
 import OwnerDashboardPage from "@/pages/settings/owner-dashboard";
 import OwnerDashboardStandalone from "@/pages/owner-dashboard-standalone";
+import PlatformIntegrationsPage from "@/pages/platform-integrations";
 import AccountPage from "@/pages/settings/account";
 import BearyAIPage from "@/pages/beary-ai";
 import GamesPage from "@/pages/games";
@@ -141,6 +142,10 @@ function Router() {
       
       <Route path="/settings/data-sources">
         {isAuthenticated ? <DataSourcesPage /> : <Login />}
+      </Route>
+      
+      <Route path="/platform-integrations">
+        {isAuthenticated ? <PlatformIntegrationsPage /> : <Login />}
       </Route>
       
       <Route path="/beary-ai">

@@ -124,6 +124,14 @@ export default function Header() {
               Video Library
             </div>
           </Link>
+          <Link href="/platform-integrations">
+            <div className={`font-medium px-4 py-2 rounded-full mx-1 text-sm relative ${location === "/platform-integrations" 
+              ? "bg-amber-600 text-white shadow-sm" 
+              : "text-neutral-700 hover:bg-amber-100"} transition-all duration-200 cursor-pointer`}>
+              Integrations
+              <span className="absolute -top-2 right-0 px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[9px] rounded-full font-semibold">NEW</span>
+            </div>
+          </Link>
           {/* Games section hidden until more games are available
           <Link href="/games">
             <div className={`font-medium px-4 py-2 rounded-full mx-1 text-sm ${location === "/games" 
@@ -154,15 +162,6 @@ export default function Header() {
                 <div className="absolute top-0 right-3 -mt-2 w-3 h-3 bg-white border-t border-l border-amber-200 transform rotate-45"></div>
               </div>
             </div>
-            
-            {/* Owner Dashboard Link */}
-            <button 
-              className="hidden md:flex items-center px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
-              onClick={() => setLocation("/owner-dashboard")}
-            >
-              <i className="ri-building-line mr-1"></i>
-              Owner Portal
-            </button>
           </div>
           
           <DropdownMenu>
