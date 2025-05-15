@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useLocation } from 'wouter';
 import { 
   Building2, 
   DollarSign, 
@@ -20,7 +21,6 @@ import {
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { apiRequest } from '@/lib/queryClient';
-import SimpleIntegrationWizard from '@/components/SimpleIntegrationWizard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
@@ -167,6 +167,7 @@ export default function OwnerDashboardPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [_, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState('overview');
   const [isApiConnected, setIsApiConnected] = useState(false);
   const [procareApiKey, setProcareApiKey] = useState('');
@@ -618,7 +619,13 @@ export default function OwnerDashboardPage() {
                   <CardDescription>Seamlessly integrate with your business tools</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <SimpleIntegrationWizard />
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setLocation('/platform-integrations')}
+                  >
+                    Launch Integration Wizard
+                  </Button>
                 </CardContent>
               </Card>
               

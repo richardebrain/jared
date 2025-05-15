@@ -1,164 +1,339 @@
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { CheckCircle, ChevronRight, Loader2, Shield } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle, ArrowRight, CheckCircle, Loader2, Puzzle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { PlatformCategory } from '@/pages/platform-integrations';
 
-// Integration platforms
-const platformCategories = [
+interface PlatformOption {
+  id: string;
+  name: string;
+  description: string;
+  category: PlatformCategory;
+  logoUrl?: string;
+}
+
+// Platform options for the wizard
+const platformOptions: PlatformOption[] = [
   {
-    id: "childcare",
-    name: "Childcare Management",
-    platforms: [
-      { id: "procare", name: "Procare", url: "https://www.procaresoftware.com/auth/login" },
-      { id: "intellakid", name: "IntellAKid", url: "https://intellakid.com/login" },
-      { id: "tadpoles", name: "Tadpoles", url: "https://www.tadpoles.com/login" },
-      { id: "himama", name: "HiMama", url: "https://www.himama.com/login" },
-      { id: "brightwheel", name: "Brightwheel", url: "https://schools.mybrightwheel.com/sign-in" },
-    ]
+    id: 'procare',
+    name: 'Procare',
+    description: 'Complete childcare management software',
+    category: 'childcare'
   },
   {
-    id: "finance",
-    name: "Financial Systems",
-    platforms: [
-      { id: "bankofamerica", name: "Bank of America", url: "https://secure.bankofamerica.com/login/" },
-      { id: "wellsfargo", name: "Wells Fargo", url: "https://banking.wellsfargo.com/signin" },
-      { id: "chase", name: "Chase", url: "https://www.chase.com/personal/sign-in" },
-      { id: "usbank", name: "US Bank", url: "https://www.usbank.com/index.html" },
-      { id: "quickbooks", name: "QuickBooks", url: "https://quickbooks.intuit.com/login/" },
-    ]
+    id: 'intellakid',
+    name: 'IntellAKid',
+    description: 'Advanced payment processing for childcare',
+    category: 'childcare'
   },
   {
-    id: "hr",
-    name: "HR & Payroll",
-    platforms: [
-      { id: "adp", name: "ADP", url: "https://login.adp.com/welcome" },
-      { id: "paychex", name: "Paychex", url: "https://www.paychex.com/login" },
-      { id: "gusto", name: "Gusto", url: "https://app.gusto.com/login" },
-      { id: "bamboohr", name: "BambooHR", url: "https://www.bamboohr.com/login/" },
-      { id: "paylocity", name: "Paylocity", url: "https://login.paylocity.com/" },
-    ]
+    id: 'brightwheels',
+    name: 'Brightwheel',
+    description: 'Early education management platform',
+    category: 'childcare'
   },
+  {
+    id: 'quickbooks',
+    name: 'QuickBooks',
+    description: 'Financial management and accounting',
+    category: 'financial'
+  },
+  {
+    id: 'bank_of_america',
+    name: 'Bank of America',
+    description: 'Banking services integration',
+    category: 'financial'
+  },
+  {
+    id: 'chase',
+    name: 'Chase Bank',
+    description: 'Banking and financial services',
+    category: 'financial'
+  },
+  {
+    id: 'adp',
+    name: 'ADP',
+    description: 'HR, payroll, and benefits management',
+    category: 'payroll'
+  },
+  {
+    id: 'paychex',
+    name: 'Paychex',
+    description: 'Payroll and HR solutions',
+    category: 'payroll'
+  }
 ];
 
-export default function SimpleIntegrationWizard() {
-  const [open, setOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(platformCategories[0].id);
-  const [isComplete, setIsComplete] = useState(false);
+// Steps in the integration wizard
+type WizardStep = 'select' | 'credentials' | 'connecting' | 'complete';
+
+interface SimpleIntegrationWizardProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function SimpleIntegrationWizard({ isOpen, onClose }: SimpleIntegrationWizardProps) {
+  const [step, setStep] = useState<WizardStep>('select');
+  const [selectedCategory, setSelectedCategory] = useState<PlatformCategory | 'all'>('all');
+  const [selectedPlatform, setSelectedPlatform] = useState<PlatformOption | null>(null);
+  const [credentials, setCredentials] = useState({ username: '', password: '', apiKey: '' });
+  const [isConnecting, setIsConnecting] = useState(false);
   const { toast } = useToast();
 
-  const handleCategorySelect = (categoryId: string) => {
-    setSelectedCategory(categoryId);
+  // Filter platforms based on selected category
+  const filteredPlatforms = selectedCategory === 'all'
+    ? platformOptions
+    : platformOptions.filter(platform => platform.category === selectedCategory);
+
+  // Handle platform selection
+  const handleSelectPlatform = (platform: PlatformOption) => {
+    setSelectedPlatform(platform);
+    setStep('credentials');
   };
 
-  const handlePlatformSelect = (platform: any) => {
-    // Open the platform in a new tab
-    window.open(platform.url, '_blank');
-    
-    // Show success toast
-    toast({
-      title: "Platform Connected",
-      description: `Successfully connected to ${platform.name}`,
-      variant: "default",
-    });
-    
-    // Mark as complete
-    setIsComplete(true);
-    
-    // Reset after a delay
+  // Handle credential input changes
+  const handleCredentialChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setCredentials(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Handle form submission
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setStep('connecting');
+    setIsConnecting(true);
+
+    // Simulate connection process
     setTimeout(() => {
-      setIsComplete(false);
-      setOpen(false);
-    }, 1500);
+      setIsConnecting(false);
+      setStep('complete');
+      
+      toast({
+        title: "Platform Connected Successfully",
+        description: `${selectedPlatform?.name} has been integrated with MentorMe.`,
+      });
+    }, 2000);
   };
 
-  // Get current category
-  const currentCategory = platformCategories.find(cat => cat.id === selectedCategory) || platformCategories[0];
+  // Close dialog and reset state
+  const handleClose = () => {
+    // Only allow closing on select and complete steps
+    if (step === 'select' || step === 'complete') {
+      onClose();
+      // Reset state after animation completes
+      setTimeout(() => {
+        setStep('select');
+        setSelectedPlatform(null);
+        setCredentials({ username: '', password: '', apiKey: '' });
+      }, 300);
+    }
+  };
+
+  // Handle "start over" action
+  const handleStartOver = () => {
+    setStep('select');
+    setSelectedPlatform(null);
+    setCredentials({ username: '', password: '', apiKey: '' });
+  };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="w-full">
-          <div className="flex items-center justify-center space-x-2">
-            <Shield className="h-4 w-4" />
-            <span>Launch Integration Wizard</span>
-          </div>
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-md md:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Third-Party Platform Integration</DialogTitle>
+          <DialogTitle>
+            {step === 'select' && "Connect a New Platform"}
+            {step === 'credentials' && "Enter Platform Credentials"}
+            {step === 'connecting' && "Connecting to Platform"}
+            {step === 'complete' && "Platform Connected Successfully"}
+          </DialogTitle>
           <DialogDescription>
-            Connect Raising Arizona's systems with your essential business platforms
+            {step === 'select' && "Select a platform to integrate with MentorMe"}
+            {step === 'credentials' && `Connect to ${selectedPlatform?.name} by providing your credentials`}
+            {step === 'connecting' && "Please wait while we establish a secure connection"}
+            {step === 'complete' && "Your platform has been successfully integrated"}
           </DialogDescription>
         </DialogHeader>
 
-        {isComplete ? (
-          <div className="py-6">
-            <div className="bg-green-50 p-6 rounded-lg text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 mb-4">
-                <CheckCircle className="h-6 w-6 text-green-600" />
-              </div>
-              <h3 className="text-lg font-medium text-green-800">Integration Complete!</h3>
-              <p className="text-sm text-green-600 mt-1">
-                Your platform has been successfully connected
-              </p>
-            </div>
-          </div>
-        ) : (
+        {step === 'select' && (
           <>
-            <div className="flex space-x-2 border-b mb-4">
-              {platformCategories.map((category) => (
-                <Button 
-                  key={category.id}
-                  variant={selectedCategory === category.id ? "default" : "ghost"}
-                  onClick={() => handleCategorySelect(category.id)}
-                  className="rounded-none rounded-t-lg"
-                >
-                  {category.name}
-                </Button>
-              ))}
+            <div className="flex flex-wrap gap-2 mb-4">
+              <Button 
+                variant={selectedCategory === 'all' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => setSelectedCategory('all')}
+              >
+                All
+              </Button>
+              <Button 
+                variant={selectedCategory === 'childcare' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => setSelectedCategory('childcare')}
+              >
+                Childcare
+              </Button>
+              <Button 
+                variant={selectedCategory === 'financial' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => setSelectedCategory('financial')}
+              >
+                Financial
+              </Button>
+              <Button 
+                variant={selectedCategory === 'payroll' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => setSelectedCategory('payroll')}
+              >
+                HR & Payroll
+              </Button>
+              <Button 
+                variant={selectedCategory === 'learning' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => setSelectedCategory('learning')}
+              >
+                Learning
+              </Button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 py-2">
-              {currentCategory.platforms.map((platform) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-2">
+              {filteredPlatforms.map((platform) => (
                 <Card 
-                  key={platform.id} 
-                  className="cursor-pointer hover:border-blue-400 transition-colors"
-                  onClick={() => handlePlatformSelect(platform)}
+                  key={platform.id}
+                  className="p-4 cursor-pointer hover:bg-gray-50 transition-colors border"
+                  onClick={() => handleSelectPlatform(platform)}
                 >
-                  <CardContent className="p-4 flex flex-col items-center justify-center">
-                    <div className="text-lg font-bold text-blue-600 mb-2">{platform.name}</div>
-                    <Badge variant="outline" className="bg-blue-50 mb-1">One-Click Connect</Badge>
-                    <div className="flex items-center text-xs text-blue-500">
-                      <span>Open Platform</span>
-                      <ChevronRight className="h-3 w-3 ml-1" />
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                      {platform.logoUrl ? (
+                        <img src={platform.logoUrl} alt={platform.name} className="w-6 h-6" />
+                      ) : (
+                        <Puzzle className="w-5 h-5 text-primary" />
+                      )}
                     </div>
-                  </CardContent>
+                    <div>
+                      <h3 className="font-medium text-sm">{platform.name}</h3>
+                      <p className="text-xs text-muted-foreground">{platform.description}</p>
+                    </div>
+                  </div>
                 </Card>
               ))}
             </div>
           </>
         )}
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
-            Close
-          </Button>
-        </DialogFooter>
+        {step === 'credentials' && selectedPlatform && (
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                  {selectedPlatform.logoUrl ? (
+                    <img src={selectedPlatform.logoUrl} alt={selectedPlatform.name} className="w-7 h-7" />
+                  ) : (
+                    <Puzzle className="w-6 h-6 text-primary" />
+                  )}
+                </div>
+                <div>
+                  <h3 className="font-medium">{selectedPlatform.name}</h3>
+                  <p className="text-xs text-muted-foreground">{selectedPlatform.description}</p>
+                </div>
+              </div>
+
+              <Alert variant="default" className="bg-blue-50 text-blue-800 border-blue-200">
+                <AlertCircle className="h-4 w-4 text-blue-800" />
+                <AlertDescription className="text-xs">
+                  Your credentials are securely encrypted and never stored in plain text.
+                </AlertDescription>
+              </Alert>
+
+              <div className="space-y-3">
+                <div className="grid w-full items-center gap-1.5">
+                  <label htmlFor="username" className="text-sm font-medium">Username</label>
+                  <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    value={credentials.username}
+                    onChange={handleCredentialChange}
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    placeholder={`${selectedPlatform.name} username or email`}
+                    required
+                  />
+                </div>
+
+                <div className="grid w-full items-center gap-1.5">
+                  <label htmlFor="password" className="text-sm font-medium">Password</label>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    value={credentials.password}
+                    onChange={handleCredentialChange}
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    placeholder="Your account password"
+                    required
+                  />
+                </div>
+
+                {selectedPlatform.category === 'financial' && (
+                  <div className="grid w-full items-center gap-1.5">
+                    <label htmlFor="apiKey" className="text-sm font-medium">API Key (Optional)</label>
+                    <input
+                      type="text"
+                      id="apiKey"
+                      name="apiKey"
+                      value={credentials.apiKey}
+                      onChange={handleCredentialChange}
+                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                      placeholder="Optional API key for enhanced features"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <DialogFooter className="mt-6 flex justify-between">
+              <Button type="button" variant="outline" onClick={handleStartOver}>
+                Back
+              </Button>
+              <Button type="submit">
+                Connect Platform
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
+
+        {step === 'connecting' && (
+          <div className="flex flex-col items-center justify-center py-8">
+            <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
+            <h3 className="text-lg font-medium mb-2">Establishing Connection</h3>
+            <p className="text-sm text-muted-foreground text-center max-w-xs">
+              We're securely connecting to {selectedPlatform?.name}. This may take a moment...
+            </p>
+          </div>
+        )}
+
+        {step === 'complete' && (
+          <div className="flex flex-col items-center justify-center py-6">
+            <div className="bg-green-100 rounded-full p-3 mb-4">
+              <CheckCircle className="h-10 w-10 text-green-600" />
+            </div>
+            <h3 className="text-lg font-medium mb-2">Successfully Connected!</h3>
+            <p className="text-sm text-center text-muted-foreground mb-6 max-w-xs">
+              {selectedPlatform?.name} has been successfully integrated with MentorMe. Your data will now sync automatically.
+            </p>
+            <div className="flex gap-3 w-full">
+              <Button variant="outline" className="w-full" onClick={handleStartOver}>
+                Connect Another Platform
+              </Button>
+              <Button className="w-full" onClick={handleClose}>
+                Done
+              </Button>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

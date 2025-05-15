@@ -1,217 +1,293 @@
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import Header from '@/components/Header';
+import React, { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
+import { Helmet } from 'react-helmet';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
 import SimpleIntegrationWizard from '@/components/SimpleIntegrationWizard';
-import { Building2, CheckCircle, ExternalLink, Lock, Shield } from 'lucide-react';
+import { Puzzle, Shield, FileCheck, CheckCircle, XCircle } from 'lucide-react';
 
-// Define integration platforms with direct links
-const integrationPlatforms = [
+// Platform category types
+export type PlatformCategory = 'childcare' | 'financial' | 'payroll' | 'learning';
+
+// Platform status types
+export type ConnectionStatus = 'connected' | 'disconnected' | 'pending';
+
+// Platform integration interface
+export interface PlatformIntegration {
+  id: string;
+  name: string;
+  description: string;
+  category: PlatformCategory;
+  iconUrl?: string;
+  status: ConnectionStatus;
+  lastSynced?: string;
+}
+
+// Mock data for platform integrations
+const platformIntegrations: PlatformIntegration[] = [
   {
-    id: 'childcare',
-    name: 'Childcare Management',
-    platforms: [
-      { id: 'procare', name: 'Procare', url: 'https://www.procaresoftware.com/auth/login' },
-      { id: 'intellakid', name: 'IntellAKid', url: 'https://intellakid.com/login' },
-      { id: 'tadpoles', name: 'Tadpoles', url: 'https://www.tadpoles.com/login' },
-    ]
+    id: 'procare',
+    name: 'Procare',
+    description: 'Child care management software',
+    category: 'childcare',
+    status: 'connected',
+    lastSynced: '2025-05-14T14:30:00Z'
   },
   {
-    id: 'finance',
-    name: 'Financial Systems',
-    platforms: [
-      { id: 'bankofamerica', name: 'Bank of America', url: 'https://secure.bankofamerica.com/login/' },
-      { id: 'wellsfargo', name: 'Wells Fargo', url: 'https://banking.wellsfargo.com/signin' },
-      { id: 'chase', name: 'Chase', url: 'https://www.chase.com/personal/sign-in' },
-      { id: 'quickbooks', name: 'QuickBooks', url: 'https://quickbooks.intuit.com/login/' },
-    ]
+    id: 'intellakid',
+    name: 'IntellAKid',
+    description: 'Childcare payment processing',
+    category: 'childcare',
+    status: 'connected',
+    lastSynced: '2025-05-14T13:15:00Z'
   },
   {
-    id: 'hr',
-    name: 'HR & Payroll',
-    platforms: [
-      { id: 'adp', name: 'ADP', url: 'https://login.adp.com/welcome' },
-      { id: 'paychex', name: 'Paychex', url: 'https://www.paychex.com/login' },
-      { id: 'gusto', name: 'Gusto', url: 'https://app.gusto.com/login' },
-    ]
+    id: 'quickbooks',
+    name: 'QuickBooks',
+    description: 'Financial management software',
+    category: 'financial',
+    status: 'disconnected'
   },
+  {
+    id: 'adp',
+    name: 'ADP',
+    description: 'Payroll and HR services',
+    category: 'payroll',
+    status: 'pending'
+  },
+  {
+    id: 'brightwheels',
+    name: 'Brightwheel',
+    description: 'Early education platform',
+    category: 'childcare',
+    status: 'disconnected'
+  },
+  {
+    id: 'bank_of_america',
+    name: 'Bank of America',
+    description: 'Banking services',
+    category: 'financial',
+    status: 'connected',
+    lastSynced: '2025-05-14T10:00:00Z'
+  }
 ];
 
-const PlatformIntegrationsPage = () => {
-  const { isAuthenticated, user } = useAuth();
+export default function PlatformIntegrationsPage() {
+  const { user, isLoading } = useAuth();
   const { toast } = useToast();
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>('all');
+  
+  // Filter platforms based on active tab
+  const filteredPlatforms = activeTab === 'all' 
+    ? platformIntegrations 
+    : platformIntegrations.filter(platform => platform.category === activeTab);
 
-  const handlePlatformConnect = (platform: any) => {
-    window.open(platform.url, '_blank');
-    
+  const connectionCount = platformIntegrations.filter(p => p.status === 'connected').length;
+  const totalPlatforms = platformIntegrations.length;
+
+  const handleStatusChange = (platformId: string, newStatus: ConnectionStatus) => {
+    // Would handle the status change in a real implementation
     toast({
-      title: "Platform Connected",
-      description: `Successfully connected to ${platform.name}`,
+      title: "Connection status updated",
+      description: `Platform ${platformId} is now ${newStatus}`,
     });
   };
 
+  const openWizard = () => setIsWizardOpen(true);
+  const closeWizard = () => setIsWizardOpen(false);
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      
-      <main className="container mx-auto py-8 px-4">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold">Platform Integrations</h1>
-            <p className="text-muted-foreground mt-1">
-              Connect Raising Arizona with your essential business tools
-            </p>
-          </div>
-          
-          <div className="mt-4 md:mt-0">
-            <SimpleIntegrationWizard />
-          </div>
+    <>
+      <Helmet>
+        <title>Platform Integrations | MentorMe</title>
+        <meta name="description" content="Connect your MentorMe application with third-party platforms for seamless data synchronization" />
+      </Helmet>
+
+      <div className="container max-w-screen-xl mx-auto px-4 py-8">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold tracking-tight mb-2">Platform Integrations</h1>
+          <p className="text-muted-foreground">Connect and manage third-party platforms</p>
         </div>
-        
-        <div className="mb-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
-          <div className="flex items-start md:items-center gap-4 flex-col md:flex-row">
-            <div className="bg-blue-100 p-3 rounded-full">
-              <Shield className="h-6 w-6 text-blue-700" />
-            </div>
-            <div className="flex-1">
-              <h2 className="text-xl font-semibold mb-1">Seamless Third-Party Platform Integration</h2>
-              <p className="text-gray-600">
-                Our integration wizard guides you through connecting all your business tools with Raising Arizona's 
-                system - no technical knowledge required! All connections are secure and follow best practices for 
-                data privacy.
-              </p>
-            </div>
-            <div className="mt-4 md:mt-0">
-              <Badge variant="outline" className="bg-blue-100 border-blue-300 text-blue-800">NEW FEATURE</Badge>
-            </div>
-          </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-medium">Connected Platforms</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-end gap-2">
+                <span className="text-3xl font-bold text-primary">{connectionCount}</span>
+                <span className="text-sm text-muted-foreground pb-1">of {totalPlatforms}</span>
+              </div>
+            </CardContent>
+            <CardFooter className="pt-0">
+              <Button variant="outline" size="sm" onClick={openWizard}>
+                <Puzzle className="h-4 w-4 mr-2" />
+                Add Integration
+              </Button>
+            </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-medium">Data Security</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-green-500" />
+                <span className="text-sm">All connections are secure and encrypted</span>
+              </div>
+            </CardContent>
+            <CardFooter className="pt-0">
+              <Button variant="outline" size="sm" className="text-xs">
+                View Security Details
+              </Button>
+            </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-medium">Last Sync</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <FileCheck className="h-5 w-5 text-blue-500" />
+                <span className="text-sm">All data synchronized 35 minutes ago</span>
+              </div>
+            </CardContent>
+            <CardFooter className="pt-0">
+              <Button variant="outline" size="sm" className="text-xs">
+                Sync Now
+              </Button>
+            </CardFooter>
+          </Card>
         </div>
-        
-        <Tabs defaultValue="childcare" className="mb-8">
-          <TabsList>
-            {integrationPlatforms.map(category => (
-              <TabsTrigger key={category.id} value={category.id}>
-                {category.name}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          
-          {integrationPlatforms.map(category => (
-            <TabsContent key={category.id} value={category.id} className="mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {category.platforms.map(platform => (
-                  <Card key={platform.id} className="overflow-hidden">
-                    <CardHeader className="bg-slate-50 pb-3">
-                      <div className="flex justify-between items-start">
-                        <CardTitle className="text-lg font-semibold">{platform.name}</CardTitle>
-                        <Badge variant="outline" className="bg-green-50 text-green-700">
-                          <CheckCircle className="h-3 w-3 mr-1" /> Ready
-                        </Badge>
+
+        {/* Main content */}
+        <div className="bg-white rounded-lg shadow-sm border mb-6">
+          <div className="p-4 border-b">
+            <h2 className="text-xl font-semibold">Manage Integrations</h2>
+            <p className="text-sm text-muted-foreground">Connect your platforms for seamless data sharing</p>
+          </div>
+
+          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="p-4">
+            <div className="border-b pb-2 mb-4">
+              <TabsList className="grid grid-cols-5 w-full max-w-2xl">
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="childcare">Childcare</TabsTrigger>
+                <TabsTrigger value="financial">Financial</TabsTrigger>
+                <TabsTrigger value="payroll">HR & Payroll</TabsTrigger>
+                <TabsTrigger value="learning">Learning</TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent value={activeTab} className="mt-0">
+              <div className="grid grid-cols-1 gap-4">
+                {filteredPlatforms.map((platform) => (
+                  <div key={platform.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center">
+                      <div className="h-10 w-10 bg-gray-100 rounded-md flex items-center justify-center mr-4">
+                        {platform.iconUrl ? (
+                          <img src={platform.iconUrl} alt={platform.name} className="h-6 w-6" />
+                        ) : (
+                          <Puzzle className="h-6 w-6 text-gray-500" />
+                        )}
                       </div>
-                      <CardDescription>
-                        Secure single sign-on connection
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-4">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-start gap-2">
-                            <Lock className="h-4 w-4 text-slate-500 mt-0.5" />
-                            <div>
-                              <p className="text-sm font-medium">Secure Connection</p>
-                              <p className="text-xs text-muted-foreground">Industry-standard encryption</p>
-                            </div>
-                          </div>
+                      <div>
+                        <h3 className="font-medium">{platform.name}</h3>
+                        <p className="text-sm text-muted-foreground">{platform.description}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      {platform.status === 'connected' && (
+                        <div className="flex items-center text-sm">
+                          <span className="text-muted-foreground mr-2">Last synced:</span>
+                          <span>{new Date(platform.lastSynced!).toLocaleString()}</span>
                         </div>
-                        
-                        <Button 
-                          variant="outline" 
-                          className="w-full"
-                          onClick={() => handlePlatformConnect(platform)}
-                        >
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          Connect to {platform.name}
-                        </Button>
+                      )}
+                      
+                      <div className="flex items-center gap-2">
+                        {platform.status === 'connected' ? (
+                          <>
+                            <span className="flex items-center text-sm text-green-600">
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              Connected
+                            </span>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleStatusChange(platform.id, 'disconnected')}
+                            >
+                              Disconnect
+                            </Button>
+                          </>
+                        ) : platform.status === 'pending' ? (
+                          <span className="flex items-center text-sm text-amber-600">
+                            <span className="h-2 w-2 bg-amber-500 rounded-full mr-2"></span>
+                            Pending Authorization
+                          </span>
+                        ) : (
+                          <>
+                            <span className="flex items-center text-sm text-red-600">
+                              <XCircle className="h-4 w-4 mr-1" />
+                              Disconnected
+                            </span>
+                            <Button 
+                              variant="default" 
+                              size="sm"
+                              onClick={() => handleStatusChange(platform.id, 'connected')}
+                            >
+                              Connect
+                            </Button>
+                          </>
+                        )}
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 ))}
+
+                {filteredPlatforms.length === 0 && (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No integrations found in this category</p>
+                    <Button variant="outline" className="mt-4" onClick={openWizard}>
+                      Add Integration
+                    </Button>
+                  </div>
+                )}
               </div>
             </TabsContent>
-          ))}
-        </Tabs>
-        
-        <div className="border-t pt-6">
-          <h2 className="text-xl font-semibold mb-4">Integration Status</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Connected Platforms</CardTitle>
-                <CardDescription>Your active system connections</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
-                    <span className="text-sm">Banking Systems</span>
-                  </div>
-                  <Badge variant="outline" className="bg-green-50 text-green-700">Connected</Badge>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
-                    <span className="text-sm">Procare</span>
-                  </div>
-                  <Badge variant="outline" className="bg-green-50 text-green-700">Connected</Badge>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 rounded-full bg-amber-500 mr-2"></div>
-                    <span className="text-sm">Payroll</span>
-                  </div>
-                  <Badge variant="outline" className="bg-amber-50 text-amber-700">Partial</Badge>
-                </div>
-                
-                <div className="border-t mt-3 pt-3">
-                  <Button variant="outline" size="sm" className="w-full">
-                    Manage Connection Settings
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Quick Actions</CardTitle>
-                <CardDescription>Common integration tasks</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button variant="outline" className="w-full justify-start">
-                  <Building2 className="h-4 w-4 mr-2" />
-                  Sign into all connected platforms
-                </Button>
-                
-                <Button variant="outline" className="w-full justify-start">
-                  <Shield className="h-4 w-4 mr-2" />
-                  Run security check on connections
-                </Button>
-                
-                <Button variant="outline" className="w-full justify-start">
-                  <SimpleIntegrationWizard />
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+          </Tabs>
         </div>
-      </main>
-    </div>
-  );
-};
 
-export default PlatformIntegrationsPage;
+        <Card>
+          <CardHeader>
+            <CardTitle>Need Help Setting Up Integrations?</CardTitle>
+            <CardDescription>Our team can help you connect your platforms quickly and securely</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              If you're experiencing any issues connecting your platforms or need assistance with data synchronization, 
+              our technical support team is available to help. We can guide you through the process or set up the 
+              integrations for you.
+            </p>
+          </CardContent>
+          <CardFooter className="flex justify-end gap-2">
+            <Button variant="outline">View Documentation</Button>
+            <Button>Contact Support</Button>
+          </CardFooter>
+        </Card>
+      </div>
+
+      {/* Integration Wizard */}
+      {isWizardOpen && (
+        <SimpleIntegrationWizard 
+          isOpen={isWizardOpen} 
+          onClose={closeWizard}
+        />
+      )}
+    </>
+  );
+}
