@@ -129,11 +129,80 @@ export default function ModuleView({ moduleId, user, onBack }: ModuleViewProps) 
     }, 1500);
   };
   
+  // Function to fix empty module content
+  const fixModuleContent = async () => {
+    try {
+      toast({
+        title: "Generating content",
+        description: "Please wait while we prepare the module content...",
+      });
+      
+      // Special case for Child Development Milestones module
+      if (moduleId === 6) {
+        try {
+          // Try to use the specialized child development content update
+          const response = await fetch('/api/modules/update-child-development', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (!response.ok) {
+            // If the special endpoint fails, fall back to the generic fix content
+            await apiRequest(`/api/modules/${moduleId}/fix-content`, { method: 'POST' });
+          }
+        } catch (error) {
+          console.error("Error with specialized update, falling back to generic:", error);
+          await apiRequest(`/api/modules/${moduleId}/fix-content`, { method: 'POST' });
+        }
+      } else {
+        // For all other modules, use the generic fix content endpoint
+        await apiRequest(`/api/modules/${moduleId}/fix-content`, { method: 'POST' });
+      }
+      
+      // Refetch the module data
+      queryClient.invalidateQueries({ queryKey: [`/api/modules/${moduleId}`] });
+      
+      toast({
+        title: "Success",
+        description: "Module content has been generated. Loading...",
+      });
+    } catch (error) {
+      console.error("Error fixing module content:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate module content. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoadingModule || !module) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
         <span className="ml-3">Loading module content...</span>
+      </div>
+    );
+  }
+  
+  // Check if module has empty content and show a button to fix it
+  if (!module.content || module.content.trim() === '') {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 space-y-4">
+        <div className="text-center">
+          <h3 className="text-xl font-bold">Module Content Missing</h3>
+          <p className="text-muted-foreground mb-4">
+            This module appears to be missing content. Click the button below to generate content.
+          </p>
+        </div>
+        <Button onClick={fixModuleContent}>
+          Generate Module Content
+        </Button>
+        <Button variant="outline" onClick={onBack} className="mt-2">
+          Go Back
+        </Button>
       </div>
     );
   }
