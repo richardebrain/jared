@@ -131,6 +131,13 @@ export default function Header() {
               Games
             </div>
           </Link>
+          <Link href="/admin">
+            <div className={`font-heading font-semibold px-4 py-2 ${location === "/admin" 
+              ? "text-primary border-b-2 border-primary" 
+              : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
+              Admin
+            </div>
+          </Link>
         </nav>
         
         <div className="flex items-center space-x-4">
@@ -222,6 +229,11 @@ export default function Header() {
             <Link href="/games">
               <div className={`font-heading font-semibold ${location === "/games" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
                 Games
+              </div>
+            </Link>
+            <Link href="/admin">
+              <div className={`font-heading font-semibold ${location === "/admin" ? "text-primary" : "text-neutral-800"} cursor-pointer`}>
+                Admin
               </div>
             </Link>
             <div className="pt-2 border-t border-neutral-100">

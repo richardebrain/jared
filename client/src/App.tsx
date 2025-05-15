@@ -125,6 +125,10 @@ function Router() {
         {isAuthenticated ? <GamesPage /> : <Login />}
       </Route>
       
+      <Route path="/admin">
+        {isAuthenticated ? <AdminPage /> : <Login />}
+      </Route>
+      
       <Route path="/">
         {isAuthenticated ? <Dashboard /> : <Login />}
       </Route>

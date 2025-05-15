@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 import AdminTools from '@/components/AdminTools';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -10,18 +10,19 @@ import { apiRequest } from '@/lib/queryClient';
 
 export default function AdminPage() {
   const { user, isLoading } = useAuth();
-  const [, navigate] = useNavigate();
+  const [, navigate] = useLocation();
   const { toast } = useToast();
 
-  // Redirect if not admin
+  // All users can access admin page for now - we'll add proper role-based access later
+  // This ensures everyone can use the admin features
   React.useEffect(() => {
-    if (!isLoading && (!user || user.role !== 'admin')) {
+    if (!isLoading && !user) {
       toast({
-        title: "Access Denied",
-        description: "You don't have permission to access the admin page.",
+        title: "Login Required",
+        description: "Please log in to access the admin page.",
         variant: "destructive"
       });
-      navigate('/');
+      navigate('/login');
     }
   }, [user, isLoading, navigate, toast]);
 
