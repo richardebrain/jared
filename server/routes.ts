@@ -342,11 +342,282 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint to update the Child Development Milestones module content
   app.post('/api/modules/update-child-development', async (req, res) => {
     try {
-      // Import the update function directly from the TypeScript module
-      const { updateChildDevelopmentModule } = await import('./updateChildDevelopmentModule');
+      // Module ID for Child Development module
+      const moduleId = 6;
       
-      // Run the update function
-      await updateChildDevelopmentModule();
+      // Get current module data
+      const module = await storage.getModule(moduleId);
+      
+      if (!module) {
+        return res.status(404).json({ 
+          success: false,
+          message: "Child Development module not found" 
+        });
+      }
+      
+      // Generate the base content for the module
+      const baseContent = `
+<div class="module-content">
+  <section class="learning-objectives">
+    <h2>Learning Objectives</h2>
+    <p>By the end of this module, you will be able to:</p>
+    <ul>
+      <li>Identify key developmental milestones for children ages 0-5 years</li>
+      <li>Recognize red flags that may indicate developmental concerns</li>
+      <li>Access and utilize government resources for developmental monitoring</li>
+      <li>Communicate effectively with parents about child development</li>
+      <li>Implement classroom strategies that support developmental progression</li>
+    </ul>
+  </section>
+  
+  <section class="introduction">
+    <h2>Introduction</h2>
+    <p>Understanding child development milestones is essential for early childhood educators. These milestones serve as guideposts to help us recognize typical patterns of growth and identify potential developmental concerns early when intervention is most effective.</p>
+    <p>This module provides a comprehensive overview of developmental milestones across five domains: physical, cognitive, language, social-emotional, and self-help skills. We'll explore resources from trusted government agencies and learn to apply this knowledge in the classroom.</p>
+    <p>Remember, every child develops at their own pace, and there's a range of what's considered "typical" development. Our goal is to support each child's individual journey while being alert to signs that additional support may be beneficial.</p>
+  </section>
+
+  <section class="developmental-domains">
+    <h2>The Five Domains of Development</h2>
+    
+    <div class="domain-card">
+      <h3>1. Physical Development</h3>
+      <p>Includes gross motor skills (large movements like crawling, walking, running) and fine motor skills (smaller movements like grasping, drawing, cutting).</p>
+      <p><strong>Why it matters:</strong> Physical skills enable children to explore their environment, participate in activities, and develop independence.</p>
+    </div>
+    
+    <div class="domain-card">
+      <h3>2. Cognitive Development</h3>
+      <p>Involves thinking, learning, problem-solving, reasoning, and understanding concepts.</p>
+      <p><strong>Why it matters:</strong> Cognitive skills form the foundation for academic learning and help children make sense of their world.</p>
+    </div>
+    
+    <div class="domain-card">
+      <h3>3. Language Development</h3>
+      <p>Encompasses receptive language (understanding), expressive language (speaking), and early literacy skills.</p>
+      <p><strong>Why it matters:</strong> Language allows children to communicate needs, form relationships, and later succeed in reading and writing.</p>
+    </div>
+    
+    <div class="domain-card">
+      <h3>4. Social-Emotional Development</h3>
+      <p>Includes forming relationships, recognizing emotions, self-regulation, and developing empathy.</p>
+      <p><strong>Why it matters:</strong> Social-emotional skills help children navigate relationships, handle challenges, and develop a positive self-concept.</p>
+    </div>
+    
+    <div class="domain-card">
+      <h3>5. Self-Help/Adaptive Skills</h3>
+      <p>Involves developing independence in daily living activities like eating, dressing, and personal hygiene.</p>
+      <p><strong>Why it matters:</strong> These skills promote confidence, autonomy, and prepare children for school and life.</p>
+    </div>
+  </section>
+
+  <section class="government-resources">
+    <h2>CDC Resources for Monitoring Development</h2>
+    <p>The Centers for Disease Control and Prevention (CDC) provides excellent resources for tracking developmental milestones through their "Learn the Signs. Act Early." program.</p>
+    
+    <div class="resource-card">
+      <h3>CDC's Developmental Milestones</h3>
+      <p>Free checklists organized by age that detail milestones in movement, language, cognitive, and social-emotional domains.</p>
+      <p><a href="https://www.cdc.gov/ncbddd/actearly/milestones/index.html" target="_blank">CDC Milestones Website</a></p>
+    </div>
+    
+    <div class="resource-card">
+      <h3>CDC's Milestone Tracker App</h3>
+      <p>A free mobile app that helps track a child's development, with photos and videos showing milestones in action.</p>
+      <p><a href="https://www.cdc.gov/ncbddd/actearly/milestones-app.html" target="_blank">Download the App</a></p>
+    </div>
+    
+    <div class="resource-card">
+      <h3>CDC's Developmental Monitoring and Screening</h3>
+      <p>Resources explaining the difference between monitoring (tracking milestones) and screening (formal tests).</p>
+      <p><a href="https://www.cdc.gov/ncbddd/childdevelopment/screening.html" target="_blank">Learn About Monitoring and Screening</a></p>
+    </div>
+  </section>
+
+  <section class="classroom-applications">
+    <h2>Supporting Development in the Classroom</h2>
+    
+    <div class="domain-strategies">
+      <h3>Physical Development Strategies</h3>
+      <ul>
+        <li><strong>Gross Motor:</strong> Create obstacle courses, provide climbing equipment, incorporate music and movement activities.</li>
+        <li><strong>Fine Motor:</strong> Offer play dough, puzzles, stringing beads, scissors activities, and various art materials.</li>
+      </ul>
+    </div>
+    
+    <div class="domain-strategies">
+      <h3>Cognitive Development Strategies</h3>
+      <ul>
+        <li><strong>Problem-Solving:</strong> Provide open-ended materials, ask thought-provoking questions, create challenges.</li>
+        <li><strong>Concept Formation:</strong> Sort and classify objects, explore cause and effect, introduce sequencing activities.</li>
+      </ul>
+    </div>
+    
+    <div class="domain-strategies">
+      <h3>Language Development Strategies</h3>
+      <ul>
+        <li><strong>Receptive Language:</strong> Read books daily, give simple instructions, play listening games.</li>
+        <li><strong>Expressive Language:</strong> Have conversations, model rich vocabulary, create opportunities for storytelling.</li>
+      </ul>
+    </div>
+    
+    <div class="domain-strategies">
+      <h3>Social-Emotional Development Strategies</h3>
+      <ul>
+        <li><strong>Emotional Literacy:</strong> Label feelings, read books about emotions, create feeling charts.</li>
+        <li><strong>Social Skills:</strong> Facilitate cooperative play, practice sharing and taking turns, role-play social scenarios.</li>
+      </ul>
+    </div>
+    
+    <div class="domain-strategies">
+      <h3>Self-Help Skills Strategies</h3>
+      <ul>
+        <li><strong>Practical Life Center:</strong> Create stations where children can practice dressing (buttons, zippers), pouring, and serving.</li>
+        <li><strong>Visual Schedules:</strong> Post picture schedules to help children follow routines independently.</li>
+        <li><strong>Child-Accessible Materials:</strong> Organize classroom items at children's level to promote independence.</li>
+        <li><strong>I Can Do It Myself" Chart:</strong> Celebrate self-help milestones with a special display.</li>
+      </ul>
+    </div>
+  </section>
+  
+  <section class="communicating-with-families">
+    <h2>Communicating with Families about Development</h2>
+    
+    <div class="communication-tips">
+      <h3>Effective Communication Strategies</h3>
+      <ul>
+        <li><strong>Focus on observations, not judgments:</strong> "I've noticed Maya has been using mostly single words" rather than "Maya's language is delayed."</li>
+        <li><strong>Use documentation:</strong> Share photos, videos, and work samples to illustrate developmental progress.</li>
+        <li><strong>Be specific:</strong> "Jamal can now stack six blocks" is more meaningful than "Jamal's fine motor skills are improving."</li>
+        <li><strong>Highlight strengths first:</strong> Begin conversations by acknowledging the child's strengths before discussing concerns.</li>
+        <li><strong>Provide resources:</strong> Share the government resources listed in this module with families.</li>
+        <li><strong>Maintain confidentiality:</strong> Never discuss one child's development with other parents.</li>
+      </ul>
+    </div>
+    
+    <div class="difficult-conversations">
+      <h3>Discussing Developmental Concerns</h3>
+      <p>When you need to discuss potential developmental concerns with families:</p>
+      <ol>
+        <li><strong>Prepare:</strong> Document specific observations with dates. Gather resources to share.</li>
+        <li><strong>Choose the right time and place:</strong> Schedule a private meeting without distractions.</li>
+        <li><strong>Start positively:</strong> Begin with the child's strengths and things they enjoy.</li>
+        <li><strong>Be specific but sensitive:</strong> Share concrete observations without diagnostic labels.</li>
+        <li><strong>Listen:</strong> Give parents time to process and share their own observations.</li>
+        <li><strong>Provide next steps:</strong> Suggest resources and potential referrals if appropriate.</li>
+        <li><strong>Follow up:</strong> Check in with parents after they've had time to reflect.</li>
+      </ol>
+      <p>Remember: Every Genius that ever was had a Mentor. As early childhood educators, we serve as crucial mentors in identifying and supporting children's developmental needs.</p>
+    </div>
+  </section>
+  
+  <section class="video-resources">
+    <h2>Video Resources on Child Development</h2>
+    <p>Watch these informative videos from trusted sources to deepen your understanding of developmental milestones:</p>
+    <div class="video-container">
+      <iframe width="560" height="315" src="https://www.youtube.com/embed/rvA2-bBGy2Q" title="Developmental Milestones" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      <p>CDC's Developmental Milestones: Learn the Signs. Act Early.</p>
+    </div>
+    <div class="video-container">
+      <iframe width="560" height="315" src="https://www.youtube.com/embed/YL9pU4uIVYc" title="Brain Development" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      <p>The Developing Brain: How Early Experiences Shape Brain Architecture</p>
+    </div>
+  </section>
+</div>
+      `;
+      
+      // Generate quiz for the module
+      const quiz = {
+        questions: [
+          {
+            question: "At what age should a child typically begin to walk independently?",
+            options: [
+              "Around 6 months",
+              "Between 9-12 months",
+              "Between 12-15 months",
+              "After 18 months"
+            ],
+            correctAnswer: 2,
+            explanation: "Most children begin walking independently between 12-15 months, though there is a normal range from 9-18 months."
+          },
+          {
+            question: "Which resource provides free developmental milestone checklists, tracking apps, and materials for educators?",
+            options: [
+              "National Association for the Education of Young Children (NAEYC)",
+              "CDC's Learn the Signs. Act Early. Program",
+              "American Academy of Pediatrics",
+              "National Institute of Child Health"
+            ],
+            correctAnswer: 1,
+            explanation: "The CDC's Learn the Signs. Act Early. Program offers free milestone checklists, a mobile tracking app, and various materials for both educators and parents."
+          },
+          {
+            question: "Which of the following would be considered a 'red flag' for a 2-year-old child?",
+            options: [
+              "Cannot jump with both feet off the ground",
+              "Does not know all letter names",
+              "Doesn't use 2-word phrases",
+              "Is shy around strangers"
+            ],
+            correctAnswer: 2,
+            explanation: "By age 2, children typically use 2-word phrases. Not doing so may indicate a need for further evaluation of language development."
+          },
+          {
+            question: "Which domain of development involves children recognizing emotions, forming relationships, and developing empathy?",
+            options: [
+              "Cognitive development",
+              "Physical development",
+              "Language development",
+              "Social-emotional development"
+            ],
+            correctAnswer: 3,
+            explanation: "Social-emotional development encompasses recognizing emotions, forming relationships, self-regulation, and developing empathy."
+          },
+          {
+            question: "When communicating with families about developmental concerns, what is the recommended approach?",
+            options: [
+              "Use diagnostic labels to ensure clarity",
+              "Share observations without judgment and provide resources",
+              "Compare the child to peers to illustrate differences",
+              "Suggest immediate professional intervention"
+            ],
+            correctAnswer: 1,
+            explanation: "When discussing developmental concerns, it's best to share specific observations without judgment, focus on strengths, and provide appropriate resources."
+          },
+          {
+            question: "What is the main purpose of developmental screening tools like the Ages and Stages Questionnaire (ASQ)?",
+            options: [
+              "To diagnose developmental disabilities",
+              "To identify gifted children early",
+              "To compare children's abilities to their peers",
+              "To identify potential developmental concerns for further evaluation"
+            ],
+            correctAnswer: 3,
+            explanation: "Developmental screening tools like the ASQ are designed to identify potential developmental concerns that may warrant further evaluation by specialists, not to diagnose conditions."
+          },
+          {
+            question: "By age 3, most children can:",
+            options: [
+              "Read simple words",
+              "Write their full name",
+              "Draw a person with at least 6 body parts",
+              "Pedal a tricycle and climb well"
+            ],
+            correctAnswer: 3,
+            explanation: "By age 3, most children can pedal a tricycle, climb well, and run easily. Drawing a detailed person typically develops around age 5."
+          }
+        ]
+      };
+      
+      // Update the module with the generated content and quiz
+      const updatedModule = {
+        ...module,
+        content: baseContent,
+        quiz: quiz
+      };
+      
+      // Save the updated module to the database
+      await storage.updateModule(moduleId, updatedModule);
       
       res.status(200).json({ 
         success: true, 
