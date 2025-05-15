@@ -124,6 +124,13 @@ export default function Header() {
               Video Library
             </div>
           </Link>
+          <Link href="/games">
+            <div className={`font-heading font-semibold px-4 py-2 ${location === "/games" 
+              ? "text-primary border-b-2 border-primary" 
+              : "text-neutral-800 hover:text-primary"} transition cursor-pointer`}>
+              Games
+            </div>
+          </Link>
         </nav>
         
         <div className="flex items-center space-x-4">
