@@ -24,6 +24,11 @@ export default function SettingsLayout({
       icon: <User className="h-4 w-4" />,
     },
     {
+      title: 'Owner Dashboard',
+      href: '/settings/owner-dashboard',
+      icon: <Building2 className="h-4 w-4" />,
+    },
+    {
       title: 'Data Sources',
       href: '/settings/data-sources',
       icon: <Database className="h-4 w-4" />,

@@ -373,7 +373,7 @@ export default function OwnerDashboardPage() {
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">
-                      Chase Bank Balance
+                      {bankName || "Bank"} Balance
                     </CardTitle>
                     <Building2 className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
@@ -502,7 +502,7 @@ export default function OwnerDashboardPage() {
             <TabsContent value="financial" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Chase Bank Account</CardTitle>
+                  <CardTitle>{bankName || "Bank"} Account</CardTitle>
                   <CardDescription>
                     Current balance: ${mockFinancial.accountBalance.toLocaleString()}
                   </CardDescription>

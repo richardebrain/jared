@@ -33,12 +33,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(
     session({
       secret: process.env.SESSION_SECRET || "mentor-me-secret",
-      resave: false,
-      saveUninitialized: false,
+      resave: true,
+      saveUninitialized: true,
       cookie: { 
         secure: false, // Set to false for development
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
         httpOnly: true,
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         sameSite: "lax"
       }, 
       store: new MemoryStoreSession({
