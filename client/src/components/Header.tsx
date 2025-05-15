@@ -82,7 +82,7 @@ export default function Header() {
               <img src={raisingArizonaLogo} alt="Raising Arizona Preschool" className="h-12 mr-3 rounded-md shadow-sm" />
               <div className="flex flex-col">
                 <div className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-amber-800 bg-clip-text text-transparent">MentorMe</div>
-                <div className="text-xs text-neutral-600 font-medium">Raising Arizona Teacher Training</div>
+                <div className="text-xs text-neutral-600 font-medium">Teacher Training</div>
               </div>
             </div>
           </Link>

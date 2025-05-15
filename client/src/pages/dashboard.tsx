@@ -75,8 +75,14 @@ export default function Dashboard() {
     setSelectedModuleId(moduleId);
   };
   
-  // Calculate bearBucks for display in header
-  const bearBucks = user?.points ? Math.floor(user.points / POINTS_PER_BEAR_BUCK) : 0;
+  // Use the bearBucks property from the user object directly instead of calculating
+  const bearBucks = user?.bearBucks || 0;
+  
+  // Debug output
+  console.log("User Bear Bucks data:", {
+    bearBucks: user?.bearBucks,
+    points: user?.points
+  });
   
   // Check if the user has completed at least one assessment
   // For debug, let's log all assessments to see what we're working with
