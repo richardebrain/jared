@@ -11,7 +11,8 @@ import {
   commentVotes, type CommentVote, type InsertCommentVote,
   coreValuesShoutOuts, type CoreValuesShoutOut, type InsertCoreValuesShoutOut,
   educationalGames, type EducationalGame, type InsertEducationalGame,
-  gameCompletions, type GameCompletion, type InsertGameCompletion
+  gameCompletions, type GameCompletion, type InsertGameCompletion,
+  videoQuizCompletions, type VideoQuizCompletion, type InsertVideoQuizCompletion
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -98,6 +99,10 @@ export interface IStorage {
   getRecentGameCompletions(userId: number, limit?: number): Promise<GameCompletion[]>;
   getDailyGameCompletionsCount(userId: number): Promise<number>;
   createGameCompletion(completion: InsertGameCompletion): Promise<GameCompletion>;
+  
+  // Video Quiz Completions operations
+  getVideoQuizCompletionsByUserId(userId: number): Promise<VideoQuizCompletion[]>;
+  createVideoQuizCompletion(completion: InsertVideoQuizCompletion): Promise<VideoQuizCompletion>;
 }
 
 export class MemStorage implements IStorage {
