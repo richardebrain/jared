@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardContent,
@@ -17,7 +17,11 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { CoinsIcon, ShoppingBag, Gift, Calendar } from "lucide-react";
+import { CoinsIcon, ShoppingBag, Gift, Calendar, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 interface BearBucksRewardsProps {
   bearBucks?: number;
@@ -33,8 +37,60 @@ const BearBucksRewards: React.FC<BearBucksRewardsProps> = ({
   // Define the conversion rate: 10 points = 1 Bear Buck
   const conversionRate = 10;
   
+  // Initialize state for conversion in progress
+  const [isConverting, setIsConverting] = useState(false);
+  const [showConversionSuccess, setShowConversionSuccess] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   // Calculate potential Bear Bucks that could be earned
   const potentialBearBucks = Math.floor(points / conversionRate);
+  
+  // Function to convert points to Bear Bucks
+  const convertPointsToBearBucks = async () => {
+    if (points < conversionRate) return;
+    
+    setIsConverting(true);
+    try {
+      // Convert the maximum number of points possible (in multiples of conversionRate)
+      const pointsToConvert = Math.floor(points / conversionRate) * conversionRate;
+      const bearBucksToAdd = Math.floor(points / conversionRate);
+      
+      const response = await apiRequest("/api/convert-points", {
+        method: "POST",
+        data: {
+          pointsToConvert,
+          bearBucksToAdd
+        }
+      });
+      
+      // Show success message
+      setShowConversionSuccess(true);
+      
+      // Hide success message after 5 seconds
+      setTimeout(() => {
+        setShowConversionSuccess(false);
+      }, 5000);
+      
+      // Invalidate user data query to refresh
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      
+      toast({
+        title: "Points Converted Successfully",
+        description: `Converted ${pointsToConvert} points to ${bearBucksToAdd} Bear Bucks!`,
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Error converting points:", error);
+      toast({
+        title: "Conversion Failed",
+        description: "There was an error converting your points. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsConverting(false);
+    }
+  };
   
   // Define the redemption options
   const redemptionOptions = [
@@ -135,12 +191,24 @@ const BearBucksRewards: React.FC<BearBucksRewardsProps> = ({
               You currently have <span className="font-bold">{points} points</span>, 
               which could convert to <span className="font-bold">{potentialBearBucks} Bear Bucks</span>
             </p>
+            
+            {showConversionSuccess && (
+              <Alert className="my-2 bg-green-50 border-green-200">
+                <AlertCircle className="h-4 w-4 text-green-500" />
+                <AlertTitle className="text-green-700">Conversion Successful!</AlertTitle>
+                <AlertDescription className="text-green-600 text-sm">
+                  You converted points to Bear Bucks. Your balances have been updated.
+                </AlertDescription>
+              </Alert>
+            )}
+            
             <Button 
               variant="outline" 
               className="mt-2 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
-              disabled={points < conversionRate}
+              disabled={points < conversionRate || isConverting}
+              onClick={convertPointsToBearBucks}
             >
-              Convert Points to Bear Bucks
+              {isConverting ? "Converting..." : "Convert Points to Bear Bucks"}
             </Button>
           </div>
         </div>

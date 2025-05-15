@@ -826,6 +826,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Points to Bear Bucks conversion endpoint
+  app.post("/api/convert-points", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const { pointsToConvert, bearBucksToAdd } = req.body;
+      
+      if (!pointsToConvert || !bearBucksToAdd || pointsToConvert <= 0 || bearBucksToAdd <= 0) {
+        return res.status(400).json({ message: "Invalid conversion parameters" });
+      }
+      
+      // Get current user
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Check if user has enough points
+      const currentPoints = user.points || 0;
+      if (currentPoints < pointsToConvert) {
+        return res.status(400).json({ 
+          message: "Not enough points for conversion",
+          currentPoints
+        });
+      }
+      
+      // Calculate current bear bucks
+      const currentBearBucks = user.bearBucks || 0;
+      
+      // Update user with new point and bear buck values
+      await storage.updateUser(userId, {
+        points: currentPoints - pointsToConvert,
+        bearBucks: currentBearBucks + bearBucksToAdd
+      });
+      
+      // Return updated user data
+      const updatedUser = await storage.getUser(userId);
+      const { password, ...userWithoutPassword } = updatedUser || {};
+      
+      res.status(200).json({
+        success: true,
+        message: `Converted ${pointsToConvert} points to ${bearBucksToAdd} Bear Bucks`,
+        user: userWithoutPassword
+      });
+    } catch (error) {
+      console.error("Error converting points to Bear Bucks:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   // Return server for use in tests and closing
   return httpServer;
 }
