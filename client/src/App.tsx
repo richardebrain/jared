@@ -20,6 +20,7 @@ import StorytellingDemoPage from "@/pages/storytelling-demo";
 import ClassroomMusic from "@/pages/classroom-music";
 import CoreValuesShoutOutPage from "@/pages/core-values-shout-out";
 import BuildingChildPage from "@/pages/building-child";
+import ChapterOnePage from "@/pages/chapter-one";
 import VideoResourcesPage from "@/pages/video-resources";
 import ToolsPage from "@/pages/tools";
 import DataSourcesPage from "@/pages/settings/data-sources";
@@ -110,6 +111,10 @@ function Router() {
       
       <Route path="/core-values">
         {isAuthenticated ? <CoreValuesPage /> : <Login />}
+      </Route>
+      
+      <Route path="/chapter-one">
+        {isAuthenticated ? <ChapterOnePage /> : <Login />}
       </Route>
       
       <Route path="/mindful-mornings">
