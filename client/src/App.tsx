@@ -32,6 +32,7 @@ import BearyAIPage from "@/pages/beary-ai";
 import GamesPage from "@/pages/games";
 import AdminPage from "@/pages/admin";
 import LessonPlanMakerPage from "@/pages/lesson-plan-maker";
+import CasinoPage from "@/pages/casino";
 
 function Router() {
   // Use React Query directly to check authenticated state
@@ -171,6 +172,10 @@ function Router() {
       
       <Route path="/games">
         {isAuthenticated ? <GamesPage /> : <Login />}
+      </Route>
+      
+      <Route path="/casino">
+        {isAuthenticated ? <CasinoPage /> : <Login />}
       </Route>
       
       <Route path="/lesson-plan-maker">
