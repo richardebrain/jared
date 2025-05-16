@@ -54,7 +54,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Auth middleware
-  const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+  const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
     console.log('Auth check - Session ID:', req.session.id);
     console.log('Auth check - Session data:', req.session);
     
@@ -62,9 +62,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Auth failed - No userId in session');
       return res.status(401).json({ message: "Unauthorized" });
     }
-    
-    console.log(`Auth successful - User ID: ${req.session.userId}`);
-    next();
+
+    try {
+      // Verify user exists in database
+      const userId = req.session.userId as number;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        console.log(`Auth failed - User with ID ${userId} not found in database`);
+        req.session.destroy(() => {
+          console.log('Session destroyed due to user not found');
+        });
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Update last active time
+      await storage.updateUser(userId, {
+        lastActive: new Date()
+      });
+      
+      // Refresh session expiration
+      req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
+      
+      // Force session update
+      try {
+        await new Promise<void>((resolve, reject) => {
+          req.session.save((err) => {
+            if (err) {
+              console.error('Session save error in auth middleware:', err);
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+        });
+      } catch (saveErr) {
+        console.error('Failed to refresh session in auth middleware:', saveErr);
+        // Continue anyway as this is just a refresh
+      }
+
+      console.log(`Auth successful - User ID: ${req.session.userId}`);
+      next();
+    } catch (error) {
+      console.error('Error in auth middleware:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   };
   
   // User routes
@@ -295,13 +337,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Force session save to ensure it's properly written to the database
-      req.session.save(err => {
-        if (err) {
-          console.error('Session save error:', err);
-        } else {
-          console.log('Session saved successfully with userId:', user.id);
-        }
-      });
+      try {
+        await new Promise<void>((resolve, reject) => {
+          req.session.save((err) => {
+            if (err) {
+              console.error('Session save error:', err);
+              reject(err);
+            } else {
+              console.log('Session saved successfully with userId:', user.id);
+              resolve();
+            }
+          });
+        });
+      } catch (saveErr) {
+        console.error('Failed to save session:', saveErr);
+        return res.status(500).json({ message: "Authentication succeeded but failed to create session" });
+      }
       
       console.log(`Login successful for user: "${username}" (ID: ${user.id})`);
       console.log(`Session ID: ${req.session.id}`);

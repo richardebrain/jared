@@ -1491,8 +1491,10 @@ export default function AssessmentPage() {
     interface LearningPathItem {
       domainId: string;
       title: string;
+      domainName?: string; // Optional domain name for display
+      recommendation?: string; // Specific recommendation text
       difficulty: DifficultyLevel;
-      priority: 'high' | 'medium' | 'low';
+      priority: 'high' | 'medium' | 'low' | 'specialized' | 'suggested';
       type: 'growth' | 'strength' | 'foundation';
     }
     
