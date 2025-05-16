@@ -835,6 +835,11 @@ export default function AssessmentPage() {
     explanation: ''
   });
   
+  // Progress tracking state
+  const [progress, setProgress] = useState(0);
+  const [showResults, setShowResults] = useState(false);
+  const [computeLearningPath, setComputeLearningPath] = useState(false);
+  
   // Track correct answers by domain
   const [correctByDomain, setCorrectByDomain] = useState<Record<string, number>>({
     'child-development': 0,
@@ -1482,9 +1487,18 @@ export default function AssessmentPage() {
       }
     });
     
+    // Define learning path item type
+    interface LearningPathItem {
+      domainId: string;
+      title: string;
+      difficulty: DifficultyLevel;
+      priority: 'high' | 'medium' | 'low';
+      type: 'growth' | 'strength' | 'foundation';
+    }
+    
     // Generate personalized learning path recommendations based on assessment results
     const generateLearningPath = () => {
-      const learningPath = [];
+      const learningPath: LearningPathItem[] = [];
       
       // First, focus on growth areas (domains with scores below threshold)
       growthAreas.forEach(domain => {

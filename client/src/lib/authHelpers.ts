@@ -47,6 +47,7 @@ export async function loginUser(credentials: { username: string; password: strin
   const response = await apiRequest("/api/auth/login", {
     method: "POST",
     data: credentials,
+    withCredentials: true, // Ensure cookies are sent with the request
   });
   
   if (response) {
