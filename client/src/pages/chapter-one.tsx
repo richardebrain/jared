@@ -6,20 +6,18 @@ import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
 import Header from '@/components/Header';
 import ChapterOneQuiz from '@/components/ChapterOneQuiz';
-import {
-  Button,
-  Progress,
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from '@/components/ui';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Card } from '@/components/ui/card';
+import { CardContent } from '@/components/ui/card';
+import { CardDescription } from '@/components/ui/card';
+import { CardFooter } from '@/components/ui/card';
+import { CardHeader } from '@/components/ui/card';
+import { CardTitle } from '@/components/ui/card';
+import { Tabs } from '@/components/ui/tabs';
+import { TabsContent } from '@/components/ui/tabs';
+import { TabsList } from '@/components/ui/tabs';
+import { TabsTrigger } from '@/components/ui/tabs';
 import { 
   Book, 
   Brain, 
@@ -48,7 +46,7 @@ export default function ChapterOnePage() {
   const [completed, setCompleted] = useState(false);
 
   // Fetch progress data if it exists
-  const { data: userProgress } = useQuery({
+  const { data: userProgress = [] } = useQuery({
     queryKey: ['/api/progress'],
     enabled: !!user,
   });
@@ -573,17 +571,24 @@ export default function ChapterOnePage() {
 
   // Initialize from user progress if available
   useEffect(() => {
-    if (userProgress) {
-      const moduleProgress = userProgress.find(p => p.moduleId === CHAPTER_ONE_MODULE_ID);
+    if (userProgress && Array.isArray(userProgress) && userProgress.length > 0) {
+      const moduleProgress = userProgress.find((p: any) => p.moduleId === CHAPTER_ONE_MODULE_ID);
       
       if (moduleProgress) {
-        // If module is completed, show the quiz
+        // If module is 100% complete, set completed state
         if (moduleProgress.completed) {
           setCompleted(true);
           setProgress(100);
           // Show the last section by default for completed modules
           setCurrentSection(sections.length - 1);
-        } else if (moduleProgress.progress > 0) {
+        } 
+        // If progress is at 90%, show the quiz
+        else if (moduleProgress.progress >= 90 && moduleProgress.progress < 100) {
+          setShowQuiz(true);
+          setProgress(90);
+        }
+        // Otherwise, show appropriate section based on progress
+        else if (moduleProgress.progress > 0) {
           // Calculate which section to show based on progress
           setProgress(moduleProgress.progress);
           const sectionIndex = Math.min(
@@ -594,7 +599,7 @@ export default function ChapterOnePage() {
         }
       }
     }
-  }, [userProgress]);
+  }, [userProgress, sections.length]);
 
   // Handle moving to the next section
   const handleNextSection = () => {
