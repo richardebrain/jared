@@ -16,6 +16,7 @@ import AllModules from "@/pages/modules";
 import CoreValuesPage from "@/pages/core-values";
 import MindfulMorningsPage from "@/pages/mindful-mornings";
 import StorytellingDemoPage from "@/pages/storytelling-demo";
+import ClassroomMusic from "@/pages/classroom-music";
 import CoreValuesShoutOutPage from "@/pages/core-values-shout-out";
 import BuildingChildPage from "@/pages/building-child";
 import VideoResourcesPage from "@/pages/video-resources";
@@ -108,6 +109,10 @@ function Router() {
       
       <Route path="/mindful-mornings">
         {isAuthenticated ? <MindfulMorningsPage /> : <Login />}
+      </Route>
+      
+      <Route path="/classroom-music">
+        {isAuthenticated ? <ClassroomMusic /> : <Login />}
       </Route>
       
       <Route path="/storytelling-demo">

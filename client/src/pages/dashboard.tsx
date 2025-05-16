@@ -613,26 +613,39 @@ export default function Dashboard() {
                         <CardDescription>Classroom music and training videos</CardDescription>
                       </CardHeader>
                       <CardContent className="p-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <Link to="/video-resources">
+                        <div className="grid grid-cols-1 gap-3">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <Link to="/video-resources">
+                              <button className="flex items-center p-3 bg-white rounded-lg border border-amber-200 shadow-sm w-full hover:bg-amber-50 transition">
+                                <div className="bg-purple-100 p-2 rounded-full mr-3">
+                                  <i className="ri-video-line text-purple-600"></i>
+                                </div>
+                                <div className="text-left">
+                                  <p className="font-medium">Training Videos</p>
+                                  <p className="text-sm text-gray-500">Browse educational content</p>
+                                </div>
+                              </button>
+                            </Link>
+                            <Link to="/classroom-music">
+                              <button className="flex items-center p-3 bg-white rounded-lg border border-amber-200 shadow-sm w-full hover:bg-amber-50 transition">
+                                <div className="bg-green-100 p-2 rounded-full mr-3">
+                                  <i className="ri-music-line text-green-600"></i>
+                                </div>
+                                <div className="text-left">
+                                  <p className="font-medium">Classroom Music</p>
+                                  <p className="text-sm text-gray-500">Songs for daily routines</p>
+                                </div>
+                              </button>
+                            </Link>
+                          </div>
+                          <Link to="/assessment">
                             <button className="flex items-center p-3 bg-white rounded-lg border border-amber-200 shadow-sm w-full hover:bg-amber-50 transition">
-                              <div className="bg-purple-100 p-2 rounded-full mr-3">
-                                <i className="ri-video-line text-purple-600"></i>
+                              <div className="bg-blue-100 p-2 rounded-full mr-3">
+                                <i className="ri-file-list-line text-blue-600"></i>
                               </div>
                               <div className="text-left">
-                                <p className="font-medium">Training Videos</p>
-                                <p className="text-sm text-gray-500">Browse educational content</p>
-                              </div>
-                            </button>
-                          </Link>
-                          <Link to="/classroom-music">
-                            <button className="flex items-center p-3 bg-white rounded-lg border border-amber-200 shadow-sm w-full hover:bg-amber-50 transition">
-                              <div className="bg-green-100 p-2 rounded-full mr-3">
-                                <i className="ri-music-line text-green-600"></i>
-                              </div>
-                              <div className="text-left">
-                                <p className="font-medium">Classroom Music</p>
-                                <p className="text-sm text-gray-500">Songs for daily routines</p>
+                                <p className="font-medium">Assessment</p>
+                                <p className="text-sm text-gray-500">Track your progress</p>
                               </div>
                             </button>
                           </Link>
