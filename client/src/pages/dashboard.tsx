@@ -457,6 +457,24 @@ export default function Dashboard() {
                         <div className="absolute top-0 right-0 -mt-1 -mr-1 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg shadow-sm">NEW!</div>
                       </div>
                     </Link>
+
+                    <Link href="/core-values-shout-out">
+                      <div className="group relative overflow-hidden bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 px-6 rounded-xl border-2 border-green-400 transform transition duration-200 ease-in-out hover:scale-105">
+                        {/* Corner decorations */}
+                        <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-white/70 rounded"></div>
+                        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-white/70 rounded"></div>
+                        <div className="absolute -top-1 -left-1 w-3 h-3 bg-white/70 rounded"></div>
+                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-white/70 rounded"></div>
+                        
+                        <div className="relative flex items-center justify-center">
+                          <span className="mr-2 text-white text-lg">🎯</span>
+                          <span className="text-white text-sm tracking-wider pb-1">CORE VALUES SHOUTOUT</span>
+                          <span className="ml-2 text-white text-lg">🏆</span>
+                        </div>
+                        
+                        <div className="absolute top-0 right-0 -mt-1 -mr-1 bg-green-400 text-green-900 text-xs font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg shadow-sm">GIVE!</div>
+                      </div>
+                    </Link>
                     
                     {user && (Array.isArray(userProgress) && userProgress.some((p) => p.completed === true)) ? (
                       <BonusGamesButton />
