@@ -632,16 +632,19 @@ export default function ChapterOnePage() {
     // The quiz component already updates the progress to 100%
     setProgress(100);
     
-    // Award points based on quiz performance
-    const pointsAwarded = score >= 70 ? 20 : 10; // Full points for passing, half for failing
+    // Award points based on quiz performance (80% required for full 20 points)
+    const pointsAwarded = score >= 80 ? 20 : 10; // Full points for passing with 80%+, half otherwise
     
     toast({
-      title: score >= 70 ? "Congratulations!" : "Module Completed",
-      description: score >= 70 
+      title: score >= 80 ? "Congratulations!" : "Module Completed",
+      description: score >= 80 
         ? `You've earned ${pointsAwarded} points for successfully completing Chapter 1: Building a Human.` 
-        : `You've earned ${pointsAwarded} points. Review the content and try the quiz again for full points.`,
-      variant: score >= 70 ? "default" : "destructive",
+        : `You've earned ${pointsAwarded} points. Review the content and try the quiz again for a score of 80% or higher to earn full points.`,
+      variant: score >= 80 ? "default" : "destructive",
     });
+    
+    // Log quiz completion for debugging
+    console.log(`Chapter One quiz completed with score: ${score}, awarded ${pointsAwarded} points`);
     
     // After a delay, return to dashboard
     setTimeout(() => {

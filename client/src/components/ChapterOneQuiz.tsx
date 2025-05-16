@@ -470,13 +470,20 @@ export default function ChapterOneQuiz({ moduleId, onComplete }: ChapterOneQuizP
             <Button
               onClick={handleSubmitQuiz}
               disabled={isSubmitting || quizCompleted}
-              className={`${isPassing ? "bg-green-600 hover:bg-green-700" : ""}`}
+              className={`${isPassing ? "bg-green-600 hover:bg-green-700" : ""} relative`}
             >
               {isSubmitting 
                 ? "Submitting..." 
                 : quizCompleted 
                   ? "Completed!" 
-                  : "Complete Module"}
+                  : isPassing 
+                    ? "Complete Module & Earn 20 Points" 
+                    : "Complete Module & Earn 10 Points"}
+              {!quizCompleted && !isSubmitting && (
+                <span className="absolute -top-6 right-0 text-xs font-medium text-amber-600 animate-pulse">
+                  Click to finish
+                </span>
+              )}
             </Button>
           </CardFooter>
         </Card>
