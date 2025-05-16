@@ -650,18 +650,19 @@ Tool for staying positive when you're sad:
                             
                             <CardContent>
                               <div className="prose max-w-none">
-                                {audioPlaying && activeStory === value.id ? (
-                                  <div className="text-center py-6">
-                                    <div className="animate-pulse mb-2">
-                                      <Volume2 className="h-8 w-8 mx-auto text-primary" />
+                                <div className={audioPlaying && activeStory === value.id ? "story-narrating" : ""}>
+                                  {audioPlaying && activeStory === value.id && (
+                                    <div className="flex items-center justify-center mb-4 bg-blue-50 p-2 rounded-lg">
+                                      <div className="animate-pulse mr-2">
+                                        <Volume2 className="h-5 w-5 text-primary" />
+                                      </div>
+                                      <p className="text-sm text-primary font-medium">
+                                        {actorVoices.find(a => a.id === selectedActor)?.name} is narrating this story
+                                      </p>
                                     </div>
-                                    <p className="text-sm text-muted-foreground">
-                                      {actorVoices.find(a => a.id === selectedActor)?.name} is narrating the story...
-                                    </p>
-                                  </div>
-                                ) : (
+                                  )}
                                   <p className="whitespace-pre-line text-sm">{value.story.text}</p>
-                                )}
+                                </div>
                               </div>
                             </CardContent>
                           </Card>
