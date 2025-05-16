@@ -102,74 +102,142 @@ export default function CasinoPage() {
     <div className="container mx-auto py-6 max-w-7xl">
       <Header />
       
-      <div className="mt-8">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-red-600 bg-clip-text text-transparent">
-            Teacher Rewards
-          </h1>
-          <Link to="/dashboard">
-            <Button variant="outline">
-              Back to Dashboard
-            </Button>
-          </Link>
+      <div className="bg-gradient-to-r from-purple-100 to-indigo-100 p-6 rounded-lg">
+        <div className="flex flex-col md:flex-row justify-between items-center">
+          <div className="flex items-center mb-4 md:mb-0">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-red-600 bg-clip-text text-transparent mr-4">
+              Teacher Rewards
+            </h1>
+            <Link to="/dashboard">
+              <Button variant="outline">
+                Back to Dashboard
+              </Button>
+            </Link>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* Bonus Games Button - Core Values Style */}
+            <div 
+              className={`group relative overflow-hidden transform hover:scale-105 transition-all ${hasCompletedActivity && !dailyGameUsed ? 'bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500' : 'bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700 opacity-90'} text-white font-bold py-3 px-6 rounded-xl ${hasCompletedActivity && !dailyGameUsed ? 'shadow-[0_5px_0_rgb(76,29,149)] hover:shadow-[0_3px_0_rgb(76,29,149)] active:shadow-[0_0px_0_rgb(76,29,149)] active:translate-y-1' : ''} border-2 ${hasCompletedActivity && !dailyGameUsed ? 'border-purple-200' : 'border-gray-400'} cursor-pointer`}
+              onClick={() => hasCompletedActivity && !dailyGameUsed && setActiveTab("games")}
+            >
+              {/* Pixel-art style decorations */}
+              <div className={`absolute -bottom-1 -left-1 w-3 h-3 ${hasCompletedActivity && !dailyGameUsed ? 'bg-pink-400' : 'bg-gray-400'} rounded`}></div>
+              <div className={`absolute -bottom-1 -right-1 w-3 h-3 ${hasCompletedActivity && !dailyGameUsed ? 'bg-pink-400' : 'bg-gray-400'} rounded`}></div>
+              <div className={`absolute -top-1 -left-1 w-3 h-3 ${hasCompletedActivity && !dailyGameUsed ? 'bg-pink-400' : 'bg-gray-400'} rounded`}></div>
+              <div className={`absolute -top-1 -right-1 w-3 h-3 ${hasCompletedActivity && !dailyGameUsed ? 'bg-pink-400' : 'bg-gray-400'} rounded`}></div>
+              
+              {/* Shimmer effect */}
+              {hasCompletedActivity && !dailyGameUsed && (
+                <>
+                  <div className="absolute inset-0 bg-gradient-to-tr from-pink-300/30 to-transparent opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                  <div className="absolute -inset-1 bg-gradient-to-r from-pink-400/0 via-pink-400/40 to-pink-400/0 opacity-0 group-hover:opacity-100 animate-shimmer transition-opacity"></div>
+                </>
+              )}
+              
+              <div className="relative flex items-center justify-center">
+                <span className={`mr-3 ${hasCompletedActivity && !dailyGameUsed ? 'text-yellow-200' : 'text-gray-300'} text-xl`}>🎮</span>
+                <span className={`${hasCompletedActivity && !dailyGameUsed ? 'text-white' : 'text-gray-100'} text-sm md:text-base tracking-wider pb-1`}>
+                  BONUS GAMES
+                </span>
+                <span className={`ml-3 ${hasCompletedActivity && !dailyGameUsed ? 'text-yellow-200' : 'text-gray-300'} text-xl`}>🎰</span>
+              </div>
+              
+              {!hasCompletedActivity && (
+                <div className="absolute top-0 right-0 -mt-1 -mr-1 bg-gray-400 text-gray-900 text-xs font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg shadow-sm">LOCKED</div>
+              )}
+              
+              {dailyGameUsed && (
+                <div className="absolute top-0 right-0 -mt-1 -mr-1 bg-gray-400 text-gray-900 text-xs font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg shadow-sm">USED</div>
+              )}
+              
+              {hasCompletedActivity && !dailyGameUsed && (
+                <div className="absolute top-0 right-0 -mt-1 -mr-1 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg shadow-sm">PLAY!</div>
+              )}
+            </div>
+            
+            {/* Rewards History Button - Core Values Style */}
+            <div 
+              className="group relative overflow-hidden transform hover:scale-105 transition-all bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white font-bold py-3 px-6 rounded-xl shadow-[0_5px_0_rgb(194,65,12)] hover:shadow-[0_3px_0_rgb(194,65,12)] active:shadow-[0_0px_0_rgb(194,65,12)] active:translate-y-1 border-2 border-orange-200 cursor-pointer"
+              onClick={() => setActiveTab("rewards")}
+            >
+              {/* Pixel-art style decorations */}
+              <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-amber-400 rounded"></div>
+              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-amber-400 rounded"></div>
+              <div className="absolute -top-1 -left-1 w-3 h-3 bg-amber-400 rounded"></div>
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded"></div>
+              
+              {/* Shimmer effect */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-amber-300/30 to-transparent opacity-20 group-hover:opacity-30 transition-opacity"></div>
+              <div className="absolute -inset-1 bg-gradient-to-r from-amber-400/0 via-amber-400/40 to-amber-400/0 opacity-0 group-hover:opacity-100 animate-shimmer transition-opacity"></div>
+              
+              <div className="relative flex items-center justify-center">
+                <span className="mr-3 text-yellow-200 text-xl">🏆</span>
+                <span className="text-white text-sm md:text-base tracking-wider pb-1">
+                  REWARDS HISTORY
+                </span>
+                <span className="ml-3 text-yellow-200 text-xl">💎</span>
+              </div>
+            </div>
+          </div>
         </div>
         
-        <div className="mt-2 flex items-center gap-2">
-          <span className="text-amber-500">
-            <Gift className="h-5 w-5" />
-          </span>
-          <p className="text-muted-foreground">
-            Celebrate your learning journey with these fun rewards!
-          </p>
-          <span className="text-amber-500">
-            <Trophy className="h-5 w-5" />
-          </span>
+        <div className="mt-4">
+          <div className="flex items-center gap-2">
+            <span className="text-amber-500">
+              <Gift className="h-5 w-5" />
+            </span>
+            <p className="text-muted-foreground">
+              Celebrate your learning journey with these fun rewards!
+            </p>
+            <span className="text-amber-500">
+              <Trophy className="h-5 w-5" />
+            </span>
+          </div>
+          
+          {!hasCompletedActivity && (
+            <Card className="mt-4 border-yellow-200 bg-yellow-50">
+              <CardContent className="pt-6">
+                <div className="flex items-start space-x-4">
+                  <Calendar className="h-8 w-8 text-yellow-600 flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="font-medium text-yellow-800">Complete an activity first</h3>
+                    <p className="text-yellow-700 text-sm mt-1">
+                      Complete at least one learning activity today to unlock bonus games and earn rewards.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
+          {hasCompletedActivity && dailyGameUsed && (
+            <Card className="mt-4 border-purple-200 bg-purple-50">
+              <CardContent className="pt-6">
+                <div className="flex items-start space-x-4">
+                  <Clock className="h-8 w-8 text-purple-600 flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="font-medium text-purple-800">Daily game limit reached</h3>
+                    <p className="text-purple-700 text-sm mt-1">
+                      You've already played a bonus game today. Return tomorrow for another chance to win points!
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
-        
-        {!hasCompletedActivity && (
-          <Card className="mt-4 border-yellow-200 bg-yellow-50">
-            <CardContent className="pt-6">
-              <div className="flex items-start space-x-4">
-                <Calendar className="h-8 w-8 text-yellow-600 flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="font-medium text-yellow-800">Complete an activity first</h3>
-                  <p className="text-yellow-700 text-sm mt-1">
-                    Complete at least one learning activity today to unlock bonus games and earn rewards.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        {hasCompletedActivity && dailyGameUsed && (
-          <Card className="mt-4 border-purple-200 bg-purple-50">
-            <CardContent className="pt-6">
-              <div className="flex items-start space-x-4">
-                <Clock className="h-8 w-8 text-purple-600 flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="font-medium text-purple-800">Daily game limit reached</h3>
-                  <p className="text-purple-700 text-sm mt-1">
-                    You've already played a bonus game today. Return tomorrow for another chance to win points!
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
         
         <Tabs 
           value={activeTab} 
           onValueChange={setActiveTab}
-          className="mt-6"
+          className="hidden mt-6"
         >
-          <TabsList className="grid w-full grid-cols-2 bg-gradient-to-r from-amber-100 to-amber-200 border-amber-300">
-            <TabsTrigger value="games" disabled={!hasCompletedActivity} className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-red-500 data-[state=active]:text-white">
-              <Trophy className="h-4 w-4 mr-2" />
+          <TabsList className="hidden">
+            <TabsTrigger value="games" disabled={!hasCompletedActivity}>
               Bonus Games
             </TabsTrigger>
-            <TabsTrigger value="rewards" disabled={!hasCompletedActivity} className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-red-500 data-[state=active]:text-white">
-              <Gift className="h-4 w-4 mr-2" />
+            <TabsTrigger value="rewards" disabled={!hasCompletedActivity}>
               Rewards History
             </TabsTrigger>
           </TabsList>
