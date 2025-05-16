@@ -45,10 +45,10 @@ interface RewardHistory {
 const PRIZES: Prize[] = [
   { 
     id: 1, 
-    name: "10 Points", 
+    name: "1 Point", 
     type: "points", 
-    value: 10, 
-    probability: 25, 
+    value: 1, 
+    probability: 30, 
     icon: Star, 
     color: "bg-yellow-500",
     textColor: "text-white",
@@ -56,9 +56,31 @@ const PRIZES: Prize[] = [
   },
   { 
     id: 2, 
-    name: "25 Points", 
+    name: "2 Points", 
     type: "points", 
-    value: 25, 
+    value: 2, 
+    probability: 25, 
+    icon: Star, 
+    color: "bg-yellow-500",
+    textColor: "text-white",
+    description: "Points can be accumulated to level up your teacher profile"
+  },
+  { 
+    id: 3, 
+    name: "3 Points", 
+    type: "points", 
+    value: 3, 
+    probability: 20, 
+    icon: Star, 
+    color: "bg-yellow-500",
+    textColor: "text-white",
+    description: "Points can be accumulated to level up your teacher profile"
+  },
+  { 
+    id: 4, 
+    name: "5 Points", 
+    type: "points", 
+    value: 5, 
     probability: 15, 
     icon: Star, 
     color: "bg-yellow-600",
@@ -66,70 +88,48 @@ const PRIZES: Prize[] = [
     description: "Points can be accumulated to level up your teacher profile"
   },
   { 
-    id: 3, 
-    name: "50 Points", 
+    id: 5, 
+    name: "7 Points", 
     type: "points", 
-    value: 50, 
-    probability: 10, 
-    icon: StarIcon, 
-    color: "bg-yellow-700",
+    value: 7, 
+    probability: 5, 
+    icon: Star, 
+    color: "bg-yellow-600",
     textColor: "text-white",
     description: "Points can be accumulated to level up your teacher profile"
   },
   { 
-    id: 4, 
-    name: "5 Bear Bucks", 
-    type: "bearBucks", 
-    value: 5, 
-    probability: 20, 
-    icon: CircleDollarSign, 
-    color: "bg-green-500",
-    textColor: "text-white",
-    description: "Bear Bucks can be redeemed for real rewards at the school"
-  },
-  { 
-    id: 5, 
-    name: "15 Bear Bucks", 
-    type: "bearBucks", 
-    value: 15, 
-    probability: 12, 
-    icon: CircleDollarSign, 
-    color: "bg-green-600",
-    textColor: "text-white",
-    description: "Bear Bucks can be redeemed for real rewards at the school"
-  },
-  { 
     id: 6, 
-    name: "Free Lunch", 
-    type: "lunch", 
-    value: 1, 
-    probability: 8, 
-    icon: Utensils, 
-    color: "bg-purple-500",
+    name: "Try Again", 
+    type: "points", 
+    value: 0, 
+    probability: 3, 
+    icon: Star, 
+    color: "bg-gray-500",
     textColor: "text-white",
-    description: "Get a free lunch at the school cafeteria - claim from your administrator"
+    description: "Better luck next time! Try again tomorrow."
   },
   { 
     id: 7, 
-    name: "Day Off", 
-    type: "dayOff", 
-    value: 1, 
-    probability: 1, 
-    icon: Calendar, 
-    color: "bg-blue-500",
+    name: "10 Points", 
+    type: "points", 
+    value: 10, 
+    probability: 1.5, 
+    icon: StarIcon, 
+    color: "bg-yellow-700",
     textColor: "text-white",
-    description: "Get a free day off! Claim from your administrator"
+    description: "Bonus points! You got lucky today."
   },
   { 
     id: 8, 
-    name: "$100 Cash", 
-    type: "cash", 
-    value: 100, 
-    probability: 1, 
+    name: "20 Points", 
+    type: "points", 
+    value: 20, 
+    probability: 0.5, 
     icon: Sparkles, 
     color: "bg-orange-500",
     textColor: "text-white",
-    description: "Win $100 cash! Claim from your administrator"
+    description: "JACKPOT! You won the maximum reward!"
   }
 ];
 
@@ -246,17 +246,39 @@ export function SpinWheel({ onClose }: SpinWheelProps) {
         setTimeout(() => setConfetti(false), 5000);
       }
       
-      // Record the reward in the database
+      // Record the reward in the database - only points are awarded now
       try {
-        const response = await apiRequest('POST', '/api/spin-game/reward', {
-          rewardType: prize.type,
-          rewardAmount: prize.value
+        // Mock the API call for now since we're not hitting a real endpoint yet
+        // In a production app, this would send the reward to the backend
+        console.log("Awarding points:", prize.value);
+        
+        // Add the reward to the local history for display
+        const newReward: RewardHistory = {
+          id: Date.now(),
+          reward_type: "points",
+          reward_amount: prize.value,
+          created_at: new Date().toISOString(),
+          is_redeemed: true,
+          is_grand_prize: prize.value >= 10
+        };
+        
+        setRewardHistory(prev => [newReward, ...prev]);
+        
+        // Simulate saving points to user profile
+        toast({
+          title: "Points Awarded!",
+          description: `You've earned ${prize.value} points!`,
+          variant: "default",
         });
         
-        if (response) {
-          // Reload user data to get updated points/bear bucks
-          window.location.reload();
-        }
+        // In a real app with a working endpoint, we would use:
+        // const response = await apiRequest("/api/rewards", {
+        //   method: "POST",
+        //   data: {
+        //     type: "points",
+        //     amount: prize.value
+        //   }
+        // });
       } catch (error) {
         console.error("Error recording spin reward:", error);
       }

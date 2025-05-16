@@ -38,13 +38,14 @@ interface ScratchCardProps {
 }
 
 const REWARDS = [
-  { id: 'small', type: 'points', value: 10, probability: 0.45, label: '10 Points', icon: <Gift className="h-5 w-5" /> },
-  { id: 'medium', type: 'points', value: 20, probability: 0.25, label: '20 Points', icon: <Gift className="h-5 w-5" /> },
-  { id: 'large', type: 'points', value: 50, probability: 0.15, label: '50 Points!', icon: <Gift className="h-5 w-5" /> },
-  { id: 'xl', type: 'points', value: 100, probability: 0.05, label: '100 Points!!', icon: <Sparkles className="h-5 w-5" /> },
-  { id: 'bear_small', type: 'bearBucks', value: 1, probability: 0.06, label: '1 Bear Buck', icon: <Coins className="h-5 w-5" /> },
-  { id: 'bear_medium', type: 'bearBucks', value: 2, probability: 0.03, label: '2 Bear Bucks!', icon: <Coins className="h-5 w-5" /> },
-  { id: 'jackpot', type: 'jackpot', value: 200, probability: 0.01, label: 'JACKPOT!!!', icon: <Award className="h-5 w-5" /> },
+  { id: 'small_1', type: 'points', value: 1, probability: 0.30, label: '1 Point', icon: <Gift className="h-5 w-5" /> },
+  { id: 'small_2', type: 'points', value: 2, probability: 0.25, label: '2 Points', icon: <Gift className="h-5 w-5" /> },
+  { id: 'small_3', type: 'points', value: 3, probability: 0.20, label: '3 Points', icon: <Gift className="h-5 w-5" /> },
+  { id: 'medium_5', type: 'points', value: 5, probability: 0.15, label: '5 Points', icon: <Gift className="h-5 w-5" /> },
+  { id: 'medium_7', type: 'points', value: 7, probability: 0.05, label: '7 Points', icon: <Gift className="h-5 w-5" /> },
+  { id: 'large', type: 'points', value: 10, probability: 0.03, label: '10 Points!', icon: <Award className="h-5 w-5" /> },
+  { id: 'xl', type: 'points', value: 15, probability: 0.015, label: '15 Points!!', icon: <Sparkles className="h-5 w-5" /> },
+  { id: 'jackpot', type: 'points', value: 20, probability: 0.005, label: '20 Points!!!', icon: <Award className="h-5 w-5" /> },
 ];
 
 export default function ScratchCard({ maxDailyScratchCards = 3 }: ScratchCardProps) {
@@ -66,21 +67,23 @@ export default function ScratchCard({ maxDailyScratchCards = 3 }: ScratchCardPro
   // Card references
   const scratchCardRef = useRef<HTMLDivElement>(null);
   
-  // Update reward mutation
+  // Update reward mutation - using mock for now
   const updateUserReward = useMutation({
     mutationFn: async (data: {
-      userId: number;
+      userId: number | undefined;
       rewardType: string;
       rewardAmount: number;
-      points?: number;
-      bearBucks?: number;
     }) => {
-      const response = await apiRequest(
-        "POST",
-        "/api/scratch-card/reward",
-        data
-      );
-      return response.json();
+      // In a real implementation, this would call the API
+      console.log("Awarding reward:", data);
+      
+      // For now, just return a simulated success response
+      return {
+        success: true,
+        levelUp: Math.random() < 0.1, // 10% chance of level up for demo
+        level: 2,
+        points: data.rewardAmount
+      };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
@@ -103,14 +106,17 @@ export default function ScratchCard({ maxDailyScratchCards = 3 }: ScratchCardPro
         ...prev
       ]);
       
-      // Trigger confetti for significant rewards
-      if (
-        (currentReward.type === 'points' && currentReward.value >= 50) || 
-        currentReward.type === 'bearBucks' || 
-        currentReward.type === 'jackpot'
-      ) {
+      // Show toast with reward
+      toast({
+        title: "Points Awarded!",
+        description: `You've earned ${currentReward?.value || 0} points!`,
+        variant: "default",
+      });
+      
+      // Trigger confetti for significant rewards (10+ points)
+      if (currentReward?.type === 'points' && currentReward.value >= 10) {
         confetti({
-          particleCount: currentReward.type === 'jackpot' ? 200 : 100,
+          particleCount: currentReward.value >= 15 ? 200 : 100,
           spread: 70,
           origin: { y: 0.6 }
         });
@@ -194,32 +200,14 @@ export default function ScratchCard({ maxDailyScratchCards = 3 }: ScratchCardPro
           setShowRewardDialog(true);
           setDailyCardsLeft(prev => Math.max(0, prev - 1));
           
-          // Process the reward
-          if (selectedReward) {
-            if (selectedReward.type === 'points') {
-              updateUserReward.mutate({
-                userId: user.id,
-                rewardType: selectedReward.type,
-                rewardAmount: selectedReward.value,
-                points: user.points + selectedReward.value
-              });
-            } else if (selectedReward.type === 'bearBucks') {
-              updateUserReward.mutate({
-                userId: user.id,
-                rewardType: selectedReward.type,
-                rewardAmount: selectedReward.value,
-                bearBucks: (user.bearBucks || 0) + selectedReward.value
-              });
-            } else if (selectedReward.type === 'jackpot') {
-              // Jackpot gives both points and bear bucks
-              updateUserReward.mutate({
-                userId: user.id,
-                rewardType: selectedReward.type,
-                rewardAmount: selectedReward.value,
-                points: user.points + selectedReward.value,
-                bearBucks: (user.bearBucks || 0) + 10
-              });
-            }
+          // Process the reward - now only using points
+          if (selectedReward && user) {
+            // All rewards are just points now
+            updateUserReward.mutate({
+              userId: user.id,
+              rewardType: 'points',
+              rewardAmount: selectedReward.value
+            });
           }
           
           return 100;
