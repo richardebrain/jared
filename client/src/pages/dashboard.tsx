@@ -450,7 +450,51 @@ export default function Dashboard() {
                       </div>
                     ) : null}
                     
-                    {/* Core Required Trainings section has been removed as requested */}
+                    {/* Core Required Trainings - Always shown */}
+                    <div className="space-y-3 mb-6">
+                      <h3 className="font-semibold text-md text-amber-700">Required Core Trainings</h3>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {/* Core Values Training Card */}
+                        {modules && modules.find(m => m.id === 33) && (
+                          <div 
+                            onClick={() => handleModuleSelect(33)} 
+                            className="bg-gradient-to-br from-white to-amber-50 border-2 border-amber-300 rounded-lg p-3 cursor-pointer hover:shadow-md transition relative"
+                          >
+                            <div className="absolute -top-2 -right-2 bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
+                              Required
+                            </div>
+                            <h3 className="font-heading font-semibold mb-1">Raising Arizona's CORE</h3>
+                            <p className="text-sm text-neutral-600 mb-2 line-clamp-2">
+                              Mandatory onboarding module covering Raising Arizona Preschool's Core Values, philosophy, and teaching approach.
+                            </p>
+                            
+                            {/* Points award indicator */}
+                            <div className="flex items-center mb-3 px-2 py-1.5 bg-green-50 border border-green-100 rounded-md">
+                              <div className="flex-shrink-0 mr-2">
+                                <Award className="h-4 w-4 text-green-600" />
+                              </div>
+                              <p className="text-xs text-green-700 font-medium">
+                                Complete for 20 XP Points
+                              </p>
+                            </div>
+                            
+                            <div className="flex items-center justify-between mt-2">
+                              <div className="text-xs text-neutral-500">120 min</div>
+                              <Button 
+                                variant="default" 
+                                size="sm" 
+                                className="w-3/4"
+                              >
+                                {userProgress?.some(p => p.moduleId === 33 && p.completed) 
+                                  ? "Review Training" 
+                                  : "Start Required Training"}
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                     
                     {/* Recommended Modules */}
                     {recommendedModules && recommendedModules.length > 0 ? (
