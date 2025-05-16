@@ -1208,7 +1208,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         nominatorId,
         nomineeId,
         coreValue,
-        description,
+        description: nominationText, // Use the fallback value determined earlier
         pointsAwarded
       });
       
