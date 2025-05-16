@@ -79,9 +79,9 @@ const mockFinancial: FinancialData = {
 
 export default function OwnerDashboardStandalone() {
   const [activeLocation, setActiveLocation] = useState("all");
-  // Use URLSearchParams to check if reviews tab should be selected
+  // Default to reviews tab to ensure Google Reviews are visible
   const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-  const initialTab = urlParams?.get('tab') === 'reviews' ? 'reviews' : 'overview';
+  const initialTab = urlParams?.get('tab') || 'reviews'; // Default to reviews tab
   const [selectedTab, setSelectedTab] = useState(initialTab);
   const [showConnections, setShowConnections] = useState(false);
   const [connectedAPIs, setConnectedAPIs] = useState<string[]>([]);
