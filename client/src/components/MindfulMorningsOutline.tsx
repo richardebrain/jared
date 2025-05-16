@@ -533,6 +533,16 @@ export function MindfulMorningsOutline() {
                         let count = 0;
                         let round = 1;
                         
+                        // Force mark section as complete after 5 seconds to ensure progression
+                        setTimeout(() => {
+                          setUserResponses({
+                            ...userResponses,
+                            [`${activeModule}-breathing-complete`]: true
+                          });
+                          // Mark this section complete to allow progression
+                          markSectionComplete(`${activeModule}-${activeSection}`);
+                        }, 5000);
+                        
                         setUserResponses({
                           ...userResponses,
                           [`${activeModule}-breath-phase`]: "Inhale"
@@ -582,6 +592,12 @@ export function MindfulMorningsOutline() {
                           clearInterval(timerRef.current);
                         }
                         setVideoPlaying(false);
+                        
+                        // Force mark as complete even when stopping early
+                        setUserResponses({
+                          ...userResponses,
+                          [`${activeModule}-breathing-complete`]: true
+                        });
                       }
                     }}
                     variant={videoPlaying ? "destructive" : "default"}

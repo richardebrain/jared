@@ -1,0 +1,453 @@
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import confetti from "canvas-confetti";
+import { Sparkles, Gift, History, Coins, Award, AlertTriangle } from "lucide-react";
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle,
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
+
+interface ScratchCardProps {
+  maxDailyScratchCards?: number;
+}
+
+const REWARDS = [
+  { id: 'small', type: 'points', value: 10, probability: 0.45, label: '10 Points', icon: <Gift className="h-5 w-5" /> },
+  { id: 'medium', type: 'points', value: 20, probability: 0.25, label: '20 Points', icon: <Gift className="h-5 w-5" /> },
+  { id: 'large', type: 'points', value: 50, probability: 0.15, label: '50 Points!', icon: <Gift className="h-5 w-5" /> },
+  { id: 'xl', type: 'points', value: 100, probability: 0.05, label: '100 Points!!', icon: <Sparkles className="h-5 w-5" /> },
+  { id: 'bear_small', type: 'bearBucks', value: 1, probability: 0.06, label: '1 Bear Buck', icon: <Coins className="h-5 w-5" /> },
+  { id: 'bear_medium', type: 'bearBucks', value: 2, probability: 0.03, label: '2 Bear Bucks!', icon: <Coins className="h-5 w-5" /> },
+  { id: 'jackpot', type: 'jackpot', value: 200, probability: 0.01, label: 'JACKPOT!!!', icon: <Award className="h-5 w-5" /> },
+];
+
+export default function ScratchCard({ maxDailyScratchCards = 3 }: ScratchCardProps) {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [dailyCardsLeft, setDailyCardsLeft] = useState(maxDailyScratchCards);
+  const [activeTab, setActiveTab] = useState('card');
+  const [isScratching, setIsScratching] = useState(false);
+  const [isRevealed, setIsRevealed] = useState(false);
+  const [scratchProgress, setScratchProgress] = useState(0);
+  const [currentReward, setCurrentReward] = useState<any>(null);
+  const [showRewardDialog, setShowRewardDialog] = useState(false);
+  const [rewardHistory, setRewardHistory] = useState<any[]>([]);
+  
+  // Track level up info for the reward dialog
+  const [levelUpInfo, setLevelUpInfo] = useState<{levelUp: boolean, level: number} | null>(null);
+  
+  // Card references
+  const scratchCardRef = useRef<HTMLDivElement>(null);
+  
+  // Update reward mutation
+  const updateUserReward = useMutation({
+    mutationFn: async (data: {
+      userId: number;
+      rewardType: string;
+      rewardAmount: number;
+      points?: number;
+      bearBucks?: number;
+    }) => {
+      const response = await apiRequest(
+        "POST",
+        "/api/scratch-card/reward",
+        data
+      );
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      
+      // Save level up info for the reward dialog
+      if (data.levelUp) {
+        setLevelUpInfo({
+          levelUp: true,
+          level: data.level
+        });
+      }
+      
+      // Update history
+      setRewardHistory(prev => [
+        {
+          id: Date.now(),
+          date: new Date(),
+          ...currentReward,
+        },
+        ...prev
+      ]);
+      
+      // Trigger confetti for significant rewards
+      if (
+        (currentReward.type === 'points' && currentReward.value >= 50) || 
+        currentReward.type === 'bearBucks' || 
+        currentReward.type === 'jackpot'
+      ) {
+        confetti({
+          particleCount: currentReward.type === 'jackpot' ? 200 : 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+      }
+    },
+    onError: () => {
+      toast({
+        title: "Error claiming reward",
+        description: "There was a problem claiming your reward. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Simulate fetching daily scratch cards left
+  useEffect(() => {
+    // In a real implementation, this would fetch from the backend
+    const fetchDailyCardsLeft = async () => {
+      try {
+        // Simulated API call
+        setDailyCardsLeft(Math.floor(Math.random() * (maxDailyScratchCards + 1)));
+      } catch (error) {
+        console.error("Failed to fetch daily cards left", error);
+      }
+    };
+    
+    fetchDailyCardsLeft();
+  }, [maxDailyScratchCards]);
+  
+  // Simulate fetching reward history
+  useEffect(() => {
+    // In a real implementation, this would fetch from the backend
+    const fetchRewardHistory = async () => {
+      try {
+        // Simulated API call - empty history for now
+        setRewardHistory([]);
+      } catch (error) {
+        console.error("Failed to fetch reward history", error);
+      }
+    };
+    
+    fetchRewardHistory();
+  }, []);
+  
+  const handleScratch = () => {
+    if (dailyCardsLeft <= 0) {
+      toast({
+        title: "No scratch cards left",
+        description: "You've used all your scratch cards for today. Complete more modules or come back tomorrow!",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsScratching(true);
+    setIsRevealed(false);
+    setScratchProgress(0);
+    
+    // Determine the reward based on probability
+    const randomValue = Math.random();
+    let cumulativeProbability = 0;
+    let selectedReward;
+    
+    for (const reward of REWARDS) {
+      cumulativeProbability += reward.probability;
+      if (randomValue <= cumulativeProbability) {
+        selectedReward = reward;
+        break;
+      }
+    }
+    
+    setCurrentReward(selectedReward);
+    
+    // Simulate scratching interaction
+    const scratchInterval = setInterval(() => {
+      setScratchProgress(prev => {
+        const newProgress = prev + 10;
+        if (newProgress >= 100) {
+          clearInterval(scratchInterval);
+          setIsRevealed(true);
+          setShowRewardDialog(true);
+          setDailyCardsLeft(prev => Math.max(0, prev - 1));
+          
+          // Process the reward
+          if (selectedReward) {
+            if (selectedReward.type === 'points') {
+              updateUserReward.mutate({
+                userId: user.id,
+                rewardType: selectedReward.type,
+                rewardAmount: selectedReward.value,
+                points: user.points + selectedReward.value
+              });
+            } else if (selectedReward.type === 'bearBucks') {
+              updateUserReward.mutate({
+                userId: user.id,
+                rewardType: selectedReward.type,
+                rewardAmount: selectedReward.value,
+                bearBucks: (user.bearBucks || 0) + selectedReward.value
+              });
+            } else if (selectedReward.type === 'jackpot') {
+              // Jackpot gives both points and bear bucks
+              updateUserReward.mutate({
+                userId: user.id,
+                rewardType: selectedReward.type,
+                rewardAmount: selectedReward.value,
+                points: user.points + selectedReward.value,
+                bearBucks: (user.bearBucks || 0) + 10
+              });
+            }
+          }
+          
+          return 100;
+        }
+        return newProgress;
+      });
+    }, 300);
+    
+    return () => clearInterval(scratchInterval);
+  };
+  
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  };
+  
+  return (
+    <Card className="w-full max-w-md mx-auto bg-white border shadow-lg">
+      <CardHeader className="text-center bg-gradient-to-r from-purple-500 to-indigo-600 text-white">
+        <CardTitle className="text-2xl font-bold">Scratch & Win</CardTitle>
+        <CardDescription className="text-purple-100">
+          Scratch cards to reveal prizes & rewards!
+        </CardDescription>
+        <div className="flex justify-center space-x-2 mt-2">
+          <Badge variant="outline" className="bg-white/20 text-white border-white">
+            <Gift className="h-3 w-3 mr-1" /> Daily Cards: {dailyCardsLeft}
+          </Badge>
+        </div>
+      </CardHeader>
+      
+      <Tabs defaultValue="card" className="w-full" onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="card" className="text-sm">
+            <Gift className="h-4 w-4 mr-2" /> Scratch Card
+          </TabsTrigger>
+          <TabsTrigger value="history" className="text-sm">
+            <History className="h-4 w-4 mr-2" /> Reward History
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="card" className="mt-0 p-4">
+          <div className="flex flex-col items-center">
+            <div 
+              className="relative w-full h-64 mb-4 rounded-lg overflow-hidden shadow-inner"
+              ref={scratchCardRef}
+            >
+              {/* Scratch card content */}
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center">
+                {isScratching ? (
+                  <div className="w-full h-full flex items-center justify-center relative">
+                    {/* Background pattern */}
+                    <div className="absolute inset-0 grid grid-cols-4 grid-rows-4">
+                      {Array.from({ length: 16 }).map((_, i) => (
+                        <div key={i} className="border border-purple-200 flex items-center justify-center">
+                          <div className="text-purple-300 text-2xl">?</div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Scratch overlay - disappears gradually */}
+                    <div 
+                      className="absolute inset-0 bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center transition-opacity"
+                      style={{ opacity: 1 - (scratchProgress / 100) }}
+                    >
+                      <div className="text-white text-center">
+                        <div className="text-xl font-bold mb-1">Scratching...</div>
+                        <div className="text-sm">{scratchProgress}% revealed</div>
+                      </div>
+                    </div>
+                    
+                    {/* Reward (revealed when scratched) */}
+                    {currentReward && (
+                      <AnimatePresence>
+                        {isRevealed && (
+                          <motion.div 
+                            initial={{ scale: 0.5, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="text-center z-10"
+                          >
+                            <div className={`
+                              rounded-full w-24 h-24 mx-auto mb-2 flex items-center justify-center
+                              ${currentReward.type === 'jackpot' 
+                                ? 'bg-yellow-100 text-yellow-600' 
+                                : currentReward.type === 'bearBucks' 
+                                  ? 'bg-green-100 text-green-600'
+                                  : 'bg-blue-100 text-blue-600'
+                              }
+                            `}>
+                              {currentReward.icon}
+                            </div>
+                            <div className="text-2xl font-bold text-gray-800">{currentReward.label}</div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-600 mb-2">Scratch to Reveal</div>
+                    <div className="text-sm text-purple-500">Your prize awaits!</div>
+                    <div className="text-purple-300 text-6xl mt-4">?</div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <Button 
+              variant="default" 
+              onClick={handleScratch} 
+              disabled={isScratching || dailyCardsLeft <= 0}
+              className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white w-full mt-4"
+              size="lg"
+            >
+              {isScratching ? (
+                <>
+                  <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  Scratching...
+                </>
+              ) : (
+                <>
+                  <Gift className="mr-2 h-5 w-5" /> Scratch Card
+                </>
+              )}
+            </Button>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="history" className="mt-0">
+          <div className="p-4">
+            <h3 className="text-lg font-semibold mb-3 flex items-center">
+              <History className="mr-2 h-5 w-5 text-purple-600" />
+              Your Rewards History
+            </h3>
+            
+            {rewardHistory.length === 0 ? (
+              <div className="text-center p-6 bg-gray-50 rounded-lg">
+                <Gift className="h-10 w-10 text-gray-300 mx-auto mb-2" />
+                <p className="text-gray-500">No rewards yet. Scratch cards to win prizes!</p>
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                {rewardHistory.map((reward) => (
+                  <div 
+                    key={reward.id} 
+                    className="bg-gray-50 p-3 rounded-md flex items-center justify-between"
+                  >
+                    <div className="flex items-center">
+                      <div className={`
+                        w-9 h-9 rounded-full flex items-center justify-center mr-3
+                        ${reward.type === 'jackpot' 
+                          ? 'bg-yellow-100 text-yellow-600' 
+                          : reward.type === 'bearBucks' 
+                            ? 'bg-green-100 text-green-600'
+                            : 'bg-blue-100 text-blue-600'
+                        }
+                      `}>
+                        {reward.icon}
+                      </div>
+                      <div>
+                        <div className="font-medium">{reward.label}</div>
+                        <div className="text-xs text-gray-500">{formatDate(reward.date)}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
+      
+      {/* Reward Dialog */}
+      <Dialog open={showRewardDialog} onOpenChange={setShowRewardDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-2xl">
+              {currentReward?.type === 'jackpot' ? 'JACKPOT! 🎉' : 'Reward Revealed!'}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {currentReward && (
+            <div className="flex flex-col items-center py-4">
+              <div className={`
+                rounded-full w-24 h-24 mx-auto mb-4 flex items-center justify-center
+                ${currentReward.type === 'jackpot' 
+                  ? 'bg-yellow-100 text-yellow-600' 
+                  : currentReward.type === 'bearBucks' 
+                    ? 'bg-green-100 text-green-600'
+                    : 'bg-blue-100 text-blue-600'
+                }
+              `}>
+                {currentReward.icon}
+              </div>
+              <div className="text-2xl font-bold text-center mb-2">{currentReward.label}</div>
+              <p className="text-gray-600 text-center">
+                {currentReward.type === 'points' && 'Points added to your account!'}
+                {currentReward.type === 'bearBucks' && 'Bear Bucks added to your account!'}
+                {currentReward.type === 'jackpot' && 'Amazing! You won the JACKPOT: 200 points and 10 Bear Bucks!'}
+              </p>
+              
+              {levelUpInfo && (
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-100 rounded-lg w-full">
+                  <h4 className="font-bold text-center text-yellow-700 flex items-center justify-center">
+                    <Award className="h-5 w-5 mr-2" />
+                    Level Up!
+                  </h4>
+                  <p className="text-center text-yellow-600">
+                    Congratulations! You've reached level {levelUpInfo.level}!
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+          
+          <DialogFooter className="flex justify-center">
+            <Button 
+              onClick={() => setShowRewardDialog(false)}
+              className="bg-gradient-to-r from-purple-500 to-indigo-500"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  );
+}
