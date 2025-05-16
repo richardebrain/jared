@@ -69,26 +69,30 @@ export default function ScratchCard({ maxDailyScratchCards = 3 }: ScratchCardPro
   // Card references
   const scratchCardRef = useRef<HTMLDivElement>(null);
   
-  // Update reward mutation - using mock for now
+  // Update reward mutation that calls the actual API
   const updateUserReward = useMutation({
     mutationFn: async (data: {
       userId: number | undefined;
       rewardType: string;
       rewardAmount: number;
     }) => {
-      // In a real implementation, this would call the API
-      console.log("Awarding reward:", data);
+      // Make the actual API call to award points
+      console.log("Awarding reward via API:", data);
       
-      // For now, just return a simulated success response
-      return {
-        success: true,
-        levelUp: Math.random() < 0.1, // 10% chance of level up for demo
-        level: 2,
-        points: data.rewardAmount
-      };
+      // Call the rewards API to add points
+      const response = await apiRequest('/api/rewards/points', {
+        method: 'POST',
+        data: {
+          points: data.rewardAmount
+        }
+      });
+      
+      return response;
     },
     onSuccess: (data) => {
+      // Refresh the user data to get updated points
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/games/history"] });
       
       // Save level up info for the reward dialog
       if (data.levelUp) {
