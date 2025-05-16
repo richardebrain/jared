@@ -168,7 +168,7 @@ export default function ChapterOneQuiz({ moduleId, onComplete }: ChapterOneQuizP
   const allAnswered = Object.keys(answers).length === quizQuestions.length;
   const correctAnswersCount = quizQuestions.filter(q => answers[q.id] === q.correctOptionId).length;
   const score = Math.round((correctAnswersCount / quizQuestions.length) * 100);
-  const isPassing = score >= 70;
+  const isPassing = score >= 80; // Require 80% to pass for 20 points
   
   // Save progress mutation
   const saveProgress = useMutation({
@@ -178,7 +178,12 @@ export default function ChapterOneQuiz({ moduleId, onComplete }: ChapterOneQuizP
       completed: boolean;
       score: number;
     }) => {
-      return apiRequest("POST", "/api/progress", data);
+      // Award 20 points for Chapter 1 completion if score is 80% or better
+      const pointsEarned = data.score >= 80 ? 20 : 0;
+      return apiRequest("POST", "/api/progress", {
+        ...data,
+        pointsEarned
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
