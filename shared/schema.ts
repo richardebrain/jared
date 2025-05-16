@@ -49,6 +49,7 @@ export const learningModules = pgTable("learning_modules", {
   title: text("title").notNull(),
   description: text("description").notNull(),
   duration: integer("duration").notNull(), // in minutes
+  pointValue: integer("point_value").default(5), // points awarded for completing the module
   imageUrl: text("image_url"),
   featured: boolean("featured").default(false),
   difficulty: text("difficulty").notNull(), // beginner, intermediate, advanced

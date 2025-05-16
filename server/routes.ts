@@ -671,6 +671,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
           pointsEarned: pointsEarned !== undefined ? pointsEarned : existingProgress.pointsEarned,
           lastAccessed: new Date()
         });
+        
+        // If the module is newly completed, add points to user account
+        if (completed && !existingProgress.completed && pointsEarned) {
+          // Fetch the module to get pointValue if needed
+          const module = await db.query.learningModules.findFirst({
+            where: (m, { eq }) => eq(m.id, moduleId)
+          });
+          
+          // Award either the specified pointsEarned or the module's pointValue
+          const pointsToAward = pointsEarned || (module?.pointValue || 0);
+          
+          if (pointsToAward > 0) {
+            // Get user's current points
+            const user = await storage.getUser(userId);
+            if (user) {
+              // Update user's points
+              await storage.updateUser(userId, { 
+                points: (user.points || 0) + pointsToAward 
+              });
+              
+              console.log(`Awarded ${pointsToAward} points to user ${userId} for completing module ${moduleId}`);
+            }
+          }
+        }
+        
         res.status(200).json(updatedProgress);
       } else {
         // Create new progress
@@ -678,11 +703,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId,
           moduleId,
           progress: progress || 0,
-          completed: completed || null,
-          pointsEarned: pointsEarned || null,
+          completed: completed || false,
+          pointsEarned: pointsEarned || 0,
           recommended: false,
           lastAccessed: new Date()
         });
+        
+        // If the module is created as completed, add points to user account
+        if (completed && pointsEarned) {
+          // Get user's current points
+          const user = await storage.getUser(userId);
+          if (user) {
+            // Update user's points
+            await storage.updateUser(userId, { 
+              points: (user.points || 0) + pointsEarned 
+            });
+            
+            console.log(`Awarded ${pointsEarned} points to user ${userId} for completing module ${moduleId}`);
+          }
+        }
+        
         res.status(201).json(newProgress);
       }
     } catch (error) {
