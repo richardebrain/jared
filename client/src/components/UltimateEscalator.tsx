@@ -12,7 +12,8 @@ import {
   Brain,
   Lightbulb,
   BookOpen,
-  Clock
+  Clock,
+  Filter
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -60,6 +62,7 @@ export function UltimateEscalator() {
   const [earnedPoints, setEarnedPoints] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [activeTab, setActiveTab] = useState('beginner');
+  const [activeTopic, setActiveTopic] = useState('all');
 
   // Mock user progress data - this would come from the API in a real app
   const { data: userProgress, isLoading: loadingProgress } = useQuery({
@@ -107,13 +110,60 @@ export function UltimateEscalator() {
       points: 50,
       estimatedTime: 25,
       status: 'locked'
+    },
+    {
+      id: 105,
+      title: "Family Engagement Strategies",
+      description: "Learn effective approaches to engage families in their child's educational journey",
+      difficulty: 'beginner',
+      category: 'family-engagement',
+      points: 20,
+      estimatedTime: 12,
+      status: 'available'
+    },
+    {
+      id: 106,
+      title: "Inclusive Classroom Practices",
+      description: "Create an inclusive environment that supports all children's diverse needs and abilities",
+      difficulty: 'intermediate',
+      category: 'inclusion',
+      points: 30,
+      estimatedTime: 18,
+      status: 'available'
+    },
+    {
+      id: 107,
+      title: "Curriculum Planning Excellence",
+      description: "Master the art of creating engaging, developmentally appropriate curriculum plans",
+      difficulty: 'advanced',
+      category: 'curriculum',
+      points: 35,
+      estimatedTime: 22,
+      status: 'available'
     }
   ];
 
-  // Filter challenges by difficulty/tab
-  const filteredChallenges = escalatorChallenges.filter(
-    challenge => challenge.difficulty === activeTab
+  // Available topic categories
+  const topicCategories = [
+    { id: 'all', name: 'All Topics' },
+    { id: 'core-values', name: 'Core Values' },
+    { id: 'classroom-management', name: 'Classroom Management' },
+    { id: 'child-development', name: 'Child Development' },
+    { id: 'curriculum', name: 'Curriculum' },
+    { id: 'family-engagement', name: 'Family Engagement' },
+    { id: 'inclusion', name: 'Inclusion' },
+    { id: 'leadership', name: 'Leadership' },
+    { id: 'comprehensive', name: 'Comprehensive' }
+  ];
+
+  // Filter challenges by difficulty/tab and topic
+  const filteredChallenges = escalatorChallenges.filter(challenge => 
+    challenge.difficulty === activeTab && 
+    (activeTopic === 'all' || challenge.category === activeTopic)
   );
+
+  // Show empty state if no challenges match current filters
+  const showEmptyState = filteredChallenges.length === 0;
 
   // Mock complete a challenge
   const completeChallengeMutation = useMutation({
@@ -384,30 +434,97 @@ export function UltimateEscalator() {
           ],
           correctAnswer: 2,
           explanation: "We recognize development is not linear and celebrate each child's unique path while providing appropriate support where needed."
-        },
+        }
+      );
+    } else if (challenge.category === 'family-engagement') {
+      questions.push(
         {
-          id: 6,
-          question: "What is the Raising Arizona approach to technology in the classroom?",
+          id: 1,
+          question: "What is a key benefit of effective family engagement?",
           options: [
-            "Maximizing technology use to prepare children for the digital world",
-            "Avoiding all screen time as potentially harmful",
-            "Using technology thoughtfully as one of many tools to support learning",
-            "Following children's preferences regarding technology use"
-          ],
-          correctAnswer: 2,
-          explanation: "We use technology intentionally as one of many tools, not as a primary teaching method or replacement for hands-on learning."
-        },
-        {
-          id: 7,
-          question: "Which best reflects our approach to positive guidance?",
-          options: [
-            "Using rewards and consequences consistently",
-            "Teaching children skills to manage emotions and solve problems",
-            "Removing children from the group when behavior issues arise",
-            "Maintaining a quiet, orderly classroom environment"
+            "It reduces the teacher's responsibility for education",
+            "It increases children's attendance and academic success",
+            "It eliminates the need for parent-teacher conferences",
+            "It allows the school to set all educational goals"
           ],
           correctAnswer: 1,
-          explanation: "We focus on teaching skills for emotional regulation and problem-solving rather than simply managing behavior."
+          explanation: "Research consistently shows that strong family engagement leads to better attendance, academic outcomes, and social-emotional development."
+        },
+        {
+          id: 2,
+          question: "Which approach best respects diverse family structures?",
+          options: [
+            "Assuming all children live with both biological parents",
+            "Using the term 'parents' exclusively in all communications",
+            "Using inclusive language like 'families' or 'caregivers'",
+            "Addressing all communications to 'Mom and Dad'"
+          ],
+          correctAnswer: 2,
+          explanation: "Using inclusive language acknowledges and respects the diverse family structures in our school community."
+        },
+        {
+          id: 3,
+          question: "When communicating difficult information to families, what approach aligns with our CORE values?",
+          options: [
+            "Waiting until issues become significant before addressing them",
+            "Sharing concerns in a direct but compassionate way with specific observations",
+            "Using general terms to avoid making families uncomfortable",
+            "Focusing primarily on the negatives to ensure families understand the severity"
+          ],
+          correctAnswer: 1,
+          explanation: "Balancing honesty with compassion while providing specific observations helps families understand concerns while feeling respected."
+        },
+        {
+          id: 4,
+          question: "What is an effective strategy for involving families who rarely visit the classroom?",
+          options: [
+            "Assuming they aren't interested in their child's education",
+            "Offering multiple engagement options including digital communication and flexible timing",
+            "Requiring mandatory participation in school events",
+            "Telling the child to remind their family to come to school"
+          ],
+          correctAnswer: 1,
+          explanation: "Recognizing barriers to participation and providing multiple flexible options shows respect for family circumstances."
+        }
+      );
+    } else {
+      // Generic questions for other categories
+      questions.push(
+        {
+          id: 1,
+          question: "What approach best aligns with Raising Arizona's philosophy?",
+          options: [
+            "Following a scripted curriculum exactly as written",
+            "Child-centered approaches that respect each child's unique development",
+            "Emphasizing academic readiness above all else",
+            "Treating all children the same regardless of individual differences"
+          ],
+          correctAnswer: 1,
+          explanation: "Our philosophy centers on respecting each child's unique journey while providing appropriate structure and support."
+        },
+        {
+          id: 2,
+          question: "How do our CORE values influence our approach to education?",
+          options: [
+            "They are separate from our educational philosophy",
+            "They only apply to staff interactions, not children",
+            "They provide a foundation for all interactions and decisions",
+            "They are primarily for marketing purposes"
+          ],
+          correctAnswer: 2,
+          explanation: "Our CORE values aren't just words - they guide how we interact with children, families, and each other every day."
+        },
+        {
+          id: 3,
+          question: "What is the teacher's primary role according to our philosophy?",
+          options: [
+            "Direct instructor of academic content",
+            "Observer, facilitator, and co-learner",
+            "Disciplinarian and rule enforcer",
+            "Administrator of assessments and evaluations"
+          ],
+          correctAnswer: 1,
+          explanation: "We view teachers as facilitators who observe carefully and create environments where children can actively construct knowledge."
         }
       );
     }
@@ -492,15 +609,57 @@ export function UltimateEscalator() {
       </CardHeader>
       
       <CardContent className="p-6">
-        <Tabs defaultValue="beginner" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-4 mb-4">
-            <TabsTrigger value="beginner">Beginner</TabsTrigger>
-            <TabsTrigger value="intermediate">Intermediate</TabsTrigger>
-            <TabsTrigger value="advanced">Advanced</TabsTrigger>
-            <TabsTrigger value="master">Master</TabsTrigger>
-          </TabsList>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <Tabs defaultValue="beginner" value={activeTab} onValueChange={setActiveTab} className="flex-1">
+            <TabsList className="grid grid-cols-4">
+              <TabsTrigger value="beginner">Beginner</TabsTrigger>
+              <TabsTrigger value="intermediate">Intermediate</TabsTrigger>
+              <TabsTrigger value="advanced">Advanced</TabsTrigger>
+              <TabsTrigger value="master">Master</TabsTrigger>
+            </TabsList>
+          </Tabs>
           
-          <TabsContent value={activeTab} className="mt-0">
+          <div className="w-full sm:w-64">
+            <Select value={activeTopic} onValueChange={setActiveTopic}>
+              <SelectTrigger className="w-full">
+                <div className="flex items-center">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Filter by topic" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Training Topics</SelectLabel>
+                  {topicCategories.map((topic) => (
+                    <SelectItem key={topic.id} value={topic.id}>
+                      {topic.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+          
+        <div className="mt-0">
+          {showEmptyState ? (
+            <div className="text-center py-10 bg-gray-50 rounded-lg border border-gray-100">
+              <div className="inline-flex items-center justify-center p-3 bg-amber-100 rounded-full mb-4">
+                <Filter className="h-6 w-6 text-amber-600" />
+              </div>
+              <h3 className="text-lg font-medium mb-2">No challenges found</h3>
+              <p className="text-gray-500 max-w-md mx-auto">
+                There are no challenges matching your current filters. Try changing the topic or difficulty level.
+              </p>
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => setActiveTopic('all')}
+              >
+                Show all topics
+              </Button>
+            </div>
+          ) : (
             <div className="space-y-4">
               {filteredChallenges.map(challenge => (
                 <Card key={challenge.id} className="overflow-hidden">
@@ -515,7 +674,7 @@ export function UltimateEscalator() {
                         <h3 className="font-semibold text-lg">{challenge.title}</h3>
                         <p className="text-sm text-gray-600">{challenge.description}</p>
                         
-                        <div className="flex items-center mt-2 gap-2">
+                        <div className="flex flex-wrap items-center mt-2 gap-2">
                           <Badge variant="outline" className="text-xs">
                             <Clock className="h-3 w-3 mr-1" /> 
                             {challenge.estimatedTime} min
@@ -527,7 +686,7 @@ export function UltimateEscalator() {
                           </Badge>
                           
                           <Badge variant={challenge.status === 'locked' ? "secondary" : "outline"} 
-                                 className={`text-xs ${challenge.status === 'completed' ? "bg-green-500 hover:bg-green-500/80 text-white" : ""}`}>
+                                className={`text-xs ${challenge.status === 'completed' ? "bg-green-500 hover:bg-green-500/80 text-white" : ""}`}>
                             {challenge.status === 'locked' ? (
                               <>
                                 <AlertTriangle className="h-3 w-3 mr-1" />
@@ -563,7 +722,7 @@ export function UltimateEscalator() {
               ))}
               
               {/* LOCKED MASTER CHALLENGE */}
-              {activeTab === 'master' && (
+              {activeTab === 'master' && activeTopic === 'all' && (
                 <div className="bg-gray-100 p-4 rounded-lg border border-gray-200 flex items-center">
                   <div className="bg-gray-200 p-3 rounded-full mr-3">
                     <Brain className="h-5 w-5 text-gray-500" />
@@ -575,8 +734,8 @@ export function UltimateEscalator() {
                 </div>
               )}
             </div>
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
       </CardContent>
       
       {/* Challenge Dialog */}
