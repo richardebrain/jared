@@ -11,10 +11,18 @@ import { Link } from "wouter";
 // Import audio assets
 import sunriseAudio from "@assets/Sunrise paints the Glendale sky gold.mp3";
 import cleanUpTimeAudio from "@assets/Clean Up Time.mp3";
+import cleanUpTimeAudio1 from "@assets/Clean Up Time (1).mp3";
+import cleanUpTimeAudio2 from "@assets/Clean Up Time (2).mp3";
+import cleanUpMoreAudio from "@assets/clean up even more.mp3";
 import timeToChangeAudio from "@assets/Time to Change Activities.mp3";
+import timeToChangeAudio1 from "@assets/Time to Change Activities (1).mp3";
 import washUpForLunchAudio from "@assets/Wash Up For Lunch.mp3";
+import washUpForLunchAudio1 from "@assets/Wash Up For Lunch (1).mp3";
 import closingMyEyesAudio from "@assets/I'm Closing My Eyes.mp3";
+import closingMyEyesAudio3 from "@assets/I'm Closing My Eyes (3).mp3";
 import commitmentRapAudio from "@assets/_Commitment's Whistle-Stop Rap (Extended.mp3";
+import sharingAudio from "@assets/pass it dont hog it sharing song 1 (2).mp3";
+import sharingAudio2 from "@assets/pass it dont hog it sharing version 2.mp3";
 
 // Define classroom song categories
 const audioCategories = [
@@ -23,6 +31,7 @@ const audioCategories = [
   { id: 'cleanup', name: 'Clean Up Time' },
   { id: 'rest', name: 'Rest Time' },
   { id: 'meals', name: 'Meal Times' },
+  { id: 'sharing', name: 'Sharing' },
   { id: 'core-values', name: 'Core Values' }
 ];
 
@@ -39,6 +48,33 @@ const classroomSongs = [
   },
   { 
     id: 2, 
+    title: 'Clean Up Time (Version 1)', 
+    file: cleanUpTimeAudio1, 
+    category: 'cleanup',
+    description: 'Alternative version with a slightly different rhythm',
+    duration: '3:10',
+    usageNotes: 'A great alternative to switch things up and keep children engaged during clean-up time.'
+  },
+  { 
+    id: 3, 
+    title: 'Clean Up Time (Version 2)', 
+    file: cleanUpTimeAudio2, 
+    category: 'cleanup',
+    description: 'Another clean-up song variation with an upbeat tune',
+    duration: '3:05',
+    usageNotes: 'Use this more energetic version when you need to speed up the clean-up process.'
+  },
+  { 
+    id: 4, 
+    title: 'Clean Up Even More', 
+    file: cleanUpMoreAudio, 
+    category: 'cleanup',
+    description: 'Extended clean-up song for big messes and group projects',
+    duration: '3:30',
+    usageNotes: 'Ideal for after major art projects or activities that require more thorough clean-up time.'
+  },
+  { 
+    id: 5, 
     title: 'Time to Change Activities', 
     file: timeToChangeAudio, 
     category: 'transitions',
@@ -47,7 +83,16 @@ const classroomSongs = [
     usageNotes: 'Great for signaling a shift between learning centers or activities throughout the day.'
   },
   { 
-    id: 3, 
+    id: 6, 
+    title: 'Time to Change Activities (Version 1)', 
+    file: timeToChangeAudio1, 
+    category: 'transitions',
+    description: 'Alternative transition song with gentle prompts',
+    duration: '2:20',
+    usageNotes: 'A slightly calmer version that works well for transitions after quiet activities like reading time.'
+  },
+  { 
+    id: 7, 
     title: 'Wash Up For Lunch', 
     file: washUpForLunchAudio, 
     category: 'meals',
@@ -56,7 +101,16 @@ const classroomSongs = [
     usageNotes: 'Play this song when it\'s time to line up for handwashing before mealtimes.'
   },
   { 
-    id: 4, 
+    id: 8, 
+    title: 'Wash Up For Lunch (Version 1)', 
+    file: washUpForLunchAudio1, 
+    category: 'meals',
+    description: 'Alternate handwashing song with hygiene reminders',
+    duration: '2:55',
+    usageNotes: 'Great for reinforcing proper handwashing techniques through lyrics about soap and water.'
+  },
+  { 
+    id: 9, 
     title: 'I\'m Closing My Eyes', 
     file: closingMyEyesAudio, 
     category: 'rest',
@@ -65,7 +119,34 @@ const classroomSongs = [
     usageNotes: 'Perfect for creating a peaceful atmosphere during rest time or to calm children after high-energy activities.'
   },
   { 
-    id: 5, 
+    id: 10, 
+    title: 'I\'m Closing My Eyes (Version 3)', 
+    file: closingMyEyesAudio3, 
+    category: 'rest',
+    description: 'Soothing lullaby-style naptime song',
+    duration: '3:08',
+    usageNotes: 'This gentler version works especially well for younger children or when you need a more lullaby-like approach to rest time.'
+  },
+  { 
+    id: 11, 
+    title: 'Pass It Don\'t Hog It (Sharing Song)', 
+    file: sharingAudio, 
+    category: 'sharing',
+    description: 'Fun song about sharing with friends and taking turns',
+    duration: '2:35',
+    usageNotes: 'Use during circle time to introduce the concept of sharing, or play during center time when children need reminders about taking turns.'
+  },
+  { 
+    id: 12, 
+    title: 'Pass It Don\'t Hog It (Version 2)', 
+    file: sharingAudio2, 
+    category: 'sharing',
+    description: 'Upbeat song about the importance of sharing classroom materials',
+    duration: '2:40',
+    usageNotes: 'Great for reinforcing sharing principles during group activities with limited supplies.'
+  },
+  { 
+    id: 13, 
     title: 'Commitment\'s Whistle-Stop Rap', 
     file: commitmentRapAudio, 
     category: 'core-values',
@@ -74,7 +155,7 @@ const classroomSongs = [
     usageNotes: 'Use during circle time to reinforce our CORE value of commitment in an engaging way.'
   },
   { 
-    id: 6, 
+    id: 14, 
     title: 'Sunrise paints the Glendale sky gold', 
     file: sunriseAudio, 
     category: 'core-values',
