@@ -268,12 +268,17 @@ export default function ModuleView({ moduleId, user, onBack }: ModuleViewProps) 
         </CardHeader>
         
         <CardContent>
-          <Tabs defaultValue="overview">
-            <TabsList className="grid w-full grid-cols-3">
+          <Tabs defaultValue="content">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="content">Content</TabsTrigger>
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="objectives">Learning Objectives</TabsTrigger>
               <TabsTrigger value="materials">Materials</TabsTrigger>
             </TabsList>
+            
+            <TabsContent value="content" className="pt-4">
+              <div className="module-content" dangerouslySetInnerHTML={{ __html: module.content }} />
+            </TabsContent>
             
             <TabsContent value="overview" className="pt-4">
               <div className="space-y-4">
