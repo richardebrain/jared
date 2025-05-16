@@ -8,11 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { SlotMachine } from "@/components/SlotMachine";
-import ScratchCard from "@/components/ScratchCard";
-import MysteryBox from "@/components/MysteryBox";
-import DailyRewards from "@/components/DailyRewards";
-import StreakProtection from "@/components/StreakProtection";
+import { SlotMachine } from "@/components";
+import { ScratchCard, MysteryBox, DailyRewards, StreakProtection } from "@/components";
 
 import {
   Trophy,
