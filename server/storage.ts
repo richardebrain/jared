@@ -28,6 +28,10 @@ export interface IStorage {
   getUserPointsEarnedToday(userId: number): Promise<number>;
   getAllUsers(): Promise<User[]>;
   
+  // Game operations
+  getUserGameHistory(userId: number): Promise<GameCompletion[]>;
+  recordGamePlay(gamePlay: InsertGameCompletion): Promise<GameCompletion>;
+  
   // Learning modules operations
   getAllModules(): Promise<LearningModule[]>;
   getModule(id: number): Promise<LearningModule | undefined>;

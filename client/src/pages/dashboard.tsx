@@ -39,7 +39,7 @@ import AchievementPopup from "@/components/AchievementPopup";
 const BonusGamesButton = () => {
   // Get the game history to check if daily game has been used
   const { data: gameHistory = [] } = useQuery({
-    queryKey: ["/api/user/game-history"],
+    queryKey: ["/api/games/history"],
   });
   
   // Check if there's a game play recorded for today
