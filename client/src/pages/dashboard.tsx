@@ -45,7 +45,7 @@ const BonusGamesButton = () => {
   // Check if there's a game play recorded for today
   const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
   const dailyGameUsed = Array.isArray(gameHistory) && gameHistory.some((game: any) => 
-    new Date(game.playedAt).toISOString().slice(0, 10) === today
+    new Date(game.completedAt).toISOString().slice(0, 10) === today
   );
   
   if (dailyGameUsed) {
