@@ -2451,7 +2451,9 @@ export default function AssessmentPage() {
                       domainDifficulty[currentDomain] === 'intermediate' ? 'text-amber-500' : 
                       'text-red-500'
                     }`}>
-                      {domainDifficulty[currentDomain].charAt(0).toUpperCase() + domainDifficulty[currentDomain].slice(1)}
+                      {domainDifficulty[currentDomain] ? 
+                        domainDifficulty[currentDomain].charAt(0).toUpperCase() + domainDifficulty[currentDomain].slice(1) 
+                        : 'Beginner'}
                     </div>
                   </div>
                 </div>
@@ -2468,11 +2470,11 @@ export default function AssessmentPage() {
                     {domains.find(d => d.id === currentDomain)?.name}
                   </CardTitle>
                   <Badge variant="outline" className={
-                    domainDifficulty[currentDomain] === 'beginner' ? 'bg-green-100 text-green-800 hover:bg-green-100' : 
+                    (!domainDifficulty[currentDomain] || domainDifficulty[currentDomain] === 'beginner') ? 'bg-green-100 text-green-800 hover:bg-green-100' : 
                     domainDifficulty[currentDomain] === 'intermediate' ? 'bg-amber-100 text-amber-800 hover:bg-amber-100' : 
                     'bg-red-100 text-red-800 hover:bg-red-100'
                   }>
-                    {domainDifficulty[currentDomain]} level
+                    {domainDifficulty[currentDomain] || 'beginner'} level
                   </Badge>
                 </div>
                 <CardDescription>
