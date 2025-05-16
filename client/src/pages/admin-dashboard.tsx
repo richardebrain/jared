@@ -18,7 +18,11 @@ import {
   ChevronRight,
   Search,
   UserX,
-  TrendingUp
+  TrendingUp,
+  BarChart2,
+  Briefcase,
+  RefreshCw,
+  AreaChart
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
