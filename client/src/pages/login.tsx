@@ -262,6 +262,12 @@ export default function Login() {
               Don't have an account? <Link href="/register" className="text-primary hover:underline hover-rotate font-bold">Sign up</Link>
             </p>
           </div>
+          
+          <div className="mt-2 text-center">
+            <p className="text-sm text-neutral-800">
+              Looking to enroll your school? <Link href="/business-signup" className="text-primary hover:underline hover-rotate font-bold">Business Sign-up</Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

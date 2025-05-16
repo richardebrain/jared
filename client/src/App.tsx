@@ -7,6 +7,8 @@ import Dashboard from "@/pages/dashboard";
 import EnhancedDashboard from "@/pages/dashboard-enhanced";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
+import BusinessSignup from "@/pages/business-signup";
+import LandingPage from "@/pages/landing";
 import ProgressionMap from "@/pages/progression-map";
 import Assessment from "@/pages/assessment";
 import LearningModulePage from "@/pages/learning-module";
@@ -69,6 +71,10 @@ function Router() {
       
       <Route path="/register">
         {isAuthenticated ? <Dashboard /> : <Register />}
+      </Route>
+
+      <Route path="/business-signup">
+        <BusinessSignup />
       </Route>
       
       {/* Protected routes - redirect to login when not authenticated */}
