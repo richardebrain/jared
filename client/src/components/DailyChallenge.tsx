@@ -1,263 +1,248 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Award, Star, CheckSquare, XSquare } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { CheckCircle, Lightbulb, Brain, ArrowRight, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import confetti from "canvas-confetti";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
-// Daily challenge options data
-const challengeOptions = [
-  {
-    id: 1,
-    question: "What is a key benefit of using open-ended questions with preschoolers?",
-    answers: [
-      "They're easier for teachers to create",
-      "They encourage creative thinking and language development",
-      "They require less supervision",
-      "They're easier for children to understand"
-    ],
-    correctIndex: 1
-  },
-  {
-    id: 2,
-    question: "Which core value emphasizes creating predictable routines for children?",
-    answers: [
-      "Be Committed",
-      "Be Caring",
-      "Be Consistent",
-      "Be Positive"
-    ],
-    correctIndex: 2
-  },
-  {
-    id: 3,
-    question: "What strategy can help manage transitions between activities?",
-    answers: [
-      "Starting the next activity immediately",
-      "Using timers and verbal warnings",
-      "Keeping children at activities longer",
-      "Allowing free play all day"
-    ],
-    correctIndex: 1
-  },
-  {
-    id: 4,
-    question: "How can teachers best foster social-emotional learning?",
-    answers: [
-      "Focus only on academic skills",
-      "Tell children how to feel",
-      "Model appropriate emotional responses",
-      "Avoid discussing feelings"
-    ],
-    correctIndex: 2
-  },
-  {
-    id: 5,
-    question: "What is the purpose of the 'Welcome Aboard' song?",
-    answers: [
-      "To wake children up from nap time",
-      "To greet children during morning arrival",
-      "To signal lunch time",
-      "To remind children of classroom rules"
-    ],
-    correctIndex: 1
-  }
-];
+// Challenge difficulty types
+type Difficulty = "easy" | "medium" | "hard";
+
+// Challenge types
+interface Challenge {
+  id: string;
+  title: string;
+  description: string;
+  points: number;
+  difficulty: Difficulty;
+  completed: boolean;
+}
 
 export default function DailyChallenge() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [challenge, setChallenge] = useState<typeof challengeOptions[0] | null>(null);
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [isAnswered, setIsAnswered] = useState(false);
-  const [hasCompletedToday, setHasCompletedToday] = useState(false);
-  const [streakCount, setStreakCount] = useState(0);
-
-  // Get a daily challenge based on the date
-  useEffect(() => {
-    const today = new Date();
-    const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
-    const challengeIndex = dayOfYear % challengeOptions.length;
-    setChallenge(challengeOptions[challengeIndex]);
-    
-    // Check if the user has already completed today's challenge
-    const lastCompleted = localStorage.getItem('lastDailyChallengeDate');
-    const todayStr = today.toDateString();
-    
-    if (lastCompleted === todayStr) {
-      setHasCompletedToday(true);
+  const [challenges, setChallenges] = useState<Challenge[]>([
+    {
+      id: "daily-1",
+      title: "Core Values Reflection",
+      description: "Think about how you demonstrated one of our core values in your classroom today.",
+      points: 10,
+      difficulty: "easy",
+      completed: false
+    },
+    {
+      id: "daily-2",
+      title: "Classroom Management Quiz",
+      description: "Take a quick quiz on effective classroom management techniques.",
+      points: 15,
+      difficulty: "medium",
+      completed: false
+    },
+    {
+      id: "daily-3",
+      title: "Child Development Study",
+      description: "Review a key concept from early childhood development.",
+      points: 20,
+      difficulty: "hard",
+      completed: false
     }
-    
-    // Get streak count
-    const streak = parseInt(localStorage.getItem('challengeStreak') || '0');
-    setStreakCount(streak);
+  ]);
+  
+  // Get today's challenge
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const currentChallenge = challenges[currentIndex];
+  
+  // Check local storage for completed challenges
+  useEffect(() => {
+    const completedChallenges = localStorage.getItem('completedDailyChallenges');
+    if (completedChallenges) {
+      try {
+        const completedIds = JSON.parse(completedChallenges);
+        setChallenges(prev => 
+          prev.map(challenge => ({
+            ...challenge,
+            completed: completedIds.includes(challenge.id)
+          }))
+        );
+      } catch (error) {
+        console.error("Failed to parse completed challenges:", error);
+      }
+    }
   }, []);
-
-  // Mutation to save challenge results
-  const { mutate: saveChallenge } = useMutation({
-    mutationFn: async (result: { correct: boolean, points: number }) => {
-      return await apiRequest("/api/daily-challenge", {
+  
+  // Mutation to complete challenge
+  const { mutate: completeChallenge, isPending } = useMutation({
+    mutationFn: async (challenge: Challenge) => {
+      return await apiRequest("/api/complete-challenge", {
         method: "POST",
-        data: result
+        data: { challengeId: challenge.id, points: challenge.points }
       });
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
+      // Update challenges state
+      const updatedChallenges = [...challenges];
+      updatedChallenges[currentIndex].completed = true;
+      setChallenges(updatedChallenges);
+      
+      // Save to local storage
+      const completedIds = updatedChallenges
+        .filter(c => c.completed)
+        .map(c => c.id);
+      localStorage.setItem('completedDailyChallenges', JSON.stringify(completedIds));
+      
+      // Show success toast
+      toast({
+        title: "Challenge Completed!",
+        description: `You earned ${currentChallenge.points} points!`,
+      });
+      
+      // Refresh user data
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-    }
-  });
-
-  // Handle answer selection
-  const handleAnswerSelect = (answerIndex: number) => {
-    if (isAnswered) return;
-    
-    setSelectedAnswer(answerIndex);
-    setIsAnswered(true);
-    
-    // Check if answer is correct
-    const isCorrect = challenge && answerIndex === challenge.correctIndex;
-    
-    if (isCorrect) {
-      // Launch confetti for correct answers
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 }
-      });
-      
-      // Increment streak
-      const newStreak = streakCount + 1;
-      localStorage.setItem('challengeStreak', newStreak.toString());
-      setStreakCount(newStreak);
-      
-      // Mark as completed today
-      const today = new Date().toDateString();
-      localStorage.setItem('lastDailyChallengeDate', today);
-      setHasCompletedToday(true);
-      
-      // Save challenge result (points based on streak)
-      const points = Math.min(5, 2 + Math.floor(newStreak / 3));
-      saveChallenge({ correct: true, points });
-      
+    },
+    onError: (error) => {
+      console.error("Failed to complete challenge:", error);
       toast({
-        title: "Correct! 🎉",
-        description: `You earned ${points} points and increased your streak to ${newStreak}!`,
-        variant: "default",
-      });
-    } else {
-      // Reset streak on wrong answer
-      localStorage.setItem('challengeStreak', '0');
-      setStreakCount(0);
-      
-      // Still mark as completed today
-      const today = new Date().toDateString();
-      localStorage.setItem('lastDailyChallengeDate', today);
-      setHasCompletedToday(true);
-      
-      // Save challenge result (0 points for incorrect)
-      saveChallenge({ correct: false, points: 0 });
-      
-      toast({
-        title: "Not quite right",
-        description: "Try again tomorrow for a new challenge!",
+        title: "Failed to complete challenge",
+        description: "Please try again later.",
         variant: "destructive",
       });
     }
+  });
+  
+  // Function to handle challenge completion
+  const handleCompleteChallenge = () => {
+    if (!currentChallenge.completed) {
+      completeChallenge(currentChallenge);
+    }
   };
-
-  // Reset challenge for testing (would be removed in production)
-  const resetChallenge = () => {
-    localStorage.removeItem('lastDailyChallengeDate');
-    setHasCompletedToday(false);
-    setIsAnswered(false);
-    setSelectedAnswer(null);
+  
+  // Function to go to next challenge
+  const handleNextChallenge = () => {
+    setCurrentIndex((prev) => (prev + 1) % challenges.length);
   };
-
-  if (!challenge) return null;
+  
+  // Function to go to previous challenge
+  const handlePrevChallenge = () => {
+    setCurrentIndex((prev) => (prev - 1 + challenges.length) % challenges.length);
+  };
+  
+  // Get difficulty color
+  const getDifficultyColor = (difficulty: Difficulty) => {
+    switch (difficulty) {
+      case "easy":
+        return "bg-green-500";
+      case "medium":
+        return "bg-amber-500";
+      case "hard":
+        return "bg-red-500";
+      default:
+        return "bg-gray-500";
+    }
+  };
+  
+  // Reset challenges for testing (would be removed in production)
+  const resetChallenges = () => {
+    localStorage.removeItem('completedDailyChallenges');
+    setChallenges(challenges.map(c => ({ ...c, completed: false })));
+  };
+  
+  // Progress through all challenges
+  const completedCount = challenges.filter(c => c.completed).length;
+  const progressPercentage = (completedCount / challenges.length) * 100;
 
   return (
-    <Card className="overflow-hidden border-amber-200 bg-amber-50/50">
-      <CardHeader className="bg-gradient-to-r from-amber-500 to-amber-600 text-white pb-3">
+    <Card className="border-amber-200 overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white pb-3">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Sparkles className="h-5 w-5" />
-            Daily Challenge
-          </CardTitle>
-          <div className="flex items-center gap-1 bg-amber-700/30 py-1 px-2 rounded-full text-xs font-medium">
-            <Star className="h-3 w-3 fill-white" />
-            <span>Streak: {streakCount}</span>
+          <div className="flex items-center gap-2">
+            <Lightbulb className="h-5 w-5" />
+            <CardTitle className="text-base sm:text-lg">Daily Teaching Challenge</CardTitle>
           </div>
+          <Badge className="bg-white/20 text-white">
+            {completedCount}/{challenges.length} Completed
+          </Badge>
         </div>
-        <CardDescription className="text-amber-100">
-          Answer correctly to earn points and build your streak!
+        <CardDescription className="text-indigo-100">
+          Complete daily challenges to earn extra points!
         </CardDescription>
       </CardHeader>
       
-      <CardContent className="pt-4">
-        {hasCompletedToday ? (
-          <div className="text-center py-4">
-            <Award className="h-16 w-16 mx-auto text-amber-500 mb-2" />
-            <h3 className="font-bold text-lg">Challenge Completed!</h3>
-            <p className="text-sm text-gray-600 mt-1">
-              You've completed today's challenge. Return tomorrow for a new one!
-            </p>
-            <div className="mt-3 text-xs text-gray-500">
-              {/* In development mode only - remove in production */}
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={resetChallenge} 
-                className="text-xs opacity-70"
-              >
-                Reset (dev only)
-              </Button>
+      <CardContent className="p-4">
+        {/* Progress bar */}
+        <div className="mb-4">
+          <Progress value={progressPercentage} className="h-2" />
+        </div>
+        
+        {/* Challenge display */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <Badge className={`${getDifficultyColor(currentChallenge.difficulty)} text-white`}>
+              {currentChallenge.difficulty.charAt(0).toUpperCase() + currentChallenge.difficulty.slice(1)}
+            </Badge>
+            <div className="flex items-center">
+              <Star className="h-4 w-4 text-amber-500 mr-1" />
+              <span className="text-sm font-medium">{currentChallenge.points} points</span>
             </div>
           </div>
-        ) : (
-          <>
-            <div className="mb-4">
-              <h3 className="font-bold text-amber-900">{challenge.question}</h3>
-            </div>
-            <div className="space-y-2">
-              {challenge.answers.map((answer, index) => (
-                <div
-                  key={index}
-                  onClick={() => !isAnswered && handleAnswerSelect(index)}
-                  className={`
-                    p-3 rounded-md border transition-all cursor-pointer
-                    ${isAnswered && index === challenge.correctIndex 
-                      ? "bg-green-100 border-green-300"
-                      : isAnswered && index === selectedAnswer
-                        ? "bg-red-100 border-red-300"
-                        : isAnswered
-                          ? "opacity-70 border-transparent"
-                          : "hover:bg-amber-100 hover:border-amber-300 border-amber-100"}
-                  `}
-                >
-                  <div className="flex items-center gap-2">
-                    {isAnswered && index === challenge.correctIndex && (
-                      <CheckSquare className="h-5 w-5 text-green-600 flex-shrink-0" />
-                    )}
-                    {isAnswered && index === selectedAnswer && index !== challenge.correctIndex && (
-                      <XSquare className="h-5 w-5 text-red-600 flex-shrink-0" />
-                    )}
-                    <span>{answer}</span>
-                  </div>
+          
+          <h3 className="font-medium text-lg mb-2">{currentChallenge.title}</h3>
+          <p className="text-gray-600 mb-4">{currentChallenge.description}</p>
+          
+          {/* Challenge actions */}
+          <div className="flex gap-2">
+            <Button 
+              className="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white"
+              onClick={handleCompleteChallenge}
+              disabled={currentChallenge.completed || isPending}
+            >
+              {isPending ? (
+                <div className="flex items-center">
+                  <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                  <span>Completing...</span>
                 </div>
-              ))}
-            </div>
-          </>
-        )}
+              ) : currentChallenge.completed ? (
+                <div className="flex items-center">
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  <span>Completed</span>
+                </div>
+              ) : (
+                <span>Complete Challenge</span>
+              )}
+            </Button>
+            
+            {/* Navigation buttons */}
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={handlePrevChallenge}
+              className="border-indigo-200"
+            >
+              <ArrowRight className="h-4 w-4 rotate-180" />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={handleNextChallenge}
+              className="border-indigo-200"
+            >
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        
+        {/* Reset button for development (would be removed in production) */}
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="w-full text-xs text-gray-400 hover:text-gray-600 mt-2" 
+          onClick={resetChallenges}
+        >
+          Reset Challenges (Dev Only)
+        </Button>
       </CardContent>
-      
-      {!hasCompletedToday && !isAnswered && (
-        <CardFooter className="bg-amber-50 border-t border-amber-100 justify-center">
-          <p className="text-xs text-amber-700">
-            Select your answer to submit and earn points!
-          </p>
-        </CardFooter>
-      )}
     </Card>
   );
 }

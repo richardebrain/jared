@@ -4,7 +4,7 @@ import { User } from "@shared/schema";
 import { Link, useLocation } from "wouter";
 import Header from "@/components/Header";
 import ModuleView from "@/components/ModuleView";
-import { Button } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -25,7 +25,9 @@ import {
   Music,
   Gift,
   Sparkles,
-  Puzzle
+  Puzzle,
+  Flame,
+  Home
 } from "lucide-react";
 
 // Import our new gamification components
@@ -44,11 +46,16 @@ const POINTS_PER_BEAR_BUCK = 50;
 export default function EnhancedDashboard() {
   const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
   const [showAchievement, setShowAchievement] = useState(false);
-  const [achievementData, setAchievementData] = useState({
+  const [achievementData, setAchievementData] = useState<{
+    title: string;
+    description: string;
+    points: number;
+    type: "achievement" | "level-up" | "challenge";
+  }>({
     title: "Consistency Champion",
     description: "You've logged in 3 days in a row!",
     points: 10,
-    type: "achievement" as const
+    type: "achievement"
   });
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
@@ -114,10 +121,10 @@ export default function EnhancedDashboard() {
   const bearBucks = user?.points ? Math.floor(user.points / POINTS_PER_BEAR_BUCK) : 0;
   
   // Let's check if the user has completed certain key modules
-  const coreValuesModule = modules?.find(m => m.category === 'onboarding');
-  const hasCompletedCoreValues = userProgress?.some(p => 
+  const coreValuesModule = modules ? modules.find(m => m.category === 'onboarding') : null;
+  const hasCompletedCoreValues = userProgress && Array.isArray(userProgress) ? userProgress.some(p => 
     coreValuesModule && p.moduleId === coreValuesModule.id && p.completed
-  );
+  ) : false;
   
   // Handle module selection
   const handleModuleSelect = (moduleId: number) => {
@@ -137,7 +144,7 @@ export default function EnhancedDashboard() {
   
   // If we have a selected module, show the module view
   if (selectedModuleId) {
-    return <ModuleView moduleId={selectedModuleId} onBack={() => setSelectedModuleId(null)} />;
+    return <ModuleView moduleId={selectedModuleId} onBack={() => setSelectedModuleId(null)} user={user || null} />;
   }
 
   return (
@@ -375,7 +382,7 @@ export default function EnhancedDashboard() {
                 </Card>
                 
                 {/* Achievements */}
-                <GameAchievements user={user} />
+                <GameAchievements user={user || null} />
               </div>
             </div>
           </div>
