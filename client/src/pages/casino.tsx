@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { queryClient } from "@/lib/queryClient";
+import { Link, useLocation } from "wouter";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,32 +72,46 @@ export default function CasinoPage() {
       setDailyGameUsed(true);
       
       if (!user) {
-        throw new Error("User not authenticated");
+        toast({
+          title: "Error",
+          description: "You need to be logged in to earn points",
+          variant: "destructive",
+        });
+        return;
       }
       
-      // Record game play first to mark it as used for the day
-      await fetch('/api/games/played/1', {
+      // Record game play and award points
+      const response = await fetch('/api/rewards/points', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          score: points * 10, // Score is just a multiplier of points for tracking
-          timeTaken: 30 // Default time spent in seconds
+          points,
+          gameId: 1, // Bonus game ID
         }),
       });
       
-      toast({
-        title: "Points Added!",
-        description: `${points} points have been added to your account!`,
-      });
-      
-      // Invalidate queries to refresh user data across all components
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/games/history"] });
-      
-      // Redirect to dashboard to see updated points
-      window.setTimeout(() => {
-        window.location.href = "/dashboard";
-      }, 1500);
+      if (response.ok) {
+        toast({
+          title: "Points Added!",
+          description: `${points} points have been added to your account!`,
+        });
+        
+        // Force refresh user data
+        fetch('/api/auth/me', { 
+          method: 'GET',
+          headers: { 'Cache-Control': 'no-cache' }
+        })
+        .then(response => response.json())
+        .then(updatedUser => {
+          // Manually update user data in React Query cache
+          window.localStorage.setItem('lastPointsEarned', points.toString());
+          
+          // Redirect to dashboard to see updated points
+          window.setTimeout(() => {
+            window.location.href = "/dashboard";
+          }, 1000);
+        });
+      }
     } catch (error) {
       console.error('Error awarding points:', error);
       toast({
