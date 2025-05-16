@@ -729,7 +729,9 @@ export function UltimateEscalator() {
       setChallengeScore(score);
       
       // Calculate earned points based on score and challenge difficulty
-      const pointsMultiplier = score / 100;
+      // Only award points if score is 80% or higher, otherwise zero points
+      const passingScoreThreshold = 80;
+      const pointsMultiplier = score >= passingScoreThreshold ? score / 100 : 0;
       const points = selectedChallenge ? Math.round(selectedChallenge.points * pointsMultiplier) : 0;
       setEarnedPoints(points);
       
@@ -1013,11 +1015,18 @@ export function UltimateEscalator() {
                      "Keep practicing! You'll improve with more study."}
                   </p>
                   
-                  <div className="bg-amber-50 p-4 rounded-lg mb-4">
+                  <div className={`p-4 rounded-lg mb-4 ${challengeScore >= 80 ? 'bg-green-50' : 'bg-amber-50'}`}>
                     <p className="font-medium text-amber-800">
                       <Star className="h-4 w-4 inline mr-1" />
-                      You earned {earnedPoints} points!
+                      {challengeScore >= 80 
+                        ? `You earned ${earnedPoints} points!` 
+                        : `You need 80% or higher to earn points. Try again!`}
                     </p>
+                    {challengeScore < 80 && (
+                      <p className="text-xs text-amber-600 mt-1">
+                        You can retake this challenge as many times as needed to achieve a passing score.
+                      </p>
+                    )}
                   </div>
                 </div>
                 
