@@ -119,14 +119,15 @@ export default function OwnerDashboardStandalone() {
           </div>
           
           <div className="flex space-x-2">
-            <Button 
-              variant="default" 
-              onClick={() => setLocation("/dashboard")}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <Building2 className="h-4 w-4 mr-2" />
-              Back to Teacher Dashboard
-            </Button>
+            <Link to="/dashboard">
+              <Button 
+                variant="default" 
+                className="bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                <GraduationCap className="h-4 w-4 mr-2" />
+                Back to Teacher Dashboard
+              </Button>
+            </Link>
             <Button 
               variant="outline"
               onClick={() => setSelectedTab("reviews")}
