@@ -45,7 +45,7 @@ const CORE_VALUES = [
 const formSchema = z.object({
   nomineeId: z.number().min(1, "Please select a colleague"),
   coreValue: z.string().min(1, "Please select a core value"),
-  message: z.string().min(5, "Message must be at least 5 characters").max(300, "Message must be less than 300 characters"),
+  description: z.string().min(5, "Message must be at least 5 characters").max(300, "Message must be less than 300 characters"),
 });
 
 export default function CreateShoutOutForm() {
@@ -66,7 +66,7 @@ export default function CreateShoutOutForm() {
     defaultValues: {
       nomineeId: undefined,
       coreValue: "",
-      message: "",
+      description: "", // Changed from message to description
     },
   });
   
@@ -74,10 +74,10 @@ export default function CreateShoutOutForm() {
   const mutation = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) => {
       console.log("Submitting shout out form with values:", values);
-      // Convert message to description for backwards compatibility
+      // Add message (keeping description) for backwards compatibility
       const payload = {
         ...values,
-        description: values.message
+        message: values.description 
       };
       console.log("API payload:", payload);
       return apiRequest("/api/core-values/nominate", {
@@ -215,7 +215,7 @@ export default function CreateShoutOutForm() {
             
             <FormField
               control={form.control}
-              name="message"
+              name="description"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>How did they demonstrate this value?</FormLabel>
