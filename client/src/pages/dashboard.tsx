@@ -206,11 +206,18 @@ export default function Dashboard() {
       return [];
     }
     
+    // Handle case where scores might not be an array or might be null
+    const scores = latestAssessment.scores && Array.isArray(latestAssessment.scores) 
+      ? latestAssessment.scores 
+      : [];
+    
     // Sort scores from lowest to highest to determine priority areas
-    const priorityCategories = [...latestAssessment.scores]
-      .sort((a, b) => a.score - b.score)
-      .slice(0, 6) // Get 6 lowest scores to have enough potential matches
-      .map(score => score.category.toLowerCase());
+    const priorityCategories = scores.length > 0
+      ? [...scores]
+          .sort((a, b) => a.score - b.score)
+          .slice(0, 6) // Get 6 lowest scores to have enough potential matches
+          .map(score => score.category.toLowerCase())
+      : [];
     
     // Match modules to the priority categories
     const categoryBasedModules = Array.isArray(modules) 

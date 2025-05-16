@@ -1487,15 +1487,15 @@ export default function AssessmentPage() {
       }
     });
     
-    // Define learning path item type
+    // Define learning path item type to match the interface in PersonalizedLearningPath.tsx
     interface LearningPathItem {
       domainId: string;
-      title: string;
-      domainName?: string; // Optional domain name for display
-      recommendation?: string; // Specific recommendation text
-      difficulty: DifficultyLevel;
-      priority: 'high' | 'medium' | 'low' | 'specialized' | 'suggested';
-      type: 'growth' | 'strength' | 'foundation';
+      domainName: string;
+      priority: 'high' | 'medium' | 'low' | 'suggested';
+      recommendation: string;
+      score?: number;
+      level?: string;
+      reason: string;
     }
     
     // Generate personalized learning path recommendations based on assessment results

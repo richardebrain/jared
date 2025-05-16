@@ -145,8 +145,33 @@ const PersonalizedLearningPath: React.FC<PersonalizedLearningPathProps> = ({ ass
     );
   }
 
+  // Handle case where scores might not be an array or might be null
+  const scores = latestAssessment.scores && Array.isArray(latestAssessment.scores) 
+    ? latestAssessment.scores 
+    : [];
+    
   // Sort scores from lowest to highest
-  const sortedScores = [...latestAssessment.scores].sort((a, b) => a.score - b.score);
+  const sortedScores = [...scores].sort((a, b) => a.score - b.score);
+  
+  // If no scores, provide default guidance
+  if (sortedScores.length === 0) {
+    return (
+      <Card className="mb-6">
+        <CardContent className="pt-6">
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <AlertCircle className="h-12 w-12 text-amber-500 mb-4" />
+            <h3 className="text-xl font-bold mb-2">Assessment Incomplete</h3>
+            <p className="text-muted-foreground mb-6 max-w-md">
+              Your assessment needs to be completed to generate personalized learning recommendations.
+            </p>
+            <Button onClick={() => setLocation('/assessment')}>
+              Take Assessment Again
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
   
   // Generate learning path from the 3 lowest scoring categories
   const learningPath: LearningPathItem[] = sortedScores.slice(0, 3).map((score, index) => {
