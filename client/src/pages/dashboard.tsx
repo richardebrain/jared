@@ -612,53 +612,41 @@ export default function Dashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                   {/* Left Column (2/3 width) */}
                   <div className="md:col-span-2 space-y-6">
-                    {/* Learning Resources Card */}
+                    {/* Assessment Button Card */}
                     <Card className="overflow-hidden border border-amber-200">
-                      <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-100">
+                      <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100">
                         <div className="flex items-center">
-                          <Book className="h-5 w-5 text-amber-500 mr-2" />
+                          <Book className="h-5 w-5 text-blue-500 mr-2" />
+                          <CardTitle className="text-lg">Teacher Assessment</CardTitle>
+                        </div>
+                        <CardDescription>Track your professional development progress</CardDescription>
+                      </CardHeader>
+                      <CardContent className="p-4">
+                        <Link to="/assessment">
+                          <button className="flex items-center p-3 bg-white rounded-lg border border-blue-200 shadow-sm w-full hover:bg-blue-50 transition">
+                            <div className="bg-blue-100 p-2 rounded-full mr-3">
+                              <i className="ri-file-list-line text-blue-600"></i>
+                            </div>
+                            <div className="text-left">
+                              <p className="font-medium">Assessment Dashboard</p>
+                              <p className="text-sm text-gray-500">View your scores and improvement areas</p>
+                            </div>
+                          </button>
+                        </Link>
+                      </CardContent>
+                    </Card>
+                    
+                    {/* Video and Audio Library */}
+                    <Card className="overflow-hidden border border-amber-200">
+                      <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-100">
+                        <div className="flex items-center">
+                          <Music className="h-5 w-5 text-indigo-500 mr-2" />
                           <CardTitle className="text-lg">Video and Audio Library</CardTitle>
                         </div>
                         <CardDescription>Classroom music and training videos</CardDescription>
                       </CardHeader>
-                      <CardContent className="p-4">
-                        <div className="grid grid-cols-1 gap-3">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <Link to="/video-resources">
-                              <button className="flex items-center p-3 bg-white rounded-lg border border-amber-200 shadow-sm w-full hover:bg-amber-50 transition">
-                                <div className="bg-purple-100 p-2 rounded-full mr-3">
-                                  <i className="ri-video-line text-purple-600"></i>
-                                </div>
-                                <div className="text-left">
-                                  <p className="font-medium">Training Videos</p>
-                                  <p className="text-sm text-gray-500">Browse educational content</p>
-                                </div>
-                              </button>
-                            </Link>
-                            <Link to="/classroom-music">
-                              <button className="flex items-center p-3 bg-white rounded-lg border border-amber-200 shadow-sm w-full hover:bg-amber-50 transition">
-                                <div className="bg-green-100 p-2 rounded-full mr-3">
-                                  <i className="ri-music-line text-green-600"></i>
-                                </div>
-                                <div className="text-left">
-                                  <p className="font-medium">Classroom Music</p>
-                                  <p className="text-sm text-gray-500">Songs for daily routines</p>
-                                </div>
-                              </button>
-                            </Link>
-                          </div>
-                          <Link to="/assessment">
-                            <button className="flex items-center p-3 bg-white rounded-lg border border-amber-200 shadow-sm w-full hover:bg-amber-50 transition">
-                              <div className="bg-blue-100 p-2 rounded-full mr-3">
-                                <i className="ri-file-list-line text-blue-600"></i>
-                              </div>
-                              <div className="text-left">
-                                <p className="font-medium">Assessment</p>
-                                <p className="text-sm text-gray-500">Track your progress</p>
-                              </div>
-                            </button>
-                          </Link>
-                        </div>
+                      <CardContent className="p-0">
+                        <MediaSidebar />
                       </CardContent>
                     </Card>
                     
@@ -673,9 +661,6 @@ export default function Dashboard() {
                     
                     {/* Recent Core Values Shout Outs */}
                     <RecentShoutOuts />
-                    
-                    {/* Media Sidebar with Company Song and Video */}
-                    <MediaSidebar />
                     
                     {/* Admin Tools */}
                     <AdminTools />
