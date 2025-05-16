@@ -1038,15 +1038,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/core-values/nominate", requireAuth, async (req, res) => {
     try {
       const nominatorId = req.session.userId as number;
-      const { nomineeId, coreValue, message } = req.body;
+      const { nomineeId, coreValue, message, description } = req.body;
       
-      console.log("Nomination request received:", { nominatorId, nomineeId, coreValue, message });
+      // Use description if message is not provided (for backwards compatibility)
+      const nominationText = message || description;
+      
+      console.log("Nomination request received:", { nominatorId, nomineeId, coreValue, message, description, nominationText });
       
       // Validate inputs
-      if (!nomineeId || !coreValue || !message) {
-        console.log("Missing required fields:", { nomineeId, coreValue, message });
+      if (!nomineeId || !coreValue || !nominationText) {
+        console.log("Missing required fields:", { nomineeId, coreValue, nominationText });
         return res.status(400).json({ 
-          message: "Nominee ID, core value, and message are required"
+          message: "Nominee ID, core value, and description are required"
         });
       }
       
@@ -1088,7 +1091,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         nominatorId,
         nomineeId,
         coreValue,
-        description: message,
+        description: nominationText, // Use the fallback value determined earlier
         pointsAwarded
       });
       
@@ -1116,9 +1119,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/core-values-shoutouts", requireAuth, async (req, res) => {
     try {
       const nominatorId = req.session.userId as number;
-      const { nomineeId, coreValue, description } = req.body;
+      const { nomineeId, coreValue, description, message } = req.body;
       
-      if (!nomineeId || !coreValue || !description) {
+      // Use description if provided, otherwise use message (for backwards compatibility)
+      const nominationText = description || message;
+      
+      if (!nomineeId || !coreValue || !nominationText) {
         return res.status(400).json({ message: "Nominee ID, core value, and description are required" });
       }
       
