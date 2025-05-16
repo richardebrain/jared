@@ -31,20 +31,34 @@ export default function CoreValueDetail({ onComplete }: CoreValueDetailProps) {
       // Create audio element if it doesn't exist
       if (!audioRef.current) {
         const audio = new Audio("/sounds/commitment-whistle-stop-rap.mp3");
-        audio.addEventListener("ended", () => setIsRapPlaying(false));
-        audio.addEventListener("pause", () => setIsRapPlaying(false));
-        audio.addEventListener("play", () => setIsRapPlaying(true));
+        
+        // Add event listeners
+        const handleEnd = () => setIsRapPlaying(false);
+        const handlePause = () => setIsRapPlaying(false);
+        const handlePlay = () => setIsRapPlaying(true);
+        
+        audio.addEventListener("ended", handleEnd);
+        audio.addEventListener("pause", handlePause);
+        audio.addEventListener("play", handlePlay);
+        
+        // Set the audio reference
         audioRef.current = audio;
+        
+        // Store event listeners for cleanup
+        return () => {
+          audio.removeEventListener("ended", handleEnd);
+          audio.removeEventListener("pause", handlePause);
+          audio.removeEventListener("play", handlePlay);
+          audio.pause();
+        };
       }
     }
     
-    // Cleanup function
+    // Cleanup function for tab changes
     return () => {
       if (audioRef.current) {
         audioRef.current.pause();
-        audioRef.current.removeEventListener("ended", () => setIsRapPlaying(false));
-        audioRef.current.removeEventListener("pause", () => setIsRapPlaying(false));
-        audioRef.current.removeEventListener("play", () => setIsRapPlaying(true));
+        setIsRapPlaying(false);
       }
     };
   }, [currentTab]);
