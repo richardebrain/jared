@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { Link } from "wouter";
 
 import {
   Card,
@@ -36,7 +37,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Award, Heart, Medal, Star, ThumbsUp, Trophy, UserCheck } from "lucide-react";
+import { Award, ChevronLeft, Heart, Home, Medal, Star, ThumbsUp, Trophy, UserCheck } from "lucide-react";
 import axios from "axios";
 import { formatDistanceToNow } from "date-fns";
 
@@ -146,6 +147,15 @@ export default function CoreValuesShoutOutPage() {
 
   return (
     <div className="container mx-auto py-8">
+      <div className="flex justify-between items-center mb-6">
+        <Link href="/dashboard">
+          <Button variant="outline" className="flex items-center gap-2">
+            <ChevronLeft className="h-4 w-4" />
+            <span>Back to Dashboard</span>
+          </Button>
+        </Link>
+      </div>
+      
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold mb-2">Core Values Shout Out</h1>
         <p className="text-muted-foreground">
