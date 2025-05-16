@@ -2,15 +2,79 @@ import { useState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Volume2, Play, Pause, SkipForward, SkipBack, Video, Music } from "lucide-react";
+import { Volume2, Play, Pause, SkipForward, SkipBack, Video, Music, AlertCircle } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Import media assets
 import raisingArizonaVideo from "@assets/Raising Arizona Preschool .mp4";
 import sunriseAudio from "@assets/Sunrise paints the Glendale sky gold.mp3";
+import cleanUpTimeAudio from "@assets/Clean Up Time.mp3";
+import timeToChangeAudio from "@assets/Time to Change Activities.mp3";
+import washUpForLunchAudio from "@assets/Wash Up For Lunch.mp3";
+import closingMyEyesAudio from "@assets/I'm Closing My Eyes.mp3";
+import commitmentRapAudio from "@assets/_Commitment's Whistle-Stop Rap (Extended.mp3";
+
+// Define classroom song categories
+const audioCategories = [
+  { id: 'transitions', name: 'Transitions' },
+  { id: 'cleanup', name: 'Clean Up Time' },
+  { id: 'rest', name: 'Rest Time' },
+  { id: 'meals', name: 'Meal Times' },
+  { id: 'core-values', name: 'Core Values' }
+];
+
+// Define all classroom songs
+const classroomSongs = [
+  { 
+    id: 1, 
+    title: 'Clean Up Time', 
+    file: cleanUpTimeAudio, 
+    category: 'cleanup',
+    description: 'Engaging song to make cleaning up fun and organized'
+  },
+  { 
+    id: 2, 
+    title: 'Time to Change Activities', 
+    file: timeToChangeAudio, 
+    category: 'transitions',
+    description: 'Smooth transition song to move between classroom activities'
+  },
+  { 
+    id: 3, 
+    title: 'Wash Up For Lunch', 
+    file: washUpForLunchAudio, 
+    category: 'meals',
+    description: 'Reminds children about handwashing before meals'
+  },
+  { 
+    id: 4, 
+    title: 'I\'m Closing My Eyes', 
+    file: closingMyEyesAudio, 
+    category: 'rest',
+    description: 'Calming song for naptime and quiet moments'
+  },
+  { 
+    id: 5, 
+    title: 'Commitment\'s Whistle-Stop Rap', 
+    file: commitmentRapAudio, 
+    category: 'core-values',
+    description: 'Fun rap about the CORE value of being committed'
+  },
+  { 
+    id: 6, 
+    title: 'Sunrise paints the Glendale sky gold', 
+    file: sunriseAudio, 
+    category: 'core-values',
+    description: 'Raising Arizona\'s theme highlighting our school values'
+  }
+];
 
 export default function MediaSidebar() {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedSong, setSelectedSong] = useState<number>(6); // Default to the Raising Arizona theme
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -31,10 +95,41 @@ export default function MediaSidebar() {
       if (isAudioPlaying) {
         audioRef.current.pause();
       } else {
+        // Set the current source before playing
+        audioRef.current.src = classroomSongs.find(s => s.id === selectedSong)?.file || '';
+        audioRef.current.load();
         audioRef.current.play();
       }
       setIsAudioPlaying(!isAudioPlaying);
     }
+  };
+  
+  // Handle song selection and play
+  const selectAndPlaySong = (songId: number) => {
+    // If the same song is selected and playing, pause it
+    if (selectedSong === songId && isAudioPlaying) {
+      toggleAudio();
+      return;
+    }
+    
+    // If a different song is selected or the same song is not playing
+    setSelectedSong(songId);
+    
+    // Stop current audio if playing
+    if (isAudioPlaying && audioRef.current) {
+      audioRef.current.pause();
+      setIsAudioPlaying(false);
+    }
+    
+    // Set a small timeout to ensure state updates before playing
+    setTimeout(() => {
+      if (audioRef.current) {
+        audioRef.current.src = classroomSongs.find(s => s.id === songId)?.file || '';
+        audioRef.current.load();
+        audioRef.current.play();
+        setIsAudioPlaying(true);
+      }
+    }, 50);
   };
   
   const skipForward = (mediaRef: React.RefObject<HTMLVideoElement | HTMLAudioElement>) => {
@@ -52,8 +147,8 @@ export default function MediaSidebar() {
   return (
     <Card className="w-full h-full">
       <CardHeader className="pb-3">
-        <CardTitle className="text-xl font-bold">Raising Arizona Media</CardTitle>
-        <CardDescription>Training resources and inspiration</CardDescription>
+        <CardTitle className="text-xl font-bold">Video and Audio Library</CardTitle>
+        <CardDescription>Classroom resources and training materials</CardDescription>
       </CardHeader>
       
       <CardContent>
@@ -129,16 +224,68 @@ export default function MediaSidebar() {
           </TabsContent>
           
           <TabsContent value="audio" className="space-y-4">
+            {/* Song Category Filter */}
+            <div className="mb-4">
+              <label className="text-sm font-medium mb-1 block">Filter by Category</label>
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {audioCategories.map(category => (
+                    <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Song List */}
+            <ScrollArea className="h-52 border rounded-md p-2 mb-4">
+              <div className="space-y-2">
+                {classroomSongs
+                  .filter(song => selectedCategory === 'all' || song.category === selectedCategory)
+                  .map(song => (
+                    <div
+                      key={song.id}
+                      onClick={() => setSelectedSong(song.id)}
+                      className={`p-3 rounded-md cursor-pointer transition-colors ${
+                        selectedSong === song.id 
+                          ? 'bg-primary/10 border border-primary/20' 
+                          : 'hover:bg-accent'
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        <div className="mr-3">
+                          {selectedSong === song.id && isAudioPlaying 
+                            ? <Pause className="h-5 w-5 text-primary" /> 
+                            : <Play className="h-5 w-5 text-muted-foreground" />}
+                        </div>
+                        <div>
+                          <h4 className="font-medium">{song.title}</h4>
+                          <p className="text-xs text-muted-foreground">
+                            {audioCategories.find(c => c.id === song.category)?.name || 'General'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </ScrollArea>
+            
+            {/* Currently Playing Song */}
             <div className="rounded-md bg-accent/20 p-6 flex flex-col items-center justify-center space-y-4">
               <Volume2 className="h-16 w-16 text-primary" />
               <div className="text-center">
-                <h3 className="font-medium">Sunrise paints the Glendale sky gold</h3>
-                <p className="text-sm text-muted-foreground">Raising Arizona Soundtrack</p>
+                <h3 className="font-medium">{classroomSongs.find(s => s.id === selectedSong)?.title}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {classroomSongs.find(s => s.id === selectedSong)?.description}
+                </p>
               </div>
               
               <audio 
                 ref={audioRef}
-                src={sunriseAudio}
+                src={classroomSongs.find(s => s.id === selectedSong)?.file}
                 onEnded={() => setIsAudioPlaying(false)}
                 onPause={() => setIsAudioPlaying(false)}
                 onPlay={() => setIsAudioPlaying(true)}
@@ -146,6 +293,7 @@ export default function MediaSidebar() {
               />
             </div>
             
+            {/* Player Controls */}
             <div className="flex justify-center space-x-2">
               <Button 
                 variant="outline" 
@@ -174,7 +322,7 @@ export default function MediaSidebar() {
             </div>
             
             <p className="text-xs text-muted-foreground text-center mt-2">
-              Play this calming soundtrack during classroom activities or mindfulness sessions
+              These classroom songs can help with daily routines, transitions, and reinforcing core values
             </p>
           </TabsContent>
         </Tabs>
