@@ -32,6 +32,8 @@ import BearAssistant from "@/components/BearAssistant";
 import { UltimateEscalator } from "@/components/UltimateEscalator";
 import MediaSidebar from "@/components/MediaSidebar";
 import AdminTools from "@/components/AdminTools";
+import DailyChallenge from "@/components/DailyChallenge";
+import AchievementPopup from "@/components/AchievementPopup";
 
 // Define assessment domains for display purposes
 const domains = [
