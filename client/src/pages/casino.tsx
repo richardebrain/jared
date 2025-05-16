@@ -231,7 +231,7 @@ export default function CasinoPage() {
         <Tabs 
           value={activeTab} 
           onValueChange={setActiveTab}
-          className="hidden mt-6"
+          className="mt-6"
         >
           <TabsList className="hidden">
             <TabsTrigger value="games" disabled={!hasCompletedActivity}>
