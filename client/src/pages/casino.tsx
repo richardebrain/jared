@@ -1,16 +1,12 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { User } from "@shared/schema";
 import { Link } from "wouter";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-import { SlotMachine } from "@/components";
-import { ScratchCard, MysteryBox, DailyRewards, StreakProtection } from "@/components";
-
+import { useToast } from "@/hooks/use-toast";
 import {
   Trophy,
   Gift,
@@ -18,349 +14,321 @@ import {
   Star,
   Calendar,
   Clock,
-  Sparkles,
   History,
   Package,
   Ticket,
-  RotateCcw,
-  Info,
-  Check,
-  DollarSign,
-  Diamond,
-  Cherry
+  Shield,
+  Cherry 
 } from "lucide-react";
 
+// Import our gamification components from the barrel file
+import { 
+  LuckySlots, 
+  ScratchCard, 
+  MysteryBox, 
+  DailyRewards, 
+  StreakProtection 
+} from "@/components";
+
 export default function CasinoPage() {
-  const [activeTab, setActiveTab] = useState("daily");
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("games");
   
-  // Fetch user data
-  const { data: user, isLoading } = useQuery<User>({
+  // Get user data to check points, daily streaks, etc.
+  const { data: user } = useQuery({
     queryKey: ["/api/auth/me"],
   });
   
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  // Get completed activities to check if user can access rewards
+  const { data: progress = [] } = useQuery({
+    queryKey: ["/api/progress"],
+  });
   
+  // Check if user has completed any activities today
+  const hasCompletedActivity = progress.some((p: any) => p.completed);
+  
+  // Points reward handler for all games
+  const handlePointsReward = async (points: number) => {
+    try {
+      // Update points via API
+      const response = await fetch('/api/rewards/points', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ points }),
+      });
+      
+      if (response.ok) {
+        toast({
+          title: "Points Added!",
+          description: `${points} points have been added to your account!`,
+        });
+      }
+    } catch (error) {
+      console.error('Error awarding points:', error);
+      toast({
+        title: "Error",
+        description: "Could not award points. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="container mx-auto py-6 max-w-7xl">
       <Header />
       
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Daily Rewards & Games</h1>
-            <p className="text-gray-600">
-              Play games, earn rewards, and build your streak!
-            </p>
-          </div>
-          
-          <div className="flex gap-4 mt-4 md:mt-0">
-            <Card className="bg-gradient-to-r from-amber-100 to-yellow-100 border-0 shadow-sm">
-              <CardContent className="p-3">
-                <div className="flex items-center">
-                  <div className="bg-yellow-200 rounded-full p-2 mr-3">
-                    <Coins className="h-5 w-5 text-yellow-700" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-yellow-700">Bear Bucks</p>
-                    <p className="text-xl font-bold text-yellow-800">{user?.bearBucks || 0}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-gradient-to-r from-purple-100 to-indigo-100 border-0 shadow-sm">
-              <CardContent className="p-3">
-                <div className="flex items-center">
-                  <div className="bg-indigo-200 rounded-full p-2 mr-3">
-                    <Calendar className="h-5 w-5 text-indigo-700" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-indigo-700">Daily Streak</p>
-                    <p className="text-xl font-bold text-indigo-800">{user?.streak || 0} days</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+      <div className="mt-8">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            Teacher Casino
+          </h1>
+          <Link to="/dashboard">
+            <Button variant="outline">
+              Back to Dashboard
+            </Button>
+          </Link>
         </div>
         
-        <Tabs defaultValue="daily" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
-            <TabsTrigger value="daily" className="py-3">
-              <Gift className="h-4 w-4 mr-2" />
-              Daily Rewards
-            </TabsTrigger>
-            <TabsTrigger value="games" className="py-3">
-              <Star className="h-4 w-4 mr-2" />
+        <p className="mt-2 text-muted-foreground">
+          Celebrate your learning journey with these fun rewards!
+        </p>
+        
+        {!hasCompletedActivity && (
+          <Card className="mt-4 border-yellow-200 bg-yellow-50">
+            <CardContent className="pt-6">
+              <div className="flex items-start space-x-4">
+                <Calendar className="h-8 w-8 text-yellow-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h3 className="font-medium text-yellow-800">Complete an activity first</h3>
+                  <p className="text-yellow-700 text-sm mt-1">
+                    Complete at least one learning activity today to unlock casino games and earn rewards.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
+        <Tabs 
+          value={activeTab} 
+          onValueChange={setActiveTab}
+          className="mt-6"
+        >
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="games" disabled={!hasCompletedActivity}>
+              <Trophy className="h-4 w-4 mr-2" />
               Casino Games
             </TabsTrigger>
-            <TabsTrigger value="streak" className="py-3">
-              <Calendar className="h-4 w-4 mr-2" />
-              Streak Rewards
+            <TabsTrigger value="rewards" disabled={!hasCompletedActivity}>
+              <Gift className="h-4 w-4 mr-2" />
+              Rewards History
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="daily" className="mt-0">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="md:col-span-2">
-                <DailyRewards />
-              </div>
-              
-              <div>
-                <StreakProtection />
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="games" className="mt-0">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Slot Machine Section */}
-              <Card className="group hover:shadow-lg transition-shadow overflow-hidden border-0 bg-gradient-to-br from-amber-50 to-yellow-100">
-                <CardHeader className="bg-gradient-to-r from-red-500 to-yellow-600 text-white">
-                  <CardTitle className="text-xl flex items-center">
-                    <DollarSign className="h-5 w-5 mr-2" />
-                    Lucky Slots
-                  </CardTitle>
-                  <CardDescription className="text-amber-100">
-                    Match symbols to win points!
+          {/* Game selection tab */}
+          <TabsContent value="games" className="space-y-4 mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Lucky Slots */}
+              <Card className="shadow-md hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-start">
+                    <CardTitle className="text-lg">Lucky Slots</CardTitle>
+                    <Badge className="bg-amber-500 hover:bg-amber-600">
+                      <Star className="h-3 w-3 mr-1" /> Popular
+                    </Badge>
+                  </div>
+                  <CardDescription>
+                    Spin to win points!
                   </CardDescription>
                 </CardHeader>
-                
-                <CardContent className="p-6 text-center">
-                  <div className="w-32 h-32 bg-gray-800 rounded-md flex items-center justify-center mx-auto mb-4 text-amber-800 relative overflow-hidden group-hover:scale-105 transition-transform">
-                    <div className="absolute inset-0 bg-gradient-to-br from-red-300/10 to-yellow-400/10 opacity-50 group-hover:opacity-70 transition-opacity"></div>
-                    <div className="grid grid-cols-3 gap-1 p-2">
-                      <Cherry className="h-8 w-8 text-red-500" />
-                      <Star className="h-8 w-8 text-yellow-500" />
-                      <Diamond className="h-8 w-8 text-cyan-500" />
+                <CardContent>
+                  <div className="h-32 bg-gradient-to-r from-red-500/20 to-amber-500/20 rounded-md flex items-center justify-center mb-4">
+                    <div className="grid grid-cols-3 gap-1">
+                      <div className="bg-white rounded-md p-2 flex items-center justify-center">
+                        <Cherry className="h-5 w-5 text-red-500" />
+                      </div>
+                      <div className="bg-white rounded-md p-2 flex items-center justify-center">
+                        <Star className="h-5 w-5 text-yellow-500" />
+                      </div>
+                      <div className="bg-white rounded-md p-2 flex items-center justify-center">
+                        <Gift className="h-5 w-5 text-blue-500" />
+                      </div>
                     </div>
                   </div>
-                  
-                  <h3 className="text-lg font-semibold text-amber-800 mb-1">Lucky Slots</h3>
-                  <p className="text-sm text-amber-700 mb-4">3 spins left today</p>
-                  
                   <Button 
-                    className="w-full bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
-                    size="lg"
+                    className="w-full" 
                     onClick={() => setActiveTab("game-slot")}
+                    disabled={!hasCompletedActivity}
                   >
                     Play Now
                   </Button>
                 </CardContent>
               </Card>
               
-              {/* Scratch Card Section */}
-              <Card className="group hover:shadow-lg transition-shadow overflow-hidden border-0 bg-gradient-to-br from-purple-50 to-indigo-100">
-                <CardHeader className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white">
-                  <CardTitle className="text-xl flex items-center">
-                    <Ticket className="h-5 w-5 mr-2" />
-                    Scratch & Win
-                  </CardTitle>
-                  <CardDescription className="text-purple-100">
-                    Scratch cards for instant rewards!
+              {/* Scratch Card */}
+              <Card className="shadow-md hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Scratch Cards</CardTitle>
+                  <CardDescription>
+                    Reveal hidden treasures!
                   </CardDescription>
                 </CardHeader>
-                
-                <CardContent className="p-6 text-center">
-                  <div className="w-32 h-32 bg-purple-200 rounded-md flex items-center justify-center mx-auto mb-4 text-purple-800 relative overflow-hidden group-hover:scale-105 transition-transform">
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-300 to-indigo-300 opacity-50 group-hover:opacity-70 transition-opacity"></div>
-                    <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
-                      {Array.from({ length: 9 }).map((_, i) => (
-                        <div key={i} className="border border-purple-200 flex items-center justify-center">
-                          <div className="text-purple-400 text-lg">?</div>
-                        </div>
-                      ))}
+                <CardContent>
+                  <div className="h-32 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-md flex items-center justify-center mb-4">
+                    <div className="relative w-20 h-20 bg-white rounded-md flex items-center justify-center">
+                      <Ticket className="h-8 w-8 text-purple-500" />
+                      <div className="absolute inset-0 bg-gray-200 opacity-50 rounded-md"></div>
                     </div>
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-indigo-500/20 group-hover:opacity-0 transition-opacity"></div>
                   </div>
-                  
-                  <h3 className="text-lg font-semibold text-purple-800 mb-1">Scratch Cards</h3>
-                  <p className="text-sm text-purple-700 mb-4">2 cards left today</p>
-                  
                   <Button 
-                    className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600"
-                    size="lg"
+                    className="w-full" 
                     onClick={() => setActiveTab("game-scratch")}
+                    disabled={!hasCompletedActivity}
                   >
-                    Scratch Now
+                    Play Now
                   </Button>
                 </CardContent>
               </Card>
               
-              {/* Mystery Box Section */}
-              <Card className="group hover:shadow-lg transition-shadow overflow-hidden border-0 bg-gradient-to-br from-cyan-50 to-blue-100">
-                <CardHeader className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white">
-                  <CardTitle className="text-xl flex items-center">
-                    <Package className="h-5 w-5 mr-2" />
-                    Mystery Boxes
-                  </CardTitle>
-                  <CardDescription className="text-cyan-100">
-                    Open boxes for premium rewards!
+              {/* Mystery Box */}
+              <Card className="shadow-md hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Mystery Box</CardTitle>
+                  <CardDescription>
+                    What's inside today?
                   </CardDescription>
                 </CardHeader>
-                
-                <CardContent className="p-6 text-center">
-                  <div className="w-32 h-32 bg-cyan-200 rounded-lg flex items-center justify-center mx-auto mb-4 text-cyan-800 relative overflow-hidden group-hover:scale-105 transition-transform">
-                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-300 to-blue-300 opacity-50 group-hover:opacity-70 transition-opacity"></div>
-                    <Package className="h-16 w-16 z-10 group-hover:scale-110 transition-transform" />
-                    <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-cyan-400/30"></div>
+                <CardContent>
+                  <div className="h-32 bg-gradient-to-r from-green-500/20 to-teal-500/20 rounded-md flex items-center justify-center mb-4">
+                    <Package className="h-12 w-12 text-teal-500" />
                   </div>
-                  
-                  <h3 className="text-lg font-semibold text-cyan-800 mb-1">Mystery Boxes</h3>
-                  <p className="text-sm text-cyan-700 mb-4">1 free box available</p>
-                  
                   <Button 
-                    className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
-                    size="lg"
-                    onClick={() => setActiveTab("game-box")}
+                    className="w-full" 
+                    onClick={() => setActiveTab("game-mystery")}
+                    disabled={!hasCompletedActivity}
                   >
-                    Open Box
+                    Play Now
+                  </Button>
+                </CardContent>
+              </Card>
+              
+              {/* Daily Rewards */}
+              <Card className="shadow-md hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Daily Rewards</CardTitle>
+                  <CardDescription>
+                    Claim your daily prize!
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-32 bg-gradient-to-r from-pink-500/20 to-orange-500/20 rounded-md flex items-center justify-center mb-4">
+                    <Calendar className="h-12 w-12 text-pink-500" />
+                  </div>
+                  <Button 
+                    className="w-full" 
+                    onClick={() => setActiveTab("game-daily")}
+                    disabled={!hasCompletedActivity}
+                  >
+                    Play Now
+                  </Button>
+                </CardContent>
+              </Card>
+              
+              {/* Streak Protection */}
+              <Card className="shadow-md hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Streak Protection</CardTitle>
+                  <CardDescription>
+                    Safeguard your daily streak!
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-32 bg-gradient-to-r from-indigo-500/20 to-blue-500/20 rounded-md flex items-center justify-center mb-4">
+                    <Shield className="h-12 w-12 text-indigo-500" />
+                  </div>
+                  <Button 
+                    className="w-full" 
+                    onClick={() => setActiveTab("game-streak")}
+                    disabled={!hasCompletedActivity}
+                  >
+                    Play Now
                   </Button>
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
           
-          <TabsContent value="streak" className="mt-0">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-              <div className="md:col-span-8">
-                <Card className="border-2 border-indigo-100">
-                  <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white">
-                    <CardTitle className="text-xl flex items-center">
-                      <Calendar className="h-5 w-5 mr-2" />
-                      Daily Streak Rewards
-                    </CardTitle>
-                    <CardDescription className="text-indigo-100">
-                      Log in every day to increase your streak and earn special rewards!
-                    </CardDescription>
-                  </CardHeader>
+          {/* Rewards history tab */}
+          <TabsContent value="rewards" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Your Reward History</CardTitle>
+                <CardDescription>
+                  Recent points and rewards you've earned
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
+                    <div className="flex items-center">
+                      <span className="p-2 bg-green-100 rounded-full mr-3">
+                        <Coins className="h-4 w-4 text-green-600" />
+                      </span>
+                      <div>
+                        <h4 className="font-medium">Daily Login Bonus</h4>
+                        <p className="text-sm text-gray-500">
+                          <Clock className="h-3 w-3 inline mr-1" />
+                          Today at 9:15 AM
+                        </p>
+                      </div>
+                    </div>
+                    <Badge className="bg-green-500">+3 points</Badge>
+                  </div>
                   
-                  <CardContent className="p-6">
-                    <div className="mb-8">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-semibold">Your Current Streak</h3>
-                        <Badge variant="outline" className="bg-indigo-50 text-indigo-700 px-3 py-1">
-                          {user?.streak || 0} Days
-                        </Badge>
-                      </div>
-                      
-                      <div className="w-full bg-gray-100 h-3 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-gradient-to-r from-indigo-500 to-purple-500" 
-                          style={{ width: `${Math.min(100, ((user?.streak || 0) / 30) * 100)}%` }}
-                        ></div>
-                      </div>
-                      <div className="flex justify-between mt-1 text-xs text-gray-500">
-                        <span>0 days</span>
-                        <span>15 days</span>
-                        <span>30 days</span>
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
+                    <div className="flex items-center">
+                      <span className="p-2 bg-amber-100 rounded-full mr-3">
+                        <Star className="h-4 w-4 text-amber-600" />
+                      </span>
+                      <div>
+                        <h4 className="font-medium">Lucky Slots Win</h4>
+                        <p className="text-sm text-gray-500">
+                          <Clock className="h-3 w-3 inline mr-1" />
+                          Yesterday at 2:30 PM
+                        </p>
                       </div>
                     </div>
-                    
-                    <div className="grid grid-cols-7 gap-3 mb-8">
-                      {[
-                        { day: 1, reward: "5 Points", icon: Star, active: (user?.streak || 0) >= 1 },
-                        { day: 3, reward: "15 Points", icon: Star, active: (user?.streak || 0) >= 3 },
-                        { day: 5, reward: "30 Points", icon: Star, active: (user?.streak || 0) >= 5 },
-                        { day: 7, reward: "1 Bear Buck", icon: Coins, active: (user?.streak || 0) >= 7 },
-                        { day: 14, reward: "3 Bear Bucks", icon: Coins, active: (user?.streak || 0) >= 14 },
-                        { day: 21, reward: "5 Bear Bucks", icon: Coins, active: (user?.streak || 0) >= 21 },
-                        { day: 30, reward: "10 Bear Bucks", icon: Sparkles, active: (user?.streak || 0) >= 30 },
-                      ].map((reward, index) => (
-                        <Card key={index} className={`overflow-hidden ${reward.active ? 'border-indigo-300 bg-indigo-50' : 'border-gray-200 bg-gray-50'}`}>
-                          <div className={`p-2 text-white text-center ${reward.active ? 'bg-indigo-500' : 'bg-gray-200'}`}>
-                            Day {reward.day}
-                          </div>
-                          <div className="p-3 text-center">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2 ${reward.active ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-400'}`}>
-                              <reward.icon className="h-5 w-5" />
-                            </div>
-                            <p className={`text-sm font-medium ${reward.active ? 'text-indigo-700' : 'text-gray-500'}`}>
-                              {reward.reward}
-                            </p>
-                            {reward.active && (
-                              <Badge className="mt-1 bg-green-500 text-white">Claimed</Badge>
-                            )}
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                    
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                      <h3 className="font-semibold text-amber-800 flex items-center mb-2">
-                        <Info className="h-5 w-5 mr-2 text-amber-600" />
-                        Streak Tips
-                      </h3>
-                      <ul className="text-sm text-amber-700 space-y-2">
-                        <li className="flex items-start">
-                          <Check className="h-4 w-4 mr-2 mt-0.5 text-green-600 flex-shrink-0" />
-                          Log in every day to maintain your streak.
-                        </li>
-                        <li className="flex items-start">
-                          <Check className="h-4 w-4 mr-2 mt-0.5 text-green-600 flex-shrink-0" />
-                          Use Streak Protection to guard against missed days.
-                        </li>
-                        <li className="flex items-start">
-                          <Check className="h-4 w-4 mr-2 mt-0.5 text-green-600 flex-shrink-0" />
-                          Complete at least one activity each day to increase your streak.
-                        </li>
-                      </ul>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-              
-              <div className="md:col-span-4">
-                <StreakProtection />
-                
-                <Card className="mt-6 border-0 bg-gradient-to-br from-green-50 to-emerald-100 shadow-md">
-                  <CardHeader className="bg-gradient-to-r from-green-500 to-emerald-500 text-white">
-                    <CardTitle className="text-lg flex items-center">
-                      <History className="h-5 w-5 mr-2" />
-                      Streak Statistics
-                    </CardTitle>
-                  </CardHeader>
+                    <Badge className="bg-amber-500">+5 points</Badge>
+                  </div>
                   
-                  <CardContent className="p-4">
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Current Streak</span>
-                        <span className="font-semibold">{user?.streak || 0} days</span>
-                      </div>
-                      
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Best Streak</span>
-                        <span className="font-semibold">{Math.max(user?.streak || 0, 7)} days</span>
-                      </div>
-                      
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Streak Protected</span>
-                        <Badge variant="outline" className="bg-red-50 text-red-600 font-medium">
-                          No
-                        </Badge>
-                      </div>
-                      
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Total Bear Bucks Earned</span>
-                        <span className="font-semibold">{user?.bearBucks || 0}</span>
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
+                    <div className="flex items-center">
+                      <span className="p-2 bg-blue-100 rounded-full mr-3">
+                        <Trophy className="h-4 w-4 text-blue-600" />
+                      </span>
+                      <div>
+                        <h4 className="font-medium">Module Completion</h4>
+                        <p className="text-sm text-gray-500">
+                          <Clock className="h-3 w-3 inline mr-1" />
+                          2 days ago
+                        </p>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+                    <Badge className="bg-blue-500">+10 points</Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
           
           {/* Game content tabs */}
           <TabsContent value="game-slot" className="mt-6">
             <div className="max-w-md mx-auto">
-              <SlotMachine onClose={() => setActiveTab("games")} />
+              <LuckySlots 
+                onClose={() => setActiveTab("games")} 
+                onWin={handlePointsReward}
+                dailySpinsRemaining={3}
+              />
             </div>
           </TabsContent>
           
@@ -370,9 +338,21 @@ export default function CasinoPage() {
             </div>
           </TabsContent>
           
-          <TabsContent value="game-box" className="mt-6">
+          <TabsContent value="game-mystery" className="mt-6">
             <div className="max-w-md mx-auto">
-              <MysteryBox maxDailyBoxes={2} />
+              <MysteryBox onClose={() => setActiveTab("games")} />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="game-daily" className="mt-6">
+            <div className="max-w-md mx-auto">
+              <DailyRewards onClose={() => setActiveTab("games")} />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="game-streak" className="mt-6">
+            <div className="max-w-md mx-auto">
+              <StreakProtection onClose={() => setActiveTab("games")} />
             </div>
           </TabsContent>
         </Tabs>

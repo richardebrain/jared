@@ -4,3 +4,4 @@ export { default as ScratchCard } from './ScratchCard';
 export { default as MysteryBox } from './MysteryBox';
 export { default as DailyRewards } from './DailyRewards';
 export { default as StreakProtection } from './StreakProtection';
+export { default as LuckySlots } from './LuckySlots';
