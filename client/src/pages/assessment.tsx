@@ -1443,8 +1443,19 @@ export default function AssessmentPage() {
               }
             ];
             
-            // Use our default questions
-            setCurrentDomainQuestions(activityQuestions);
+            // Use our default questions by adding them to the assessment questions array
+            const existingActivitiesQuestions = assessmentQuestions.filter(q => q.domain === 'activities');
+            if (existingActivitiesQuestions.length === 0) {
+              // Add our new questions to the assessment questions array
+              assessmentQuestions.push(...activityQuestions);
+            }
+            
+            // Set to beginner difficulty for this domain to ensure questions are found
+            const newDomainDifficulty = {...domainDifficulty};
+            newDomainDifficulty[domainId] = 'beginner';
+            setDomainDifficulty(newDomainDifficulty);
+            
+            // Reset question index
             setCurrentQuestionIndex(0);
             return;
           }
