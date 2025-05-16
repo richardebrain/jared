@@ -151,7 +151,7 @@ export default function CasinoPage() {
                   <Button 
                     className="w-full bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
                     size="lg"
-                    onClick={() => setActiveTab("game-spin")}
+                    onClick={() => setActiveTab("game-slot")}
                   >
                     Play Now
                   </Button>
@@ -361,7 +361,7 @@ export default function CasinoPage() {
           </TabsContent>
           
           {/* Game content tabs */}
-          <TabsContent value="game-spin" className="mt-6">
+          <TabsContent value="game-slot" className="mt-6">
             <div className="max-w-md mx-auto">
               <SlotMachine onClose={() => setActiveTab("games")} />
             </div>
