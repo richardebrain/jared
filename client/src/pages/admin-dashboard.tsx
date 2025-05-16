@@ -28,8 +28,7 @@ import {
   Settings,
   Coins,
   TrendingUp,
-  RefreshCw,
-  AreaChart
+  RefreshCw
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
@@ -37,6 +36,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DataTable } from "@/components/ui/data-table";
 import { useAuth } from '@/hooks/use-auth';
 import { apiRequest } from '@/lib/queryClient';
@@ -259,6 +259,63 @@ export default function AdminDashboard() {
         </Link>
       </div>
 
+      {/* Owner Toolkit Section */}
+      <div className="mb-6">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Briefcase className="h-5 w-5 text-primary" />
+              Owner Toolkit
+            </CardTitle>
+            <CardDescription>
+              Quick access to owner-specific tools and resources
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 px-6 flex flex-col items-center justify-center gap-2"
+              onClick={() => {
+                const tabElement = document.querySelector('[value="eos"]');
+                if (tabElement) {
+                  (tabElement as HTMLElement).click();
+                } else {
+                  console.log("EOS tab element not found");
+                }
+              }}
+            >
+              <BarChart2 className="h-8 w-8 text-primary" />
+              <div className="text-center">
+                <div className="font-medium">EOS Tools</div>
+                <div className="text-xs text-muted-foreground">Access Entrepreneurial Operating System metrics</div>
+              </div>
+            </Button>
+
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 px-6 flex flex-col items-center justify-center gap-2"
+            >
+              <AreaChart className="h-8 w-8 text-purple-600" />
+              <div className="text-center">
+                <div className="font-medium">Business Analytics</div>
+                <div className="text-xs text-muted-foreground">View school performance metrics</div>
+              </div>
+            </Button>
+
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 px-6 flex flex-col items-center justify-center gap-2"
+            >
+              <Database className="h-8 w-8 text-green-600" />
+              <div className="text-center">
+                <div className="font-medium">Connect Data Sources</div>
+                <div className="text-xs text-muted-foreground">Add external systems integration</div>
+              </div>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
         <Card>
@@ -317,6 +374,7 @@ export default function AdminDashboard() {
           <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
           <TabsTrigger value="shoutouts">Core Values Shout-outs</TabsTrigger>
           <TabsTrigger value="eos">EOS Tools</TabsTrigger>
+          <TabsTrigger value="director">Director View</TabsTrigger>
         </TabsList>
         
         {/* Users Tab */}
@@ -442,6 +500,96 @@ export default function AdminDashboard() {
                                 </AlertDialogFooter>
                               </AlertDialogContent>
                             </AlertDialog>
+                            
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 gap-1"
+                                >
+                                  <Coins className="h-3.5 w-3.5" />
+                                  Reset Bear Bucks
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Reset Bear Bucks</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to reset Bear Bucks for {user.firstName} {user.lastName}? 
+                                    This will set their Bear Bucks to zero.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => console.log('Reset Bear Bucks for', user.id)}
+                                  >
+                                    Reset Bear Bucks
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                            
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 gap-1"
+                                >
+                                  <FileEdit className="h-3.5 w-3.5" />
+                                  Assign Modules
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="sm:max-w-[425px]">
+                                <DialogHeader>
+                                  <DialogTitle>Assign Modules</DialogTitle>
+                                  <DialogDescription>
+                                    Select modules to assign to {user.firstName} {user.lastName}
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="grid gap-4 py-4">
+                                  <div className="flex flex-col gap-2">
+                                    <div className="flex items-center gap-2">
+                                      <input
+                                        type="checkbox"
+                                        id={`core-module-${user.id}`}
+                                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                      />
+                                      <label htmlFor={`core-module-${user.id}`}>
+                                        Raising Arizona's CORE
+                                      </label>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <input
+                                        type="checkbox"
+                                        id={`chapter-one-${user.id}`}
+                                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                      />
+                                      <label htmlFor={`chapter-one-${user.id}`}>
+                                        Chapter 1: Building a Human
+                                      </label>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <input
+                                        type="checkbox"
+                                        id={`mindful-mornings-${user.id}`}
+                                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                      />
+                                      <label htmlFor={`mindful-mornings-${user.id}`}>
+                                        Mindful Mornings
+                                      </label>
+                                    </div>
+                                  </div>
+                                </div>
+                                <DialogFooter>
+                                  <Button type="submit" onClick={() => console.log('Assigned modules to', user.id)}>
+                                    Assign Modules
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
                             
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
