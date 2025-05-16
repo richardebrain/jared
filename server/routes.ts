@@ -1040,12 +1040,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const nominatorId = req.session.userId as number;
       const { nomineeId, coreValue, message } = req.body;
       
+      console.log("Nomination request received:", { nominatorId, nomineeId, coreValue, message });
+      
       // Validate inputs
       if (!nomineeId || !coreValue || !message) {
+        console.log("Missing required fields:", { nomineeId, coreValue, message });
         return res.status(400).json({ 
           message: "Nominee ID, core value, and message are required"
         });
       }
+      
+      // Get user info for better messaging
+      const nominee = await storage.getUser(nomineeId);
+      if (!nominee) {
+        return res.status(400).json({
+          message: "Selected user not found"
+        });
+      }
+      
+      const nomineeName = nominee.firstName || nominee.username;
       
       // Check if user has already submitted a shout-out today
       const today = new Date();
@@ -1086,7 +1099,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Respond with success message
       res.status(200).json({
         success: true,
-        message: `You've nominated ${nomineeId} for demonstrating ${coreValue}! You earned 2 points and they earned ${pointsAwarded} points.`,
+        message: `You've nominated ${nomineeName} for demonstrating ${coreValue}! You earned 2 points and they earned ${pointsAwarded} points.`,
         pointsAwarded: pointsAwarded,
         nominatorPoints: 2,
         remaining: 3 - (userShoutOutsToday.length + 1)
