@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
+import EnhancedDashboard from "@/pages/dashboard-enhanced";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import ProgressionMap from "@/pages/progression-map";
@@ -69,6 +70,10 @@ function Router() {
       {/* Protected routes - redirect to login when not authenticated */}
       <Route path="/dashboard">
         {isAuthenticated ? <Dashboard /> : <Login />}
+      </Route>
+      
+      <Route path="/dashboard-enhanced">
+        {isAuthenticated ? <EnhancedDashboard /> : <Login />}
       </Route>
       
       <Route path="/progression-map">
