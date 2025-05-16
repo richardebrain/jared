@@ -606,7 +606,7 @@ export default function Dashboard() {
                       </div>
                       <div>
                         <p className="text-xs text-emerald-700">Completion Earns</p>
-                        <p className="font-bold text-emerald-800">75 Points</p>
+                        <p className="font-bold text-emerald-800">20 Points</p>
                       </div>
                     </div>
                   </div>
