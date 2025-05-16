@@ -881,6 +881,104 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Director View Tab */}
+        <TabsContent value="director" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Director Dashboard</CardTitle>
+              <CardDescription>
+                Limited access dashboard for directors showing only essential tools
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-8">
+                <Alert className="bg-yellow-50 border-yellow-100">
+                  <AlertTitle className="flex items-center gap-2">
+                    <School className="h-4 w-4" />
+                    Director Access Mode
+                  </AlertTitle>
+                  <AlertDescription>
+                    This view shows what directors will see when they log in with director privileges. 
+                    Directors only have access to teacher data and EOS tools.
+                  </AlertDescription>
+                </Alert>
+
+                {/* Teacher Overview Section */}
+                <div>
+                  <h3 className="text-lg font-medium mb-4">Teacher Overview</h3>
+                  <div className="border rounded-md">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b bg-muted/50">
+                          <th className="p-2 text-left font-medium">Teacher</th>
+                          <th className="p-2 text-left font-medium">Assessment Level</th>
+                          <th className="p-2 text-left font-medium">Last Active</th>
+                          <th className="p-2 text-left font-medium">Progress</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredUsers.map((user: any) => (
+                          <tr key={user.id} className="border-b">
+                            <td className="p-2">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-9 w-9">
+                                  <AvatarImage src={user.profilePicture || undefined} alt={user.firstName} />
+                                  <AvatarFallback>{user.firstName.charAt(0)}{user.lastName.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <div className="font-medium">{user.firstName} {user.lastName}</div>
+                                  <div className="text-sm text-muted-foreground">{user.email}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-2">
+                              <Badge variant={
+                                user.teacherLevel === "Master Lead Teacher" ? "default" :
+                                user.teacherLevel === "Lead Teacher" ? "secondary" :
+                                user.teacherLevel === "Assistant Teacher" ? "outline" : "outline"
+                              } className={
+                                user.teacherLevel === "Master Lead Teacher" ? "bg-green-100 text-green-800 hover:bg-green-200" :
+                                user.teacherLevel === "Lead Teacher" ? "bg-blue-100 text-blue-800 hover:bg-blue-200" :
+                                user.teacherLevel === "Assistant Teacher" ? "bg-purple-100 text-purple-800 hover:bg-purple-200" : ""
+                              }>
+                                {user.teacherLevel || "Not Assessed"}
+                              </Badge>
+                            </td>
+                            <td className="p-2">
+                              <div className="text-sm">
+                                {user.lastActive ? new Date(user.lastActive).toLocaleDateString() : "Never"}
+                              </div>
+                            </td>
+                            <td className="p-2">
+                              <div className="flex items-center gap-2">
+                                <Progress value={user.level * 20} className="h-2 w-24" />
+                                <span className="text-sm">Level {user.level || 1}</span>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* EOS Data Section */}
+                <div>
+                  <h3 className="text-lg font-medium mb-4">EOS Metrics</h3>
+                  <div className="border rounded-md p-4">
+                    <iframe 
+                      src="https://docs.google.com/spreadsheets/d/e/2PACX-1vR6IbWgApBFLwfvnRfUJQZnAQGpCBQ5kkQc0nDI1hL-dDZITJvEXANYQT0mz-hTrXuD-W8UlgMKjTK1/pubhtml?widget=true&amp;headers=false"
+                      width="100%" 
+                      height="300"
+                      title="EOS Metrics Sheet (Director View)"
+                    ></iframe>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
