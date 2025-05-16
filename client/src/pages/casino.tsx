@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import Header from "@/components/Header";
@@ -38,6 +38,7 @@ import {
 export default function CasinoPage() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("games");
+  const [dailyGameUsed, setDailyGameUsed] = useState(false);
   
   // Get user data to check points, daily streaks, etc.
   const { data: user } = useQuery({
@@ -52,9 +53,23 @@ export default function CasinoPage() {
   // Check if user has completed any activities today
   const hasCompletedActivity = progress.some((p: any) => p.completed);
   
+  // Check if user has already played a game today (limit of one game per login)
+  useEffect(() => {
+    const today = new Date().toDateString();
+    const lastPlayedDate = localStorage.getItem('lastGamePlayedDate');
+    if (lastPlayedDate === today) {
+      setDailyGameUsed(true);
+    }
+  }, []);
+  
   // Points reward handler for all games
   const handlePointsReward = async (points: number) => {
     try {
+      // Mark that the user has played a game today
+      const today = new Date().toDateString();
+      localStorage.setItem('lastGamePlayedDate', today);
+      setDailyGameUsed(true);
+      
       // Update points via API
       const response = await fetch('/api/rewards/points', {
         method: 'POST',
@@ -67,6 +82,11 @@ export default function CasinoPage() {
           title: "Points Added!",
           description: `${points} points have been added to your account!`,
         });
+        
+        // Refresh user data to show updated points
+        window.setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       }
     } catch (error) {
       console.error('Error awarding points:', error);
@@ -114,7 +134,23 @@ export default function CasinoPage() {
                 <div>
                   <h3 className="font-medium text-yellow-800">Complete an activity first</h3>
                   <p className="text-yellow-700 text-sm mt-1">
-                    Complete at least one learning activity today to unlock casino games and earn rewards.
+                    Complete at least one learning activity today to unlock bonus games and earn rewards.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
+        {hasCompletedActivity && dailyGameUsed && (
+          <Card className="mt-4 border-purple-200 bg-purple-50">
+            <CardContent className="pt-6">
+              <div className="flex items-start space-x-4">
+                <Clock className="h-8 w-8 text-purple-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h3 className="font-medium text-purple-800">Daily game limit reached</h3>
+                  <p className="text-purple-700 text-sm mt-1">
+                    You've already played a bonus game today. Return tomorrow for another chance to win points!
                   </p>
                 </div>
               </div>
