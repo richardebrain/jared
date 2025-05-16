@@ -128,12 +128,20 @@ export default function Dashboard() {
     
     // Find Core Values and Mindful Mornings modules
     const coreValuesModule = modules.find(m => 
-      m.title?.toLowerCase().includes("core value") || 
-      m.title?.toLowerCase().includes("raising arizona's core")
+      m.id === 33 || // Explicit ID for "Raising Arizona's CORE"
+      m.title === "Raising Arizona's CORE" || 
+      (m.title?.toLowerCase().includes("core") && m.category === "onboarding")
     );
     
+    // For Mindful Mornings, we'll use a primary module or fallback to any module with 'mindful-mornings' category
+    // Check specific modules first by ID (13, 14, 15, or 24) 
     const mindfulMorningsModule = modules.find(m => 
-      m.title?.toLowerCase().includes("mindful morning")
+      // By specific ID first
+      [13, 14, 15, 24].includes(m.id) ||
+      // Or by category
+      m.category === 'mindful-mornings' ||
+      // Or as last resort, by title
+      (m.title?.toLowerCase().includes("mindful") && m.title?.toLowerCase().includes("morning"))
     );
     
     // Get user progress on these modules
