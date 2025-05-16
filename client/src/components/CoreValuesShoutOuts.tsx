@@ -120,14 +120,25 @@ export default function CoreValuesShoutOuts() {
         <div className="mt-4 space-y-3">
           <CreateShoutOutForm />
           
-          <Button 
-            variant="outline" 
-            className="w-full" 
-            onClick={() => setLocation("/")}
-          >
-            <Home className="mr-2 h-4 w-4" />
-            Return to Home
-          </Button>
+          <div className="grid grid-cols-2 gap-3">
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              onClick={() => setLocation("/")}
+            >
+              <Home className="mr-2 h-4 w-4" />
+              Return to Home
+            </Button>
+            
+            <Button 
+              variant="default" 
+              className="w-full" 
+              onClick={() => setLocation("/dashboard")}
+            >
+              <Award className="mr-2 h-4 w-4" />
+              Return to Dashboard
+            </Button>
+          </div>
         </div>
       </CardContent>
       
