@@ -79,7 +79,10 @@ const mockFinancial: FinancialData = {
 
 export default function OwnerDashboardStandalone() {
   const [activeLocation, setActiveLocation] = useState("all");
-  const [selectedTab, setSelectedTab] = useState("overview");
+  // Use URLSearchParams to check if reviews tab should be selected
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const initialTab = urlParams?.get('tab') === 'reviews' ? 'reviews' : 'overview';
+  const [selectedTab, setSelectedTab] = useState(initialTab);
   const [showConnections, setShowConnections] = useState(false);
   const [connectedAPIs, setConnectedAPIs] = useState<string[]>([]);
   const [bankName, setBankName] = useState("");
@@ -116,9 +119,21 @@ export default function OwnerDashboardStandalone() {
           </div>
           
           <div className="flex space-x-2">
-            <Button variant="outline" onClick={() => setLocation("/dashboard")}>
+            <Button 
+              variant="default" 
+              onClick={() => setLocation("/dashboard")}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
               <Building2 className="h-4 w-4 mr-2" />
-              Return to Teacher Dashboard
+              Back to Teacher Dashboard
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => setSelectedTab("reviews")}
+              className="border-amber-500 text-amber-600 hover:bg-amber-50"
+            >
+              <Star className="h-4 w-4 mr-2" />
+              Google Reviews
             </Button>
             <Button onClick={() => setShowConnections(true)}>
               Connect External Systems
@@ -224,7 +239,7 @@ export default function OwnerDashboardStandalone() {
         </div>
         
         {/* Main Content */}
-        <Tabs defaultValue="overview" value={selectedTab} onValueChange={setSelectedTab}>
+        <Tabs defaultValue={selectedTab} onValueChange={setSelectedTab}>
           <TabsList className="mb-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="financial">Financial</TabsTrigger>
