@@ -225,26 +225,37 @@ export function MindfulMorningsOutline() {
             <div className="space-y-4">
               <div className="bg-slate-100 rounded-lg p-4 text-center">
                 <div className="aspect-video bg-slate-800 rounded-md flex items-center justify-center mb-2 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-blue-900/20 z-10"></div>
-                  <div className="z-20 text-white">
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      className="h-16 w-16 rounded-full bg-white/10 backdrop-blur"
-                      onClick={() => setVideoPlaying(!videoPlaying)}
-                    >
-                      {videoPlaying ? 
-                        <PauseCircle className="h-10 w-10 text-white" /> : 
-                        <PlayCircle className="h-10 w-10 text-white" />
-                      }
-                    </Button>
-                  </div>
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
-                    <div className="h-full bg-purple-500" style={{ width: videoPlaying ? '75%' : '0%', transition: 'width 0.5s linear' }}></div>
-                  </div>
+                  {!videoPlaying ? (
+                    <>
+                      <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-blue-900/20 z-10"></div>
+                      <div className="z-20 text-white">
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          className="h-16 w-16 rounded-full bg-white/10 backdrop-blur"
+                          onClick={() => setVideoPlaying(true)}
+                        >
+                          <PlayCircle className="h-10 w-10 text-white" />
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <iframe 
+                      className="absolute inset-0 w-full h-full"
+                      src="https://www.youtube.com/embed/ItCU1rCuumA?autoplay=1"
+                      title="90% of a Child's Brain Develops By Age 5"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
+                  )}
+                  {!videoPlaying && (
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
+                      <div className="h-full bg-purple-500" style={{ width: '0%', transition: 'width 0.5s linear' }}></div>
+                    </div>
+                  )}
                 </div>
                 <p className="text-sm text-slate-600 font-medium">
-                  "90% of Brain Development Happens by Age 5" - Early Childhood Development Time-lapse
+                  "90% of Brain Development Happens by Age 5" - Dr. Lyndy Jones (Pediatrician)
                 </p>
               </div>
               <div className="bg-purple-50 p-4 rounded-md border border-purple-100">
@@ -417,26 +428,32 @@ export function MindfulMorningsOutline() {
             <div className="space-y-4">
               <div className="bg-slate-100 rounded-lg p-4 text-center">
                 <div className="aspect-video bg-slate-800 rounded-md flex items-center justify-center mb-2 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 to-cyan-900/20 z-10"></div>
-                  <div className="z-20 text-white">
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      className="h-16 w-16 rounded-full bg-white/10 backdrop-blur"
-                      onClick={() => setVideoPlaying(!videoPlaying)}
-                    >
-                      {videoPlaying ? 
-                        <PauseCircle className="h-10 w-10 text-white" /> : 
-                        <PlayCircle className="h-10 w-10 text-white" />
-                      }
-                    </Button>
-                  </div>
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
-                    <div className="h-full bg-blue-500" style={{ width: videoPlaying ? '75%' : '0%', transition: 'width 0.5s linear' }}></div>
-                  </div>
+                  {!videoPlaying ? (
+                    <>
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 to-cyan-900/20 z-10"></div>
+                      <div className="z-20 text-white">
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          className="h-16 w-16 rounded-full bg-white/10 backdrop-blur"
+                          onClick={() => setVideoPlaying(true)}
+                        >
+                          <PlayCircle className="h-10 w-10 text-white" />
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <iframe 
+                      className="absolute inset-0 w-full h-full"
+                      src="https://www.youtube.com/embed/GtMciuKYI5Y?autoplay=1"
+                      title="Achieve Heart Coherence in 5 Minutes | Dr. Joe Dispenza"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
+                  )}
                 </div>
                 <p className="text-sm text-slate-600 font-medium">
-                  Joe Dispenza's "Morning Coherence" Breathwork Technique
+                  "Achieve Heart Coherence in 5 Minutes" - Dr. Joe Dispenza (HeartMath Institute)
                 </p>
               </div>
               <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
