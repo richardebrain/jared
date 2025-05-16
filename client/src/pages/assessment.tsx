@@ -1403,25 +1403,136 @@ export default function AssessmentPage() {
           return;
         } else {
           // All domains should have questions available now, but special handling just in case
-          console.log(`Checking special error handling for domain: ${domainId}`);
-          const problematicDomains = ['space-furnishings', 'personal-care', 'activities'];
+          console.log(`Checking specific questions for domain: ${domainId}`);
           
-          if (problematicDomains.includes(domainId)) {
-            console.log(`Moving past potentially problematic domain: ${domainId}`);
-            // Move to the next domain
-            const nextDomainIndex = (currentDomainIndex + 1) % domains.length;
-            console.log(`Moving to next domain: ${domains[nextDomainIndex].id} (index: ${nextDomainIndex})`);
-            setCurrentDomainIndex(nextDomainIndex);
+          // Remove special handling for domains and use specific error handling
+          if (domainId === 'activities') {
+            console.log(`Handling 'activities' domain with specific questions`);
             
-            // Allow a short delay before attempting to load the next domain's questions
-            setTimeout(() => {
-              const nextDomain = domains[nextDomainIndex].id;
-              updateDomainQuestions(nextDomain, domainDifficulty[nextDomain] || 'beginner');
-            }, 500);
+            // Create default questions for activities domain if none are found
+            const activityQuestions = [
+              {
+                id: 'act-default-1',
+                text: 'Which of the following is most important when selecting materials for art activities?',
+                domain: 'activities',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'beginner' as DifficultyLevel,
+                options: [
+                  'Materials that result in recognizable finished products',
+                  'Process-oriented, open-ended materials that encourage creativity',
+                  'Pre-cut shapes and templates for children to use',
+                  'Materials that match the classroom color scheme'
+                ],
+                correctAnswer: 'Process-oriented, open-ended materials that encourage creativity',
+                required: true
+              },
+              {
+                id: 'act-default-2',
+                text: 'How should outdoor activities be structured in a high-quality early childhood program?',
+                domain: 'activities',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'beginner' as DifficultyLevel,
+                options: [
+                  'As structured games with teacher direction',
+                  'As free play time with minimal teacher involvement',
+                  'As an extension of the learning environment with natural elements and open-ended materials',
+                  'By bringing indoor activities outside on nice days'
+                ],
+                correctAnswer: 'As an extension of the learning environment with natural elements and open-ended materials',
+                required: true
+              }
+            ];
+            
+            // Use our default questions
+            setCurrentDomainQuestions(activityQuestions);
+            setCurrentQuestionIndex(0);
             return;
           }
           
-          // This is a critical error - no beginner questions available
+          // Handle the other previously problematic domains as well
+          if (domainId === 'space-furnishings') {
+            console.log(`Handling 'space-furnishings' domain with specific questions`);
+            
+            const spaceFurnishingsQuestions = [
+              {
+                id: 'sf-default-1',
+                text: 'What is an important consideration when arranging furniture in a preschool classroom?',
+                domain: 'space-furnishings',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'beginner' as DifficultyLevel,
+                options: [
+                  'Placing all furniture against walls to maximize open space', 
+                  'Creating defined learning areas while allowing for supervision', 
+                  'Using adult-sized furniture to prepare children for elementary school', 
+                  'Minimizing furniture to reduce cleaning needs'
+                ],
+                correctAnswer: 'Creating defined learning areas while allowing for supervision',
+                required: true
+              },
+              {
+                id: 'sf-default-2',
+                text: 'According to ECERS standards, which of the following is most important for an early childhood classroom?',
+                domain: 'space-furnishings',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'beginner' as DifficultyLevel,
+                options: [
+                  'Having matching decorative themes throughout all areas', 
+                  'Displaying only perfect examples of children\'s work', 
+                  'Providing child-sized furniture and fixtures', 
+                  'Including as many learning materials as possible in each area'
+                ],
+                correctAnswer: 'Providing child-sized furniture and fixtures',
+                required: true
+              }
+            ];
+            
+            setCurrentDomainQuestions(spaceFurnishingsQuestions);
+            setCurrentQuestionIndex(0);
+            return;
+          }
+          
+          if (domainId === 'personal-care') {
+            console.log(`Handling 'personal-care' domain with specific questions`);
+            
+            const personalCareQuestions = [
+              {
+                id: 'pcr-default-1',
+                text: 'What is the most effective way to prevent the spread of illness in a preschool setting?',
+                domain: 'personal-care',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'beginner' as DifficultyLevel,
+                options: [
+                  'Sending home children at the first sign of a runny nose', 
+                  'Regular handwashing by children and staff', 
+                  'Using antibacterial soap for all cleaning tasks', 
+                  'Keeping windows open regardless of weather'
+                ],
+                correctAnswer: 'Regular handwashing by children and staff',
+                required: true
+              },
+              {
+                id: 'pcr-default-2',
+                text: 'How can teachers effectively promote self-care skills in preschoolers?',
+                domain: 'personal-care',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'beginner' as DifficultyLevel,
+                options: [
+                  'Complete care tasks for children to ensure they are done correctly', 
+                  'Provide verbal step-by-step instructions without physical assistance', 
+                  'Use peer modeling and gentle guidance, allowing adequate time for practice', 
+                  'Implement rewards for children who complete self-care tasks quickly'
+                ],
+                correctAnswer: 'Use peer modeling and gentle guidance, allowing adequate time for practice',
+                required: true
+              }
+            ];
+            
+            setCurrentDomainQuestions(personalCareQuestions);
+            setCurrentQuestionIndex(0);
+            return;
+          }
+          
+          // This is a critical error - no beginner questions available and not a known problematic domain
           toast({
             title: "Error Loading Questions",
             description: "Could not find any questions for this topic. Please try another area.",
