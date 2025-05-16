@@ -891,6 +891,33 @@ export function UltimateEscalator() {
                   </div>
                 </div>
               )}
+              
+              {/* Show "See More" button if there are more challenges */}
+              {hasMoreChallenges && !showAllChallenges && (
+                <div className="flex justify-center mt-4">
+                  <Button
+                    variant="outline"
+                    className="border-blue-200 text-blue-600"
+                    onClick={() => setShowAllChallenges(true)}
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    See More Challenges ({filteredChallenges.length - MAX_INITIAL_CHALLENGES} more)
+                  </Button>
+                </div>
+              )}
+              
+              {/* Show "Show Less" button if expanded */}
+              {showAllChallenges && filteredChallenges.length > MAX_INITIAL_CHALLENGES && (
+                <div className="flex justify-center mt-4">
+                  <Button
+                    variant="outline"
+                    className="border-blue-200 text-blue-600"
+                    onClick={() => setShowAllChallenges(false)}
+                  >
+                    Show Less
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>
