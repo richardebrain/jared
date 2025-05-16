@@ -405,15 +405,31 @@ export default function ModuleView({ moduleId, user, onBack }: ModuleViewProps) 
         </CardContent>
         
         <CardFooter>
-          <Button 
-            className="w-full"
-            onClick={handleStartLesson}
-            size="lg"
-          >
-            <Play className="mr-2 h-4 w-4" />
-            {currentProgress > 0 && currentProgress < 100 ? "Continue Lesson" : 
-             currentProgress >= 100 ? "Review Lesson" : "Start Lesson"}
-          </Button>
+          {/* Special handling for Chapter 1 module */}
+          {module.id === 34 ? (
+            <Button 
+              className="w-full"
+              onClick={() => {
+                // For Chapter 1, navigate directly to the chapter-one page where the quiz is implemented
+                window.location.href = '/chapter-one';
+              }}
+              size="lg"
+            >
+              <Play className="mr-2 h-4 w-4" />
+              {currentProgress > 0 && currentProgress < 100 ? "Continue Chapter 1" :
+               currentProgress >= 100 ? "Review Chapter 1" : "Start Chapter 1"}
+            </Button>
+          ) : (
+            <Button 
+              className="w-full"
+              onClick={handleStartLesson}
+              size="lg"
+            >
+              <Play className="mr-2 h-4 w-4" />
+              {currentProgress > 0 && currentProgress < 100 ? "Continue Lesson" : 
+               currentProgress >= 100 ? "Review Lesson" : "Start Lesson"}
+            </Button>
+          )}
         </CardFooter>
       </Card>
     </div>
