@@ -115,7 +115,20 @@ export const assessments = pgTable("assessments", {
   overallScore: integer("overall_score"),
   completed: boolean("completed").default(false),
   results: json("results").$type<Record<string, string>>(),
+  
+  // Detailed category scores with levels for all 18 categories
+  categoryScores: json("category_scores").$type<Array<{
+    category: string;
+    score: number;
+    level: 'beginner' | 'developing' | 'proficient' | 'accomplished' | 'mastery';
+    description: string;
+    questionsAnswered: number;
+    correctAnswers: number;
+  }>>(),
+  
+  // Legacy field for backward compatibility
   domainScores: json("domain_scores").$type<Record<string, { score: number, maxDifficulty: string }>>(),
+  
   strengthAreas: json("strength_areas").$type<string[]>(),
   growthAreas: json("growth_areas").$type<string[]>(),
   incorrectAnswers: json("incorrect_answers").$type<Record<string, string[]>>(),
@@ -128,9 +141,11 @@ export const assessments = pgTable("assessments", {
     moduleType: 'foundational' | 'intermediate' | 'advanced' | 'mastery';
     reason: string;
   }>>(),
+  completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow(),
   assessmentType: text("assessment_type").default("ITERS_ECERS_CLASS"),
   notes: text("notes"),
+  teacherLevel: text("teacher_level"),
 });
 
 export const insertAssessmentSchema = createInsertSchema(assessments).omit({
