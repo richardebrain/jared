@@ -619,6 +619,13 @@ export default function ChapterOnePage() {
       // Show the quiz when reaching the end of content instead of starting a lesson
       setShowQuiz(true);
       
+      // Mark 90% progress but not completed yet
+      updateProgressMutation.mutate({
+        moduleId: CHAPTER_ONE_MODULE_ID,
+        progress: 90,
+        completed: false
+      });
+      
       // Log to confirm quiz is being shown
       console.log("Showing Chapter One quiz");
     }
@@ -659,14 +666,18 @@ export default function ChapterOnePage() {
     }
   };
 
-  // If showing the quiz
+  // If showing the quiz - This should take priority over other page states
   if (showQuiz) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
         <Header />
         <div className="container py-8">
           <div className="mb-6">
-            <Button variant="ghost" onClick={() => setShowQuiz(false)} className="flex items-center">
+            <Button variant="ghost" onClick={() => {
+              setShowQuiz(false);
+              // Go back to the last section
+              setCurrentSection(sections.length - 1);
+            }} className="flex items-center">
               <ArrowLeft className="mr-2 h-4 w-4" /> Back to Module
             </Button>
           </div>
