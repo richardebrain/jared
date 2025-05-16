@@ -77,7 +77,7 @@ export function UltimateEscalator() {
       description: "Test your understanding of Raising Arizona's CORE values with this challenging assessment",
       difficulty: 'beginner',
       category: 'core-values',
-      points: 20,
+      points: 1,
       estimatedTime: 10,
       status: 'available'
     },
@@ -87,7 +87,7 @@ export function UltimateEscalator() {
       description: "Learn effective approaches to engage families in their child's educational journey",
       difficulty: 'beginner',
       category: 'family-engagement',
-      points: 20,
+      points: 1,
       estimatedTime: 12,
       status: 'available'
     },
@@ -97,8 +97,48 @@ export function UltimateEscalator() {
       description: "Master foundational techniques for guiding children's behavior positively",
       difficulty: 'beginner',
       category: 'classroom-management',
-      points: 20,
+      points: 1,
       estimatedTime: 15,
+      status: 'available'
+    },
+    {
+      id: 111,
+      title: "Child Development Basics",
+      description: "Understand foundational knowledge of developmental milestones and domains",
+      difficulty: 'beginner',
+      category: 'child-development',
+      points: 1,
+      estimatedTime: 10,
+      status: 'available'
+    },
+    {
+      id: 112,
+      title: "Introduction to Inclusion",
+      description: "Learn the fundamentals of creating an inclusive classroom environment",
+      difficulty: 'beginner',
+      category: 'inclusion',
+      points: 1,
+      estimatedTime: 12,
+      status: 'available'
+    },
+    {
+      id: 113,
+      title: "Curriculum Basics",
+      description: "Explore the essential components of effective curriculum planning",
+      difficulty: 'beginner',
+      category: 'curriculum',
+      points: 1,
+      estimatedTime: 15,
+      status: 'available'
+    },
+    {
+      id: 114,
+      title: "Leadership Foundations",
+      description: "Build your foundational leadership skills for classroom and team settings",
+      difficulty: 'beginner',
+      category: 'leadership',
+      points: 1,
+      estimatedTime: 12,
       status: 'available'
     },
     {
@@ -107,7 +147,7 @@ export function UltimateEscalator() {
       description: "Navigate complex classroom management scenarios with these challenging situations",
       difficulty: 'intermediate',
       category: 'classroom-management',
-      points: 30,
+      points: 1,
       estimatedTime: 15,
       status: 'available'
     },
@@ -117,7 +157,7 @@ export function UltimateEscalator() {
       description: "Create an inclusive environment that supports all children's diverse needs and abilities",
       difficulty: 'intermediate',
       category: 'inclusion',
-      points: 30,
+      points: 1,
       estimatedTime: 18,
       status: 'available'
     },
@@ -127,8 +167,48 @@ export function UltimateEscalator() {
       description: "Take your play-based teaching approaches to the next level with advanced techniques",
       difficulty: 'intermediate',
       category: 'curriculum',
-      points: 25,
+      points: 1,
       estimatedTime: 20,
+      status: 'available'
+    },
+    {
+      id: 115,
+      title: "Child Development Intermediate",
+      description: "Deepen your understanding of developmental theories and application",
+      difficulty: 'intermediate',
+      category: 'child-development',
+      points: 1,
+      estimatedTime: 18,
+      status: 'available'
+    },
+    {
+      id: 116,
+      title: "Family Communication Strategies",
+      description: "Master effective communication techniques for diverse family situations",
+      difficulty: 'intermediate',
+      category: 'family-engagement',
+      points: 1,
+      estimatedTime: 15,
+      status: 'available'
+    },
+    {
+      id: 117,
+      title: "Team Leadership",
+      description: "Develop skills for leading teaching teams effectively",
+      difficulty: 'intermediate',
+      category: 'leadership',
+      points: 1,
+      estimatedTime: 20,
+      status: 'available'
+    },
+    {
+      id: 118,
+      title: "Core Values Integration",
+      description: "Learn advanced techniques for integrating core values into daily practice",
+      difficulty: 'intermediate',
+      category: 'core-values',
+      points: 1,
+      estimatedTime: 15,
       status: 'available'
     },
     {
@@ -137,7 +217,7 @@ export function UltimateEscalator() {
       description: "Advanced assessment on developmental milestones and age-appropriate expectations",
       difficulty: 'advanced',
       category: 'child-development',
-      points: 40,
+      points: 1,
       estimatedTime: 20,
       status: 'available'
     },
@@ -147,7 +227,7 @@ export function UltimateEscalator() {
       description: "Master the art of creating engaging, developmentally appropriate curriculum plans",
       difficulty: 'advanced',
       category: 'curriculum',
-      points: 35,
+      points: 1,
       estimatedTime: 22,
       status: 'available'
     },
@@ -157,8 +237,48 @@ export function UltimateEscalator() {
       description: "Develop essential leadership skills for mentoring teams and leading in ECE settings",
       difficulty: 'advanced',
       category: 'leadership',
-      points: 40,
+      points: 1,
       estimatedTime: 25,
+      status: 'available'
+    },
+    {
+      id: 119,
+      title: "Advanced Family Partnership",
+      description: "Build advanced strategies for creating meaningful family partnerships",
+      difficulty: 'advanced',
+      category: 'family-engagement',
+      points: 1,
+      estimatedTime: 20,
+      status: 'available'
+    },
+    {
+      id: 120,
+      title: "Inclusive Program Development",
+      description: "Create comprehensive inclusion plans for early childhood programs",
+      difficulty: 'advanced',
+      category: 'inclusion',
+      points: 1,
+      estimatedTime: 25,
+      status: 'available'
+    },
+    {
+      id: 121,
+      title: "Advanced Classroom Management",
+      description: "Master techniques for managing complex behavioral challenges",
+      difficulty: 'advanced',
+      category: 'classroom-management',
+      points: 1,
+      estimatedTime: 22,
+      status: 'available'
+    },
+    {
+      id: 122,
+      title: "Core Values Leadership",
+      description: "Lead others in implementing and living the core values",
+      difficulty: 'advanced',
+      category: 'core-values',
+      points: 1,
+      estimatedTime: 18,
       status: 'available'
     },
     {
@@ -167,7 +287,7 @@ export function UltimateEscalator() {
       description: "Our most difficult assessment covering all aspects of early childhood education",
       difficulty: 'master',
       category: 'comprehensive',
-      points: 50,
+      points: 1,
       estimatedTime: 25,
       status: 'locked'
     }
