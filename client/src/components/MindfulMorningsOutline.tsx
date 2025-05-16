@@ -1665,13 +1665,28 @@ export function MindfulMorningsOutline() {
     updateOverallProgress();
   };
   
-  // Function to move to the next section
+  // Function to move to the next section, with auto-transition to next module when needed
   const moveToNextSection = () => {
     const currentModule = courseModules.find(m => m.id === activeModule);
     if (!currentModule) return;
     
     if (activeSection < currentModule.sections.length - 1) {
+      // Move to the next section in the same module
       setActiveSection(activeSection + 1);
+    } else {
+      // We've reached the end of sections in this module, move to the next module
+      const currentModuleIndex = courseModules.findIndex(m => m.id === activeModule);
+      if (currentModuleIndex < courseModules.length - 1) {
+        // There is a next module to move to
+        setActiveModule(courseModules[currentModuleIndex + 1].id);
+        setActiveSection(0); // Start at the first section of the next module
+        
+        // Show transition message
+        toast({
+          title: "Module Complete",
+          description: `Moving to ${courseModules[currentModuleIndex + 1].title} module`,
+        });
+      }
     }
   };
   
