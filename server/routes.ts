@@ -797,9 +797,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  app.get("/api/games/history", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const gameHistory = await storage.getUserGameHistory(userId);
+      res.status(200).json(gameHistory);
+    } catch (error) {
+      console.error("Error fetching game history:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get("/api/games/:id", async (req, res) => {
     try {
       const gameId = parseInt(req.params.id);
+      
+      // Handle NaN case
+      if (isNaN(gameId)) {
+        return res.status(400).json({ message: "Invalid game ID" });
+      }
+      
       const game = await storage.getGame(gameId);
       
       if (!game) {
