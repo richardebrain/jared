@@ -24,6 +24,30 @@ export default function CoreValueDetail({ onComplete }: CoreValueDetailProps) {
   const { speakText } = useSoundEffects();
   const narrationRef = useRef<{ cancel: () => void } | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  
+  // Setup audio element for the rap
+  useEffect(() => {
+    if (currentTab === "be-committed") {
+      // Create audio element if it doesn't exist
+      if (!audioRef.current) {
+        const audio = new Audio("/sounds/commitment-whistle-stop-rap.mp3");
+        audio.addEventListener("ended", () => setIsRapPlaying(false));
+        audio.addEventListener("pause", () => setIsRapPlaying(false));
+        audio.addEventListener("play", () => setIsRapPlaying(true));
+        audioRef.current = audio;
+      }
+    }
+    
+    // Cleanup function
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.removeEventListener("ended", () => setIsRapPlaying(false));
+        audioRef.current.removeEventListener("pause", () => setIsRapPlaying(false));
+        audioRef.current.removeEventListener("play", () => setIsRapPlaying(true));
+      }
+    };
+  }, [currentTab]);
 
   const coreValues = [
     {
@@ -518,6 +542,42 @@ Tool for staying positive when you're sad:
                       ))}
                     </ul>
                   </div>
+                  
+                  {value.id === "be-committed" && (
+                    <div className="bg-purple-50 p-4 rounded-md border border-purple-100 mb-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center">
+                          <div className={`mr-3 ${isRapPlaying ? "animate-pulse" : ""}`}>
+                            <Music className="h-6 w-6 text-purple-600" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">Commitment's Whistle-Stop Rap</p>
+                            <p className="text-xs text-gray-500">Memorize our commitment principles through rhythm</p>
+                          </div>
+                        </div>
+                        
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className={isRapPlaying ? "bg-purple-100" : ""}
+                          onClick={toggleRapAudio}
+                        >
+                          {isRapPlaying ? (
+                            <>
+                              <PauseCircle className="h-4 w-4 mr-1" />
+                              Pause
+                            </>
+                          ) : (
+                            <>
+                              <Play className="h-4 w-4 mr-1" />
+                              Play Rap
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-purple-700 mb-2">This interactive rap helps teachers memorize and internalize our commitment principles.</p>
+                    </div>
+                  )}
                   
                   {(value.story || (value.stories && value.stories.length > 0)) && (
                     <div className="mt-6">
