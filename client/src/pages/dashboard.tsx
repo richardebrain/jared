@@ -557,6 +557,25 @@ export default function Dashboard() {
                 </div>
               </div>
               
+              {/* Ultimate Escalator - Moved to middle of dashboard */}
+              <Card className="overflow-hidden bg-white shadow-md mt-8">
+                <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-4">
+                  <CardTitle className="text-lg font-bold text-white mb-0">
+                    Ultimate Escalator
+                  </CardTitle>
+                  <CardDescription className="text-white opacity-90 m-0">
+                    Track your career progress
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <UltimateEscalator 
+                    currentLevel={user?.level || 1}
+                    points={user?.points || 0}
+                    assessments={assessments || []}
+                  />
+                </CardContent>
+              </Card>
+              
               {/* Personalized Learning Path */}
               <div className="space-y-4 mt-8">
                 <h2 className="text-xl font-bold text-gray-800 flex items-center">
@@ -676,25 +695,7 @@ export default function Dashboard() {
                 />
               )}
               
-              {/* Ultimate Escalator */}
-              <Card className="overflow-hidden bg-white shadow-md">
-                <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-4">
-                  <CardTitle className="text-lg font-bold text-white mb-0">
-                    Ultimate Escalator
-                  </CardTitle>
-                  <CardDescription className="text-white opacity-90 m-0">
-                    Track your career progress
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-4">
-                  <UltimateEscalator 
-                    currentLevel={user?.level || 1}
-                    points={user?.points || 0}
-                    assessments={assessments || []}
-                  />
-                </CardContent>
-              </Card>
-              
+
               {/* Bear Assistant */}
               <BearAssistant />
               
