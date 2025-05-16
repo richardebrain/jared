@@ -127,11 +127,15 @@ export default function Dashboard() {
     if (!modules || !Array.isArray(modules)) return [];
     
     // Find Core Values and Mindful Mornings modules
-    const coreValuesModule = modules.find(m => 
-      m.id === 33 || // Explicit ID for "Raising Arizona's CORE"
-      m.title === "Raising Arizona's CORE" || 
-      (m.title?.toLowerCase().includes("core") && m.category === "onboarding")
-    );
+    // Log modules for debugging
+    console.log("Available modules:", modules.map(m => ({id: m.id, title: m.title, category: m.category})));
+    
+    // First look for Core Values module
+    const coreValuesModule = modules.find(m => m.id === 33) || // First try by exact ID
+                             modules.find(m => m.title === "Raising Arizona's CORE") || // Then by exact title
+                             modules.find(m => m.title?.toLowerCase().includes("core") && m.category === "onboarding"); // Then by partial match
+    
+    console.log("Found Core Values module:", coreValuesModule);
     
     // For Mindful Mornings, we'll use a primary module or fallback to any module with 'mindful-mornings' category
     // Check specific modules first by ID (13, 14, 15, or 24) 
