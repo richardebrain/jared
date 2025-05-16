@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import {
   Trophy,
   Gift,
@@ -18,7 +19,11 @@ import {
   Package,
   Ticket,
   Shield,
-  Cherry 
+  Cherry,
+  Diamond,
+  Gem,
+  Award,
+  Sparkles
 } from "lucide-react";
 
 // Import our gamification components from the barrel file
@@ -332,11 +337,149 @@ export default function CasinoPage() {
           {/* Game content tabs */}
           <TabsContent value="game-slot" className="mt-6">
             <div className="max-w-md mx-auto">
-              <LuckySlots 
-                onClose={() => setActiveTab("games")} 
-                onWin={handlePointsReward}
-                dailySpinsRemaining={3}
-              />
+              <Card className="w-full border shadow-lg overflow-hidden">
+                <CardHeader className="text-center bg-gradient-to-r from-red-600 to-yellow-600 text-white">
+                  <CardTitle className="text-2xl font-bold">Lucky Slots</CardTitle>
+                  <CardDescription className="text-amber-100">
+                    Match symbols to win points!
+                  </CardDescription>
+                  <div className="flex justify-center space-x-2 mt-2">
+                    <Badge variant="outline" className="bg-white/20 text-white border-white">
+                      <Gift className="h-3 w-3 mr-1" /> Daily Spins: 3
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {/* Casino machine with enhanced visuals */}
+                  <div className="bg-gradient-to-b from-gray-900 to-gray-950 p-6 rounded-lg border-4 border-amber-600 shadow-inner mb-4 w-full relative overflow-hidden">
+                    {/* Casino machine decorations */}
+                    <div className="absolute top-0 left-0 w-full h-8 bg-gradient-to-r from-red-700 to-amber-700 flex items-center justify-center">
+                      <div className="flex space-x-2">
+                        {[1, 2, 3, 4, 5].map((_, i) => (
+                          <div key={i} className="w-2 h-2 rounded-full bg-yellow-300 animate-pulse" style={{ animationDelay: `${i * 0.2}s` }}></div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Slot machine arm */}
+                    <div className="absolute top-14 right-0 h-32 w-6 flex flex-col items-center">
+                      <div className="w-6 h-10 bg-gradient-to-b from-red-500 to-red-700 rounded-t-md"></div>
+                      <div className="w-3 h-24 bg-gradient-to-b from-gray-300 to-gray-500"></div>
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-b from-red-400 to-red-600 cursor-pointer"></div>
+                    </div>
+                    
+                    {/* Reels with enhanced visuals */}
+                    <div className="flex justify-center gap-2 bg-black p-5 rounded-md mt-8 mx-4 border border-amber-900">
+                      {/* Reel 1 */}
+                      <div className="relative bg-gradient-to-b from-gray-100 to-gray-300 border-2 border-gray-400 rounded-md p-2 flex items-center justify-center shadow-inner w-20 h-20" style={{ boxShadow: "inset 0 0 10px rgba(0,0,0,0.3)" }}>
+                        <Cherry className="h-8 w-8 text-red-500" />
+                      </div>
+                      
+                      {/* Reel 2 */}
+                      <div className="relative bg-gradient-to-b from-gray-100 to-gray-300 border-2 border-gray-400 rounded-md p-2 flex items-center justify-center shadow-inner w-20 h-20" style={{ boxShadow: "inset 0 0 10px rgba(0,0,0,0.3)" }}>
+                        <Star className="h-8 w-8 text-yellow-500" />
+                      </div>
+                      
+                      {/* Reel 3 */}
+                      <div className="relative bg-gradient-to-b from-gray-100 to-gray-300 border-2 border-gray-400 rounded-md p-2 flex items-center justify-center shadow-inner w-20 h-20" style={{ boxShadow: "inset 0 0 10px rgba(0,0,0,0.3)" }}>
+                        <Gift className="h-8 w-8 text-blue-500" />
+                      </div>
+                    </div>
+                    
+                    {/* Pay line with flashing effect */}
+                    <div className="flex justify-between items-center mt-2 mx-8">
+                      <div className="h-1 flex-1 bg-gradient-to-r from-transparent via-red-500 to-transparent animate-pulse"></div>
+                      <span className="text-xs text-amber-500 px-2 font-bold">PAY LINE</span>
+                      <div className="h-1 flex-1 bg-gradient-to-r from-transparent via-red-500 to-transparent animate-pulse"></div>
+                    </div>
+                    
+                    {/* Machine controls */}
+                    <div className="flex justify-center mt-4 space-x-4">
+                      <div className="w-6 h-6 rounded-full bg-red-500 border-2 border-red-700 shadow-md"></div>
+                      <div className="w-6 h-6 rounded-full bg-amber-500 border-2 border-amber-700 shadow-md"></div>
+                    </div>
+                  </div>
+                  
+                  {/* Prize table with enhanced casino theme */}
+                  <div className="bg-gradient-to-r from-amber-50 to-amber-100 border border-amber-200 p-4 rounded-md mb-4 w-full text-sm shadow-md">
+                    <h3 className="font-bold text-amber-800 mb-2 text-center bg-gradient-to-r from-amber-600 to-red-600 text-white p-2 rounded-t-md -mt-4 -mx-4 shadow-sm">
+                      JACKPOT PAYOUT TABLE
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3 pt-1">
+                      <div className="flex items-center bg-white p-2 rounded-md shadow-sm transition-transform hover:scale-105">
+                        <Diamond className="h-6 w-6 text-cyan-500 mr-2" />
+                        <div>
+                          <span className="text-gray-800 font-medium">3× Diamonds</span>
+                          <div className="text-amber-600 font-bold">20 POINTS</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center bg-white p-2 rounded-md shadow-sm transition-transform hover:scale-105">
+                        <Sparkles className="h-6 w-6 text-pink-500 mr-2" />
+                        <div>
+                          <span className="text-gray-800 font-medium">3× Sparkles</span>
+                          <div className="text-amber-600 font-bold">10 POINTS</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center bg-white p-2 rounded-md shadow-sm transition-transform hover:scale-105">
+                        <Award className="h-6 w-6 text-amber-500 mr-2" />
+                        <div>
+                          <span className="text-gray-800 font-medium">3× Awards</span>
+                          <div className="text-amber-600 font-bold">7 POINTS</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center bg-white p-2 rounded-md shadow-sm transition-transform hover:scale-105">
+                        <Gem className="h-6 w-6 text-purple-500 mr-2" />
+                        <div>
+                          <span className="text-gray-800 font-medium">3× Gems</span>
+                          <div className="text-amber-600 font-bold">5 POINTS</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center bg-white p-2 rounded-md shadow-sm col-span-2 transition-transform hover:scale-105">
+                        <Star className="h-6 w-6 text-yellow-500 mr-2" />
+                        <div>
+                          <span className="text-gray-800 font-medium">Any 2 matching symbols</span>
+                          <div className="text-amber-600 font-bold">1-3 POINTS</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Casino-style button with flashing effect */}
+                  <div className="relative mb-4">
+                    <Button 
+                      variant="default" 
+                      onClick={() => toast({
+                        title: "Coming Soon!",
+                        description: "The slot machine will be available after your next activity!",
+                      })}
+                      className="bg-gradient-to-r from-red-500 to-amber-500 hover:from-red-600 hover:to-amber-600 
+                        text-white w-full relative border-2 border-amber-700 shadow-xl
+                        animate-pulse py-6 font-bold tracking-wide text-xl"
+                      size="lg"
+                    >
+                      <span className="relative z-10">
+                        SPIN & WIN
+                        <span className="absolute -right-8 top-0 rotate-12 bg-yellow-300 text-red-600 text-xs px-2 py-1 rounded-md font-bold transform -translate-y-1/2">
+                          !
+                        </span>
+                      </span>
+                    </Button>
+                    
+                    {/* Button shine effect */}
+                    <div className="absolute inset-0 overflow-hidden rounded-md pointer-events-none">
+                      <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-shine" style={{ transform: "skewX(-20deg)" }}></div>
+                    </div>
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => setActiveTab("games")}
+                    className="w-full"
+                  >
+                    Back to Games
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
           
