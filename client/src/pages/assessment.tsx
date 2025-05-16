@@ -1527,7 +1527,8 @@ export default function AssessmentPage() {
         updateDomainQuestions(domain, 'expert');
 
         // Store max difficulty achieved for this domain
-        setDomainMaxDifficulty(prev => ({
+        // Using domain difficulty as the tracker for max difficulty achieved
+        setDomainDifficulty(prev => ({
           ...prev,
           [domain]: 'expert'
         }));
@@ -1551,7 +1552,7 @@ export default function AssessmentPage() {
       console.log(`Tracking expert performance in ${domain}: ${correct} correct, ${incorrect} incorrect`);
       
       // Mark current domain as mastered
-      setDomainMaxDifficulty(prev => ({
+      setDomainDifficulty(prev => ({
         ...prev,
         [domain]: 'expert'
       }));
