@@ -33,25 +33,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup session middleware using PostgreSQL for persistent sessions
   const PgSession = connectPgSimple(session);
-  app.use(
-    session({
-      secret: process.env.SESSION_SECRET || "mentor-me-secret",
-      resave: true, // Changed to true to ensure session is saved on each request
-      saveUninitialized: true, // Changed to true to ensure new sessions are saved
-      cookie: { 
-        secure: false, // Always false for development to work with HTTP
-        httpOnly: true,
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        sameSite: "lax",
-        path: '/' // Ensure cookie is available on all paths
-      }, 
-      store: new PgSession({
-        conString: process.env.DATABASE_URL,
-        tableName: 'sessions',
-        createTableIfMissing: true,
-      }),
-    })
-  );
+  const sessionConfig = {
+    secret: process.env.SESSION_SECRET || "mentor-me-secret",
+    resave: true, // Ensures session is saved on each request
+    saveUninitialized: true, // Ensures new sessions are saved
+    rolling: true, // Reset expiration with each request
+    cookie: { 
+      secure: process.env.NODE_ENV === 'production', // Allow HTTP in development
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      sameSite: "lax",
+      path: '/' // Ensure cookie is available on all paths
+    }, 
+    store: new PgSession({
+      conString: process.env.DATABASE_URL,
+      tableName: 'sessions',
+      createTableIfMissing: true,
+      pruneSessionInterval: 24 * 60 * 60, // Prune expired sessions every 24 hours
+    }),
+  };
+  
+  console.log('Session configuration:', {
+    ...sessionConfig,
+    secret: '[REDACTED]',
+    store: sessionConfig.store ? 'PgSession' : 'MemoryStore',
+  });
+  
+  app.use(session(sessionConfig));
 
   // Auth middleware
   const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
