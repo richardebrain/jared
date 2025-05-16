@@ -144,7 +144,7 @@ function Router() {
       </Route>
       
       <Route path="/owner-dashboard">
-        {isAuthenticated ? <OwnerDashboardPage /> : <Login />}
+        {isAuthenticated ? <OwnerDashboardStandalone /> : <Login />}
       </Route>
       
       <Route path="/settings/data-sources">
