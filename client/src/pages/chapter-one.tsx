@@ -616,8 +616,11 @@ export default function ChapterOnePage() {
       
       window.scrollTo(0, 0);
     } else {
-      // Show the quiz when reaching the end of content
+      // Show the quiz when reaching the end of content instead of starting a lesson
       setShowQuiz(true);
+      
+      // Log to confirm quiz is being shown
+      console.log("Showing Chapter One quiz");
     }
   };
 
