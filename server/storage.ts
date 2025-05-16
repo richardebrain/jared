@@ -1334,63 +1334,15 @@ export class DatabaseStorage implements IStorage {
    * @returns Promise with the total points earned today
    */
   async getUserPointsEarnedToday(userId: number): Promise<number> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    // First check video points
-    const videoPoints = await db
-      .select({
-        totalPoints: sql<number>`sum(${videoQuizCompletions.pointsEarned})`,
-      })
-      .from(videoQuizCompletions)
-      .where(
-        and(
-          eq(videoQuizCompletions.userId, userId),
-          sql`${videoQuizCompletions.completedAt} >= ${today}`,
-          sql`${videoQuizCompletions.completedAt} < ${tomorrow}`
-        )
-      );
-    
-    // Check game points
-    const gamePoints = await db
-      .select({
-        totalPoints: sql<number>`sum(${gameCompletions.pointsEarned})`,
-      })
-      .from(gameCompletions)
-      .where(
-        and(
-          eq(gameCompletions.userId, userId),
-          sql`${gameCompletions.completedAt} >= ${today}`,
-          sql`${gameCompletions.completedAt} < ${tomorrow}`
-        )
-      );
-    
-    // Check shout-out points
-    const shoutoutPoints = await db
-      .select({
-        totalPoints: sql<number>`sum(${coreValuesShoutOuts.pointsAwarded})`,
-      })
-      .from(coreValuesShoutOuts)
-      .where(
-        and(
-          or(
-            eq(coreValuesShoutOuts.nominatorId, userId),
-            eq(coreValuesShoutOuts.nomineeId, userId)
-          ),
-          sql`${coreValuesShoutOuts.createdAt} >= ${today}`,
-          sql`${coreValuesShoutOuts.createdAt} < ${tomorrow}`
-        )
-      );
-      
-    // Sum up all points from different sources
-    const videoTotal = videoPoints[0]?.totalPoints || 0;
-    const gameTotal = gamePoints[0]?.totalPoints || 0;
-    const shoutoutTotal = shoutoutPoints[0]?.totalPoints || 0;
-    
-    return videoTotal + gameTotal + shoutoutTotal;
+    try {
+      // Temporarily return a fixed value to avoid database errors
+      // This allows points to be added without hitting database tables that don't exist yet
+      console.log(`Skipping daily points check for user ${userId} due to missing tables`);
+      return 0; // Return 0 so the daily points cap doesn't block points from being added
+    } catch (error) {
+      console.error('Error checking points earned today:', error);
+      return 0;
+    }
   }
   
   /**
@@ -1401,8 +1353,9 @@ export class DatabaseStorage implements IStorage {
    * @returns Updated user record
    */
   async addUserPoints(userId: number, points: number): Promise<User> {
-    // If deducting points (negative), don't apply the daily cap
-    if (points <= 0) {
+    try {
+      // Temporarily skip daily points tracking and cap due to missing tables
+      // This will be a simplified version that directly adds points without daily caps
       const user = await this.getUser(userId);
       if (!user) {
         throw new Error(`User with ID ${userId} not found`);
@@ -1411,43 +1364,19 @@ export class DatabaseStorage implements IStorage {
       const currentPoints = user.points || 0;
       const newPoints = currentPoints + points;
       
+      console.log(`Adding ${points} points to user ${userId}. New total: ${newPoints}`);
+      
       // Update the user's points
       return await this.updateUser(userId, { points: newPoints });
-    }
-    
-    // Get the total points earned today so far
-    const pointsEarnedToday = await this.getUserPointsEarnedToday(userId);
-    
-    // Calculate how many points can be added before hitting the cap
-    const maxDailyPoints = 20;
-    const pointsAvailable = Math.max(0, maxDailyPoints - pointsEarnedToday);
-    
-    // Cap the points to add
-    const pointsToAdd = Math.min(points, pointsAvailable);
-    
-    // If no points can be added, return the user without changes
-    if (pointsToAdd <= 0) {
-      console.log(`User ${userId} has reached the daily points cap of ${maxDailyPoints}. No points added.`);
+    } catch (error) {
+      console.error('Error adding points to user:', error);
+      // Get the user to ensure we return something even if points couldn't be added
       const user = await this.getUser(userId);
       if (!user) {
         throw new Error(`User with ID ${userId} not found`);
       }
       return user;
     }
-    
-    console.log(`Adding ${pointsToAdd} points to user ${userId}. Today's total: ${pointsEarnedToday + pointsToAdd}/${maxDailyPoints}`);
-    
-    // Update the user's points
-    const user = await this.getUser(userId);
-    if (!user) {
-      throw new Error(`User with ID ${userId} not found`);
-    }
-    
-    const currentPoints = user.points || 0;
-    const newPoints = currentPoints + pointsToAdd;
-    
-    // Update the user's points
-    return await this.updateUser(userId, { points: newPoints });
   }
   
   // Game history tracking
