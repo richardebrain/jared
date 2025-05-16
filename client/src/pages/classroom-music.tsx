@@ -16,6 +16,8 @@ import cleanUpTimeAudio2 from "@assets/Clean Up Time (2).mp3";
 import cleanUpMoreAudio from "@assets/clean up even more.mp3";
 import timeToChangeAudio from "@assets/Time to Change Activities.mp3";
 import timeToChangeAudio1 from "@assets/Time to Change Activities (1).mp3";
+import timeToChangeAudio3 from "@assets/Time to Change Activities  version 3.mp3";
+import timeToChangeAudio4 from "@assets/Time to Change Activities version 4.mp3";
 import washUpForLunchAudio from "@assets/Wash Up For Lunch.mp3";
 import washUpForLunchAudio1 from "@assets/Wash Up For Lunch (1).mp3";
 import closingMyEyesAudio from "@assets/I'm Closing My Eyes.mp3";
@@ -23,6 +25,8 @@ import closingMyEyesAudio3 from "@assets/I'm Closing My Eyes (3).mp3";
 import commitmentRapAudio from "@assets/_Commitment's Whistle-Stop Rap (Extended.mp3";
 import sharingAudio from "@assets/pass it dont hog it sharing song 1 (2).mp3";
 import sharingAudio2 from "@assets/pass it dont hog it sharing version 2.mp3";
+import welcomeAboardAudio from "@assets/Welcome Aboard.mp3";
+import welcomeAboardAudio2 from "@assets/Welcome Aboard version 2.mp3";
 
 // Define classroom song categories
 const audioCategories = [
@@ -162,6 +166,42 @@ const classroomSongs = [
     description: 'Raising Arizona\'s theme highlighting our school values',
     duration: '2:45',
     usageNotes: 'Our school theme song! Play during morning gatherings to start the day on a positive note.'
+  },
+  { 
+    id: 15, 
+    title: 'Time to Change Activities (Version 3)', 
+    file: timeToChangeAudio3, 
+    category: 'transitions',
+    description: 'Energetic transition song with clear instructions',
+    duration: '2:25',
+    usageNotes: 'Great for afternoon transitions when energy might be dipping and children need a bit more motivation.'
+  },
+  { 
+    id: 16, 
+    title: 'Time to Change Activities (Version 4)', 
+    file: timeToChangeAudio4, 
+    category: 'transitions',
+    description: 'Rhythmic transition song with clapping prompts',
+    duration: '2:18',
+    usageNotes: 'This version has built-in clapping patterns that help children physically engage in the transition process.'
+  },
+  { 
+    id: 17, 
+    title: 'Welcome Aboard', 
+    file: welcomeAboardAudio, 
+    category: 'transitions',
+    description: 'Welcoming song for new students and morning arrival',
+    duration: '2:30',
+    usageNotes: 'Perfect for greeting children during morning drop-off or to welcome new students to the classroom.'
+  },
+  { 
+    id: 18, 
+    title: 'Welcome Aboard (Version 2)', 
+    file: welcomeAboardAudio2, 
+    category: 'transitions',
+    description: 'Upbeat alternative welcome song with friendship themes',
+    duration: '2:35',
+    usageNotes: 'A more energetic version great for starting the day or welcoming visitors to the classroom.'
   }
 ];
 
