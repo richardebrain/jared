@@ -796,26 +796,37 @@ export function MindfulMorningsOutline() {
               
               <div className="bg-slate-100 rounded-lg p-4 text-center">
                 <div className="aspect-video bg-slate-800 rounded-md flex items-center justify-center mb-2 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-r from-amber-900/20 to-yellow-900/20 z-10"></div>
-                  <div className="z-20 text-white">
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      className="h-16 w-16 rounded-full bg-white/10 backdrop-blur"
-                      onClick={() => setVideoPlaying(!videoPlaying)}
-                    >
-                      {videoPlaying ? 
-                        <PauseCircle className="h-10 w-10 text-white" /> : 
-                        <PlayCircle className="h-10 w-10 text-white" />
-                      }
-                    </Button>
-                  </div>
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
-                    <div className="h-full bg-amber-500" style={{ width: videoPlaying ? '75%' : '0%', transition: 'width 0.5s linear' }}></div>
-                  </div>
+                  {!videoPlaying ? (
+                    <>
+                      <div className="absolute inset-0 bg-gradient-to-r from-amber-900/20 to-yellow-900/20 z-10"></div>
+                      <div className="z-20 text-white">
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          className="h-16 w-16 rounded-full bg-white/10 backdrop-blur"
+                          onClick={() => setVideoPlaying(true)}
+                        >
+                          <PlayCircle className="h-10 w-10 text-white" />
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <iframe 
+                      className="absolute inset-0 w-full h-full"
+                      src="https://www.youtube.com/embed/9lUSi4nRtig?autoplay=1"
+                      title="Transform Your Health with Powerful Daily Affirmations"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
+                  )}
+                  {!videoPlaying && (
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
+                      <div className="h-full bg-amber-500" style={{ width: '0%', transition: 'width 0.5s linear' }}></div>
+                    </div>
+                  )}
                 </div>
                 <p className="text-sm text-slate-600 font-medium">
-                  How Affirmations Rewire Your Brain
+                  "Transform Your Health with Powerful Daily Affirmations" - Self-Improvement HQ
                 </p>
               </div>
               
@@ -1131,26 +1142,47 @@ export function MindfulMorningsOutline() {
             <div className="space-y-4">
               <div className="bg-slate-100 rounded-lg p-4 text-center">
                 <div className="aspect-video bg-slate-800 rounded-md flex items-center justify-center mb-2 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-r from-red-900/20 to-pink-900/20 z-10"></div>
-                  <div className="z-20 text-white">
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      className="h-16 w-16 rounded-full bg-white/10 backdrop-blur"
-                      onClick={() => setVideoPlaying(!videoPlaying)}
-                    >
-                      {videoPlaying ? 
-                        <PauseCircle className="h-10 w-10 text-white" /> : 
-                        <PlayCircle className="h-10 w-10 text-white" />
-                      }
-                    </Button>
-                  </div>
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
-                    <div className="h-full bg-red-500" style={{ width: videoPlaying ? '75%' : '0%', transition: 'width 0.5s linear' }}></div>
-                  </div>
+                  {!videoPlaying ? (
+                    <>
+                      <div className="absolute inset-0 bg-gradient-to-r from-red-900/20 to-pink-900/20 z-10"></div>
+                      <div className="z-20 text-white">
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          className="h-16 w-16 rounded-full bg-white/10 backdrop-blur"
+                          onClick={() => {
+                            setVideoPlaying(true);
+                            window.open("https://www.ncesd.org/behavior-health/video-science-of-gratitude/", "_blank");
+                          }}
+                        >
+                          <PlayCircle className="h-10 w-10 text-white" />
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex items-center justify-center w-full h-full">
+                      <div className="text-white text-center p-4">
+                        <ExternalLink className="h-8 w-8 mx-auto mb-2" />
+                        <p>Video opened in new tab</p>
+                        <Button 
+                          variant="outline"
+                          size="sm"
+                          className="mt-2"
+                          onClick={() => setVideoPlaying(false)}
+                        >
+                          Close
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  {!videoPlaying && (
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
+                      <div className="h-full bg-red-500" style={{ width: '0%', transition: 'width 0.5s linear' }}></div>
+                    </div>
+                  )}
                 </div>
                 <p className="text-sm text-slate-600 font-medium">
-                  The Science of Gratitude and Wellbeing
+                  "The Science of Gratitude" - North Central Educational Service District
                 </p>
               </div>
               
