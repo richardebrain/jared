@@ -1,0 +1,66 @@
+1. Chrome Music Lab – Song Maker
+Chrome Music Lab’s Song Maker supports an embed endpoint so you can drop the full interactive sequencer right into your site:
+
+html
+Copy
+Edit
+<iframe
+  src="https://musiclab.chromeexperiments.com/Song-Maker/embed/6498684503719936"
+  width="600"
+  height="400"
+  frameborder="0"
+  allowfullscreen>
+</iframe>
+– Replace the long number at the end with your Song-Maker share ID.
+– Teachers can then draw melodies and rhythms live, no navigation away required.
+
+2. BandLab Projects & Players
+BandLab provides an iframe embed for any public song or project. Simply use:
+
+html
+Copy
+Edit
+<iframe
+  width="560"
+  height="202"
+  src="https://www.bandlab.com/embed/?id=fd116604-738c-ed11-9d7a-000d3a3eed2a"
+  frameborder="0"
+  allowfullscreen>
+</iframe>
+– Swap out the id=… with your project’s UUID.
+– Users get a fully playable BandLab widget with play/pause, waveform, and volume controls—again, right on your page.
+
+3. Elfsight Audio Player Widget
+If you just need a slick, configurable audio player (for your Boomy or Uberduck-generated MP3s), Elfsight offers a free plan that lets you:
+
+Build a playlist or single-track player in their visual editor
+
+Copy the generated HTML <div>+<script> snippet
+
+Paste it anywhere on your site
+
+This gives you loop/shuffle, autoplay, custom skins—and you host the audio yourself. 
+Elfsight
+
+4. DIY with Uberduck & Boomy APIs
+Neither Uberduck.ai nor Boomy offer out-of-the-box widgets yet, but both have REST APIs:
+
+Uberduck.ai – generate a singing TTS WAV/MP3 on the fly; host it in your CDN and embed via a standard HTML5 player.
+
+Boomy – download your 30 s clip on the free tier, store it on your server or S3, then use the same Elfsight widget or a simple <audio> tag:
+
+html
+Copy
+Edit
+<audio controls>
+  <source src="/uploads/my-baby-song.mp3" type="audio/mp3">
+</audio>
+Summary
+Interactive embeds: Chrome Music Lab Song Maker and BandLab player
+
+Hosted audio widget: Elfsight Audio Player 
+Elfsight
+
+Custom flows: call Uberduck or Boomy, host the resulting MP3, embed with <audio> or the Elfsight widget
+
+With these, kids and teachers never have to leave your site—they can write a line, “Soosify” it, generate the song, and sing it all in one place!
