@@ -148,10 +148,15 @@ export function SpinWheel({ onClose }: SpinWheelProps) {
   const [activeTab, setActiveTab] = useState("wheel");
   const wheelRef = useRef<HTMLDivElement>(null);
   
-  // Fetch reward history
-  const { data: rewardHistory = [] } = useQuery<RewardHistory[]>({
+  // Fetch reward history - initialized with empty array for now
+  // In a production app, this would come from a real API endpoint
+  const [rewardHistory, setRewardHistory] = useState<RewardHistory[]>([]);
+  
+  // Mock API query - This would be a real API call in production
+  const { data } = useQuery({
     queryKey: ["/api/spin-game/history"],
     refetchOnWindowFocus: false,
+    enabled: false, // Disabled for now since we're using mock data
   });
 
   useEffect(() => {
