@@ -181,20 +181,62 @@ export default function Dashboard() {
     return Array.isArray(modules) && modules.find((m) => m.featured);
   }, [modules]);
   
-  // Get recommended modules
+  // Get modules prioritized by assessment results
   const recommendedModules = useMemo(() => {
-    if (!userProgress || !modules) return [];
-    const recommended = Array.isArray(userProgress) 
-      ? userProgress.filter((p) => p.recommended)
-      : [];
+    if (!userProgress || !modules || !assessments || !Array.isArray(assessments) || assessments.length === 0) {
+      // Fall back to default recommended modules if no assessment available
+      const recommended = Array.isArray(userProgress) 
+        ? userProgress.filter((p) => p.recommended)
+        : [];
+      
+      return recommended.map((progress) => {
+        const module = Array.isArray(modules) 
+          ? modules.find((m) => m.id === progress.moduleId)
+          : null;
+        return { ...progress, module };
+      });
+    }
     
-    return recommended.map((progress) => {
-      const module = Array.isArray(modules) 
-        ? modules.find((m) => m.id === progress.moduleId)
-        : null;
+    // Get the most recent assessment
+    const latestAssessment = assessments.sort((a, b) => 
+      new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
+    )[0];
+    
+    if (!latestAssessment.scores || !Array.isArray(latestAssessment.scores)) {
+      return [];
+    }
+    
+    // Sort scores from lowest to highest to determine priority areas
+    const priorityCategories = [...latestAssessment.scores]
+      .sort((a, b) => a.score - b.score)
+      .slice(0, 6) // Get 6 lowest scores to have enough potential matches
+      .map(score => score.category.toLowerCase());
+    
+    // Match modules to the priority categories
+    const categoryBasedModules = Array.isArray(modules) 
+      ? modules.filter(module => {
+          // Check if the module's category, tags, or title contains any of the priority categories
+          const moduleText = `${module.category} ${module.tags || ''} ${module.title}`.toLowerCase();
+          return priorityCategories.some(category => 
+            moduleText.includes(category) || 
+            // Also match common variations/alternate spellings
+            moduleText.includes(category.replace(/\s+/g, '-')) ||
+            moduleText.includes(category.replace(/\s+/g, '_')) ||
+            moduleText.includes(category.replace(/\-/g, ' ')) ||
+            moduleText.includes(category.replace(/\_/g, ' '))
+          );
+        })
+      : [];
+      
+    // Get progress for these modules
+    return categoryBasedModules.map(module => {
+      const progress = Array.isArray(userProgress)
+        ? userProgress.find(p => p.moduleId === module.id) || { moduleId: module.id, progress: 0, completed: false }
+        : { moduleId: module.id, progress: 0, completed: false };
+        
       return { ...progress, module };
-    });
-  }, [userProgress, modules]);
+    }).slice(0, 3); // Limit to 3 modules
+  }, [userProgress, modules, assessments]);
   
   // Get user's recent progress to show on dashboard
   const recentProgress = useMemo(() => {
@@ -580,9 +622,9 @@ export default function Dashboard() {
               <div className="space-y-4 mt-8">
                 <h2 className="text-xl font-bold text-gray-800 flex items-center">
                   <Lightbulb className="h-5 w-5 mr-2 text-purple-600" />
-                  Your Learning Path
+                  Your Growth Priorities
                 </h2>
-                <div className="bg-white p-4 rounded-lg shadow-md">
+                <div className="mb-6">
                   <PersonalizedLearningPath 
                     assessments={assessments || []} 
                     user={user || {}} 
@@ -591,27 +633,32 @@ export default function Dashboard() {
                 </div>
               </div>
               
-              {/* Recommended Modules */}
-              <div className="space-y-4 mt-8">
-                <h2 className="text-xl font-bold text-gray-800 flex items-center">
-                  <Star className="h-5 w-5 mr-2 text-amber-500" />
-                  Recommended For You
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <MindfulMorningsCard />
-                  {recommendedModules.map((item, index) => (
-                    <div key={index}>
-                      {item.module && (
-                        <ModuleView 
-                          module={item.module} 
-                          progress={item.progress} 
-                          showCategory 
-                        />
-                      )}
-                    </div>
-                  ))}
+              {/* Modules For Your Growth */}
+              {assessments && assessments.length > 0 && (
+                <div className="space-y-4 mt-8">
+                  <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                    <Star className="h-5 w-5 mr-2 text-amber-500" />
+                    Modules For Your Growth
+                  </h2>
+                  <p className="text-neutral-600 mb-4">
+                    These modules are prioritized based on your assessment results to help you improve in your lowest-scoring areas.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <MindfulMorningsCard />
+                    {recommendedModules.map((item, index) => (
+                      <div key={index}>
+                        {item.module && (
+                          <ModuleView 
+                            module={item.module} 
+                            progress={item.progress} 
+                            showCategory 
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
               
               {/* Continue Learning */}
               {recentProgress.length > 0 && (

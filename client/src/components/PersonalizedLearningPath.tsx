@@ -3,19 +3,46 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLocation } from 'wouter';
-import { BookOpen, Star, ArrowUpRight, Award, Calendar, Timer, Zap } from 'lucide-react';
+import { BookOpen, Star, ArrowUpRight, Award, Calendar, Timer, Zap, AlertCircle } from 'lucide-react';
+
+interface AssessmentScore {
+  category: string;
+  score: number;
+  level: 'beginner' | 'developing' | 'proficient' | 'accomplished' | 'mastery';
+  description: string;
+}
+
+interface Assessment {
+  id: number;
+  userId: number;
+  overallScore: number;
+  completedAt: string;
+  scores: AssessmentScore[];
+  teacherLevel: string;
+}
 
 interface LearningPathItem {
   domainId: string;
   domainName: string;
   priority: 'high' | 'medium' | 'low' | 'suggested';
   recommendation: string;
-  moduleType: 'foundational' | 'intermediate' | 'advanced' | 'mastery';
+  score?: number;
+  level?: string;
   reason: string;
 }
 
+interface LearningModule {
+  id: number;
+  title: string;
+  category: string;
+  description: string;
+  // other module properties
+}
+
 interface PersonalizedLearningPathProps {
-  learningPath: LearningPathItem[];
+  assessments: Assessment[];
+  user: any;
+  modules: LearningModule[];
 }
 
 const getPriorityColor = (priority: string) => {
@@ -33,7 +60,47 @@ const getPriorityColor = (priority: string) => {
   }
 };
 
-const getModuleTypeIcon = (moduleType: string) => {
+const getLevelColor = (level: string): string => {
+  switch (level) {
+    case 'mastery': return '#22c55e'; // Green
+    case 'accomplished': return '#3b82f6'; // Blue
+    case 'proficient': return '#f59e0b'; // Amber
+    case 'developing': return '#ec4899'; // Pink
+    case 'beginner': return '#9333ea'; // Purple
+    default: return '#6b7280'; // Gray
+  }
+};
+
+// Return recommended module type based on proficiency level
+const getRecommendedModuleType = (level: string): string => {
+  switch (level) {
+    case 'beginner': return 'foundational';
+    case 'developing': return 'foundational';
+    case 'proficient': return 'intermediate';
+    case 'accomplished': return 'advanced';
+    case 'mastery': return 'mastery';
+    default: return 'foundational';
+  }
+};
+
+// Return appropriate recommendation text based on score
+const getRecommendationText = (category: string, score: number): string => {
+  if (score < 40) {
+    return `Focus on building fundamental knowledge in ${category}. Start with introductory modules.`;
+  } else if (score < 60) {
+    return `Strengthen your developing skills in ${category} with guided practice modules.`;
+  } else if (score < 75) {
+    return `Enhance your proficient understanding of ${category} with application-focused modules.`;
+  } else if (score < 90) {
+    return `Refine your accomplished abilities in ${category} with advanced techniques.`;
+  } else {
+    return `Continue your mastery of ${category} while supporting others' growth in this area.`;
+  }
+};
+
+const getModuleTypeIcon = (level: string) => {
+  const moduleType = getRecommendedModuleType(level);
+  
   switch (moduleType) {
     case 'foundational':
       return <BookOpen className="h-4 w-4 mr-1" />;
@@ -48,12 +115,54 @@ const getModuleTypeIcon = (moduleType: string) => {
   }
 };
 
-const PersonalizedLearningPath: React.FC<PersonalizedLearningPathProps> = ({ learningPath }) => {
+const PersonalizedLearningPath: React.FC<PersonalizedLearningPathProps> = ({ assessments, user, modules }) => {
   const [, setLocation] = useLocation();
 
-  if (!learningPath || learningPath.length === 0) {
-    return null;
+  // Get the most recent assessment
+  const latestAssessment = assessments && assessments.length > 0 
+    ? assessments.sort((a, b) => 
+        new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
+      )[0] 
+    : null;
+
+  // If no assessment found, show prompt to take assessment
+  if (!latestAssessment) {
+    return (
+      <Card className="mb-6">
+        <CardContent className="pt-6">
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <AlertCircle className="h-12 w-12 text-amber-500 mb-4" />
+            <h3 className="text-xl font-bold mb-2">Assessment Needed</h3>
+            <p className="text-muted-foreground mb-6 max-w-md">
+              Complete an assessment to receive your personalized learning path based on your specific strengths and growth areas.
+            </p>
+            <Button onClick={() => setLocation('/assessment')}>
+              Take Assessment
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
+
+  // Sort scores from lowest to highest
+  const sortedScores = [...latestAssessment.scores].sort((a, b) => a.score - b.score);
+  
+  // Generate learning path from the 3 lowest scoring categories
+  const learningPath: LearningPathItem[] = sortedScores.slice(0, 3).map((score, index) => {
+    // Determine priority based on position (lowest score = highest priority)
+    const priority = index === 0 ? 'high' : index === 1 ? 'medium' : 'low';
+    
+    return {
+      domainId: score.category.toLowerCase().replace(/\s+/g, '-'),
+      domainName: score.category,
+      priority,
+      score: score.score,
+      level: score.level,
+      recommendation: getRecommendationText(score.category, score.score),
+      reason: score.description
+    };
+  });
 
   return (
     <Card className="mb-6">
@@ -62,10 +171,10 @@ const PersonalizedLearningPath: React.FC<PersonalizedLearningPathProps> = ({ lea
           <div>
             <CardTitle className="text-xl font-bold flex items-center">
               <Star className="h-5 w-5 mr-2 text-yellow-500" />
-              Your Personalized Learning Path
+              Your Growth Priorities
             </CardTitle>
             <CardDescription>
-              Based on your assessment results, we've created a customized path for your growth
+              Based on your assessment results, focus on these key areas to improve your teaching skills
             </CardDescription>
           </div>
         </div>
@@ -73,7 +182,10 @@ const PersonalizedLearningPath: React.FC<PersonalizedLearningPathProps> = ({ lea
       <CardContent>
         <div className="space-y-4">
           {learningPath.map((item, index) => (
-            <div key={index} className="border rounded-lg p-4 hover:bg-neutral-50 transition-all">
+            <div key={index} 
+              className="border rounded-lg p-4 hover:bg-neutral-50 transition-all"
+              style={{ borderLeftWidth: '4px', borderLeftColor: getLevelColor(item.level || 'beginner') }}
+            >
               <div className="flex justify-between items-start mb-2">
                 <h4 className="font-semibold text-lg">{item.domainName}</h4>
                 <Badge className={`${getPriorityColor(item.priority)} capitalize`}>
@@ -83,12 +195,25 @@ const PersonalizedLearningPath: React.FC<PersonalizedLearningPathProps> = ({ lea
                 </Badge>
               </div>
               
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-full bg-secondary/30 rounded-full h-2">
+                  <div 
+                    className="h-2 rounded-full transition-all duration-1000 ease-out" 
+                    style={{ 
+                      width: `${item.score}%`,
+                      backgroundColor: getLevelColor(item.level || 'beginner')
+                    }}
+                  />
+                </div>
+                <span className="text-sm font-medium w-12 text-right">{item.score}%</span>
+              </div>
+              
               <p className="text-neutral-700 mb-3">{item.recommendation}</p>
               
               <div className="flex items-center text-sm text-neutral-500 mb-3">
                 <div className="flex items-center mr-4">
-                  {getModuleTypeIcon(item.moduleType)}
-                  <span className="capitalize">{item.moduleType}</span>
+                  {getModuleTypeIcon(item.level || 'beginner')}
+                  <span className="capitalize">{getRecommendedModuleType(item.level || 'beginner')}</span>
                 </div>
                 <span className="text-sm italic">{item.reason}</span>
               </div>
