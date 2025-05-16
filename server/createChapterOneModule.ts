@@ -26,6 +26,7 @@ export async function createChapterOneModule() {
     title: "Chapter 1: Building a Human",
     description: "Explore the science of early childhood development, trauma, attachment, and how preschool teachers can positively impact brain development and lifelong outcomes. This required training provides essential knowledge for all early childhood educators.",
     duration: 50,
+    pointValue: 20, // Assign 20 points for completing this required module
     imageUrl: "/assets/mindful-mornings-logo.jpg", // Placeholder image, should update later
     featured: true,
     difficulty: "beginner",
