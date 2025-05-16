@@ -126,7 +126,7 @@ export default function Login() {
       // Add a slight delay before redirect to ensure toast is seen
       setTimeout(() => {
         // Redirect to dashboard using direct window location for more reliable navigation
-        window.location.href = "/dashboard";
+        window.location.href = "/";
       }, 800);
     },
     onError: (error: any) => {
