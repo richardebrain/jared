@@ -101,11 +101,58 @@ export default {
             opacity: "0"
           },
         },
+        "shine": {
+          "0%": {
+            transform: "translateX(-100%) skewX(-20deg)",
+          },
+          "100%": {
+            transform: "translateX(200%) skewX(-20deg)",
+          },
+        },
+        "spin-slow": {
+          "0%": {
+            transform: "rotate(0deg)",
+          },
+          "100%": {
+            transform: "rotate(360deg)",
+          },
+        },
+        "reverse-spin-slow": {
+          "0%": {
+            transform: "rotate(0deg)",
+          },
+          "100%": {
+            transform: "rotate(-360deg)",
+          },
+        },
+        "pulse-slow": {
+          "0%": {
+            opacity: "0.6",
+          },
+          "50%": {
+            opacity: "1",
+          },
+          "100%": {
+            opacity: "0.6",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "bounce-slide-up": "bounce-slide-up 3s ease-in-out forwards",
+        "shine": "shine 3s ease-in-out infinite",
+        "spin-slow": "spin-slow 12s linear infinite",
+        "reverse-spin-slow": "reverse-spin-slow 14s linear infinite",
+        "pulse-slow": "pulse-slow 3s ease-in-out infinite",
+      },
+      boxShadow: {
+        'glow-red': '0 0 15px 5px rgba(239, 68, 68, 0.3)',
+        'glow-blue': '0 0 15px 5px rgba(59, 130, 246, 0.3)',
+        'glow-amber': '0 0 15px 5px rgba(245, 158, 11, 0.3)',
+        'glow-green': '0 0 15px 5px rgba(16, 185, 129, 0.3)',
+        'glow-indigo': '0 0 15px 5px rgba(99, 102, 241, 0.3)',
+        'glow-pink': '0 0 15px 5px rgba(236, 72, 153, 0.3)',
       },
     },
   },
