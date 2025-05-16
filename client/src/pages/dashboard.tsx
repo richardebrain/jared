@@ -363,7 +363,7 @@ export default function Dashboard() {
                   
                   <div className="relative flex items-center justify-center">
                     <span className="mr-3 text-yellow-200 text-xl">🎮</span>
-                    <span className="text-white font-game text-sm md:text-base tracking-wider pb-1">DAILY REWARDS & GAMES!</span>
+                    <span className="text-white font-game text-sm md:text-base tracking-wider pb-1">BONUS GAMES!</span>
                     <span className="ml-3 text-yellow-200 text-xl">🎰</span>
                   </div>
                   
