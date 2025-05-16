@@ -13,7 +13,8 @@ import {
   Lightbulb,
   BookOpen,
   Clock,
-  Filter
+  Filter,
+  RefreshCw
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -944,6 +945,13 @@ export function UltimateEscalator() {
               </DialogHeader>
               
               <div className="py-4">
+                <div className="p-4 rounded-lg bg-amber-50 text-amber-800 mb-6">
+                  <p className="flex items-start text-sm">
+                    <AlertTriangle className="h-5 w-5 mr-2 flex-shrink-0" />
+                    <span>You must score 80% or higher on this challenge to earn points!</span>
+                  </p>
+                </div>
+                
                 <div className="mb-6">
                   <h3 className="font-medium text-lg mb-4">{currentQuestions[currentQuestionIndex]?.question}</h3>
                   
@@ -1052,8 +1060,20 @@ export function UltimateEscalator() {
                 </div>
               </div>
               
-              <DialogFooter>
-                <Button onClick={() => setShowChallengeDialog(false)}>Close</Button>
+              <DialogFooter className="flex flex-col sm:flex-row gap-3 justify-between">
+                {challengeScore < 80 && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => startChallenge(selectedChallenge!)}
+                    className="gap-2"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    Retake Challenge
+                  </Button>
+                )}
+                <Button onClick={() => setShowChallengeDialog(false)}>
+                  {challengeScore >= 80 ? 'Close' : 'Close (No Points Earned)'}
+                </Button>
               </DialogFooter>
             </>
           )}
