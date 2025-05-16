@@ -1,0 +1,1 @@
+run = "bash -lc 'python3 backend/main.py'"
