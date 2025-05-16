@@ -1467,6 +1467,29 @@ export class DatabaseStorage implements IStorage {
       
     return completion;
   }
+  
+  async getGame(gameId: number): Promise<typeof educationalGames.$inferSelect | undefined> {
+    const [game] = await db
+      .select()
+      .from(educationalGames)
+      .where(eq(educationalGames.id, gameId));
+    
+    return game;
+  }
+  
+  async getUserGamePlayToday(userId: number, today: Date): Promise<GameCompletion[]> {
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    return db
+      .select()
+      .from(gameCompletions)
+      .where(and(
+        eq(gameCompletions.userId, userId),
+        gte(gameCompletions.completedAt, today),
+        lt(gameCompletions.completedAt, tomorrow)
+      ));
+  }
 }
 
 // Export a new instance of DatabaseStorage

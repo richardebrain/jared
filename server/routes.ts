@@ -817,29 +817,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.session.userId as number;
       const gameId = parseInt(req.params.gameId);
-      const { score, timeSpent } = req.body;
+      const { score, timeTaken } = req.body;
       
-      if (score === undefined || timeSpent === undefined) {
-        return res.status(400).json({ message: "Score and time spent are required" });
+      if (score === undefined || timeTaken === undefined) {
+        return res.status(400).json({ message: "Score and time taken are required" });
       }
       
-      // Check if user has already played 2 games today
+      // Check if user has already played a game today
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
-      const userGamePlayToday = await storage.getUserGamePlayToday(userId, today);
+      // Get user's game history
+      const gameHistory = await storage.getUserGameHistory(userId);
       
-      if (userGamePlayToday.length >= 2) {
+      // Check if any game was played today
+      const played = gameHistory.some(game => 
+        new Date(game.completedAt).toISOString().slice(0, 10) === today.toISOString().slice(0, 10)
+      );
+      
+      if (played) {
         return res.status(400).json({ 
-          message: "You can only earn points for 2 games per day",
+          message: "You can only play one bonus game per day",
           remaining: 0
         });
-      }
-      
-      // Get the game
-      const game = await storage.getGame(gameId);
-      if (!game) {
-        return res.status(404).json({ message: "Game not found" });
       }
       
       // Calculate points based on score (simplified example)
@@ -850,7 +850,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId,
         gameId,
         score,
-        timeSpent,
+        timeTaken,
         pointsEarned
       });
       
@@ -860,7 +860,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json({ 
         success: true, 
         gamePlay,
-        remaining: 2 - (userGamePlayToday.length + 1) // Remaining games for today
+        remaining: 0 // No more games for today since we limit to one per day
       });
     } catch (error) {
       console.error("Error recording game play:", error);
