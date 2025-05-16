@@ -701,8 +701,7 @@ export default function Dashboard() {
                     {/* Recent Core Values Shout Outs */}
                     <RecentShoutOuts />
                     
-                    {/* Admin Tools */}
-                    <AdminTools />
+                    {/* Admin Tools removed from main dashboard for non-admin users */}
                     
                     {/* Core Values Shout Out Button */}
                     <div className="mt-4">
