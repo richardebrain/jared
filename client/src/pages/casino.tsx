@@ -70,24 +70,33 @@ export default function CasinoPage() {
       localStorage.setItem('lastGamePlayedDate', today);
       setDailyGameUsed(true);
       
-      // Update points via API
-      const response = await fetch('/api/rewards/points', {
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+      
+      // Record game play first to mark it as used for the day
+      await fetch('/api/games/played/1', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ points }),
+        body: JSON.stringify({ 
+          score: points * 10, // Score is just a multiplier of points for tracking
+          timeTaken: 30 // Default time spent in seconds
+        }),
       });
       
-      if (response.ok) {
-        toast({
-          title: "Points Added!",
-          description: `${points} points have been added to your account!`,
-        });
-        
-        // Refresh user data to show updated points
-        window.setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-      }
+      toast({
+        title: "Points Added!",
+        description: `${points} points have been added to your account!`,
+      });
+      
+      // Invalidate queries to refresh user data across all components
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/games/history"] });
+      
+      // Redirect to dashboard to see updated points
+      window.setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 1500);
     } catch (error) {
       console.error('Error awarding points:', error);
       toast({
