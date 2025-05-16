@@ -87,14 +87,37 @@ interface Question {
   explanation?: string; // For internal reference, not shown to user
 }
 
-// Early childhood education domains
+// Early childhood education domains - expanded to 18 categories based on ITERS/ECERS and CLASS assessment frameworks
 const domains = [
+  // ITERS/ECERS Categories
+  { id: 'space-furnishings', name: 'Space & Furnishings', icon: ClipboardList },
+  { id: 'personal-care', name: 'Personal Care Routines', icon: AlertCircle },
+  { id: 'language-reasoning', name: 'Language & Reasoning', icon: ClipboardList },
+  { id: 'activities', name: 'Activities', icon: Award },
+  
+  // CLASS Categories
+  { id: 'emotional-support', name: 'Emotional Support', icon: Star },
+  { id: 'classroom-organization', name: 'Classroom Organization', icon: ClipboardList },
+  { id: 'instructional-support', name: 'Instructional Support', icon: Award },
+  
+  // Knowledge Categories
   { id: 'child-development', name: 'Child Development', icon: ClipboardList },
-  { id: 'curriculum-planning', name: 'Curriculum & Planning', icon: Award },
+  { id: 'curriculum', name: 'Curriculum', icon: Award },
+  { id: 'behavior-management', name: 'Behavior Management', icon: AlertTriangle },
+  { id: 'literacy', name: 'Literacy', icon: ClipboardList },
   { id: 'social-emotional', name: 'Social-Emotional Learning', icon: Star },
-  { id: 'health-safety', name: 'Health & Safety', icon: AlertCircle },
+  
+  // Experience Categories
+  { id: 'experience-level', name: 'Experience Level', icon: Award },
+  { id: 'education', name: 'Education', icon: ClipboardList },
+  { id: 'professional-development', name: 'Professional Development', icon: Star },
+  { id: 'age-group-experience', name: 'Age Group Experience', icon: ClipboardList },
+  { id: 'professional-goals', name: 'Professional Goals', icon: Star },
+  
+  // Core Training Modules
   { id: 'chapter-one', name: 'Building Chapter One', icon: Star },
   { id: 'mindful-teaching', name: 'Mindful Teaching', icon: ClipboardList },
+  { id: 'core-values', name: 'Raising Arizona\'s CORE Values', icon: Award },
 ];
 
 // Define adaptive assessment questions with increasing difficulty
