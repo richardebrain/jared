@@ -4,6 +4,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { 
   Sparkles, 
   Users, 
@@ -456,17 +459,27 @@ export default function AdminDashboard() {
                           </Badge>
                         </td>
                         <td className="p-2">
-                          <div className="flex items-center">
-                            <input 
-                              type="checkbox" 
-                              id={`admin-${user.id}`}
-                              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                              checked={user.isAdmin}
-                              onChange={() => console.log('Toggle admin status for', user.id)}
-                            />
-                            <label htmlFor={`admin-${user.id}`} className="ml-2 text-sm text-muted-foreground">
-                              Director
-                            </label>
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center space-x-2">
+                              <Switch 
+                                id={`director-${user.id}`} 
+                                checked={user.isAdmin} 
+                                onCheckedChange={() => console.log('Toggle director access for', user.id)}
+                              />
+                              <Label htmlFor={`director-${user.id}`} className="text-sm text-muted-foreground">
+                                Director
+                              </Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Switch 
+                                id={`owner-${user.id}`} 
+                                checked={user.isOwner} 
+                                onCheckedChange={() => console.log('Toggle owner access for', user.id)}
+                              />
+                              <Label htmlFor={`owner-${user.id}`} className="text-sm text-muted-foreground">
+                                Owner
+                              </Label>
+                            </div>
                           </div>
                         </td>
                         <td className="p-2">
@@ -530,6 +543,58 @@ export default function AdminDashboard() {
                                 </AlertDialogFooter>
                               </AlertDialogContent>
                             </AlertDialog>
+                            
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 gap-1"
+                                >
+                                  <BookOpen className="h-3.5 w-3.5" />
+                                  Assign Modules
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Assign Training Modules</DialogTitle>
+                                  <DialogDescription>
+                                    Assign specific training modules to {user.firstName} {user.lastName}.
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4 py-4">
+                                  <div className="grid gap-4">
+                                    <div className="flex items-center gap-2">
+                                      <Checkbox id={`core-module-${user.id}`} defaultChecked />
+                                      <label htmlFor={`core-module-${user.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                        Raising Arizona's CORE Values
+                                      </label>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <Checkbox id={`chapter-one-${user.id}`} defaultChecked />
+                                      <label htmlFor={`chapter-one-${user.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                        Chapter 1: Building a Human
+                                      </label>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <Checkbox id={`mindful-morning-${user.id}`} />
+                                      <label htmlFor={`mindful-morning-${user.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                        Mindful Morning
+                                      </label>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <Checkbox id={`classroom-mgmt-${user.id}`} />
+                                      <label htmlFor={`classroom-mgmt-${user.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                        Classroom Management
+                                      </label>
+                                    </div>
+                                  </div>
+                                </div>
+                                <DialogFooter>
+                                  <Button type="submit" onClick={() => toast({ description: "Modules assigned successfully" })}>Save Assignments</Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
                             
                             <Dialog>
                               <DialogTrigger asChild>
