@@ -35,6 +35,7 @@ import MediaSidebar from "@/components/MediaSidebar";
 import AdminTools from "@/components/AdminTools";
 import DailyChallenge from "@/components/DailyChallenge";
 import AchievementPopup from "@/components/AchievementPopup";
+import PersonalizedLearningPath from "@/components/PersonalizedLearningPath";
 
 export default function Dashboard() {
   const [location, setLocation] = useLocation();
