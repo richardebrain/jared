@@ -394,6 +394,142 @@ const assessmentQuestions: Question[] = [
     explanation: 'Expert practice treats transitions as meaningful learning experiences rather than just moving between activities. This includes using visual and auditory cues, embedding learning (songs, fingerplays, movement), providing individualized support, teaching time concepts, and designing the schedule to minimize waiting while maintaining predictability.'
   },
   
+  // Activities - Beginner Level
+  {
+    id: 'act-b-1',
+    text: 'Which of the following is most important when selecting materials for art activities?',
+    domain: 'activities',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'Using only washable materials', 
+      'Providing open-ended materials that allow for creativity and self-expression', 
+      'Ensuring all children make similar finished products', 
+      'Using primarily pre-made craft kits'
+    ],
+    correctAnswer: 'Providing open-ended materials that allow for creativity and self-expression',
+    required: true,
+    explanation: 'High-quality art activities focus on the process rather than the product, with open-ended materials allowing children to express themselves creatively.'
+  },
+  {
+    id: 'act-b-2',
+    text: 'What is the primary purpose of block play in early childhood?',
+    domain: 'activities',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'To keep children busy during free play times', 
+      'To teach specific architectural concepts', 
+      'To support development across multiple domains including spatial awareness, math, problem-solving, and social skills', 
+      'To prepare children for construction careers'
+    ],
+    correctAnswer: 'To support development across multiple domains including spatial awareness, math, problem-solving, and social skills',
+    required: true,
+    explanation: 'Block play is a foundational early childhood activity that supports spatial reasoning, mathematical thinking, physics concepts, problem-solving, language development, and social skills.'
+  },
+  
+  // Activities - Intermediate Level
+  {
+    id: 'act-i-1',
+    text: 'How should dramatic play areas be set up to maximize learning?',
+    domain: 'activities',
+    type: 'multiple-choice',
+    difficulty: 'intermediate',
+    options: [
+      'With all materials displayed on open shelves without any thematic arrangement', 
+      'With realistic props organized in meaningful thematic setups that reflect children\'s experiences', 
+      'With teacher-directed dramatic play scenarios changed daily', 
+      'With primarily electronic toys that simulate real-life experiences'
+    ],
+    correctAnswer: 'With realistic props organized in meaningful thematic setups that reflect children\'s experiences',
+    required: true,
+    explanation: 'Effective dramatic play areas include realistic props organized in ways that reflect children\'s real-life experiences and community contexts, with materials rotated based on children\'s interests and curriculum goals.'
+  },
+  {
+    id: 'act-i-2',
+    text: 'What characterizes high-quality science activities in early childhood?',
+    domain: 'activities',
+    type: 'multiple-choice',
+    difficulty: 'intermediate',
+    options: [
+      'Teacher demonstrations of scientific principles without hands-on exploration', 
+      'Memorization of scientific facts appropriate for young children', 
+      'Opportunities for active exploration, observation, prediction, and experimentation with natural materials', 
+      'Activities limited to designated science time in the weekly schedule'
+    ],
+    correctAnswer: 'Opportunities for active exploration, observation, prediction, and experimentation with natural materials',
+    required: true,
+    explanation: 'Effective early childhood science experiences involve hands-on exploration, observation, questioning, predicting, experimenting, and reflecting—with teachers facilitating children\'s natural curiosity rather than simply presenting facts.'
+  },
+  
+  // Activities - Advanced Level
+  {
+    id: 'act-a-1',
+    text: 'What approach to technology use best supports young children\'s development?',
+    domain: 'activities',
+    type: 'multiple-choice',
+    difficulty: 'advanced',
+    options: [
+      'Maximizing screen time to prepare children for the digital world', 
+      'Avoiding all technology use with young children', 
+      'Using technology intentionally as one of many tools, with active adult mediation and emphasis on creation rather than passive consumption', 
+      'Focusing on educational apps and games as the primary learning activity'
+    ],
+    correctAnswer: 'Using technology intentionally as one of many tools, with active adult mediation and emphasis on creation rather than passive consumption',
+    required: true,
+    explanation: 'Developmentally appropriate technology use is intentional, involves active adult mediation, emphasizes creation over consumption, connects to real-world experiences, and is just one of many learning tools rather than dominating children\'s experiences.'
+  },
+  {
+    id: 'act-a-2',
+    text: 'How should outdoor activities be structured in a high-quality early childhood program?',
+    domain: 'activities',
+    type: 'multiple-choice',
+    difficulty: 'advanced',
+    options: [
+      'As primarily recess time with minimal teacher involvement', 
+      'With a focus on organized sports and games led by teachers', 
+      'By bringing indoor activities outside on nice days', 
+      'As an extension of the learning environment with natural elements, varied terrain, and open-ended materials for exploration'
+    ],
+    correctAnswer: 'As an extension of the learning environment with natural elements, varied terrain, and open-ended materials for exploration',
+    required: true,
+    explanation: 'High-quality outdoor experiences view the outdoors as an extension of the learning environment—providing diverse natural elements, varied terrain, open-ended materials, and opportunities for appropriate risk-taking, physical development, and nature connection.'
+  },
+  
+  // Activities - Expert Level
+  {
+    id: 'act-e-1',
+    text: 'Which approach to math activities best reflects current research on mathematical development in young children?',
+    domain: 'activities',
+    type: 'multiple-choice',
+    difficulty: 'expert',
+    options: [
+      'Focusing on rote counting and numeral recognition to build foundational skills', 
+      'Delaying mathematical instruction until children show readiness for abstract thinking', 
+      'Integrating mathematical thinking throughout the day in meaningful contexts, building on children\'s informal mathematical knowledge', 
+      'Using primarily worksheet-based instruction to ensure school readiness'
+    ],
+    correctAnswer: 'Integrating mathematical thinking throughout the day in meaningful contexts, building on children\'s informal mathematical knowledge',
+    required: true,
+    explanation: 'Expert math instruction recognizes that young children develop significant informal mathematical knowledge before formal schooling. It builds on this knowledge by integrating mathematical concepts in meaningful contexts, using spatial and geometric thinking alongside number concepts, and employing intentional math talk throughout the day rather than isolating math to specific lessons.'
+  },
+  {
+    id: 'act-e-2',
+    text: 'How should a master teacher approach the integration of diverse cultural perspectives in activities?',
+    domain: 'activities',
+    type: 'multiple-choice',
+    difficulty: 'expert',
+    options: [
+      'By designating specific days for multicultural activities throughout the year', 
+      'By providing general activities that are culturally neutral to be inclusive to all', 
+      'By authentically embedding multiple cultural perspectives in everyday activities and materials, involving families, and critically examining biases in resources', 
+      'By focusing on universal childhood themes that transcend cultural differences'
+    ],
+    correctAnswer: 'By authentically embedding multiple cultural perspectives in everyday activities and materials, involving families, and critically examining biases in resources',
+    required: true,
+    explanation: 'Expert practice involves embedding diverse cultural perspectives authentically in everyday experiences rather than as special events, engaging families as cultural resources, critically examining resources for bias and stereotypes, reflecting children\'s lived experiences, and addressing issues of equity and representation in ways that are developmentally appropriate.'
+  },
+  
   // Language & Reasoning - Beginner Level
   {
     id: 'lr-b-1',
