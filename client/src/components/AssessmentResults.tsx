@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { AlertCircle, Award, ChevronRight, ClipboardList, Download, RefreshCw, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { useRouter } from "wouter";
+import { useLocation } from "wouter";
 
 type AssessmentScore = {
   category: string;
@@ -59,7 +59,7 @@ interface AssessmentResultsProps {
 }
 
 export default function AssessmentResults({ assessmentData, onStartReassessment }: AssessmentResultsProps) {
-  const [, navigate] = useRouter();
+  const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState<'graph' | 'details' | 'learning-path'>('graph');
   
   // Sort scores by category for consistent display
@@ -405,7 +405,7 @@ export default function AssessmentResults({ assessmentData, onStartReassessment 
                     </div>
                     <Button 
                       className="flex items-center gap-1"
-                      onClick={() => navigate('/dashboard')}
+                      onClick={() => setLocation('/dashboard')}
                     >
                       View Learning Path <ChevronRight className="h-4 w-4" />
                     </Button>
@@ -518,7 +518,7 @@ export default function AssessmentResults({ assessmentData, onStartReassessment 
                 
                 <Button 
                   className="w-full flex items-center justify-center gap-2"
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => setLocation('/dashboard')}
                 >
                   Go to Dashboard
                   <ChevronRight className="h-4 w-4" />
