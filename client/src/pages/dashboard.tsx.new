@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { User } from "@shared/schema";
 import { Link, useLocation } from "wouter";
 import Header from "@/components/Header";
@@ -43,7 +43,6 @@ export default function Dashboard() {
   const [showMindfulnessReminder, setShowMindfulnessReminder] = useState(false);
   
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   
   // Fetch authenticated user
   const { data: user } = useQuery({
@@ -68,12 +67,6 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
-  // Fetch game history to check if games have been played today
-  const { data: gameHistory } = useQuery({
-    queryKey: ["/api/games/history"],
-    enabled: !!user,
-  });
-
   // Fetch Core Values shoutouts
   const { data: coreValuesShoutouts } = useQuery({
     queryKey: ["/api/core-values-shoutouts"], 
@@ -88,38 +81,14 @@ export default function Dashboard() {
   // Check if the user has completed the Core Values module (ID: 33)
   const hasCoreValuesComplete = useMemo(() => {
     if (!userProgress) return false;
-    return Array.isArray(userProgress) && userProgress.some((progress) => progress.moduleId === 33 && progress.completed);
+    return Array.isArray(userProgress) && userProgress.some((progress: any) => progress.moduleId === 33 && progress.completed);
   }, [userProgress]);
   
   // Check if Mindful Mornings module is completed (ID: 28)
   const hasMindfulMorningsComplete = useMemo(() => {
     if (!userProgress) return false;
-    return Array.isArray(userProgress) && userProgress.some((progress) => progress.moduleId === 28 && progress.completed);
+    return Array.isArray(userProgress) && userProgress.some((progress: any) => progress.moduleId === 28 && progress.completed);
   }, [userProgress]);
-
-  // Check if a bonus game has been played today via localStorage or gameHistory
-  const bonusGamePlayedToday = useMemo(() => {
-    // Check localStorage first (for immediate feedback after playing)
-    const lastPlayedDate = localStorage.getItem("lastGamePlayedDate");
-    const today = new Date().toDateString();
-    if (lastPlayedDate === today) {
-      return true;
-    }
-
-    // Then check game history from API
-    if (gameHistory && Array.isArray(gameHistory) && gameHistory.length > 0) {
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
-      
-      return gameHistory.some(game => {
-        if (!game.completedAt) return false;
-        const gameDate = new Date(game.completedAt);
-        return gameDate >= todayStart;
-      });
-    }
-    
-    return false;
-  }, [gameHistory]);
 
   // Set points target based on current points
   const pointsTarget = useMemo(() => {
@@ -139,17 +108,6 @@ export default function Dashboard() {
       localStorage.removeItem('moduleCompletionState');
     }
   }, []);
-
-  // Refresh points when coming back from casino page
-  useEffect(() => {
-    const lastPointsEarned = localStorage.getItem('lastPointsEarned');
-    if (lastPointsEarned) {
-      // If there were points earned in a game, refresh user data
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/games/history"] });
-      localStorage.removeItem('lastPointsEarned');
-    }
-  }, [queryClient]);
   
   // Calculate Bear Bucks Conversion info
   const bearBucksInfo = useMemo(() => {
@@ -171,25 +129,25 @@ export default function Dashboard() {
   // Check if any recommended modules are available
   const hasRecommendedModules = useMemo(() => {
     if (!userProgress) return false;
-    return Array.isArray(userProgress) && userProgress.some((progress) => progress.recommended);
+    return Array.isArray(userProgress) && userProgress.some((progress: any) => progress.recommended);
   }, [userProgress]);
   
   // Get the featured module
   const featuredModule = useMemo(() => {
     if (!modules) return null;
-    return Array.isArray(modules) && modules.find((m) => m.featured);
+    return Array.isArray(modules) && modules.find((m: any) => m.featured);
   }, [modules]);
   
   // Get recommended modules
   const recommendedModules = useMemo(() => {
     if (!userProgress || !modules) return [];
     const recommended = Array.isArray(userProgress) 
-      ? userProgress.filter((p) => p.recommended)
+      ? userProgress.filter((p: any) => p.recommended)
       : [];
     
-    return recommended.map((progress) => {
+    return recommended.map((progress: any) => {
       const module = Array.isArray(modules) 
-        ? modules.find((m) => m.id === progress.moduleId)
+        ? modules.find((m: any) => m.id === progress.moduleId)
         : null;
       return { ...progress, module };
     });
@@ -201,11 +159,11 @@ export default function Dashboard() {
     
     // Only get incomplete modules with some progress
     const inProgress = Array.isArray(userProgress) 
-      ? userProgress.filter((p) => !p.completed && p.progress > 0)
+      ? userProgress.filter((p: any) => !p.completed && p.progress > 0)
       : [];
     
     // Sort by last accessed, most recent first
-    const sorted = [...inProgress].sort((a, b) => {
+    const sorted = [...inProgress].sort((a: any, b: any) => {
       return new Date(b.lastAccessed).getTime() - new Date(a.lastAccessed).getTime();
     });
     
@@ -213,9 +171,9 @@ export default function Dashboard() {
     const recent = sorted.slice(0, 3);
     
     // Attach module data
-    return recent.map((progress) => {
+    return recent.map((progress: any) => {
       const module = Array.isArray(modules) 
-        ? modules.find((m) => m.id === progress.moduleId)
+        ? modules.find((m: any) => m.id === progress.moduleId)
         : null;
       return { ...progress, module };
     });
@@ -224,17 +182,17 @@ export default function Dashboard() {
   // Check if Chapter 1 (ID:34) is complete
   const hasChapterOneComplete = useMemo(() => {
     if (!userProgress) return false;
-    return Array.isArray(userProgress) && userProgress.some((progress) => progress.moduleId === 34 && progress.completed);
+    return Array.isArray(userProgress) && userProgress.some((progress: any) => progress.moduleId === 34 && progress.completed);
   }, [userProgress]);
   
   // Core Values Module card
   const CoreValuesCard = () => {
-    const coreValuesModule = Array.isArray(modules) && modules.find((m) => m.id === 33);
+    const coreValuesModule = Array.isArray(modules) && modules.find((m: any) => m.id === 33);
     
     if (!coreValuesModule) return null;
     
     const progress = Array.isArray(userProgress) 
-      ? userProgress.find((p) => p.moduleId === 33)
+      ? userProgress.find((p: any) => p.moduleId === 33)
       : null;
     
     const progressValue = progress ? progress.progress : 0;
@@ -282,12 +240,12 @@ export default function Dashboard() {
   
   // Mindful Mornings Card
   const MindfulMorningsCard = () => {
-    const mindfulModule = Array.isArray(modules) && modules.find((m) => m.id === 28);
+    const mindfulModule = Array.isArray(modules) && modules.find((m: any) => m.id === 28);
     
     if (!mindfulModule) return null;
     
     const progress = Array.isArray(userProgress) 
-      ? userProgress.find((p) => p.moduleId === 28)
+      ? userProgress.find((p: any) => p.moduleId === 28)
       : null;
     
     const progressValue = progress ? progress.progress : 0;
@@ -335,12 +293,12 @@ export default function Dashboard() {
   
   // Chapter 1 Card
   const ChapterOneCard = () => {
-    const chapterOneModule = Array.isArray(modules) && modules.find((m) => m.id === 34);
+    const chapterOneModule = Array.isArray(modules) && modules.find((m: any) => m.id === 34);
     
     if (!chapterOneModule) return null;
     
     const progress = Array.isArray(userProgress) 
-      ? userProgress.find((p) => p.moduleId === 34)
+      ? userProgress.find((p: any) => p.moduleId === 34)
       : null;
     
     const progressValue = progress ? progress.progress : 0;
@@ -458,7 +416,7 @@ export default function Dashboard() {
                       </div>
                     </Link>
                     
-                    {user && (Array.isArray(userProgress) && userProgress.some((p) => p.completed === true)) ? (
+                    {user && (Array.isArray(userProgress) && userProgress.some((p: any) => p.completed === true)) ? (
                       <BonusGamesButton />
                     ) : (
                       <div className="group relative overflow-hidden bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700 text-white font-bold py-3 px-6 rounded-xl border-2 border-gray-400 opacity-90">
@@ -478,7 +436,7 @@ export default function Dashboard() {
                       </div>
                     )}
                   </div>
-                </CardContent>
+                </div>
               </Card>
               
               {/* Bear Bucks and Points Progress Bar */}
@@ -564,7 +522,7 @@ export default function Dashboard() {
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <MindfulMorningsCard />
-                  {recommendedModules.map((item, index) => (
+                  {recommendedModules.map((item: any, index: number) => (
                     <div key={index}>
                       {item.module && (
                         <ModuleView 
@@ -586,7 +544,7 @@ export default function Dashboard() {
                     Continue Learning
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {recentProgress.map((item, index) => (
+                    {recentProgress.map((item: any, index: number) => (
                       <div key={index}>
                         {item.module && (
                           <ModuleView 
@@ -619,7 +577,7 @@ export default function Dashboard() {
                         <span className="text-sm">Modules Completed</span>
                       </div>
                       <Badge variant="secondary">
-                        {Array.isArray(userProgress) ? userProgress.filter((p) => p.completed).length : 0}
+                        {Array.isArray(userProgress) ? userProgress.filter((p: any) => p.completed).length : 0}
                       </Badge>
                     </div>
                     
