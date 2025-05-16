@@ -28,7 +28,7 @@ import Leaderboard from "@/components/Leaderboard";
 import SimpleLeaderboard from "@/components/SimpleLeaderboard";
 import RecentShoutOuts from "@/components/RecentShoutOuts";
 import BearAssistant from "@/components/BearAssistant";
-import { MiniLessons } from "@/components/MiniLessons";
+import { UltimateEscalator } from "@/components/UltimateEscalator";
 import MediaSidebar from "@/components/MediaSidebar";
 import AdminTools from "@/components/AdminTools";
 
@@ -734,7 +734,7 @@ export default function Dashboard() {
                 </div>
                 
                 {/* Mini-Lessons Section */}
-                <MiniLessons />
+                <UltimateEscalator />
                 
                 {/* Dashboard Tools and Stats Section */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">

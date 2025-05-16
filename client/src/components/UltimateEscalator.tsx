@@ -455,18 +455,20 @@ export function UltimateEscalator() {
       
       // Calculate earned points based on score and challenge difficulty
       const pointsMultiplier = score / 100;
-      const points = Math.round(selectedChallenge!.points * pointsMultiplier);
+      const points = selectedChallenge ? Math.round(selectedChallenge.points * pointsMultiplier) : 0;
       setEarnedPoints(points);
       
       setChallengeCompleted(true);
       setShowResults(true);
       
       // Submit challenge completion
-      completeChallengeMutation.mutate({
-        challengeId: selectedChallenge!.id,
-        score,
-        earnedPoints: points
-      });
+      if (selectedChallenge) {
+        completeChallengeMutation.mutate({
+          challengeId: selectedChallenge.id,
+          score,
+          earnedPoints: points
+        });
+      }
     }
   };
 
@@ -524,10 +526,8 @@ export function UltimateEscalator() {
                             {challenge.points} points
                           </Badge>
                           
-                          <Badge variant={challenge.status === 'locked' ? "secondary" : 
-                                 challenge.status === 'completed' ? "success" : 
-                                 "outline"} 
-                                 className="text-xs">
+                          <Badge variant={challenge.status === 'locked' ? "secondary" : "outline"} 
+                                 className={`text-xs ${challenge.status === 'completed' ? "bg-green-500 hover:bg-green-500/80 text-white" : ""}`}>
                             {challenge.status === 'locked' ? (
                               <>
                                 <AlertTriangle className="h-3 w-3 mr-1" />
