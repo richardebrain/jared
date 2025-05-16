@@ -63,6 +63,7 @@ export function UltimateEscalator() {
   const [showResults, setShowResults] = useState(false);
   const [activeTab, setActiveTab] = useState('beginner');
   const [activeTopic, setActiveTopic] = useState('all');
+  const [showAllChallenges, setShowAllChallenges] = useState(false);
 
   // Mock user progress data - this would come from the API in a real app
   const { data: userProgress, isLoading: loadingProgress } = useQuery({
@@ -312,8 +313,15 @@ export function UltimateEscalator() {
     (activeTopic === 'all' || challenge.category === activeTopic)
   );
 
+  // Limit the number of initial challenges to display
+  const MAX_INITIAL_CHALLENGES = 3;
+  const displayedChallenges = showAllChallenges ? filteredChallenges : filteredChallenges.slice(0, MAX_INITIAL_CHALLENGES);
+  
   // Show empty state if no challenges match current filters
   const showEmptyState = filteredChallenges.length === 0;
+  
+  // Determine if we need to show the "See More" button
+  const hasMoreChallenges = filteredChallenges.length > MAX_INITIAL_CHALLENGES;
 
   // Mock complete a challenge
   const completeChallengeMutation = useMutation({
@@ -811,7 +819,7 @@ export function UltimateEscalator() {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredChallenges.map(challenge => (
+              {displayedChallenges.map(challenge => (
                 <Card key={challenge.id} className="overflow-hidden">
                   <div className={`p-4 ${
                     challenge.difficulty === 'beginner' ? 'bg-green-50' :
