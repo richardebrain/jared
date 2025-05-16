@@ -203,7 +203,7 @@ function Router() {
       </Route>
       
       <Route path="/">
-        {isAuthenticated ? <Dashboard /> : <Login />}
+        {isAuthenticated ? <Dashboard /> : <LandingPage />}
       </Route>
       
       <Route>
