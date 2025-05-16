@@ -35,6 +35,64 @@ import AdminTools from "@/components/AdminTools";
 import DailyChallenge from "@/components/DailyChallenge";
 import AchievementPopup from "@/components/AchievementPopup";
 
+// Component to handle the Bonus Games button state
+const BonusGamesButton = () => {
+  // Get the game history to check if daily game has been used
+  const { data: gameHistory = [] } = useQuery({
+    queryKey: ["/api/user/game-history"],
+  });
+  
+  // Check if there's a game play recorded for today
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const dailyGameUsed = Array.isArray(gameHistory) && gameHistory.some((game: any) => 
+    new Date(game.playedAt).toISOString().slice(0, 10) === today
+  );
+  
+  if (dailyGameUsed) {
+    return (
+      <div className="group relative overflow-hidden bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700 text-white font-bold py-3 px-6 rounded-xl border-2 border-gray-400 opacity-90">
+        {/* Disabled state decorations */}
+        <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-gray-400 rounded"></div>
+        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-gray-400 rounded"></div>
+        <div className="absolute -top-1 -left-1 w-3 h-3 bg-gray-400 rounded"></div>
+        <div className="absolute -top-1 -right-1 w-3 h-3 bg-gray-400 rounded"></div>
+        
+        <div className="relative flex items-center justify-center">
+          <span className="mr-2 text-gray-300 text-lg">🎮</span>
+          <span className="text-gray-100 text-sm tracking-wider pb-1">BONUS GAMES</span>
+          <span className="ml-2 text-gray-300 text-lg">🎰</span>
+        </div>
+        
+        <div className="absolute top-0 right-0 -mt-1 -mr-1 bg-gray-600 text-gray-200 text-xs font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg shadow-sm">USED</div>
+      </div>
+    );
+  }
+  
+  return (
+    <Link to="/casino">
+      <div className="group relative overflow-hidden transform hover:scale-105 transition-all bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-bold py-3 px-6 rounded-xl shadow-[0_5px_0_rgb(76,29,149)] hover:shadow-[0_3px_0_rgb(76,29,149)] active:shadow-[0_0px_0_rgb(76,29,149)] active:translate-y-1 border-2 border-purple-200">
+        {/* Pixel-art style decorations */}
+        <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-pink-400 rounded"></div>
+        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-pink-400 rounded"></div>
+        <div className="absolute -top-1 -left-1 w-3 h-3 bg-pink-400 rounded"></div>
+        <div className="absolute -top-1 -right-1 w-3 h-3 bg-pink-400 rounded"></div>
+        
+        {/* Shimmer effect */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-pink-300/30 to-transparent opacity-20 group-hover:opacity-30 transition-opacity"></div>
+        <div className="absolute -inset-1 bg-gradient-to-r from-pink-400/0 via-pink-400/40 to-pink-400/0 opacity-0 group-hover:opacity-100 animate-shimmer transition-opacity"></div>
+        
+        <div className="relative flex items-center justify-center">
+          <span className="mr-2 text-yellow-200 text-lg">🎮</span>
+          <span className="text-white font-game text-sm md:text-base tracking-wider pb-1">BONUS GAMES!</span>
+          <span className="ml-2 text-yellow-200 text-lg">🎰</span>
+        </div>
+        
+        <div className="absolute top-0 right-0 -mt-1 -mr-1 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg shadow-sm">PLAY!</div>
+      </div>
+    </Link>
+  );
+};
+
 // Define assessment domains for display purposes
 const domains = [
   { id: 'classroom-management', name: 'Classroom Management' },
@@ -347,27 +405,7 @@ export default function Dashboard() {
               </Link>
               
               {user && (user.achievementCount > 0 || userProgress?.some(p => p.completed)) ? (
-                <Link to="/casino">
-                  <div className="group relative overflow-hidden transform hover:scale-105 transition-all bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-bold py-3 px-6 rounded-xl shadow-[0_5px_0_rgb(76,29,149)] hover:shadow-[0_3px_0_rgb(76,29,149)] active:shadow-[0_0px_0_rgb(76,29,149)] active:translate-y-1 border-2 border-purple-200">
-                    {/* Pixel-art style decorations */}
-                    <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-pink-400 rounded"></div>
-                    <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-pink-400 rounded"></div>
-                    <div className="absolute -top-1 -left-1 w-3 h-3 bg-pink-400 rounded"></div>
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-pink-400 rounded"></div>
-                    
-                    {/* Shimmer effect */}
-                    <div className="absolute inset-0 bg-gradient-to-tr from-pink-300/30 to-transparent opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                    <div className="absolute -inset-1 bg-gradient-to-r from-pink-400/0 via-pink-400/40 to-pink-400/0 opacity-0 group-hover:opacity-100 animate-shimmer transition-opacity"></div>
-                    
-                    <div className="relative flex items-center justify-center">
-                      <span className="mr-2 text-yellow-200 text-lg">🎮</span>
-                      <span className="text-white font-game text-sm md:text-base tracking-wider pb-1">BONUS GAMES!</span>
-                      <span className="ml-2 text-yellow-200 text-lg">🎰</span>
-                    </div>
-                    
-                    <div className="absolute top-0 right-0 -mt-1 -mr-1 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg shadow-sm">NEW!</div>
-                  </div>
-                </Link>
+                <BonusGamesButton />
               ) : (
                 <div className="group relative overflow-hidden bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700 text-white font-bold py-3 px-6 rounded-xl border-2 border-gray-400 opacity-90">
                   {/* Disabled state decorations */}
