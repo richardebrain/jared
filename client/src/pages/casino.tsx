@@ -27,7 +27,10 @@ import {
   Ticket,
   RotateCcw,
   Info,
-  Check
+  Check,
+  DollarSign,
+  Diamond,
+  Cherry
 } from "lucide-react";
 
 export default function CasinoPage() {
@@ -120,33 +123,37 @@ export default function CasinoPage() {
           
           <TabsContent value="games" className="mt-0">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Spin Wheel Section */}
+              {/* Slot Machine Section */}
               <Card className="group hover:shadow-lg transition-shadow overflow-hidden border-0 bg-gradient-to-br from-amber-50 to-yellow-100">
-                <CardHeader className="bg-gradient-to-r from-amber-500 to-yellow-600 text-white">
+                <CardHeader className="bg-gradient-to-r from-red-500 to-yellow-600 text-white">
                   <CardTitle className="text-xl flex items-center">
-                    <RotateCcw className="h-5 w-5 mr-2" />
-                    Spin & Win
+                    <DollarSign className="h-5 w-5 mr-2" />
+                    Lucky Slots
                   </CardTitle>
                   <CardDescription className="text-amber-100">
-                    Spin the wheel for points & prizes!
+                    Match symbols to win points!
                   </CardDescription>
                 </CardHeader>
                 
                 <CardContent className="p-6 text-center">
-                  <div className="w-32 h-32 bg-amber-200 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-800 relative overflow-hidden group-hover:scale-105 transition-transform">
-                    <div className="absolute inset-0 bg-gradient-to-br from-amber-300 to-yellow-400 opacity-50 group-hover:opacity-70 transition-opacity"></div>
-                    <RotateCcw className="h-12 w-12 group-hover:rotate-45 transition-transform duration-500" />
+                  <div className="w-32 h-32 bg-gray-800 rounded-md flex items-center justify-center mx-auto mb-4 text-amber-800 relative overflow-hidden group-hover:scale-105 transition-transform">
+                    <div className="absolute inset-0 bg-gradient-to-br from-red-300/10 to-yellow-400/10 opacity-50 group-hover:opacity-70 transition-opacity"></div>
+                    <div className="grid grid-cols-3 gap-1 p-2">
+                      <Cherry className="h-8 w-8 text-red-500" />
+                      <Star className="h-8 w-8 text-yellow-500" />
+                      <Diamond className="h-8 w-8 text-cyan-500" />
+                    </div>
                   </div>
                   
-                  <h3 className="text-lg font-semibold text-amber-800 mb-1">Daily Spin</h3>
+                  <h3 className="text-lg font-semibold text-amber-800 mb-1">Lucky Slots</h3>
                   <p className="text-sm text-amber-700 mb-4">3 spins left today</p>
                   
                   <Button 
-                    className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600"
+                    className="w-full bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
                     size="lg"
                     onClick={() => setActiveTab("game-spin")}
                   >
-                    Spin Now
+                    Play Now
                   </Button>
                 </CardContent>
               </Card>
