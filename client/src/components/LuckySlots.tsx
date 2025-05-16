@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import PointsAnimation from "./PointsAnimation";
 import { 
   Gift, 
   Cherry, 
@@ -28,6 +29,7 @@ export default function LuckySlots({
   const [isSpinning, setIsSpinning] = useState(false);
   const [symbols, setSymbols] = useState<string[]>(["cherry", "star", "gift"]);
   const [winAmount, setWinAmount] = useState<number | null>(null);
+  const [showAnimation, setShowAnimation] = useState(false);
 
   const symbolIcons = {
     cherry: <Cherry className="h-8 w-8 text-red-500" />,
@@ -91,6 +93,14 @@ export default function LuckySlots({
         setWinAmount(points);
         if (onWin) onWin(points);
         
+        // Show the points animation
+        setShowAnimation(true);
+        
+        // Hide animation after it completes
+        setTimeout(() => {
+          setShowAnimation(false);
+        }, 2500);
+        
         toast({
           title: "You Won!",
           description: `Congratulations! You earned ${points} points!`,
@@ -108,6 +118,16 @@ export default function LuckySlots({
 
   return (
     <Card className="w-full border shadow-lg">
+      {/* Points Animation Component */}
+      {winAmount !== null && (
+        <PointsAnimation 
+          points={winAmount} 
+          show={showAnimation} 
+          style="casino" 
+          onComplete={() => setShowAnimation(false)}
+        />
+      )}
+      
       <CardHeader className="text-center bg-gradient-to-r from-red-600 to-yellow-600 text-white">
         <CardTitle className="text-2xl font-bold">Lucky Slots</CardTitle>
         <CardDescription className="text-amber-100">

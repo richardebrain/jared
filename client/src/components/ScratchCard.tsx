@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
 import { Sparkles, Gift, History, Coins, Award, AlertTriangle } from "lucide-react";
+import PointsAnimation from "./PointsAnimation";
 
 import {
   Card,
