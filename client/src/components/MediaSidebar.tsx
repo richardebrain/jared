@@ -10,10 +10,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import raisingArizonaVideo from "@assets/Raising Arizona Preschool .mp4";
 import sunriseAudio from "@assets/Sunrise paints the Glendale sky gold.mp3";
 import cleanUpTimeAudio from "@assets/Clean Up Time.mp3";
+import cleanUpTimeAudio1 from "@assets/Clean Up Time (1).mp3";
+import cleanUpTimeAudio2 from "@assets/Clean Up Time (2).mp3";
+import cleanUpEvenMoreAudio from "@assets/clean up even more.mp3";
 import timeToChangeAudio from "@assets/Time to Change Activities.mp3";
+import timeToChangeAudio1 from "@assets/Time to Change Activities (1).mp3";
+import timeToChangeAudio3 from "@assets/Time to Change Activities  version 3.mp3";
+import timeToChangeAudio4 from "@assets/Time to Change Activities version 4.mp3";
 import washUpForLunchAudio from "@assets/Wash Up For Lunch.mp3";
+import washUpForLunchAudio1 from "@assets/Wash Up For Lunch (1).mp3";
 import closingMyEyesAudio from "@assets/I'm Closing My Eyes.mp3";
+import closingMyEyesAudio1 from "@assets/I'm Closing My Eyes (1).mp3";
+import closingMyEyesAudio2 from "@assets/I'm Closing My Eyes (2).mp3";
+import closingMyEyesAudio3 from "@assets/I'm Closing My Eyes (3).mp3";
 import commitmentRapAudio from "@assets/_Commitment's Whistle-Stop Rap (Extended.mp3";
+import passDontHogItAudio from "@assets/pass it dont hog it sharing song 1 (2).mp3";
+import passDontHogItAudio2 from "@assets/pass it dont hog it sharing version 2.mp3";
+import welcomeAboardAudio from "@assets/Welcome Aboard.mp3";
+import welcomeAboardAudio2 from "@assets/Welcome Aboard version 2.mp3";
 
 // Define classroom song categories
 const audioCategories = [
@@ -21,6 +35,8 @@ const audioCategories = [
   { id: 'cleanup', name: 'Clean Up Time' },
   { id: 'rest', name: 'Rest Time' },
   { id: 'meals', name: 'Meal Times' },
+  { id: 'sharing', name: 'Sharing' },
+  { id: 'welcome', name: 'Welcome' },
   { id: 'core-values', name: 'Core Values' }
 ];
 
@@ -35,34 +51,132 @@ const classroomSongs = [
   },
   { 
     id: 2, 
+    title: 'Clean Up Time (Version 1)', 
+    file: cleanUpTimeAudio1, 
+    category: 'cleanup',
+    description: 'Alternative version of the cleanup song'
+  },
+  { 
+    id: 3, 
+    title: 'Clean Up Time (Version 2)', 
+    file: cleanUpTimeAudio2, 
+    category: 'cleanup',
+    description: 'Another version of the cleanup song'
+  },
+  { 
+    id: 4, 
+    title: 'Clean Up Even More', 
+    file: cleanUpEvenMoreAudio, 
+    category: 'cleanup',
+    description: 'Extended cleanup song for longer cleanup times'
+  },
+  { 
+    id: 5, 
     title: 'Time to Change Activities', 
     file: timeToChangeAudio, 
     category: 'transitions',
     description: 'Smooth transition song to move between classroom activities'
   },
   { 
-    id: 3, 
+    id: 6, 
+    title: 'Time to Change Activities (Version 1)', 
+    file: timeToChangeAudio1, 
+    category: 'transitions',
+    description: 'Alternative version of the transition song'
+  },
+  { 
+    id: 7, 
+    title: 'Time to Change Activities (Version 3)', 
+    file: timeToChangeAudio3, 
+    category: 'transitions',
+    description: 'Third version of the transition song'
+  },
+  { 
+    id: 8, 
+    title: 'Time to Change Activities (Version 4)', 
+    file: timeToChangeAudio4, 
+    category: 'transitions',
+    description: 'Fourth version of the transition song'
+  },
+  { 
+    id: 9, 
     title: 'Wash Up For Lunch', 
     file: washUpForLunchAudio, 
     category: 'meals',
     description: 'Reminds children about handwashing before meals'
   },
   { 
-    id: 4, 
+    id: 10, 
+    title: 'Wash Up For Lunch (Version 1)', 
+    file: washUpForLunchAudio1, 
+    category: 'meals',
+    description: 'Alternative version of the handwashing song'
+  },
+  { 
+    id: 11, 
     title: 'I\'m Closing My Eyes', 
     file: closingMyEyesAudio, 
     category: 'rest',
     description: 'Calming song for naptime and quiet moments'
   },
   { 
-    id: 5, 
+    id: 12, 
+    title: 'I\'m Closing My Eyes (Version 1)', 
+    file: closingMyEyesAudio1, 
+    category: 'rest',
+    description: 'Alternative version of the naptime song'
+  },
+  { 
+    id: 13, 
+    title: 'I\'m Closing My Eyes (Version 2)', 
+    file: closingMyEyesAudio2, 
+    category: 'rest',
+    description: 'Another version of the naptime song'
+  },
+  { 
+    id: 14, 
+    title: 'I\'m Closing My Eyes (Version 3)', 
+    file: closingMyEyesAudio3, 
+    category: 'rest',
+    description: 'Third version of the naptime song'
+  },
+  { 
+    id: 15, 
+    title: 'Pass It Don\'t Hog It (Version 1)', 
+    file: passDontHogItAudio, 
+    category: 'sharing',
+    description: 'Fun song teaching children to share with friends'
+  },
+  { 
+    id: 16, 
+    title: 'Pass It Don\'t Hog It (Version 2)', 
+    file: passDontHogItAudio2, 
+    category: 'sharing',
+    description: 'Alternative version of the sharing song'
+  },
+  { 
+    id: 17, 
+    title: 'Welcome Aboard', 
+    file: welcomeAboardAudio, 
+    category: 'welcome',
+    description: 'Welcoming song for new children or morning greeting'
+  },
+  { 
+    id: 18, 
+    title: 'Welcome Aboard (Version 2)', 
+    file: welcomeAboardAudio2, 
+    category: 'welcome',
+    description: 'Alternative version of the welcome song'
+  },
+  { 
+    id: 19, 
     title: 'Commitment\'s Whistle-Stop Rap', 
     file: commitmentRapAudio, 
     category: 'core-values',
     description: 'Fun rap about the CORE value of being committed'
   },
   { 
-    id: 6, 
+    id: 20, 
     title: 'Sunrise paints the Glendale sky gold', 
     file: sunriseAudio, 
     category: 'core-values',
@@ -150,7 +264,6 @@ export default function MediaSidebar() {
         <CardTitle className="text-xl font-bold">Video and Audio Library</CardTitle>
         <CardDescription>Classroom resources and training materials</CardDescription>
       </CardHeader>
-      
       <CardContent>
         <Tabs defaultValue="video">
           <TabsList className="grid w-full grid-cols-2 mb-4">
