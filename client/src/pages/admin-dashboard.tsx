@@ -18,9 +18,16 @@ import {
   ChevronRight,
   Search,
   UserX,
-  TrendingUp,
-  BarChart2,
   Briefcase,
+  BarChart2,
+  AreaChart,
+  Database,
+  School,
+  FileEdit,
+  UserPlus,
+  Settings,
+  Coins,
+  TrendingUp,
   RefreshCw,
   AreaChart
 } from "lucide-react";
@@ -341,6 +348,9 @@ export default function AdminDashboard() {
                       <th className="p-2 text-left font-medium">User</th>
                       <th className="p-2 text-left font-medium">Points</th>
                       <th className="p-2 text-left font-medium">Level</th>
+                      <th className="p-2 text-left font-medium">Assessment</th>
+                      <th className="p-2 text-left font-medium">Bear Bucks</th>
+                      <th className="p-2 text-left font-medium">Access</th>
                       <th className="p-2 text-left font-medium">Actions</th>
                     </tr>
                   </thead>
@@ -368,6 +378,38 @@ export default function AdminDashboard() {
                           <Badge>
                             Level {user.level || 1}
                           </Badge>
+                        </td>
+                        <td className="p-2">
+                          <Badge variant={
+                            user.teacherLevel === "Master Lead Teacher" ? "default" :
+                            user.teacherLevel === "Lead Teacher" ? "secondary" :
+                            user.teacherLevel === "Assistant Teacher" ? "outline" : "outline"
+                          } className={
+                            user.teacherLevel === "Master Lead Teacher" ? "bg-green-100 text-green-800 hover:bg-green-200" :
+                            user.teacherLevel === "Lead Teacher" ? "bg-blue-100 text-blue-800 hover:bg-blue-200" :
+                            user.teacherLevel === "Assistant Teacher" ? "bg-purple-100 text-purple-800 hover:bg-purple-200" : ""
+                          }>
+                            {user.teacherLevel || "Not Assessed"}
+                          </Badge>
+                        </td>
+                        <td className="p-2">
+                          <Badge variant="outline" className="text-amber-600">
+                            {user.bearBucks || 0} Bear Bucks
+                          </Badge>
+                        </td>
+                        <td className="p-2">
+                          <div className="flex items-center">
+                            <input 
+                              type="checkbox" 
+                              id={`admin-${user.id}`}
+                              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                              checked={user.isAdmin}
+                              onChange={() => console.log('Toggle admin status for', user.id)}
+                            />
+                            <label htmlFor={`admin-${user.id}`} className="ml-2 text-sm text-muted-foreground">
+                              Director
+                            </label>
+                          </div>
                         </td>
                         <td className="p-2">
                           <div className="flex gap-2">
