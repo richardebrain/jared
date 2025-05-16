@@ -3,6 +3,14 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { User } from "@shared/schema";
+import { 
+  saveAuthState, 
+  clearAuthState, 
+  getAuthenticatedUser, 
+  isAuthenticated as checkIsAuthenticated,
+  loginUser,
+  logoutUser
+} from "@/lib/authHelpers";
 
 interface UseAuthReturn {
   isLoading: boolean;
@@ -40,12 +48,6 @@ export function useAuth(): UseAuthReturn {
   
   // Update authentication state based on query results or localStorage fallback
   useEffect(() => {
-    // Check localStorage first on component mount
-    const storedAuth = localStorage.getItem('isAuthenticated');
-    const storedUser = localStorage.getItem('user');
-    console.log("Checking auth state - localStorage auth:", storedAuth);
-    console.log("Checking auth state - localStorage user:", storedUser);
-    
     // Authorization check functions
     const checkOwner = (userData: any) => {
       // List of usernames or emails that are considered owners
@@ -61,6 +63,7 @@ export function useAuth(): UseAuthReturn {
       return checkOwner(userData) || userData.username === 'admin';
     };
     
+    // First check if we got user from the API
     if (user) {
       console.log("User authenticated from API:", user);
       setIsAuthenticated(true);
@@ -69,33 +72,29 @@ export function useAuth(): UseAuthReturn {
       setIsOwner(checkOwner(user));
       setIsAdmin(checkAdmin(user));
       
-      // Update localStorage in case it's missing
-      localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('isAuthenticated', 'true');
-    } else if (storedAuth === 'true' && storedUser) {
-      console.log("Found user in localStorage, using as fallback");
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        console.log("Parsed localStorage user:", parsedUser);
-        queryClient.setQueryData(["/api/auth/me"], parsedUser);
+      // Update local storage with the latest user data
+      saveAuthState(user);
+    } 
+    // Otherwise check if we have a valid user in localStorage
+    else {
+      const storedUser = getAuthenticatedUser();
+      const isStoredAuthenticated = checkIsAuthenticated();
+      
+      if (isStoredAuthenticated && storedUser) {
+        console.log("Using authenticated user from localStorage:", storedUser);
+        queryClient.setQueryData(["/api/auth/me"], storedUser);
         setIsAuthenticated(true);
         
         // Check if user is owner/admin
-        setIsOwner(checkOwner(parsedUser));
-        setIsAdmin(checkAdmin(parsedUser));
-      } catch (e) {
-        console.error("Error parsing stored user:", e);
-        localStorage.removeItem('user');
-        localStorage.removeItem('isAuthenticated');
+        setIsOwner(checkOwner(storedUser));
+        setIsAdmin(checkAdmin(storedUser));
+      } else if (isError) {
+        console.log("Authentication error from API:", error);
+        clearAuthState();
         setIsAuthenticated(false);
         setIsOwner(false);
         setIsAdmin(false);
       }
-    } else if (isError) {
-      console.log("Authentication error from API:", error);
-      setIsAuthenticated(false);
-      setIsOwner(false);
-      setIsAdmin(false);
     }
   }, [user, isError, error]);
   
@@ -103,10 +102,8 @@ export function useAuth(): UseAuthReturn {
   const loginMutation = useMutation({
     mutationFn: async (credentials: { username: string; password: string }) => {
       console.log("Attempting login with:", { username: credentials.username, password: "***" });
-      const response = await apiRequest("/api/auth/login", { 
-        method: "POST", 
-        data: credentials 
-      });
+      // Use our improved loginUser helper
+      const response = await loginUser(credentials);
       console.log("Login response:", response);
       return response;
     },
@@ -116,6 +113,9 @@ export function useAuth(): UseAuthReturn {
       queryClient.setQueryData(["/api/auth/me"], data);
       setIsAuthenticated(true);
       
+      // Save auth state to localStorage
+      saveAuthState(data);
+      
       // Force invalidate any queries that might depend on auth status
       queryClient.invalidateQueries();
       
@@ -123,10 +123,16 @@ export function useAuth(): UseAuthReturn {
         title: "Login successful",
         description: `Welcome back, ${data.firstName}!`,
       });
+      
+      // Redirect to dashboard
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 500);
     },
     onError: (error: Error) => {
       console.error("Authentication error in hook:", error);
       setIsAuthenticated(false);
+      clearAuthState();
       toast({
         title: "Login failed",
         description: error.message || "Invalid username or password",
@@ -167,10 +173,8 @@ export function useAuth(): UseAuthReturn {
   // Logout mutation
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("/api/auth/logout", { 
-        method: "POST"
-      });
-      return response;
+      // Use our improved logoutUser helper
+      return await logoutUser();
     },
     onSuccess: () => {
       console.log("Logout successful");
@@ -180,9 +184,8 @@ export function useAuth(): UseAuthReturn {
       // Clear any cached queries when logging out
       queryClient.clear();
       
-      // Clear localStorage authentication data
-      localStorage.removeItem('user');
-      localStorage.removeItem('isAuthenticated');
+      // Clear auth state
+      clearAuthState();
       
       toast({
         title: "Logout successful",

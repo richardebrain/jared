@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "../lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
+import { loginUser, saveAuthState } from "../lib/authHelpers";
 
 import {
   Form,
@@ -52,11 +53,6 @@ export default function Login() {
     mutationFn: async (data: z.infer<typeof loginSchema>) => {
       console.log("Attempting login with:", { username: data.username, password: "***" });
       
-      // Clear any previous auth state first
-      localStorage.removeItem('user');
-      localStorage.removeItem('isAuthenticated');
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      
       try {
         // Trim inputs for consistency
         const cleanData = {
@@ -72,12 +68,8 @@ export default function Login() {
           throw new Error("For the demo user 'jlcookie20', please use password: 'password'");
         }
         
-        const responseData = await apiRequest("/api/auth/login", {
-          method: "POST",
-          data: cleanData,
-          // Add a longer timeout for login requests
-          timeout: 10000,
-        });
+        // Use our improved loginUser function from authHelpers
+        const responseData = await loginUser(cleanData);
         
         console.log("Login response:", responseData);
         return responseData;
@@ -105,9 +97,8 @@ export default function Login() {
     onSuccess: (data) => {
       console.log("Login successful, user data:", data);
       
-      // Store user data in localStorage as a fallback authentication method
-      localStorage.setItem('user', JSON.stringify(data));
-      localStorage.setItem('isAuthenticated', 'true');
+      // Use our improved saveAuthState function from authHelpers
+      saveAuthState(data);
       
       // Update the auth cache with the new user data
       queryClient.setQueryData(["/api/auth/me"], data);
@@ -126,7 +117,7 @@ export default function Login() {
       // Add a slight delay before redirect to ensure toast is seen
       setTimeout(() => {
         // Redirect to dashboard using direct window location for more reliable navigation
-        window.location.href = "/";
+        window.location.href = "/dashboard";
       }, 800);
     },
     onError: (error: any) => {
