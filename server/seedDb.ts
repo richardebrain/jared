@@ -6,6 +6,7 @@ import {
   InsertUser
 } from "@shared/schema";
 import { createRaisingArizonaCoreModule } from "./createCoreModule";
+import { createChapterOneModule } from "./createChapterOneModule";
 
 async function seedDatabase() {
   console.log("Starting database seeding");
@@ -14,7 +15,7 @@ async function seedDatabase() {
     // Check if we already have data
     const existingModules = await db.select().from(learningModules);
     if (existingModules.length > 0) {
-      console.log("Database already seeded. Checking for CORE module.");
+      console.log("Database already seeded. Checking for required modules.");
       
       // Check if CORE module exists
       const coreModule = await db.query.learningModules.findFirst({
@@ -26,6 +27,18 @@ async function seedDatabase() {
         await createRaisingArizonaCoreModule();
       } else {
         console.log("Raising Arizona's CORE module already exists with ID:", coreModule.id);
+      }
+      
+      // Check if Chapter 1 module exists
+      const chapterOneModule = await db.query.learningModules.findFirst({
+        where: (modules, { eq }) => eq(modules.title, "Chapter 1: Building a Human")
+      });
+      
+      if (!chapterOneModule) {
+        console.log("Creating missing Chapter 1: Building a Human module.");
+        await createChapterOneModule();
+      } else {
+        console.log("Chapter 1: Building a Human module already exists with ID:", chapterOneModule.id);
       }
       
       return;

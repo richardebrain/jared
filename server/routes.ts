@@ -148,6 +148,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Registration successful for user: "${username}" (ID: ${newUser.id})`);
       
+      // Assign required training modules for new users
+      try {
+        // Get the Raising Arizona's CORE module
+        const coreModule = await db.query.learningModules.findFirst({
+          where: (modules, { eq }) => eq(modules.title, "Raising Arizona's CORE")
+        });
+        
+        // Get the Mindful Mornings module
+        const mindfulModule = await db.query.learningModules.findFirst({
+          where: (modules, { eq }) => eq(modules.category, "mindfulness")
+        });
+        
+        // Get the Chapter 1 module
+        const chapterOneModule = await db.query.learningModules.findFirst({
+          where: (modules, { eq }) => eq(modules.title, "Chapter 1: Building a Human")
+        });
+        
+        // Create user progress entries for required modules
+        if (coreModule) {
+          await storage.createUserProgress({
+            userId: newUser.id,
+            moduleId: coreModule.id,
+            progress: 0,
+            completed: false,
+            recommended: true,
+            pointsEarned: 0,
+            lastAccessed: new Date()
+          });
+          console.log(`Assigned CORE module (ID: ${coreModule.id}) to new user (ID: ${newUser.id})`);
+        }
+        
+        if (mindfulModule) {
+          await storage.createUserProgress({
+            userId: newUser.id,
+            moduleId: mindfulModule.id,
+            progress: 0,
+            completed: false,
+            recommended: true,
+            pointsEarned: 0,
+            lastAccessed: new Date()
+          });
+          console.log(`Assigned Mindful Mornings module (ID: ${mindfulModule.id}) to new user (ID: ${newUser.id})`);
+        }
+        
+        if (chapterOneModule) {
+          await storage.createUserProgress({
+            userId: newUser.id,
+            moduleId: chapterOneModule.id,
+            progress: 0,
+            completed: false,
+            recommended: true,
+            pointsEarned: 0,
+            lastAccessed: new Date()
+          });
+          console.log(`Assigned Chapter 1 module (ID: ${chapterOneModule.id}) to new user (ID: ${newUser.id})`);
+        }
+      } catch (assignError) {
+        console.error("Error assigning required modules to new user:", assignError);
+        // Continue with user creation even if module assignment fails
+      }
+      
       // Don't return password in response
       const { password: _, ...userWithoutPassword } = newUser;
       
