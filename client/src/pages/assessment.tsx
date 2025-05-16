@@ -258,6 +258,210 @@ const assessmentQuestions: Question[] = [
     explanation: 'Expert design for self-regulation includes visual cues that support memory and expectations (e.g., pictorial schedules, labeled shelves); spaces that balance stimulation with calm; graduated challenges in materials; clear boundaries; and dedicated areas for emotional regulation—all working together to scaffold executive function development.'
   },
   
+  // Personal Care Routines - Beginner Level
+  {
+    id: 'pcr-b-1',
+    text: 'What is the most effective way to prevent the spread of illness in a preschool setting?',
+    domain: 'personal-care',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'Sending home children at the first sign of a runny nose', 
+      'Regular handwashing by children and staff', 
+      'Using antibacterial soap for all cleaning tasks', 
+      'Keeping windows open regardless of weather'
+    ],
+    correctAnswer: 'Regular handwashing by children and staff',
+    required: true,
+    explanation: 'Frequent and proper handwashing is the single most effective way to reduce the spread of communicable diseases in early childhood settings.'
+  },
+  {
+    id: 'pcr-b-2',
+    text: 'Which approach to diapering aligns with best practices in early childhood health and safety?',
+    domain: 'personal-care',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'Changing diapers only at scheduled times to maintain classroom routine', 
+      'Having children stand during diapering to promote independence', 
+      'Following a consistent sanitary procedure including handwashing, gloves, and surface disinfection', 
+      'Completing diapering quickly to minimize disruption to the child'
+    ],
+    correctAnswer: 'Following a consistent sanitary procedure including handwashing, gloves, and surface disinfection',
+    required: true,
+    explanation: 'Proper diapering procedures minimize the spread of infectious disease, maintain hygiene, and protect both children and caregivers.'
+  },
+  
+  // Personal Care Routines - Intermediate Level
+  {
+    id: 'pcr-i-1',
+    text: 'How can teachers effectively promote self-care skills in preschoolers?',
+    domain: 'personal-care',
+    type: 'multiple-choice',
+    difficulty: 'intermediate',
+    options: [
+      'Complete care tasks for children to ensure they are done correctly', 
+      'Provide verbal step-by-step instructions without physical assistance', 
+      'Use peer modeling and gentle guidance, allowing adequate time for practice', 
+      'Implement rewards for children who complete self-care tasks quickly'
+    ],
+    correctAnswer: 'Use peer modeling and gentle guidance, allowing adequate time for practice',
+    required: true,
+    explanation: 'Supporting self-care skill development involves allowing children time to practice, scaffolding their attempts, using peer modeling, and recognizing the developmental progression of skills.'
+  },
+  {
+    id: 'pcr-i-2',
+    text: 'Which of the following best describes an appropriate approach to naptime in an early childhood setting?',
+    domain: 'personal-care',
+    type: 'multiple-choice',
+    difficulty: 'intermediate',
+    options: [
+      'Requiring all children to sleep for the same duration at the same time', 
+      'Playing stimulating music to keep non-sleepers engaged', 
+      'Creating individual sleep/rest plans responsive to each child\'s needs with consistent routines and comfort objects', 
+      'Keeping the room brightly lit to prevent children from becoming too drowsy'
+    ],
+    correctAnswer: 'Creating individual sleep/rest plans responsive to each child\'s needs with consistent routines and comfort objects',
+    required: true,
+    explanation: 'Effective naptime approaches recognize individual differences in sleep needs, provide consistent and calming routines, respect family preferences, and allow for differences in sleep/rest requirements.'
+  },
+  
+  // Personal Care Routines - Advanced Level
+  {
+    id: 'pcr-a-1',
+    text: 'How should teachers approach toilet learning according to developmentally appropriate practice?',
+    domain: 'personal-care',
+    type: 'multiple-choice',
+    difficulty: 'advanced',
+    options: [
+      'Begin toilet training all children at the same age to encourage peer learning', 
+      'Use rewards and consequences to motivate toilet learning progress', 
+      'Follow rigid schedules regardless of individual readiness cues', 
+      'Collaborate with families while focusing on physiological readiness, child interest, and supportive strategies'
+    ],
+    correctAnswer: 'Collaborate with families while focusing on physiological readiness, child interest, and supportive strategies',
+    required: true,
+    explanation: 'Advanced understanding of toilet learning involves recognizing physiological and emotional readiness cues, maintaining consistency between home and school, avoiding power struggles, and using supportive rather than punitive or reward-based approaches.'
+  },
+  {
+    id: 'pcr-a-2',
+    text: 'Which approach to mealtime best reflects advanced understanding of personal care routines in early childhood?',
+    domain: 'personal-care',
+    type: 'multiple-choice',
+    difficulty: 'advanced',
+    options: [
+      'Serve pre-portioned food and require children to eat everything on their plates', 
+      'Use a family-style approach that promotes social interaction, self-regulation, and fine motor development', 
+      'Minimize conversation to enable efficient eating and quick transitions', 
+      'Group children by eating speed to optimize the schedule'
+    ],
+    correctAnswer: 'Use a family-style approach that promotes social interaction, self-regulation, and fine motor development',
+    required: true,
+    explanation: 'Advanced mealtime approaches recognize eating as a learning experience that builds social skills, language, self-regulation, and cultural awareness, while respecting children\'s autonomy over how much they eat.'
+  },
+  
+  // Personal Care Routines - Expert Level
+  {
+    id: 'pcr-e-1',
+    text: 'Which statement reflects the most sophisticated understanding of how personal care routines impact children\'s development beyond health and safety?',
+    domain: 'personal-care',
+    type: 'multiple-choice',
+    difficulty: 'expert',
+    options: [
+      'Personal care routines primarily impact physical development and have minimal influence on other developmental domains', 
+      'Well-designed personal care routines build executive function, agency, cultural understanding, and provide opportunities for rich language interactions', 
+      'The main developmental impact of personal care routines is teaching children to follow directions', 
+      'Personal care routines should be completed quickly to maximize time for academic learning'
+    ],
+    correctAnswer: 'Well-designed personal care routines build executive function, agency, cultural understanding, and provide opportunities for rich language interactions',
+    required: true,
+    explanation: 'Expert understanding recognizes that personal care routines are powerful learning contexts for multiple developmental domains—building executive function through predictable sequences, supporting emotional development through caring interactions, developing language through authentic conversations, and respecting cultural diversity through inclusive practices.'
+  },
+  {
+    id: 'pcr-e-2',
+    text: 'How would an expert preschool teacher approach transitions between activities as part of personal care routines?',
+    domain: 'personal-care',
+    type: 'multiple-choice',
+    difficulty: 'expert',
+    options: [
+      'Keep transitions brief with minimal explanation to prevent disruption', 
+      'Use adult-directed transitions with strict time limits to maintain efficiency', 
+      'View transitions as valuable learning opportunities, using intentional strategies that build self-regulation and reduce stress', 
+      'Group children by ability level during transitions to simplify management'
+    ],
+    correctAnswer: 'View transitions as valuable learning opportunities, using intentional strategies that build self-regulation and reduce stress',
+    required: true,
+    explanation: 'Expert practice treats transitions as meaningful learning experiences rather than just moving between activities. This includes using visual and auditory cues, embedding learning (songs, fingerplays, movement), providing individualized support, teaching time concepts, and designing the schedule to minimize waiting while maintaining predictability.'
+  },
+  
+  // Language & Reasoning - Beginner Level
+  {
+    id: 'lr-b-1',
+    text: 'Which of the following best supports language development in preschoolers?',
+    domain: 'language-reasoning',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'Correcting children\'s grammatical errors immediately', 
+      'Engaging in back-and-forth conversations throughout the day', 
+      'Using simplified vocabulary with young children', 
+      'Having children repeat words and phrases in unison'
+    ],
+    correctAnswer: 'Engaging in back-and-forth conversations throughout the day',
+    required: true,
+    explanation: 'Responsive conversations where adults listen, respond to, and expand on children\'s ideas provide the richest context for language development.'
+  },
+  {
+    id: 'lr-b-2',
+    text: 'What is the most effective way to build vocabulary in young children?',
+    domain: 'language-reasoning',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'Using flashcards with new words daily', 
+      'Introducing new words within meaningful contexts and experiences', 
+      'Having children memorize lists of thematic words', 
+      'Focusing primarily on basic vocabulary before introducing complex terms'
+    ],
+    correctAnswer: 'Introducing new words within meaningful contexts and experiences',
+    required: true,
+    explanation: 'Children learn new vocabulary most effectively when words are introduced in context, connected to hands-on experiences, and used repeatedly in meaningful situations.'
+  },
+  
+  // Language & Reasoning - Intermediate Level
+  {
+    id: 'lr-i-1',
+    text: 'Which questioning strategy best promotes higher-order thinking in preschoolers?',
+    domain: 'language-reasoning',
+    type: 'multiple-choice',
+    difficulty: 'intermediate',
+    options: [
+      'Asking primarily yes/no questions to check comprehension', 
+      'Using mainly recall questions about basic facts', 
+      'Posing open-ended questions that encourage prediction, comparison, and problem-solving', 
+      'Avoiding challenging questions to prevent frustration'
+    ],
+    correctAnswer: 'Posing open-ended questions that encourage prediction, comparison, and problem-solving',
+    required: true,
+    explanation: 'Open-ended questions that ask children to predict, analyze, compare, or solve problems stimulate language use and cognitive development by encouraging children to think more deeply.'
+  },
+  {
+    id: 'lr-i-2',
+    text: 'How can teachers best support bilingual or multilingual learners in the classroom?',
+    domain: 'language-reasoning',
+    type: 'multiple-choice',
+    difficulty: 'intermediate',
+    options: [
+      'Encouraging families to speak only English at home', 
+      'Grouping children by language to minimize confusion', 
+      'Valuing home languages while providing scaffolded support for English acquisition', 
+      'Limiting instruction to simple English vocabulary and phrases'
+    ],
+    correctAnswer: 'Valuing home languages while providing scaffolded support for English acquisition',
+    required: true,
+    explanation: 'Effective support for multilingual learners validates home languages as assets, provides scaffolded English instruction, incorporates cultural references, and engages families as partners in language development.'
+  },
+  
   // Building Chapter One - Beginner Level
   {
     id: 'ch1-b-1',
@@ -1310,6 +1514,12 @@ export default function AssessmentPage() {
       try {
         // Load questions for the new difficulty level
         updateDomainQuestions(domain, 'expert');
+
+        // Store max difficulty achieved for this domain
+        setDomainMaxDifficulty(prev => ({
+          ...prev,
+          [domain]: 'expert'
+        }));
       } catch (error) {
         console.error("Error loading expert questions:", error);
         toast({
@@ -1319,6 +1529,42 @@ export default function AssessmentPage() {
           duration: 3000,
         });
       }
+      return;
+    }
+    
+    // Domain completion check - expert level successfully completed with correct answers
+    if (currentDifficulty === 'expert' && correct >= 2 && totalAttempts >= 3) {
+      console.log(`Domain ${domain} COMPLETED at expert level! Moving to next domain.`);
+      
+      // Track expert level performance for debugging
+      console.log(`Tracking expert performance in ${domain}: ${correct} correct, ${incorrect} incorrect`);
+      
+      // Mark current domain as mastered
+      setDomainMaxDifficulty(prev => ({
+        ...prev,
+        [domain]: 'expert'
+      }));
+      
+      // Auto advance to next domain with user notification
+      toast({
+        title: "Domain Mastered! 🏆✨",
+        description: `You've mastered ${domains.find(d => d.id === domain)?.name || domain}! Moving to the next category.`,
+        variant: "default",
+        duration: 3000,
+      });
+      
+      // Move to next domain
+      const nextDomainIndex = (currentDomainIndex + 1) % domains.length;
+      setCurrentDomainIndex(nextDomainIndex);
+      
+      // Give the user a moment to see their achievement before moving on
+      setTimeout(() => {
+        // Reset counters for next domain
+        const nextDomain = domains[nextDomainIndex].id;
+        console.log(`Auto-advancing to domain: ${nextDomain} (index: ${nextDomainIndex})`);
+        updateDomainQuestions(nextDomain, domainDifficulty[nextDomain] || 'beginner');
+      }, 1500);
+      
       return;
     }
     
@@ -1402,7 +1648,7 @@ export default function AssessmentPage() {
     console.log(`Tracking ${currentDifficulty} performance in ${domain}: ${correct} correct, ${incorrect} incorrect`);
   };
   
-  // Handle domain navigation - fix for the setCurrentDomain error
+  // Handle domain navigation - enhanced with better error handling and question loading
   const handleDomainChange = (domainId: string) => {
     try {
       // Find the index of the domain in our domains array
@@ -1422,11 +1668,44 @@ export default function AssessmentPage() {
       
       console.log(`Navigating to domain: ${domainId} (index: ${newDomainIndex})`);
       
+      // Clear any current feedback that might be showing
+      setAnswerFeedback({
+        shown: false,
+        correct: false,
+        explanation: ''
+      });
+      
+      // Reset selected option
+      setSelectedOption(null);
+      
       // Update the current domain index
       setCurrentDomainIndex(newDomainIndex);
       
       // Reset to the first question in the new domain
       setCurrentQuestionIndex(0);
+      
+      // Load questions for the selected domain at their current difficulty level
+      try {
+        // Use a small timeout to ensure state updates have applied
+        setTimeout(() => {
+          const difficulty = domainDifficulty[domainId] || 'beginner';
+          console.log(`Loading questions for ${domainId} at ${difficulty} difficulty`);
+          updateDomainQuestions(domainId, difficulty);
+        }, 100);
+      } catch (error) {
+        console.error(`Error loading questions for domain ${domainId}:`, error);
+        toast({
+          title: "Error Loading Questions",
+          description: "There was a problem loading questions for this topic. Trying simpler questions instead.",
+          variant: "destructive",
+          duration: 3000
+        });
+        
+        // Fall back to beginner questions
+        setTimeout(() => {
+          updateDomainQuestions(domainId, 'beginner');
+        }, 300);
+      }
     } catch (error) {
       console.error("Error navigating to domain:", error);
       toast({
