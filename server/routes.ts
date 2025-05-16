@@ -900,6 +900,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Internal server error" });
     }
   });
+  
+  // Bonus Games Rewards API Endpoint
+  app.post("/api/rewards/points", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const { points } = req.body;
+      
+      if (typeof points !== 'number' || points <= 0) {
+        return res.status(400).json({ 
+          message: "Invalid points value. Points must be a positive number."
+        });
+      }
+      
+      console.log(`Adding ${points} points to user ${userId} from bonus game`);
+      
+      // Add points to user's account
+      const updatedUser = await storage.addUserPoints(userId, points);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Return the updated user without sensitive information
+      const { password, ...userWithoutPassword } = updatedUser;
+      
+      res.status(200).json({
+        success: true,
+        message: `Added ${points} points!`,
+        user: userWithoutPassword
+      });
+    } catch (error) {
+      console.error("Error adding points to user from bonus game:", error);
+      res.status(500).json({ message: "Failed to add points" });
+    }
+  });
 
   // Add the new endpoint to match client expectations
   app.post("/api/core-values-shoutouts", requireAuth, async (req, res) => {
