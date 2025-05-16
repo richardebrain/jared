@@ -1266,11 +1266,22 @@ export default function AssessmentPage() {
           updateDomainQuestions(domainId, 'beginner');
           return;
         } else {
-          // Special case for 'space-furnishings' domain which causes errors
-          if (domainId === 'space-furnishings') {
-            console.log('Moving past problematic space-furnishings domain');
+          // All domains should have questions available now, but special handling just in case
+          console.log(`Checking special error handling for domain: ${domainId}`);
+          const problematicDomains = ['space-furnishings', 'personal-care', 'activities'];
+          
+          if (problematicDomains.includes(domainId)) {
+            console.log(`Moving past potentially problematic domain: ${domainId}`);
             // Move to the next domain
-            setCurrentDomainIndex(prevIndex => (prevIndex + 1) % domains.length);
+            const nextDomainIndex = (currentDomainIndex + 1) % domains.length;
+            console.log(`Moving to next domain: ${domains[nextDomainIndex].id} (index: ${nextDomainIndex})`);
+            setCurrentDomainIndex(nextDomainIndex);
+            
+            // Allow a short delay before attempting to load the next domain's questions
+            setTimeout(() => {
+              const nextDomain = domains[nextDomainIndex].id;
+              updateDomainQuestions(nextDomain, domainDifficulty[nextDomain] || 'beginner');
+            }, 500);
             return;
           }
           

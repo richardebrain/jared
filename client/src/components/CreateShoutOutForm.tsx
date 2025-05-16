@@ -73,12 +73,20 @@ export default function CreateShoutOutForm() {
   // Handle form submission with react-query mutation
   const mutation = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) => {
+      console.log("Submitting shout out form with values:", values);
+      // Convert message to description for backwards compatibility
+      const payload = {
+        ...values,
+        description: values.message
+      };
+      console.log("API payload:", payload);
       return apiRequest("/api/core-values/nominate", {
         method: "POST",
-        data: values,
+        data: payload,
       });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Shout out created successfully:", data);
       toast({
         title: "Shout Out Created!",
         description: "Your recognition has been shared with the team.",
@@ -91,14 +99,16 @@ export default function CreateShoutOutForm() {
       queryClient.invalidateQueries({ queryKey: ["/api/core-values/nominations-made"] });
       queryClient.invalidateQueries({ queryKey: ["/api/core-values/nominations-received"] });
       queryClient.invalidateQueries({ queryKey: ["/api/users"] }); // Refresh user points
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] }); // Refresh user data (points)
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error("Error creating shout out:", error);
+      const errorMessage = error?.response?.data?.message || "Please try again later.";
       toast({
         title: "Something went wrong",
-        description: "Please try again later.",
+        description: errorMessage,
         variant: "destructive",
       });
-      console.error("Error creating shout out:", error);
     },
   });
   
