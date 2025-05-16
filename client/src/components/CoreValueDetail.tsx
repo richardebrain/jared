@@ -1,11 +1,11 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Lightbulb, Book, Volume2, PauseCircle, Clock, CheckCircle, Award } from "lucide-react";
+import { Lightbulb, Book, Volume2, PauseCircle, Clock, CheckCircle, Award, Play, Music } from "lucide-react";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 interface CoreValueDetailProps {
@@ -20,8 +20,10 @@ export default function CoreValueDetail({ onComplete }: CoreValueDetailProps) {
   const [completedValues, setCompletedValues] = useState<string[]>([]);
   const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
   const [storySelections, setStorySelections] = useState<Record<string, number>>({});
+  const [isRapPlaying, setIsRapPlaying] = useState(false);
   const { speakText } = useSoundEffects();
   const narrationRef = useRef<{ cancel: () => void } | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const coreValues = [
     {
@@ -228,7 +230,8 @@ So rain or shine, day or night,
 Commitment means you hold the light.
 Your promise gold, your word the key—
 Be the guard of someone's dream, always be`,
-        duration: "3 minutes"
+        duration: "3 minutes",
+        audioUrl: "/sounds/commitment-whistle-stop-rap.mp3"
       },
       examples: [
         "Pursue professional development opportunities",
@@ -420,6 +423,26 @@ Tool for staying positive when you're sad:
       narrationRef.current = null;
     }
     setAudioPlaying(false);
+  };
+  
+  // Function to toggle play/pause for the rap audio
+  const toggleRapAudio = () => {
+    if (!audioRef.current) return;
+    
+    if (isRapPlaying) {
+      audioRef.current.pause();
+      setIsRapPlaying(false);
+    } else {
+      audioRef.current.play().catch(error => {
+        console.warn("Failed to play audio:", error);
+      });
+      setIsRapPlaying(true);
+      
+      // Mark as completed when user plays the rap
+      if (!completedValues.includes("be-committed")) {
+        setCompletedValues([...completedValues, "be-committed"]);
+      }
+    }
   };
 
   const markValueAsCompleted = (valueId: string) => {
