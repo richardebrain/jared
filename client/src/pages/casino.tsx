@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { SpinWheel } from "@/components/SpinWheel";
+import { SlotMachine } from "@/components/SlotMachine";
 import ScratchCard from "@/components/ScratchCard";
 import MysteryBox from "@/components/MysteryBox";
 import DailyRewards from "@/components/DailyRewards";
@@ -356,7 +356,7 @@ export default function CasinoPage() {
           {/* Game content tabs */}
           <TabsContent value="game-spin" className="mt-6">
             <div className="max-w-md mx-auto">
-              <SpinWheel onClose={() => setActiveTab("games")} />
+              <SlotMachine onClose={() => setActiveTab("games")} />
             </div>
           </TabsContent>
           
