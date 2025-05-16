@@ -21,7 +21,8 @@ import {
   ArrowRight,
   CheckCircle,
   Building2,
-  Shield
+  Shield,
+  Music
 } from "lucide-react";
 import { MonthlyNewsletter } from "@/components/MonthlyNewsletter";
 import Leaderboard from "@/components/Leaderboard";
@@ -607,9 +608,9 @@ export default function Dashboard() {
                       <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-100">
                         <div className="flex items-center">
                           <Book className="h-5 w-5 text-amber-500 mr-2" />
-                          <CardTitle className="text-lg">Learning Resources</CardTitle>
+                          <CardTitle className="text-lg">Video and Audio Library</CardTitle>
                         </div>
-                        <CardDescription>Quick links to helpful resources</CardDescription>
+                        <CardDescription>Classroom music and training videos</CardDescription>
                       </CardHeader>
                       <CardContent className="p-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -619,19 +620,19 @@ export default function Dashboard() {
                                 <i className="ri-video-line text-purple-600"></i>
                               </div>
                               <div className="text-left">
-                                <p className="font-medium">Video Library</p>
-                                <p className="text-sm text-gray-500">Browse educational videos</p>
+                                <p className="font-medium">Training Videos</p>
+                                <p className="text-sm text-gray-500">Browse educational content</p>
                               </div>
                             </button>
                           </Link>
-                          <Link to="/assessment">
+                          <Link to="/classroom-music">
                             <button className="flex items-center p-3 bg-white rounded-lg border border-amber-200 shadow-sm w-full hover:bg-amber-50 transition">
-                              <div className="bg-blue-100 p-2 rounded-full mr-3">
-                                <i className="ri-file-list-line text-blue-600"></i>
+                              <div className="bg-green-100 p-2 rounded-full mr-3">
+                                <i className="ri-music-line text-green-600"></i>
                               </div>
                               <div className="text-left">
-                                <p className="font-medium">Assessments</p>
-                                <p className="text-sm text-gray-500">Track your progress</p>
+                                <p className="font-medium">Classroom Music</p>
+                                <p className="text-sm text-gray-500">Songs for daily routines</p>
                               </div>
                             </button>
                           </Link>
