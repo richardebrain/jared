@@ -815,13 +815,13 @@ export default function AssessmentPage() {
   const currentDomain = domains[currentDomainIndex].id;
   
   // Track difficulty level and performance for adaptive assessment
-  const [domainDifficulty, setDomainDifficulty] = useState<Record<string, DifficultyLevel>>({
-    'child-development': 'beginner',
-    'curriculum-planning': 'beginner', 
-    'social-emotional': 'beginner',
-    'health-safety': 'beginner',
-    'chapter-one': 'beginner',     // Adding new domain for "Building Chapter One" framework
-    'mindful-teaching': 'beginner' // Adding new domain for Raising Arizona mindful teaching approach
+  const [domainDifficulty, setDomainDifficulty] = useState<Record<string, DifficultyLevel>>(() => {
+    // Initialize difficulty levels for all domains
+    const initialDifficulties: Record<string, DifficultyLevel> = {};
+    domains.forEach(domain => {
+      initialDifficulties[domain.id] = 'beginner';
+    });
+    return initialDifficulties;
   });
   
   // Feedback for the current answer
@@ -863,6 +863,16 @@ export default function AssessmentPage() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   
   // We'll track if assessment data exists when we need it
+  
+  // Function to initialize/reset assessment state
+  const initializeAssessment = () => {
+    setCurrentQuestionIndex(0);
+    setCurrentDomainIndex(0);
+    setAnswers({});
+    setProgress(0);
+    setShowResults(false);
+    setComputeLearningPath(false);
+  };
   
   // Function to update domain questions based on difficulty - improved with better error handling
   const updateDomainQuestions = (domainId: string, difficulty: DifficultyLevel) => {
