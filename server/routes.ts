@@ -1034,6 +1034,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Core Values Nominations Route - used by CreateShoutOutForm component
+  app.post("/api/core-values/nominate", requireAuth, async (req, res) => {
+    try {
+      const nominatorId = req.session.userId as number;
+      const { nomineeId, coreValue, message } = req.body;
+      
+      // Validate inputs
+      if (!nomineeId || !coreValue || !message) {
+        return res.status(400).json({ 
+          message: "Nominee ID, core value, and message are required"
+        });
+      }
+      
+      // Check if user has already submitted a shout-out today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Get all shout-outs by the nominator
+      const userShoutOuts = await storage.getCoreValuesShoutOutsByNominatorId(nominatorId);
+      
+      // Filter to get only today's shout-outs
+      const userShoutOutsToday = userShoutOuts.filter(shoutOut => {
+        const shoutOutDate = new Date(shoutOut.createdAt);
+        return shoutOutDate >= today;
+      });
+      
+      if (userShoutOutsToday.length >= 3) {
+        return res.status(400).json({ 
+          message: "You've reached the maximum number of core value nominations for today",
+          remaining: 0 
+        });
+      }
+      
+      // Standard points awarded for a shout-out
+      const pointsAwarded = 5;
+      
+      // Create the shout-out
+      const shoutOut = await storage.createCoreValuesShoutOut({
+        nominatorId,
+        nomineeId,
+        coreValue,
+        description: message,
+        pointsAwarded
+      });
+      
+      // Award points to both nominator and nominee
+      await storage.addUserPoints(nominatorId, 2); // Nominator gets 2 points
+      await storage.addUserPoints(nomineeId, pointsAwarded); // Nominee gets 5 points
+      
+      // Respond with success message
+      res.status(200).json({
+        success: true,
+        message: `You've nominated ${nomineeId} for demonstrating ${coreValue}! You earned 2 points and they earned ${pointsAwarded} points.`,
+        pointsAwarded: pointsAwarded,
+        nominatorPoints: 2,
+        remaining: 3 - (userShoutOutsToday.length + 1)
+      });
+    } catch (error) {
+      console.error("Error submitting core values nomination:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   // We have a different endpoint for bonus games rewards at line 900, so this duplicate was removed
 
   // Add the new endpoint to match client expectations
