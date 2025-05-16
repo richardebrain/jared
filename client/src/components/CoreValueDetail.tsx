@@ -359,6 +359,14 @@ Tool for staying positive when you're sad:
     { id: "samuel-l-jackson", name: "Samuel L. Jackson", description: "Bold, commanding voice" },
     { id: "meryl-streep", name: "Meryl Streep", description: "Nuanced, expressive voice" }
   ];
+  
+  // Component to render an actor voice item with description
+  const ActorVoiceItem = ({ actor }: { actor: typeof actorVoices[0] }) => (
+    <div className="flex flex-col py-1">
+      <span className="font-medium">{actor.name}</span>
+      <span className="text-xs text-muted-foreground">{actor.description}</span>
+    </div>
+  );
 
   const handleTabChange = (value: string) => {
     setCurrentTab(value);
