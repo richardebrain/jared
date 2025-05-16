@@ -235,7 +235,13 @@ export function MindfulMorningsOutline() {
                           variant="outline" 
                           size="icon" 
                           className="h-16 w-16 rounded-full bg-white/10 backdrop-blur"
-                          onClick={() => setVideoPlaying(true)}
+                          onClick={() => {
+                            setVideoPlaying(true);
+                            // Auto-mark as complete after 5 seconds to ensure progression
+                            setTimeout(() => {
+                              markSectionComplete(`${activeModule}-${activeSection}`);
+                            }, 5000);
+                          }}
                         >
                           <PlayCircle className="h-10 w-10 text-white" />
                         </Button>
@@ -244,7 +250,7 @@ export function MindfulMorningsOutline() {
                   ) : (
                     <iframe 
                       className="absolute inset-0 w-full h-full"
-                      src="https://www.youtube.com/embed/ItCU1rCuumA?autoplay=1"
+                      src="https://www.youtube.com/embed/ItCU1rCuumA?autoplay=1&rel=0"
                       title="90% of a Child's Brain Develops By Age 5"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
@@ -438,7 +444,13 @@ export function MindfulMorningsOutline() {
                           variant="outline" 
                           size="icon" 
                           className="h-16 w-16 rounded-full bg-white/10 backdrop-blur"
-                          onClick={() => setVideoPlaying(true)}
+                          onClick={() => {
+                            setVideoPlaying(true);
+                            // Auto-mark as complete after 5 seconds to ensure progression
+                            setTimeout(() => {
+                              markSectionComplete(`${activeModule}-${activeSection}`);
+                            }, 5000);
+                          }}
                         >
                           <PlayCircle className="h-10 w-10 text-white" />
                         </Button>
@@ -447,7 +459,7 @@ export function MindfulMorningsOutline() {
                   ) : (
                     <iframe 
                       className="absolute inset-0 w-full h-full"
-                      src="https://www.youtube.com/embed/GtMciuKYI5Y?autoplay=1"
+                      src="https://www.youtube.com/embed/GtMciuKYI5Y?autoplay=1&rel=0"
                       title="Achieve Heart Coherence in 5 Minutes | Dr. Joe Dispenza"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
