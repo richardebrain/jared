@@ -82,36 +82,6 @@ export function UltimateEscalator() {
       status: 'available'
     },
     {
-      id: 102,
-      title: "Classroom Management Crisis",
-      description: "Navigate complex classroom management scenarios with these challenging situations",
-      difficulty: 'intermediate',
-      category: 'classroom-management',
-      points: 30,
-      estimatedTime: 15,
-      status: 'available'
-    },
-    {
-      id: 103,
-      title: "Child Development Deep Dive",
-      description: "Advanced assessment on developmental milestones and age-appropriate expectations",
-      difficulty: 'advanced',
-      category: 'child-development',
-      points: 40,
-      estimatedTime: 20,
-      status: 'available'
-    },
-    {
-      id: 104,
-      title: "The Ultimate Teacher Challenge",
-      description: "Our most difficult assessment covering all aspects of early childhood education",
-      difficulty: 'master',
-      category: 'comprehensive',
-      points: 50,
-      estimatedTime: 25,
-      status: 'locked'
-    },
-    {
       id: 105,
       title: "Family Engagement Strategies",
       description: "Learn effective approaches to engage families in their child's educational journey",
@@ -119,6 +89,26 @@ export function UltimateEscalator() {
       category: 'family-engagement',
       points: 20,
       estimatedTime: 12,
+      status: 'available'
+    },
+    {
+      id: 108,
+      title: "Positive Guidance Basics",
+      description: "Master foundational techniques for guiding children's behavior positively",
+      difficulty: 'beginner',
+      category: 'classroom-management',
+      points: 20,
+      estimatedTime: 15,
+      status: 'available'
+    },
+    {
+      id: 102,
+      title: "Classroom Management Crisis",
+      description: "Navigate complex classroom management scenarios with these challenging situations",
+      difficulty: 'intermediate',
+      category: 'classroom-management',
+      points: 30,
+      estimatedTime: 15,
       status: 'available'
     },
     {
@@ -132,6 +122,26 @@ export function UltimateEscalator() {
       status: 'available'
     },
     {
+      id: 109,
+      title: "Play-Based Learning Advanced",
+      description: "Take your play-based teaching approaches to the next level with advanced techniques",
+      difficulty: 'intermediate',
+      category: 'curriculum',
+      points: 25,
+      estimatedTime: 20,
+      status: 'available'
+    },
+    {
+      id: 103,
+      title: "Child Development Deep Dive",
+      description: "Advanced assessment on developmental milestones and age-appropriate expectations",
+      difficulty: 'advanced',
+      category: 'child-development',
+      points: 40,
+      estimatedTime: 20,
+      status: 'available'
+    },
+    {
       id: 107,
       title: "Curriculum Planning Excellence",
       description: "Master the art of creating engaging, developmentally appropriate curriculum plans",
@@ -140,6 +150,26 @@ export function UltimateEscalator() {
       points: 35,
       estimatedTime: 22,
       status: 'available'
+    },
+    {
+      id: 110,
+      title: "Leadership in Early Childhood",
+      description: "Develop essential leadership skills for mentoring teams and leading in ECE settings",
+      difficulty: 'advanced',
+      category: 'leadership',
+      points: 40,
+      estimatedTime: 25,
+      status: 'available'
+    },
+    {
+      id: 104,
+      title: "The Ultimate Teacher Challenge",
+      description: "Our most difficult assessment covering all aspects of early childhood education",
+      difficulty: 'master',
+      category: 'comprehensive',
+      points: 50,
+      estimatedTime: 25,
+      status: 'locked'
     }
   ];
 
