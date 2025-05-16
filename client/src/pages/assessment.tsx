@@ -1497,7 +1497,19 @@ export default function AssessmentPage() {
               }
             ];
             
-            setCurrentDomainQuestions(spaceFurnishingsQuestions);
+            // Use our default questions by adding them to the assessment questions array
+            const existingSpaceFurnishingsQuestions = assessmentQuestions.filter(q => q.domain === 'space-furnishings');
+            if (existingSpaceFurnishingsQuestions.length === 0) {
+              // Add our new questions to the assessment questions array
+              assessmentQuestions.push(...spaceFurnishingsQuestions);
+            }
+            
+            // Set to beginner difficulty for this domain to ensure questions are found
+            const newDomainDifficulty = {...domainDifficulty};
+            newDomainDifficulty[domainId] = 'beginner';
+            setDomainDifficulty(newDomainDifficulty);
+            
+            // Reset question index
             setCurrentQuestionIndex(0);
             return;
           }
@@ -1538,7 +1550,19 @@ export default function AssessmentPage() {
               }
             ];
             
-            setCurrentDomainQuestions(personalCareQuestions);
+            // Use our default questions by adding them to the assessment questions array
+            const existingPersonalCareQuestions = assessmentQuestions.filter(q => q.domain === 'personal-care');
+            if (existingPersonalCareQuestions.length === 0) {
+              // Add our new questions to the assessment questions array
+              assessmentQuestions.push(...personalCareQuestions);
+            }
+            
+            // Set to beginner difficulty for this domain to ensure questions are found
+            const newDomainDifficulty = {...domainDifficulty};
+            newDomainDifficulty[domainId] = 'beginner';
+            setDomainDifficulty(newDomainDifficulty);
+            
+            // Reset question index
             setCurrentQuestionIndex(0);
             return;
           }
