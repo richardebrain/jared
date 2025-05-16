@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,6 +51,8 @@ export default function AdminDashboard() {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [eosData, setEosData] = useState<any[]>([]);
+  const [eosLoading, setEosLoading] = useState(false);
 
   // Fetch all users
   const { data: users = [], isLoading: usersLoading } = useQuery({
@@ -144,6 +146,73 @@ export default function AdminDashboard() {
   const handleResetProgress = (userId: number) => {
     resetProgressMutation.mutate(userId);
     setSelectedUser(null);
+  };
+  
+  // Fetch EOS data when component mounts
+  useEffect(() => {
+    if (user?.isAdmin) {
+      fetchEOSData();
+    }
+  }, [user]);
+
+  // Function to fetch EOS data from Google Sheets
+  const fetchEOSData = async () => {
+    try {
+      setEosLoading(true);
+      // Google Sheets URL as provided by the user
+      const googleSheetsUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSWfTtWjkrs64yp_BglYDBl0HCUrnSoCJiVrGueitr0GJ8mXhsXi2d7WG_6LsouKo8ISnuUuNiVl3On/pubhtml";
+      
+      // Parse it to get the raw data
+      const response = await fetch(googleSheetsUrl);
+      const htmlText = await response.text();
+      
+      // Process the HTML to extract the table data
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlText, 'text/html');
+      const tables = doc.querySelectorAll('table');
+      
+      if (tables.length > 0) {
+        const mainTable = tables[0];
+        const rows = mainTable.querySelectorAll('tr');
+        const data = [];
+        
+        // Extract header from first row
+        const headerRow = rows[0];
+        const headers = Array.from(headerRow.querySelectorAll('td')).map(cell => cell.textContent?.trim() || '');
+        
+        // Extract data rows
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          const cells = row.querySelectorAll('td');
+          const rowData = {};
+          
+          for (let j = 0; j < headers.length; j++) {
+            if (j < cells.length) {
+              rowData[headers[j]] = cells[j].textContent?.trim() || '';
+            }
+          }
+          
+          data.push(rowData);
+        }
+        
+        setEosData(data);
+      }
+      
+      toast({
+        title: "EOS Data Updated",
+        description: "The EOS data has been successfully updated from Google Sheets.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Error fetching EOS data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load EOS data from Google Sheets. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setEosLoading(false);
+    }
   };
 
   if (usersLoading) {
@@ -240,6 +309,7 @@ export default function AdminDashboard() {
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
           <TabsTrigger value="shoutouts">Core Values Shout-outs</TabsTrigger>
+          <TabsTrigger value="eos">EOS Tools</TabsTrigger>
         </TabsList>
         
         {/* Users Tab */}
@@ -486,6 +556,136 @@ export default function AdminDashboard() {
                       </Card>
                     );
                   })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        {/* EOS Tools Tab */}
+        <TabsContent value="eos">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Briefcase className="h-5 w-5 text-primary" />
+                  <span>EOS Tools Dashboard</span>
+                </div>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={fetchEOSData}
+                  disabled={eosLoading}
+                  className="flex items-center gap-1"
+                >
+                  <RefreshCw className={`h-4 w-4 ${eosLoading ? 'animate-spin' : ''}`} />
+                  {eosLoading ? 'Refreshing...' : 'Refresh Data'}
+                </Button>
+              </CardTitle>
+              <CardDescription>
+                Access and manage your Entrepreneurial Operating System (EOS) tools and metrics
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {eosLoading ? (
+                <div className="py-8 flex justify-center">
+                  <div className="flex flex-col items-center gap-2">
+                    <BarChart2 className="h-8 w-8 text-muted-foreground animate-pulse" />
+                    <p className="text-muted-foreground">Loading EOS data...</p>
+                  </div>
+                </div>
+              ) : eosData.length > 0 ? (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                      <AreaChart className="h-5 w-5 text-green-600" />
+                      Raising Arizona EOS Metrics
+                    </h3>
+                    <div className="border rounded-md overflow-hidden">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="bg-muted/50 border-b">
+                            {Object.keys(eosData[0] || {}).map((header, index) => (
+                              <th key={index} className="text-left p-2 font-medium">
+                                {header}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {eosData.map((row, rowIndex) => (
+                            <tr key={rowIndex} className="border-b">
+                              {Object.values(row).map((value, colIndex) => (
+                                <td key={colIndex} className="p-2">
+                                  {value}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-4 flex-col md:flex-row">
+                    <Card className="flex-1">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium">EOS Tools</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          <Button className="w-full justify-start" variant="outline">
+                            <span className="mr-2">📋</span> Weekly L10 Meeting
+                          </Button>
+                          <Button className="w-full justify-start" variant="outline">
+                            <span className="mr-2">🎯</span> Rocks Dashboard
+                          </Button>
+                          <Button className="w-full justify-start" variant="outline">
+                            <span className="mr-2">💡</span> Issues List
+                          </Button>
+                          <Button className="w-full justify-start" variant="outline">
+                            <span className="mr-2">📊</span> Scorecard
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card className="flex-1">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium">Quick Actions</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          <Button className="w-full justify-start">
+                            <span className="mr-2">📥</span> Export EOS Data
+                          </Button>
+                          <Button className="w-full justify-start">
+                            <span className="mr-2">📤</span> Import Scorecard
+                          </Button>
+                          <Button className="w-full justify-start">
+                            <span className="mr-2">📆</span> Schedule L10 Meeting
+                          </Button>
+                          <Button className="w-full justify-start">
+                            <span className="mr-2">🔍</span> Review Core Values
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              ) : (
+                <div className="py-12 text-center">
+                  <div className="flex flex-col items-center gap-2 mb-4">
+                    <BarChart2 className="h-12 w-12 text-muted-foreground" />
+                    <h3 className="text-lg font-medium">No EOS Data Available</h3>
+                  </div>
+                  <p className="text-muted-foreground mb-6">
+                    Click the refresh button to load your EOS data from Google Sheets.
+                  </p>
+                  <Button onClick={fetchEOSData} className="mx-auto">
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Load EOS Data
+                  </Button>
                 </div>
               )}
             </CardContent>
