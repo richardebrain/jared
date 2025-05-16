@@ -240,7 +240,7 @@ export default function OwnerDashboardStandalone() {
         </div>
         
         {/* Main Content */}
-        <Tabs defaultValue={selectedTab} onValueChange={setSelectedTab}>
+        <Tabs defaultValue="reviews" onValueChange={setSelectedTab}>
           <TabsList className="mb-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="financial">Financial</TabsTrigger>
