@@ -83,26 +83,62 @@ export function useSoundEffects() {
     function selectVoice(availableVoices: SpeechSynthesisVoice[]) {
       let selectedVoice = null;
       
-      // Map actor preferences to different voice types
+      // Set rate and pitch based on actor preferences for more authentic voices
       switch(voicePreference) {
         case "Morgan Freeman":
           // Deep, male voice for Morgan Freeman
+          utterance.rate = 0.85; // Slower, deliberate pace
+          utterance.pitch = 0.8; // Lower pitch
           selectedVoice = availableVoices.find(v => v.lang.includes('en') && v.name.includes('Male') && !v.name.includes('high'));
           break;
         case "Jennifer Lawrence":
           // Female voice for Jennifer Lawrence
+          utterance.rate = 0.95;
+          utterance.pitch = 1.1; // Slightly higher pitch
           selectedVoice = availableVoices.find(v => v.lang.includes('en') && v.name.includes('Female'));
           break;
+        case "Preschool Teacher":
+          // Warm, clear teacher voice
+          utterance.rate = 0.9;
+          utterance.pitch = 1.05;
+          selectedVoice = availableVoices.find(v => v.lang.includes('en') && v.name.includes('Female'));
+          break;
+        case "Professional Storyteller":
+          // Expressive storyteller with varied pace
+          utterance.rate = 0.87;
+          utterance.pitch = 1.0;
+          // Try to find a voice with good expressiveness
+          selectedVoice = availableVoices.find(v => v.lang.includes('en') && v.name.includes('Female') && (v.name.includes('Enhanced') || v.name.includes('Neural'))) ||
+                         availableVoices.find(v => v.lang.includes('en') && v.name.includes('Female'));
+          break;
+        case "Viola Davis":
+          // Powerful, emotional voice
+          utterance.rate = 0.85;
+          utterance.pitch = 0.95;
+          selectedVoice = availableVoices.find(v => v.lang.includes('en') && v.name.includes('Female') && !v.name.includes('high'));
+          break;
+        case "Robert Downey Jr.":
+          // Charismatic, slightly faster paced voice
+          utterance.rate = 1.0;
+          utterance.pitch = 0.9;
+          selectedVoice = availableVoices.find(v => v.lang.includes('en') && v.name.includes('Male'));
+          break;
         case "Samuel L. Jackson":
-          // Bold male voice for Samuel L. Jackson
+          // Bold, commanding voice
+          utterance.rate = 0.9;
+          utterance.pitch = 0.85;
           selectedVoice = availableVoices.find(v => v.lang.includes('en') && v.name.includes('Male'));
           break;
         case "Meryl Streep":
-          // Alternative female voice for Meryl Streep
+          // Nuanced, expressive voice
+          utterance.rate = 0.9;
+          utterance.pitch = 1.05;
           selectedVoice = availableVoices.find(v => v.lang.includes('en') && v.name.includes('Female') && !v.name.includes('high'));
           break;
         default:
           // Default to first English voice
+          utterance.rate = 0.9;
+          utterance.pitch = 1.0;
           selectedVoice = availableVoices.find(v => v.lang.includes('en'));
       }
       

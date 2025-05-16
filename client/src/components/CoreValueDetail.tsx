@@ -350,12 +350,14 @@ Tool for staying positive when you're sad:
   ];
 
   const actorVoices = [
-    { id: "morgan-freeman", name: "Morgan Freeman" },
-    { id: "jennifer-lawrence", name: "Jennifer Lawrence" },
-    { id: "robert-downey-jr", name: "Robert Downey Jr." },
-    { id: "viola-davis", name: "Viola Davis" },
-    { id: "samuel-l-jackson", name: "Samuel L. Jackson" },
-    { id: "meryl-streep", name: "Meryl Streep" }
+    { id: "morgan-freeman", name: "Morgan Freeman", description: "Deep, calming voice" },
+    { id: "jennifer-lawrence", name: "Jennifer Lawrence", description: "Engaging, warm voice" },
+    { id: "preschool-teacher", name: "Preschool Teacher", description: "Authentic teacher voice" },
+    { id: "storyteller", name: "Professional Storyteller", description: "Expressive with good cadence" },
+    { id: "viola-davis", name: "Viola Davis", description: "Powerful, emotional voice" },
+    { id: "robert-downey-jr", name: "Robert Downey Jr.", description: "Charismatic voice" },
+    { id: "samuel-l-jackson", name: "Samuel L. Jackson", description: "Bold, commanding voice" },
+    { id: "meryl-streep", name: "Meryl Streep", description: "Nuanced, expressive voice" }
   ];
 
   const handleTabChange = (value: string) => {
@@ -572,18 +574,19 @@ Tool for staying positive when you're sad:
                             
                             <CardContent>
                               <div className="prose max-w-none">
-                                {audioPlaying && activeStory === value.id ? (
-                                  <div className="text-center py-6">
-                                    <div className="animate-pulse mb-2">
-                                      <Volume2 className="h-8 w-8 mx-auto text-primary" />
+                                <div className={audioPlaying && activeStory === value.id ? "story-narrating" : ""}>
+                                  {audioPlaying && activeStory === value.id && (
+                                    <div className="flex items-center justify-center mb-4 bg-blue-50 p-2 rounded-lg">
+                                      <div className="animate-pulse mr-2">
+                                        <Volume2 className="h-5 w-5 text-primary" />
+                                      </div>
+                                      <p className="text-sm text-primary font-medium">
+                                        {actorVoices.find(a => a.id === selectedActor)?.name} is narrating this story
+                                      </p>
                                     </div>
-                                    <p className="text-sm text-muted-foreground">
-                                      {actorVoices.find(a => a.id === selectedActor)?.name} is narrating the story...
-                                    </p>
-                                  </div>
-                                ) : (
+                                  )}
                                   <p className="whitespace-pre-line text-sm">{value.stories[selectedStoryIndex].text}</p>
-                                )}
+                                </div>
                               </div>
                             </CardContent>
                           </Card>
