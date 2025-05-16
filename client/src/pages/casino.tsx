@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { toast } from "@/hooks/use-toast";
+import { usePointsReward } from "@/hooks/use-points";
 import {
   Trophy,
   Gift,
@@ -63,63 +64,28 @@ export default function CasinoPage() {
     }
   }, []);
   
-  // Points reward handler for all games
-  const handlePointsReward = async (points: number) => {
-    try {
-      // Mark that the user has played a game today
-      const today = new Date().toDateString();
-      localStorage.setItem('lastGamePlayedDate', today);
+  // Use the new points reward hook
+  const { awardPoints, isPending } = usePointsReward({
+    redirectDelay: 1200, // Wait a bit longer before redirecting
+    onSuccess: () => {
+      // Mark the game as used for today on success
       setDailyGameUsed(true);
-      
-      if (!user) {
-        toast({
-          title: "Error",
-          description: "You need to be logged in to earn points",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // Record game play and award points
-      const response = await fetch('/api/rewards/points', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          points,
-          gameId: 1, // Bonus game ID
-        }),
-      });
-      
-      if (response.ok) {
-        toast({
-          title: "Points Added!",
-          description: `${points} points have been added to your account!`,
-        });
-        
-        // Force refresh user data
-        fetch('/api/auth/me', { 
-          method: 'GET',
-          headers: { 'Cache-Control': 'no-cache' }
-        })
-        .then(response => response.json())
-        .then(updatedUser => {
-          // Manually update user data in React Query cache
-          window.localStorage.setItem('lastPointsEarned', points.toString());
-          
-          // Redirect to dashboard to see updated points
-          window.setTimeout(() => {
-            window.location.href = "/dashboard";
-          }, 1000);
-        });
-      }
-    } catch (error) {
-      console.error('Error awarding points:', error);
+    }
+  });
+  
+  // Points reward handler for all games
+  const handlePointsReward = (points: number) => {
+    if (!user) {
       toast({
         title: "Error",
-        description: "Could not award points. Please try again.",
+        description: "You need to be logged in to earn points",
         variant: "destructive",
       });
+      return;
     }
+    
+    // Use our new hook to award the points
+    awardPoints(points);
   };
 
   return (

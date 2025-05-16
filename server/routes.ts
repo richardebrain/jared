@@ -879,6 +879,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Dedicated API endpoint for bonus game rewards
+  app.post("/api/rewards/points", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const { points = 5 } = req.body; // Default to 5 if not provided
+      
+      if (isNaN(points) || points <= 0 || points > 20) {
+        return res.status(400).json({ 
+          message: "Points must be a number between 1 and 20" 
+        });
+      }
+      
+      // Check if user has already played a game today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Get user's game history
+      const gameHistory = await storage.getUserGameHistory(userId);
+      
+      // Check if any game was played today
+      const played = gameHistory.some(game => 
+        new Date(game.completedAt).toDateString() === today.toDateString()
+      );
+      
+      if (played) {
+        return res.status(403).json({ 
+          message: "You've already played your daily game. Come back tomorrow!",
+          dailyLimitReached: true
+        });
+      }
+      
+      // Record the game play with gameId = 1 (representing bonus games)
+      const gamePlay = await storage.recordGamePlay({
+        userId,
+        gameId: 1,
+        score: points * 10,
+        timeTaken: 30,
+        pointsEarned: points
+      });
+      
+      // Add points to user account
+      const updatedUser = await storage.addUserPoints(userId, points);
+      
+      // Send back the updated user data
+      res.status(201).json({
+        success: true,
+        message: `Congratulations! You earned ${points} points!`,
+        pointsEarned: points,
+        user: updatedUser,
+        gamePlay
+      });
+    } catch (error) {
+      console.error("Error awarding points:", error);
+      res.status(500).json({ message: "Failed to award points. Please try again." });
+    }
+  });
+  
   // Core Values Shout Outs routes
   app.get("/api/core-values-shoutouts", async (req, res) => {
     try {
