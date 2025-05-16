@@ -78,7 +78,7 @@ export function UltimateEscalator() {
       difficulty: 'beginner',
       category: 'core-values',
       points: 1,
-      estimatedTime: 10,
+      estimatedTime: 2,
       status: 'available'
     },
     {
@@ -88,7 +88,7 @@ export function UltimateEscalator() {
       difficulty: 'beginner',
       category: 'family-engagement',
       points: 1,
-      estimatedTime: 12,
+      estimatedTime: 3,
       status: 'available'
     },
     {
@@ -98,7 +98,7 @@ export function UltimateEscalator() {
       difficulty: 'beginner',
       category: 'classroom-management',
       points: 1,
-      estimatedTime: 15,
+      estimatedTime: 2,
       status: 'available'
     },
     {
@@ -108,7 +108,7 @@ export function UltimateEscalator() {
       difficulty: 'beginner',
       category: 'child-development',
       points: 1,
-      estimatedTime: 10,
+      estimatedTime: 3,
       status: 'available'
     },
     {
@@ -118,7 +118,7 @@ export function UltimateEscalator() {
       difficulty: 'beginner',
       category: 'inclusion',
       points: 1,
-      estimatedTime: 12,
+      estimatedTime: 2,
       status: 'available'
     },
     {
@@ -128,7 +128,7 @@ export function UltimateEscalator() {
       difficulty: 'beginner',
       category: 'curriculum',
       points: 1,
-      estimatedTime: 15,
+      estimatedTime: 2,
       status: 'available'
     },
     {
@@ -138,7 +138,7 @@ export function UltimateEscalator() {
       difficulty: 'beginner',
       category: 'leadership',
       points: 1,
-      estimatedTime: 12,
+      estimatedTime: 3,
       status: 'available'
     },
     {
@@ -148,7 +148,7 @@ export function UltimateEscalator() {
       difficulty: 'intermediate',
       category: 'classroom-management',
       points: 1,
-      estimatedTime: 15,
+      estimatedTime: 3,
       status: 'available'
     },
     {
@@ -158,7 +158,7 @@ export function UltimateEscalator() {
       difficulty: 'intermediate',
       category: 'inclusion',
       points: 1,
-      estimatedTime: 18,
+      estimatedTime: 2,
       status: 'available'
     },
     {
@@ -168,7 +168,7 @@ export function UltimateEscalator() {
       difficulty: 'intermediate',
       category: 'curriculum',
       points: 1,
-      estimatedTime: 20,
+      estimatedTime: 3,
       status: 'available'
     },
     {
@@ -178,7 +178,7 @@ export function UltimateEscalator() {
       difficulty: 'intermediate',
       category: 'child-development',
       points: 1,
-      estimatedTime: 18,
+      estimatedTime: 2,
       status: 'available'
     },
     {
@@ -188,7 +188,7 @@ export function UltimateEscalator() {
       difficulty: 'intermediate',
       category: 'family-engagement',
       points: 1,
-      estimatedTime: 15,
+      estimatedTime: 3,
       status: 'available'
     },
     {
@@ -198,7 +198,7 @@ export function UltimateEscalator() {
       difficulty: 'intermediate',
       category: 'leadership',
       points: 1,
-      estimatedTime: 20,
+      estimatedTime: 2,
       status: 'available'
     },
     {
@@ -208,7 +208,7 @@ export function UltimateEscalator() {
       difficulty: 'intermediate',
       category: 'core-values',
       points: 1,
-      estimatedTime: 15,
+      estimatedTime: 3,
       status: 'available'
     },
     {
@@ -218,7 +218,7 @@ export function UltimateEscalator() {
       difficulty: 'advanced',
       category: 'child-development',
       points: 1,
-      estimatedTime: 20,
+      estimatedTime: 3,
       status: 'available'
     },
     {
@@ -228,7 +228,7 @@ export function UltimateEscalator() {
       difficulty: 'advanced',
       category: 'curriculum',
       points: 1,
-      estimatedTime: 22,
+      estimatedTime: 2,
       status: 'available'
     },
     {
@@ -238,7 +238,7 @@ export function UltimateEscalator() {
       difficulty: 'advanced',
       category: 'leadership',
       points: 1,
-      estimatedTime: 25,
+      estimatedTime: 3,
       status: 'available'
     },
     {
@@ -248,7 +248,7 @@ export function UltimateEscalator() {
       difficulty: 'advanced',
       category: 'family-engagement',
       points: 1,
-      estimatedTime: 20,
+      estimatedTime: 2,
       status: 'available'
     },
     {
@@ -258,7 +258,7 @@ export function UltimateEscalator() {
       difficulty: 'advanced',
       category: 'inclusion',
       points: 1,
-      estimatedTime: 25,
+      estimatedTime: 3,
       status: 'available'
     },
     {
@@ -268,7 +268,7 @@ export function UltimateEscalator() {
       difficulty: 'advanced',
       category: 'classroom-management',
       points: 1,
-      estimatedTime: 22,
+      estimatedTime: 2,
       status: 'available'
     },
     {
@@ -278,7 +278,7 @@ export function UltimateEscalator() {
       difficulty: 'advanced',
       category: 'core-values',
       points: 1,
-      estimatedTime: 18,
+      estimatedTime: 3,
       status: 'available'
     },
     {
@@ -288,7 +288,7 @@ export function UltimateEscalator() {
       difficulty: 'master',
       category: 'comprehensive',
       points: 1,
-      estimatedTime: 25,
+      estimatedTime: 3,
       status: 'locked'
     }
   ];
