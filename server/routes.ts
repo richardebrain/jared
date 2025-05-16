@@ -1173,9 +1173,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/shout-outs", requireAuth, async (req, res) => {
     try {
       const nominatorId = req.session.userId as number;
-      const { nomineeId, coreValue, description } = req.body;
+      const { nomineeId, coreValue, description, message } = req.body;
       
-      if (!nomineeId || !coreValue || !description) {
+      // Use description if provided, otherwise use message (for backwards compatibility)
+      const nominationText = description || message;
+      
+      if (!nomineeId || !coreValue || !nominationText) {
         return res.status(400).json({ message: "Nominee ID, core value, and description are required" });
       }
       
