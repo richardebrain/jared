@@ -248,7 +248,7 @@ export default function MediaSidebar() {
                   .map(song => (
                     <div
                       key={song.id}
-                      onClick={() => setSelectedSong(song.id)}
+                      onClick={() => selectAndPlaySong(song.id)}
                       className={`p-3 rounded-md cursor-pointer transition-colors ${
                         selectedSong === song.id 
                           ? 'bg-primary/10 border border-primary/20' 
@@ -306,7 +306,7 @@ export default function MediaSidebar() {
               <Button 
                 variant="default" 
                 className="w-20"
-                onClick={toggleAudio}
+                onClick={() => isAudioPlaying ? toggleAudio() : selectAndPlaySong(selectedSong)}
               >
                 {isAudioPlaying ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
                 {isAudioPlaying ? "Pause" : "Play"}
