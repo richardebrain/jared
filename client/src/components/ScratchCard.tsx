@@ -137,20 +137,51 @@ export default function ScratchCard({ maxDailyScratchCards = 3 }: ScratchCardPro
     }
   });
 
-  // Simulate fetching daily scratch cards left
+  // Fetch game history to determine if user has already played today
   useEffect(() => {
-    // In a real implementation, this would fetch from the backend
-    const fetchDailyCardsLeft = async () => {
+    const fetchGameHistory = async () => {
       try {
-        // Simulated API call
-        setDailyCardsLeft(Math.floor(Math.random() * (maxDailyScratchCards + 1)));
+        // Check if localStorage already knows we used the daily game
+        const lastGamePlayedDate = localStorage.getItem("lastGamePlayedDate");
+        const today = new Date().toDateString();
+        
+        if (lastGamePlayedDate === today) {
+          setDailyCardsLeft(0);
+          return;
+        }
+        
+        // Check game history from API if localStorage doesn't have the info
+        const gameHistory = await apiRequest('/api/games/history', {
+          method: 'GET'
+        });
+        
+        if (Array.isArray(gameHistory)) {
+          // Check if any game was played today
+          const todayStart = new Date();
+          todayStart.setHours(0, 0, 0, 0);
+          
+          const playedToday = gameHistory.some(game => {
+            if (!game.completedAt) return false;
+            const gameDate = new Date(game.completedAt);
+            return gameDate >= todayStart;
+          });
+          
+          setDailyCardsLeft(playedToday ? 0 : maxDailyScratchCards);
+        } else {
+          // Default to max cards if we can't determine
+          setDailyCardsLeft(maxDailyScratchCards);
+        }
       } catch (error) {
-        console.error("Failed to fetch daily cards left", error);
+        console.error("Failed to fetch game history", error);
+        // Default to max cards if there's an error
+        setDailyCardsLeft(maxDailyScratchCards);
       }
     };
     
-    fetchDailyCardsLeft();
-  }, [maxDailyScratchCards]);
+    if (user) {
+      fetchGameHistory();
+    }
+  }, [maxDailyScratchCards, user]);
   
   // Simulate fetching reward history
   useEffect(() => {
@@ -222,6 +253,11 @@ export default function ScratchCard({ maxDailyScratchCards = 3 }: ScratchCardPro
               rewardType: 'points',
               rewardAmount: selectedReward.value
             });
+            
+            // Record play in localStorage for immediate UI feedback
+            const today = new Date().toDateString();
+            localStorage.setItem("lastGamePlayedDate", today);
+            localStorage.setItem("lastPointsEarned", String(selectedReward.value));
           }
           
           return 100;
