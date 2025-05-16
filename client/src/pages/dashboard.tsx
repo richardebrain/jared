@@ -51,6 +51,13 @@ const POINTS_PER_BEAR_BUCK = 50;
 export default function Dashboard() {
   // We'll calculate Bear Bucks later once we have the user data
   const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
+  const [showAchievement, setShowAchievement] = useState(false);
+  const [achievementData, setAchievementData] = useState({
+    title: "Consistency Champion",
+    description: "You've logged in 3 days in a row!",
+    points: 10,
+    type: "achievement" as const
+  });
   const { toast } = useToast();
   
   const { data: user, isLoading: isLoadingUser, isError: isUserError } = useQuery<User>({ 
