@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from "recharts";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Award, ChevronRight, ClipboardList, Download, RefreshCw, Star } from "lucide-react";
@@ -167,65 +167,159 @@ export default function AssessmentResults({ assessmentData, onStartReassessment 
           
           <CardContent className="pt-6">
             {activeTab === 'graph' && (
-              <div className="w-full h-[450px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={chartData}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 120 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="name" 
-                      angle={-45} 
-                      textAnchor="end" 
-                      height={120} 
-                      interval={0}
-                    />
-                    <YAxis domain={[0, 100]} />
-                    <Tooltip 
-                      formatter={(value) => [`${value}%`, 'Score']}
-                    />
-                    <Legend />
-                    <Bar 
-                      dataKey="score" 
-                      name="Skill Level" 
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
+              <div className="space-y-6">
+                <div className="w-full h-[450px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={chartData}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 120 }}
+                      barSize={25}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                      <XAxis 
+                        dataKey="name" 
+                        angle={-45} 
+                        textAnchor="end" 
+                        height={120} 
+                        interval={0}
+                        tick={{ fontSize: 12 }}
+                      />
+                      <YAxis 
+                        domain={[0, 100]} 
+                        tickCount={6}
+                        tickFormatter={(value) => `${value}%`}
+                      />
+                      <Tooltip 
+                        formatter={(value) => [`${value}%`, 'Score']}
+                        cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
+                        contentStyle={{ 
+                          borderRadius: '8px', 
+                          border: '1px solid #e2e8f0',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        }}
+                      />
+                      <Legend 
+                        wrapperStyle={{ paddingTop: '10px' }}
+                      />
+                      <Bar 
+                        dataKey="score" 
+                        name="Skill Level" 
+                        radius={[4, 4, 0, 0]}
+                        isAnimationActive={true}
+                        animationDuration={1500}
+                      />
+                      {/* Reference lines for each level */}
+                      <ReferenceLine y={90} stroke="#22c55e" strokeDasharray="3 3" label={{ value: 'Mastery', position: 'insideTopRight', fill: '#22c55e', fontSize: 12 }} />
+                      <ReferenceLine y={75} stroke="#3b82f6" strokeDasharray="3 3" label={{ value: 'Accomplished', position: 'insideTopRight', fill: '#3b82f6', fontSize: 12 }} />
+                      <ReferenceLine y={60} stroke="#f59e0b" strokeDasharray="3 3" label={{ value: 'Proficient', position: 'insideTopRight', fill: '#f59e0b', fontSize: 12 }} />
+                      <ReferenceLine y={40} stroke="#ec4899" strokeDasharray="3 3" label={{ value: 'Developing', position: 'insideTopRight', fill: '#ec4899', fontSize: 12 }} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                
+                <div className="overflow-x-auto">
+                  <div className="min-w-max flex justify-center space-x-4 py-3 px-4 bg-muted/30 rounded-lg">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getLevelColor('mastery') }} />
+                      <span className="text-sm font-medium">Mastery (90-100%)</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getLevelColor('accomplished') }} />
+                      <span className="text-sm font-medium">Accomplished (75-89%)</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getLevelColor('proficient') }} />
+                      <span className="text-sm font-medium">Proficient (60-74%)</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getLevelColor('developing') }} />
+                      <span className="text-sm font-medium">Developing (40-59%)</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getLevelColor('beginner') }} />
+                      <span className="text-sm font-medium">Beginner (0-39%)</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
             
             {activeTab === 'details' && (
               <div className="space-y-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold">Detailed Assessment Breakdown</h3>
+                  <p className="text-sm text-muted-foreground">Showing all 18 categories and your proficiency level</p>
+                </div>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {sortedScores.map((score) => (
-                    <div key={score.category} className="flex flex-col space-y-2 p-4 border rounded-lg">
-                      <div className="flex justify-between items-center">
-                        <h3 className="font-semibold">{score.category}</h3>
+                    <div 
+                      key={score.category} 
+                      className="flex flex-col space-y-3 p-5 border rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                      style={{ 
+                        borderLeft: `4px solid ${getLevelColor(score.level)}`,
+                      }}
+                    >
+                      <div className="flex justify-between items-center gap-2">
+                        <h3 className="font-semibold text-md">{score.category}</h3>
                         <Badge 
                           variant="outline"
+                          className="px-3 py-1 text-xs font-bold"
                           style={{ 
                             color: getLevelColor(score.level),
-                            borderColor: getLevelColor(score.level)
+                            borderColor: getLevelColor(score.level),
+                            backgroundColor: `${getLevelColor(score.level)}10`
                           }}
                         >
                           {score.level.charAt(0).toUpperCase() + score.level.slice(1)}
                         </Badge>
                       </div>
+                      
                       <div className="flex items-center space-x-2">
-                        <div className="w-full bg-secondary rounded-full h-2.5">
+                        <div className="w-full bg-secondary/30 rounded-full h-3">
                           <div 
-                            className="h-2.5 rounded-full" 
+                            className="h-3 rounded-full transition-all duration-1000 ease-out" 
                             style={{ 
                               width: `${score.score}%`,
                               backgroundColor: getLevelColor(score.level)
                             }}
                           />
                         </div>
-                        <span className="text-sm font-medium">{score.score}%</span>
+                        <span className="text-sm font-medium w-12 text-right">{score.score}%</span>
                       </div>
-                      <p className="text-sm text-muted-foreground">{score.description}</p>
+                      
+                      <div className="flex gap-2 items-start">
+                        <div className="w-2 h-2 rounded-full mt-1.5" style={{ 
+                          backgroundColor: score.score >= 70 ? '#22c55e' : '#f59e0b'
+                        }}></div>
+                        <p className="text-sm text-muted-foreground flex-1">{score.description}</p>
+                      </div>
+                      
+                      <div className="flex justify-between items-center mt-2 pt-2 border-t border-dashed">
+                        <div className="text-xs text-muted-foreground">
+                          {score.score >= 80 ? (
+                            <span className="flex items-center text-green-600">
+                              <div className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1"></div>
+                              Strength area
+                            </span>
+                          ) : score.score < 70 ? (
+                            <span className="flex items-center text-red-600">
+                              <div className="w-1.5 h-1.5 rounded-full bg-red-500 mr-1"></div>
+                              Growth area
+                            </span>
+                          ) : (
+                            <span className="flex items-center text-blue-600">
+                              <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1"></div>
+                              Developing area
+                            </span>
+                          )}
+                        </div>
+                        {score.score < 70 && (
+                          <div className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800">
+                            Learning priority
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
