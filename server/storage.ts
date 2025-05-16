@@ -1449,6 +1449,24 @@ export class DatabaseStorage implements IStorage {
     // Update the user's points
     return await this.updateUser(userId, { points: newPoints });
   }
+  
+  // Game history tracking
+  async getUserGameHistory(userId: number): Promise<GameCompletion[]> {
+    return db
+      .select()
+      .from(gameCompletions)
+      .where(eq(gameCompletions.userId, userId))
+      .orderBy(desc(gameCompletions.completedAt));
+  }
+  
+  async recordGamePlay(gamePlay: InsertGameCompletion): Promise<GameCompletion> {
+    const [completion] = await db
+      .insert(gameCompletions)
+      .values(gamePlay)
+      .returning();
+      
+    return completion;
+  }
 }
 
 // Export a new instance of DatabaseStorage
