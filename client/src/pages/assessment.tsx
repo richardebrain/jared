@@ -1518,7 +1518,6 @@ export default function AssessmentPage() {
             domainName: domainInfo.name,
             priority: 'high',
             recommendation: `Start with foundational content in ${domainInfo.name}`,
-            moduleType: 'foundational',
             reason: 'Assessment shows this is an opportunity area that needs fundamental work'
           });
         } else if (difficulty === 'intermediate') {
@@ -1528,7 +1527,6 @@ export default function AssessmentPage() {
             domainName: domainInfo.name,
             priority: 'medium',
             recommendation: `Continue building skills in ${domainInfo.name} with intermediate content`,
-            moduleType: 'intermediate',
             reason: 'You have basic understanding but need more practice with complex concepts'
           });
         } else if (difficulty === 'advanced') {
@@ -1538,7 +1536,6 @@ export default function AssessmentPage() {
             domainName: domainInfo.name,
             priority: 'low',
             recommendation: `Refine your knowledge of ${domainInfo.name} with advanced content`,
-            moduleType: 'advanced',
             reason: 'You have strong knowledge but missed a few advanced concepts'
           });
         } else if (difficulty === 'expert') {
@@ -1546,9 +1543,8 @@ export default function AssessmentPage() {
           learningPath.push({
             domainId: domain,
             domainName: domainInfo.name,
-            priority: 'specialized',
+            priority: 'low',
             recommendation: `Explore mastery-level content in ${domainInfo.name}, particularly attachment theory and trauma-informed practices`,
-            moduleType: 'expert',
             reason: 'You demonstrate advanced knowledge but could benefit from deeper exploration of specialized concepts in this area'
           });
         }
@@ -1569,7 +1565,6 @@ export default function AssessmentPage() {
             domainName: domainInfo.name,
             priority: 'suggested',
             recommendation: `Consider becoming a mentor or lead trainer in ${domainInfo.name}`,
-            moduleType: 'mentorship',
             reason: 'You demonstrated mastery-level understanding in this area, including advanced concepts in attachment theory and trauma-informed practices'
           });
         } else {
@@ -1579,7 +1574,6 @@ export default function AssessmentPage() {
             domainName: domainInfo.name,
             priority: 'suggested',
             recommendation: `Consider mentor opportunities in ${domainInfo.name}`,
-            moduleType: 'mastery',
             reason: 'You demonstrated strong understanding in this area'
           });
         }
