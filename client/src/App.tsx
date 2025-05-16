@@ -33,6 +33,7 @@ import GamesPage from "@/pages/games";
 import AdminPage from "@/pages/admin";
 import LessonPlanMakerPage from "@/pages/lesson-plan-maker";
 import CasinoPage from "@/pages/casino";
+import TransitionTimer from "@/pages/transition-timer";
 
 function Router() {
   // Use React Query directly to check authenticated state
@@ -184,6 +185,10 @@ function Router() {
       
       <Route path="/admin">
         {isAuthenticated ? <AdminPage /> : <Login />}
+      </Route>
+      
+      <Route path="/transition-timer">
+        {isAuthenticated ? <TransitionTimer /> : <Login />}
       </Route>
       
       <Route path="/">
