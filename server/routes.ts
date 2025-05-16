@@ -36,8 +36,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(
     session({
       secret: process.env.SESSION_SECRET || "mentor-me-secret",
-      resave: false,
-      saveUninitialized: false,
+      resave: true, // Changed to true to ensure session is saved on each request
+      saveUninitialized: true, // Changed to true to ensure new sessions are saved
       cookie: { 
         secure: false, // Always false for development to work with HTTP
         httpOnly: true,
