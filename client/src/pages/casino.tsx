@@ -79,8 +79,8 @@ export default function CasinoPage() {
       
       <div className="mt-8">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Teacher Casino
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-red-600 bg-clip-text text-transparent">
+            Teacher Rewards
           </h1>
           <Link to="/dashboard">
             <Button variant="outline">
@@ -89,9 +89,17 @@ export default function CasinoPage() {
           </Link>
         </div>
         
-        <p className="mt-2 text-muted-foreground">
-          Celebrate your learning journey with these fun rewards!
-        </p>
+        <div className="mt-2 flex items-center gap-2">
+          <span className="text-amber-500">
+            <Gift className="h-5 w-5" />
+          </span>
+          <p className="text-muted-foreground">
+            Celebrate your learning journey with these fun rewards!
+          </p>
+          <span className="text-amber-500">
+            <Trophy className="h-5 w-5" />
+          </span>
+        </div>
         
         {!hasCompletedActivity && (
           <Card className="mt-4 border-yellow-200 bg-yellow-50">
@@ -114,12 +122,12 @@ export default function CasinoPage() {
           onValueChange={setActiveTab}
           className="mt-6"
         >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="games" disabled={!hasCompletedActivity}>
+          <TabsList className="grid w-full grid-cols-2 bg-gradient-to-r from-amber-100 to-amber-200 border-amber-300">
+            <TabsTrigger value="games" disabled={!hasCompletedActivity} className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-red-500 data-[state=active]:text-white">
               <Trophy className="h-4 w-4 mr-2" />
-              Casino Games
+              Bonus Games
             </TabsTrigger>
-            <TabsTrigger value="rewards" disabled={!hasCompletedActivity}>
+            <TabsTrigger value="rewards" disabled={!hasCompletedActivity} className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-red-500 data-[state=active]:text-white">
               <Gift className="h-4 w-4 mr-2" />
               Rewards History
             </TabsTrigger>
