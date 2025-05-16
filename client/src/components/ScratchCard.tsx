@@ -61,6 +61,7 @@ export default function ScratchCard({ maxDailyScratchCards = 3 }: ScratchCardPro
   const [currentReward, setCurrentReward] = useState<any>(null);
   const [showRewardDialog, setShowRewardDialog] = useState(false);
   const [rewardHistory, setRewardHistory] = useState<any[]>([]);
+  const [showPointsAnimation, setShowPointsAnimation] = useState(false);
   
   // Track level up info for the reward dialog
   const [levelUpInfo, setLevelUpInfo] = useState<{levelUp: boolean, level: number} | null>(null);
@@ -203,6 +204,14 @@ export default function ScratchCard({ maxDailyScratchCards = 3 }: ScratchCardPro
           
           // Process the reward - now only using points
           if (selectedReward && user) {
+            // Show points animation
+            setShowPointsAnimation(true);
+            
+            // Hide animation after it completes
+            setTimeout(() => {
+              setShowPointsAnimation(false);
+            }, 2500);
+            
             // All rewards are just points now
             updateUserReward.mutate({
               userId: user.id,
@@ -231,6 +240,16 @@ export default function ScratchCard({ maxDailyScratchCards = 3 }: ScratchCardPro
   
   return (
     <Card className="w-full max-w-md mx-auto bg-white border shadow-lg">
+      {/* Points Animation Component */}
+      {currentReward && currentReward.type === 'points' && (
+        <PointsAnimation 
+          points={currentReward.value} 
+          show={showPointsAnimation} 
+          style="casino" 
+          onComplete={() => setShowPointsAnimation(false)}
+        />
+      )}
+      
       <CardHeader className="text-center bg-gradient-to-r from-purple-500 to-indigo-600 text-white">
         <CardTitle className="text-2xl font-bold">Scratch & Win</CardTitle>
         <CardDescription className="text-purple-100">
