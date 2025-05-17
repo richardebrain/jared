@@ -69,7 +69,7 @@ export default function BonusGamesButton() {
   
   // Active state with hover effects
   return (
-    <Link href="/casino">
+    <Link to="/casino">
       <div className="group relative overflow-hidden bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:via-indigo-500 hover:to-blue-500 text-white font-bold py-3 px-6 rounded-xl border-2 border-indigo-400 transform transition duration-200 ease-in-out hover:scale-105 cursor-pointer">
         {/* Corner decorations */}
         <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-yellow-300 rounded"></div>
