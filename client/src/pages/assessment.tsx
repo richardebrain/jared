@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { User } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
@@ -13,7 +13,10 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, AlertTriangle, Award, Check, ChevronRight, ClipboardList, Star } from "lucide-react";
+import { 
+  AlertCircle, AlertTriangle, Award, BookOpen, Check, CheckCircle, ChevronRight, 
+  ClipboardList, Map, RefreshCw, Star, TrendingUp 
+} from "lucide-react";
 
 // Audio feedback functions for game-like experience
 const playLevelUpSound = () => {
@@ -3064,9 +3067,6 @@ export default function AssessmentPage() {
       return response;
     },
     onSuccess: (data) => {
-      // Store assessment result data for display
-      setAssessmentResult(data);
-      
       // Calculate total correct answers
       const totalAnswers = Object.keys(answers).length;
       const correctAnswers = Object.keys(answers).filter(qId => {
@@ -3079,6 +3079,9 @@ export default function AssessmentPage() {
         method: "POST",
         data: { points: 10, reason: "Assessment Completion" }
       });
+      
+      // Show results view
+      setShowResults(true);
       
       // Generate an encouraging, personalized message based on performance
       const generateEncouragingMessage = () => {
