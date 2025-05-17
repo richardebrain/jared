@@ -3051,6 +3051,9 @@ export default function AssessmentPage() {
   };
   
   // Submit assessment mutation
+  // Add state for showing results after assessment completion
+  const [showResults, setShowResults] = useState(false);
+  
   const submitAssessmentMutation = useMutation({
     mutationFn: async (assessmentData: any) => {
       console.log("Submitting assessment data:", assessmentData);
@@ -3060,13 +3063,22 @@ export default function AssessmentPage() {
       });
       return response;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Store assessment result data for display
+      setAssessmentResult(data);
+      
       // Calculate total correct answers
       const totalAnswers = Object.keys(answers).length;
       const correctAnswers = Object.keys(answers).filter(qId => {
         const question = assessmentQuestions.find(q => q.id === qId);
         return question && answers[qId] === question.correctAnswer;
       }).length;
+      
+      // Award points for completing the assessment
+      apiRequest("/api/earn-points", {
+        method: "POST",
+        data: { points: 10, reason: "Assessment Completion" }
+      });
       
       // Generate an encouraging, personalized message based on performance
       const generateEncouragingMessage = () => {
