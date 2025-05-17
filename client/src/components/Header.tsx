@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { User } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import raisingArizonaLogo from "@assets/raising-arizona-logo.jpg";
 
 import {
@@ -21,6 +22,7 @@ export default function Header() {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isOwner } = useAuth();
   
   const { data: user } = useQuery<User>({
     queryKey: ["/api/auth/me"]
@@ -179,10 +181,22 @@ export default function Header() {
                 <i className="ri-settings-line mr-2"></i>
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/settings/owner-dashboard")}>
-                <i className="ri-building-line mr-2"></i>
-                Owner Dashboard
-              </DropdownMenuItem>
+              
+              {isOwner && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/owner-dashboard")}>
+                    <i className="ri-vip-crown-line mr-2"></i>
+                    Owner Suite
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/settings/owner-dashboard")}>
+                    <i className="ri-building-line mr-2"></i>
+                    School Management
+                  </DropdownMenuItem>
+                </>
+              )}
+              
+              <DropdownMenuSeparator />
               <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/admin")}>
                 <i className="ri-shield-keyhole-line mr-2"></i>
                 Admin Access

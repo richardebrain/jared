@@ -51,7 +51,7 @@ export function useAuth(): UseAuthReturn {
     // Authorization check functions
     const checkOwner = (userData: any) => {
       // List of usernames or emails that are considered owners
-      const ownerUsernames = ['Emma', 'Paije', 'Janiece', 'Krystal'];
+      const ownerUsernames = ['Emma', 'Paije', 'Janiece', 'Krystal', 'jlcookie20'];
       const ownerEmails = ['@raisingarizonapreschool.com'];
       
       return ownerUsernames.includes(userData.username) || 
