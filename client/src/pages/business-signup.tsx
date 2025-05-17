@@ -129,18 +129,36 @@ export default function BusinessSignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check if we're on the final tab, otherwise just handle navigation
+    if (activeTab !== "subscription") {
+      handleNextStep();
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
+      // Validate required fields before submission
+      if (!schoolName || !contactEmail || !adminPassword) {
+        toast({
+          title: "Missing Information",
+          description: "Please fill in all required fields (school name, contact email, and admin password).",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+      
       // Prepare form data for multipart submission
       const formData = new FormData();
       formData.append("schoolName", schoolName);
-      formData.append("address", address);
-      formData.append("city", city);
-      formData.append("state", state);
-      formData.append("zipCode", zipCode);
+      formData.append("address", address || "");
+      formData.append("city", city || "");
+      formData.append("state", state || "");
+      formData.append("zipCode", zipCode || "");
       formData.append("contactEmail", contactEmail);
-      formData.append("contactPhone", contactPhone);
+      formData.append("contactPhone", contactPhone || "");
       formData.append("adminPassword", adminPassword);
       formData.append("planType", planType);
       
@@ -156,21 +174,28 @@ export default function BusinessSignupPage() {
         // Don't set Content-Type header, browser will set it with boundary
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to register school");
+      let errorMessage = "Failed to register school";
+      
+      try {
+        const data = await response.json();
+        
+        if (!response.ok) {
+          errorMessage = data.message || errorMessage;
+          throw new Error(errorMessage);
+        }
+        
+        toast({
+          title: "Registration Successful",
+          description: "Your school has been registered successfully!",
+          variant: "default"
+        });
+        
+        // Redirect to login page instead of directly to dashboard
+        navigate("/login");
+      } catch (parseError) {
+        // Handle JSON parse errors
+        throw new Error(errorMessage);
       }
-      
-      const data = await response.json();
-      
-      toast({
-        title: "Registration Successful",
-        description: "Your school has been registered successfully!",
-        variant: "default"
-      });
-      
-      // Redirect to school dashboard
-      navigate(`/settings/owner-dashboard`);
     } catch (error: any) {
       console.error("Registration error:", error);
       toast({
