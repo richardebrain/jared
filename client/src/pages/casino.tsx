@@ -52,21 +52,28 @@ export default function CasinoPage() {
     queryKey: ["/api/progress"],
   });
   
-  // Check for special bonus games access for jlcookie20
-  const { data: specialAccess } = useQuery({
-    queryKey: ["/api/bonus-games/access"],
-  });
+  // Check for special access using username directly
+  const isJLCookie = user?.username === 'jlcookie20';
   
-  // Check if user has special access or has completed activities
-  const hasSpecialAccess = specialAccess?.hasSpecialAccess || false;
-  const hasCompletedActivity = hasSpecialAccess || progress.some((p: any) => p.completed);
+  // Special access for jlcookie20
+  // Override restrictions for jlcookie20 or check if completed activities
+  const hasCompletedActivity = isJLCookie || progress.some((p: any) => p.completed);
+  
+  // Override daily usage restriction for jlcookie20
+  useEffect(() => {
+    if (isJLCookie) {
+      setDailyGameUsed(false);
+    }
+  }, [isJLCookie, user]);
   
   // Check if user has already played a game today (limit of one game per login)
   // Users with special access (jlcookie20) bypass this restriction
   useEffect(() => {
-    // For special users (like jlcookie20), always allow access to games
-    if (hasSpecialAccess) {
+    // Special access for jlcookie20 - always allow access to games
+    if (user?.username === 'jlcookie20') {
       setDailyGameUsed(false);
+      // Clear any existing restriction
+      localStorage.removeItem('lastGamePlayedDate');
       return;
     }
     
@@ -76,7 +83,7 @@ export default function CasinoPage() {
     if (lastPlayedDate === today) {
       setDailyGameUsed(true);
     }
-  }, [hasSpecialAccess]);
+  }, [user?.username]);
   
   // Use the new points reward hook
   const { awardPoints, isPending } = usePointsReward({
@@ -456,7 +463,7 @@ export default function CasinoPage() {
                   
                   <Button 
                     className="w-full relative overflow-hidden group border-2 border-amber-700"
-                    disabled={!hasCompletedActivity || dailyGameUsed}
+                    disabled={!hasCompletedActivity || (dailyGameUsed && !isJLCookie)}
                     onClick={() => setActiveTab("game-mystery")}
                   >
                     <span className="absolute inset-0 bg-gradient-to-r from-amber-600 to-orange-600 group-hover:from-amber-500 group-hover:to-orange-500"></span>
