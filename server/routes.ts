@@ -430,10 +430,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const loginTime = new Date();
       req.session.loginTime = loginTime.toISOString();
       
-      // Update user's last active time
-      await storage.updateUser(user.id, {
-        lastActive: new Date()
-      });
+      // Update user's last active time and handle login streak
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Normalize to start of day for comparison
+      
+      // Get the last login date to check if this is a new day
+      let lastLoginDate = user.lastActive ? new Date(user.lastActive) : null;
+      let streakUpdated = false;
+      
+      if (lastLoginDate) {
+        lastLoginDate.setHours(0, 0, 0, 0); // Normalize to start of day
+        
+        // Check if last login was yesterday (for streak continuity)
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        // Check if last login was exactly one day ago (continuing streak)
+        if (lastLoginDate.getTime() === yesterday.getTime()) {
+          // Continue the streak - increment by 1
+          await storage.updateUser(user.id, {
+            lastActive: new Date(),
+            streak: (user.streak || 0) + 1
+          });
+          streakUpdated = true;
+          console.log(`User ${user.id} login streak continued: ${(user.streak || 0) + 1} days`);
+        } 
+        // Check if user is logging in on the same day (no streak change)
+        else if (lastLoginDate.getTime() === today.getTime()) {
+          // Same day login - no streak change
+          await storage.updateUser(user.id, {
+            lastActive: new Date()
+          });
+          console.log(`User ${user.id} already logged in today, streak remains: ${user.streak || 0} days`);
+        }
+        // Login after missing days (reset streak)
+        else if (lastLoginDate < yesterday) {
+          // Streak broken - reset to 1 for today's login
+          await storage.updateUser(user.id, {
+            lastActive: new Date(),
+            streak: 1
+          });
+          streakUpdated = true;
+          console.log(`User ${user.id} login streak reset to 1 day`);
+        }
+      } else {
+        // First login ever - start streak at 1
+        await storage.updateUser(user.id, {
+          lastActive: new Date(),
+          streak: 1
+        });
+        streakUpdated = true;
+        console.log(`User ${user.id} first login - streak started at 1 day`);
+      }
+      
+      // If streak was updated, check for achievements or rewards
+      if (streakUpdated) {
+        try {
+          // Reload user to get updated streak count
+          const updatedUser = await storage.getUser(user.id);
+          const streak = updatedUser?.streak || 0;
+          
+          // Award points based on streak milestones
+          if (streak === 7) {
+            // Weekly milestone - bonus points
+            await storage.updateUser(user.id, {
+              points: (updatedUser?.points || 0) + 25
+            });
+            console.log(`User ${user.id} awarded 25 points for 7-day streak milestone`);
+          } else if (streak === 30) {
+            // Monthly milestone - bigger bonus
+            await storage.updateUser(user.id, {
+              points: (updatedUser?.points || 0) + 100
+            });
+            console.log(`User ${user.id} awarded 100 points for 30-day streak milestone`);
+          } else if (streak % 5 === 0) {
+            // Every 5 days milestone
+            await storage.updateUser(user.id, {
+              points: (updatedUser?.points || 0) + 15
+            });
+            console.log(`User ${user.id} awarded 15 points for ${streak}-day streak milestone`);
+          } else {
+            // Regular daily streak points
+            await storage.updateUser(user.id, {
+              points: (updatedUser?.points || 0) + 5
+            });
+            console.log(`User ${user.id} awarded 5 points for daily login`);
+          }
+        } catch (rewardError) {
+          console.error(`Error processing streak rewards for user ${user.id}:`, rewardError);
+          // Non-critical error, continue with login process
+        }
+      }
       
       // Force session save to ensure it's properly written to the database
       try {
