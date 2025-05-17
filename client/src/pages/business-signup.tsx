@@ -40,6 +40,8 @@ export default function BusinessSignupPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("school-info");
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [showConfirmation, setShowConfirmation] = useState(false);
   
   // School information
   const [schoolName, setSchoolName] = useState("");
