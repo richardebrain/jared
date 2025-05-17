@@ -1100,11 +1100,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (existingProgress) {
         // Update existing progress
-        const updatedProgress = await storage.updateUserProgress(existingProgress.id, {
+        const updatedProgress = await storage.updateUserProgress({
+          userId: existingProgress.userId,
+          moduleId: existingProgress.moduleId,
           progress: progress || existingProgress.progress,
           completed: completed !== undefined ? completed : existingProgress.completed,
-          pointsEarned: pointsEarned !== undefined ? pointsEarned : existingProgress.pointsEarned,
-          lastAccessed: new Date()
+          pointsEarned: pointsEarned !== undefined ? pointsEarned : existingProgress.pointsEarned
+          // lastAccessed is handled automatically by the schema
         });
         
         // If the module is newly completed, add points to user account
@@ -1929,12 +1931,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
               progress: 0,
               completed: null,
               recommended: true,
-              pointsEarned: null,
-              lastAccessed: new Date()
+              pointsEarned: null
+              // lastAccessed is handled automatically by the schema
             });
           } else if (!existingProgress.recommended) {
             // Update existing progress to mark as recommended
-            await storage.updateUserProgress(existingProgress.id, {
+            await storage.updateUserProgress({
+              userId: existingProgress.userId,
+              moduleId: existingProgress.moduleId,
+              progress: existingProgress.progress,
+              completed: existingProgress.completed,
+              pointsEarned: existingProgress.pointsEarned,
               recommended: true
             });
           }
