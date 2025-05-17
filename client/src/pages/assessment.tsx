@@ -3402,36 +3402,71 @@ export default function AssessmentPage() {
                               
                               setSelectedOption(null);
                               
-                              // Make sure we have questions for this domain
-                              const domainHasQuestions = assessmentQuestions.some(q => 
-                                q.domain === 'emotional-support' && q.difficulty === 'beginner'
-                              );
+                              console.log("Directly creating emotional-support questions first, then setting up navigation");
                               
-                              if (!domainHasQuestions) {
-                                console.log("No questions found for emotional-support, setting up default questions");
-                                
-                                // Find the index in our domains array
-                                const newDomainIndex = domains.findIndex(d => d.id === domain.id);
-                                if (newDomainIndex !== -1) {
-                                  setCurrentDomainIndex(newDomainIndex);
+                              // Always create emotional-support questions first
+                              const emotionalSupportQuestions = [
+                                {
+                                  id: 'es-default-1',
+                                  text: 'Which approach best promotes positive emotional development in preschoolers?',
+                                  domain: 'emotional-support',
+                                  type: 'multiple-choice' as QuestionType,
+                                  difficulty: 'beginner' as DifficultyLevel,
+                                  options: [
+                                    'Consistently praising only perfect work',
+                                    'Creating a responsive, warm environment with clear expectations',
+                                    'Using behavior charts visible to the entire class',
+                                    'Focusing on academic skills over social-emotional development'
+                                  ],
+                                  correctAnswer: 'Creating a responsive, warm environment with clear expectations',
+                                  required: true
+                                },
+                                {
+                                  id: 'es-default-2',
+                                  text: 'According to CLASS standards, which teaching practice best demonstrates high-quality emotional support?',
+                                  domain: 'emotional-support',
+                                  type: 'multiple-choice' as QuestionType,
+                                  difficulty: 'beginner' as DifficultyLevel,
+                                  options: [
+                                    'Following a rigid schedule to provide structure',
+                                    'Demonstrating awareness of and responsiveness to children\'s emotional needs',
+                                    'Maintaining a quiet, controlled classroom atmosphere',
+                                    'Setting high academic expectations for all students regardless of ability'
+                                  ],
+                                  correctAnswer: 'Demonstrating awareness of and responsiveness to children\'s emotional needs',
+                                  required: true
                                 }
+                              ];
+                              
+                              // Direct state updates for fastest resolution
+                              console.log("Direct addition of emotional-support questions to assessment questions array");
+                              assessmentQuestions.push(...emotionalSupportQuestions);
+                              
+                              // Find and set the current domain index directly
+                              const newDomainIndex = domains.findIndex(d => d.id === domain.id);
+                              console.log(`Found domain index: ${newDomainIndex}`);
+                              
+                              if (newDomainIndex !== -1) {
+                                // Clear other state that might cause issues
+                                setAnswerFeedback({
+                                  shown: false,
+                                  correct: false, 
+                                  explanation: ''
+                                });
+                                setSelectedOption(null);
+                                setCurrentQuestionIndex(0);
                                 
-                                // Reset to beginner difficulty
+                                // Set the domain directly
+                                console.log(`Setting current domain index to ${newDomainIndex}`);
+                                setCurrentDomainIndex(newDomainIndex);
+                                
+                                // Force beginner difficulty
                                 setDomainDifficulty(prev => ({
                                   ...prev,
                                   [domain.id]: 'beginner'
                                 }));
-                                
-                                // Reset to first question
-                                setCurrentQuestionIndex(0);
-                                
-                                // Load questions with a small delay to ensure state updates
-                                setTimeout(() => {
-                                  updateDomainQuestions(domain.id, 'beginner');
-                                }, 300);
                               } else {
-                                // Normal navigation if questions exist
-                                handleDomainChange(domain.id);
+                                console.error("Could not find emotional-support domain in domains list");
                               }
                             } else {
                               // Normal domain navigation
