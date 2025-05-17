@@ -310,7 +310,7 @@ export default function CasinoPage() {
                   
                   <Button 
                     className="w-full relative overflow-hidden group border-2 border-amber-700"
-                    disabled={!hasCompletedActivity || dailyGameUsed}
+                    disabled={!hasCompletedActivity || (dailyGameUsed && !isJLCookie)}
                     onClick={() => setActiveTab("game-slot")}
                   >
                     <span className="absolute inset-0 bg-gradient-to-r from-red-600 to-amber-600 group-hover:from-red-500 group-hover:to-amber-500"></span>
@@ -389,7 +389,7 @@ export default function CasinoPage() {
                   
                   <Button 
                     className="w-full relative overflow-hidden group border-2 border-blue-700"
-                    disabled={!hasCompletedActivity || dailyGameUsed}
+                    disabled={!hasCompletedActivity || (dailyGameUsed && !isJLCookie)}
                     onClick={() => setActiveTab("game-scratch")}
                   >
                     <span className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 group-hover:from-blue-500 group-hover:to-purple-500"></span>
