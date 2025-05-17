@@ -2,8 +2,9 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { seedDatabase } from "./seedDb";
-// Import our migration function
+// Import our migration functions
 import { runSchoolMigration } from "./runMigration";
+import { runSchoolColumnsMigration } from "./schoolColumnsMigration";
 
 const app = express();
 app.use(express.json());
@@ -70,13 +71,21 @@ app.use((req, res, next) => {
     }, () => {
       log(`serving on port ${port}`);
       
-      // Run the school migration first
+      // Run migrations
       console.log('Running school migration...');
       runSchoolMigration()
         .then(() => {
           console.log('School migration completed successfully');
           
+          // Run the school columns migration
+          console.log('Running school columns migration...');
+          return runSchoolColumnsMigration();
+        })
+        .then(() => {
+          console.log('School columns migration completed successfully');
+          
           // Then seed the database with initial data
+          console.log('Seeding database...');
           return seedDatabase();
         })
         .catch(err => {
