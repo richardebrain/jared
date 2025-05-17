@@ -290,7 +290,7 @@ export default function AppOwnerDashboard() {
                 <CardDescription>Monthly revenue breakdown</CardDescription>
               </CardHeader>
               <CardContent>
-                {paymentPlans?.map((plan: any) => (
+                {(Array.isArray(paymentPlans) ? paymentPlans : []).map((plan: any) => (
                   <div key={plan.id} className="flex items-center justify-between mb-4">
                     <div>
                       <div className="font-medium">{plan.name}</div>

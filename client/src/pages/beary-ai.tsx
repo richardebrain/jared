@@ -21,9 +21,21 @@ export default function BearyAIPage() {
     setIsLoading(true);
     
     try {
-      // Simulate an AI response - in a real implementation, you would call an AI API
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setResponse(`As BearyAI, I'd like to help you with your prompt: "${prompt}"\n\nRaising Arizona Preschool values our teachers' growth and development. How can I assist you further?`);
+      // Make a real API call to our backend BearyAI service
+      const response = await fetch("/api/bear-assistant/ask", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ question: prompt })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setResponse(data.content || `I received your question about "${prompt}" but I'm currently having trouble generating a specific answer. Please try a different question about early childhood education topics like classroom management or child development.`);
       
       toast({
         title: "Response generated",
