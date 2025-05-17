@@ -521,6 +521,7 @@ export class MemStorage implements IStorage {
         progress: insertProgress.progress || 0,
         completed: insertProgress.completed || null,
         recommended: insertProgress.recommended || false,
+        pointsEarned: insertProgress.pointsEarned || 0,
         lastAccessed: now
       };
       

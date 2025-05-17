@@ -277,7 +277,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           kinesthetic: 0,
           preferred: null
         },
-        schoolId: schoolId || 1, // Default to Raising Arizona if no school specified
+        schoolId: req.body.schoolId || 1, // Default to Raising Arizona if no school specified
         points: 0,
         bearBucks: 0,
         level: 1,
@@ -327,8 +327,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             progress: 0,
             completed: false,
             recommended: true,
-            pointsEarned: 0,
-            lastAccessed: new Date()
+            pointsEarned: 0
+            // lastAccessed is handled automatically by the schema
           });
           console.log(`Assigned Mindful Mornings module (ID: ${mindfulModule.id}) to new user (ID: ${newUser.id})`);
         }
@@ -340,8 +340,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             progress: 0,
             completed: false,
             recommended: true,
-            pointsEarned: 0,
-            lastAccessed: new Date()
+            pointsEarned: 0
+            // lastAccessed is handled automatically by the schema
           });
           console.log(`Assigned Chapter 1 module (ID: ${chapterOneModule.id}) to new user (ID: ${newUser.id})`);
         }
