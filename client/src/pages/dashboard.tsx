@@ -571,27 +571,56 @@ export default function Dashboard() {
                   </div>
                 </div>
                 
-                {/* Points Progress Bar */}
+                {/* Enhanced Points Progress Bar */}
                 <div className="mt-6">
                   <div className="flex justify-between mb-2">
                     <span className="text-sm font-medium text-gray-600">Progress to next Bear Buck</span>
-                    <span className="text-sm font-medium text-gray-600">{user?.points || 0} / {bearBucksInfo.nextAtPoints} points</span>
+                    <span className="text-sm font-medium text-gray-600">
+                      <span className="font-bold text-primary">{user?.points || 0}</span> / {bearBucksInfo.nextAtPoints} points
+                    </span>
                   </div>
                   <div className="relative">
                     <Progress 
                       value={(user?.points || 0) % 50 * 2} 
-                      className="h-2.5" 
+                      className="h-3 bg-gray-100" 
                     />
+                    
+                    {/* Animated coin icon at current progress position */}
                     <div 
-                      className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/3"
-                      style={{ right: `${(bearBucksInfo.nextAtPoints - (user?.points || 0)) / bearBucksInfo.pointsPerBearBuck * 100}%` }}
+                      className="absolute top-0 transform -translate-y-1/3 transition-all duration-500 ease-in-out"
+                      style={{ 
+                        left: `${Math.min(((user?.points || 0) % 50) * 2, 100)}%`,
+                        animation: "slight-bounce 2s infinite ease-in-out"
+                      }}
                     >
-                      <div className="bg-yellow-400 p-0.5 rounded-full">
+                      <div className="bg-yellow-400 p-1 rounded-full shadow-md">
                         <Coins className="h-4 w-4 text-yellow-800" />
                       </div>
                     </div>
+                    
+                    {/* Bear Buck target icon */}
+                    <div 
+                      className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/3"
+                    >
+                      <div className="bg-green-500 p-1 rounded-full shadow-md border-2 border-white">
+                        <Trophy className="h-4 w-4 text-white" />
+                      </div>
+                    </div>
+                    
+                    {/* Points remaining text */}
+                    <div className="text-xs text-center mt-4 text-gray-600">
+                      <span className="font-medium text-primary">{bearBucksInfo.pointsToNextBearBuck}</span> more points until your next Bear Buck!
+                    </div>
                   </div>
                 </div>
+                
+                {/* Add custom animation */}
+                <style jsx>{`
+                  @keyframes slight-bounce {
+                    0%, 100% { transform: translateY(-30%); }
+                    50% { transform: translateY(-50%); }
+                  }
+                `}</style>
               </div>
               
               {/* Required Modules Section */}
