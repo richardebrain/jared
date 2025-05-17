@@ -112,14 +112,14 @@ export default function Header() {
               Assessment
             </div>
           </Link>
-          <Link href="/tools">
+          <Link to="/tools">
             <div className={`whitespace-nowrap font-medium px-3.5 py-1.5 rounded-full mx-1 text-sm ${location === "/tools" 
               ? "bg-amber-600 text-white shadow-sm" 
               : "text-neutral-700 hover:bg-amber-100"} transition-all duration-200 cursor-pointer`}>
               Tools
             </div>
           </Link>
-          <Link href="/video-resources">
+          <Link to="/video-resources">
             <div className={`whitespace-nowrap font-medium px-3.5 py-1.5 rounded-full mx-1 text-sm ${location === "/video-resources" 
               ? "bg-amber-600 text-white shadow-sm" 
               : "text-neutral-700 hover:bg-amber-100"} transition-all duration-200 cursor-pointer`}>
@@ -257,14 +257,14 @@ export default function Header() {
                 Assessment
               </div>
             </Link>
-            <Link href="/tools">
+            <Link to="/tools">
               <div className={`py-2 px-4 rounded-md ${location === "/tools" 
                 ? "bg-amber-600 text-white font-medium shadow-sm" 
                 : "text-neutral-700 hover:bg-amber-100"} cursor-pointer transition-colors`}>
                 Teacher Tools
               </div>
             </Link>
-            <Link href="/video-resources">
+            <Link to="/video-resources">
               <div className={`py-2 px-4 rounded-md ${location === "/video-resources" 
                 ? "bg-amber-600 text-white font-medium shadow-sm" 
                 : "text-neutral-700 hover:bg-amber-100"} cursor-pointer transition-colors`}>
