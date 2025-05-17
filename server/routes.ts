@@ -556,16 +556,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/modules/:id", requireAuth, requirePaidAccess, async (req, res) => {
     try {
+      // Validate the module ID parameter
+      if (!req.params.id || req.params.id === 'undefined') {
+        console.error(`Invalid module ID requested: ${req.params.id}`);
+        return res.status(400).json({ 
+          message: "Invalid module ID",
+          details: "A valid module ID is required"
+        });
+      }
+      
       const moduleId = parseInt(req.params.id);
+      
+      // Check for NaN which indicates parsing failure
+      if (isNaN(moduleId)) {
+        console.error(`Failed to parse module ID: ${req.params.id}`);
+        return res.status(400).json({ 
+          message: "Invalid module ID format",
+          details: "Module ID must be a number" 
+        });
+      }
+      
+      // Get user info for logging
+      const userId = req.session.userId as number;
+      console.log(`User ${userId} requesting module ${moduleId}`);
+      
+      // Fetch the module with error handling
       const module = await storage.getModule(moduleId);
       
       if (!module) {
-        return res.status(404).json({ message: "Module not found" });
+        console.log(`Module ${moduleId} not found for user ${userId}`);
+        return res.status(404).json({ 
+          message: "Module not found",
+          details: "The requested learning module does not exist"
+        });
       }
       
+      // Log successful module access for analytics
+      console.log(`Module ${moduleId} (${module.title}) served to user ${userId}`);
+      
+      // Return the module
       res.status(200).json(module);
     } catch (error) {
-      res.status(500).json({ message: "Internal server error" });
+      console.error("Error fetching module:", error);
+      res.status(500).json({ 
+        message: "Error retrieving module",
+        details: "An unexpected error occurred while fetching the module" 
+      });
     }
   });
   
