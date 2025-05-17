@@ -1849,6 +1849,9 @@ export default function AssessmentPage() {
     queryKey: ["/api/auth/me"]
   });
   
+  // State for assessment completion results
+  const [showCompletionView, setShowCompletionView] = useState(false);
+  
   // Track the current domain being assessed
   const [currentDomainIndex, setCurrentDomainIndex] = useState(0);
   const currentDomain = domains[currentDomainIndex].id;
@@ -3054,8 +3057,8 @@ export default function AssessmentPage() {
   };
   
   // Submit assessment mutation
-  // Add state for showing results after assessment completion
-  const [showResults, setShowResults] = useState(false);
+  // State for showing the enhanced assessment completion experience
+  const [showCompletionView, setShowCompletionView] = useState(false);
   
   const submitAssessmentMutation = useMutation({
     mutationFn: async (assessmentData: any) => {
@@ -3080,8 +3083,8 @@ export default function AssessmentPage() {
         data: { points: 10, reason: "Assessment Completion" }
       });
       
-      // Show results view
-      setShowResults(true);
+      // Show celebration/completion view instead of regular results
+      setShowCompletionView(true);
       
       // Generate an encouraging, personalized message based on performance
       const generateEncouragingMessage = () => {
