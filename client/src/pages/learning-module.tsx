@@ -71,7 +71,13 @@ export default function LearningModulePage() {
   
   // Get module data
   const { data: module, isLoading: isModuleLoading } = useQuery<LearningModuleType>({
-    queryKey: [`/api/modules/${moduleId}`],
+    queryKey: ['/api/modules', moduleId],
+    queryFn: async () => {
+      if (!moduleId || isNaN(moduleId)) {
+        throw new Error('Invalid module ID');
+      }
+      return await apiRequest(`/api/modules/${moduleId}`);
+    },
     enabled: !!moduleId && !isNaN(moduleId),
   });
   
