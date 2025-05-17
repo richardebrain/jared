@@ -115,7 +115,7 @@ const domains = [
   { id: 'professional-goals', name: 'Professional Goals', icon: Star },
   
   // Core Training Modules
-  { id: 'chapter-one', name: 'Building Chapter One', icon: Star },
+  { id: 'chapter-one', name: 'Chapter One: Building a Human', icon: Star },
   { id: 'mindful-teaching', name: 'Mindful Teaching', icon: ClipboardList },
   { id: 'core-values', name: 'Raising Arizona\'s CORE Values', icon: Award },
 ];
