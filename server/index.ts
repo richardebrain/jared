@@ -2,7 +2,8 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { seedDatabase } from "./seedDb";
-import { runSchoolIdMigration } from "./addSchoolIdMigration";
+// Import our migration function
+import { runSchoolMigration } from "./runMigration";
 
 const app = express();
 app.use(express.json());
@@ -80,9 +81,17 @@ app.use((req, res, next) => {
   }, () => {
     log(`serving on port ${port}`);
     
-    // Seed the database with initial data
-    seedDatabase().catch(err => {
-      console.error("Error seeding database:", err);
-    });
+    // Run the school migration first
+    console.log('Running school migration...');
+    runSchoolMigration()
+      .then(() => {
+        console.log('School migration completed successfully');
+        
+        // Then seed the database with initial data
+        return seedDatabase();
+      })
+      .catch(err => {
+        console.error("Error during migration or seeding:", err);
+      });
   });
 })();
