@@ -59,6 +59,24 @@ export default function CasinoPage() {
   // Override restrictions for jlcookie20 or check if completed activities
   const hasCompletedActivity = isJLCookie || progress.some((p: any) => p.completed);
   
+  // Function to reset games for jlcookie20
+  const resetBonusGames = () => {
+    if (isJLCookie) {
+      // Clear the localStorage flags
+      localStorage.removeItem('lastGamePlayedDate');
+      
+      // Update the UI state
+      setDailyGameUsed(false);
+      
+      // Show success message
+      toast({
+        title: "Games Reset!",
+        description: "Your bonus games have been reset. You can play them again!",
+        variant: "default",
+      });
+    }
+  };
+  
   // Override daily usage restriction for jlcookie20
   useEffect(() => {
     if (isJLCookie) {
