@@ -260,7 +260,7 @@ export default function AppOwnerDashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {schools?.slice(0, 5).map((school: any) => (
+                    {(Array.isArray(schools) ? schools.slice(0, 5) : []).map((school: any) => (
                       <TableRow key={school.id}>
                         <TableCell className="font-medium">{school.name}</TableCell>
                         <TableCell>{school.subscription?.planName || "Free"}</TableCell>
@@ -349,7 +349,7 @@ export default function AppOwnerDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {schools?.map((school: any) => (
+                  {(Array.isArray(schools) ? schools : []).map((school: any) => (
                     <>
                       <TableRow key={school.id} className={expandedSchools.includes(school.id) ? "bg-muted/50" : ""}>
                         <TableCell className="font-medium">
