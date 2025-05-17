@@ -250,10 +250,19 @@ Your responses should be:
 Tailor each response specifically to the question asked without generic templated answers.
 Always emphasize the "Building Chapter One" philosophy - the concept that teachers are writing the first chapter in each child's life story through their care and education.`;
     
-    // Add uniqueness to each request by adding the timestamp to ensure different responses
-    const uniquePrompt = `${prompt}\n\nRequest ID: ${Date.now()}`;
+    // Add uniqueness to each request to prevent repetitive responses
+    const randomSeed = Math.floor(Math.random() * 1000000);
+    const timestamp = Date.now();
+    const uniquePrompt = `${prompt}\n\nPlease provide a unique, specific response to this exact question. 
+    Make sure your answer is tailored to this specific inquiry without relying on templated responses.
+    [Uniqueness markers: ${randomSeed}-${timestamp}]`;
     
-    const payload = createPerplexityPayload(uniquePrompt, systemMessage);
+    // Adjust temperature slightly to ensure response variety
+    const payload = {
+      ...createPerplexityPayload(uniquePrompt, systemMessage),
+      temperature: 0.3, // Slightly higher temperature for more varied responses
+      frequency_penalty: 1.0 // Add frequency penalty to reduce repetition
+    };
     
     console.log("Sending BearyAI request with prompt:", prompt.substring(0, 100) + "...");
     
