@@ -245,11 +245,25 @@ export default function CasinoPage() {
               <CardContent className="pt-6">
                 <div className="flex items-start space-x-4">
                   <Clock className="h-8 w-8 text-purple-600 flex-shrink-0 mt-1" />
-                  <div>
+                  <div className="flex-1">
                     <h3 className="font-medium text-purple-800">Daily game limit reached</h3>
                     <p className="text-purple-700 text-sm mt-1">
                       You've already played a bonus game today. Return tomorrow for another chance to win points!
                     </p>
+                    
+                    {/* Special reset button only for jlcookie20 */}
+                    {isJLCookie && (
+                      <div className="mt-4">
+                        <Button 
+                          onClick={resetBonusGames}
+                          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700"
+                          size="sm"
+                        >
+                          <RefreshCcw className="mr-2 h-4 w-4" />
+                          Reset Bonus Games (Special Access)
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
