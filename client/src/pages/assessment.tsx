@@ -3552,51 +3552,56 @@ export default function AssessmentPage() {
         (currentDiff === 'beginner' || currentDiff === 'intermediate' || currentDiff === 'advanced') && 
         isCorrect;
       
-      // Only auto-progress if we're not in a level-up situation
-      if (!isLevelingUp) {
-        // Give the user time to see the feedback before moving on
-        setTimeout(() => {
-          // Make sure the index is valid before proceeding
-          if (!isLastQuestion && currentQuestionIndex < domainQuestions.length - 1) {
-            // Move to next question in current domain
-            setCurrentQuestionIndex(prev => prev + 1);
-          } else if (!isLastDomain) {
-            // We've completed all questions in current domain, move to next domain
-            const nextDomainIndex = (currentDomainIndex + 1) % domains.length;
-            setCurrentDomainIndex(nextDomainIndex);
-            setCurrentQuestionIndex(0);
-            
-            // Load questions for the new domain
-            const nextDomain = domains[nextDomainIndex].id;
-            const difficulty = domainDifficulty[nextDomain] || 'beginner';
-            
-            // Ensure we have the correct questions loaded for the new domain
-            updateDomainQuestions(nextDomain, difficulty);
-            
-            toast({
-              title: "Moving to New Topic",
-              description: `Now exploring ${domains[nextDomainIndex]?.name || 'next area'}`,
-              variant: "default",
-              duration: 2000,
-            });
-          } else {
-            // We're at the very end - show a final toast
-            toast({
-              title: "✅ Assessment Complete! ✅",
-              description: "Your results are being calculated. Please click the 'Finish Assessment' button to submit.",
-              variant: "default",
-              duration: 5000,
-              className: "level-up-text"
-            });
-            
-            // Make the submit button pulse to draw attention
-            const submitButton = document.querySelector('.bg-green-600');
-            if (submitButton) {
-              submitButton.classList.add('animate-pulse');
-            }
+      // IMPROVED FLOW: Always auto-progress, even when incorrect or leveling up
+      // Give the user time to see the feedback before moving on
+      setTimeout(() => {
+        // Detect if we've reached the last question in this domain
+        const isLastQuestion = currentQuestionIndex >= domainQuestions.length - 1;
+        
+        // If at the last question, always move to the next domain 
+        // (this fixes language → reasoning transition issue)
+        if (isLastQuestion) {
+          // We've completed all questions in current domain, move to next domain
+          const nextDomainIndex = (currentDomainIndex + 1) % domains.length;
+          setCurrentDomainIndex(nextDomainIndex);
+          setCurrentQuestionIndex(0);
+          
+          // Load questions for the new domain
+          const nextDomain = domains[nextDomainIndex].id;
+          const difficulty = domainDifficulty[nextDomain] || 'beginner';
+          
+          // Ensure we have the correct questions loaded for the new domain
+          updateDomainQuestions(nextDomain, difficulty);
+          
+          toast({
+            title: "Topic Complete",
+            description: `Now exploring ${domains[nextDomainIndex]?.name || 'next area'}`,
+            variant: "default",
+            duration: 2000,
+          });
+        }
+        // If not at the last question, move to next question
+        else if (currentQuestionIndex < domainQuestions.length - 1) {
+          // Move to next question in current domain
+          setCurrentQuestionIndex(prev => prev + 1);
+        } 
+        // We're at the very end - show a final toast
+        else if (isLastDomain) {
+          toast({
+            title: "✅ Assessment Complete! ✅",
+            description: "Your results are being calculated. Please click the 'Finish Assessment' button to submit.",
+            variant: "default",
+            duration: 5000,
+            className: "level-up-text"
+          });
+          
+          // Make the submit button pulse to draw attention
+          const submitButton = document.querySelector('.bg-green-600');
+          if (submitButton) {
+            submitButton.classList.add('animate-pulse');
           }
-        }, 1500);
-      }
+        }
+      }, 1500);
     } catch (error) {
       console.error("Error in handleNextQuestion:", error);
       toast({

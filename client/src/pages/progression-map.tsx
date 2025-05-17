@@ -54,11 +54,17 @@ export default function ProgressionMap() {
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
   
   // Also fetch user data directly to ensure we have the most current points
-  const { data: userData } = useQuery({
+  const { data: userData, refetch: refetchUserData } = useQuery({
     queryKey: ["/api/auth/me"],
     refetchOnMount: true,
     refetchOnWindowFocus: true,
+    staleTime: 0, // Always fetch fresh data
   });
+  
+  // Force refetch user data when this page loads to ensure we have current points
+  React.useEffect(() => {
+    refetchUserData();
+  }, [refetchUserData]);
   
   // Define teacher levels and their requirements
   const teacherLevels: Record<string, LevelRequirement> = {
