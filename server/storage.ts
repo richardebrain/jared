@@ -611,11 +611,20 @@ export class DatabaseStorage implements IStorage {
     const [school] = await db.select({
       id: schools.id,
       name: schools.name,
+      address: schools.address,
+      city: schools.city,
+      state: schools.state,
+      zipCode: schools.zipCode,
+      contactEmail: schools.contactEmail,
+      contactPhone: schools.contactPhone,
+      logoUrl: schools.logoUrl,
+      websiteUrl: schools.websiteUrl,
       subscriptionActive: schools.subscriptionActive,
       subscriptionType: schools.subscriptionType,
       subscriptionExpiresAt: schools.subscriptionExpiresAt,
       teacherCount: schools.teacherCount,
       isFreeAccess: schools.isFreeAccess,
+      adminPasswordHash: schools.adminPasswordHash,
       customization: schools.customization,
       createdAt: schools.createdAt
     }).from(schools).where(eq(schools.id, id));
@@ -626,11 +635,20 @@ export class DatabaseStorage implements IStorage {
     const [school] = await db.select({
       id: schools.id,
       name: schools.name,
+      address: schools.address,
+      city: schools.city,
+      state: schools.state,
+      zipCode: schools.zipCode,
+      contactEmail: schools.contactEmail,
+      contactPhone: schools.contactPhone,
+      logoUrl: schools.logoUrl,
+      websiteUrl: schools.websiteUrl,
       subscriptionActive: schools.subscriptionActive,
       subscriptionType: schools.subscriptionType,
       subscriptionExpiresAt: schools.subscriptionExpiresAt,
       teacherCount: schools.teacherCount,
       isFreeAccess: schools.isFreeAccess,
+      adminPasswordHash: schools.adminPasswordHash,
       customization: schools.customization,
       createdAt: schools.createdAt
     }).from(schools).where(eq(sql`LOWER(${schools.name})`, name.toLowerCase()));
@@ -641,11 +659,20 @@ export class DatabaseStorage implements IStorage {
     return await db.select({
       id: schools.id,
       name: schools.name,
+      address: schools.address,
+      city: schools.city,
+      state: schools.state,
+      zipCode: schools.zipCode,
+      contactEmail: schools.contactEmail,
+      contactPhone: schools.contactPhone,
+      logoUrl: schools.logoUrl,
+      websiteUrl: schools.websiteUrl,
       subscriptionActive: schools.subscriptionActive,
       subscriptionType: schools.subscriptionType,
       subscriptionExpiresAt: schools.subscriptionExpiresAt,
       teacherCount: schools.teacherCount,
       isFreeAccess: schools.isFreeAccess,
+      adminPasswordHash: schools.adminPasswordHash,
       customization: schools.customization,
       createdAt: schools.createdAt
     }).from(schools).orderBy(schools.name);
