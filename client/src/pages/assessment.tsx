@@ -1850,54 +1850,38 @@ const AssessmentCompletionView = ({
   totalAnswers,
   correctAnswers
 }) => {
-  // Get the latest assessment data
+  const [location, setLocation] = useLocation();
+  
+  // Teacher progression levels information
+  const progressionLevels = [
+    { level: "Teacher in Training", pointRange: "0-299", current: false },
+    { level: "Assistant Teacher", pointRange: "300-799", current: false },
+    { level: "Associate Teacher", pointRange: "800-1499", current: false },
+    { level: "Lead Teacher", pointRange: "1500-2499", current: false },
+    { level: "Master Lead Teacher", pointRange: "2500-3499", current: false },
+    { level: "Mentor Teacher", pointRange: "3500+", current: false }
+  ];
+  
+  // Get the latest assessment
   const latestAssessment = assessmentResults || {};
   
   // Calculate percentage correct
   const percentageCorrect = Math.round((correctAnswers / totalAnswers) * 100) || 0;
   
-  // Get strength and growth areas
-  const strengthAreas = latestAssessment.strengthAreas || [];
-  const growthAreas = latestAssessment.growthAreas || [];
-  const teacherLevel = latestAssessment.teacherLevel || "Assistant Teacher";
+  // Default values for strength/growth areas if not available
+  const strengthAreas = latestAssessment?.strengthAreas || ["Classroom Management", "Child Development"];
+  const growthAreas = latestAssessment?.growthAreas || ["Language & Literacy", "Special Needs Support"];
+  const teacherLevel = latestAssessment?.teacherLevel || "Teacher in Training";
   
-  // Create Assessment Completion View Component
-  const AssessmentCompletionView = ({ 
-    user, 
-    assessmentResults, 
-    resetAssessment,
-    totalAnswers, 
-    correctAnswers 
-  }) => {
-    const [location, setLocation] = useLocation();
-    
-    // Teacher progression levels information
-    const progressionLevels = [
-      { level: "Teacher in Training", pointRange: "0-299", current: false },
-      { level: "Assistant Teacher", pointRange: "300-799", current: false },
-      { level: "Associate Teacher", pointRange: "800-1499", current: false },
-      { level: "Lead Teacher", pointRange: "1500-2499", current: false },
-      { level: "Master Lead Teacher", pointRange: "2500-3499", current: false },
-      { level: "Mentor Teacher", pointRange: "3500+", current: false }
-    ];
-    
-    // Get the latest assessment
-    const latestAssessment = assessmentResults || (assessments.length > 0 ? assessments[0] : null);
-    
-    // Default values for strength/growth areas if not available
-    const strengthAreas = latestAssessment?.strengthAreas || ["Classroom Management", "Child Development"];
-    const growthAreas = latestAssessment?.growthAreas || ["Language & Literacy", "Special Needs Support"];
-    const teacherLevel = latestAssessment?.teacherLevel || "Teacher in Training";
-    
-    // Mark the current level in progression
-    progressionLevels.forEach(level => {
-      level.current = level.level === teacherLevel;
-    });
-    
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-neutral-100">
-        <Header />
-        <Confetti />
+  // Mark the current level in progression
+  progressionLevels.forEach(level => {
+    level.current = level.level === teacherLevel;
+  });
+  
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-neutral-100">
+      <Header />
+      <Confetti />
         
         <main className="container max-w-5xl mx-auto px-4 py-12">
           <div className="text-center mb-8">
