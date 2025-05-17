@@ -1,17 +1,18 @@
 import React, { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import Header from "@/components/Header";
 import { SuessifyGenerator } from "@/components/SuessifyGenerator";
 import { VideoResourceLibrary } from "@/components/VideoResourceLibrary";
 import { MeetingScheduler } from "@/components/MeetingScheduler";
 import LessonPlanMaker from "@/components/LessonPlanMaker";
 import ParentResponseGenerator, { ParentScenario } from "@/components/ParentResponseGenerator";
+import TransitionTimer from "./transition-timer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   MessageSquare, BookOpen, Video, CalendarDays, ClipboardCheck, 
-  GraduationCap, Lightbulb, Stars, BadgeHelp, PencilRuler
+  GraduationCap, Lightbulb, Stars, BadgeHelp, PencilRuler, Timer
 } from "lucide-react";
 
 // Example scenarios for parent communication
@@ -93,6 +94,15 @@ export default function ToolsPage() {
       icon: <ClipboardCheck className="h-6 w-6" />,
       component: (
         <LessonPlanMaker />
+      )
+    },
+    {
+      id: "transition-timer",
+      title: "Transition Timer",
+      description: "Help children transition smoothly between activities",
+      icon: <Timer className="h-6 w-6" />,
+      component: (
+        <TransitionTimer />
       )
     },
     {

@@ -524,8 +524,8 @@ export default function Dashboard() {
                       </div>
                     </Link>
                     
-                    <Link href="/transition-timer">
-                      <div className="group relative overflow-hidden bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white font-bold py-3 px-6 rounded-xl border-2 border-yellow-400 transform transition duration-200 ease-in-out hover:scale-105">
+                    <Link href="/tools">
+                      <div className="group relative overflow-hidden bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl border-2 border-purple-400 transform transition duration-200 ease-in-out hover:scale-105">
                         {/* Corner decorations */}
                         <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-white/70 rounded"></div>
                         <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-white/70 rounded"></div>
@@ -533,12 +533,12 @@ export default function Dashboard() {
                         <div className="absolute -top-1 -right-1 w-3 h-3 bg-white/70 rounded"></div>
                         
                         <div className="relative flex items-center justify-center">
-                          <span className="mr-2 text-white text-lg">⏱️</span>
-                          <span className="text-white text-sm tracking-wider pb-1">TRANSITION TIMER</span>
-                          <span className="ml-3 text-white text-xl">⌛</span>
+                          <span className="mr-2 text-white text-lg">🧰</span>
+                          <span className="text-white text-sm tracking-wider pb-1">TEACHER TOOLS</span>
+                          <span className="ml-3 text-white text-xl">🔧</span>
                         </div>
                         
-                        <div className="absolute top-0 right-0 -mt-1 -mr-1 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg shadow-sm">NEW!</div>
+                        <div className="absolute top-0 right-0 -mt-1 -mr-1 bg-purple-400 text-purple-900 text-xs font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg shadow-sm">NEW!</div>
                       </div>
                     </Link>
                     
