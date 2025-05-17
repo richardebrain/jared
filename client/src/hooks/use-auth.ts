@@ -77,9 +77,10 @@ export function useAuth(): UseAuthReturn {
       console.log("User authenticated from API:", user);
       setIsAuthenticated(true);
       
-      // Check if user is owner/admin
+      // Check if user is owner/admin/schoolAdmin
       setIsOwner(checkOwner(user));
       setIsAdmin(checkAdmin(user));
+      setIsSchoolAdmin(checkSchoolAdmin(user));
       
       // Update local storage with the latest user data
       saveAuthState(user);
@@ -94,15 +95,17 @@ export function useAuth(): UseAuthReturn {
         queryClient.setQueryData(["/api/auth/me"], storedUser);
         setIsAuthenticated(true);
         
-        // Check if user is owner/admin
+        // Check if user is owner/admin/schoolAdmin
         setIsOwner(checkOwner(storedUser));
         setIsAdmin(checkAdmin(storedUser));
+        setIsSchoolAdmin(checkSchoolAdmin(storedUser));
       } else if (isError) {
         console.log("Authentication error from API:", error);
         clearAuthState();
         setIsAuthenticated(false);
         setIsOwner(false);
         setIsAdmin(false);
+        setIsSchoolAdmin(false);
       }
     }
   }, [user, isError, error]);
@@ -237,6 +240,7 @@ export function useAuth(): UseAuthReturn {
     isAuthenticated,
     isOwner,
     isAdmin,
+    isSchoolAdmin,
     user: typedUser,
     login,
     register,

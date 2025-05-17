@@ -14,6 +14,12 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+// For ESM __dirname equivalent
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Define our session data structure with proper typing
 declare module "express-session" {

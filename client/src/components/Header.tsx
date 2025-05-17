@@ -22,7 +22,7 @@ export default function Header() {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isOwner, isAdmin } = useAuth();
+  const { isOwner, isAdmin, isSchoolAdmin } = useAuth();
   
   const { data: user } = useQuery<User>({
     queryKey: ["/api/auth/me"]
