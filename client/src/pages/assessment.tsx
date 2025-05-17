@@ -1840,6 +1840,221 @@ const assessmentQuestions: Question[] = [
   }
 ];
 
+// Assessment Completion celebration component
+const AssessmentCompletionView = ({ 
+  user, 
+  assessmentResults, 
+  resetAssessment, 
+  totalAnswers,
+  correctAnswers
+}) => {
+  // Get the latest assessment data
+  const latestAssessment = assessmentResults || {};
+  
+  // Calculate percentage correct
+  const percentageCorrect = Math.round((correctAnswers / totalAnswers) * 100) || 0;
+  
+  // Get strength and growth areas
+  const strengthAreas = latestAssessment.strengthAreas || [];
+  const growthAreas = latestAssessment.growthAreas || [];
+  const teacherLevel = latestAssessment.teacherLevel || "Assistant Teacher";
+  
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-neutral-100">
+      <Header />
+      
+      <main className="flex-1 container py-8 px-4 md:px-6">
+        <div className="max-w-4xl mx-auto space-y-8">
+          {/* Celebration header */}
+          <div className="text-center py-8 bg-gradient-to-br from-primary-100 to-primary-50 rounded-2xl border border-primary-200 shadow-sm">
+            <div className="text-4xl mb-3">🎉 🎓 🎉</div>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-primary-900 mb-2">
+              Assessment Complete!
+            </h1>
+            <p className="text-xl text-primary-700 mb-3">
+              Congratulations on completing your teacher knowledge assessment!
+            </p>
+            <p className="text-lg font-semibold text-primary-800">
+              You've earned 10 Bear Points!
+            </p>
+          </div>
+          
+          {/* Results overview */}
+          <Card className="bg-white shadow-md">
+            <CardHeader>
+              <CardTitle>Your Assessment Results</CardTitle>
+              <CardDescription>
+                Here's how you performed on your assessment
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-green-50 p-4 rounded-lg text-center border border-green-100">
+                  <h3 className="text-sm font-medium text-green-700 mb-1">Score</h3>
+                  <div className="text-3xl font-bold text-green-600">{percentageCorrect}%</div>
+                  <p className="text-sm text-green-600">
+                    {correctAnswers} of {totalAnswers} correct
+                  </p>
+                </div>
+                
+                <div className="bg-blue-50 p-4 rounded-lg text-center border border-blue-100">
+                  <h3 className="text-sm font-medium text-blue-700 mb-1">Professional Level</h3>
+                  <div className="text-3xl font-bold text-blue-600">
+                    {teacherLevel}
+                  </div>
+                  <p className="text-sm text-blue-600">
+                    On your way to mastery!
+                  </p>
+                </div>
+                
+                <div className="bg-purple-50 p-4 rounded-lg text-center border border-purple-100">
+                  <h3 className="text-sm font-medium text-purple-700 mb-1">Points Earned</h3>
+                  <div className="text-3xl font-bold text-purple-600">
+                    10
+                  </div>
+                  <p className="text-sm text-purple-600">
+                    {user?.points ? user.points + 10 : "10"} total points
+                  </p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Strengths */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-2 flex items-center">
+                    <Award className="h-5 w-5 mr-1 text-yellow-500" />
+                    Your Strengths
+                  </h3>
+                  <ul className="space-y-2">
+                    {strengthAreas.length > 0 ? (
+                      strengthAreas.slice(0, 3).map((area, i) => (
+                        <li key={i} className="flex items-start">
+                          <CheckCircle className="h-5 w-5 mr-2 text-green-500 flex-shrink-0 mt-0.5" />
+                          <span>{area}</span>
+                        </li>
+                      ))
+                    ) : (
+                      <li className="flex items-start">
+                        <CheckCircle className="h-5 w-5 mr-2 text-green-500 flex-shrink-0 mt-0.5" />
+                        <span>Results are being processed...</span>
+                      </li>
+                    )}
+                  </ul>
+                </div>
+                
+                {/* Growth Areas */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-2 flex items-center">
+                    <TrendingUp className="h-5 w-5 mr-1 text-blue-500" />
+                    Growth Opportunities
+                  </h3>
+                  <ul className="space-y-2">
+                    {growthAreas.length > 0 ? (
+                      growthAreas.slice(0, 3).map((area, i) => (
+                        <li key={i} className="flex items-start">
+                          <Star className="h-5 w-5 mr-2 text-amber-500 flex-shrink-0 mt-0.5" />
+                          <span>{area}</span>
+                        </li>
+                      ))
+                    ) : (
+                      <li className="flex items-start">
+                        <Star className="h-5 w-5 mr-2 text-amber-500 flex-shrink-0 mt-0.5" />
+                        <span>Results are being processed...</span>
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col space-y-4">
+              <p className="text-sm text-muted-foreground mb-2">
+                We've created a personalized learning path based on your assessment results.
+                Focus on your growth areas while continuing to build on your strengths.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+                <Link href="/dashboard">
+                  <Button variant="default" className="w-full">
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    View Learning Path
+                  </Button>
+                </Link>
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={resetAssessment}
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Retake Assessment
+                </Button>
+              </div>
+            </CardFooter>
+          </Card>
+          
+          {/* Teacher Progression System Introduction */}
+          <Card className="bg-white shadow-sm border-t-4 border-t-primary">
+            <CardHeader>
+              <CardTitle>The Teacher Progression System</CardTitle>
+              <CardDescription>
+                Build your skills and advance through teacher levels
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p>
+                Your assessment is the first step in your professional development journey.
+                As you complete training modules and earn points, you'll progress through our teacher levels:
+              </p>
+              
+              <div className="relative mt-8 mb-12">
+                <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 -translate-y-1/2"></div>
+                <div className="relative flex justify-between">
+                  <div className="flex flex-col items-center">
+                    <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center z-10">1</div>
+                    <div className="mt-2 text-xs font-medium">Teacher in Training</div>
+                    <div className="text-xs text-muted-foreground">0-299 pts</div>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center z-10">2</div>
+                    <div className="mt-2 text-xs font-medium">Assistant Teacher</div>
+                    <div className="text-xs text-muted-foreground">300-799 pts</div>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="w-8 h-8 rounded-full bg-yellow-500 text-white flex items-center justify-center z-10">3</div>
+                    <div className="mt-2 text-xs font-medium">Associate Teacher</div>
+                    <div className="text-xs text-muted-foreground">800-1499 pts</div>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center z-10">4</div>
+                    <div className="mt-2 text-xs font-medium">Lead Teacher</div>
+                    <div className="text-xs text-muted-foreground">1500-2499 pts</div>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center z-10">5</div>
+                    <div className="mt-2 text-xs font-medium">Master Lead</div>
+                    <div className="text-xs text-muted-foreground">2500+ pts</div>
+                  </div>
+                </div>
+              </div>
+              
+              <p className="text-sm text-muted-foreground">
+                Earn points by completing training modules, daily logins, connecting with peers, 
+                and improving your assessment scores. View your current progress on the Progression Map.
+              </p>
+            </CardContent>
+            <CardFooter>
+              <Link href="/progression-map" className="w-full">
+                <Button variant="outline" className="w-full">
+                  <Map className="h-4 w-4 mr-2" />
+                  View Progression Map
+                </Button>
+              </Link>
+            </CardFooter>
+          </Card>
+        </div>
+      </main>
+    </div>
+  );
+};
+
 export default function AssessmentPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
