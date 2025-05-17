@@ -578,13 +578,16 @@ export default function AssessmentPage() {
     <div className="min-h-screen bg-neutral-50">
       <Header />
       
-      {/* Show celebration screen if assessment is complete */}
       {assessmentState === 'celebration' ? (
-        <AssessmentCelebration 
-          pointsEarned={pointsEarned}
-          onViewResults={handleViewResults}
-        />
+        // Show celebration screen if assessment is complete
+        <main className="container max-w-4xl mx-auto px-4 py-8">
+          <AssessmentCelebration 
+            pointsEarned={pointsEarned}
+            onViewResults={handleViewResults}
+          />
+        </main>
       ) : (
+        // Show assessment interface
         <main className="container max-w-4xl mx-auto px-4 py-8">
           {/* Progress Bar and Domain Navigation */}
           <div className="mb-6">
@@ -712,6 +715,7 @@ export default function AssessmentPage() {
         </div>
       )}
       </main>
+      )
     </div>
   );
 }
