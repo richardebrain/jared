@@ -63,6 +63,7 @@ export const users = pgTable("users", {
   }>(),
   bearBucks: integer("bear_bucks").default(0),
   points: integer("points").default(0),
+  lifetimePoints: integer("lifetime_points").default(0), // Track total earned points for level progression
   level: integer("level").default(1),
   streak: integer("streak").default(0),
   lastActive: timestamp("last_active"),
