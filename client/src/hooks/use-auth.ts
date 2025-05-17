@@ -17,6 +17,7 @@ interface UseAuthReturn {
   isAuthenticated: boolean;
   isOwner: boolean;
   isAdmin: boolean;
+  isSchoolAdmin: boolean;
   user: User | null;
   login: (credentials: { username: string; password: string }) => Promise<void>;
   register: (userData: any) => Promise<void>;
@@ -28,6 +29,7 @@ export function useAuth(): UseAuthReturn {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isOwner, setIsOwner] = useState<boolean>(false);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [isSchoolAdmin, setIsSchoolAdmin] = useState<boolean>(false);
   
   // Query to get the current user
   const { 
@@ -54,13 +56,20 @@ export function useAuth(): UseAuthReturn {
       const ownerUsernames = ['Emma', 'Paije', 'Janiece', 'Krystal', 'jlcookie20'];
       const ownerEmails = ['@raisingarizonapreschool.com'];
       
-      return ownerUsernames.includes(userData.username) || 
+      // Check for isOwner flag or owner usernames/emails
+      return userData.isOwner || 
+             ownerUsernames.includes(userData.username) || 
              (userData.email && ownerEmails.some(email => userData.email.includes(email)));
     };
     
     const checkAdmin = (userData: any) => {
-      // Admin check includes owners plus any other admin users
-      return checkOwner(userData) || userData.username === 'admin';
+      // Admin check includes owners plus any other admin users or isAdmin flag
+      return checkOwner(userData) || userData.isAdmin || userData.username === 'admin';
+    };
+    
+    const checkSchoolAdmin = (userData: any) => {
+      // Check for isSchoolAdmin flag or being an owner/admin
+      return userData.isSchoolAdmin || checkAdmin(userData);
     };
     
     // First check if we got user from the API

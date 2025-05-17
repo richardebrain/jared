@@ -205,6 +205,16 @@ export default function Header() {
                   </DropdownMenuItem>
                 </>
               )}
+              
+              {user?.schoolId && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation(`/schools/${user.schoolId}`)}>
+                    <i className="ri-school-line mr-2"></i>
+                    School Dashboard
+                  </DropdownMenuItem>
+                </>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
                 <i className="ri-logout-box-line mr-2"></i>
@@ -271,10 +281,20 @@ export default function Header() {
             </Link>
             */}
             <div className="pt-3 mt-2 border-t border-amber-200">
-              <Button variant="ghost" className="w-full justify-start mb-2 hover:bg-amber-200 hover:text-amber-900" onClick={() => setLocation("/admin")}>
-                <i className="ri-shield-keyhole-line mr-2"></i>
-                Admin Access
-              </Button>
+              {isAdmin && (
+                <Button variant="ghost" className="w-full justify-start mb-2 hover:bg-amber-200 hover:text-amber-900" onClick={() => setLocation("/admin")}>
+                  <i className="ri-shield-keyhole-line mr-2"></i>
+                  Admin Access
+                </Button>
+              )}
+              
+              {user?.schoolId && (
+                <Button variant="ghost" className="w-full justify-start mb-2 hover:bg-amber-200 hover:text-amber-900" onClick={() => setLocation(`/schools/${user.schoolId}`)}>
+                  <i className="ri-school-line mr-2"></i>
+                  School Dashboard
+                </Button>
+              )}
+              
               <Button variant="ghost" className="w-full justify-start hover:bg-amber-200 hover:text-amber-900" onClick={handleLogout}>
                 <i className="ri-logout-box-line mr-2"></i>
                 Logout
