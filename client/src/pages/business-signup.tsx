@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 import {
   Card,
   CardContent,

@@ -2487,6 +2487,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         planType 
       } = req.body;
       
+      // If this is coming from the simple form, it will be JSON
+      const contentType = req.headers['content-type'] || '';
+      const isJsonRequest = contentType.includes('application/json');
+      
       console.log("School registration attempt:", { 
         schoolName: schoolName || '[not provided]', 
         contactEmail: contactEmail || '[not provided]'
