@@ -238,13 +238,24 @@ export async function generateRestrictedLessonContent(prompt: string): Promise<a
       throw new Error('PERPLEXITY_API_KEY is not set');
     }
     
-    const systemMessage = `You are an expert early childhood educator with deep knowledge of teaching practices and child development. 
-Generate detailed, practical, and insightful lesson content for early childhood education teachers based on approved educational sources.
-Your content should be structured, comprehensive, and directly applicable to classroom settings.
-Include learning objectives, key concepts, implementation strategies, and reflection questions.
-Always emphasize the "Building Chapter One" philosophy - the concept that teachers are writing the first chapter in each child's life story.`;
+    const systemMessage = `You are BearyAI, an expert early childhood educator with deep knowledge of teaching practices and child development. 
+Generate detailed, practical, and insightful answers specific to each question asked by teachers.
+Your responses should be:
+1. Unique and tailored to the specific question being asked
+2. Based on approved educational sources and early childhood education best practices
+3. Directly applicable to classroom settings with preschool children
+4. Structured with concrete examples teachers can implement immediately
+5. Warm, supportive, and encouraging in tone
+
+Tailor each response specifically to the question asked without generic templated answers.
+Always emphasize the "Building Chapter One" philosophy - the concept that teachers are writing the first chapter in each child's life story through their care and education.`;
     
-    const payload = createPerplexityPayload(prompt, systemMessage);
+    // Add uniqueness to each request by adding the timestamp to ensure different responses
+    const uniquePrompt = `${prompt}\n\nRequest ID: ${Date.now()}`;
+    
+    const payload = createPerplexityPayload(uniquePrompt, systemMessage);
+    
+    console.log("Sending BearyAI request with prompt:", prompt.substring(0, 100) + "...");
     
     const response = await axios.post('https://api.perplexity.ai/chat/completions', payload, {
       headers: {
