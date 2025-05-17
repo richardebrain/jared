@@ -347,11 +347,14 @@ export default function AssessmentPage() {
   useEffect(() => {
     const loadQuestions = async () => {
       try {
+        // Use the correct path to access the questions in client/public folder
         const response = await fetch('/assessment-questions.json');
         if (!response.ok) {
+          console.error('Failed to load assessment questions, status:', response.status);
           throw new Error('Failed to load assessment questions');
         }
         const data = await response.json();
+        console.log('Successfully loaded assessment questions:', data.length);
         setAssessmentQuestions(data);
       } catch (error) {
         console.error('Error loading assessment questions:', error);

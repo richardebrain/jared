@@ -1,198 +1,182 @@
-import { useState } from 'react';
-import { useLocation } from 'wouter';
-import { User } from '@shared/schema';
-import { Confetti } from './Confetti';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Trophy, Sparkles, GraduationCap, ArrowRight, Map, Undo } from 'lucide-react';
+import { useNavigate } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
+import { toast } from '@/hooks/use-toast';
+import { Star, Award, Trophy, ArrowRight } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Card } from '@/components/ui/card';
+import ConfettiExplosion from 'react-confetti-explosion';
 
 interface AssessmentCelebrationProps {
-  user: User | null;
-  assessmentResults: any;
-  resetAssessment: () => void;
-  totalAnswers: number;
-  correctAnswers: number;
+  pointsEarned: number;
+  onViewResults: () => void;
 }
 
-export const AssessmentCelebration = ({ 
-  user, 
-  assessmentResults, 
-  resetAssessment, 
-  totalAnswers,
-  correctAnswers
-}: AssessmentCelebrationProps) => {
-  const [location, setLocation] = useLocation();
-  
-  // Teacher progression levels information
-  const progressionLevels = [
-    { level: "Teacher in Training", pointRange: "0-299", current: false },
-    { level: "Assistant Teacher", pointRange: "300-799", current: false },
-    { level: "Associate Teacher", pointRange: "800-1499", current: false },
-    { level: "Lead Teacher", pointRange: "1500-2499", current: false },
-    { level: "Master Lead Teacher", pointRange: "2500-3499", current: false },
-    { level: "Mentor Teacher", pointRange: "3500+", current: false }
-  ];
-  
-  // Get the latest assessment
-  const latestAssessment = assessmentResults || {};
-  
-  // Calculate percentage correct
-  const percentageCorrect = Math.round((correctAnswers / totalAnswers) * 100) || 0;
-  
-  // Default values for strength/growth areas if not available
-  const strengthAreas = latestAssessment.strengthAreas || ["Classroom Management", "Child Development"];
-  const growthAreas = latestAssessment.growthAreas || ["Language & Literacy", "Special Needs Support"];
-  const teacherLevel = latestAssessment.teacherLevel || "Teacher in Training";
-  
-  // Mark the current level in progression
-  progressionLevels.forEach(level => {
-    level.current = level.level === teacherLevel;
+const AssessmentCelebration = ({ pointsEarned, onViewResults }: AssessmentCelebrationProps) => {
+  const navigate = useNavigate();
+  const [showConfetti, setShowConfetti] = useState(true);
+  const [showContent, setShowContent] = useState(false);
+
+  const { data: assessment, isLoading } = useQuery({
+    queryKey: ['/api/assessment-results'],
+    retry: 1,
   });
-  
+
+  useEffect(() => {
+    // Stagger the animations for a more engaging experience
+    const timer = setTimeout(() => {
+      setShowContent(true);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleViewDashboard = () => {
+    navigate('/dashboard');
+  };
+
+  // Format domain names for user display
+  const formatDomain = (domain: string): string => {
+    const displayMap: Record<string, string> = {
+      'language': 'Language & Literacy',
+      'reasoning': 'Reasoning & Math',
+      'social': 'Social & Emotional',
+      'classroom': 'Classroom Management',
+      'ages': 'Ages & Stages',
+      'inclusion': 'Inclusion & Diversity',
+      'health': 'Health & Safety'
+    };
+    
+    return displayMap[domain] || domain;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh]">
+        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <p className="mt-4 text-lg">Loading your assessment results...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-neutral-100">
-      <Confetti />
-      
-      <main className="container max-w-5xl mx-auto px-4 py-12">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-primary mb-4">
-            <Sparkles className="inline-block mr-2 text-yellow-500" /> 
-            Assessment Complete!
-          </h1>
-          <p className="text-xl text-muted-foreground">
-            Great job! You've earned <span className="font-bold text-green-600">+10 points</span> for completing the assessment.
-          </p>
+    <div className="relative flex flex-col items-center justify-center min-h-[70vh] text-center px-4 py-10">
+      {showConfetti && (
+        <div className="absolute top-20 left-1/2 transform -translate-x-1/2">
+          <ConfettiExplosion 
+            force={0.8}
+            duration={3000}
+            particleCount={100}
+            width={1200}
+          />
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {/* Results Summary Card */}
-          <Card className="shadow-md border-primary/20">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center text-2xl">
-                <Trophy className="mr-2 h-6 w-6 text-yellow-500" />
-                Your Results
-              </CardTitle>
-              <CardDescription>
-                Here's how you did on the assessment
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <span className="font-medium">Questions Answered</span>
-                    <span className="font-semibold">{totalAnswers}</span>
-                  </div>
-                  <div className="flex justify-between mb-1">
-                    <span className="font-medium">Correct Answers</span>
-                    <span className="font-semibold text-green-600">{correctAnswers}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Score</span>
-                    <span className="font-semibold text-primary">
-                      {percentageCorrect}%
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="pt-4 border-t">
-                  <h4 className="font-semibold mb-2">Your Strengths</h4>
-                  <ul className="list-disc pl-5 space-y-1">
-                    {strengthAreas.map((area: string, i: number) => (
-                      <li key={i} className="text-green-700">{area}</li>
+      )}
+
+      <div className={`transform transition-all duration-700 ${showContent ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-3 text-gradient">Assessment Complete!</h1>
+          <p className="text-xl text-muted-foreground">Great job completing your teaching assessment</p>
+        </div>
+
+        <div className="flex items-center justify-center mb-10">
+          <div className="flex items-center justify-center bg-primary/10 rounded-full p-5 w-28 h-28">
+            <div className="text-center">
+              <Trophy className="w-10 h-10 mx-auto mb-1 text-primary" />
+              <span className="block text-2xl font-bold text-primary">+{pointsEarned}</span>
+              <span className="text-xs text-muted-foreground">points</span>
+            </div>
+          </div>
+        </div>
+
+        {assessment && (
+          <div className="max-w-2xl mx-auto space-y-6">
+            <Card className="p-6 shadow-md">
+              <h2 className="text-2xl font-semibold mb-3 flex items-center">
+                <Award className="w-6 h-6 mr-2 text-yellow-500" />
+                Your Teacher Level
+              </h2>
+              <p className="text-xl mb-4 font-medium">{assessment.teacherLevel || 'Teacher in Training'}</p>
+              <Progress value={assessment.overallScore} className="h-3 mb-2" />
+              <p className="text-sm text-muted-foreground">
+                Overall Score: {assessment.overallScore}%
+              </p>
+            </Card>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card className="p-6 shadow-md">
+                <h2 className="text-xl font-semibold mb-3 flex items-center">
+                  <Star className="w-5 h-5 mr-2 text-yellow-500" />
+                  Your Strengths
+                </h2>
+                {assessment.strengthAreas && assessment.strengthAreas.length > 0 ? (
+                  <ul className="space-y-2 text-left">
+                    {assessment.strengthAreas.map((area: string, index: number) => (
+                      <li key={index} className="flex items-start">
+                        <div className="mt-1 mr-2 text-green-500">•</div>
+                        <span>{area}</span>
+                      </li>
                     ))}
                   </ul>
-                </div>
-                
-                <div className="pt-4">
-                  <h4 className="font-semibold mb-2">Areas for Growth</h4>
-                  <ul className="list-disc pl-5 space-y-1">
-                    {growthAreas.map((area: string, i: number) => (
-                      <li key={i} className="text-amber-700">{area}</li>
+                ) : (
+                  <p className="text-muted-foreground">Complete more questions to reveal your strengths</p>
+                )}
+              </Card>
+
+              <Card className="p-6 shadow-md">
+                <h2 className="text-xl font-semibold mb-3 flex items-center">
+                  <ArrowRight className="w-5 h-5 mr-2 text-blue-500" />
+                  Growth Areas
+                </h2>
+                {assessment.growthAreas && assessment.growthAreas.length > 0 ? (
+                  <ul className="space-y-2 text-left">
+                    {assessment.growthAreas.map((area: string, index: number) => (
+                      <li key={index} className="flex items-start">
+                        <div className="mt-1 mr-2 text-blue-500">•</div>
+                        <span>{area}</span>
+                      </li>
                     ))}
                   </ul>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          {/* Teacher Progression Card */}
-          <Card className="shadow-md border-primary/20">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center text-2xl">
-                <GraduationCap className="mr-2 h-6 w-6 text-primary" />
-                Teacher Progression
-              </CardTitle>
-              <CardDescription>
-                Your current level and progression path
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <p className="text-center font-medium pb-2">
-                  You are currently a: <span className="text-lg font-bold text-primary">{teacherLevel}</span>
-                </p>
-                
-                <div className="space-y-2">
-                  {progressionLevels.map((level, index) => (
-                    <div 
-                      key={index}
-                      className={`p-3 rounded-lg border transition-all ${
-                        level.current 
-                          ? 'bg-primary/10 border-primary' 
-                          : 'bg-background border-muted'
-                      }`}
-                    >
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center">
-                          {level.current && (
-                            <div className="w-2 h-2 rounded-full bg-primary mr-2 animate-pulse"></div>
-                          )}
-                          <span className={level.current ? 'font-bold' : ''}>{level.level}</span>
-                        </div>
-                        <span className="text-sm text-muted-foreground">{level.pointRange} points</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="pt-4 text-center text-sm text-muted-foreground">
-                  Earn points through training modules and daily activities to advance your teaching level
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        
-        <div className="flex flex-wrap justify-center gap-4 mt-12">
-          <Button 
-            variant="default" 
-            size="lg"
-            className="gap-2" 
-            onClick={() => setLocation('/dashboard')}
-          >
-            Back to Dashboard <ArrowRight className="h-4 w-4" />
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            size="lg"
-            className="gap-2" 
-            onClick={() => setLocation('/progression-map')}
-          >
-            View Progression Map <Map className="h-4 w-4" />
-          </Button>
-          
-          <Button 
-            variant="ghost" 
-            size="lg"
-            className="gap-2" 
-            onClick={resetAssessment}
-          >
-            Retake Assessment <Undo className="h-4 w-4" />
-          </Button>
-        </div>
-      </main>
+                ) : (
+                  <p className="text-muted-foreground">Complete more questions to identify growth areas</p>
+                )}
+              </Card>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 mt-8 justify-center">
+              <Button 
+                variant="primary" 
+                size="lg" 
+                onClick={onViewResults} 
+                className="flex items-center"
+              >
+                View Detailed Results
+              </Button>
+              <Button 
+                variant="outline" 
+                size="lg" 
+                onClick={handleViewDashboard}
+              >
+                Return to Dashboard
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {!assessment && (
+          <div className="text-center">
+            <p className="text-lg text-muted-foreground mb-6">
+              Your assessment results are being processed. 
+              You've earned {pointsEarned} points!
+            </p>
+            <Button onClick={handleViewDashboard} size="lg">
+              Return to Dashboard
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
+
+export default AssessmentCelebration;
