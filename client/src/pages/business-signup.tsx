@@ -1,216 +1,593 @@
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Link } from 'wouter';
-import { 
-  GraduationCap, 
-  BookOpen, 
-  Shield, 
-  CheckCircle2, 
-  Building2, 
-  Users, 
-  BarChart3, 
-  Briefcase, 
-  Sparkles, 
-  Heart,
-  CreditCard,
-  ChevronRight
-} from 'lucide-react';
-
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Briefcase, 
+  Building2, 
+  CheckCircle2,
+  CreditCard, 
+  Mail, 
+  MapPin, 
+  Phone, 
+  Shield, 
+  Users2
+} from "lucide-react";
+import Header from "@/components/Header";
+import { apiRequest } from "@/lib/queryClient";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/hooks/use-toast";
 
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-
-const formSchema = z.object({
-  businessName: z.string().min(2, {
-    message: "Business name must be at least 2 characters.",
-  }),
-  email: z.string().email({
-    message: "Please enter a valid email address.",
-  }),
-  phone: z.string().min(10, {
-    message: "Please enter a valid phone number.",
-  }),
-  teacherCount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-    message: "Teacher count must be a positive number.",
-  }),
-  plan: z.enum(["basic", "premium", "enterprise"]),
-  addOwnersToolkit: z.boolean().default(false),
-  addBranding: z.enum(["none", "basic", "premium"]).default("none"),
-  agreeToTerms: z.boolean().refine((val) => val === true, {
-    message: "You must agree to the terms and conditions.",
-  }),
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
-export default function BusinessSignup() {
+export default function BusinessSignupPage() {
+  const { user } = useAuth();
+  const [, navigate] = useLocation();
   const { toast } = useToast();
-  const [step, setStep] = useState(1);
-  const [calculatedPrice, setCalculatedPrice] = useState({
-    monthlyBase: 59,
-    perTeacherFee: 0,
-    ownersToolkit: 0,
-    brandingFee: 0,
-    totalMonthly: 59,
-    oneTimeFee: 0
-  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("school-info");
   
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      businessName: "",
-      email: "",
-      phone: "",
-      teacherCount: "1",
-      plan: "basic",
-      addOwnersToolkit: false,
-      addBranding: "none",
-      agreeToTerms: false,
-    },
-  });
+  // School information
+  const [schoolName, setSchoolName] = useState("");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [zipCode, setZipCode] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [schoolLogo, setSchoolLogo] = useState<File | null>(null);
+  const [schoolLogoPreview, setSchoolLogoPreview] = useState<string | null>(null);
   
-  const onSubmit = (data: FormValues) => {
-    toast({
-      title: "Sign-up submitted",
-      description: "We'll be in touch soon to complete your MentorMe setup!",
-    });
-    
-    console.log(data);
-  };
+  // Admin account
+  const [adminPassword, setAdminPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [adminPasswordError, setAdminPasswordError] = useState("");
+  
+  // Subscription information
+  const [planType, setPlanType] = useState("monthly");
 
-  const updatePrice = (values: any) => {
-    const teacherCount = Number(values.teacherCount) || 1;
-    const perTeacherFee = teacherCount * 5;
-    const ownersToolkit = values.addOwnersToolkit ? 19 : 0;
-    
-    let brandingFee = 0;
-    let oneTimeFee = 0;
-    
-    if (values.addBranding === "basic") {
-      oneTimeFee = 999;
-    } else if (values.addBranding === "premium") {
-      oneTimeFee = 1999;
-    }
-    
-    const totalMonthly = 59 + perTeacherFee + ownersToolkit;
-    
-    setCalculatedPrice({
-      monthlyBase: 59,
-      perTeacherFee,
-      ownersToolkit,
-      brandingFee,
-      totalMonthly,
-      oneTimeFee
-    });
-  };
-
-  const watchAllFields = form.watch();
-
-  // Update price when form values change
-  React.useEffect(() => {
-    updatePrice(watchAllFields);
-  }, [watchAllFields]);
-
-  const nextStep = () => {
-    form.trigger().then((isValid) => {
-      if (isValid) {
-        setStep(step + 1);
+  const handleNextStep = () => {
+    if (activeTab === "school-info") {
+      // Validate school information
+      if (!schoolName || !contactEmail) {
+        toast({
+          title: "Missing Information",
+          description: "Please provide your school name and contact email.",
+          variant: "destructive"
+        });
+        return;
       }
-    });
+      
+      setActiveTab("admin-access");
+    } else if (activeTab === "admin-access") {
+      // Validate admin password
+      if (!adminPassword) {
+        setAdminPasswordError("Please set an admin password");
+        return;
+      }
+      
+      if (adminPassword.length < 8) {
+        setAdminPasswordError("Password must be at least 8 characters");
+        return;
+      }
+      
+      if (adminPassword !== confirmPassword) {
+        setAdminPasswordError("Passwords do not match");
+        return;
+      }
+      
+      setAdminPasswordError("");
+      setActiveTab("subscription");
+    }
   };
 
-  const prevStep = () => {
-    setStep(step - 1);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    try {
+      // Submit school registration
+      const response = await apiRequest("POST", "/api/schools/register", {
+        schoolName,
+        address,
+        city,
+        state,
+        zipCode,
+        contactEmail,
+        contactPhone,
+        adminPassword,
+        planType
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to register school");
+      }
+      
+      const data = await response.json();
+      
+      toast({
+        title: "Registration Successful",
+        description: "Your school has been registered successfully!",
+        variant: "default"
+      });
+      
+      // Redirect to school dashboard
+      navigate(`/settings/owner-dashboard`);
+    } catch (error) {
+      console.error("Registration error:", error);
+      toast({
+        title: "Registration Failed",
+        description: error.message || "There was an error registering your school.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="container max-w-6xl mx-auto py-8 px-4 md:px-6">
-      <div className="flex flex-col items-center text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-          Transform Your School with <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">MentorMe</span>
-        </h1>
-        <p className="text-xl text-muted-foreground max-w-3xl">
-          The premier professional development platform designed specifically for early childhood educators
-        </p>
-      </div>
-
-      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mb-16">
+    <>
+      <Header />
+      <div className="container max-w-5xl mx-auto py-10 px-4">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold mb-2">Register Your School</h1>
+          <p className="text-muted-foreground">
+            Join the MentorMe platform and unlock powerful teacher training tools
+          </p>
+        </div>
+        
+        <Tabs 
+          value={activeTab} 
+          onValueChange={setActiveTab}
+          className="mb-8"
+        >
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="school-info">School Information</TabsTrigger>
+            <TabsTrigger value="admin-access">Admin Access</TabsTrigger>
+            <TabsTrigger value="subscription">Subscription</TabsTrigger>
+          </TabsList>
+          
+          <form onSubmit={handleSubmit}>
+            <TabsContent value="school-info" className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Building2 className="h-5 w-5 mr-2 text-primary" />
+                    School Information
+                  </CardTitle>
+                  <CardDescription>
+                    Provide basic information about your school
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="school-name">School Name <span className="text-red-500">*</span></Label>
+                    <Input
+                      id="school-name"
+                      placeholder="e.g., Little Stars Preschool"
+                      value={schoolName}
+                      onChange={(e) => setSchoolName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Street Address</Label>
+                    <Input
+                      id="address"
+                      placeholder="Street address"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="city">City</Label>
+                      <Input
+                        id="city"
+                        placeholder="City"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="state">State</Label>
+                      <Input
+                        id="state"
+                        placeholder="State"
+                        value={state}
+                        onChange={(e) => setState(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="zip-code">Zip Code</Label>
+                    <Input
+                      id="zip-code"
+                      placeholder="Zip Code"
+                      value={zipCode}
+                      onChange={(e) => setZipCode(e.target.value)}
+                    />
+                  </div>
+                  
+                  <Separator className="my-4" />
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="contact-email">Contact Email <span className="text-red-500">*</span></Label>
+                    <Input
+                      id="contact-email"
+                      type="email"
+                      placeholder="contact@yourschool.com"
+                      value={contactEmail}
+                      onChange={(e) => setContactEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="contact-phone">Contact Phone</Label>
+                    <Input
+                      id="contact-phone"
+                      placeholder="(555) 123-4567"
+                      value={contactPhone}
+                      onChange={(e) => setContactPhone(e.target.value)}
+                    />
+                  </div>
+                </CardContent>
+                <CardFooter className="flex justify-end">
+                  <Button 
+                    type="button" 
+                    onClick={handleNextStep}
+                    disabled={isLoading}
+                  >
+                    Next: Admin Access
+                  </Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="admin-access" className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Shield className="h-5 w-5 mr-2 text-primary" />
+                    Admin Access
+                  </CardTitle>
+                  <CardDescription>
+                    Set up an admin password for your school dashboard
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="bg-amber-50 border border-amber-200 rounded-md p-4 text-amber-800">
+                    <h3 className="font-semibold mb-1 flex items-center">
+                      <Shield className="h-4 w-4 mr-2" />
+                      Important Security Information
+                    </h3>
+                    <p className="text-sm">
+                      This admin password will be used to access your school's dashboard and manage 
+                      teacher accounts. This is separate from your personal login credentials.
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="admin-password">
+                      Admin Password <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="admin-password"
+                      type="password"
+                      placeholder="Create a secure password"
+                      value={adminPassword}
+                      onChange={(e) => {
+                        setAdminPassword(e.target.value);
+                        setAdminPasswordError("");
+                      }}
+                      className={adminPasswordError ? "border-red-500" : ""}
+                    />
+                    {adminPasswordError && (
+                      <p className="text-sm text-red-500">{adminPasswordError}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Password must be at least 8 characters long
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-password">
+                      Confirm Admin Password <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="confirm-password"
+                      type="password"
+                      placeholder="Confirm your password"
+                      value={confirmPassword}
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+                        setAdminPasswordError("");
+                      }}
+                      className={adminPasswordError ? "border-red-500" : ""}
+                    />
+                  </div>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-md p-4 text-blue-800">
+                    <h3 className="font-semibold mb-1">Security Best Practices:</h3>
+                    <ul className="text-sm list-disc pl-5 space-y-1">
+                      <li>Use a combination of uppercase and lowercase letters</li>
+                      <li>Include numbers and special characters</li>
+                      <li>Avoid using easily guessable information</li>
+                      <li>Do not share this password with non-administrative staff</li>
+                    </ul>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex justify-between">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setActiveTab("school-info")}
+                    disabled={isLoading}
+                  >
+                    Back
+                  </Button>
+                  <Button 
+                    type="button" 
+                    onClick={handleNextStep}
+                    disabled={isLoading}
+                  >
+                    Next: Subscription
+                  </Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="subscription" className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <CreditCard className="h-5 w-5 mr-2 text-primary" />
+                    Subscription Details
+                  </CardTitle>
+                  <CardDescription>
+                    Choose a subscription plan for your school
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div 
+                      className={`border rounded-md p-4 cursor-pointer transition-all ${
+                        planType === "monthly" 
+                          ? "border-primary bg-primary/5 shadow-sm" 
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                      onClick={() => setPlanType("monthly")}
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <h3 className="font-semibold text-lg">Monthly</h3>
+                        {planType === "monthly" && (
+                          <CheckCircle2 className="h-5 w-5 text-primary" />
+                        )}
+                      </div>
+                      <p className="text-2xl font-bold mb-1">$250 <span className="text-sm font-normal text-muted-foreground">/month</span></p>
+                      <p className="text-sm text-muted-foreground mb-4">Billed monthly</p>
+                      <ul className="text-sm space-y-2">
+                        <li className="flex items-start">
+                          <CheckCircle2 className="h-4 w-4 mr-2 text-green-500 shrink-0 mt-0.5" />
+                          <span>Full access to all training modules</span>
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle2 className="h-4 w-4 mr-2 text-green-500 shrink-0 mt-0.5" />
+                          <span>School admin dashboard</span>
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle2 className="h-4 w-4 mr-2 text-green-500 shrink-0 mt-0.5" />
+                          <span>Unlimited teachers</span>
+                        </li>
+                      </ul>
+                    </div>
+                    
+                    <div 
+                      className={`border rounded-md p-4 cursor-pointer transition-all ${
+                        planType === "annual" 
+                          ? "border-primary bg-primary/5 shadow-sm" 
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                      onClick={() => setPlanType("annual")}
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="font-semibold text-lg">Annual</h3>
+                          <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full">
+                            Save 16%
+                          </span>
+                        </div>
+                        {planType === "annual" && (
+                          <CheckCircle2 className="h-5 w-5 text-primary" />
+                        )}
+                      </div>
+                      <p className="text-2xl font-bold mb-1">$2,500 <span className="text-sm font-normal text-muted-foreground">/year</span></p>
+                      <p className="text-sm text-muted-foreground mb-4">Billed annually</p>
+                      <ul className="text-sm space-y-2">
+                        <li className="flex items-start">
+                          <CheckCircle2 className="h-4 w-4 mr-2 text-green-500 shrink-0 mt-0.5" />
+                          <span>All monthly features</span>
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle2 className="h-4 w-4 mr-2 text-green-500 shrink-0 mt-0.5" />
+                          <span>Priority support</span>
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle2 className="h-4 w-4 mr-2 text-green-500 shrink-0 mt-0.5" />
+                          <span>Quarterly performance reports</span>
+                        </li>
+                      </ul>
+                    </div>
+                    
+                    <div 
+                      className={`border rounded-md p-4 cursor-pointer transition-all ${
+                        planType === "enterprise" 
+                          ? "border-primary bg-primary/5 shadow-sm" 
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                      onClick={() => setPlanType("enterprise")}
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <h3 className="font-semibold text-lg">Enterprise</h3>
+                        {planType === "enterprise" && (
+                          <CheckCircle2 className="h-5 w-5 text-primary" />
+                        )}
+                      </div>
+                      <p className="text-2xl font-bold mb-1">Custom</p>
+                      <p className="text-sm text-muted-foreground mb-4">Contact us for pricing</p>
+                      <ul className="text-sm space-y-2">
+                        <li className="flex items-start">
+                          <CheckCircle2 className="h-4 w-4 mr-2 text-green-500 shrink-0 mt-0.5" />
+                          <span>All annual features</span>
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle2 className="h-4 w-4 mr-2 text-green-500 shrink-0 mt-0.5" />
+                          <span>Custom training modules</span>
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle2 className="h-4 w-4 mr-2 text-green-500 shrink-0 mt-0.5" />
+                          <span>Dedicated account manager</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-50 rounded-md p-4 mb-6">
+                    <h3 className="font-semibold mb-2">All Plans Include:</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                      <div className="flex items-center">
+                        <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+                        <span className="text-sm">All Core Training Modules</span>
+                      </div>
+                      <div className="flex items-center">
+                        <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+                        <span className="text-sm">Teacher Progress Tracking</span>
+                      </div>
+                      <div className="flex items-center">
+                        <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+                        <span className="text-sm">Assessment Tools</span>
+                      </div>
+                      <div className="flex items-center">
+                        <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+                        <span className="text-sm">Teacher Engagement Features</span>
+                      </div>
+                      <div className="flex items-center">
+                        <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+                        <span className="text-sm">Email Support</span>
+                      </div>
+                      <div className="flex items-center">
+                        <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+                        <span className="text-sm">Regular Platform Updates</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-md p-4 text-blue-800">
+                    <p className="text-sm">
+                      <span className="font-semibold">Note:</span> You will be redirected to complete payment after 
+                      submitting your registration. Your subscription will begin after payment is processed.
+                    </p>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex justify-between">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setActiveTab("admin-access")}
+                    disabled={isLoading}
+                  >
+                    Back
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={isLoading}
+                    className="gap-2"
+                  >
+                    {isLoading && (
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    )}
+                    Register School
+                  </Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+          </form>
+        </Tabs>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
         <Card className="flex flex-col">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center">
-              <GraduationCap className="h-5 w-5 mr-2 text-primary" />
-              Teacher Growth
+              <Users2 className="h-5 w-5 mr-2 text-primary" />
+              Teacher Development
             </CardTitle>
             <CardDescription>
-              Personalized learning paths based on assessment results
+              Comprehensive training platform
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow">
             <ul className="space-y-2">
               <li className="flex items-start">
                 <CheckCircle2 className="h-5 w-5 mr-2 text-green-500 shrink-0 mt-0.5" />
-                <span>Adaptive learning algorithms</span>
+                <span>Personalized learning paths</span>
               </li>
               <li className="flex items-start">
                 <CheckCircle2 className="h-5 w-5 mr-2 text-green-500 shrink-0 mt-0.5" />
-                <span>Progress tracking and achievements</span>
+                <span>Skills gap identification</span>
               </li>
               <li className="flex items-start">
                 <CheckCircle2 className="h-5 w-5 mr-2 text-green-500 shrink-0 mt-0.5" />
-                <span>Interactive multimedia content</span>
+                <span>Interactive training modules</span>
               </li>
             </ul>
           </CardContent>
         </Card>
-
+        
         <Card className="flex flex-col">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center">
               <Building2 className="h-5 w-5 mr-2 text-primary" />
-              School Culture
+              School Administration
             </CardTitle>
             <CardDescription>
-              Strengthen your values and build a positive environment
+              Tools for school leaders
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow">
             <ul className="space-y-2">
               <li className="flex items-start">
                 <CheckCircle2 className="h-5 w-5 mr-2 text-green-500 shrink-0 mt-0.5" />
-                <span>Core values recognition system</span>
+                <span>Teacher progress tracking</span>
               </li>
               <li className="flex items-start">
                 <CheckCircle2 className="h-5 w-5 mr-2 text-green-500 shrink-0 mt-0.5" />
-                <span>Peer-to-peer appreciation</span>
+                <span>Performance analytics</span>
               </li>
               <li className="flex items-start">
                 <CheckCircle2 className="h-5 w-5 mr-2 text-green-500 shrink-0 mt-0.5" />
-                <span>Customizable to your school values</span>
+                <span>Administrative tools</span>
               </li>
             </ul>
           </CardContent>
         </Card>
-
+        
         <Card className="flex flex-col">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center">
@@ -239,420 +616,7 @@ export default function BusinessSignup() {
           </CardContent>
         </Card>
       </div>
-
-      <div className="bg-muted rounded-lg p-6 mb-16">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold mb-2">Simple, Transparent Pricing</h2>
-          <p className="text-muted-foreground">Choose the plan that works for your school</p>
-        </div>
-        
-        <div className="grid md:grid-cols-3 gap-6">
-          <Card className="border-2">
-            <CardHeader>
-              <CardTitle>Basic</CardTitle>
-              <div className="mt-2">
-                <span className="text-3xl font-bold">$59</span>
-                <span className="text-muted-foreground">/month per site</span>
-              </div>
-              <CardDescription className="mt-2">
-                Plus $5 per teacher monthly
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
-                <li className="flex items-start">
-                  <CheckCircle2 className="h-5 w-5 mr-2 text-green-500 shrink-0 mt-0.5" />
-                  <span>Complete learning platform</span>
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle2 className="h-5 w-5 mr-2 text-green-500 shrink-0 mt-0.5" />
-                  <span>Teacher assessments</span>
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle2 className="h-5 w-5 mr-2 text-green-500 shrink-0 mt-0.5" />
-                  <span>Core training modules</span>
-                </li>
-              </ul>
-            </CardContent>
-            <CardFooter>
-              <Button className="w-full">
-                Get Started
-              </Button>
-            </CardFooter>
-          </Card>
-          
-          <Card className="border-2 border-primary relative">
-            <div className="absolute top-0 right-0 transform translate-x-2 -translate-y-2">
-              <Badge variant="default">Most Popular</Badge>
-            </div>
-            <CardHeader>
-              <CardTitle>Owner's Toolkit</CardTitle>
-              <div className="mt-2">
-                <span className="text-3xl font-bold">$78</span>
-                <span className="text-muted-foreground">/month per site</span>
-              </div>
-              <CardDescription className="mt-2">
-                Plus $5 per teacher monthly
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
-                <li className="flex items-start">
-                  <CheckCircle2 className="h-5 w-5 mr-2 text-green-500 shrink-0 mt-0.5" />
-                  <span>Everything in Basic</span>
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle2 className="h-5 w-5 mr-2 text-green-500 shrink-0 mt-0.5" />
-                  <span>EOS tools integration</span>
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle2 className="h-5 w-5 mr-2 text-green-500 shrink-0 mt-0.5" />
-                  <span>Advanced analytics</span>
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle2 className="h-5 w-5 mr-2 text-green-500 shrink-0 mt-0.5" />
-                  <span>Director dashboard</span>
-                </li>
-              </ul>
-            </CardContent>
-            <CardFooter>
-              <Button className="w-full">
-                Get Started
-              </Button>
-            </CardFooter>
-          </Card>
-          
-          <Card className="border-2">
-            <CardHeader>
-              <CardTitle>Premium Branding</CardTitle>
-              <div className="mt-2">
-                <span className="text-3xl font-bold">$78</span>
-                <span className="text-muted-foreground">/month per site</span>
-              </div>
-              <CardDescription className="mt-2">
-                $1,999 one-time setup fee
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
-                <li className="flex items-start">
-                  <CheckCircle2 className="h-5 w-5 mr-2 text-green-500 shrink-0 mt-0.5" />
-                  <span>Everything in Owner's Toolkit</span>
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle2 className="h-5 w-5 mr-2 text-green-500 shrink-0 mt-0.5" />
-                  <span>Custom branding and logo</span>
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle2 className="h-5 w-5 mr-2 text-green-500 shrink-0 mt-0.5" />
-                  <span>Custom core values training</span>
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle2 className="h-5 w-5 mr-2 text-green-500 shrink-0 mt-0.5" />
-                  <span>Custom company song</span>
-                </li>
-              </ul>
-            </CardContent>
-            <CardFooter>
-              <Button className="w-full">
-                Get Started
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
       </div>
-      
-      <div className="flex flex-col items-center mb-12">
-        <h2 className="text-3xl font-bold mb-6">Sign Up For MentorMe</h2>
-        
-        <Card className="w-full max-w-3xl">
-          <CardHeader>
-            <CardTitle>School Information</CardTitle>
-            <CardDescription>Tell us about your school to get started</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                {step === 1 && (
-                  <div className="space-y-6">
-                    <FormField
-                      control={form.control}
-                      name="businessName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>School/Business Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Raising Arizona Preschool" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="grid gap-6 md:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input placeholder="contact@school.com" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="phone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Phone Number</FormLabel>
-                            <FormControl>
-                              <Input placeholder="(555) 123-4567" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <FormField
-                      control={form.control}
-                      name="teacherCount"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Number of Teachers</FormLabel>
-                          <FormControl>
-                            <Input type="number" min="1" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            This will help us calculate your monthly fee ($5 per teacher)
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
-                
-                {step === 2 && (
-                  <div className="space-y-6">
-                    <FormField
-                      control={form.control}
-                      name="plan"
-                      render={({ field }) => (
-                        <FormItem className="space-y-3">
-                          <FormLabel>Select Your Plan</FormLabel>
-                          <FormControl>
-                            <RadioGroup
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                              className="space-y-3"
-                            >
-                              <FormItem className="flex items-center space-x-3 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="basic" />
-                                </FormControl>
-                                <FormLabel className="font-normal">
-                                  Basic ($59/month per site + $5/teacher)
-                                </FormLabel>
-                              </FormItem>
-                              <FormItem className="flex items-center space-x-3 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="premium" />
-                                </FormControl>
-                                <FormLabel className="font-normal">
-                                  Premium ($78/month per site + $5/teacher)
-                                </FormLabel>
-                              </FormItem>
-                              <FormItem className="flex items-center space-x-3 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="enterprise" />
-                                </FormControl>
-                                <FormLabel className="font-normal">
-                                  Enterprise (Contact us for custom pricing)
-                                </FormLabel>
-                              </FormItem>
-                            </RadioGroup>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <Separator />
-                    
-                    <FormField
-                      control={form.control}
-                      name="addOwnersToolkit"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base font-semibold">
-                              Add Owner's Toolkit
-                            </FormLabel>
-                            <FormDescription>
-                              Access advanced analytics and EOS tools ($19/month)
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="addBranding"
-                      render={({ field }) => (
-                        <FormItem className="space-y-3">
-                          <FormLabel>Custom Branding Options</FormLabel>
-                          <FormControl>
-                            <RadioGroup
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                              className="space-y-3"
-                            >
-                              <FormItem className="flex items-center space-x-3 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="none" />
-                                </FormControl>
-                                <FormLabel className="font-normal">
-                                  No custom branding
-                                </FormLabel>
-                              </FormItem>
-                              <FormItem className="flex items-center space-x-3 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="basic" />
-                                </FormControl>
-                                <FormLabel className="font-normal">
-                                  Basic Branding - Logo and colors ($999 one-time)
-                                </FormLabel>
-                              </FormItem>
-                              <FormItem className="flex items-center space-x-3 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="premium" />
-                                </FormControl>
-                                <FormLabel className="font-normal">
-                                  Premium Branding - Logo, core values training & company song ($1,999 one-time)
-                                </FormLabel>
-                              </FormItem>
-                            </RadioGroup>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
-                
-                {step === 3 && (
-                  <div className="space-y-6">
-                    <div className="rounded-md border">
-                      <div className="p-6">
-                        <h3 className="text-lg font-medium mb-4">Your MentorMe Plan</h3>
-                        
-                        <div className="space-y-4">
-                          <div className="flex justify-between py-2">
-                            <span>Base monthly fee:</span>
-                            <span className="font-medium">${calculatedPrice.monthlyBase}</span>
-                          </div>
-                          
-                          <div className="flex justify-between py-2">
-                            <span>Teacher fee ({form.getValues("teacherCount")} × $5):</span>
-                            <span className="font-medium">${calculatedPrice.perTeacherFee}</span>
-                          </div>
-                          
-                          {calculatedPrice.ownersToolkit > 0 && (
-                            <div className="flex justify-between py-2">
-                              <span>Owner's Toolkit:</span>
-                              <span className="font-medium">${calculatedPrice.ownersToolkit}</span>
-                            </div>
-                          )}
-                          
-                          <Separator />
-                          
-                          <div className="flex justify-between py-2 font-bold">
-                            <span>Total Monthly:</span>
-                            <span>${calculatedPrice.totalMonthly}</span>
-                          </div>
-                          
-                          {calculatedPrice.oneTimeFee > 0 && (
-                            <div className="flex justify-between py-2 text-primary font-bold">
-                              <span>One-time setup fee:</span>
-                              <span>${calculatedPrice.oneTimeFee}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <FormField
-                      control={form.control}
-                      name="agreeToTerms"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>
-                              I agree to the Terms of Service and Privacy Policy
-                            </FormLabel>
-                            <FormDescription>
-                              By checking this box, you agree to our <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link> and <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>.
-                            </FormDescription>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <div className="bg-muted p-4 rounded-md">
-                      <p className="text-sm text-muted-foreground">
-                        After submitting, a MentorMe representative will contact you to complete your setup and provide access to your new platform.
-                      </p>
-                    </div>
-                  </div>
-                )}
-                
-                <div className="flex justify-between pt-2">
-                  {step > 1 && (
-                    <Button type="button" variant="outline" onClick={prevStep}>
-                      Back
-                    </Button>
-                  )}
-                  {step < 3 ? (
-                    <Button type="button" onClick={nextStep} className="ml-auto">
-                      Next Step
-                    </Button>
-                  ) : (
-                    <Button type="submit" className="ml-auto">
-                      Complete Sign-up
-                    </Button>
-                  )}
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-      </div>
-      
-      <div className="text-center">
-        <h3 className="text-xl font-medium mb-2">Questions about MentorMe?</h3>
-        <p className="mb-4 text-muted-foreground">Contact our team for a free consultation</p>
-        <Button variant="outline" className="gap-1">
-          Contact Sales
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
+    </>
   );
 }

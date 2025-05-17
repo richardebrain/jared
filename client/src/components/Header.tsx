@@ -22,7 +22,7 @@ export default function Header() {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isOwner } = useAuth();
+  const { isOwner, isAdmin } = useAuth();
   
   const { data: user } = useQuery<User>({
     queryKey: ["/api/auth/me"]
@@ -187,20 +187,24 @@ export default function Header() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/owner-dashboard")}>
                     <i className="ri-vip-crown-line mr-2"></i>
-                    Owner Suite
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/settings/owner-dashboard")}>
-                    <i className="ri-building-line mr-2"></i>
-                    School Management
+                    App Owner Dashboard
                   </DropdownMenuItem>
                 </>
               )}
               
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/admin")}>
-                <i className="ri-shield-keyhole-line mr-2"></i>
-                Admin Access
-              </DropdownMenuItem>
+              {isAdmin && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/settings/owner-dashboard")}>
+                    <i className="ri-building-line mr-2"></i>
+                    School Management
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/admin")}>
+                    <i className="ri-shield-keyhole-line mr-2"></i>
+                    Admin Access
+                  </DropdownMenuItem>
+                </>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
                 <i className="ri-logout-box-line mr-2"></i>
