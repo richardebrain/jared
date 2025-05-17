@@ -6,6 +6,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import raisingArizonaLogo from "@assets/raising-arizona-logo.jpg";
+import mentormeLogo from "@assets/mentorme-logo.png";
 
 import {
   DropdownMenu,
@@ -81,10 +82,9 @@ export default function Header() {
         <div className="flex items-center">
           <Link href="/">
             <div className="flex items-center">
-              <img src={raisingArizonaLogo} alt="Raising Arizona Preschool" className="h-11 mr-2.5 rounded-md shadow-sm" />
+              <img src={mentormeLogo} alt="MentorMe Teacher Training" className="h-12 mr-2 rounded-md" />
               <div className="flex flex-col">
-                <div className="text-xl font-bold bg-gradient-to-r from-amber-600 to-amber-800 bg-clip-text text-transparent">MentorMe</div>
-                <div className="text-xs text-neutral-600 font-medium">Teacher Training</div>
+                <div className="text-xs text-neutral-600 font-medium mt-1">Teacher Training Platform</div>
               </div>
             </div>
           </Link>

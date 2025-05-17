@@ -74,6 +74,12 @@ export async function runSchoolColumnsMigration(): Promise<void> {
     await pool.query(`ALTER TABLE schools ADD COLUMN admin_password_hash TEXT`);
   }
   
+  // Check and add teacher_count column
+  if (!await checkColumnExists('schools', 'teacher_count')) {
+    console.log("Adding teacher_count column");
+    await pool.query(`ALTER TABLE schools ADD COLUMN teacher_count INT DEFAULT 0`);
+  }
+  
   console.log("School columns migration completed successfully");
 }
 
