@@ -853,6 +853,29 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(userProgress).where(eq(userProgress.moduleId, moduleId));
   }
   
+  /**
+   * Get a specific user's progress for a specific module
+   * This is an optimized method for efficiently querying a single progress record
+   * Used in the optimized progress API for better performance with many users
+   * 
+   * @param userId The user ID to get progress for
+   * @param moduleId The module ID to get progress for
+   * @returns The progress record or undefined if not found
+   */
+  async getUserProgressForModule(userId: number, moduleId: number): Promise<UserProgress | undefined> {
+    const [progressRecord] = await db
+      .select()
+      .from(userProgress)
+      .where(
+        and(
+          eq(userProgress.userId, userId),
+          eq(userProgress.moduleId, moduleId)
+        )
+      );
+    
+    return progressRecord;
+  }
+  
   async createUserProgress(progress: InsertUserProgress): Promise<UserProgress> {
     const [newProgress] = await db
       .insert(userProgress)

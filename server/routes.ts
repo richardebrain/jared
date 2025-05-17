@@ -1025,11 +1025,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // User progress routes
+  // User progress routes with filtering support for better performance
   app.get("/api/progress", requireAuth, requirePaidAccess, async (req, res) => {
     try {
-      const userId = req.session.userId as number;
-      const progress = await storage.getProgressByUserId(userId);
+      const sessionUserId = req.session.userId as number;
+      const { moduleId, userId } = req.query;
+      
+      // Security check - only admins can request other users' progress
+      const requestedUserId = userId ? parseInt(userId as string) : sessionUserId;
+      if (requestedUserId !== sessionUserId) {
+        const currentUser = await storage.getUser(sessionUserId);
+        if (!currentUser?.isAdmin && !currentUser?.isSchoolAdmin && !currentUser?.isOwner) {
+          return res.status(403).json({ 
+            message: "Access denied", 
+            details: "You do not have permission to view another user's progress"
+          });
+        }
+      }
+      
+      let progress;
+      // If both moduleId and userId are provided, get specific progress
+      if (moduleId && userId) {
+        const module = parseInt(moduleId as string);
+        const user = parseInt(userId as string);
+        const specificProgress = await storage.getUserProgressForModule(user, module);
+        progress = specificProgress ? [specificProgress] : [];
+      } 
+      // If just moduleId is provided, get all user progress for this module
+      else if (moduleId) {
+        const module = parseInt(moduleId as string);
+        progress = await storage.getUserProgressByModuleId(module);
+      }
+      // If just userId is provided or nothing specific, get all progress for user
+      else {
+        progress = await storage.getUserProgressByUserId(requestedUserId);
+      }
+      
       res.status(200).json(progress);
     } catch (error) {
       console.error("Error fetching user progress:", error);
