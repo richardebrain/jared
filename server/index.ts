@@ -41,52 +41,49 @@ app.use((req, res, next) => {
 
 (async () => {
   try {
-    // We'll run the migration after server startup
+    const server = await registerRoutes(app);
 
-  // Seed the database after migration
-  await seedDatabase();
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
 
-  const server = await registerRoutes(app);
+      res.status(status).json({ message });
+    });
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    // importantly only setup vite in development and after
+    // setting up all the other routes so the catch-all route
+    // doesn't interfere with the other routes
+    if (app.get("env") === "development") {
+      await setupVite(app, server);
+    } else {
+      serveStatic(app);
+    }
 
-    res.status(status).json({ message });
-    throw err;
-  });
-
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
+    // ALWAYS serve the app on port 5000
+    // this serves both the API and the client.
+    // It is the only port that is not firewalled.
+    const port = 5000;
+    server.listen({
+      port,
+      host: "0.0.0.0",
+      reusePort: true,
+    }, () => {
+      log(`serving on port ${port}`);
+      
+      // Run the school migration first
+      console.log('Running school migration...');
+      runSchoolMigration()
+        .then(() => {
+          console.log('School migration completed successfully');
+          
+          // Then seed the database with initial data
+          return seedDatabase();
+        })
+        .catch(err => {
+          console.error("Error during migration or seeding:", err);
+        });
+    });
+  } catch (error) {
+    console.error("Error during server startup:", error);
   }
-
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-    
-    // Run the school migration first
-    console.log('Running school migration...');
-    runSchoolMigration()
-      .then(() => {
-        console.log('School migration completed successfully');
-        
-        // Then seed the database with initial data
-        return seedDatabase();
-      })
-      .catch(err => {
-        console.error("Error during migration or seeding:", err);
-      });
-  });
 })();

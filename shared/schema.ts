@@ -423,8 +423,13 @@ export const spinGameRewardsRelations = relations(spinGameRewards, ({ one }) => 
   })
 }));
 
-// Update user relations to include new entities
-export const usersRelationsUpdate = relations(users, ({ many, one }) => ({
+// School relations definition
+export const schoolsRelations = relations(schools, ({ many }) => ({
+  users: many(users),
+}));
+
+// Update user relations to include school relation
+export const usersRelations = relations(users, ({ many, one }) => ({
   school: one(schools, {
     fields: [users.schoolId],
     references: [schools.id]
