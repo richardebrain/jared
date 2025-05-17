@@ -117,6 +117,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
   
+  // Middleware to check if user's school has a valid subscription
+  const requirePaidAccess = async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    try {
+      const userId = req.session.userId as number;
+      const accessStatus = await storage.checkUserAccessStatus(userId);
+      
+      if (!accessStatus.hasAccess) {
+        console.log(`Paid access check failed for user ${userId}: ${accessStatus.reason}`);
+        return res.status(403).json({ 
+          message: "Access denied", 
+          reason: accessStatus.reason,
+          details: "Your school does not have an active subscription to access this content."
+        });
+      }
+      
+      next();
+    } catch (error) {
+      console.error('Error in paid access middleware:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  };
+  
   // User routes
   app.post("/api/auth/register", async (req, res) => {
     try {
@@ -466,7 +492,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Learning modules routes
-  app.get("/api/modules", async (req, res) => {
+  app.get("/api/modules", requireAuth, requirePaidAccess, async (req, res) => {
     try {
       const modules = await storage.getAllModules();
       res.status(200).json(modules);
@@ -475,7 +501,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/modules/:id", async (req, res) => {
+  app.get("/api/modules/:id", requireAuth, requirePaidAccess, async (req, res) => {
     try {
       const moduleId = parseInt(req.params.id);
       const module = await storage.getModule(moduleId);
@@ -491,10 +517,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Endpoint to update the Child Development Milestones module content
-  app.post("/api/modules/update-child-development", async (req, res) => {
+  app.post("/api/modules/update-child-development", requireAuth, requirePaidAccess, async (req, res) => {
     try {
       // Get user ID from session if available (for personalization)
-      const userId = req.session?.userId;
+      const userId = req.session?.userId as number;
       
       // Use the specialized function to update the Child Development module
       const updatedModule = await updateChildDevelopmentModule(userId);
@@ -681,7 +707,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User progress routes
-  app.get("/api/progress", requireAuth, async (req, res) => {
+  app.get("/api/progress", requireAuth, requirePaidAccess, async (req, res) => {
     try {
       const userId = req.session.userId as number;
       const progress = await storage.getProgressByUserId(userId);
@@ -692,7 +718,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/progress/:moduleId", requireAuth, async (req, res) => {
+  app.get("/api/progress/:moduleId", requireAuth, requirePaidAccess, async (req, res) => {
     try {
       const userId = req.session.userId as number;
       const moduleId = parseInt(req.params.moduleId);
