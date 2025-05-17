@@ -23,6 +23,7 @@ import {
   MapPin, 
   Phone, 
   Shield, 
+  UploadCloud,
   Users2
 } from "lucide-react";
 import Header from "@/components/Header";
@@ -54,6 +55,42 @@ export default function BusinessSignupPage() {
   
   // Subscription information
   const [planType, setPlanType] = useState("monthly");
+
+  // Handle logo file upload
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/svg+xml'];
+    if (!validTypes.includes(file.type)) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please upload a JPG, PNG, or SVG image.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "Logo image must be less than 2MB.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setSchoolLogoPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+    
+    setSchoolLogo(file);
+  };
 
   const handleNextStep = () => {
     if (activeTab === "school-info") {
@@ -95,17 +132,28 @@ export default function BusinessSignupPage() {
     setIsLoading(true);
     
     try {
-      // Submit school registration
-      const response = await apiRequest("POST", "/api/schools/register", {
-        schoolName,
-        address,
-        city,
-        state,
-        zipCode,
-        contactEmail,
-        contactPhone,
-        adminPassword,
-        planType
+      // Prepare form data for multipart submission
+      const formData = new FormData();
+      formData.append("schoolName", schoolName);
+      formData.append("address", address);
+      formData.append("city", city);
+      formData.append("state", state);
+      formData.append("zipCode", zipCode);
+      formData.append("contactEmail", contactEmail);
+      formData.append("contactPhone", contactPhone);
+      formData.append("adminPassword", adminPassword);
+      formData.append("planType", planType);
+      
+      // Append logo if available
+      if (schoolLogo) {
+        formData.append("schoolLogo", schoolLogo);
+      }
+      
+      // Use fetch directly for FormData
+      const response = await fetch("/api/schools/register", {
+        method: "POST",
+        body: formData,
+        // Don't set Content-Type header, browser will set it with boundary
       });
       
       if (!response.ok) {
@@ -123,11 +171,11 @@ export default function BusinessSignupPage() {
       
       // Redirect to school dashboard
       navigate(`/settings/owner-dashboard`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Registration error:", error);
       toast({
         title: "Registration Failed",
-        description: error.message || "There was an error registering your school.",
+        description: error?.message || "There was an error registering your school.",
         variant: "destructive"
       });
     } finally {
@@ -244,6 +292,57 @@ export default function BusinessSignupPage() {
                       value={contactPhone}
                       onChange={(e) => setContactPhone(e.target.value)}
                     />
+                  </div>
+                  
+                  <Separator className="my-4" />
+                  
+                  <div className="space-y-3">
+                    <Label>School Logo</Label>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="border rounded-md p-4 space-y-3">
+                        <div className="text-sm text-muted-foreground">
+                          Upload your school logo. This will replace the MentorMe logo in your school's dashboard.
+                        </div>
+                        
+                        <div className="flex items-center justify-center">
+                          <label htmlFor="logo-upload" className="cursor-pointer">
+                            <div className="border-2 border-dashed rounded-md px-4 py-8 flex flex-col items-center justify-center gap-2 hover:bg-muted/30 transition-colors">
+                              <div className="bg-primary/10 p-2 rounded-full">
+                                <UploadCloud className="h-6 w-6 text-primary" />
+                              </div>
+                              <div className="flex flex-col items-center gap-1">
+                                <span className="text-sm font-medium">Click to upload</span>
+                                <span className="text-xs text-muted-foreground">SVG, PNG, JPG</span>
+                                <span className="text-xs text-muted-foreground">Max 2MB</span>
+                              </div>
+                            </div>
+                            <Input 
+                              id="logo-upload" 
+                              type="file"
+                              accept=".jpg,.jpeg,.png,.svg"
+                              className="hidden"
+                              onChange={handleLogoUpload}
+                            />
+                          </label>
+                        </div>
+                      </div>
+                      
+                      <div className="border rounded-md p-4">
+                        <div className="mb-3 text-sm font-medium">Preview</div>
+                        <div className="flex items-center justify-center h-[120px] bg-slate-50 rounded-md">
+                          {schoolLogoPreview ? (
+                            <img 
+                              src={schoolLogoPreview} 
+                              alt="School logo preview" 
+                              className="max-h-full max-w-full object-contain"
+                            />
+                          ) : (
+                            <div className="text-sm text-muted-foreground">Logo preview will appear here</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-end">
