@@ -1567,6 +1567,271 @@ export default function AssessmentPage() {
             return;
           }
           
+          if (domainId === 'emotional-support') {
+            console.log(`Handling 'emotional-support' domain with specific questions`);
+            
+            const emotionalSupportQuestions = [
+              {
+                id: 'es-default-1',
+                text: 'Which approach best promotes positive emotional development in preschoolers?',
+                domain: 'emotional-support',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'beginner' as DifficultyLevel,
+                options: [
+                  'Consistently praising only perfect work',
+                  'Creating a responsive, warm environment with clear expectations',
+                  'Using behavior charts visible to the entire class',
+                  'Focusing on academic skills over social-emotional development'
+                ],
+                correctAnswer: 'Creating a responsive, warm environment with clear expectations',
+                required: true
+              },
+              {
+                id: 'es-default-2',
+                text: 'According to CLASS standards, which teaching practice best demonstrates high-quality emotional support?',
+                domain: 'emotional-support',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'beginner' as DifficultyLevel,
+                options: [
+                  'Following a rigid schedule to provide structure',
+                  'Demonstrating awareness of and responsiveness to children\'s emotional needs',
+                  'Maintaining a quiet, controlled classroom atmosphere',
+                  'Setting high academic expectations for all students regardless of ability'
+                ],
+                correctAnswer: 'Demonstrating awareness of and responsiveness to children\'s emotional needs',
+                required: true
+              }
+            ];
+            
+            // Use our default questions by adding them to the assessment questions array
+            const existingEmotionalSupportQuestions = assessmentQuestions.filter(q => q.domain === 'emotional-support');
+            if (existingEmotionalSupportQuestions.length === 0) {
+              // Add our new questions to the assessment questions array
+              assessmentQuestions.push(...emotionalSupportQuestions);
+            }
+            
+            // Set to beginner difficulty for this domain to ensure questions are found
+            const newDomainDifficulty = {...domainDifficulty};
+            newDomainDifficulty[domainId] = 'beginner';
+            setDomainDifficulty(newDomainDifficulty);
+            
+            // Reset question index
+            setCurrentQuestionIndex(0);
+            return;
+          }
+          
+          if (domainId === 'classroom-organization') {
+            console.log(`Handling 'classroom-organization' domain with specific questions`);
+            
+            const classroomOrgQuestions = [
+              {
+                id: 'co-default-1',
+                text: 'Which approach is most effective for managing transitions between activities?',
+                domain: 'classroom-organization',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'beginner' as DifficultyLevel,
+                options: [
+                  'Having children wait quietly until everyone is ready',
+                  'Using consistent signals and routines with clear expectations',
+                  'Extending activities until all children naturally finish',
+                  'Allowing each child to move to the next activity when they choose'
+                ],
+                correctAnswer: 'Using consistent signals and routines with clear expectations',
+                required: true
+              },
+              {
+                id: 'co-default-2',
+                text: 'Which classroom organization strategy best promotes children\'s engagement?',
+                domain: 'classroom-organization',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'beginner' as DifficultyLevel,
+                options: [
+                  'Teacher-directed activities throughout most of the day',
+                  'Well-defined interest areas with engaging, accessible materials',
+                  'Having all materials available to children at all times',
+                  'Rotating activities every 10-15 minutes to maintain interest'
+                ],
+                correctAnswer: 'Well-defined interest areas with engaging, accessible materials',
+                required: true
+              }
+            ];
+            
+            // Use our default questions by adding them to the assessment questions array
+            const existingClassroomOrgQuestions = assessmentQuestions.filter(q => q.domain === 'classroom-organization');
+            if (existingClassroomOrgQuestions.length === 0) {
+              // Add our new questions to the assessment questions array
+              assessmentQuestions.push(...classroomOrgQuestions);
+            }
+            
+            // Set to beginner difficulty for this domain to ensure questions are found
+            const newDomainDifficulty = {...domainDifficulty};
+            newDomainDifficulty[domainId] = 'beginner';
+            setDomainDifficulty(newDomainDifficulty);
+            
+            // Reset question index
+            setCurrentQuestionIndex(0);
+            return;
+          }
+          
+          if (domainId === 'instructional-support') {
+            console.log(`Handling 'instructional-support' domain with specific questions`);
+            
+            const instructionalSupportQuestions = [
+              {
+                id: 'is-default-1',
+                text: 'Which approach best supports children\'s cognitive development?',
+                domain: 'instructional-support',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'beginner' as DifficultyLevel,
+                options: [
+                  'Providing direct instruction for all academic content',
+                  'Using open-ended questions and encouraging problem-solving',
+                  'Following a standardized curriculum with minimal deviation',
+                  'Having children complete worksheets to document learning'
+                ],
+                correctAnswer: 'Using open-ended questions and encouraging problem-solving',
+                required: true
+              },
+              {
+                id: 'is-default-2',
+                text: 'How can teachers best extend children\'s learning during activities?',
+                domain: 'instructional-support',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'beginner' as DifficultyLevel,
+                options: [
+                  'Providing the correct answers when children are confused',
+                  'Adding more materials to the activity',
+                  'Asking questions that promote reasoning and making connections',
+                  'Extending the time allowed for the activity'
+                ],
+                correctAnswer: 'Asking questions that promote reasoning and making connections',
+                required: true
+              }
+            ];
+            
+            // Use our default questions by adding them to the assessment questions array
+            const existingInstructionalSupportQuestions = assessmentQuestions.filter(q => q.domain === 'instructional-support');
+            if (existingInstructionalSupportQuestions.length === 0) {
+              // Add our new questions to the assessment questions array
+              assessmentQuestions.push(...instructionalSupportQuestions);
+            }
+            
+            // Set to beginner difficulty for this domain to ensure questions are found
+            const newDomainDifficulty = {...domainDifficulty};
+            newDomainDifficulty[domainId] = 'beginner';
+            setDomainDifficulty(newDomainDifficulty);
+            
+            // Reset question index
+            setCurrentQuestionIndex(0);
+            return;
+          }
+          
+          if (domainId === 'child-development') {
+            console.log(`Handling 'child-development' domain with specific questions`);
+            
+            const childDevelopmentQuestions = [
+              {
+                id: 'cd-default-1',
+                text: 'Which statement best describes typical cognitive development in 4-year-olds?',
+                domain: 'child-development',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'beginner' as DifficultyLevel,
+                options: [
+                  'They can understand abstract concepts like time and morality',
+                  'They engage in symbolic play and are beginning to understand cause and effect',
+                  'They have mastered conservation of number and volume',
+                  'They can think hypothetically about multiple outcomes'
+                ],
+                correctAnswer: 'They engage in symbolic play and are beginning to understand cause and effect',
+                required: true
+              },
+              {
+                id: 'cd-default-2',
+                text: 'Which factor has the most significant impact on early brain development?',
+                domain: 'child-development',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'beginner' as DifficultyLevel,
+                options: [
+                  'Genetics alone',
+                  'Enriched physical environments with many toys',
+                  'Responsive, nurturing relationships with caregivers',
+                  'Early academic instruction'
+                ],
+                correctAnswer: 'Responsive, nurturing relationships with caregivers',
+                required: true
+              }
+            ];
+            
+            // Use our default questions by adding them to the assessment questions array
+            const existingChildDevelopmentQuestions = assessmentQuestions.filter(q => q.domain === 'child-development');
+            if (existingChildDevelopmentQuestions.length === 0) {
+              // Add our new questions to the assessment questions array
+              assessmentQuestions.push(...childDevelopmentQuestions);
+            }
+            
+            // Set to beginner difficulty for this domain to ensure questions are found
+            const newDomainDifficulty = {...domainDifficulty};
+            newDomainDifficulty[domainId] = 'beginner';
+            setDomainDifficulty(newDomainDifficulty);
+            
+            // Reset question index
+            setCurrentQuestionIndex(0);
+            return;
+          }
+          
+          if (domainId === 'language-reasoning') {
+            console.log(`Handling 'language-reasoning' domain with specific questions`);
+            
+            const languageReasoningQuestions = [
+              {
+                id: 'lr-default-1',
+                text: 'Which strategy best supports language development in preschoolers?',
+                domain: 'language-reasoning',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'beginner' as DifficultyLevel,
+                options: [
+                  'Correcting grammatical errors immediately',
+                  'Using primarily simple sentences when speaking to children',
+                  'Engaging in back-and-forth conversations throughout the day',
+                  'Focusing on vocabulary flashcards and word drills'
+                ],
+                correctAnswer: 'Engaging in back-and-forth conversations throughout the day',
+                required: true
+              },
+              {
+                id: 'lr-default-2',
+                text: 'How can teachers best support children\'s reasoning skills?',
+                domain: 'language-reasoning',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'beginner' as DifficultyLevel,
+                options: [
+                  'Providing the correct answers to problems',
+                  'Asking open-ended questions that encourage prediction and analysis',
+                  'Focusing on rote memorization of facts',
+                  'Implementing more teacher-directed lessons'
+                ],
+                correctAnswer: 'Asking open-ended questions that encourage prediction and analysis',
+                required: true
+              }
+            ];
+            
+            // Use our default questions by adding them to the assessment questions array
+            const existingLanguageReasoningQuestions = assessmentQuestions.filter(q => q.domain === 'language-reasoning');
+            if (existingLanguageReasoningQuestions.length === 0) {
+              // Add our new questions to the assessment questions array
+              assessmentQuestions.push(...languageReasoningQuestions);
+            }
+            
+            // Set to beginner difficulty for this domain to ensure questions are found
+            const newDomainDifficulty = {...domainDifficulty};
+            newDomainDifficulty[domainId] = 'beginner';
+            setDomainDifficulty(newDomainDifficulty);
+            
+            // Reset question index
+            setCurrentQuestionIndex(0);
+            return;
+          }
+          
           // This is a critical error - no beginner questions available and not a known problematic domain
           toast({
             title: "Error Loading Questions",
