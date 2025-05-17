@@ -320,8 +320,8 @@ export default function AdminDashboard() {
         </div>
         <Link href="/dashboard">
           <Button variant="outline" className="gap-1">
-            <ChevronRight className="h-4 w-4" />
-            Return to Dashboard
+            <ChevronRight className="h-4 w-4 rotate-180" />
+            Return to Teacher Dashboard
           </Button>
         </Link>
       </div>
