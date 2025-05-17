@@ -1109,8 +1109,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           progress: progress || 0,
           completed: completed || false,
           pointsEarned: pointsEarned || 0,
-          recommended: false,
-          lastAccessed: new Date()
+          recommended: false
+          // lastAccessed is handled automatically by the schema
         });
         
         // If the module is created as completed, add points to user account

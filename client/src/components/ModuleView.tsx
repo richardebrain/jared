@@ -34,14 +34,23 @@ export default function ModuleView({ moduleId, user, onBack }: ModuleViewProps) 
     enabled: !!moduleId // Only run query if moduleId exists
   });
   
-  // Fetch user progress for this module
+  // Fetch user progress for this module (optimized to only get relevant progress)
   const { data: userProgress, isLoading: isLoadingProgress, refetch: refetchProgress } = useQuery<UserProgress[]>({
-    queryKey: ["/api/progress", moduleId],
+    queryKey: ["/api/progress", moduleId, user?.id],
     queryFn: async () => {
-      const allProgress = await apiRequest("/api/progress");
-      return allProgress.filter((p: UserProgress) => p.moduleId === moduleId && p.userId === user.id);
+      try {
+        if (!moduleId || !user?.id) {
+          console.error("Missing moduleId or userId for progress fetch");
+          return [];
+        }
+        const result = await apiRequest(`/api/progress?moduleId=${moduleId}&userId=${user.id}`);
+        return Array.isArray(result) ? result : [];
+      } catch (error) {
+        console.error("Error fetching module progress:", error);
+        return [];
+      }
     },
-    enabled: !!user
+    enabled: !!user?.id && !!moduleId
   });
   
   // Update progress mutation
