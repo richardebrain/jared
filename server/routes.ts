@@ -2474,7 +2474,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // School Management Routes
   app.post("/api/schools/register", logoUpload.single('schoolLogo'), async (req, res) => {
     try {
-      // Extract form data
+      // Extract form data - ensure all fields are strings if present
       const { 
         schoolName, 
         address, 
@@ -2487,7 +2487,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         planType 
       } = req.body;
       
-      console.log("School registration attempt:", { schoolName, contactEmail });
+      console.log("School registration attempt:", { 
+        schoolName: schoolName || '[not provided]', 
+        contactEmail: contactEmail || '[not provided]'
+      });
       
       // Validate required fields
       if (!schoolName || !contactEmail || !adminPassword) {

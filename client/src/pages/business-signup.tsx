@@ -58,38 +58,60 @@ export default function BusinessSignupPage() {
 
   // Handle logo file upload
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    try {
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/png', 'image/svg+xml'];
-    if (!validTypes.includes(file.type)) {
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/png', 'image/svg+xml'];
+      if (!validTypes.includes(file.type)) {
+        toast({
+          title: "Invalid File Type",
+          description: "Please upload a JPG, PNG, or SVG image.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Validate file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        toast({
+          title: "File Too Large",
+          description: "Logo image must be less than 2MB.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Create preview safely
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        try {
+          setSchoolLogoPreview(reader.result as string);
+        } catch (error) {
+          console.error("Error setting logo preview:", error);
+          // Don't throw error, just log it
+        }
+      };
+      reader.onerror = () => {
+        console.error("Error reading file");
+        toast({
+          title: "Upload Error",
+          description: "There was a problem processing your image.",
+          variant: "destructive"
+        });
+      };
+      reader.readAsDataURL(file);
+      
+      setSchoolLogo(file);
+    } catch (error) {
+      console.error("Logo upload error:", error);
       toast({
-        title: "Invalid File Type",
-        description: "Please upload a JPG, PNG, or SVG image.",
+        title: "Upload Error",
+        description: "There was a problem with your file upload.",
         variant: "destructive"
       });
-      return;
     }
-
-    // Validate file size (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      toast({
-        title: "File Too Large",
-        description: "Logo image must be less than 2MB.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Create preview
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setSchoolLogoPreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-    
-    setSchoolLogo(file);
   };
 
   const handleNextStep = () => {
