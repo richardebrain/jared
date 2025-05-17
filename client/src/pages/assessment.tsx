@@ -3558,13 +3558,29 @@ export default function AssessmentPage() {
       if (!isLevelingUp) {
         // Give the user time to see the feedback before moving on
         setTimeout(() => {
-          if (!isLastQuestion) {
+          // Make sure the index is valid before proceeding
+          if (!isLastQuestion && currentQuestionIndex < domainQuestions.length - 1) {
             // Move to next question in current domain
             setCurrentQuestionIndex(prev => prev + 1);
           } else if (!isLastDomain) {
-            // Move to next domain
-            setCurrentDomainIndex(currentDomainIndex + 1);
+            // We've completed all questions in current domain, move to next domain
+            const nextDomainIndex = (currentDomainIndex + 1) % domains.length;
+            setCurrentDomainIndex(nextDomainIndex);
             setCurrentQuestionIndex(0);
+            
+            // Load questions for the new domain
+            const nextDomain = domains[nextDomainIndex].id;
+            const difficulty = domainDifficulty[nextDomain] || 'beginner';
+            
+            // Ensure we have the correct questions loaded for the new domain
+            updateDomainQuestions(nextDomain, difficulty);
+            
+            toast({
+              title: "Moving to New Topic",
+              description: `Now exploring ${domains[nextDomainIndex]?.name || 'next area'}`,
+              variant: "default",
+              duration: 2000,
+            });
           } else {
             // We're at the very end - show a final toast
             toast({
