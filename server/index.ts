@@ -84,6 +84,13 @@ app.use((req, res, next) => {
         .then(() => {
           console.log('School columns migration completed successfully');
           
+          // Run the lifetime points migration
+          console.log('Running lifetime points migration...');
+          return import('./addLifetimePointsMigration').then(module => module.runLifetimePointsMigration());
+        })
+        .then(() => {
+          console.log('Lifetime points migration completed successfully');
+          
           // Then seed the database with initial data
           console.log('Seeding database...');
           return seedDatabase();
