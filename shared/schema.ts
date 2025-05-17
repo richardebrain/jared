@@ -68,6 +68,7 @@ export const users = pgTable("users", {
   achievementCount: integer("achievement_count").default(0),
   isAdmin: boolean("is_admin").default(false),
   isSchoolAdmin: boolean("is_school_admin").default(false), // School directors/admins
+  isOwner: boolean("is_owner").default(false), // App owner with full access to subscription management
   createdAt: timestamp("created_at").defaultNow(),
 });
 

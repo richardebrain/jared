@@ -571,6 +571,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // If neither password nor admin user, deny access
     return res.status(403).json({ message: "Forbidden: Admin access required" });
   };
+  
+  // App Owner middleware - For Subscription & School Management
+  const requireOwner = async (req: Request, res: Response, next: NextFunction) => {
+    // Check if user is authenticated
+    if (!req.session?.userId) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+
+    try {
+      const user = await storage.getUser(req.session.userId);
+      
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
+      
+      // Allow access if user has the isOwner flag
+      if (user.isOwner) {
+        return next();
+      }
+      
+      // Otherwise deny access
+      return res.status(403).json({ 
+        message: "Access denied", 
+        reason: "Owner privileges required for subscription management" 
+      });
+    } catch (error) {
+      console.error("Error checking owner status:", error);
+      return res.status(500).json({ 
+        message: "Server error checking application owner status" 
+      });
+    }
+  };
 
   // Admin routes with direct password checking for reliability
   app.get("/api/admin/users", async (req, res) => {
