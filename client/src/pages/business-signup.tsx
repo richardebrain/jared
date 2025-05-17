@@ -25,14 +25,19 @@ import {
   Phone, 
   Shield,
   UploadCloud,
-  CreditCard
+  CreditCard,
+  CheckCircle2,
+  AlertTriangle,
+  Users,
+  Users2,
+  Briefcase
 } from "lucide-react";
 import Header from "@/components/Header";
 import { Separator } from "@/components/ui/separator";
 
 export default function BusinessSignupPage() {
   const { user } = useAuth();
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("school-info");
