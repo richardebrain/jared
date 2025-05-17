@@ -4,6 +4,8 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { User } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { Confetti } from "@/components/Confetti";
+import { Trophy, Sparkles, GraduationCap, ArrowRight, Map, Undo } from "lucide-react";
 import Header from "@/components/Header";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -1859,6 +1861,187 @@ const AssessmentCompletionView = ({
   const growthAreas = latestAssessment.growthAreas || [];
   const teacherLevel = latestAssessment.teacherLevel || "Assistant Teacher";
   
+  // Create Assessment Completion View Component
+  const AssessmentCompletionView = ({ 
+    user, 
+    assessmentResults, 
+    resetAssessment,
+    totalAnswers, 
+    correctAnswers 
+  }) => {
+    const [location, setLocation] = useLocation();
+    
+    // Teacher progression levels information
+    const progressionLevels = [
+      { level: "Teacher in Training", pointRange: "0-299", current: false },
+      { level: "Assistant Teacher", pointRange: "300-799", current: false },
+      { level: "Associate Teacher", pointRange: "800-1499", current: false },
+      { level: "Lead Teacher", pointRange: "1500-2499", current: false },
+      { level: "Master Lead Teacher", pointRange: "2500-3499", current: false },
+      { level: "Mentor Teacher", pointRange: "3500+", current: false }
+    ];
+    
+    // Get the latest assessment
+    const latestAssessment = assessmentResults || (assessments.length > 0 ? assessments[0] : null);
+    
+    // Default values for strength/growth areas if not available
+    const strengthAreas = latestAssessment?.strengthAreas || ["Classroom Management", "Child Development"];
+    const growthAreas = latestAssessment?.growthAreas || ["Language & Literacy", "Special Needs Support"];
+    const teacherLevel = latestAssessment?.teacherLevel || "Teacher in Training";
+    
+    // Mark the current level in progression
+    progressionLevels.forEach(level => {
+      level.current = level.level === teacherLevel;
+    });
+    
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-neutral-100">
+        <Header />
+        <Confetti />
+        
+        <main className="container max-w-5xl mx-auto px-4 py-12">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl sm:text-4xl font-bold text-primary mb-4">
+              Congratulations! 🎉
+            </h1>
+            <p className="text-lg text-muted-foreground">
+              You've completed your teaching assessment with {correctAnswers} correct answers out of {totalAnswers} questions.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            {/* Points Award Card */}
+            <Card className="shadow-md border-2 border-primary/10">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-2xl flex items-center gap-2">
+                  <Trophy className="h-6 w-6 text-primary" />
+                  Points Earned
+                </CardTitle>
+                <CardDescription>
+                  Your assessment has earned you points towards your teaching progression
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-center">
+                  <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-full w-32 h-32 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="text-4xl font-bold text-primary flex items-center justify-center">
+                        <span>+10</span>
+                        <Sparkles className="h-5 w-5 ml-1 text-yellow-500" />
+                      </div>
+                      <div className="text-sm text-muted-foreground">points</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <p className="text-sm text-muted-foreground mt-4">
+                  Earn points by completing training modules, daily logins, connecting with peers, 
+                  and improving your assessment scores. View your current progress on the Progression Map.
+                </p>
+              </CardContent>
+              <CardFooter>
+                <Link href="/progression-map" className="w-full">
+                  <Button variant="outline" className="w-full">
+                    <Map className="h-4 w-4 mr-2" />
+                    View Progression Map
+                  </Button>
+                </Link>
+              </CardFooter>
+            </Card>
+            
+            {/* Strength and Growth Card */}
+            <Card className="shadow-md border-2 border-primary/10">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-2xl flex items-center gap-2">
+                  <GraduationCap className="h-6 w-6 text-primary" />
+                  Your Teaching Profile
+                </CardTitle>
+                <CardDescription>
+                  Based on your assessment, we've identified these key areas
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-semibold text-primary mb-2">Areas of Strength:</h3>
+                    <ul className="pl-5 list-disc space-y-1">
+                      {strengthAreas.map((area, index) => (
+                        <li key={`strength-${index}`}>{area}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-primary mb-2">Areas for Growth:</h3>
+                    <ul className="pl-5 list-disc space-y-1">
+                      {growthAreas.map((area, index) => (
+                        <li key={`growth-${index}`}>{area}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button variant="outline" className="w-full" onClick={() => setLocation("/dashboard")}>
+                  <ArrowRight className="h-4 w-4 mr-2" />
+                  View Personalized Learning Path
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+          
+          {/* Teacher Progression Card */}
+          <Card className="shadow-md border-2 border-primary/10 mb-8">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-2xl">Teacher Progression System</CardTitle>
+              <CardDescription>
+                Your current level: <span className="font-semibold text-primary">{teacherLevel}</span>
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="relative mt-2">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gray-200 rounded">
+                  <div className="h-full bg-primary rounded" style={{ width: "15%" }}></div>
+                </div>
+                <div className="flex justify-between mt-6">
+                  {progressionLevels.map((level, index) => (
+                    <div key={index} className={`text-center relative ${level.current ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
+                      <div className={`h-4 w-4 rounded-full mx-auto mb-1 ${level.current ? 'bg-primary' : 'bg-gray-300'}`}></div>
+                      <div className="text-xs sm:text-sm whitespace-nowrap">
+                        {level.level}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {level.pointRange}
+                      </div>
+                      {level.current && (
+                        <div className="absolute top-[-8px] left-1/2 transform -translate-x-1/2">
+                          <div className="animate-pulse text-primary text-xl">▼</div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="mt-6 text-sm text-muted-foreground">
+                <p>Your teaching journey is just beginning! Complete training modules, participate in the community, 
+                and improve your assessment scores to reach higher levels of teaching excellence.</p>
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col sm:flex-row gap-3">
+              <Button className="w-full sm:w-auto" onClick={() => setLocation("/dashboard")}>
+                Continue to Dashboard
+              </Button>
+              <Button variant="outline" className="w-full sm:w-auto" onClick={resetAssessment}>
+                <Undo className="h-4 w-4 mr-2" />
+                Retake Assessment
+              </Button>
+            </CardFooter>
+          </Card>
+        </main>
+      </div>
+    );
+  };
+
   // If assessment is completed, show the celebration view
   if (showCompletionView) {
     // Calculate total correct answers for display
@@ -2090,8 +2273,9 @@ export default function AssessmentPage() {
     queryKey: ["/api/auth/me"]
   });
   
-  // State for assessment completion results
+  // State for assessment completion results and display
   const [showCompletionView, setShowCompletionView] = useState(false);
+  const [assessmentResults, setAssessmentResults] = useState<any>(null);
   
   // Track the current domain being assessed
   const [currentDomainIndex, setCurrentDomainIndex] = useState(0);
