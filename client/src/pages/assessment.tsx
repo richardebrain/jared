@@ -17,7 +17,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { 
   AlertCircle, AlertTriangle, Award, BookOpen, Check, CheckCircle, ChevronRight, 
-  ClipboardList, Map, RefreshCw, Star, TrendingUp 
+  ClipboardList, MapIcon, RefreshCw, Star, TrendingUp 
 } from "lucide-react";
 
 // Audio feedback functions for game-like experience
@@ -1942,7 +1942,7 @@ const AssessmentCompletionView = ({
               <CardFooter>
                 <Link href="/progression-map" className="w-full">
                   <Button variant="outline" className="w-full">
-                    <Map className="h-4 w-4 mr-2" />
+                    <MapIcon className="h-4 w-4 mr-2" />
                     View Progression Map
                   </Button>
                 </Link>
