@@ -1682,6 +1682,160 @@ const assessmentQuestions: Question[] = [
     correctAnswer: 'Model the values in their own practice while providing opportunities for reflection, coaching, and gradual implementation',
     required: true,
     explanation: 'Expert educators recognize that CORE values are learned through a combination of modeling, reflective practice, mentoring conversations, and supported implementation, rather than through memorization or isolated focus.'
+  },
+  
+  // Emotional Support - Beginner Level
+  {
+    id: 'es-b-1',
+    text: 'Which of the following best describes "positive climate" in an early childhood classroom?',
+    domain: 'emotional-support',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'Using rewards to encourage good behavior', 
+      'Creating a quiet, orderly environment', 
+      'Relationships characterized by warmth, respect, and enjoyment', 
+      'Avoiding all conflict between children'
+    ],
+    correctAnswer: 'Relationships characterized by warmth, respect, and enjoyment',
+    required: true,
+    explanation: 'Positive climate refers to the emotional connection, relationships, and positive affect shared between teachers and children, as well as among children.'
+  },
+  {
+    id: 'es-b-2',
+    text: 'Which strategy best demonstrates teacher sensitivity?',
+    domain: 'emotional-support',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'Following a strict schedule regardless of children\'s needs', 
+      'Consistently noticing and responding to children\'s cues and needs', 
+      'Allowing children to solve all problems independently', 
+      'Using a standardized approach with all children'
+    ],
+    correctAnswer: 'Consistently noticing and responding to children\'s cues and needs',
+    required: true,
+    explanation: 'Teacher sensitivity involves consistent awareness of and responsiveness to children\'s academic and emotional needs.'
+  },
+  
+  // Emotional Support - Intermediate Level
+  {
+    id: 'es-i-1',
+    text: 'How does effective emotional support impact children\'s development?',
+    domain: 'emotional-support',
+    type: 'multiple-choice',
+    difficulty: 'intermediate',
+    options: [
+      'It primarily improves academic outcomes', 
+      'It fosters trust, security, and autonomy, enabling children to take risks in learning', 
+      'It teaches children to suppress negative emotions', 
+      'It creates dependence on teacher approval'
+    ],
+    correctAnswer: 'It fosters trust, security, and autonomy, enabling children to take risks in learning',
+    required: true,
+    explanation: 'High-quality emotional support creates psychological safety that allows children to explore, take risks, and engage fully in learning experiences.'
+  },
+  
+  // Literacy - Beginner Level
+  {
+    id: 'lit-b-1',
+    text: 'Which of the following best supports early literacy development in preschool?',
+    domain: 'literacy',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'Daily worksheets on letter identification', 
+      'Language-rich environments with books, storytelling, and print materials throughout the classroom', 
+      'Flash cards with sight words', 
+      'Teaching formal reading skills as early as possible'
+    ],
+    correctAnswer: 'Language-rich environments with books, storytelling, and print materials throughout the classroom',
+    required: true,
+    explanation: 'Effective early literacy programs embed literacy throughout the environment with authentic print materials, quality children\'s literature, and meaningful opportunities to engage with language.'
+  },
+  {
+    id: 'lit-b-2',
+    text: 'What is phonological awareness and why is it important?',
+    domain: 'literacy',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'The ability to identify letters, which helps with spelling', 
+      'Understanding story structure, which helps with comprehension', 
+      'The ability to hear and manipulate the sounds of spoken language, which predicts later reading success', 
+      'Knowing how to hold a book properly, which establishes reading habits'
+    ],
+    correctAnswer: 'The ability to hear and manipulate the sounds of spoken language, which predicts later reading success',
+    required: true,
+    explanation: 'Phonological awareness refers to the ability to recognize and work with sounds in spoken language, which is a critical foundation for learning to read and decode written language.'
+  },
+  
+  // Professional Development - Beginner Level
+  {
+    id: 'pd-b-1',
+    text: 'What is the primary purpose of professional development for early childhood educators?',
+    domain: 'professional-development',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'To meet licensing requirements', 
+      'To advance in pay scale', 
+      'To improve knowledge, skills, and teaching practices', 
+      'To network with other teachers'
+    ],
+    correctAnswer: 'To improve knowledge, skills, and teaching practices',
+    required: true,
+    explanation: 'Effective professional development is focused on continuously improving teaching practices and child outcomes through expanding knowledge and skills.'
+  },
+  {
+    id: 'pd-b-2',
+    text: 'Which professional development approach is most likely to lead to improved classroom practice?',
+    domain: 'professional-development',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'Attending a one-time workshop on a topic', 
+      'Reading articles about best practices', 
+      'Ongoing coaching with observation, feedback, and reflection', 
+      'Completing required online trainings'
+    ],
+    correctAnswer: 'Ongoing coaching with observation, feedback, and reflection',
+    required: true,
+    explanation: 'Research shows that professional development is most effective when it includes ongoing coaching, opportunities for observation and feedback, and guided reflection on practice.'
+  },
+  
+  // Behavior Management - Beginner Level
+  {
+    id: 'bm-b-1',
+    text: 'Which approach to guiding children\'s behavior is most effective?',
+    domain: 'behavior-management',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'Implementing reward and punishment systems consistently', 
+      'Teaching expectations clearly and supporting children in meeting them', 
+      'Removing disruptive children from the group', 
+      'Allowing children complete freedom to determine their own behavior'
+    ],
+    correctAnswer: 'Teaching expectations clearly and supporting children in meeting them',
+    required: true,
+    explanation: 'Effective guidance involves teaching children what TO do rather than what not to do, and supporting them in developing self-regulation skills to meet expectations.'
+  },
+  {
+    id: 'bm-b-2',
+    text: 'What is the primary goal of positive behavior guidance in early childhood?',
+    domain: 'behavior-management',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'To maintain a quiet, orderly classroom', 
+      'To ensure children follow the teacher\'s directions', 
+      'To help children develop self-regulation and social-emotional skills', 
+      'To reduce disruptions to academic learning time'
+    ],
+    correctAnswer: 'To help children develop self-regulation and social-emotional skills',
+    required: true,
+    explanation: 'The ultimate goal of positive guidance is to help children internalize regulation and develop the skills to manage their emotions, behaviors, and social interactions successfully.'
   }
 ];
 
