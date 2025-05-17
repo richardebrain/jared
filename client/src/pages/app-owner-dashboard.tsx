@@ -1,755 +1,777 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Link, useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
-import {
-  Building2,
-  DollarSign,
-  TrendingUp,
-  Users,
-  Calendar,
-  AlertCircle,
-  CheckCircle,
-  BarChart3,
-  FileText,
-  Wallet,
-  RefreshCw,
-  Download,
-  DownloadCloud,
-  Star,
-  Info,
-  AlarmClock,
-  GraduationCap,
-  Award,
-  BookOpen,
-  Database,
-  CreditCard
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { 
+  Building, Users, CreditCard, DollarSign, TrendingUp, 
+  CheckCircle, XCircle, ChevronDown, ChevronUp, Badge,
+  Calendar, Clock, User 
 } from "lucide-react";
-import Header from "@/components/Header";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { apiRequest } from "@/lib/queryClient";
-
-interface School {
-  id: number;
-  name: string;
-  subscriptionActive: boolean;
-  subscriptionType: string | null;
-  subscriptionExpiresAt: string | null;
-  teacherCount: number | null;
-  isFreeAccess: boolean;
-}
-
-interface DashboardStats {
-  totalSchools: number;
-  activeSubscriptions: number;
-  totalUsers: number;
-  averageUsersPerSchool: number;
-  revenueStats: {
-    monthly: number;
-    annual: number;
-    projected: number;
-  };
-}
-
-interface OwnerDashboardData {
-  schools: School[];
-  stats: DashboardStats;
-}
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function AppOwnerDashboard() {
   const { toast } = useToast();
-  const { user, isLoading: authLoading, isOwner } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
-  const [selectedPeriod, setSelectedPeriod] = useState("month");
-  const [yearFilter, setYearFilter] = useState("2025");
-  const [_, setLocation] = useLocation();
-  
-  // Fetch dashboard data from API
-  const { data, isLoading, error } = useQuery<OwnerDashboardData>({
-    queryKey: ["/api/owner/dashboard"],
-    refetchOnWindowFocus: false
-  });
-  
-  // Check if the user is authorized to view the owner dashboard
-  useEffect(() => {
-    if (user && !isOwner) {
-      toast({
-        title: "Access Restricted",
-        description: "You do not have permission to access the Owner Dashboard.",
-        variant: "destructive"
-      });
-      setLocation('/dashboard');
-    }
-  }, [user, isOwner, toast, setLocation]);
+  const [manageUserDialogOpen, setManageUserDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [userSearchTerm, setUserSearchTerm] = useState("");
+  const [expandedSchools, setExpandedSchools] = useState<number[]>([]);
 
-  // Formatter for currency
+  // Fetch app metrics
+  const { data: metrics, isLoading: isLoadingMetrics } = useQuery({
+    queryKey: ["/api/owner/metrics"],
+    retry: false,
+  });
+
+  // Fetch all schools
+  const { data: schools, isLoading: isLoadingSchools } = useQuery({
+    queryKey: ["/api/owner/schools"],
+    retry: false,
+  });
+
+  // Fetch all payment plans
+  const { data: paymentPlans, isLoading: isLoadingPaymentPlans } = useQuery({
+    queryKey: ["/api/owner/payment-plans"],
+    retry: false,
+  });
+
+  // Fetch all users
+  const { data: allUsers, isLoading: isLoadingUsers } = useQuery({
+    queryKey: ["/api/admin/users"],
+    retry: false,
+  });
+
+  // Grant app owner access mutation
+  const updateOwnerMutation = useMutation({
+    mutationFn: async (data: { userId: number; isOwner: boolean }) => {
+      return await apiRequest("/api/admin/update-owner-access", {
+        method: "POST",
+        data
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "User owner access updated successfully",
+        variant: "default",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      setManageUserDialogOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update user owner access. Please try again.",
+        variant: "destructive",
+      });
+      console.error("Error updating owner access:", error);
+    },
+  });
+
+  const handleGrantOwnerAccess = (userId: number, isOwner: boolean) => {
+    updateOwnerMutation.mutate({ userId, isOwner });
+  };
+
+  const toggleSchoolExpanded = (schoolId: number) => {
+    setExpandedSchools(prev => 
+      prev.includes(schoolId) 
+        ? prev.filter(id => id !== schoolId) 
+        : [...prev, schoolId]
+    );
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
     }).format(amount);
   };
 
-  // Calculate the subscription percentage
-  const getSubscriptionPercentage = () => {
-    if (!data) return 0;
-    const { schools } = data;
-    const totalNonFreeSchools = schools.filter(s => !s.isFreeAccess).length;
-    if (totalNonFreeSchools === 0) return 0;
-    
-    const subscribedSchools = schools.filter(s => s.subscriptionActive && !s.isFreeAccess).length;
-    return Math.round((subscribedSchools / totalNonFreeSchools) * 100);
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }).format(date);
   };
 
-  // Show loading state while auth is being checked
-  if (authLoading) {
+  const filteredUsers = allUsers?.filter((user: any) => {
+    const searchLower = userSearchTerm.toLowerCase();
+    return (
+      user.username?.toLowerCase().includes(searchLower) ||
+      user.firstName?.toLowerCase().includes(searchLower) ||
+      user.lastName?.toLowerCase().includes(searchLower) ||
+      user.email?.toLowerCase().includes(searchLower)
+    );
+  }) || [];
+  
+  // Calculate total revenue metrics
+  const totalRevenue = (metrics?.monthlyRevenue || 0) * 12;
+  const monthlyRevenue = metrics?.monthlyRevenue || 0;
+  const annualGrowthRate = metrics?.annualGrowthRate || 0;
+  const totalUsers = metrics?.totalUsers || 0;
+  const totalSchools = metrics?.totalSchools || 0;
+  const activeSubscriptions = metrics?.activeSubscriptions || 0;
+
+  // Function to get subscription status label and color
+  const getSubscriptionStatusUI = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'active':
+        return { label: 'Active', icon: <CheckCircle className="h-4 w-4 text-green-500 mr-1" /> };
+      case 'inactive':
+      case 'expired':
+        return { label: 'Expired', icon: <XCircle className="h-4 w-4 text-red-500 mr-1" /> };
+      case 'trial':
+        return { label: 'Trial', icon: <Clock className="h-4 w-4 text-blue-500 mr-1" /> };
+      case 'free':
+        return { label: 'Free', icon: <Badge className="h-4 w-4 text-purple-500 mr-1" /> };
+      default:
+        return { label: 'Unknown', icon: <Calendar className="h-4 w-4 text-gray-500 mr-1" /> };
+    }
+  };
+
+  if (isLoadingMetrics || isLoadingSchools || isLoadingPaymentPlans || isLoadingUsers) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
-  
-  // If user is not an owner, don't render anything - redirect happens in useEffect
-  if (user && !isOwner) {
-    return null;
-  }
-
-  // Add loading indicator while data is being fetched
-  if (isLoading) {
-    return (
-      <>
-        <Header />
-        <div className="container max-w-7xl mx-auto p-4 py-8">
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="mb-4 flex justify-center">
-                <RefreshCw className="h-12 w-12 text-muted-foreground animate-spin" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Loading Dashboard Data</h3>
-              <p className="text-muted-foreground">Please wait while we fetch the latest subscription information...</p>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  // Handle error state
-  if (error || !data) {
-    return (
-      <>
-        <Header />
-        <div className="container max-w-7xl mx-auto p-4 py-8">
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="mb-4 flex justify-center">
-                <AlertCircle className="h-12 w-12 text-destructive" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Error Loading Data</h3>
-              <p className="text-muted-foreground mb-4">
-                We encountered an error loading the subscription data.
-              </p>
-              <Button onClick={() => window.location.reload()}>
-                Retry
-              </Button>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  const { schools, stats } = data;
 
   return (
-    <>
-      <Header />
-      <div className="container max-w-7xl mx-auto p-4 py-8">
-        <div className="flex items-start justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">App Owner Dashboard</h1>
-            <p className="text-muted-foreground mt-1">Manage subscriptions and monitor platform performance</p>
-          </div>
-          <Button variant="outline" className="gap-2">
-            <Download size={16} />
-            Export Reports
+    <div className="container max-w-7xl mx-auto p-6">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">App Owner Dashboard</h1>
+          <p className="text-muted-foreground">Manage schools, subscriptions, and revenue</p>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <Button variant="default">
+            <DollarSign className="h-4 w-4 mr-2" />
+            Stripe Dashboard
+          </Button>
+          <Button variant="outline">
+            <TrendingUp className="h-4 w-4 mr-2" />
+            Export Report
           </Button>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Schools</p>
-                  <p className="text-3xl font-bold">{stats.totalSchools}</p>
-                </div>
-                <div className="bg-blue-100 p-2 rounded-lg">
-                  <Building2 className="h-6 w-6 text-blue-700" />
-                </div>
-              </div>
-              <div className="mt-4">
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <span>Subscription Rate</span>
-                  <span className="font-medium">{getSubscriptionPercentage()}%</span>
-                </div>
-                <Progress value={getSubscriptionPercentage()} className="h-2" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Active Subscriptions</p>
-                  <p className="text-3xl font-bold">{stats.activeSubscriptions}</p>
-                </div>
-                <div className="bg-green-100 p-2 rounded-lg">
-                  <CheckCircle className="h-6 w-6 text-green-700" />
-                </div>
-              </div>
-              <div className="mt-4">
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <span>Free Access Schools</span>
-                  <span className="font-medium">{schools.filter(s => s.isFreeAccess).length}</span>
-                </div>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <span>Paid Access Schools</span>
-                  <span className="ml-auto font-medium">{schools.filter(s => !s.isFreeAccess).length}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Monthly Revenue</p>
-                  <p className="text-3xl font-bold">{formatCurrency(stats.revenueStats.monthly)}</p>
-                </div>
-                <div className="bg-indigo-100 p-2 rounded-lg">
-                  <DollarSign className="h-6 w-6 text-indigo-700" />
-                </div>
-              </div>
-              <div className="flex items-center mt-4 text-green-600 text-sm">
-                <TrendingUp className="h-4 w-4 mr-1" />
-                <span>{formatCurrency(stats.revenueStats.annual)} annual projected</span>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Users</p>
-                  <p className="text-3xl font-bold">{stats.totalUsers}</p>
-                </div>
-                <div className="bg-purple-100 p-2 rounded-lg">
-                  <Users className="h-6 w-6 text-purple-700" />
-                </div>
-              </div>
-              <div className="flex items-center mt-4 text-indigo-600 text-sm">
-                <Info className="h-4 w-4 mr-1" />
-                <span>~{stats.averageUsersPerSchool} per school</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
-            <TabsTrigger value="overview">Subscription Overview</TabsTrigger>
-            <TabsTrigger value="schools">School Management</TabsTrigger>
-            <TabsTrigger value="revenue">Revenue Analytics</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="overview" className="space-y-4">
+      </div>
+      
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="schools">Schools</TabsTrigger>
+          <TabsTrigger value="plans">Payment Plans</TabsTrigger>
+          <TabsTrigger value="owners">App Owners</TabsTrigger>
+        </TabsList>
+        
+        {/* Overview Tab */}
+        <TabsContent value="overview">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card>
-              <CardHeader>
-                <CardTitle>Subscription Analytics</CardTitle>
-                <CardDescription>
-                  Overview of subscription status across all schools
-                </CardDescription>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Revenue</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-8 mb-6">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3">Subscription Status</h3>
-                    <div className="space-y-4">
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm">Active Subscriptions</span>
-                          <span className="text-sm font-medium">{stats.activeSubscriptions}</span>
-                        </div>
-                        <Progress value={(stats.activeSubscriptions / stats.totalSchools) * 100} className="h-2" />
-                      </div>
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm">Expired Subscriptions</span>
-                          <span className="text-sm font-medium">
-                            {schools.filter(s => !s.subscriptionActive && !s.isFreeAccess).length}
-                          </span>
-                        </div>
-                        <Progress 
-                          value={(schools.filter(s => !s.subscriptionActive && !s.isFreeAccess).length / stats.totalSchools) * 100} 
-                          className="h-2 bg-gray-100" 
-                        />
-                      </div>
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm">Free Access Schools</span>
-                          <span className="text-sm font-medium">
-                            {schools.filter(s => s.isFreeAccess).length}
-                          </span>
-                        </div>
-                        <Progress 
-                          value={(schools.filter(s => s.isFreeAccess).length / stats.totalSchools) * 100} 
-                          className="h-2 bg-amber-100" 
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3">Subscription Types</h3>
-                    <div className="space-y-4">
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm">Monthly Plans</span>
-                          <span className="text-sm font-medium">
-                            {schools.filter(s => s.subscriptionType === 'monthly').length}
-                          </span>
-                        </div>
-                        <Progress 
-                          value={(schools.filter(s => s.subscriptionType === 'monthly').length / stats.totalSchools) * 100} 
-                          className="h-2 bg-blue-100" 
-                        />
-                      </div>
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm">Annual Plans</span>
-                          <span className="text-sm font-medium">
-                            {schools.filter(s => s.subscriptionType === 'annual').length}
-                          </span>
-                        </div>
-                        <Progress 
-                          value={(schools.filter(s => s.subscriptionType === 'annual').length / stats.totalSchools) * 100} 
-                          className="h-2 bg-green-100" 
-                        />
-                      </div>
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm">Enterprise Plans</span>
-                          <span className="text-sm font-medium">
-                            {schools.filter(s => s.subscriptionType === 'enterprise').length}
-                          </span>
-                        </div>
-                        <Progress 
-                          value={(schools.filter(s => s.subscriptionType === 'enterprise').length / stats.totalSchools) * 100} 
-                          className="h-2 bg-purple-100" 
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <h3 className="text-lg font-semibold mb-3">Expirations Timeline</h3>
-                <div className="space-y-4">
-                  {/* Filter to get schools with expiring subscriptions in the next 30 days */}
-                  {schools
-                    .filter(school => 
-                      school.subscriptionActive && 
-                      school.subscriptionExpiresAt && 
-                      new Date(school.subscriptionExpiresAt).getTime() - new Date().getTime() < 30 * 24 * 60 * 60 * 1000
-                    )
-                    .sort((a, b) => 
-                      new Date(a.subscriptionExpiresAt!).getTime() - new Date(b.subscriptionExpiresAt!).getTime()
-                    )
-                    .slice(0, 5)
-                    .map(school => {
-                      const daysLeft = Math.ceil(
-                        (new Date(school.subscriptionExpiresAt!).getTime() - new Date().getTime()) / 
-                        (24 * 60 * 60 * 1000)
-                      );
-                      
-                      return (
-                        <div key={school.id} className="flex items-center justify-between p-3 border rounded-md">
-                          <div className="flex items-center gap-3">
-                            <div className={`p-2 rounded-md ${
-                              daysLeft < 7 ? 'bg-red-100' : daysLeft < 14 ? 'bg-amber-100' : 'bg-blue-100'
-                            }`}>
-                              <AlarmClock className={`h-5 w-5 ${
-                                daysLeft < 7 ? 'text-red-600' : daysLeft < 14 ? 'text-amber-600' : 'text-blue-600'
-                              }`} />
-                            </div>
-                            <div>
-                              <p className="font-medium">{school.name}</p>
-                              <p className="text-sm text-muted-foreground">
-                                Expires in {daysLeft} day{daysLeft !== 1 ? 's' : ''}
-                              </p>
-                            </div>
-                          </div>
-                          <Badge variant={daysLeft < 7 ? 'destructive' : daysLeft < 14 ? 'default' : 'outline'}>
-                            {new Date(school.subscriptionExpiresAt!).toLocaleDateString()}
-                          </Badge>
-                        </div>
-                      );
-                    })
-                  }
-                  
-                  {/* Show a message if no schools are expiring soon */}
-                  {schools.filter(school => 
-                    school.subscriptionActive && 
-                    school.subscriptionExpiresAt && 
-                    new Date(school.subscriptionExpiresAt).getTime() - new Date().getTime() < 30 * 24 * 60 * 60 * 1000
-                  ).length === 0 && (
-                    <div className="text-center py-6 border rounded-md">
-                      <CheckCircle className="mx-auto h-8 w-8 text-green-500 mb-2" />
-                      <p className="font-medium">No upcoming expirations</p>
-                      <p className="text-sm text-muted-foreground">All subscriptions are in good standing</p>
-                    </div>
-                  )}
-
-                  <Button variant="outline" className="w-full mt-2">
-                    View All Expirations
-                  </Button>
-                </div>
+                <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
+                <p className="text-xs text-muted-foreground">Annual</p>
               </CardContent>
             </Card>
-          </TabsContent>
-          
-          <TabsContent value="schools" className="space-y-4">
+            
             <Card>
-              <CardHeader>
-                <CardTitle>School Directory</CardTitle>
-                <CardDescription>
-                  Manage schools and their subscription status
-                </CardDescription>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Monthly Revenue</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="mb-4 flex justify-between">
-                  <Input 
-                    placeholder="Search schools..." 
-                    className="max-w-sm"
-                  />
-                  <div className="flex gap-2">
-                    <Button variant="outline" className="gap-1">
-                      <DownloadCloud className="h-4 w-4" />
-                      Export
-                    </Button>
-                    <Button className="gap-1">
-                      <Plus className="h-4 w-4" />
-                      Add School
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="rounded-md border">
-                  <div className="grid grid-cols-6 bg-muted/50 p-3 text-sm font-medium">
-                    <div className="col-span-2">School</div>
-                    <div>Users</div>
-                    <div>Plan</div>
-                    <div>Status</div>
-                    <div>Expiration</div>
-                  </div>
-                  
-                  <div className="divide-y">
-                    {schools
-                      .sort((a, b) => a.name.localeCompare(b.name))
-                      .map(school => (
-                        <div key={school.id} className="grid grid-cols-6 p-3 text-sm items-center">
-                          <div className="col-span-2 font-medium">{school.name}</div>
-                          <div>{school.teacherCount || "-"}</div>
-                          <div>
-                            {school.isFreeAccess ? (
-                              <Badge variant="outline" className="bg-amber-50 text-amber-700 hover:bg-amber-50">
-                                Free Access
-                              </Badge>
-                            ) : school.subscriptionType ? (
-                              <Badge variant="outline" className="capitalize">
-                                {school.subscriptionType}
-                              </Badge>
-                            ) : "-"}
+                <div className="text-2xl font-bold">{formatCurrency(monthlyRevenue)}</div>
+                <p className="text-xs text-muted-foreground">Current Month</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Schools</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{totalSchools}</div>
+                <p className="text-xs text-muted-foreground">{activeSubscriptions} with active subscriptions</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Users</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{totalUsers}</div>
+                <p className="text-xs text-muted-foreground">Total registered users</p>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle>Recent Subscriptions</CardTitle>
+                <CardDescription>Latest school subscriptions and renewals</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>School</TableHead>
+                      <TableHead>Plan</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {schools?.slice(0, 5).map((school: any) => (
+                      <TableRow key={school.id}>
+                        <TableCell className="font-medium">{school.name}</TableCell>
+                        <TableCell>{school.subscription?.planName || "Free"}</TableCell>
+                        <TableCell>{formatDate(school.subscription?.startDate || school.createdAt)}</TableCell>
+                        <TableCell>{formatCurrency(school.subscription?.amount || 0)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            {getSubscriptionStatusUI(school.subscription?.status || 'free').icon}
+                            <span>{getSubscriptionStatusUI(school.subscription?.status || 'free').label}</span>
                           </div>
-                          <div>
-                            {school.subscriptionActive ? (
-                              <Badge variant="default" className="bg-green-500">Active</Badge>
-                            ) : (
-                              <Badge variant="destructive">Inactive</Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {(!schools || schools.length === 0) && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center text-muted-foreground">No subscriptions found</TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Revenue by Plan</CardTitle>
+                <CardDescription>Monthly revenue breakdown</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {paymentPlans?.map((plan: any) => (
+                  <div key={plan.id} className="flex items-center justify-between mb-4">
+                    <div>
+                      <div className="font-medium">{plan.name}</div>
+                      <div className="text-sm text-muted-foreground">{plan.schoolCount} schools</div>
+                    </div>
+                    <div className="font-semibold">{formatCurrency(plan.monthlyRevenue)}</div>
+                  </div>
+                ))}
+                {(!paymentPlans || paymentPlans.length === 0) && (
+                  <div className="text-center text-muted-foreground py-8">
+                    No payment plans configured
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+        
+        {/* Schools Tab */}
+        <TabsContent value="schools">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Schools</CardTitle>
+                <CardDescription>Manage all registered schools and their subscriptions</CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input 
+                  placeholder="Search schools..." 
+                  className="w-64" 
+                />
+                <Select defaultValue="all">
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Schools</SelectItem>
+                    <SelectItem value="active">Active Subscription</SelectItem>
+                    <SelectItem value="trial">Trial</SelectItem>
+                    <SelectItem value="expired">Expired</SelectItem>
+                    <SelectItem value="free">Free Plan</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>School</TableHead>
+                    <TableHead>Teachers</TableHead>
+                    <TableHead>Subscription</TableHead>
+                    <TableHead>Revenue</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {schools?.map((school: any) => (
+                    <>
+                      <TableRow key={school.id} className={expandedSchools.includes(school.id) ? "bg-muted/50" : ""}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center">
+                            <Building className="h-4 w-4 mr-2 text-primary" />
+                            {school.name}
+                            {school.isSample && (
+                              <span className="ml-2 px-2 py-0.5 text-xs bg-amber-100 text-amber-800 rounded-full">
+                                Sample School
+                              </span>
                             )}
                           </div>
-                          <div>
-                            {school.isFreeAccess ? (
-                              "N/A"
-                            ) : school.subscriptionExpiresAt ? (
-                              new Date(school.subscriptionExpiresAt).toLocaleDateString()
-                            ) : "-"}
+                          <div className="text-xs text-muted-foreground mt-1">
+                            ID: {school.id} • Created: {formatDate(school.createdAt)}
                           </div>
-                        </div>
-                      ))
-                    }
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="revenue" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Revenue Analytics</CardTitle>
-                    <CardDescription>
-                      Track platform subscription revenue
-                    </CardDescription>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Select 
-                      defaultValue={selectedPeriod} 
-                      onValueChange={setSelectedPeriod}
-                    >
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Select period" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="month">Monthly</SelectItem>
-                        <SelectItem value="quarter">Quarterly</SelectItem>
-                        <SelectItem value="year">Yearly</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    
-                    <Select 
-                      defaultValue={yearFilter} 
-                      onValueChange={setYearFilter}
-                    >
-                      <SelectTrigger className="w-[120px]">
-                        <SelectValue placeholder="Select year" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="2024">2024</SelectItem>
-                        <SelectItem value="2025">2025</SelectItem>
-                        <SelectItem value="2026">2026</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg">Monthly Revenue</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-end gap-2">
-                        <span className="text-3xl font-bold">{formatCurrency(stats.revenueStats.monthly)}</span>
-                        <span className="text-sm text-green-600 mb-1">+5% MoM</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg">Annual Revenue</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-end gap-2">
-                        <span className="text-3xl font-bold">{formatCurrency(stats.revenueStats.annual)}</span>
-                        <span className="text-sm text-green-600 mb-1">Estimated</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg">Revenue Per School</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-end gap-2">
-                        <span className="text-3xl font-bold">
-                          {formatCurrency(stats.activeSubscriptions > 0 
-                            ? Math.round(stats.revenueStats.monthly / stats.activeSubscriptions) 
-                            : 0)}
-                        </span>
-                        <span className="text-sm text-muted-foreground mb-1">Avg</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-                
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">Recent Transactions</h3>
-                    <div className="rounded-md border overflow-hidden">
-                      <div className="bg-muted/50 p-3 grid grid-cols-4 text-sm font-medium">
-                        <div>Date</div>
-                        <div className="col-span-2">School</div>
-                        <div className="text-right">Amount</div>
-                      </div>
-                      <div className="divide-y">
-                        {/* Mock transactions - would be replaced with real data */}
-                        <div className="p-3 grid grid-cols-4 text-sm">
-                          <div>May 16, 2025</div>
-                          <div className="col-span-2">Little Stars Preschool - Monthly Subscription</div>
-                          <div className="text-right font-medium">$250.00</div>
-                        </div>
-                        <div className="p-3 grid grid-cols-4 text-sm">
-                          <div>May 15, 2025</div>
-                          <div className="col-span-2">Happy Horizons Academy - Annual Subscription</div>
-                          <div className="text-right font-medium">$2,500.00</div>
-                        </div>
-                        <div className="p-3 grid grid-cols-4 text-sm">
-                          <div>May 14, 2025</div>
-                          <div className="col-span-2">Sunshine Learners - Monthly Subscription</div>
-                          <div className="text-right font-medium">$250.00</div>
-                        </div>
-                        <div className="p-3 grid grid-cols-4 text-sm">
-                          <div>May 13, 2025</div>
-                          <div className="col-span-2">Creative Minds Preschool - Monthly Subscription</div>
-                          <div className="text-right font-medium">$250.00</div>
-                        </div>
-                        <div className="p-3 grid grid-cols-4 text-sm">
-                          <div>May 12, 2025</div>
-                          <div className="col-span-2">Growing Leaders Academy - Monthly Subscription</div>
-                          <div className="text-right font-medium">$250.00</div>
-                        </div>
-                      </div>
-                    </div>
-                    <Button variant="outline" className="w-full mt-4">View All Transactions</Button>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Subscription Renewals</CardTitle>
-                        <CardDescription>
-                          Upcoming renewals in the next 30 days
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          {/* This would be dynamically generated from real data */}
-                          <div className="flex items-center justify-between p-3 border rounded-md">
-                            <div>
-                              <p className="font-medium">Little Stars Preschool</p>
-                              <p className="text-sm text-muted-foreground">
-                                Monthly Plan - Renews in 8 days
-                              </p>
-                            </div>
-                            <Badge>$250.00</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <Users className="h-4 w-4 mr-2 text-blue-500" />
+                            {school.teacherCount || 0}
                           </div>
-                          <div className="flex items-center justify-between p-3 border rounded-md">
-                            <div>
-                              <p className="font-medium">Creative Minds Preschool</p>
-                              <p className="text-sm text-muted-foreground">
-                                Monthly Plan - Renews in 12 days
-                              </p>
-                            </div>
-                            <Badge>$250.00</Badge>
+                        </TableCell>
+                        <TableCell>
+                          {school.subscription?.planName || "Free Plan"}
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {school.subscription?.nextBillingDate ? 
+                              `Next billing: ${formatDate(school.subscription.nextBillingDate)}` : 
+                              "No billing cycle"
+                            }
                           </div>
-                          <div className="flex items-center justify-between p-3 border rounded-md">
-                            <div>
-                              <p className="font-medium">Sunshine Learners</p>
-                              <p className="text-sm text-muted-foreground">
-                                Monthly Plan - Renews in 14 days
-                              </p>
-                            </div>
-                            <Badge>$250.00</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">
+                            {formatCurrency(school.subscription?.amount || 0)}
+                            <span className="text-xs font-normal text-muted-foreground">/month</span>
                           </div>
-                          <Button variant="outline" className="w-full">
-                            View All Renewals
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            {getSubscriptionStatusUI(school.subscription?.status || 'free').icon}
+                            <span>{getSubscriptionStatusUI(school.subscription?.status || 'free').label}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => toggleSchoolExpanded(school.id)}
+                          >
+                            {expandedSchools.includes(school.id) ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
                           </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Payment Methods</CardTitle>
-                        <CardDescription>
-                          Connected payment processors
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between p-3 border rounded-md">
-                            <div className="flex items-center gap-3">
-                              <div className="bg-indigo-100 p-2 rounded-md">
-                                <CreditCard className="h-5 w-5 text-indigo-600" />
-                              </div>
+                        </TableCell>
+                      </TableRow>
+                      
+                      {/* Expanded details row */}
+                      {expandedSchools.includes(school.id) && (
+                        <TableRow>
+                          <TableCell colSpan={6} className="bg-muted/30 p-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                               <div>
-                                <p className="font-medium">Stripe</p>
-                                <p className="text-sm text-muted-foreground">
-                                  Primary payment processor
-                                </p>
+                                <h4 className="font-semibold mb-2">Contact Information</h4>
+                                <div className="space-y-1 text-sm">
+                                  <div>
+                                    <span className="text-muted-foreground">Email:</span>{" "}
+                                    {school.contactEmail || "Not provided"}
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Phone:</span>{" "}
+                                    {school.contactPhone || "Not provided"}
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Address:</span>{" "}
+                                    {school.address ? `${school.address}, ${school.city || ""}, ${school.state || ""} ${school.zipCode || ""}` : "Not provided"}
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div>
+                                <h4 className="font-semibold mb-2">Subscription Details</h4>
+                                <div className="space-y-1 text-sm">
+                                  <div>
+                                    <span className="text-muted-foreground">Plan:</span>{" "}
+                                    {school.subscription?.planName || "Free Plan"}
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Start Date:</span>{" "}
+                                    {formatDate(school.subscription?.startDate || school.createdAt)}
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Teacher Limit:</span>{" "}
+                                    {school.subscription?.teacherLimit || "Unlimited"}
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Payment Method:</span>{" "}
+                                    {school.subscription?.paymentMethod || "None"}
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="flex flex-col space-y-2">
+                                <Button variant="default" size="sm" className="justify-start">
+                                  <CreditCard className="h-4 w-4 mr-2" />
+                                  Manage Subscription
+                                </Button>
+                                <Button variant="outline" size="sm" className="justify-start">
+                                  <User className="h-4 w-4 mr-2" />
+                                  View School Admin
+                                </Button>
+                                <Button variant="ghost" size="sm" className="justify-start text-red-500 hover:text-red-700">
+                                  <XCircle className="h-4 w-4 mr-2" />
+                                  Deactivate School
+                                </Button>
                               </div>
                             </div>
-                            <Badge variant="outline" className="bg-green-50 text-green-700">
-                              Connected
-                            </Badge>
-                          </div>
-                          <div className="flex items-center justify-between p-3 border rounded-md">
-                            <div className="flex items-center gap-3">
-                              <div className="bg-blue-100 p-2 rounded-md">
-                                <Database className="h-5 w-5 text-blue-600" />
-                              </div>
-                              <div>
-                                <p className="font-medium">QuickBooks</p>
-                                <p className="text-sm text-muted-foreground">
-                                  Accounting integration
-                                </p>
-                              </div>
-                            </div>
-                            <Badge variant="outline">
-                              Not Connected
-                            </Badge>
-                          </div>
-                          <Button className="w-full">
-                            Manage Payment Integrations
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </>
+                  ))}
+                  {(!schools || schools.length === 0) && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground">No schools found</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        {/* Payment Plans Tab */}
+        <TabsContent value="plans">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Payment Plans</CardTitle>
+                  <CardDescription>Manage subscription tiers and pricing</CardDescription>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </>
-  );
-}
-
-// This component isn't defined in the lucide-react package, so we need to define it
-function Plus(props) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path d="M12 5v14M5 12h14" />
-    </svg>
+                <Button>
+                  <DollarSign className="h-4 w-4 mr-2" />
+                  Add New Plan
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Plan Name</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Billing Cycle</TableHead>
+                    <TableHead>Features</TableHead>
+                    <TableHead>Schools</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center">
+                        <Badge className="h-4 w-4 mr-2 text-amber-500" />
+                        Free Plan
+                      </div>
+                    </TableCell>
+                    <TableCell>$0</TableCell>
+                    <TableCell>N/A</TableCell>
+                    <TableCell>
+                      <div className="text-sm text-muted-foreground">
+                        <ul className="list-disc list-inside">
+                          <li>Limited modules</li>
+                          <li>5 teachers max</li>
+                          <li>Basic analytics</li>
+                        </ul>
+                      </div>
+                    </TableCell>
+                    <TableCell>1</TableCell>
+                    <TableCell>
+                      <Button variant="outline" size="sm" disabled>Default</Button>
+                    </TableCell>
+                  </TableRow>
+                  
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center">
+                        <Badge className="h-4 w-4 mr-2 text-blue-500" />
+                        Basic Plan
+                      </div>
+                    </TableCell>
+                    <TableCell>$99.99</TableCell>
+                    <TableCell>Monthly</TableCell>
+                    <TableCell>
+                      <div className="text-sm text-muted-foreground">
+                        <ul className="list-disc list-inside">
+                          <li>All core modules</li>
+                          <li>20 teachers max</li>
+                          <li>Basic analytics</li>
+                        </ul>
+                      </div>
+                    </TableCell>
+                    <TableCell>0</TableCell>
+                    <TableCell>
+                      <Button variant="outline" size="sm">Edit</Button>
+                    </TableCell>
+                  </TableRow>
+                  
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center">
+                        <Badge className="h-4 w-4 mr-2 text-green-500" />
+                        Professional Plan
+                      </div>
+                    </TableCell>
+                    <TableCell>$199.99</TableCell>
+                    <TableCell>Monthly</TableCell>
+                    <TableCell>
+                      <div className="text-sm text-muted-foreground">
+                        <ul className="list-disc list-inside">
+                          <li>All modules</li>
+                          <li>50 teachers max</li>
+                          <li>Advanced analytics</li>
+                          <li>Custom branding</li>
+                        </ul>
+                      </div>
+                    </TableCell>
+                    <TableCell>0</TableCell>
+                    <TableCell>
+                      <Button variant="outline" size="sm">Edit</Button>
+                    </TableCell>
+                  </TableRow>
+                  
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center">
+                        <Badge className="h-4 w-4 mr-2 text-purple-500" />
+                        Enterprise Plan
+                      </div>
+                    </TableCell>
+                    <TableCell>$499.99</TableCell>
+                    <TableCell>Monthly</TableCell>
+                    <TableCell>
+                      <div className="text-sm text-muted-foreground">
+                        <ul className="list-disc list-inside">
+                          <li>All features</li>
+                          <li>Unlimited teachers</li>
+                          <li>Premium support</li>
+                          <li>Custom development</li>
+                        </ul>
+                      </div>
+                    </TableCell>
+                    <TableCell>0</TableCell>
+                    <TableCell>
+                      <Button variant="outline" size="sm">Edit</Button>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        {/* App Owners Tab */}
+        <TabsContent value="owners">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>App Owners Management</CardTitle>
+                <CardDescription>Grant or revoke app owner access to users</CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input 
+                  placeholder="Search users..." 
+                  className="w-64"
+                  value={userSearchTerm}
+                  onChange={(e) => setUserSearchTerm(e.target.value)} 
+                />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>User</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>School</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredUsers?.map((user: any) => (
+                    <TableRow key={user.id}>
+                      <TableCell className="font-medium">
+                        {user.firstName} {user.lastName} ({user.username})
+                      </TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>{user.schoolName || "N/A"}</TableCell>
+                      <TableCell>{formatDate(user.createdAt)}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {user.isOwner && (
+                            <span className="px-2 py-0.5 text-xs bg-amber-100 text-amber-800 rounded-full">
+                              App Owner
+                            </span>
+                          )}
+                          {user.isAdmin && (
+                            <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded-full">
+                              Admin
+                            </span>
+                          )}
+                          {user.isSchoolAdmin && (
+                            <span className="px-2 py-0.5 text-xs bg-purple-100 text-purple-800 rounded-full">
+                              School Admin
+                            </span>
+                          )}
+                          {!(user.isOwner || user.isAdmin || user.isSchoolAdmin) && (
+                            <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-800 rounded-full">
+                              Regular User
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Dialog open={manageUserDialogOpen && selectedUser?.id === user.id} onOpenChange={(open) => {
+                          if (!open) {
+                            setManageUserDialogOpen(false);
+                            setSelectedUser(null);
+                          }
+                        }}>
+                          <DialogTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setManageUserDialogOpen(true);
+                              }}
+                            >
+                              Manage Access
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Manage User Access</DialogTitle>
+                              <DialogDescription>
+                                Update access levels for {user.firstName} {user.lastName} ({user.username})
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                              <div className="flex items-center space-x-2">
+                                <Checkbox 
+                                  id="owner-access" 
+                                  checked={selectedUser?.isOwner} 
+                                  onCheckedChange={(checked) => {
+                                    if (selectedUser) {
+                                      setSelectedUser({
+                                        ...selectedUser,
+                                        isOwner: !!checked
+                                      });
+                                    }
+                                  }}
+                                />
+                                <Label htmlFor="owner-access" className="font-medium cursor-pointer">
+                                  App Owner Access
+                                </Label>
+                              </div>
+                              <p className="text-sm text-muted-foreground pl-6">
+                                App owners have full control over the entire platform, including all schools, 
+                                payment plans, and user management. This is the highest level of access.
+                              </p>
+                            </div>
+                            <DialogFooter>
+                              <Button 
+                                variant="outline" 
+                                onClick={() => {
+                                  setManageUserDialogOpen(false);
+                                  setSelectedUser(null);
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                disabled={updateOwnerMutation.isPending}
+                                onClick={() => {
+                                  if (selectedUser) {
+                                    handleGrantOwnerAccess(selectedUser.id, selectedUser.isOwner);
+                                  }
+                                }}
+                              >
+                                {updateOwnerMutation.isPending ? (
+                                  <>
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                                    Saving...
+                                  </>
+                                ) : (
+                                  'Save Changes'
+                                )}
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {(!filteredUsers || filteredUsers.length === 0) && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                        {userSearchTerm ? "No users matching your search" : "No users found"}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

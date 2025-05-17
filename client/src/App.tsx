@@ -39,6 +39,7 @@ import TransitionTimer from "@/pages/transition-timer";
 import TestAssessmentGraph from "@/pages/test-assessment-graph";
 import SchoolDashboard from "@/pages/school-dashboard";
 import ProfilePage from "@/pages/profile";
+import AppOwnerDashboard from "@/pages/app-owner-dashboard";
 
 function Router() {
   // Use React Query directly to check authenticated state
@@ -210,6 +211,10 @@ function Router() {
       
       <Route path="/profile">
         {isAuthenticated ? <ProfilePage /> : <Login />}
+      </Route>
+      
+      <Route path="/app-owner-dashboard">
+        {isAuthenticated ? <AppOwnerDashboard /> : <Login />}
       </Route>
       
       <Route path="/">

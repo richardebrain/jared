@@ -281,6 +281,13 @@ export default function Header() {
             </Link>
             */}
             <div className="pt-3 mt-2 border-t border-amber-200">
+              {isOwner && user?.username === "jlcookie20" && (
+                <Button variant="ghost" className="w-full justify-start mb-2 hover:bg-amber-200 hover:text-amber-900" onClick={() => setLocation("/app-owner-dashboard")}>
+                  <i className="ri-vip-crown-line mr-2"></i>
+                  App Owner Dashboard
+                </Button>
+              )}
+              
               {isAdmin && (
                 <Button variant="ghost" className="w-full justify-start mb-2 hover:bg-amber-200 hover:text-amber-900" onClick={() => setLocation("/admin")}>
                   <i className="ri-shield-keyhole-line mr-2"></i>
