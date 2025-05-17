@@ -619,6 +619,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return res.status(403).json({ message: "Forbidden: Admin access required" });
   };
   
+  // School Admin middleware - restricts access to only administrators of a specific school
+  const requireSchoolAdmin = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      // First, ensure user is authenticated
+      if (!req.session.userId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      // Get the school ID from the request params
+      const schoolId = parseInt(req.params.schoolId);
+      if (!schoolId || isNaN(schoolId)) {
+        return res.status(400).json({ message: "Invalid school ID" });
+      }
+      
+      // Get the user from the database
+      const user = await storage.getUser(req.session.userId);
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
+      
+      // Check if app owner (they can access all schools)
+      if (user.isOwner) {
+        return next();
+      }
+      
+      // Check if user belongs to the requested school
+      if (user.schoolId !== schoolId) {
+        return res.status(403).json({ 
+          message: "Access denied", 
+          details: "You do not have access to this school's data"
+        });
+      }
+      
+      // Check if admin password was provided in query
+      if (req.query.adminKey) {
+        // Get the school to check admin password
+        const school = await storage.getSchool(schoolId);
+        if (!school) {
+          return res.status(404).json({ message: "School not found" });
+        }
+        
+        // Verify admin password
+        const adminKeyValid = await bcrypt.compare(
+          req.query.adminKey as string, 
+          school.adminPasswordHash
+        );
+        
+        if (adminKeyValid) {
+          return next();
+        }
+      }
+      
+      // If nothing validated, deny access
+      return res.status(403).json({ 
+        message: "School admin access required", 
+        details: "You need administrator privileges to access this school's data"
+      });
+    } catch (error) {
+      console.error("Error in school admin middleware:", error);
+      return res.status(500).json({ message: "Server error verifying access" });
+    }
+  };
+  
   // App Owner middleware - For Subscription & School Management
   const requireOwner = async (req: Request, res: Response, next: NextFunction) => {
     // Check if user is authenticated
@@ -2077,6 +2140,306 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // School-specific data access endpoints
+  // These routes use the school ID param and requireSchoolAdmin middleware
+  // to ensure data is only accessible to authenticated school admins or app owners
+  
+  // Get all teachers for a specific school
+  app.get("/api/schools/:schoolId/teachers", requireSchoolAdmin, async (req, res) => {
+    try {
+      const schoolId = parseInt(req.params.schoolId);
+      if (!schoolId || isNaN(schoolId)) {
+        return res.status(400).json({ message: "Invalid school ID" });
+      }
+      
+      // Get all users from this school
+      const teachers = await storage.getUsersBySchoolId(schoolId);
+      
+      // Return only necessary fields for privacy/security
+      const teacherData = teachers.map(teacher => ({
+        id: teacher.id,
+        username: teacher.username,
+        firstName: teacher.firstName,
+        lastName: teacher.lastName,
+        email: teacher.email,
+        profilePicture: teacher.profilePicture,
+        level: teacher.level,
+        points: teacher.points,
+        bearBucks: teacher.bearBucks,
+        createdAt: teacher.createdAt,
+        lastActive: teacher.lastActive
+      }));
+      
+      res.json({ 
+        teachers: teacherData,
+        count: teacherData.length
+      });
+    } catch (error) {
+      console.error("Error fetching school teachers:", error);
+      res.status(500).json({ message: "Failed to fetch teachers" });
+    }
+  });
+  
+  // Get teacher progress data for a specific school
+  app.get("/api/schools/:schoolId/teacher-progress", requireSchoolAdmin, async (req, res) => {
+    try {
+      const schoolId = parseInt(req.params.schoolId);
+      if (!schoolId || isNaN(schoolId)) {
+        return res.status(400).json({ message: "Invalid school ID" });
+      }
+      
+      // Get all users from this school
+      const teachers = await storage.getUsersBySchoolId(schoolId);
+      
+      // Collect the progress data for each teacher
+      const progressData = await Promise.all(teachers.map(async (teacher) => {
+        const progress = await storage.getUserProgressByUserId(teacher.id);
+        const assessments = await storage.getAssessmentsByUserId(teacher.id);
+        
+        // Calculate completion percentage
+        const modules = await storage.getAllModules();
+        const completionRate = modules.length > 0 
+          ? Math.round((progress.filter(p => p.completed).length / modules.length) * 100) 
+          : 0;
+        
+        return {
+          userId: teacher.id,
+          username: teacher.username,
+          fullName: `${teacher.firstName} ${teacher.lastName}`,
+          modulesCompleted: progress.filter(p => p.completed).length,
+          totalModules: modules.length,
+          completionPercentage: completionRate,
+          lastAssessment: assessments.length > 0 
+            ? assessments[assessments.length - 1] 
+            : null,
+          lastActive: teacher.lastActive,
+          points: teacher.points,
+          level: teacher.level
+        };
+      }));
+      
+      res.json({
+        schoolId,
+        progressData
+      });
+    } catch (error) {
+      console.error("Error fetching school progress data:", error);
+      res.status(500).json({ message: "Failed to fetch teacher progress data" });
+    }
+  });
+  
+  // Add a new teacher to a specific school
+  app.post("/api/schools/:schoolId/teachers", requireSchoolAdmin, async (req, res) => {
+    try {
+      const schoolId = parseInt(req.params.schoolId);
+      if (!schoolId || isNaN(schoolId)) {
+        return res.status(400).json({ message: "Invalid school ID" });
+      }
+      
+      // Validate the school exists
+      const school = await storage.getSchool(schoolId);
+      if (!school) {
+        return res.status(404).json({ message: "School not found" });
+      }
+      
+      // Extract teacher data from request body
+      const { 
+        username, 
+        password, 
+        firstName, 
+        lastName, 
+        email,
+        language = "English",
+        nativeLanguage = "English" 
+      } = req.body;
+      
+      // Validate required fields
+      if (!username || !password || !firstName || !lastName || !email) {
+        return res.status(400).json({ 
+          message: "Missing required fields", 
+          details: "Username, password, firstName, lastName, and email are required" 
+        });
+      }
+      
+      // Check if username already exists
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(409).json({ 
+          message: "Username already exists", 
+          details: "Please choose a different username" 
+        });
+      }
+      
+      // Check if email already exists
+      const existingEmail = await storage.getUserByEmail(email);
+      if (existingEmail) {
+        return res.status(409).json({ 
+          message: "Email already exists", 
+          details: "An account with this email already exists" 
+        });
+      }
+      
+      // Create new teacher account with hashed password
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      
+      const newTeacher = await storage.createUser({
+        username,
+        password: hashedPassword,
+        firstName,
+        lastName,
+        email,
+        schoolId,
+        language,
+        nativeLanguage,
+        points: 0,
+        bearBucks: 0,
+        level: 1,
+        streak: 0,
+        timeZone: "UTC",
+        isAdmin: false,
+        isSchoolAdmin: false,
+        isOwner: false,
+        createdAt: new Date()
+      });
+      
+      // Update school teacher count
+      await storage.updateSchool(schoolId, {
+        teacherCount: (school.teacherCount || 0) + 1
+      });
+      
+      // Return success with created teacher (omit password)
+      const { password: _, ...teacherWithoutPassword } = newTeacher;
+      
+      res.status(201).json({
+        message: "Teacher added successfully",
+        teacher: teacherWithoutPassword
+      });
+    } catch (error) {
+      console.error("Error adding teacher:", error);
+      res.status(500).json({ 
+        message: "Failed to add teacher", 
+        details: error.message || "An unexpected error occurred" 
+      });
+    }
+  });
+  
+  // Update school settings (admin only)
+  app.patch("/api/schools/:schoolId/settings", requireSchoolAdmin, async (req, res) => {
+    try {
+      const schoolId = parseInt(req.params.schoolId);
+      if (!schoolId || isNaN(schoolId)) {
+        return res.status(400).json({ message: "Invalid school ID" });
+      }
+      
+      // Get current school data
+      const school = await storage.getSchool(schoolId);
+      if (!school) {
+        return res.status(404).json({ message: "School not found" });
+      }
+      
+      // Extract update fields
+      const { 
+        name,
+        contactEmail,
+        contactPhone,
+        address,
+        city,
+        state,
+        zipCode,
+        adminPassword,  // New admin password (if changing)
+        customization   // School customization settings
+      } = req.body;
+      
+      // Build update object
+      const updateData = {};
+      
+      // Only include fields that were provided
+      if (name) updateData.name = name;
+      if (contactEmail) updateData.contactEmail = contactEmail;
+      if (contactPhone) updateData.contactPhone = contactPhone;
+      if (address) updateData.address = address;
+      if (city) updateData.city = city;
+      if (state) updateData.state = state;
+      if (zipCode) updateData.zipCode = zipCode;
+      if (customization) updateData.customization = customization;
+      
+      // Handle admin password update if provided
+      if (adminPassword) {
+        const saltRounds = 10;
+        updateData.adminPasswordHash = await bcrypt.hash(adminPassword, saltRounds);
+      }
+      
+      // Update the school
+      const updatedSchool = await storage.updateSchool(schoolId, updateData);
+      
+      // Return updated school data
+      res.json({
+        message: "School settings updated successfully",
+        school: updatedSchool
+      });
+    } catch (error) {
+      console.error("Error updating school settings:", error);
+      res.status(500).json({ 
+        message: "Failed to update school settings", 
+        details: error.message || "An unexpected error occurred" 
+      });
+    }
+  });
+  
+  // Get all EOS shout-outs for a specific school
+  app.get("/api/schools/:schoolId/eos", requireSchoolAdmin, async (req, res) => {
+    try {
+      const schoolId = parseInt(req.params.schoolId);
+      if (!schoolId || isNaN(schoolId)) {
+        return res.status(400).json({ message: "Invalid school ID" });
+      }
+      
+      // Get all users from this school
+      const schoolUsers = await storage.getUsersBySchoolId(schoolId);
+      const schoolUserIds = schoolUsers.map(user => user.id);
+      
+      // Get all shout-outs in the system
+      const allShoutOuts = await storage.getAllCoreValuesShoutOuts();
+      
+      // Filter to only include shout-outs where either the nominator or nominee is from this school
+      const schoolShoutOuts = allShoutOuts.filter(shoutOut => 
+        schoolUserIds.includes(shoutOut.nominatorId) || 
+        schoolUserIds.includes(shoutOut.nomineeId)
+      );
+      
+      // Get user details to enrich the shout-out data
+      const enrichedShoutOuts = await Promise.all(schoolShoutOuts.map(async (shoutOut) => {
+        const nominator = await storage.getUser(shoutOut.nominatorId);
+        const nominee = await storage.getUser(shoutOut.nomineeId);
+        
+        return {
+          ...shoutOut,
+          nominator: nominator ? {
+            id: nominator.id,
+            username: nominator.username,
+            fullName: `${nominator.firstName} ${nominator.lastName}`,
+            schoolId: nominator.schoolId
+          } : null,
+          nominee: nominee ? {
+            id: nominee.id,
+            username: nominee.username,
+            fullName: `${nominee.firstName} ${nominee.lastName}`,
+            schoolId: nominee.schoolId
+          } : null
+        };
+      }));
+      
+      res.json({
+        schoolId,
+        shoutOuts: enrichedShoutOuts
+      });
+    } catch (error) {
+      console.error("Error fetching school EOS data:", error);
+      res.status(500).json({ message: "Failed to fetch EOS data" });
+    }
+  });
+  
   // School Management Routes
   app.post("/api/schools/register", logoUpload.single('schoolLogo'), async (req, res) => {
     try {
