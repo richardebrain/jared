@@ -3062,6 +3062,12 @@ export default function AssessmentPage() {
   // State to store assessment results for the completion view
   const [assessmentResults, setAssessmentResults] = useState<any>(null);
   
+  // Query to get latest assessment results when showing completion view
+  const { data: assessments = [] } = useQuery({
+    queryKey: ["/api/assessments"],
+    enabled: showCompletionView && !!user,
+  });
+  
   const submitAssessmentMutation = useMutation({
     mutationFn: async (assessmentData: any) => {
       console.log("Submitting assessment data:", assessmentData);
@@ -3085,8 +3091,14 @@ export default function AssessmentPage() {
         data: { points: 10, reason: "Assessment Completion" }
       });
       
+      // Store the assessment results for the completion view
+      setAssessmentResults(data);
+      
       // Show celebration/completion view instead of regular results
       setShowCompletionView(true);
+      
+      // Play a celebratory sound effect
+      playLevelUpSound();
       
       // Generate an encouraging, personalized message based on performance
       const generateEncouragingMessage = () => {
