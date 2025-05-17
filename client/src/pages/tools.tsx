@@ -6,7 +6,7 @@ import { VideoResourceLibrary } from "@/components/VideoResourceLibrary";
 import { MeetingScheduler } from "@/components/MeetingScheduler";
 import LessonPlanMaker from "@/components/LessonPlanMaker";
 import ParentResponseGenerator, { ParentScenario } from "@/components/ParentResponseGenerator";
-import TransitionTimer from "./transition-timer";
+import TransitionTimerTool from "@/components/TransitionTimerTool";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -102,7 +102,7 @@ export default function ToolsPage() {
       description: "Help children transition smoothly between activities",
       icon: <Timer className="h-6 w-6" />,
       component: (
-        <TransitionTimer />
+        <TransitionTimerTool />
       )
     },
     {
