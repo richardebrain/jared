@@ -13,11 +13,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
+} from "@/components/ui/tabs";
 import { 
   Building2, 
   Mail, 
   Phone, 
-  Shield
+  Shield,
+  UploadCloud,
+  CreditCard
 } from "lucide-react";
 import Header from "@/components/Header";
 import { Separator } from "@/components/ui/separator";

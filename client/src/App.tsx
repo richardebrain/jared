@@ -7,7 +7,7 @@ import Dashboard from "@/pages/dashboard";
 import EnhancedDashboard from "@/pages/dashboard-enhanced";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
-import BusinessSignupSimple from "@/pages/business-signup-simple";
+import BusinessSignup from "@/pages/business-signup";
 import LandingPage from "@/pages/landing";
 import ProgressionMap from "@/pages/progression-map";
 import Assessment from "@/pages/assessment";
@@ -75,7 +75,7 @@ function Router() {
       </Route>
 
       <Route path="/business-signup">
-        <BusinessSignupSimple />
+        <BusinessSignup />
       </Route>
       
       {/* Protected routes - redirect to login when not authenticated */}
