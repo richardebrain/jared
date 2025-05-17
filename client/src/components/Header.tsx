@@ -6,7 +6,9 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import raisingArizonaLogo from "@assets/raising-arizona-logo.jpg";
-import mentormeLogo from "@assets/mentorme-logo.png";
+// Import the MentorMe logo using the correct asset path
+// The @assets path wasn't working, so use a relative path instead
+import mentormeLogo from "../assets/mentorme-logo.png";
 
 import {
   DropdownMenu,
