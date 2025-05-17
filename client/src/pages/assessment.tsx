@@ -3057,8 +3057,10 @@ export default function AssessmentPage() {
   };
   
   // Submit assessment mutation
-  // State for showing the enhanced assessment completion experience
+  // State for showing the enhanced assessment completion experience with celebration
   const [showCompletionView, setShowCompletionView] = useState(false);
+  // State to store assessment results for the completion view
+  const [assessmentResults, setAssessmentResults] = useState<any>(null);
   
   const submitAssessmentMutation = useMutation({
     mutationFn: async (assessmentData: any) => {
