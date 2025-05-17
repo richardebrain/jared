@@ -155,6 +155,52 @@ export default function BusinessSignupPage() {
     }
   };
 
+  const validateForm = () => {
+    // Clear any existing error states
+    setFormErrors({});
+    let currentErrors: Record<string, string> = {};
+    
+    // Validate all required fields
+    if (!schoolName.trim()) {
+      currentErrors.schoolName = "School name is required";
+    }
+    
+    if (!contactEmail.trim()) {
+      currentErrors.contactEmail = "Contact email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+      currentErrors.contactEmail = "Please enter a valid email address";
+    }
+    
+    if (!adminPassword.trim()) {
+      currentErrors.adminPassword = "Admin password is required";
+    } else if (adminPassword.length < 8) {
+      currentErrors.adminPassword = "Password must be at least 8 characters";
+    }
+    
+    if (adminPassword !== confirmPassword) {
+      currentErrors.confirmPassword = "Passwords don't match";
+    }
+    
+    if (!planType) {
+      currentErrors.planType = "Please select a subscription plan";
+    }
+    
+    setFormErrors(currentErrors);
+    return Object.keys(currentErrors).length === 0;
+  };
+  
+  const handleConfirmation = () => {
+    if (validateForm()) {
+      setShowConfirmation(true);
+    } else {
+      toast({
+        title: "Please Fix Form Errors",
+        description: "There are validation errors that need to be fixed before proceeding.",
+        variant: "destructive"
+      });
+    }
+  };
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -164,19 +210,17 @@ export default function BusinessSignupPage() {
       return;
     }
     
-    setIsLoading(true);
+    // If we're showing confirmation already and continuing with submission
+    if (showConfirmation) {
+      setIsLoading(true);
+    } else {
+      // Show confirmation dialog first
+      handleConfirmation();
+      return;
+    }
     
     try {
-      // Validate required fields before submission
-      if (!schoolName || !contactEmail || !adminPassword) {
-        toast({
-          title: "Missing Information",
-          description: "Please fill in all required fields (school name, contact email, and admin password).",
-          variant: "destructive"
-        });
-        setIsLoading(false);
-        return;
-      }
+      // Validation has already happened if we reach this point
       
       // Prepare form data for multipart submission
       const formData = new FormData();
@@ -236,9 +280,104 @@ export default function BusinessSignupPage() {
     }
   };
 
+  // Function to render error message for a field
+  const renderError = (field: string) => {
+    if (formErrors[field]) {
+      return <p className="text-red-500 text-sm mt-1">{formErrors[field]}</p>;
+    }
+    return null;
+  };
+  
   return (
     <>
       <Header />
+      
+      {/* Confirmation Dialog */}
+      {showConfirmation && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-2xl">
+            <CardHeader className="bg-primary/5">
+              <CardTitle className="flex items-center">
+                <CheckCircle2 className="h-5 w-5 mr-2 text-green-500" />
+                Confirm School Registration
+              </CardTitle>
+              <CardDescription>
+                Please review the information below before completing your registration
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 pt-6">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-medium">School Information</h3>
+                  <Separator className="my-2" />
+                  <div className="grid grid-cols-2 gap-y-2 text-sm">
+                    <div className="font-medium">School Name:</div>
+                    <div>{schoolName}</div>
+                    <div className="font-medium">Address:</div>
+                    <div>{address || 'Not provided'}</div>
+                    <div className="font-medium">Location:</div>
+                    <div>{[city, state, zipCode].filter(Boolean).join(', ') || 'Not provided'}</div>
+                    <div className="font-medium">Contact Email:</div>
+                    <div>{contactEmail}</div>
+                    <div className="font-medium">Contact Phone:</div>
+                    <div>{contactPhone || 'Not provided'}</div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-medium">Subscription Details</h3>
+                  <Separator className="my-2" />
+                  <div className="grid grid-cols-2 gap-y-2 text-sm">
+                    <div className="font-medium">Plan:</div>
+                    <div className="capitalize">{planType} Plan</div>
+                    <div className="font-medium">Cost:</div>
+                    <div>{planType === 'monthly' ? '$250 per month' : '$2,500 per year (save $500)'}</div>
+                    <div className="font-medium">Monthly Average:</div>
+                    <div>${planType === 'monthly' ? '250' : '208'}/month</div>
+                  </div>
+                </div>
+                
+                <div className="bg-amber-50 border border-amber-200 rounded-md p-3 text-amber-800 text-sm">
+                  By completing this registration, you agree to the terms of service and privacy policy.
+                  Your subscription will begin immediately upon successful registration.
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-between gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowConfirmation(false)}
+                disabled={isLoading}
+              >
+                Go Back
+              </Button>
+              <Button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }}
+                disabled={isLoading}
+                className="bg-primary text-white"
+              >
+                {isLoading ? (
+                  <>
+                    <span className="mr-2">
+                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    </span>
+                    Completing Registration...
+                  </>
+                ) : (
+                  'Complete Registration'
+                )}
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      )}
+      
       <div className="container max-w-5xl mx-auto py-10 px-4">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2">Register Your School</h1>
@@ -279,7 +418,9 @@ export default function BusinessSignupPage() {
                       value={schoolName}
                       onChange={(e) => setSchoolName(e.target.value)}
                       required
+                      className={formErrors.schoolName ? "border-red-500" : ""}
                     />
+                    {renderError("schoolName")}
                   </div>
                   
                   <div className="space-y-2">
