@@ -186,7 +186,8 @@ export const insertAssessmentSchema = createInsertSchema(assessments).omit({
   createdAt: true,
 });
 
-// Relations definitions
+// Relations definitions below are commented out as they are redefined at the end of the file
+/*
 export const schoolsRelations = relations(schools, ({ many }) => ({
   users: many(users)
 }));
@@ -199,11 +200,9 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   progress: many(userProgress),
   meetings: many(meetings, { relationName: "host" }),
   guestMeetings: many(meetings, { relationName: "guest" }),
-  assessments: many(assessments),
-  userAchievements: many(userAchievements),
-  userItems: many(userItems),
-  spinGameRewards: many(spinGameRewards)
+  assessments: many(assessments)
 }));
+*/
 
 export const learningModulesRelations = relations(learningModules, ({ many }) => ({
   progress: many(userProgress)
