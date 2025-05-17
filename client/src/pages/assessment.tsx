@@ -1569,11 +1569,13 @@ export default function AssessmentPage() {
           }
           
           if (domainId === 'emotional-support') {
-            console.log(`Handling 'emotional-support' domain with specific questions`);
+            console.log(`Handling 'emotional-support' domain with specific questions for ${difficulty} difficulty`);
             
+            // Define questions for all difficulty levels to ensure we don't get stuck
             const emotionalSupportQuestions = [
+              // Beginner Questions
               {
-                id: 'es-default-1',
+                id: 'es-beginner-1',
                 text: 'Which approach best promotes positive emotional development in preschoolers?',
                 domain: 'emotional-support',
                 type: 'multiple-choice' as QuestionType,
@@ -1588,7 +1590,7 @@ export default function AssessmentPage() {
                 required: true
               },
               {
-                id: 'es-default-2',
+                id: 'es-beginner-2',
                 text: 'According to CLASS standards, which teaching practice best demonstrates high-quality emotional support?',
                 domain: 'emotional-support',
                 type: 'multiple-choice' as QuestionType,
@@ -1601,22 +1603,136 @@ export default function AssessmentPage() {
                 ],
                 correctAnswer: 'Demonstrating awareness of and responsiveness to children\'s emotional needs',
                 required: true
+              },
+              // Intermediate Questions
+              {
+                id: 'es-intermediate-1',
+                text: 'When a child is experiencing emotional distress, which approach aligns best with CLASS emotional support dimensions?',
+                domain: 'emotional-support',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'intermediate' as DifficultyLevel,
+                options: [
+                  'Asking the child to sit quietly until they calm down',
+                  'Acknowledging the child\'s feelings while helping them develop coping strategies',
+                  'Immediately resolving the problem for the child to prevent further upset',
+                  'Redirecting the child to a different activity until they forget the issue'
+                ],
+                correctAnswer: 'Acknowledging the child\'s feelings while helping them develop coping strategies',
+                required: true
+              },
+              {
+                id: 'es-intermediate-2',
+                text: 'Which practice best reflects the positive climate dimension of the CLASS framework?',
+                domain: 'emotional-support',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'intermediate' as DifficultyLevel,
+                options: [
+                  'Using consistent rewards and consequences to manage behavior',
+                  'Maintaining a quiet environment to maximize learning time',
+                  'Engaging in social conversations and showing genuine interest in children',
+                  'Following the curriculum with minimal deviation'
+                ],
+                correctAnswer: 'Engaging in social conversations and showing genuine interest in children',
+                required: true
+              },
+              // Advanced Questions
+              {
+                id: 'es-advanced-1',
+                text: 'How might a teacher operationalize the concept of "regard for student perspectives" in an emotionally supportive classroom?',
+                domain: 'emotional-support',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'advanced' as DifficultyLevel,
+                options: [
+                  'Following a strict schedule to ensure all learning objectives are met',
+                  'Incorporating children\'s interests into planning and providing meaningful choices',
+                  'Ensuring all children receive the same activities regardless of interests',
+                  'Having children vote as a group on all classroom decisions'
+                ],
+                correctAnswer: 'Incorporating children\'s interests into planning and providing meaningful choices',
+                required: true
+              },
+              {
+                id: 'es-advanced-2',
+                text: 'Which approach best demonstrates an advanced understanding of teacher sensitivity in the CLASS framework?',
+                domain: 'emotional-support',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'advanced' as DifficultyLevel,
+                options: [
+                  'Anticipating problems and providing individualized support before issues escalate',
+                  'Treating all children exactly the same to ensure fairness',
+                  'Maintaining emotional distance to foster independence',
+                  'Providing immediate solutions to children\'s problems'
+                ],
+                correctAnswer: 'Anticipating problems and providing individualized support before issues escalate',
+                required: true
+              },
+              // Expert Questions
+              {
+                id: 'es-expert-1',
+                text: 'How do the dimensions of emotional support in the CLASS framework contribute to executive function development?',
+                domain: 'emotional-support',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'expert' as DifficultyLevel,
+                options: [
+                  'They primarily support language development, which is unrelated to executive function',
+                  'They provide structure that constrains child behavior, promoting self-regulation',
+                  'They create psychological safety that allows children to practice regulatory skills',
+                  'They focus on academic skills that supersede executive function development'
+                ],
+                correctAnswer: 'They create psychological safety that allows children to practice regulatory skills',
+                required: true
+              },
+              {
+                id: 'es-expert-2',
+                text: 'Which instructional approach best integrates social-emotional learning within academic contexts, aligning with high-quality emotional support practices?',
+                domain: 'emotional-support',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'expert' as DifficultyLevel,
+                options: [
+                  'Teaching social-emotional skills separately from academic content',
+                  'Using collaborative problem-solving activities that require emotional regulation',
+                  'Prioritizing academic skills and addressing emotions only when problems arise',
+                  'Creating a structured environment where emotions are managed through strict routines'
+                ],
+                correctAnswer: 'Using collaborative problem-solving activities that require emotional regulation',
+                required: true
               }
             ];
             
-            // Use our default questions by adding them to the assessment questions array
-            const existingEmotionalSupportQuestions = assessmentQuestions.filter(q => q.domain === 'emotional-support');
-            if (existingEmotionalSupportQuestions.length === 0) {
-              // Add our new questions to the assessment questions array
-              assessmentQuestions.push(...emotionalSupportQuestions);
+            // Filter for questions matching the current difficulty level
+            const filteredQuestions = emotionalSupportQuestions.filter(q => q.difficulty === difficulty);
+            console.log(`Found ${filteredQuestions.length} emotional-support questions for ${difficulty} difficulty`);
+            
+            // Filter existing questions by domain and difficulty
+            const existingFilteredQuestions = assessmentQuestions.filter(
+              q => q.domain === 'emotional-support' && q.difficulty === difficulty
+            );
+            
+            // Only add new questions if we don't already have them
+            if (existingFilteredQuestions.length === 0 && filteredQuestions.length > 0) {
+              console.log(`Adding ${filteredQuestions.length} emotional-support questions at ${difficulty} difficulty`);
+              assessmentQuestions.push(...filteredQuestions);
+            } else if (filteredQuestions.length === 0) {
+              // If we don't have questions for this difficulty, add all beginner questions as fallback
+              const beginnerQuestions = emotionalSupportQuestions.filter(q => q.difficulty === 'beginner');
+              console.log(`No ${difficulty} questions found for emotional-support, adding ${beginnerQuestions.length} beginner questions instead`);
+              
+              // Check if beginner questions already exist
+              const existingBeginnerQuestions = assessmentQuestions.filter(
+                q => q.domain === 'emotional-support' && q.difficulty === 'beginner'
+              );
+              
+              if (existingBeginnerQuestions.length === 0) {
+                assessmentQuestions.push(...beginnerQuestions);
+              }
+              
+              // Update domain difficulty to beginner
+              const newDomainDifficulty = {...domainDifficulty};
+              newDomainDifficulty[domainId] = 'beginner';
+              setDomainDifficulty(newDomainDifficulty);
             }
             
-            // Set to beginner difficulty for this domain to ensure questions are found
-            const newDomainDifficulty = {...domainDifficulty};
-            newDomainDifficulty[domainId] = 'beginner';
-            setDomainDifficulty(newDomainDifficulty);
-            
-            // Reset question index
+            // Reset question index regardless
             setCurrentQuestionIndex(0);
             return;
           }
