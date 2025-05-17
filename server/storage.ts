@@ -606,6 +606,90 @@ export class MemStorage implements IStorage {
 
 // Create a DatabaseStorage class that implements the IStorage interface
 export class DatabaseStorage implements IStorage {
+  // School operations
+  async getSchool(id: number): Promise<School | undefined> {
+    const [school] = await db.select().from(schools).where(eq(schools.id, id));
+    return school || undefined;
+  }
+  
+  async getSchoolByName(name: string): Promise<School | undefined> {
+    const [school] = await db.select().from(schools).where(eq(sql`LOWER(${schools.name})`, name.toLowerCase()));
+    return school || undefined;
+  }
+  
+  async getAllSchools(): Promise<School[]> {
+    return await db.select().from(schools).orderBy(schools.name);
+  }
+  
+  async createSchool(school: InsertSchool): Promise<School> {
+    const [newSchool] = await db.insert(schools).values(school).returning();
+    return newSchool;
+  }
+  
+  async updateSchool(id: number, schoolData: Partial<InsertSchool>): Promise<School> {
+    const [updatedSchool] = await db
+      .update(schools)
+      .set(schoolData)
+      .where(eq(schools.id, id))
+      .returning();
+    return updatedSchool;
+  }
+  
+  // User operations with school support
+  async updateUserSchool(userId: number, schoolId: number): Promise<User> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({ schoolId })
+      .where(eq(users.id, userId))
+      .returning();
+    return updatedUser;
+  }
+  
+  async getUsersBySchoolId(schoolId: number): Promise<User[]> {
+    return await db
+      .select()
+      .from(users)
+      .where(eq(users.schoolId, schoolId));
+  }
+  
+  async checkUserAccessStatus(userId: number): Promise<{hasAccess: boolean, reason?: string}> {
+    try {
+      const user = await this.getUser(userId);
+      if (!user) {
+        return { hasAccess: false, reason: "User not found" };
+      }
+      
+      // If user doesn't have a school, they don't have access
+      if (!user.schoolId) {
+        return { hasAccess: false, reason: "No school association" };
+      }
+      
+      const school = await this.getSchool(user.schoolId);
+      if (!school) {
+        return { hasAccess: false, reason: "School not found" };
+      }
+      
+      // Raising Arizona users always have access (isFreeAccess = true)
+      if (school.isFreeAccess) {
+        return { hasAccess: true };
+      }
+      
+      // Otherwise check if the school has an active subscription
+      if (!school.subscriptionActive) {
+        return { hasAccess: false, reason: "School subscription inactive" };
+      }
+      
+      // If subscription is expired, no access
+      if (school.subscriptionExpiresAt && new Date(school.subscriptionExpiresAt) < new Date()) {
+        return { hasAccess: false, reason: "School subscription expired" };
+      }
+      
+      return { hasAccess: true };
+    } catch (error) {
+      console.error("Error checking user access:", error);
+      return { hasAccess: false, reason: "Error checking access" };
+    }
+  }
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;

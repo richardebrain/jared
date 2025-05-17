@@ -1,6 +1,6 @@
 import { db, pool } from './db';
 import { eq, sql } from 'drizzle-orm';
-import { users } from '@shared/schema';
+import { users, schools } from '@shared/schema';
 
 /**
  * Migration script to add school_id column to the users table
@@ -41,15 +41,13 @@ async function runSchoolIdMigration() {
       } else {
         // Create Raising Arizona school
         console.log('Creating Raising Arizona school...');
-        const [newSchool] = await db.insert(schools)
-          .values({
-            name: 'Raising Arizona Preschool',
-            address: '123 Main St, Phoenix, AZ',
-            isFreeAccess: true, // Always free access for Raising Arizona
-            subscriptionActive: true,
-            subscriptionType: 'premium_branding'
-          })
-          .returning();
+        // Using raw SQL to insert the school since insertSchool might have validation issues
+        const result = await pool.query(`
+          INSERT INTO schools (name, address, is_free_access, subscription_active, subscription_type) 
+          VALUES ('Raising Arizona Preschool', '123 Main St, Phoenix, AZ', true, true, 'premium_branding') 
+          RETURNING id
+        `);
+        const newSchool = result.rows[0];
         
         schoolId = newSchool.id;
         console.log('Created Raising Arizona school with ID:', schoolId);
@@ -75,17 +73,7 @@ async function runSchoolIdMigration() {
   }
 }
 
-// Only run the migration if this script is executed directly
-if (require.main === module) {
-  runSchoolIdMigration()
-    .then(() => {
-      console.log('Migration completed successfully');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('Migration failed:', error);
-      process.exit(1);
-    });
-}
+// In TypeScript ESM, we don't have require.main check anymore
+// The migration will automatically run when the server starts
 
 export { runSchoolIdMigration };
