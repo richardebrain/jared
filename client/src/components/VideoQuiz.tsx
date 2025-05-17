@@ -449,13 +449,41 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
             <RadioGroup 
               value={selectedAnswers[currentQuestionData.id] || ""}
               onValueChange={(value) => handleAnswerSelect(currentQuestionData.id, value)}
+              className="space-y-3 mt-4"
             >
-              {currentQuestionData.options.map((option, index) => (
-                <div key={index} className="flex items-center space-x-2 py-2">
-                  <RadioGroupItem value={option} id={`option-${index}`} />
-                  <Label htmlFor={`option-${index}`} className="cursor-pointer">{option}</Label>
-                </div>
-              ))}
+              {currentQuestionData.options.map((option, index) => {
+                // Determine if this option is selected
+                const isSelected = selectedAnswers[currentQuestionData.id] === option;
+                // Check if there's been an incorrect attempt
+                const hasIncorrectAttempt = incorrectAttempts[currentQuestionData.id] > 0;
+                // Show feedback for this option if it's selected and incorrect
+                const showFeedbackForThis = isSelected && hasIncorrectAttempt && showIncorrectFeedback;
+                
+                return (
+                  <div 
+                    key={index} 
+                    className={`flex items-start space-x-3 p-3 rounded-lg border-2 transition-all ${
+                      isSelected 
+                        ? showFeedbackForThis
+                          ? "border-red-400 bg-red-50" 
+                          : "border-primary bg-primary/5"
+                        : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    <RadioGroupItem value={option} id={`option-${index}`} className="mt-1" />
+                    <div className="flex-grow">
+                      <Label htmlFor={`option-${index}`} className="cursor-pointer block">{option}</Label>
+                      
+                      {showFeedbackForThis && (
+                        <div className="text-red-600 text-sm mt-2 flex items-center">
+                          <AlertTriangle className="h-4 w-4 mr-1 flex-shrink-0" />
+                          <span>Think again about what you learned in the video</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </RadioGroup>
           </div>
         ) : implementationQuestion ? (
