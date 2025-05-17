@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import {
@@ -13,21 +12,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  Briefcase, 
   Building2, 
-  CheckCircle2,
-  CreditCard, 
   Mail, 
-  MapPin, 
   Phone, 
-  Shield, 
-  UploadCloud,
-  Users2
+  Shield
 } from "lucide-react";
 import Header from "@/components/Header";
-import { apiRequest } from "@/lib/queryClient";
 import { Separator } from "@/components/ui/separator";
 
 export default function BusinessSignupPage() {
