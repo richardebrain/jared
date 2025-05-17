@@ -29,7 +29,6 @@ import {
   CheckCircle2,
   AlertTriangle,
   Users,
-  Users2,
   Briefcase
 } from "lucide-react";
 import Header from "@/components/Header";
@@ -686,7 +685,7 @@ export default function BusinessSignupPage() {
         <Card className="flex flex-col">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center">
-              <Users2 className="h-5 w-5 mr-2 text-primary" />
+              <Users className="h-5 w-5 mr-2 text-primary" />
               Teacher Development
             </CardTitle>
             <CardDescription>
