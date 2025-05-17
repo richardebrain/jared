@@ -623,12 +623,32 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getSchoolByName(name: string): Promise<School | undefined> {
-    const [school] = await db.select().from(schools).where(eq(sql`LOWER(${schools.name})`, name.toLowerCase()));
+    const [school] = await db.select({
+      id: schools.id,
+      name: schools.name,
+      subscriptionActive: schools.subscriptionActive,
+      subscriptionType: schools.subscriptionType,
+      subscriptionExpiresAt: schools.subscriptionExpiresAt,
+      teacherCount: schools.teacherCount,
+      isFreeAccess: schools.isFreeAccess,
+      customization: schools.customization,
+      createdAt: schools.createdAt
+    }).from(schools).where(eq(sql`LOWER(${schools.name})`, name.toLowerCase()));
     return school || undefined;
   }
   
   async getAllSchools(): Promise<School[]> {
-    return await db.select().from(schools).orderBy(schools.name);
+    return await db.select({
+      id: schools.id,
+      name: schools.name,
+      subscriptionActive: schools.subscriptionActive,
+      subscriptionType: schools.subscriptionType,
+      subscriptionExpiresAt: schools.subscriptionExpiresAt,
+      teacherCount: schools.teacherCount,
+      isFreeAccess: schools.isFreeAccess,
+      customization: schools.customization,
+      createdAt: schools.createdAt
+    }).from(schools).orderBy(schools.name);
   }
   
   async createSchool(school: InsertSchool): Promise<School> {
