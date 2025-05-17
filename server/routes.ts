@@ -9,6 +9,10 @@ import { updateChildDevelopmentModule } from "./updateChildDevelopmentModule";
 import { eq, sql } from "drizzle-orm";
 import { users } from "@shared/schema";
 import * as notebookLmPlugin from "./notebookLmPlugin";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import crypto from "crypto";
 
 // Define our session data structure with proper typing
 declare module "express-session" {
@@ -27,9 +31,51 @@ declare global {
   }
 }
 
+// Configure multer storage for file uploads
+const uploadsDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Configure multer for school logo uploads
+const logoStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const schoolLogosDir = path.join(uploadsDir, 'school-logos');
+    if (!fs.existsSync(schoolLogosDir)) {
+      fs.mkdirSync(schoolLogosDir, { recursive: true });
+    }
+    cb(null, schoolLogosDir);
+  },
+  filename: (req, file, cb) => {
+    // Create a unique filename with timestamp and original extension
+    const uniqueSuffix = Date.now() + '-' + crypto.randomBytes(8).toString('hex');
+    const ext = path.extname(file.originalname);
+    cb(null, `school-logo-${uniqueSuffix}${ext}`);
+  }
+});
+
+// Configure multer upload limits and file types
+const logoUpload = multer({
+  storage: logoStorage,
+  limits: {
+    fileSize: 2 * 1024 * 1024, // 2MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept only image files
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.mimetype)) {
+      return cb(new Error('Only JPEG, PNG, and SVG files are allowed'));
+    }
+    cb(null, true);
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create an HTTP server for the Express app (needed for WebSockets)
   const httpServer = createServer(app);
+  
+  // Serve static files from the uploads directory
+  app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
   
   // Setup session middleware using PostgreSQL for persistent sessions
   const PgSession = connectPgSimple(session);
@@ -2026,6 +2072,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         message: "Error generating response",
         content: "I'm sorry, I encountered an error processing your question. Please try asking about our mindful morning practices, classroom management techniques, or about our Building Chapter One philosophy."
+      });
+    }
+  });
+
+  // School Management Routes
+  app.post("/api/schools/register", logoUpload.single('schoolLogo'), async (req, res) => {
+    try {
+      // Extract form data
+      const { 
+        schoolName, 
+        address, 
+        city, 
+        state, 
+        zipCode, 
+        contactEmail, 
+        contactPhone, 
+        adminPassword,
+        planType 
+      } = req.body;
+      
+      console.log("School registration attempt:", { schoolName, contactEmail });
+      
+      // Validate required fields
+      if (!schoolName || !contactEmail || !adminPassword) {
+        return res.status(400).json({ 
+          message: "Missing required fields", 
+          details: "School name, contact email, and admin password are required" 
+        });
+      }
+      
+      // Check if school with this name already exists
+      const existingSchool = await storage.getSchoolByName(schoolName);
+      if (existingSchool) {
+        return res.status(409).json({ 
+          message: "School name already exists", 
+          details: "A school with this name is already registered" 
+        });
+      }
+      
+      // Process logo file if uploaded
+      let logoUrl = null;
+      if (req.file) {
+        // Create a URL-friendly path for accessing the logo
+        logoUrl = `/uploads/school-logos/${req.file.filename}`;
+        console.log(`Logo uploaded for ${schoolName}: ${logoUrl}`);
+      }
+      
+      // Hash admin password for security
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(adminPassword, saltRounds);
+      
+      // Determine subscription details based on plan type
+      let subscriptionDetails = {
+        subscriptionActive: true,
+        subscriptionType: planType,
+        // Default to 30 days for monthly, 365 for yearly
+        subscriptionExpiresAt: new Date(Date.now() + (planType === 'annual' ? 365 : 30) * 24 * 60 * 60 * 1000)
+      };
+      
+      // Create the school record
+      const newSchool = await storage.createSchool({
+        name: schoolName,
+        address: address || null,
+        city: city || null,
+        state: state || null,
+        zipCode: zipCode || null,
+        contactEmail,
+        contactPhone: contactPhone || null,
+        logoUrl,
+        subscriptionActive: subscriptionDetails.subscriptionActive,
+        subscriptionType: subscriptionDetails.subscriptionType,
+        subscriptionExpiresAt: subscriptionDetails.subscriptionExpiresAt,
+        adminPasswordHash: hashedPassword,
+        isFreeAccess: false,
+        teacherCount: 0,
+        createdAt: new Date()
+      });
+      
+      console.log(`School registered successfully: ${schoolName} (ID: ${newSchool.id})`);
+      
+      // Return success response with school details (except password)
+      const { adminPasswordHash, ...schoolWithoutPassword } = newSchool;
+      
+      res.status(201).json({
+        message: "School registered successfully",
+        school: schoolWithoutPassword
+      });
+    } catch (error) {
+      console.error("School registration error:", error);
+      res.status(500).json({ 
+        message: "Failed to register school", 
+        details: error.message || "An unexpected error occurred" 
       });
     }
   });
