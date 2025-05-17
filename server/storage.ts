@@ -53,6 +53,7 @@ export interface IStorage {
   getUserProgressByUserId(userId: number): Promise<UserProgress[]>;
   getUserProgressByModuleId(moduleId: number): Promise<UserProgress[]>;
   updateUserProgress(progress: InsertUserProgress): Promise<UserProgress>;
+  createUserProgress(progress: InsertUserProgress): Promise<UserProgress>;
   resetUserProgress(userId: number): Promise<boolean>;
   
   // Meeting operations
@@ -848,6 +849,14 @@ export class DatabaseStorage implements IStorage {
   
   async getUserProgressByModuleId(moduleId: number): Promise<UserProgress[]> {
     return await db.select().from(userProgress).where(eq(userProgress.moduleId, moduleId));
+  }
+  
+  async createUserProgress(progress: InsertUserProgress): Promise<UserProgress> {
+    const [newProgress] = await db
+      .insert(userProgress)
+      .values(progress)
+      .returning();
+    return newProgress;
   }
   
   async updateUserProgress(progress: InsertUserProgress): Promise<UserProgress> {
