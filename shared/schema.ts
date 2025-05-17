@@ -40,7 +40,7 @@ export const insertSchoolSchema = createInsertSchema(schools).omit({
   createdAt: true,
 });
 
-// User schema
+// User schema  
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").references(() => schools.id), // Can be null for users who haven't selected a school yet

@@ -41,12 +41,7 @@ app.use((req, res, next) => {
 
 (async () => {
   try {
-    // Run the school ID migration first
-    await runSchoolIdMigration();
-    console.log("School ID migration completed successfully");
-  } catch (error) {
-    console.error("Error running school ID migration:", error);
-  }
+    // We'll run the migration after server startup
 
   // Seed the database after migration
   await seedDatabase();
