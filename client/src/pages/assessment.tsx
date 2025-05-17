@@ -87,7 +87,7 @@ interface Question {
   explanation?: string; // For internal reference, not shown to user
 }
 
-// Early childhood education domains - expanded to 18 categories based on ITERS/ECERS and CLASS assessment frameworks
+// Early childhood education domains - improved categories based on ITERS/ECERS and CLASS assessment frameworks
 const domains = [
   // ITERS/ECERS Categories
   { id: 'space-furnishings', name: 'Space & Furnishings', icon: ClipboardList },
@@ -109,10 +109,8 @@ const domains = [
   
   // Experience Categories
   { id: 'experience-level', name: 'Experience Level', icon: Award },
-  { id: 'education', name: 'Education', icon: ClipboardList },
+  { id: 'ages-and-stages', name: 'Ages & Stages Development', icon: ClipboardList },
   { id: 'professional-development', name: 'Professional Development', icon: Star },
-  { id: 'age-group-experience', name: 'Age Group Experience', icon: ClipboardList },
-  { id: 'professional-goals', name: 'Professional Goals', icon: Star },
   
   // Core Training Modules
   { id: 'chapter-one', name: 'Chapter One: Building a Human', icon: Star },
