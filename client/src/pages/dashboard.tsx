@@ -731,12 +731,13 @@ export default function Dashboard() {
               )}
               
               {/* Continue Learning */}
-              {recentProgress.length > 0 && (
-                <div className="space-y-4 mt-8">
-                  <h2 className="text-xl font-bold text-gray-800 flex items-center">
-                    <Book className="h-5 w-5 mr-2 text-blue-600" />
-                    Continue Learning
-                  </h2>
+              <div className="space-y-4 mt-8">
+                <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                  <Book className="h-5 w-5 mr-2 text-blue-600" />
+                  Continue Learning
+                </h2>
+                
+                {recentProgress.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {recentProgress.map((item, index) => (
                       <div key={index}>
@@ -750,8 +751,38 @@ export default function Dashboard() {
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div>
+                    {modules && Array.isArray(modules) && modules.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {modules.slice(0, 2).map((module, index) => (
+                          <div key={index}>
+                            <ModuleView 
+                              module={module} 
+                              progress={0} 
+                              showCategory 
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center p-8 bg-gray-50 rounded-lg border border-gray-100">
+                        <div className="mb-2">
+                          <Book className="h-10 w-10 mx-auto text-gray-300" />
+                        </div>
+                        <p className="text-gray-500">Recommended modules will appear here when available</p>
+                        <Button 
+                          variant="outline"
+                          className="mt-4"
+                          onClick={() => setLocation('/modules')}
+                        >
+                          Browse All Modules
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
             
             {/* Sidebar - Right 1/3 */}
