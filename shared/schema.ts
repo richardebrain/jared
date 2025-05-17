@@ -10,9 +10,40 @@ export const sessions = pgTable("sessions", {
   expire: timestamp("expire").notNull(),
 });
 
+// Schools schema
+export const schools = pgTable("schools", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  address: text("address"),
+  city: text("city"),
+  state: text("state"),
+  zipCode: text("zip_code"),
+  contactEmail: text("contact_email"),
+  contactPhone: text("contact_phone"),
+  logoUrl: text("logo_url"),
+  websiteUrl: text("website_url"),
+  subscriptionActive: boolean("subscription_active").default(false),
+  subscriptionType: text("subscription_type").default("basic"), // basic, owner_toolkit, premium_branding
+  subscriptionExpiresAt: timestamp("subscription_expires_at"),
+  teacherCount: integer("teacher_count").default(0),
+  isFreeAccess: boolean("is_free_access").default(false), // Set to true for Raising Arizona
+  customization: json("customization").$type<{
+    primaryColor?: string,
+    secondaryColor?: string,
+    coreValues?: string[]
+  }>(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertSchoolSchema = createInsertSchema(schools).omit({
+  id: true,
+  createdAt: true,
+});
+
 // User schema
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id), // Can be null for users who haven't selected a school yet
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   firstName: text("first_name").notNull(),
@@ -35,6 +66,8 @@ export const users = pgTable("users", {
   streak: integer("streak").default(0),
   lastActive: timestamp("last_active"),
   achievementCount: integer("achievement_count").default(0),
+  isAdmin: boolean("is_admin").default(false),
+  isSchoolAdmin: boolean("is_school_admin").default(false), // School directors/admins
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -154,7 +187,15 @@ export const insertAssessmentSchema = createInsertSchema(assessments).omit({
 });
 
 // Relations definitions
-export const usersRelations = relations(users, ({ many }) => ({
+export const schoolsRelations = relations(schools, ({ many }) => ({
+  users: many(users)
+}));
+
+export const usersRelations = relations(users, ({ many, one }) => ({
+  school: one(schools, {
+    fields: [users.schoolId],
+    references: [schools.id]
+  }),
   progress: many(userProgress),
   meetings: many(meetings, { relationName: "host" }),
   guestMeetings: many(meetings, { relationName: "guest" }),
@@ -383,7 +424,11 @@ export const spinGameRewardsRelations = relations(spinGameRewards, ({ one }) => 
 }));
 
 // Update user relations to include new entities
-export const usersRelationsUpdate = relations(users, ({ many }) => ({
+export const usersRelationsUpdate = relations(users, ({ many, one }) => ({
+  school: one(schools, {
+    fields: [users.schoolId],
+    references: [schools.id]
+  }),
   progress: many(userProgress),
   meetings: many(meetings, { relationName: "host" }),
   guestMeetings: many(meetings, { relationName: "guest" }),
@@ -394,6 +439,9 @@ export const usersRelationsUpdate = relations(users, ({ many }) => ({
 }));
 
 // Types
+export type School = typeof schools.$inferSelect;
+export type InsertSchool = z.infer<typeof insertSchoolSchema>;
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 

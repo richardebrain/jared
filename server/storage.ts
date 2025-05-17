@@ -1,5 +1,6 @@
 import { 
   users, type User, type InsertUser,
+  schools, type School, type InsertSchool,
   learningModules, type LearningModule, type InsertLearningModule,
   userProgress, type UserProgress, type InsertUserProgress,
   meetings, type Meeting, type InsertMeeting,
@@ -18,6 +19,13 @@ import { db } from "./db";
 import { eq, and, desc, gte, lt, or, sql } from "drizzle-orm";
 
 export interface IStorage {
+  // School operations
+  getSchool(id: number): Promise<School | undefined>;
+  getSchoolByName(name: string): Promise<School | undefined>;
+  getAllSchools(): Promise<School[]>;
+  createSchool(school: InsertSchool): Promise<School>;
+  updateSchool(id: number, schoolData: Partial<InsertSchool>): Promise<School>;
+  
   // User operations
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -27,6 +35,9 @@ export interface IStorage {
   addUserPoints(userId: number, points: number): Promise<User>;
   getUserPointsEarnedToday(userId: number): Promise<number>;
   getAllUsers(): Promise<User[]>;
+  getUsersBySchoolId(schoolId: number): Promise<User[]>;
+  updateUserSchool(userId: number, schoolId: number): Promise<User>;
+  checkUserAccessStatus(userId: number): Promise<{hasAccess: boolean, reason?: string}>;
   
   // Game operations
   getUserGameHistory(userId: number): Promise<GameCompletion[]>;
