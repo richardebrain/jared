@@ -1974,6 +1974,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Internal server error" });
     }
   });
+  
+  // Get assessment results for the user (for the celebration screen)
+  app.get("/api/assessment-results", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      // Get the most recent assessment
+      const assessments = await storage.getAssessmentsByUserId(userId);
+      
+      if (!assessments || assessments.length === 0) {
+        return res.json(null);
+      }
+      
+      // Return the most recent assessment (first in the list)
+      res.json(assessments[0]);
+    } catch (error) {
+      console.error("Error fetching assessment results:", error);
+      res.status(500).json({ message: "Failed to fetch assessment results" });
+    }
+  });
 
   app.post("/api/assessments", requireAuth, async (req, res) => {
     try {
