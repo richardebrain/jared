@@ -262,17 +262,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create new user
       const newUser = await storage.createUser({
         username,
-        password, // In a production app, we would hash this password
+        password, // Password is already hashed earlier in the code
         firstName,
         lastName,
         email,
         language: language || "English",
         nativeLanguage: nativeLanguage || "English",
         timeZone: timeZone || "UTC-05:00",
+        profilePicture: null,
+        learningStyle: {
+          visual: 0,
+          auditory: 0,
+          reading: 0,
+          kinesthetic: 0,
+          preferred: null
+        },
+        schoolId: schoolId || 1, // Default to Raising Arizona if no school specified
         points: 0,
         bearBucks: 0,
-        level: 1, // 1 = Beginner level (integer, not string)
-        createdAt: new Date()
+        level: 1,
+        isAdmin: false,
+        isSchoolAdmin: false,
+        isOwner: false
+        // createdAt is handled automatically by the schema
       });
       
       console.log(`Registration successful for user: "${username}" (ID: ${newUser.id})`);
@@ -302,8 +314,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             progress: 0,
             completed: false,
             recommended: true,
-            pointsEarned: 0,
-            lastAccessed: new Date()
+            pointsEarned: 0
+            // lastAccessed is handled automatically by the schema
           });
           console.log(`Assigned CORE module (ID: ${coreModule.id}) to new user (ID: ${newUser.id})`);
         }
