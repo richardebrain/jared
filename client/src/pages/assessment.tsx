@@ -1342,6 +1342,7 @@ export default function AssessmentPage() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [completedQuestions, setCompletedQuestions] = useState<string[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
   
   // We'll track if assessment data exists when we need it
   
@@ -3386,8 +3387,56 @@ export default function AssessmentPage() {
                         onClick={() => {
                           try {
                             console.log(`Clicked domain: ${domain.id}`);
-                            // Call the handleDomainChange function with error handling
-                            handleDomainChange(domain.id);
+                            
+                            // Special handling for problematic domains
+                            if (domain.id === 'emotional-support') {
+                              // Extra safety for emotional-support domain since it seems to have issues
+                              console.log("Applying special handling for emotional-support domain");
+                              
+                              // First reset any state that might be causing issues
+                              setAnswerFeedback({
+                                shown: false,
+                                correct: false,
+                                explanation: ''
+                              });
+                              
+                              setSelectedOption(null);
+                              
+                              // Make sure we have questions for this domain
+                              const domainHasQuestions = assessmentQuestions.some(q => 
+                                q.domain === 'emotional-support' && q.difficulty === 'beginner'
+                              );
+                              
+                              if (!domainHasQuestions) {
+                                console.log("No questions found for emotional-support, setting up default questions");
+                                
+                                // Find the index in our domains array
+                                const newDomainIndex = domains.findIndex(d => d.id === domain.id);
+                                if (newDomainIndex !== -1) {
+                                  setCurrentDomainIndex(newDomainIndex);
+                                }
+                                
+                                // Reset to beginner difficulty
+                                setDomainDifficulty(prev => ({
+                                  ...prev,
+                                  [domain.id]: 'beginner'
+                                }));
+                                
+                                // Reset to first question
+                                setCurrentQuestionIndex(0);
+                                
+                                // Load questions with a small delay to ensure state updates
+                                setTimeout(() => {
+                                  updateDomainQuestions(domain.id, 'beginner');
+                                }, 300);
+                              } else {
+                                // Normal navigation if questions exist
+                                handleDomainChange(domain.id);
+                              }
+                            } else {
+                              // Normal domain navigation
+                              handleDomainChange(domain.id);
+                            }
                           } catch (err) {
                             console.error("Error in domain button click handler:", err);
                             toast({
@@ -3396,6 +3445,24 @@ export default function AssessmentPage() {
                               variant: "destructive",
                               duration: 3000
                             });
+                            
+                            // Safety fallback - go back to first domain if needed
+                            if (domains && domains.length > 0) {
+                              const safeIndex = 0;
+                              setCurrentDomainIndex(safeIndex);
+                              setCurrentQuestionIndex(0);
+                              
+                              // Reset to beginner difficulty for the first domain
+                              const safeDomain = domains[0].id;
+                              setDomainDifficulty(prev => ({
+                                ...prev,
+                                [safeDomain]: 'beginner'
+                              }));
+                              
+                              setTimeout(() => {
+                                updateDomainQuestions(safeDomain, 'beginner');
+                              }, 300);
+                            }
                           }
                         }}
                         aria-label={`Select ${domain.name} assessment area`}
