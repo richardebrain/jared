@@ -36,12 +36,13 @@ import { Separator } from "@/components/ui/separator";
 
 export default function BusinessSignupPage() {
   const { user } = useAuth();
-  const [, setLocation] = useLocation();
+  const [, navigate] = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("school-info");
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [progress, setProgress] = useState(1); // Track progress through signup flow
   
   // School information
   const [schoolName, setSchoolName] = useState("");
@@ -59,8 +60,8 @@ export default function BusinessSignupPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [adminPasswordError, setAdminPasswordError] = useState("");
   
-  // Subscription information
-  const [planType, setPlanType] = useState("monthly");
+  // Subscription information - defaults to annual for better value
+  const [planType, setPlanType] = useState("annual");
 
   // Handle logo file upload
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -132,7 +133,12 @@ export default function BusinessSignupPage() {
         return;
       }
       
+      // Move to next step
       setActiveTab("admin-access");
+      setProgress(2);
+      
+      // Scroll to top for better UX
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (activeTab === "admin-access") {
       // Validate admin password
       if (!adminPassword) {
@@ -152,6 +158,10 @@ export default function BusinessSignupPage() {
       
       setAdminPasswordError("");
       setActiveTab("subscription");
+      setProgress(3);
+      
+      // Scroll to top for better UX
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
