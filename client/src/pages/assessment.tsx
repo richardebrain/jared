@@ -1410,6 +1410,278 @@ const assessmentQuestions: Question[] = [
     correctAnswer: 'Creating a curriculum that centers multiple perspectives and explicitly addresses issues of equity',
     required: true,
     explanation: 'Equitable curriculum development involves reimagining educational spaces to center diverse perspectives, explicitly address systemic inequities through anti-bias approaches, and engage children in age-appropriate conversations about fairness and inclusion.'
+  },
+  
+  // Mindful Teaching - Beginner Level
+  {
+    id: 'mt-b-1',
+    text: 'What is a key benefit of mindfulness practice for teachers?',
+    domain: 'mindful-teaching',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'Eliminating all classroom challenges', 
+      'Reducing stress and increasing emotional regulation', 
+      'Replacing traditional teaching methods entirely', 
+      'Avoiding difficult conversations with parents'
+    ],
+    correctAnswer: 'Reducing stress and increasing emotional regulation',
+    required: true,
+    explanation: 'Mindfulness practices help teachers manage stress, regulate emotions, and respond rather than react in challenging situations.'
+  },
+  {
+    id: 'mt-b-2',
+    text: 'Which of the following is a simple mindfulness technique that can be incorporated into a busy teaching day?',
+    domain: 'mindful-teaching',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'Hour-long meditation sessions', 
+      'Taking three conscious breaths before responding to a challenging situation', 
+      'Completely clearing your mind of all thoughts', 
+      'Multitasking to maximize efficiency'
+    ],
+    correctAnswer: 'Taking three conscious breaths before responding to a challenging situation',
+    required: true,
+    explanation: 'Brief mindful breathing creates a pause between stimulus and response, allowing for more intentional teaching choices.'
+  },
+  
+  // Mindful Teaching - Intermediate Level
+  {
+    id: 'mt-i-1',
+    text: 'How can mindfulness practices support children with challenging behaviors?',
+    domain: 'mindful-teaching',
+    type: 'multiple-choice',
+    difficulty: 'intermediate',
+    options: [
+      'By teaching children to suppress all negative emotions', 
+      'By helping children develop awareness of emotions and self-regulation tools', 
+      'By punishing disruptive behaviors immediately', 
+      'By separating children exhibiting challenging behaviors from the group'
+    ],
+    correctAnswer: 'By helping children develop awareness of emotions and self-regulation tools',
+    required: true,
+    explanation: 'Mindfulness supports children in recognizing emotions, developing vocabulary to express feelings, and learning strategies to self-regulate.'
+  },
+  {
+    id: 'mt-i-2',
+    text: 'What is meant by "teacher presence" in mindful teaching?',
+    domain: 'mindful-teaching',
+    type: 'multiple-choice',
+    difficulty: 'intermediate',
+    options: [
+      'Being physically in the classroom at all times', 
+      'Maintaining strict control over all classroom activities', 
+      'Being fully aware and engaged in the current moment with children', 
+      'Presenting information clearly and loudly'
+    ],
+    correctAnswer: 'Being fully aware and engaged in the current moment with children',
+    required: true,
+    explanation: 'Teacher presence involves bringing full, non-judgmental attention to interactions with children, noticing both their needs and one\'s own internal responses.'
+  },
+  
+  // Mindful Teaching - Advanced Level
+  {
+    id: 'mt-a-1',
+    text: 'How does a mindful approach to classroom observation differ from traditional observation?',
+    domain: 'mindful-teaching',
+    type: 'multiple-choice',
+    difficulty: 'advanced',
+    options: [
+      'Mindful observation focuses only on academic progress', 
+      'Mindful observation emphasizes looking for problems to fix', 
+      'Mindful observation involves curiosity, non-judgment, and seeing children holistically', 
+      'Mindful observation requires less time than traditional observation'
+    ],
+    correctAnswer: 'Mindful observation involves curiosity, non-judgment, and seeing children holistically',
+    required: true,
+    explanation: 'Mindful observation brings qualities of curiosity, openness, and non-judgment to seeing children as whole people, noticing patterns without immediately labeling behaviors as problems.'
+  },
+  {
+    id: 'mt-a-2',
+    text: 'Which of the following best describes how mindfulness practices support trauma-sensitive teaching?',
+    domain: 'mindful-teaching',
+    type: 'multiple-choice',
+    difficulty: 'advanced',
+    options: [
+      'Mindfulness eliminates the need for specific trauma-informed strategies', 
+      'Mindfulness helps teachers maintain emotional boundaries by detaching from children\'s trauma', 
+      'Mindfulness practices support co-regulation, safety, and predictability that benefit trauma-affected children', 
+      'Mindfulness focuses exclusively on cognitive learning regardless of emotional state'
+    ],
+    correctAnswer: 'Mindfulness practices support co-regulation, safety, and predictability that benefit trauma-affected children',
+    required: true,
+    explanation: 'Mindful teaching practices complement trauma-sensitive approaches by supporting teachers in co-regulation, creating predictable environments, and responding to emotional needs with presence and compassion.'
+  },
+  
+  // Mindful Teaching - Expert Level
+  {
+    id: 'mt-e-1',
+    text: 'How does mindful leadership transform early childhood program culture?',
+    domain: 'mindful-teaching',
+    type: 'multiple-choice',
+    difficulty: 'expert',
+    options: [
+      'By eliminating all workplace conflicts through meditation', 
+      'By cultivating compassionate awareness, reflective practice, and authentic presence throughout the organization', 
+      'By requiring all staff to practice personal mindfulness outside of work hours', 
+      'By focusing exclusively on administrative efficiency'
+    ],
+    correctAnswer: 'By cultivating compassionate awareness, reflective practice, and authentic presence throughout the organization',
+    required: true,
+    explanation: 'Mindful leadership shapes organizational culture by modeling and fostering qualities of presence, compassion, authenticity, reflective practice, and awareness of interconnection among all community members.'
+  },
+  {
+    id: 'mt-e-2',
+    text: 'Which statement reflects the deepest understanding of mindfulness as a foundation for anti-bias education?',
+    domain: 'mindful-teaching',
+    type: 'multiple-choice',
+    difficulty: 'expert',
+    options: [
+      'Mindfulness and anti-bias approaches are unrelated educational frameworks', 
+      'Mindfulness practices replace the need for explicit anti-bias curriculum', 
+      'Mindfulness cultivates the self-awareness, compassion, and courage necessary for authentic anti-bias work', 
+      'Mindfulness should be practiced separately from discussions about bias and equity'
+    ],
+    correctAnswer: 'Mindfulness cultivates the self-awareness, compassion, and courage necessary for authentic anti-bias work',
+    required: true,
+    explanation: 'At an expert level, practitioners understand how mindfulness develops capacities essential for authentic anti-bias education: self-awareness of one\'s own biases, compassion for others\' experiences, courage to engage in difficult conversations, and present-moment awareness during complex interactions around identity and equity.'
+  },
+  
+  // Core Values - Beginner Level
+  {
+    id: 'cv-b-1',
+    text: 'Which of Raising Arizona\'s CORE values focuses on providing stable, predictable environments?',
+    domain: 'core-values',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'Be Committed', 
+      'Be Consistent', 
+      'Be Prepared', 
+      'Be Positive'
+    ],
+    correctAnswer: 'Be Consistent',
+    required: true,
+    explanation: 'The "Be Consistent" core value emphasizes creating stable, predictable environments where children understand expectations and feel secure.'
+  },
+  {
+    id: 'cv-b-2',
+    text: 'Which CORE value emphasizes planning effectively and being ready to deliver excellent educational experiences?',
+    domain: 'core-values',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'Be Caring', 
+      'Be Positive', 
+      'Be Prepared', 
+      'Be Consistent'
+    ],
+    correctAnswer: 'Be Prepared',
+    required: true,
+    explanation: 'The "Be Prepared" core value focuses on planning effectively and coming ready to deliver excellent educational experiences for every child.'
+  },
+  
+  // Core Values - Intermediate Level
+  {
+    id: 'cv-i-1',
+    text: 'Which of the following best demonstrates the "Be Committed" CORE value?',
+    domain: 'core-values',
+    type: 'multiple-choice',
+    difficulty: 'intermediate',
+    options: [
+      'Arriving exactly on time for your shift', 
+      'Following the lesson plan without deviation', 
+      'Pursuing professional development opportunities beyond required training', 
+      'Using only school-approved teaching materials'
+    ],
+    correctAnswer: 'Pursuing professional development opportunities beyond required training',
+    required: true,
+    explanation: '"Be Committed" involves demonstrating dedication to each child\'s growth and development, which includes continuous improvement as an educator through ongoing professional development.'
+  },
+  {
+    id: 'cv-i-2',
+    text: 'How does the "Be Caring" CORE value impact classroom management?',
+    domain: 'core-values',
+    type: 'multiple-choice',
+    difficulty: 'intermediate',
+    options: [
+      'By creating rigid routines that children must follow', 
+      'By focusing on academic achievement over emotional needs', 
+      'By responding to challenging behaviors with empathy while maintaining boundaries', 
+      'By avoiding difficult conversations with children'
+    ],
+    correctAnswer: 'By responding to challenging behaviors with empathy while maintaining boundaries',
+    required: true,
+    explanation: 'The "Be Caring" value emphasizes genuine compassion and empathy, which means understanding children\'s emotions and needs even during challenging behaviors, while still maintaining appropriate boundaries.'
+  },
+  
+  // Core Values - Advanced Level
+  {
+    id: 'cv-a-1',
+    text: 'How do Raising Arizona\'s CORE values work together in classroom practice?',
+    domain: 'core-values',
+    type: 'multiple-choice',
+    difficulty: 'advanced',
+    options: [
+      'Each value is applied separately depending on the situation', 
+      'Values are hierarchical with Consistency being most important', 
+      'The values interconnect to create a comprehensive teaching approach', 
+      'Teachers should focus on one value each day of the week'
+    ],
+    correctAnswer: 'The values interconnect to create a comprehensive teaching approach',
+    required: true,
+    explanation: 'At an advanced level, educators understand that the five CORE values don\'t exist in isolation but work together as an integrated approach to quality teaching.'
+  },
+  {
+    id: 'cv-a-2',
+    text: 'How does the "Be Positive" CORE value influence teacher-child interactions?',
+    domain: 'core-values',
+    type: 'multiple-choice',
+    difficulty: 'advanced',
+    options: [
+      'By avoiding any discussion of negative emotions or challenges', 
+      'By maintaining a cheerful demeanor regardless of circumstances', 
+      'By focusing exclusively on praising children\'s achievements', 
+      'By modeling optimistic thinking, solution-focused approaches, and constructive feedback'
+    ],
+    correctAnswer: 'By modeling optimistic thinking, solution-focused approaches, and constructive feedback',
+    required: true,
+    explanation: 'The "Be Positive" value at an advanced level involves more than just seeming happy; it means modeling optimistic thinking patterns, focusing on solutions rather than problems, and providing constructive feedback that encourages growth.'
+  },
+  
+  // Core Values - Expert Level
+  {
+    id: 'cv-e-1',
+    text: 'Which statement reflects the deepest understanding of how to embody all five CORE values during challenging situations?',
+    domain: 'core-values',
+    type: 'multiple-choice',
+    difficulty: 'expert',
+    options: [
+      'Prioritize Consistency above all other values during challenges', 
+      'Fall back on being Positive to mask difficulties', 
+      'Integrate all values while recognizing that tension points between values require thoughtful professional judgment', 
+      'Focus only on being Prepared until the challenge passes'
+    ],
+    correctAnswer: 'Integrate all values while recognizing that tension points between values require thoughtful professional judgment',
+    required: true,
+    explanation: 'At an expert level, educators understand that values may sometimes create tension points (e.g., being consistent yet adapting to individual needs), requiring reflective practice and professional judgment to integrate all five values effectively.'
+  },
+  {
+    id: 'cv-e-2',
+    text: 'How would an expert teacher use the CORE values to mentor new staff members?',
+    domain: 'core-values',
+    type: 'multiple-choice',
+    difficulty: 'expert',
+    options: [
+      'Focus exclusively on helping them memorize the five values', 
+      'Assign each new teacher one value to master before learning the others', 
+      'Model the values in their own practice while providing opportunities for reflection, coaching, and gradual implementation', 
+      'Provide written materials explaining each value without practical demonstration'
+    ],
+    correctAnswer: 'Model the values in their own practice while providing opportunities for reflection, coaching, and gradual implementation',
+    required: true,
+    explanation: 'Expert educators recognize that CORE values are learned through a combination of modeling, reflective practice, mentoring conversations, and supported implementation, rather than through memorization or isolated focus.'
   }
 ];
 
@@ -1458,8 +1730,9 @@ export default function AssessmentPage() {
     'curriculum-planning': 0,
     'social-emotional': 0,
     'health-safety': 0,
-    'chapter-one': 0,     // New domain
-    'mindful-teaching': 0 // New domain
+    'chapter-one': 0,     // Domain for Building Chapter One
+    'mindful-teaching': 0, // Domain for Mindful Teaching
+    'core-values': 0      // Domain for CORE Values
   });
   
   // Track incorrect answers by domain
