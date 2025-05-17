@@ -84,10 +84,8 @@ export default function Header() {
         <div className="flex items-center">
           <Link href="/">
             <div className="flex items-center">
-              <img src={mentormeLogo} alt="MentorMe Teacher Training" className="h-12 mr-2 rounded-md" />
-              <div className="flex flex-col">
-                <div className="text-xs text-neutral-600 font-medium mt-1">Teacher Training Platform</div>
-              </div>
+              <img src={raisingArizonaLogo} alt="Raising Arizona Preschool" className="h-12 mr-2 rounded-md" />
+              <img src={mentormeLogo} alt="MentorMe" className="h-12 rounded-md" />
             </div>
           </Link>
         </div>
