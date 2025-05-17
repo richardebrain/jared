@@ -1936,9 +1936,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calculate current bear bucks
       const currentBearBucks = user.bearBucks || 0;
       
+      // Check if lifetimePoints field exists already
+      const currentLifetimePoints = user.lifetimePoints || user.points || 0;
+      
       // Update user with new point and bear buck values
+      // Importantly, we maintain the lifetimePoints for teacher progression
       await storage.updateUser(userId, {
         points: currentPoints - pointsToConvert,
+        lifetimePoints: currentLifetimePoints, // Preserve lifetime points for teacher progression
         bearBucks: currentBearBucks + bearBucksToAdd
       });
       

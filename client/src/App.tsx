@@ -38,6 +38,7 @@ import CasinoPage from "@/pages/casino";
 import TransitionTimer from "@/pages/transition-timer";
 import TestAssessmentGraph from "@/pages/test-assessment-graph";
 import SchoolDashboard from "@/pages/school-dashboard";
+import ProfilePage from "@/pages/profile";
 
 function Router() {
   // Use React Query directly to check authenticated state
@@ -205,6 +206,10 @@ function Router() {
       
       <Route path="/schools/:schoolId">
         {isAuthenticated ? <SchoolDashboard /> : <Login />}
+      </Route>
+      
+      <Route path="/profile">
+        {isAuthenticated ? <ProfilePage /> : <Login />}
       </Route>
       
       <Route path="/">
