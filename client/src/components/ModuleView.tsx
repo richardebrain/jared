@@ -13,17 +13,20 @@ import { Progress } from "@/components/ui/progress";
 import { BadgeCheck, Clock, ArrowLeft, BookOpen, Play, Award } from "lucide-react";
 
 interface ModuleViewProps {
-  moduleId: number;
-  user: User;
-  onBack: () => void;
+  moduleId?: number;
+  user?: User;
+  onBack?: () => void;
+  module?: LearningModule;
+  progress?: any;
+  showCategory?: boolean;
 }
 
-export default function ModuleView({ moduleId, user, onBack }: ModuleViewProps) {
+export default function ModuleView({ moduleId, user, onBack, module: providedModule, progress, showCategory }: ModuleViewProps) {
   const { toast } = useToast();
   const [showLesson, setShowLesson] = useState(false);
   
-  // Fetch module data
-  const { data: module, isLoading: isLoadingModule } = useQuery<LearningModule>({
+  // Use provided module or fetch module data
+  const { data: fetchedModule, isLoading: isLoadingModule } = useQuery<LearningModule>({
     queryKey: ['/api/modules', moduleId],
     queryFn: async () => {
       if (!moduleId) {
@@ -31,11 +34,15 @@ export default function ModuleView({ moduleId, user, onBack }: ModuleViewProps) 
       }
       return await apiRequest(`/api/modules/${moduleId}`);
     },
-    enabled: !!moduleId // Only run query if moduleId exists
+    enabled: !!moduleId && !providedModule // Only run query if moduleId exists and module wasn't provided
   });
   
+  // Use either the provided module (from dashboard) or the fetched module
+  const module = providedModule || fetchedModule;
+  
   // Fetch user progress for this module (optimized to only get relevant progress)
-  const { data: userProgress, isLoading: isLoadingProgress, refetch: refetchProgress } = useQuery<UserProgress[]>({
+  // or use provided progress from dashboard
+  const { data: fetchedProgress, isLoading: isLoadingProgress, refetch: refetchProgress } = useQuery<UserProgress[]>({
     queryKey: ["/api/progress", moduleId, user?.id],
     queryFn: async () => {
       try {
@@ -50,8 +57,14 @@ export default function ModuleView({ moduleId, user, onBack }: ModuleViewProps) 
         return [];
       }
     },
-    enabled: !!user?.id && !!moduleId
+    enabled: !!user?.id && !!moduleId && progress === undefined // Only run query if moduleId and userId exist and progress wasn't provided
   });
+  
+  // Use the provided progress from dashboard or the fetched progress
+  // If provided with a progress value directly (dashboard case), create a compatible structure
+  const userProgress = progress !== undefined 
+    ? [{ moduleId: module?.id, progress, completed: progress >= 100 }] 
+    : fetchedProgress;
   
   // Update progress mutation
   const { mutate: updateProgress } = useMutation({
@@ -174,8 +187,8 @@ export default function ModuleView({ moduleId, user, onBack }: ModuleViewProps) 
         await apiRequest(`/api/modules/${moduleId}/fix-content`, { method: 'POST' });
       }
       
-      // Refetch the module data
-      queryClient.invalidateQueries({ queryKey: [`/api/modules/${moduleId}`] });
+      // Refetch the module data using the correct query key format
+      queryClient.invalidateQueries({ queryKey: ['/api/modules', moduleId] });
       
       toast({
         title: "Success",
