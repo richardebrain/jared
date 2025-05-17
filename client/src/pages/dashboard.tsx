@@ -247,26 +247,35 @@ export default function Dashboard() {
   
   // Get user's recent progress to show on dashboard
   const recentProgress = useMemo(() => {
-    if (!userProgress || !modules || !Array.isArray(modules) || modules.length === 0) return [];
+    // Early returns with an empty array if data is missing or invalid
+    if (!userProgress) return [];
+    if (!modules) return [];
+    if (!Array.isArray(modules) || modules.length === 0) return [];
+    
+    // Ensure userProgress is an array (sometimes it might be undefined during loading)
+    const progressArray = Array.isArray(userProgress) ? userProgress : [];
     
     // Only get incomplete modules with some progress
-    const inProgress = Array.isArray(userProgress) 
-      ? userProgress.filter((p) => !p.completed && p.progress > 0)
-      : [];
+    const inProgress = progressArray.filter((p) => !p.completed && p.progress > 0);
     
     // If there are no modules in progress, get 3 unstarted modules to recommend
     if (inProgress.length === 0) {
       // Get modules that haven't been started yet
-      const completedModuleIds = Array.isArray(userProgress) 
-        ? userProgress.filter(p => p.completed).map(p => p.moduleId)
-        : [];
+      const completedModuleIds = progressArray
+        .filter(p => p.completed)
+        .map(p => p.moduleId);
       
       // Filter modules that aren't already completed
       const uncompletedModules = modules.filter(m => !completedModuleIds.includes(m.id));
       
-      // Sort by most recent first (assuming modules have a createdAt field)
+      // Make sure we have modules to work with
+      if (uncompletedModules.length === 0) return [];
+      
+      // Sort by most recent first (ensuring we handle null createdAt fields)
       const sortedModules = [...uncompletedModules].sort((a, b) => {
-        return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
       });
       
       // Create progress objects for modules that haven't been started
@@ -281,7 +290,9 @@ export default function Dashboard() {
     
     // Sort by last accessed, most recent first
     const sorted = [...inProgress].sort((a, b) => {
-      return new Date(b.lastAccessed || 0).getTime() - new Date(a.lastAccessed || 0).getTime();
+      const dateA = a.lastAccessed ? new Date(a.lastAccessed).getTime() : 0;
+      const dateB = b.lastAccessed ? new Date(b.lastAccessed).getTime() : 0;
+      return dateB - dateA;
     });
     
     // Get only top 3
@@ -289,9 +300,9 @@ export default function Dashboard() {
     
     // Attach module data
     return recent.map((progress) => {
-      const module = modules.find((m) => m.id === progress.moduleId) || null;
-      return { ...progress, module };
-    }).filter(item => item.module !== null); // Filter out items without modules
+      const module = modules.find((m) => m.id === progress.moduleId);
+      return module ? { ...progress, module } : null;
+    }).filter(Boolean); // Remove null items
   }, [userProgress, modules]);
   
   // Check if Chapter 1 (ID:34) is complete
