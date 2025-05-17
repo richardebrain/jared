@@ -53,6 +53,13 @@ export default function ProgressionMap() {
   const { user } = useAuth();
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
   
+  // Also fetch user data directly to ensure we have the most current points
+  const { data: userData } = useQuery({
+    queryKey: ["/api/auth/me"],
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+  });
+  
   // Define teacher levels and their requirements
   const teacherLevels: Record<string, LevelRequirement> = {
     "assistant": {
@@ -324,7 +331,7 @@ export default function ProgressionMap() {
                       <div className="text-blue-500 mb-1">
                         <TrendingUp className="h-5 w-5 mx-auto" />
                       </div>
-                      <div className="text-2xl font-bold">{user?.points || 0}</div>
+                      <div className="text-2xl font-bold">{userData?.points || user?.points || 0}</div>
                       <div className="text-xs text-neutral-600">Total Points</div>
                     </div>
                     
