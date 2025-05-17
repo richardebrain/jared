@@ -24,10 +24,14 @@ export default function ModuleView({ moduleId, user, onBack }: ModuleViewProps) 
   
   // Fetch module data
   const { data: module, isLoading: isLoadingModule } = useQuery<LearningModule>({
-    queryKey: [`/api/modules/${moduleId}`],
+    queryKey: ['/api/modules', moduleId],
     queryFn: async () => {
+      if (!moduleId) {
+        throw new Error('Module ID is required');
+      }
       return await apiRequest(`/api/modules/${moduleId}`);
-    }
+    },
+    enabled: !!moduleId // Only run query if moduleId exists
   });
   
   // Fetch user progress for this module
