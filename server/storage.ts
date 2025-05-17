@@ -608,7 +608,17 @@ export class MemStorage implements IStorage {
 export class DatabaseStorage implements IStorage {
   // School operations
   async getSchool(id: number): Promise<School | undefined> {
-    const [school] = await db.select().from(schools).where(eq(schools.id, id));
+    const [school] = await db.select({
+      id: schools.id,
+      name: schools.name,
+      subscriptionActive: schools.subscriptionActive,
+      subscriptionType: schools.subscriptionType,
+      subscriptionExpiresAt: schools.subscriptionExpiresAt,
+      teacherCount: schools.teacherCount,
+      isFreeAccess: schools.isFreeAccess,
+      customization: schools.customization,
+      createdAt: schools.createdAt
+    }).from(schools).where(eq(schools.id, id));
     return school || undefined;
   }
   

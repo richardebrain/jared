@@ -1274,6 +1274,142 @@ const assessmentQuestions: Question[] = [
     correctAnswer: 'Integrating nutritious food options, regular physical activity, and positive food attitudes into daily routines',
     required: true,
     explanation: 'This holistic approach promotes healthy habits without focusing on weight, incorporating regular movement, nutritious foods, and positive relationships with eating.'
+  },
+  
+  // Curriculum - Beginner Level
+  {
+    id: 'curr-b-1',
+    text: 'What is the primary purpose of a curriculum in early childhood education?',
+    domain: 'curriculum',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'To prepare children for standardized testing',
+      'To provide a structured framework for learning and development',
+      'To keep children busy throughout the day',
+      'To ensure all children learn the same content at the same pace'
+    ],
+    correctAnswer: 'To provide a structured framework for learning and development',
+    required: true,
+    explanation: 'Effective early childhood curriculum provides a framework that supports holistic development while allowing for flexibility and individualization.'
+  },
+  {
+    id: 'curr-b-2',
+    text: 'Which of the following best describes an emergent curriculum approach?',
+    domain: 'curriculum',
+    type: 'multiple-choice',
+    difficulty: 'beginner',
+    options: [
+      'Following a scripted lesson plan for all activities',
+      'Allowing children to do whatever interests them with minimal teacher input',
+      'Building curriculum based on children\'s interests while incorporating learning goals',
+      'Teaching academic subjects in isolation from play activities'
+    ],
+    correctAnswer: 'Building curriculum based on children\'s interests while incorporating learning goals',
+    required: true,
+    explanation: 'Emergent curriculum builds on children\'s interests and questions while teachers intentionally scaffold learning to meet developmental goals.'
+  },
+  
+  // Curriculum - Intermediate Level
+  {
+    id: 'curr-i-1',
+    text: 'How should teachers effectively adapt curriculum for diverse learners?',
+    domain: 'curriculum',
+    type: 'multiple-choice',
+    difficulty: 'intermediate',
+    options: [
+      'Lowering expectations for children who struggle',
+      'Providing the same activities but giving more time to complete them',
+      'Modifying teaching strategies, materials, and environments while maintaining learning goals',
+      'Separating children by ability level for most activities'
+    ],
+    correctAnswer: 'Modifying teaching strategies, materials, and environments while maintaining learning goals',
+    required: true,
+    explanation: 'Effective differentiation maintains high expectations while providing multiple pathways to success through varied teaching approaches, materials, and environmental supports.'
+  },
+  {
+    id: 'curr-i-2',
+    text: 'Which approach most effectively integrates STEM (Science, Technology, Engineering, Math) concepts into early childhood curriculum?',
+    domain: 'curriculum',
+    type: 'multiple-choice',
+    difficulty: 'intermediate',
+    options: [
+      'Adding a separate daily STEM lesson focusing on academic vocabulary',
+      'Integrating inquiry-based STEM explorations through play and everyday experiences',
+      'Showing educational videos about STEM concepts',
+      'Teaching STEM concepts primarily through worksheets and structured activities'
+    ],
+    correctAnswer: 'Integrating inquiry-based STEM explorations through play and everyday experiences',
+    required: true,
+    explanation: 'Effective early STEM integration embeds concepts in meaningful, hands-on experiences that build on children\'s natural curiosity through play-based exploration.'
+  },
+  
+  // Curriculum - Advanced Level
+  {
+    id: 'curr-a-1',
+    text: 'How can curriculum effectively support executive function development in preschoolers?',
+    domain: 'curriculum',
+    type: 'multiple-choice',
+    difficulty: 'advanced',
+    options: [
+      'Focusing primarily on academic skill development',
+      'Incorporating games and activities that target working memory, inhibitory control, and cognitive flexibility',
+      'Minimizing transitions to reduce cognitive demands',
+      'Teaching executive function skills through direct instruction only'
+    ],
+    correctAnswer: 'Incorporating games and activities that target working memory, inhibitory control, and cognitive flexibility',
+    required: true,
+    explanation: 'Research shows that intentionally incorporating activities that exercise core executive function skills (working memory, inhibitory control, cognitive flexibility) supports both academic and social-emotional development.'
+  },
+  {
+    id: 'curr-a-2',
+    text: 'Which approach to curriculum planning best supports cultural responsiveness?',
+    domain: 'curriculum',
+    type: 'multiple-choice',
+    difficulty: 'advanced',
+    options: [
+      'Using a standardized curriculum with set learning activities',
+      'Adding multicultural materials during designated diversity weeks',
+      'Incorporating family perspectives and cultural practices into ongoing curriculum planning',
+      'Focusing on universal experiences that apply to all cultures'
+    ],
+    correctAnswer: 'Incorporating family perspectives and cultural practices into ongoing curriculum planning',
+    required: true,
+    explanation: 'Culturally responsive curriculum authentically integrates diverse perspectives, invites family participation in planning, and embeds cultural elements throughout the program rather than treating them as separate "special" topics.'
+  },
+  
+  // Curriculum - Expert Level
+  {
+    id: 'curr-e-1',
+    text: 'Which statement reflects the most current evidence-based understanding of curriculum integration in early childhood?',
+    domain: 'curriculum',
+    type: 'multiple-choice',
+    difficulty: 'expert',
+    options: [
+      'Content areas should be taught separately to ensure adequate coverage of each domain',
+      'Integration should be limited to obvious connections like literacy and social studies',
+      'Cross-domain integration enhances learning by leveraging the interconnected nature of development',
+      'Domain integration is beneficial only for advanced learners who have mastered basic skills'
+    ],
+    correctAnswer: 'Cross-domain integration enhances learning by leveraging the interconnected nature of development',
+    required: true,
+    explanation: 'Research in neuroscience and developmental psychology demonstrates that learning is enhanced when content is integrated across domains, reflecting how the brain naturally processes information through multiple connected pathways.'
+  },
+  {
+    id: 'curr-e-2',
+    text: 'Which approach to curriculum development best aligns with contemporary understanding of equitable practice?',
+    domain: 'curriculum',
+    type: 'multiple-choice',
+    difficulty: 'expert',
+    options: [
+      'Using a standardized "colorblind" approach that treats all children the same',
+      'Creating a curriculum that centers multiple perspectives and explicitly addresses issues of equity',
+      'Modifying existing curriculum by adding diverse books to the reading area',
+      'Developing separate curriculum adaptations for children from different cultural backgrounds'
+    ],
+    correctAnswer: 'Creating a curriculum that centers multiple perspectives and explicitly addresses issues of equity',
+    required: true,
+    explanation: 'Equitable curriculum development involves reimagining educational spaces to center diverse perspectives, explicitly address systemic inequities through anti-bias approaches, and engage children in age-appropriate conversations about fairness and inclusion.'
   }
 ];
 
