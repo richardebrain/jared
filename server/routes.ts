@@ -1163,6 +1163,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Internal server error" });
     }
   });
+  
+  // Special endpoint to check if user has special bonus games access
+  app.get("/api/bonus-games/access", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const user = await storage.getUser(userId);
+      
+      // Special access for jlcookie20 user account
+      if (user && user.username === 'jlcookie20') {
+        return res.status(200).json({ 
+          hasSpecialAccess: true,
+          message: "You have special access to all bonus games without restrictions!"
+        });
+      }
+      
+      // Default response for other users
+      return res.status(200).json({ 
+        hasSpecialAccess: false,
+        message: "Standard access rules apply"
+      });
+    } catch (error) {
+      console.error("Error checking bonus games access:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
 
   app.get("/api/games/:id", async (req, res) => {
     try {

@@ -52,17 +52,31 @@ export default function CasinoPage() {
     queryKey: ["/api/progress"],
   });
   
-  // Check if user has completed any activities today
-  const hasCompletedActivity = progress.some((p: any) => p.completed);
+  // Check for special bonus games access for jlcookie20
+  const { data: specialAccess } = useQuery({
+    queryKey: ["/api/bonus-games/access"],
+  });
+  
+  // Check if user has special access or has completed activities
+  const hasSpecialAccess = specialAccess?.hasSpecialAccess || false;
+  const hasCompletedActivity = hasSpecialAccess || progress.some((p: any) => p.completed);
   
   // Check if user has already played a game today (limit of one game per login)
+  // Users with special access (jlcookie20) bypass this restriction
   useEffect(() => {
+    // For special users (like jlcookie20), always allow access to games
+    if (hasSpecialAccess) {
+      setDailyGameUsed(false);
+      return;
+    }
+    
+    // Normal restriction for regular users
     const today = new Date().toDateString();
     const lastPlayedDate = localStorage.getItem('lastGamePlayedDate');
     if (lastPlayedDate === today) {
       setDailyGameUsed(true);
     }
-  }, []);
+  }, [hasSpecialAccess]);
   
   // Use the new points reward hook
   const { awardPoints, isPending } = usePointsReward({
