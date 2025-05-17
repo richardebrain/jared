@@ -1859,6 +1859,32 @@ const AssessmentCompletionView = ({
   const growthAreas = latestAssessment.growthAreas || [];
   const teacherLevel = latestAssessment.teacherLevel || "Assistant Teacher";
   
+  // If assessment is completed, show the celebration view
+  if (showCompletionView) {
+    // Calculate total correct answers for display
+    const totalAnswers = Object.keys(answers).length;
+    const correctAnswers = Object.keys(answers).filter(qId => {
+      const question = assessmentQuestions.find(q => q.id === qId);
+      return question && answers[qId] === question.correctAnswer;
+    }).length;
+    
+    // Function to reset and restart the assessment
+    const resetAssessment = () => {
+      setShowCompletionView(false);
+      initializeAssessment();
+    };
+    
+    return (
+      <AssessmentCompletionView 
+        user={user}
+        assessmentResults={assessmentResults}
+        resetAssessment={resetAssessment}
+        totalAnswers={totalAnswers}
+        correctAnswers={correctAnswers}
+      />
+    );
+  }
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-neutral-100">
       <Header />
@@ -3314,6 +3340,9 @@ export default function AssessmentPage() {
       
       // Play a celebratory sound effect
       playLevelUpSound();
+      
+      // Save completed assessment timestamp to localStorage to show right content on dashboard
+      localStorage.setItem('assessmentCompleted', Date.now().toString());
       
       // Generate an encouraging, personalized message based on performance
       const generateEncouragingMessage = () => {
