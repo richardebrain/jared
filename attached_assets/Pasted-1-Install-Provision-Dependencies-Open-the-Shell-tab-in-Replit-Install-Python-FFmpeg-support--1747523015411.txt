@@ -1,0 +1,196 @@
+1. Install & Provision Dependencies
+Open the Shell tab in Replit.
+
+Install Python & FFmpeg support:
+
+bash
+Copy
+Edit
+pip install fastapi uvicorn sqlalchemy python‐dotenv youtube‐dl[geo] ffmpeg-python
+apt-get update && apt-get install -y ffmpeg
+Ensure you have environment variables set under 🔒 Secrets:
+
+YOUTUBE_API_KEY (for the YouTube Data API)
+
+CLOUDFLARE_STREAM_API_TOKEN (if using Cloudflare Stream)
+
+Or your S3 credentials if self-hosting
+
+2. Define the Snippet Model
+In backend/models.py, add:
+
+diff
+Copy
+Edit
+ from sqlalchemy.ext.declarative import declarative_base
+ from sqlalchemy import Column, Integer, String
+ Base = declarative_base()
+
++class Snippet(Base):
++    __tablename__ = "snippets"
++    id            = Column(Integer, primary_key=True, index=True)
++    title         = Column(String)
++    video_url     = Column(String)   # hosted snippet URL
++    thumbnail_url = Column(String)
++    source_url    = Column(String)   # original video page
++    license       = Column(String)
+Restart so Base.metadata.create_all(bind=engine) picks it up.
+
+3. Add the EduTalk Router
+Create backend/routers/edutalk.py:
+
+python
+Copy
+Edit
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from backend import models
+from backend.main import get_db
+
+router = APIRouter(prefix="/api/edutalk", tags=["edutalk"])
+
+@router.get("/feed")
+def get_feed(cursor: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    items = (
+      db.query(models.Snippet)
+        .filter(models.Snippet.id > cursor)
+        .order_by(models.Snippet.id)
+        .limit(limit)
+        .all()
+    )
+    return {"snippets": items}
+In backend/main.py, include the router:
+
+diff
+Copy
+Edit
+ from backend.routers import gamification, coach
++from backend.routers import edutalk
+
+ app.include_router(gamification.router)
+ app.include_router(coach.router)
++app.include_router(edutalk.router)
+4. Build the Ingest Script
+Create backend/ingest_snippets.py to pull & clip videos:
+
+python
+Copy
+Edit
+import os, json, subprocess
+from googleapiclient.discovery import build
+from sqlalchemy.orm import Session
+from backend import models
+from backend.main import SessionLocal
+
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
+youtube = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
+
+def fetch_video_ids(query, max_results=5):
+    res = youtube.search().list(q=query, part="id,snippet", type="video", maxResults=max_results).execute()
+    return [(item["id"]["videoId"], item["snippet"]["title"]) for item in res["items"]]
+
+def download_and_clip(video_id, title, start, duration, out_path):
+    url = f"https://www.youtube.com/watch?v={video_id}"
+    # download full video
+    subprocess.run(["youtube-dl", "-f", "mp4", "-o", "full.%(ext)s", url])
+    # clip snippet
+    subprocess.run([
+      "ffmpeg", "-ss", str(start), "-t", str(duration),
+      "-i", "full.mp4", "-c", "copy", out_path
+    ])
+
+def upload_to_stream(local_file, title):
+    # Example: Cloudflare Stream upload via API
+    # Return playback URL and thumbnail URL
+    pass
+
+def ingest(query):
+    db: Session = SessionLocal()
+    for vid, title in fetch_video_ids(query):
+        clip_file = f"snippets/{vid}.mp4"
+        download_and_clip(vid, title, start=30, duration=20, out_path=clip_file)
+        video_url, thumb = upload_to_stream(clip_file, title)
+        snippet = models.Snippet(
+          title=title,
+          video_url=video_url,
+          thumbnail_url=thumb,
+          source_url=f"https://youtu.be/{vid}",
+          license="YouTube Standard"
+        )
+        db.add(snippet)
+        db.commit()
+    db.close()
+
+if __name__ == "__main__":
+    os.makedirs("snippets", exist_ok=True)
+    ingest("preschool mindfulness")
+Run it once to seed a few snippets:
+
+bash
+Copy
+Edit
+python3 backend/ingest_snippets.py
+5. Add the Infinite-Scroll Component
+In your front-end (e.g. React src/components/EduTalkFeed.js):
+
+jsx
+Copy
+Edit
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import InfiniteScroll from "react-infinite-scroll-component";
+
+export default function EduTalkFeed() {
+  const [snippets, setSnippets] = useState([]);
+  const [cursor, setCursor] = useState(0);
+
+  const fetchMore = async () => {
+    const res = await axios.get("/api/edutalk/feed", {
+      params: { cursor, limit: 5 },
+    });
+    if (res.data.snippets.length) {
+      setSnippets([...snippets, ...res.data.snippets]);
+      setCursor(res.data.snippets.slice(-1)[0].id);
+    }
+  };
+
+  useEffect(() => { fetchMore() }, []);
+
+  return (
+    <InfiniteScroll
+      dataLength={snippets.length}
+      next={fetchMore}
+      hasMore={true}
+      loader={<h4>Loading…</h4>}
+    >
+      {snippets.map((s) => (
+        <div key={s.id} className="video-card">
+          <video
+            src={s.video_url}
+            poster={s.thumbnail_url}
+            controls
+            autoPlay
+            muted
+            loop
+            style={{ width: "100%" }}
+          />
+          <p>{s.title}</p>
+        </div>
+      ))}
+    </InfiniteScroll>
+  );
+}
+Import and render <EduTalkFeed /> in your app’s main page.
+
+6. Update .replit & Run
+Create or update .replit:
+
+ini
+Copy
+Edit
+run = "bash -lc 'uvicorn backend.main:app --host 0.0.0.0 --port $PORT & npm start'"
+Then click Run. You’ll have:
+
+FastAPI backend serving /api/edutalk/feed
+
+React front-end auto-scrolling through your curated snippets
