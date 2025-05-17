@@ -603,6 +603,129 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   };
+  
+  // Owner API endpoints for subscription and school management
+  app.get("/api/owner/dashboard", requireOwner, async (req, res) => {
+    try {
+      // Get a list of all schools with subscription details
+      const schools = await storage.getAllSchools();
+      
+      // Get total users count
+      const allUsers = await storage.getAllUsers();
+      
+      // Get total active subscribers count (exclude Raising Arizona users)
+      const subscribedSchools = schools.filter(school => 
+        school.subscriptionActive && !school.isFreeAccess
+      );
+      
+      // Get revenue statistics (placeholder for Stripe integration)
+      const stats = {
+        totalSchools: schools.length,
+        activeSubscriptions: subscribedSchools.length,
+        totalUsers: allUsers.length,
+        averageUsersPerSchool: Math.round(allUsers.length / (schools.length || 1)),
+        revenueStats: {
+          monthly: subscribedSchools.length * 250, // Placeholder assuming $250/month per school
+          annual: subscribedSchools.length * 2500, // Placeholder assuming $2500/year per school
+          projected: subscribedSchools.length * 3000, // Placeholder for projected annual revenue
+        }
+      };
+      
+      res.status(200).json({
+        schools,
+        stats
+      });
+    } catch (error) {
+      console.error("Error fetching owner dashboard data:", error);
+      res.status(500).json({ message: "Error fetching owner dashboard data" });
+    }
+  });
+  
+  // Assign owner privileges to another user
+  app.post("/api/owner/assign", requireOwner, async (req, res) => {
+    try {
+      const { userId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+      
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Update user to have owner privileges
+      await storage.updateUser(userId, { isOwner: true });
+      
+      res.status(200).json({ 
+        message: "Owner privileges granted successfully",
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName
+        }
+      });
+    } catch (error) {
+      console.error("Error assigning owner privileges:", error);
+      res.status(500).json({ message: "Error assigning owner privileges" });
+    }
+  });
+  
+  // Remove owner privileges from a user
+  app.post("/api/owner/revoke", requireOwner, async (req, res) => {
+    try {
+      const { userId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+      
+      // Don't allow revoking jlcookie20's owner privileges (ID: 4)
+      if (userId === 4) {
+        return res.status(403).json({ message: "Cannot revoke primary owner privileges" });
+      }
+      
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Update user to remove owner privileges
+      await storage.updateUser(userId, { isOwner: false });
+      
+      res.status(200).json({ 
+        message: "Owner privileges revoked successfully" 
+      });
+    } catch (error) {
+      console.error("Error revoking owner privileges:", error);
+      res.status(500).json({ message: "Error revoking owner privileges" });
+    }
+  });
+  
+  // Get list of all owners
+  app.get("/api/owner/list", requireOwner, async (req, res) => {
+    try {
+      const allUsers = await storage.getAllUsers();
+      const owners = allUsers.filter(user => user.isOwner).map(user => ({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        isPrimary: user.id === 4 // jlcookie20 is the primary owner
+      }));
+      
+      res.status(200).json(owners);
+    } catch (error) {
+      console.error("Error fetching owners list:", error);
+      res.status(500).json({ message: "Error fetching owners list" });
+    }
+  });
 
   // Admin routes with direct password checking for reliability
   app.get("/api/admin/users", async (req, res) => {

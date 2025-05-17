@@ -1635,6 +1635,36 @@ export default function AssessmentPage() {
                 correctAnswer: 'Engaging in social conversations and showing genuine interest in children',
                 required: true
               },
+              {
+                id: 'es-intermediate-3',
+                text: 'Which strategy most effectively promotes a positive classroom climate according to CLASS standards?',
+                domain: 'emotional-support',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'intermediate' as DifficultyLevel,
+                options: [
+                  'Using a behavior management system with rewards and punishments',
+                  'Developing personal connections with children and using positive communication',
+                  'Implementing strict routines to maintain classroom order',
+                  'Focusing primarily on academic achievement and learning outcomes'
+                ],
+                correctAnswer: 'Developing personal connections with children and using positive communication',
+                required: true
+              },
+              {
+                id: 'es-intermediate-4',
+                text: 'How can teachers best demonstrate "regard for student perspectives" in the emotional support domain?',
+                domain: 'emotional-support',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'intermediate' as DifficultyLevel,
+                options: [
+                  'Following the curriculum exactly as written',
+                  'Providing flexibility, student autonomy, and incorporating student ideas',
+                  'Ensuring all students follow the same routines and expectations',
+                  'Focusing on direct instruction to maximize learning time'
+                ],
+                correctAnswer: 'Providing flexibility, student autonomy, and incorporating student ideas',
+                required: true
+              },
               // Advanced Questions
               {
                 id: 'es-advanced-1',
@@ -1664,6 +1694,36 @@ export default function AssessmentPage() {
                   'Providing immediate solutions to children\'s problems'
                 ],
                 correctAnswer: 'Anticipating problems and providing individualized support before issues escalate',
+                required: true
+              },
+              {
+                id: 'es-advanced-3',
+                text: 'How can teachers create a high-quality negative climate (minimizing negativity) according to CLASS standards?',
+                domain: 'emotional-support',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'advanced' as DifficultyLevel,
+                options: [
+                  'Using sarcasm sparingly to make points more memorable',
+                  'Consistently applying consequences to establish authority',
+                  'Monitoring one\'s tone, body language, and responses even during challenging situations',
+                  'Implementing a clear behavior management system with defined punishments'
+                ],
+                correctAnswer: 'Monitoring one\'s tone, body language, and responses even during challenging situations',
+                required: true
+              },
+              {
+                id: 'es-advanced-4',
+                text: 'Which teaching behavior would most strongly indicate high-quality emotional support according to the CLASS framework?',
+                domain: 'emotional-support',
+                type: 'multiple-choice' as QuestionType,
+                difficulty: 'advanced' as DifficultyLevel,
+                options: [
+                  'Having children silently work on tasks to build focus and concentration',
+                  'Creating opportunities for collaborative work that builds student autonomy',
+                  'Using a reward system to ensure compliance with classroom rules',
+                  'Strictly adhering to curriculum guidelines without deviation'
+                ],
+                correctAnswer: 'Creating opportunities for collaborative work that builds student autonomy',
                 required: true
               },
               // Expert Questions
