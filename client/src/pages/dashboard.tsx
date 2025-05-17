@@ -508,7 +508,7 @@ export default function Dashboard() {
                       </div>
                     </Link>
                     
-                    {user && (Array.isArray(userProgress) && userProgress.some((p) => p.completed === true)) ? (
+                    {user && (Array.isArray(userProgress) && userProgress.some((p) => p.completed === true) || user.username === 'jlcookie20') ? (
                       <BonusGamesButton />
                     ) : (
                       <div className="group relative overflow-hidden bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700 text-white font-bold py-3 px-6 rounded-xl border-2 border-gray-400 opacity-90">

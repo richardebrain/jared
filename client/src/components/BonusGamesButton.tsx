@@ -7,6 +7,9 @@ export default function BonusGamesButton() {
   const { user } = useAuth();
   const [gamePlayed, setGamePlayed] = useState(false);
   
+  // Check for special access using username directly
+  const isJLCookie = user?.username === 'jlcookie20';
+  
   // Fetch game history to check if a game was played today
   const { data: gameHistory } = useQuery({
     queryKey: ["/api/games/history"],
@@ -16,6 +19,15 @@ export default function BonusGamesButton() {
   
   // Also check localStorage for immediate update after playing a game
   useEffect(() => {
+    // Special override for jlcookie20 - always allow access
+    if (isJLCookie) {
+      setGamePlayed(false);
+      // Clear any restrictions
+      localStorage.removeItem('lastGamePlayedDate');
+      return;
+    }
+    
+    // Normal logic for other users
     const lastGamePlayedDate = localStorage.getItem('lastGamePlayedDate');
     const today = new Date().toDateString();
     
@@ -33,7 +45,7 @@ export default function BonusGamesButton() {
       
       setGamePlayed(playedToday);
     }
-  }, [gameHistory]);
+  }, [gameHistory, user, isJLCookie]);
 
   if (gamePlayed) {
     // Disabled/greyed out state
