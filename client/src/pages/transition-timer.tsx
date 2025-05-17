@@ -280,55 +280,93 @@ export default function TransitionTimer() {
             {formatTime(timeRemaining)}
           </div>
 
-          {/* Hourglass visualization */}
-          <div className="relative w-64 h-64 mb-12">
-            {/* Hourglass top */}
-            <div className="absolute top-0 left-0 right-0 h-[calc(50%-2px)] 
-                           bg-gray-100 border-2 border-gray-500 rounded-t-2xl 
-                           overflow-hidden">
+          {/* Hourglass visualization - bigger and more dramatic */}
+          <div className="relative w-80 h-96 mb-12 transition-all duration-500 transform hover:scale-105">
+            {/* Hourglass top with shadow effect */}
+            <div className="absolute top-0 left-0 right-0 h-[calc(50%-3px)] 
+                           bg-gray-100 border-3 border-gray-600 rounded-t-3xl 
+                           overflow-hidden shadow-inner">
               <div 
-                className="absolute bottom-0 left-0 right-0 transition-all duration-1000"
+                className="absolute bottom-0 left-0 right-0 transition-all duration-1000 ease-in-out"
                 style={{ 
                   height: `${Math.max(0, 100 - sandFillPercentage)}%`, 
                   backgroundColor: getSandColor(),
+                  boxShadow: `0 -10px 15px -5px rgba(0,0,0,0.1) inset, 0 -5px 10px -3px ${getSandColor()}50 inset`
                 }}
               ></div>
-              {/* Top glass shine effect */}
+              {/* Top glass shine effect - enhanced */}
               <div className="absolute top-0 left-1/4 w-1/2 h-1/2 
-                             bg-white opacity-20 transform rotate-45"></div>
+                             bg-white opacity-30 transform rotate-45"></div>
             </div>
             
-            {/* Hourglass connector */}
+            {/* Hourglass connector - wider and with gradient */}
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
-                           w-8 h-4 bg-gray-500"></div>
+                           w-12 h-6 bg-gradient-to-br from-gray-600 to-gray-500 z-10
+                           shadow-md"></div>
             
-            {/* Hourglass bottom */}
-            <div className="absolute bottom-0 left-0 right-0 h-[calc(50%-2px)] 
-                           bg-gray-100 border-2 border-gray-500 rounded-b-2xl 
-                           overflow-hidden">
+            {/* Hourglass bottom with shadow effect */}
+            <div className="absolute bottom-0 left-0 right-0 h-[calc(50%-3px)] 
+                           bg-gray-100 border-3 border-gray-600 rounded-b-3xl 
+                           overflow-hidden shadow-inner">
               <div 
-                className="absolute top-0 left-0 right-0 transition-all duration-1000"
+                className="absolute top-0 left-0 right-0 transition-all duration-1000 ease-in-out"
                 style={{ 
-                  height: `${Math.min(100, (100 - sandFillPercentage))}%`, 
-                  backgroundColor: getSandColor()
+                  height: `${Math.min(100, (100 - sandFillPercentage))}%`,
+                  backgroundColor: getSandColor(),
+                  boxShadow: `0 10px 15px -5px rgba(0,0,0,0.1) inset, 0 5px 10px -3px ${getSandColor()}50 inset`
                 }}
               ></div>
-              {/* Bottom glass shine effect */}
+              {/* Bottom glass shine effect - enhanced */}
               <div className="absolute bottom-0 right-1/4 w-1/2 h-1/2 
-                             bg-white opacity-20 transform rotate-45"></div>
+                             bg-white opacity-30 transform rotate-45"></div>
             </div>
             
-            {/* Hourglass falling sand animation */}
+            {/* Outer glow effect */}
+            <div className="absolute inset-0 rounded-3xl opacity-40 pointer-events-none"
+                 style={{
+                   boxShadow: `0 0 20px 5px ${getSandColor()}80`,
+                   animation: 'pulse 2s infinite ease-in-out'
+                 }}>
+            </div>
+            
+            {/* Hourglass falling sand animation - enhanced */}
             {timerActive && (
-              <div 
-                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 
-                           w-[2px] animate-sand-fall"
-                style={{
-                  height: '30%',
-                  backgroundColor: getSandColor(),
-                  animationDuration: '1s'
-                }}
-              ></div>
+              <>
+                <div 
+                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 
+                             w-[3px] animate-sand-fall"
+                  style={{
+                    height: '40%',
+                    backgroundColor: getSandColor(),
+                    animationDuration: '0.8s',
+                    filter: 'blur(0.5px)',
+                    opacity: 0.9
+                  }}
+                ></div>
+                {/* Additional falling sand particles for dramatic effect */}
+                <div 
+                  className="absolute top-1/2 left-[calc(50%-3px)] transform 
+                             w-[2px] animate-sand-fall-slow"
+                  style={{
+                    height: '25%',
+                    backgroundColor: getSandColor(),
+                    animationDuration: '1.2s',
+                    filter: 'blur(0.5px)',
+                    opacity: 0.7
+                  }}
+                ></div>
+                <div 
+                  className="absolute top-1/2 left-[calc(50%+3px)] transform 
+                             w-[2px] animate-sand-fall-slow"
+                  style={{
+                    height: '30%',
+                    backgroundColor: getSandColor(),
+                    animationDuration: '1s',
+                    filter: 'blur(0.5px)',
+                    opacity: 0.7
+                  }}
+                ></div>
+              </>
             )}
           </div>
 
