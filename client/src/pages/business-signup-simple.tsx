@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Form validation schema
@@ -28,7 +28,7 @@ type FormValues = z.infer<typeof formSchema>;
 export default function BusinessSignupSimplePage() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const [, navigate] = useNavigate();
+  const [, setLocation] = useLocation();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -70,7 +70,7 @@ export default function BusinessSignupSimplePage() {
       });
 
       // Navigate to login page after successful registration
-      navigate("/login");
+      setLocation("/login");
     } catch (error) {
       console.error("Registration error:", error);
       toast({
