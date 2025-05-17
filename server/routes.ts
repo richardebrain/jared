@@ -13,6 +13,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
+import bcrypt from "bcrypt";
 
 // Define our session data structure with proper typing
 declare module "express-session" {

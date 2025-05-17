@@ -27,6 +27,7 @@ export const schools = pgTable("schools", {
   subscriptionExpiresAt: timestamp("subscription_expires_at"),
   teacherCount: integer("teacher_count").default(0),
   isFreeAccess: boolean("is_free_access").default(false), // Set to true for Raising Arizona
+  adminPasswordHash: text("admin_password_hash"), // Password hash for school admin access
   customization: json("customization").$type<{
     primaryColor?: string,
     secondaryColor?: string,
