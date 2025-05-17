@@ -190,6 +190,16 @@ export default function AssessmentPage() {
   // Flag to show the completion view
   const [showCompletionView, setShowCompletionView] = useState(false);
   
+  // Track points earned from assessment completion
+  const [pointsEarned, setPointsEarned] = useState(10);
+  
+  // Handle viewing detailed assessment results
+  const handleViewResults = () => {
+    // Navigate to results page or show detailed results view
+    setAssessmentState('initial');
+    setShowCompletionView(false);
+  };
+  
   // Function to initialize the assessment
   const initializeAssessment = () => {
     // Reset all state
@@ -568,21 +578,28 @@ export default function AssessmentPage() {
     <div className="min-h-screen bg-neutral-50">
       <Header />
       
-      <main className="container max-w-4xl mx-auto px-4 py-8">
-        {/* Progress Bar and Domain Navigation */}
-        <div className="mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="text-lg font-semibold text-gray-700">
-              Assessment Progress
-            </h2>
-            <span className="text-sm font-medium text-primary">
-              {getProgressPercentage()}% Complete
-            </span>
-          </div>
-          <Progress value={getProgressPercentage()} className="h-2" />
-          
-          <div className="mt-4 flex flex-wrap gap-2">
-            {domains.map((domain, index) => (
+      {/* Show celebration screen if assessment is complete */}
+      {assessmentState === 'celebration' ? (
+        <AssessmentCelebration 
+          pointsEarned={pointsEarned}
+          onViewResults={handleViewResults}
+        />
+      ) : (
+        <main className="container max-w-4xl mx-auto px-4 py-8">
+          {/* Progress Bar and Domain Navigation */}
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="text-lg font-semibold text-gray-700">
+                Assessment Progress
+              </h2>
+              <span className="text-sm font-medium text-primary">
+                {getProgressPercentage()}% Complete
+              </span>
+            </div>
+            <Progress value={getProgressPercentage()} className="h-2" />
+            
+            <div className="mt-4 flex flex-wrap gap-2">
+              {domains.map((domain, index) => (
               <Badge 
                 key={domain.id}
                 variant={activeDomainIndex === index ? "default" : 
