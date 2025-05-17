@@ -3298,10 +3298,6 @@ export default function AssessmentPage() {
   };
   
   // Submit assessment mutation
-  // State for showing the enhanced assessment completion experience with celebration
-  const [showCompletionView, setShowCompletionView] = useState(false);
-  // State to store assessment results for the completion view
-  const [assessmentResults, setAssessmentResults] = useState<any>(null);
   
   // Query to get latest assessment results when showing completion view
   const { data: assessments = [] } = useQuery({
