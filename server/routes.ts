@@ -95,7 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       secure: process.env.NODE_ENV === 'production', // Allow HTTP in development
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: "lax",
+      sameSite: "lax" as "lax", // Type assertion to fix TypeScript error
       path: '/' // Ensure cookie is available on all paths
     }, 
     store: new PgSession({
