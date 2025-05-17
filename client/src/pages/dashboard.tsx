@@ -753,33 +753,60 @@ export default function Dashboard() {
                   </div>
                 ) : (
                   <div>
-                    {modules && Array.isArray(modules) && modules.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {modules.slice(0, 2).map((module, index) => (
-                          <div key={index}>
-                            <ModuleView 
-                              module={module} 
-                              progress={0} 
-                              showCategory 
-                            />
+                    {/* Always show recommended modules, not dependent on API data */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden transition-all duration-200 hover:shadow-md cursor-pointer" onClick={() => setLocation('/modules/8')}>
+                          <div className="h-36 bg-gradient-to-r from-blue-500 to-purple-500 relative flex items-center justify-center">
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="text-white font-semibold text-xl text-center p-4">Mindful Morning</div>
+                            </div>
+                            <div className="absolute bottom-2 right-2 bg-white/90 text-xs font-medium rounded-full px-2 py-0.5">
+                              15 min
+                            </div>
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center p-8 bg-gray-50 rounded-lg border border-gray-100">
-                        <div className="mb-2">
-                          <Book className="h-10 w-10 mx-auto text-gray-300" />
+                          <div className="p-4">
+                            <div className="flex justify-between items-start mb-2">
+                              <h3 className="font-bold line-clamp-2">Mindful Morning Practices</h3>
+                              <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">wellness</span>
+                            </div>
+                            <p className="text-sm text-gray-600 line-clamp-2 mb-3">Start your day with techniques to promote mindfulness, reduce stress, and improve classroom management.</p>
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs font-medium text-gray-500">10 points</span>
+                              <div className="bg-gray-100 h-2 rounded-full w-24">
+                                <div className="bg-green-500 h-2 rounded-full" style={{ width: '0%' }}></div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <p className="text-gray-500">Recommended modules will appear here when available</p>
-                        <Button 
-                          variant="outline"
-                          className="mt-4"
-                          onClick={() => setLocation('/modules')}
-                        >
-                          Browse All Modules
-                        </Button>
                       </div>
-                    )}
+                      
+                      <div>
+                        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden transition-all duration-200 hover:shadow-md cursor-pointer" onClick={() => setLocation('/modules/7')}>
+                          <div className="h-36 bg-gradient-to-r from-green-500 to-teal-500 relative flex items-center justify-center">
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="text-white font-semibold text-xl text-center p-4">Core Values</div>
+                            </div>
+                            <div className="absolute bottom-2 right-2 bg-white/90 text-xs font-medium rounded-full px-2 py-0.5">
+                              20 min
+                            </div>
+                          </div>
+                          <div className="p-4">
+                            <div className="flex justify-between items-start mb-2">
+                              <h3 className="font-bold line-clamp-2">Raising Arizona's CORE Values</h3>
+                              <span className="bg-teal-100 text-teal-800 text-xs font-medium px-2.5 py-0.5 rounded">onboarding</span>
+                            </div>
+                            <p className="text-sm text-gray-600 line-clamp-2 mb-3">Learn about our school's guiding principles: Consistency, Preparedness, Commitment, Caring, and Positivity.</p>
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs font-medium text-gray-500">15 points</span>
+                              <div className="bg-gray-100 h-2 rounded-full w-24">
+                                <div className="bg-green-500 h-2 rounded-full" style={{ width: '0%' }}></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
