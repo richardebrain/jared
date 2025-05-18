@@ -91,25 +91,25 @@ export default function EduTokFeed() {
       {
         id: 1,
         title: "Creating Calm Corners in Your Classroom",
-        video_url: "https://www.youtube.com/embed/PFQVUL2SCmE",
+        video_url: "https://player.vimeo.com/video/759633319",
         thumbnail_url: "https://placehold.co/480x720/181D31/FFF.png?text=Calm+Corners",
-        source_url: "https://www.youtube.com/watch?v=PFQVUL2SCmE",
+        source_url: "https://vimeo.com/759633319",
         license: "Educational"
       },
       {
         id: 2,
         title: "Mindful Transitions Between Activities",
-        video_url: "https://www.youtube.com/embed/nHg10EZ7uD8",
+        video_url: "https://player.vimeo.com/video/759633356",
         thumbnail_url: "https://placehold.co/480x720/48425A/FFF.png?text=Activity+Transitions",
-        source_url: "https://www.youtube.com/watch?v=nHg10EZ7uD8",
+        source_url: "https://vimeo.com/759633356",
         license: "Educational"
       },
       {
         id: 3,
         title: "Building Emotional Vocabulary with Preschoolers",
-        video_url: "https://www.youtube.com/embed/ZLSDeQ_sJDg",
+        video_url: "https://player.vimeo.com/video/759633400",
         thumbnail_url: "https://placehold.co/480x720/5D5970/FFF.png?text=Emotional+Vocabulary",
-        source_url: "https://www.youtube.com/watch?v=ZLSDeQ_sJDg",
+        source_url: "https://vimeo.com/759633400",
         license: "Educational"
       }
     ];
