@@ -1336,6 +1336,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Leaderboard route filtered by school
+  app.get("/api/leaderboard", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Get all users from the same school
+      const schoolUsers = await storage.getUsersBySchoolId(user.schoolId);
+      
+      // Sort by points and map to leaderboard format
+      const rankings = schoolUsers
+        .sort((a, b) => (b.points || 0) - (a.points || 0))
+        .map((teacher, index) => ({
+          id: teacher.id,
+          username: teacher.username,
+          firstName: teacher.firstName,
+          lastName: teacher.lastName,
+          profileImage: teacher.profilePicture,
+          totalPoints: teacher.points || 0,
+          lifetimePoints: teacher.lifetimePoints || 0,
+          level: teacher.level === 5 ? "Master Lead Teacher" : 
+                 teacher.level === 4 ? "Lead Teacher" : 
+                 teacher.level === 3 ? "Associate Teacher" : 
+                 teacher.level === 2 ? "Assistant Teacher" : "Teacher in Training",
+          completedModules: teacher.achievementCount || 0,
+          rank: index + 1,
+          isCurrentUser: teacher.id === userId
+        }));
+      
+      res.status(200).json({ rankings });
+    } catch (error) {
+      console.error("Error fetching leaderboard:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Special endpoint to check if user has special bonus games access
   app.get("/api/bonus-games/access", requireAuth, async (req, res) => {
     try {
