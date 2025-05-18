@@ -1,139 +1,118 @@
 import { db } from "./db";
-import { boolean, integer, json, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
-import { schools, users } from "../shared/schema";
-import { eq } from "drizzle-orm";
+import { pgSchema, serial, timestamp, text, integer, boolean, pgTable } from "drizzle-orm/pg-core";
+import { eq, and, sql } from "drizzle-orm";
+import { users } from "@shared/schema";
+import { Pool } from "@neondatabase/serverless";
 
 /**
- * Migration script to add welcome message and certification tracking system
- * Creates a teacher_messages table for welcome messages, shout-outs, and certification alerts
+ * Migration script to add certification tracking and teacher message system
+ * This adds expiration date fields for fingerprint, CPR, First Aid certifications
+ * and creates a teacher message system for welcome messages and notifications.
  */
-async function runWelcomeMessageMigration() {
-  console.log("Starting welcome message migration...");
-  
+export async function runWelcomeMessageMigration() {
+  console.log("Running welcome message and certification tracking migration...");
   try {
-    // Check if table already exists to avoid errors
-    const hasMessagesTable = await checkTableExists('teacher_messages');
-    
-    if (!hasMessagesTable) {
-      // Create teacher_messages table
-      await db.execute(`
+    // Step 1: Check if columns already exist
+    const fingerprintColumnExists = await checkColumnExists("users", "fingerprint_expiration");
+    const hasUnreadMessagesColumnExists = await checkColumnExists("users", "has_unread_messages");
+    const messagesTableExists = await checkTableExists("teacher_messages");
+    const shoutoutsTableExists = await checkTableExists("core_value_shoutouts");
+
+    // Step 2: Add certification tracking columns if they don't exist
+    if (!fingerprintColumnExists) {
+      console.log("Adding certification tracking columns to users table...");
+      await db.execute(sql`
+        ALTER TABLE users 
+        ADD COLUMN fingerprint_expiration DATE,
+        ADD COLUMN cpr_expiration DATE,
+        ADD COLUMN first_aid_expiration DATE
+      `);
+      console.log("Added certification tracking columns successfully");
+    } else {
+      console.log("Certification tracking columns already exist, skipping...");
+    }
+
+    // Step 3: Add has_unread_messages column if it doesn't exist
+    if (!hasUnreadMessagesColumnExists) {
+      console.log("Adding has_unread_messages column to users table...");
+      await db.execute(sql`
+        ALTER TABLE users 
+        ADD COLUMN has_unread_messages BOOLEAN DEFAULT FALSE
+      `);
+      console.log("Added has_unread_messages column successfully");
+    } else {
+      console.log("has_unread_messages column already exists, skipping...");
+    }
+
+    // Step 4: Create teacher_messages table if it doesn't exist
+    if (!messagesTableExists) {
+      console.log("Creating teacher_messages table...");
+      await db.execute(sql`
         CREATE TABLE teacher_messages (
           id SERIAL PRIMARY KEY,
-          sender_id INTEGER NOT NULL REFERENCES users(id),
-          recipient_id INTEGER NOT NULL REFERENCES users(id),
-          school_id INTEGER REFERENCES schools(id),
-          message_type TEXT NOT NULL,
-          title TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          sender_id INTEGER REFERENCES users(id),
+          recipient_id INTEGER REFERENCES users(id),
+          message_type VARCHAR(50) NOT NULL,
+          title VARCHAR(255) NOT NULL,
           content TEXT NOT NULL,
           is_read BOOLEAN DEFAULT FALSE,
-          important BOOLEAN DEFAULT FALSE,
-          expires_at TIMESTAMP,
-          related_id INTEGER,
-          created_at TIMESTAMP DEFAULT NOW()
-        );
+          is_important BOOLEAN DEFAULT FALSE
+        )
       `);
-      console.log("Created teacher_messages table");
+      console.log("Created teacher_messages table successfully");
+    } else {
+      console.log("teacher_messages table already exists, skipping...");
     }
 
-    // Check if certification columns exist in users table
-    const hasFingerprint = await checkColumnExists('users', 'fingerprint_expiration');
-    const hasCpr = await checkColumnExists('users', 'cpr_expiration');
-    const hasFirstAid = await checkColumnExists('users', 'first_aid_expiration');
-    const hasFoodHandler = await checkColumnExists('users', 'food_handler_expiration');
-    const hasJobTitle = await checkColumnExists('users', 'job_title');
-    const hasDesignations = await checkColumnExists('users', 'designations');
-    const hasUnreadMessages = await checkColumnExists('users', 'has_unread_messages');
-
-    // Add certification tracking fields to users table if not already present
-    if (!hasFingerprint) {
-      await db.execute(`ALTER TABLE users ADD COLUMN fingerprint_expiration DATE;`);
-      console.log("Added fingerprint_expiration column to users table");
-    }
-    
-    if (!hasCpr) {
-      await db.execute(`ALTER TABLE users ADD COLUMN cpr_expiration DATE;`);
-      console.log("Added cpr_expiration column to users table");
-    }
-    
-    if (!hasFirstAid) {
-      await db.execute(`ALTER TABLE users ADD COLUMN first_aid_expiration DATE;`);
-      console.log("Added first_aid_expiration column to users table");
-    }
-    
-    if (!hasFoodHandler) {
-      await db.execute(`ALTER TABLE users ADD COLUMN food_handler_expiration DATE;`);
-      console.log("Added food_handler_expiration column to users table");
-    }
-    
-    if (!hasJobTitle) {
-      await db.execute(`ALTER TABLE users ADD COLUMN job_title TEXT;`);
-      console.log("Added job_title column to users table");
-    }
-    
-    if (!hasDesignations) {
-      await db.execute(`ALTER TABLE users ADD COLUMN designations JSONB DEFAULT '[]'::jsonb;`);
-      console.log("Added designations column to users table");
-    }
-    
-    if (!hasUnreadMessages) {
-      await db.execute(`ALTER TABLE users ADD COLUMN has_unread_messages BOOLEAN DEFAULT FALSE;`);
-      console.log("Added has_unread_messages column to users table");
+    // Step 5: Create core_value_shoutouts table if it doesn't exist
+    if (!shoutoutsTableExists) {
+      console.log("Creating core_value_shoutouts table...");
+      await db.execute(sql`
+        CREATE TABLE core_value_shoutouts (
+          id SERIAL PRIMARY KEY,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          nominator_id INTEGER REFERENCES users(id),
+          nominee_id INTEGER REFERENCES users(id),
+          core_value VARCHAR(50) NOT NULL,
+          description TEXT NOT NULL,
+          points_awarded INTEGER DEFAULT 5
+        )
+      `);
+      console.log("Created core_value_shoutouts table successfully");
+    } else {
+      console.log("core_value_shoutouts table already exists, skipping...");
     }
 
-    // Create sample welcome messages for each user
-    const allUsers = await db.query.users.findMany();
-    const admin = allUsers.find(user => user.isAdmin || user.isSchoolAdmin || user.isOwner);
-    
-    if (admin) {
-      for (const user of allUsers) {
-        if (user.id !== admin.id) {
-          // Create a welcome message for each user
-          await db.execute(`
-            INSERT INTO teacher_messages 
-            (sender_id, recipient_id, school_id, message_type, title, content, is_read, important)
-            VALUES (
-              $1, $2, $3, 'welcome', 'Welcome to MentorMe!', 
-              'Hello ${user.firstName},\n\nWelcome to MentorMe! We''re excited to have you join our professional development platform. Your journey to becoming a better educator starts here.\n\nExplore the available learning modules and earn points to advance your teaching career.\n\nBest regards,\nThe MentorMe Team',
-              false, true
-            )
-          `, [admin.id, user.id, user.schoolId]);
-          
-          // Set the has_unread_messages flag to true for each user
-          await db.update(users)
-            .set({ hasUnreadMessages: true })
-            .where(eq(users.id, user.id));
-        }
-      }
-      console.log("Created welcome messages for users");
-    }
-
-    console.log("Welcome message migration completed successfully!");
+    console.log("Welcome message and certification tracking migration completed successfully");
+    return { success: true };
   } catch (error) {
-    console.error("Migration failed:", error);
-    throw error;
+    console.error("Error in welcome message migration:", error);
+    return { success: false, error };
   }
 }
 
-// Helper function to check if a column exists
+/**
+ * Helper function to check if a column exists in a table
+ */
 async function checkColumnExists(table: string, column: string): Promise<boolean> {
-  const result = await db.execute(`
-    SELECT 1 
-    FROM information_schema.columns 
-    WHERE table_name = $1 AND column_name = $2;
-  `, [table, column]);
-  
-  return result.rowCount ? result.rowCount > 0 : false;
+  const result = await db.execute(sql`
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_name = ${table}
+    AND column_name = ${column}
+  `);
+  return result.rows.length > 0;
 }
 
-// Helper function to check if a table exists
+/**
+ * Helper function to check if a table exists
+ */
 async function checkTableExists(table: string): Promise<boolean> {
-  const result = await db.execute(`
-    SELECT 1 
-    FROM information_schema.tables 
-    WHERE table_name = $1;
-  `, [table]);
-  
-  return result.rowCount ? result.rowCount > 0 : false;
+  const result = await db.execute(sql`
+    SELECT 1
+    FROM information_schema.tables
+    WHERE table_name = ${table}
+  `);
+  return result.rows.length > 0;
 }
-
-export { runWelcomeMessageMigration };
