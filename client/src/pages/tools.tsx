@@ -57,17 +57,36 @@ interface ToolCardProps {
 const ToolCard: React.FC<ToolCardProps> = ({ icon, title, description, onClick, selected }) => {
   return (
     <Card 
-      className={`cursor-pointer transition-all hover:shadow-md hover:scale-[1.02] ${
-        selected ? 'border-primary ring-2 ring-primary/20' : ''
-      }`}
+      className={`cursor-pointer transition-all hover:shadow-lg hover:scale-[1.03] ${
+        selected ? 'border-primary/70 border-2 shadow-md shadow-primary/20' : 'border border-indigo-100'
+      } overflow-hidden rounded-2xl`}
       onClick={onClick}
     >
-      <CardContent className="p-6 flex flex-col items-center text-center gap-3">
-        <div className="rounded-full bg-primary/10 p-3 text-primary">
+      <div className={`h-1.5 w-full ${selected ? 'bg-gradient-to-r from-purple-500 via-pink-400 to-cyan-400' : 'bg-gradient-to-r from-blue-100 to-purple-100'}`}></div>
+      <CardContent className="p-6 flex flex-col items-center text-center gap-3 relative">
+        {/* Decorative dots in corners for cute effect */}
+        <div className="absolute top-2 left-2 w-1.5 h-1.5 rounded-full bg-amber-300"></div>
+        <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-pink-300"></div>
+        <div className="absolute bottom-2 left-2 w-1.5 h-1.5 rounded-full bg-cyan-300"></div>
+        <div className="absolute bottom-2 right-2 w-1.5 h-1.5 rounded-full bg-purple-300"></div>
+        
+        {/* Animated icon container */}
+        <div className={`rounded-full p-3.5 transition-all ${
+          selected 
+            ? 'bg-gradient-to-br from-purple-100 to-indigo-100 shadow-md text-primary transform -rotate-3' 
+            : 'bg-gradient-to-br from-purple-50 to-indigo-50 text-primary/80'
+        }`}>
           {icon}
         </div>
-        <h3 className="font-semibold text-lg">{title}</h3>
+        
+        <h3 className={`font-semibold text-lg transition-colors ${selected ? 'text-primary' : 'text-gray-700'}`}>
+          {title}
+        </h3>
+        
         <p className="text-sm text-muted-foreground">{description}</p>
+        
+        {/* Subtle animated highlight effect */}
+        <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full transition-transform duration-1000 ease-in-out ${selected ? 'animate-shimmer' : 'opacity-0'}`}></div>
       </CardContent>
     </Card>
   );
@@ -233,36 +252,62 @@ export default function ToolsPage() {
         ) : (
           // Tab view (original layout)
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-8 h-auto p-1">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-8 h-auto p-2 rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50 gap-1.5">
               {tools.map(tool => (
                 <TabsTrigger 
                   key={tool.id}
                   value={tool.id} 
-                  className="flex flex-col md:flex-row items-center py-2 md:py-1 px-1 md:px-2 gap-1 md:gap-2 text-xs md:text-sm"
+                  className="flex flex-col md:flex-row items-center py-2.5 md:py-1.5 px-2 md:px-3 gap-1.5 md:gap-2 text-xs md:text-sm rounded-lg relative overflow-hidden group transition-all data-[state=active]:shadow-md"
                 >
-                  <div className="text-primary">
+                  {/* Colorful indicator dots */}
+                  <div className="absolute top-1 right-1 w-1 h-1 rounded-full bg-pink-300 opacity-0 group-data-[state=active]:opacity-100 transition-opacity"></div>
+                  <div className="absolute bottom-1 left-1 w-1 h-1 rounded-full bg-cyan-300 opacity-0 group-data-[state=active]:opacity-100 transition-opacity"></div>
+                  
+                  {/* Icon with cute effect */}
+                  <div className="text-primary/70 group-data-[state=active]:text-primary transition-all group-hover:scale-110 group-data-[state=active]:-rotate-3">
                     {tool.icon}
                   </div>
-                  <span className="text-center md:text-left">{tool.title.split(' ')[0]}</span>
+                  
+                  {/* Text with gradient when active */}
+                  <span className="text-center md:text-left font-medium group-data-[state=active]:bg-gradient-to-r group-data-[state=active]:from-primary group-data-[state=active]:to-purple-500 group-data-[state=active]:bg-clip-text group-data-[state=active]:text-transparent">
+                    {tool.title.split(' ')[0]}
+                  </span>
+                  
+                  {/* Animated colorful bottom border */}
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 opacity-0 group-data-[state=active]:opacity-100 transition-opacity"></div>
                 </TabsTrigger>
               ))}
             </TabsList>
             
             {tools.map(tool => (
               <TabsContent key={tool.id} value={tool.id} className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <div className="text-primary">
+                <Card className="rounded-xl overflow-hidden border-2 border-indigo-100">
+                  {/* Decorative header bar */}
+                  <div className="h-1.5 w-full bg-gradient-to-r from-purple-500 via-pink-400 to-cyan-400"></div>
+                  
+                  <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50">
+                    <CardTitle className="flex items-center gap-2.5">
+                      {/* Cute animated icon */}
+                      <div className="text-primary p-2.5 bg-white rounded-full shadow-sm transform -rotate-3 transition-all hover:rotate-0">
                         {tool.icon}
                       </div>
-                      {tool.title}
+                      
+                      {/* Title with gradient text */}
+                      <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                        {tool.title}
+                      </span>
                     </CardTitle>
-                    <CardDescription>
+                    
+                    <CardDescription className="text-indigo-700/70 mt-0.5">
                       {tool.description}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  
+                  <CardContent className="p-6 pt-8 relative">
+                    {/* Corner decorations */}
+                    <div className="absolute top-2 left-2 w-1.5 h-1.5 rounded-full bg-amber-300"></div>
+                    <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-pink-300"></div>
+                    
                     {tool.component}
                   </CardContent>
                 </Card>
