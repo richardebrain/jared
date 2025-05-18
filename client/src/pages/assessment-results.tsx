@@ -248,7 +248,7 @@ export default function AssessmentResultsPage() {
                 Assessment Results
               </CardTitle>
               <Badge variant="outline" className="text-sm">
-                Completed {formatDate(latestAssessment.completedAt)}
+                Completed {formatDate(latestAssessment.createdAt)}
               </Badge>
             </div>
             <CardDescription>
