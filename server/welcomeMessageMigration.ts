@@ -119,10 +119,10 @@ async function checkColumnExists(table: string, column: string): Promise<boolean
   const result = await db.execute(`
     SELECT 1 
     FROM information_schema.columns 
-    WHERE table_name = '${table}' AND column_name = '${column}';
-  `);
+    WHERE table_name = $1 AND column_name = $2;
+  `, [table, column]);
   
-  return result.rowCount > 0;
+  return result.rowCount ? result.rowCount > 0 : false;
 }
 
 // Helper function to check if a table exists
@@ -130,10 +130,10 @@ async function checkTableExists(table: string): Promise<boolean> {
   const result = await db.execute(`
     SELECT 1 
     FROM information_schema.tables 
-    WHERE table_name = '${table}';
-  `);
+    WHERE table_name = $1;
+  `, [table]);
   
-  return result.rowCount > 0;
+  return result.rowCount ? result.rowCount > 0 : false;
 }
 
 export { runWelcomeMessageMigration };

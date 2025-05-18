@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Bell, X, AlertTriangle, MessageSquare, BadgeCheck } from "lucide-react";
+import { Bell, X, AlertTriangle, MessageSquare, BadgeCheck, Award, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,

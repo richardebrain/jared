@@ -8,6 +8,7 @@ import connectPgSimple from "connect-pg-simple";
 import { updateChildDevelopmentModule } from "./updateChildDevelopmentModule";
 import { eq, sql } from "drizzle-orm";
 import { users, eduTokSnippets, eduTokUserInteractions } from "@shared/schema";
+import { registerWelcomeMessageRoutes } from "./welcomeMessageRoutes";
 import * as notebookLmPlugin from "./notebookLmPlugin";
 import multer from "multer";
 import path from "path";

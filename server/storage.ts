@@ -751,8 +751,36 @@ export class DatabaseStorage implements IStorage {
     }
   }
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
+    try {
+      const [user] = await db.select({
+        id: users.id,
+        username: users.username,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        language: users.language,
+        nativeLanguage: users.nativeLanguage,
+        timeZone: users.timeZone,
+        profilePicture: users.profilePicture,
+        learningStyle: users.learningStyle,
+        bearBucks: users.bearBucks,
+        points: users.points,
+        lifetimePoints: users.lifetimePoints,
+        level: users.level,
+        streak: users.streak,
+        lastActive: users.lastActive,
+        achievementCount: users.achievementCount,
+        isAdmin: users.isAdmin,
+        isSchoolAdmin: users.isSchoolAdmin,
+        isOwner: users.isOwner,
+        schoolId: users.schoolId,
+        createdAt: users.createdAt,
+      }).from(users).where(eq(users.id, id));
+      return user || undefined;
+    } catch (error) {
+      console.error("Error in getUser:", error);
+      return undefined;
+    }
   }
   
   /**
