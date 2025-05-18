@@ -2792,6 +2792,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // School Management Routes
   app.post("/api/schools/register", logoUpload.single('schoolLogo'), async (req, res) => {
     try {
+      console.log("School registration request body:", req.body);
+      
       // Extract form data - ensure all fields are strings if present
       const { 
         schoolName, 
@@ -2823,12 +2825,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if school with this name already exists
-      const existingSchool = await storage.getSchoolByName(schoolName);
-      if (existingSchool) {
-        return res.status(409).json({ 
-          message: "School name already exists", 
-          details: "A school with this name is already registered" 
-        });
+      try {
+        const existingSchool = await storage.getSchoolByName(schoolName);
+        if (existingSchool) {
+          return res.status(409).json({ 
+            message: "School name already exists", 
+            details: "A school with this name is already registered" 
+          });
+        }
+      } catch (lookupError) {
+        console.error("Error checking for existing school:", lookupError);
       }
       
       // Process logo file if uploaded
@@ -2851,34 +2857,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         subscriptionExpiresAt: new Date(Date.now() + (planType === 'annual' ? 365 : 30) * 24 * 60 * 60 * 1000)
       };
       
-      // Create the school record
-      const newSchool = await storage.createSchool({
+      console.log("Creating school with data:", {
         name: schoolName,
-        address: address || null,
-        city: city || null,
-        state: state || null,
-        zipCode: zipCode || null,
         contactEmail,
-        contactPhone: contactPhone || null,
         logoUrl,
-        subscriptionActive: subscriptionDetails.subscriptionActive,
-        subscriptionType: subscriptionDetails.subscriptionType,
-        subscriptionExpiresAt: subscriptionDetails.subscriptionExpiresAt,
-        adminPasswordHash: hashedPassword,
-        isFreeAccess: false,
-        teacherCount: 0,
-        createdAt: new Date()
+        subscriptionType: subscriptionDetails.subscriptionType
       });
       
-      console.log(`School registered successfully: ${schoolName} (ID: ${newSchool.id})`);
+      // Create the school record
+      try {
+        const newSchool = await storage.createSchool({
+          name: schoolName,
+          address: address || null,
+          city: city || null,
+          state: state || null,
+          zipCode: zipCode || null,
+          contactEmail,
+          contactPhone: contactPhone || null,
+          logoUrl,
+          subscriptionActive: subscriptionDetails.subscriptionActive,
+          subscriptionType: subscriptionDetails.subscriptionType,
+          subscriptionExpiresAt: subscriptionDetails.subscriptionExpiresAt,
+          adminPasswordHash: hashedPassword,
+          isFreeAccess: false
+        });
+        
+        console.log(`School registered successfully: ${schoolName} (ID: ${newSchool.id})`);
+        
+        // Return success response with school details (except password)
+        const { adminPasswordHash: _, ...schoolWithoutPassword } = newSchool;
       
-      // Return success response with school details (except password)
-      const { adminPasswordHash, ...schoolWithoutPassword } = newSchool;
-      
-      res.status(201).json({
-        message: "School registered successfully",
-        school: schoolWithoutPassword
-      });
+        res.status(201).json({
+          message: "School registered successfully",
+          school: schoolWithoutPassword
+        });
+      } catch (createError) {
+        console.error("Error creating school:", createError);
+        throw new Error(`Failed to create school: ${createError.message}`);
+      }
     } catch (error) {
       console.error("School registration error:", error);
       res.status(500).json({ 
