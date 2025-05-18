@@ -91,25 +91,25 @@ export default function EduTokFeed() {
       {
         id: 1,
         title: "Creating Calm Corners in Your Classroom",
-        video_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        video_url: "https://www.youtube.com/embed/PFQVUL2SCmE",
         thumbnail_url: "https://placehold.co/480x720/181D31/FFF.png?text=Calm+Corners",
-        source_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        source_url: "https://www.youtube.com/watch?v=PFQVUL2SCmE",
         license: "Educational"
       },
       {
         id: 2,
         title: "Mindful Transitions Between Activities",
-        video_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        video_url: "https://www.youtube.com/embed/nHg10EZ7uD8",
         thumbnail_url: "https://placehold.co/480x720/48425A/FFF.png?text=Activity+Transitions",
-        source_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        source_url: "https://www.youtube.com/watch?v=nHg10EZ7uD8",
         license: "Educational"
       },
       {
         id: 3,
         title: "Building Emotional Vocabulary with Preschoolers",
-        video_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        video_url: "https://www.youtube.com/embed/ZLSDeQ_sJDg",
         thumbnail_url: "https://placehold.co/480x720/5D5970/FFF.png?text=Emotional+Vocabulary",
-        source_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        source_url: "https://www.youtube.com/watch?v=ZLSDeQ_sJDg",
         license: "Educational"
       }
     ];
@@ -158,20 +158,14 @@ export default function EduTokFeed() {
                   />
                 ) : null}
                 
-                <video
+                <iframe
                   id={`video-${index}`}
                   src={snippet.video_url}
-                  poster={snippet.thumbnail_url}
-                  controls
-                  loop
-                  playsInline
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
                   className="absolute top-0 left-0 w-full h-full object-cover"
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (currentIndex === index) {
-                      const video = e.target as HTMLVideoElement;
-                      video.paused ? video.play() : video.pause();
-                    }
                   }}
                 />
               </div>

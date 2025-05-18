@@ -41,6 +41,7 @@ import TestAssessmentGraph from "@/pages/test-assessment-graph";
 import SchoolDashboard from "@/pages/school-dashboard";
 import ProfilePage from "@/pages/profile";
 import AppOwnerDashboard from "@/pages/app-owner-dashboard";
+import EduTokPage from "@/pages/edutok";
 
 function Router() {
   // Use React Query directly to check authenticated state
@@ -220,6 +221,10 @@ function Router() {
       
       <Route path="/app-owner-dashboard">
         {isAuthenticated ? <AppOwnerDashboard /> : <Login />}
+      </Route>
+      
+      <Route path="/edutok">
+        {isAuthenticated ? <EduTokPage /> : <Login />}
       </Route>
       
       <Route path="/">
