@@ -89,12 +89,14 @@ app.use((req, res, next) => {
           return import('./addLifetimePointsMigration').then(module => module.runLifetimePointsMigration());
         })
         .then(() => {
+          console.log('Lifetime points migration completed successfully');
+          
           // Run the welcome message migration
           console.log('Running welcome message migration...');
           return import('./welcomeMessageMigration').then(module => module.runWelcomeMessageMigration());
         })
         .then(() => {
-          console.log('Lifetime points migration completed successfully');
+          console.log('Welcome message migration completed successfully');
           
           // Then seed the database with initial data
           console.log('Seeding database...');
