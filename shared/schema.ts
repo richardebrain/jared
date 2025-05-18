@@ -657,6 +657,62 @@ export const insertCoreValuesShoutOutSchema = createInsertSchema(coreValuesShout
 export type CoreValuesShoutOut = typeof coreValuesShoutOuts.$inferSelect;
 export type InsertCoreValuesShoutOut = z.infer<typeof insertCoreValuesShoutOutSchema>;
 
+// EduTok (TikTok-style educational videos)
+export const eduTokSnippets = pgTable("edu_tok_snippets", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  video_url: text("video_url").notNull(),
+  thumbnail_url: text("thumbnail_url"),
+  source_url: text("source_url"),
+  license: text("license"),
+  view_count: integer("view_count").default(0),
+  likes: integer("likes").default(0),
+  category: text("category"),
+  tags: json("tags").$type<string[]>(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertEduTokSnippetSchema = createInsertSchema(eduTokSnippets).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const eduTokUserInteractions = pgTable("edu_tok_user_interactions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  snippetId: integer("snippet_id").notNull().references(() => eduTokSnippets.id),
+  liked: boolean("liked").default(false),
+  viewed: boolean("viewed").default(false),
+  shared: boolean("shared").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertEduTokUserInteractionSchema = createInsertSchema(eduTokUserInteractions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const eduTokUserInteractionsRelations = relations(eduTokUserInteractions, ({ one }) => ({
+  user: one(users, {
+    fields: [eduTokUserInteractions.userId],
+    references: [users.id]
+  }),
+  snippet: one(eduTokSnippets, {
+    fields: [eduTokUserInteractions.snippetId],
+    references: [eduTokSnippets.id]
+  })
+}));
+
+export const eduTokSnippetsRelations = relations(eduTokSnippets, ({ many }) => ({
+  interactions: many(eduTokUserInteractions)
+}));
+
+export type EduTokSnippet = typeof eduTokSnippets.$inferSelect;
+export type InsertEduTokSnippet = z.infer<typeof insertEduTokSnippetSchema>;
+export type EduTokUserInteraction = typeof eduTokUserInteractions.$inferSelect;
+export type InsertEduTokUserInteraction = z.infer<typeof insertEduTokUserInteractionSchema>;
+
 export const coreValuesShoutOutRelations = relations(coreValuesShoutOuts, ({ one }) => ({
   nominator: one(users, {
     fields: [coreValuesShoutOuts.nominatorId],
