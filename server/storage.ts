@@ -25,6 +25,7 @@ export interface IStorage {
   getAllSchools(): Promise<School[]>;
   createSchool(school: InsertSchool): Promise<School>;
   updateSchool(id: number, schoolData: Partial<InsertSchool>): Promise<School>;
+  updateSchoolLogo(id: number, logoPath: string): Promise<School | undefined>;
   
   // User operations
   getUser(id: number): Promise<User | undefined>;

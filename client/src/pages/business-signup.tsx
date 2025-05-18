@@ -244,43 +244,86 @@ export default function BusinessSignupPage() {
       formData.append("adminPassword", adminPassword);
       formData.append("planType", planType);
       
-      // Append logo if available
-      if (schoolLogo) {
-        formData.append("schoolLogo", schoolLogo);
-      }
-      
-      console.log("Submitting form data...");
-      
-      // Use fetch directly for FormData
-      const response = await fetch("/api/schools/register", {
-        method: "POST",
-        body: formData,
-        // Don't set Content-Type header, browser will set it with boundary
-      });
-      
-      console.log("Response status:", response.status);
-      
-      let errorMessage = "Failed to register school";
+      // Simple basic registration without logo first for better reliability
+      console.log("Starting registration process...");
       
       try {
-        const data = await response.json();
+        // Step 1: Try a simple registration first without the logo
+        // This helps identify if the issue is in the base registration or the file upload
+        console.log("Registering school basic information...");
+        const basicRegistrationResponse = await fetch("/api/schools/register", {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            schoolName,
+            address: address || "",
+            city: city || "",
+            state: state || "",
+            zipCode: zipCode || "",
+            contactEmail,
+            contactPhone: contactPhone || "",
+            adminPassword,
+            planType,
+          }),
+        });
         
-        if (!response.ok) {
-          errorMessage = data.message || errorMessage;
+        // Check response
+        const registrationData = await basicRegistrationResponse.json().catch(() => {
+          console.error("Failed to parse registration response");
+          return { success: false, message: "Failed to parse server response" };
+        });
+        
+        if (!basicRegistrationResponse.ok) {
+          const errorMessage = registrationData.message || "Failed to register school";
+          console.error("Registration error:", errorMessage);
           throw new Error(errorMessage);
         }
         
+        // Success! Logo upload is a secondary concern
         toast({
           title: "Registration Successful",
-          description: "Your school has been registered successfully!",
+          description: schoolLogo 
+            ? "Your school has been registered! Uploading logo..." 
+            : "Your school has been registered successfully!",
           variant: "default"
         });
         
-        // Redirect to login page instead of directly to dashboard
+        // If we have a logo, try to upload it separately - this way logo failures won't prevent registration
+        if (schoolLogo) {
+          try {
+            console.log("Uploading school logo separately...");
+            const logoFormData = new FormData();
+            logoFormData.append("schoolLogo", schoolLogo);
+            logoFormData.append("schoolId", registrationData.schoolId?.toString() || "");
+            
+            const logoResponse = await fetch("/api/schools/update-logo", {
+              method: "POST",
+              body: logoFormData,
+            });
+            
+            if (!logoResponse.ok) {
+              console.warn("Logo upload unsuccessful but registration succeeded");
+              toast({
+                title: "Logo Upload Issue",
+                description: "Your school was registered successfully, but there was an issue uploading your logo. You can add it later from settings.",
+                variant: "warning"
+              });
+            } else {
+              console.log("Logo uploaded successfully");
+            }
+          } catch (logoError) {
+            console.error("Error during logo upload:", logoError);
+            // Don't fail the whole registration for logo issues
+          }
+        }
+        
+        // Redirect to login page
         navigate("/login");
-      } catch (parseError) {
-        // Handle JSON parse errors
-        throw new Error(errorMessage);
+      } catch (registrationError) {
+        console.error("Error during registration:", registrationError);
+        throw registrationError;
       }
     } catch (error: any) {
       console.error("Registration error:", error);
