@@ -401,9 +401,14 @@ export default function AssessmentPage() {
     setCurrentDifficulty(difficulty);
     setDifficultyValue([getValueFromDifficulty(difficulty)]);
     
-    // Filter questions for the current domain and difficulty level
+    // Get already answered question IDs to prevent repeats
+    const answeredQuestionIds = Object.keys(answers);
+    
+    // Filter questions for the current domain and difficulty level that haven't been answered
     const questions = assessmentQuestions.filter(
-      q => q.domain === domainId && q.difficulty === difficulty
+      q => q.domain === domainId && 
+           q.difficulty === difficulty &&
+           !answeredQuestionIds.includes(q.id)
     );
     
     // If no questions are available, try a different difficulty level
@@ -439,9 +444,14 @@ export default function AssessmentPage() {
       return;
     }
     
-    // Shuffle questions and limit to a reasonable number (5)
+    // Determine question count based on domain type
+    const simplifiedDomains = ['core', 'mindful'];
+    const isSimplifiedDomain = simplifiedDomains.includes(domainId);
+    const questionCount = isSimplifiedDomain ? 5 : 10;
+    
+    // Shuffle questions and limit to appropriate number
     const shuffled = [...questions].sort(() => 0.5 - Math.random());
-    const limitedQuestions = shuffled.slice(0, 5);
+    const limitedQuestions = shuffled.slice(0, questionCount);
     
     setDomainQuestions(limitedQuestions);
     setActiveQuestionIndex(0);
@@ -603,6 +613,34 @@ export default function AssessmentPage() {
         explanation: ""
       });
       setSelectedAnswer(null);
+      
+      // Special handling for core and mindful sections - ALWAYS move to next question after answering
+      const simplifiedDomains = ['core', 'mindful'];
+      const isSimplifiedDomain = simplifiedDomains.includes(domainId);
+      
+      // For simplified domains, always move to next question after wrong answer
+      if (isSimplifiedDomain && !correct) {
+        // If this is the last question in this domain, move to next domain
+        if (activeQuestionIndex >= domainQuestions.length - 1) {
+          const nextDomainIndex = activeDomainIndex + 1;
+          if (nextDomainIndex < domains.length) {
+            toast({
+              title: "Domain Completed",
+              description: `Moving to the next section.`,
+            });
+            setActiveDomainIndex(nextDomainIndex);
+            setCurrentDomain(domains[nextDomainIndex].id);
+            updateDomainQuestions(domains[nextDomainIndex].id, 'beginner');
+          } else {
+            // Assessment is complete
+            submitAssessmentResults();
+          }
+        } else {
+          // Move to next question
+          setActiveQuestionIndex(prevIndex => prevIndex + 1);
+        }
+        return;
+      }
       
       if (shouldMoveToNextDomain) {
         // User has demonstrated proficiency or struggled enough in this domain
