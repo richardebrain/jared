@@ -12,7 +12,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from "@/components/ui/button";
 import { 
   MessageSquare, BookOpen, Video, CalendarDays, ClipboardCheck, 
-  GraduationCap, Lightbulb, Stars, BadgeHelp, PencilRuler, Timer
+  GraduationCap, Lightbulb, Stars, BadgeHelp, PencilRuler, Timer,
+  Smartphone
 } from "lucide-react";
 
 // Example scenarios for parent communication
@@ -121,6 +122,28 @@ export default function ToolsPage() {
       icon: <Video className="h-6 w-6" />,
       component: (
         <VideoResourceLibrary showFilters={true} compactMode={true} />
+      )
+    },
+    {
+      id: "edutok",
+      title: "EduTok",
+      description: "Quick teaching tips in TikTok-style short videos",
+      icon: <Smartphone className="h-6 w-6" />,
+      component: (
+        <div className="flex flex-col items-center justify-center py-8">
+          <h3 className="text-xl font-semibold mb-4">EduTok - Teaching Wisdom in Shorts</h3>
+          <p className="text-muted-foreground mb-6 text-center max-w-lg">
+            Swipe through bite-sized teaching tips, classroom management ideas, and quick activities in a fun, easy-to-consume format.
+          </p>
+          <Button 
+            size="lg" 
+            className="gap-2" 
+            onClick={() => window.location.href = "/edutok"}
+          >
+            <Smartphone className="h-5 w-5" />
+            Open EduTok Experience
+          </Button>
+        </div>
       )
     },
     {

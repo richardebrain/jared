@@ -2767,6 +2767,138 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // EduTok Feed API - Get TikTok-style short video feed
+  app.get("/api/edutok/feed", requireAuth, async (req, res) => {
+    try {
+      const cursor = parseInt(req.query.cursor as string) || 0;
+      const limit = parseInt(req.query.limit as string) || 5;
+      
+      // Sample data for EduTok feed
+      const sampleSnippets = [
+        {
+          id: 1,
+          title: "Creating Calm Corners in Your Classroom",
+          video_url: "https://player.vimeo.com/progressive_redirect/playback/759633227/rendition/720p/file.mp4?loc=external",
+          thumbnail_url: "https://placehold.co/480x720/181D31/FFF.png?text=Calm+Corners",
+          source_url: "https://vimeo.com/759633227",
+          license: "Educational",
+          view_count: 245,
+          likes: 32,
+          category: "Classroom Management",
+          tags: ["calm", "mindfulness", "emotional regulation"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 2,
+          title: "Mindful Transitions Between Activities",
+          video_url: "https://player.vimeo.com/progressive_redirect/playback/759633264/rendition/720p/file.mp4?loc=external",
+          thumbnail_url: "https://placehold.co/480x720/48425A/FFF.png?text=Activity+Transitions",
+          source_url: "https://vimeo.com/759633264",
+          license: "Educational",
+          view_count: 187,
+          likes: 24,
+          category: "Classroom Management",
+          tags: ["transitions", "mindfulness", "routines"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 3,
+          title: "Building Emotional Vocabulary with Preschoolers",
+          video_url: "https://player.vimeo.com/progressive_redirect/playback/759633319/rendition/720p/file.mp4?loc=external",
+          thumbnail_url: "https://placehold.co/480x720/5D5970/FFF.png?text=Emotional+Vocabulary",
+          source_url: "https://vimeo.com/759633319",
+          license: "Educational",
+          view_count: 312,
+          likes: 41,
+          category: "Social-Emotional Learning",
+          tags: ["emotions", "vocabulary", "development"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 4,
+          title: "Quick Sensory Activities for Wiggly Kids",
+          video_url: "https://player.vimeo.com/progressive_redirect/playback/759633356/rendition/720p/file.mp4?loc=external",
+          thumbnail_url: "https://placehold.co/480x720/6D6A8C/FFF.png?text=Sensory+Activities",
+          source_url: "https://vimeo.com/759633356",
+          license: "Educational",
+          view_count: 142,
+          likes: 19,
+          category: "Child Development",
+          tags: ["sensory", "active learning", "movement"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 5,
+          title: "3-Minute Morning Meeting Ideas",
+          video_url: "https://player.vimeo.com/progressive_redirect/playback/759633400/rendition/720p/file.mp4?loc=external",
+          thumbnail_url: "https://placehold.co/480x720/7F7B9F/FFF.png?text=Morning+Meeting",
+          source_url: "https://vimeo.com/759633400",
+          license: "Educational",
+          view_count: 277,
+          likes: 35,
+          category: "Classroom Management",
+          tags: ["morning meeting", "community building", "routines"],
+          createdAt: new Date().toISOString()
+        }
+      ];
+      
+      // Try to fetch from database if the table exists
+      let snippetsData = [];
+      try {
+        snippetsData = await db.select().from(eduTokSnippets)
+          .limit(limit);
+          
+        if (snippetsData.length === 0) {
+          snippetsData = sampleSnippets
+            .filter(snippet => snippet.id > cursor)
+            .slice(0, limit);
+        }
+      } catch (error) {
+        console.error("Error fetching from database, using sample data:", error);
+        // If table doesn't exist or error, use sample data
+        snippetsData = sampleSnippets
+          .filter(snippet => snippet.id > cursor)
+          .slice(0, limit);
+      }
+      
+      res.json({ 
+        snippets: snippetsData, 
+        nextCursor: snippetsData.length > 0 ? snippetsData[snippetsData.length - 1].id : cursor 
+      });
+    } catch (error) {
+      console.error("Error in getEduTokFeed:", error);
+      res.status(500).json({ error: "Failed to fetch EduTok feed" });
+    }
+  });
+  
+  // EduTok API - Like a snippet
+  app.post("/api/edutok/like/:snippetId", requireAuth, async (req, res) => {
+    try {
+      const { snippetId } = req.params;
+      const userId = req.session?.userId;
+      
+      // For now, just return success
+      res.json({ success: true, message: "Snippet liked successfully" });
+    } catch (error) {
+      console.error("Error liking snippet:", error);
+      res.status(500).json({ error: "Failed to like snippet" });
+    }
+  });
+  
+  // EduTok API - View a snippet
+  app.post("/api/edutok/view/:snippetId", requireAuth, async (req, res) => {
+    try {
+      const { snippetId } = req.params;
+      const userId = req.session?.userId;
+      
+      // For now, just return success
+      res.json({ success: true, message: "View recorded" });
+    } catch (error) {
+      console.error("Error recording view:", error);
+      res.status(500).json({ error: "Failed to record view" });
+    }
+  });
+
   // Return server for use in tests and closing
   return httpServer;
 }
