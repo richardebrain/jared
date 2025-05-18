@@ -122,7 +122,6 @@ export function TeacherMusicLibrary() {
                 description={track.description}
                 moduleId={track.moduleId}
                 showInModule={false}
-                pointsValue={3}
               />
             </Card>
           ))}
@@ -141,7 +140,6 @@ export function TeacherMusicLibrary() {
                 description={track.description}
                 moduleId={track.moduleId}
                 showInModule={false}
-                pointsValue={3}
               />
             </Card>
           ))}
@@ -160,7 +158,6 @@ export function TeacherMusicLibrary() {
                 description={track.description}
                 moduleId={track.moduleId}
                 showInModule={false}
-                pointsValue={3}
               />
             </Card>
           ))}
@@ -185,7 +182,6 @@ export function TeacherMusicLibrary() {
                 description={track.description}
                 moduleId={track.moduleId}
                 showInModule={false}
-                pointsValue={3}
               />
             </Card>
           ))}
@@ -204,7 +200,6 @@ export function TeacherMusicLibrary() {
                 description={track.description}
                 moduleId={track.moduleId}
                 showInModule={false}
-                pointsValue={3}
               />
             </Card>
           ))}
