@@ -25,7 +25,8 @@ export async function runWelcomeMessageMigration() {
         ALTER TABLE users 
         ADD COLUMN fingerprint_expiration DATE,
         ADD COLUMN cpr_expiration DATE,
-        ADD COLUMN first_aid_expiration DATE
+        ADD COLUMN first_aid_expiration DATE,
+        ADD COLUMN food_handler_expiration DATE
       `);
       console.log("Added certification tracking columns successfully");
     } else {

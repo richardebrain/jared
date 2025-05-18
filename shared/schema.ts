@@ -72,7 +72,7 @@ export const users = pgTable("users", {
   isSchoolAdmin: boolean("is_school_admin").default(false), // School directors/admins
   isOwner: boolean("is_owner").default(false), // App owner with full access to subscription management
   // Certification tracking fields
-  fingerprintExpiration: date("fingerprint_expiration"), // Expiration date for fingerprint clearance
+  fingerprintExpiration: date("fingerprint_expiration"), // Expiration date for Fingerprint card
   cprExpiration: date("cpr_expiration"), // Expiration date for CPR certification
   firstAidExpiration: date("first_aid_expiration"), // Expiration date for First Aid certification
   foodHandlerExpiration: date("food_handler_expiration"), // Expiration date for Food Handler card

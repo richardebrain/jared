@@ -449,8 +449,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
         
-        // Check if last login was exactly one day ago (continuing streak)
-        if (lastLoginDate.getTime() === yesterday.getTime()) {
+        // Log dates for debugging
+        console.log(`User ${user.id} - Last login: ${lastLoginDate.toISOString()}, Today: ${today.toISOString()}, Yesterday: ${yesterday.toISOString()}`);
+        
+        // Check if last login was on a previous day (not same day) - this is a new day login
+        if (lastLoginDate.getTime() < today.getTime()) {
           // Continue the streak - increment by 1
           await storage.updateUser(user.id, {
             lastActive: new Date(),
@@ -466,16 +469,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             lastActive: new Date()
           });
           console.log(`User ${user.id} already logged in today, streak remains: ${user.streak || 0} days`);
-        }
-        // Login after missing days (reset streak)
-        else if (lastLoginDate < yesterday) {
-          // Streak broken - reset to 1 for today's login
-          await storage.updateUser(user.id, {
-            lastActive: new Date(),
-            streak: 1
-          });
-          streakUpdated = true;
-          console.log(`User ${user.id} login streak reset to 1 day`);
         }
       } else {
         // First login ever - start streak at 1
