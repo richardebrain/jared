@@ -394,6 +394,27 @@ export default function AssessmentPage() {
     return Math.round(overallProgress);
   };
   
+  // Play sound for correct answer
+  const playCorrectSound = () => {
+    const audio = new Audio("/sounds/correct-answer.mp3");
+    audio.volume = 0.5;
+    audio.play().catch(e => console.error("Error playing correct sound:", e));
+  };
+  
+  // Play sound for incorrect answer
+  const playWrongSound = () => {
+    const audio = new Audio("/sounds/wrong-answer.mp3");
+    audio.volume = 0.4;
+    audio.play().catch(e => console.error("Error playing wrong sound:", e));
+  };
+  
+  // Play sound for level up / assessment completion
+  const playLevelUpSound = () => {
+    const audio = new Audio("/sounds/level-up.mp3");
+    audio.volume = 0.5;
+    audio.play().catch(e => console.error("Error playing level up sound:", e));
+  };
+  
   // Get the current active question
   const activeQuestion = domainQuestions[activeQuestionIndex] || {
     id: '',
