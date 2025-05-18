@@ -368,6 +368,8 @@ export type EducationalGame = typeof educationalGames.$inferSelect;
 export type InsertEducationalGame = z.infer<typeof insertEducationalGameSchema>;
 export type GameCompletion = typeof gameCompletions.$inferSelect;
 export type InsertGameCompletion = z.infer<typeof insertGameCompletionSchema>;
+export type TeacherMessage = typeof teacherMessages.$inferSelect;
+export type InsertTeacherMessage = z.infer<typeof insertTeacherMessageSchema>;
 
 export const assessmentsRelations = relations(assessments, ({ one }) => ({
   user: one(users, {
