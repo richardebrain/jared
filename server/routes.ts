@@ -40,25 +40,58 @@ declare global {
 }
 
 // Configure multer storage for file uploads
-const uploadsDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+const uploadsDir = path.join(process.cwd(), 'uploads');
+console.log("Uploads directory path:", uploadsDir);
+
+// Ensure the uploads directory exists
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+    console.log("Created uploads directory");
+  }
+  
+  // Ensure school-logos subdirectory exists
+  const schoolLogosDir = path.join(uploadsDir, 'school-logos');
+  if (!fs.existsSync(schoolLogosDir)) {
+    fs.mkdirSync(schoolLogosDir, { recursive: true });
+    console.log("Created school-logos directory");
+  }
+  
+  // Set proper permissions
+  fs.chmodSync(uploadsDir, 0o755);
+  fs.chmodSync(schoolLogosDir, 0o755);
+  console.log("Set directory permissions");
+} catch (dirError) {
+  console.error("Error setting up upload directories:", dirError);
 }
 
 // Configure multer for school logo uploads
 const logoStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const schoolLogosDir = path.join(uploadsDir, 'school-logos');
-    if (!fs.existsSync(schoolLogosDir)) {
-      fs.mkdirSync(schoolLogosDir, { recursive: true });
+    try {
+      const schoolLogosDir = path.join(uploadsDir, 'school-logos');
+      // Double-check directory exists at time of upload
+      if (!fs.existsSync(schoolLogosDir)) {
+        fs.mkdirSync(schoolLogosDir, { recursive: true });
+      }
+      cb(null, schoolLogosDir);
+    } catch (err) {
+      console.error("Error setting upload destination:", err);
+      cb(err, "");
     }
-    cb(null, schoolLogosDir);
   },
   filename: (req, file, cb) => {
-    // Create a unique filename with timestamp and original extension
-    const uniqueSuffix = Date.now() + '-' + crypto.randomBytes(8).toString('hex');
-    const ext = path.extname(file.originalname);
-    cb(null, `school-logo-${uniqueSuffix}${ext}`);
+    try {
+      // Create a unique filename with timestamp and original extension
+      const uniqueSuffix = Date.now() + '-' + crypto.randomBytes(8).toString('hex');
+      const ext = path.extname(file.originalname);
+      const filename = `school-logo-${uniqueSuffix}${ext}`;
+      console.log("Generated filename for upload:", filename);
+      cb(null, filename);
+    } catch (err) {
+      console.error("Error generating filename:", err);
+      cb(err, "");
+    }
   }
 });
 
@@ -2790,8 +2823,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // School Management Routes
-  app.post("/api/schools/register", logoUpload.single('schoolLogo'), async (req, res) => {
+  app.post("/api/schools/register", async (req, res) => {
     try {
+      // First, handle the file upload with error handling
+      await new Promise((resolve, reject) => {
+        logoUpload.single('schoolLogo')(req, res, (err) => {
+          if (err) {
+            console.error("File upload error:", err);
+            // Don't reject - we'll continue without the logo
+            resolve(null);
+          } else {
+            resolve(null);
+          }
+        });
+      });
+      
       console.log("School registration request body:", req.body);
       
       // Extract form data - ensure all fields are strings if present
