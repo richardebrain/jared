@@ -154,9 +154,12 @@ export default function EduTokFeed() {
                 
                 <iframe
                   id={`video-${index}`}
-                  key={`${snippet.video_url}${currentIndex === index ? '?autoplay=1' : ''}`}
-                  src={`${snippet.video_url}${currentIndex === index ? '?autoplay=1' : ''}`}
-                  allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  key={`video-iframe-${snippet.id}-${currentIndex === index}`}
+                  src={snippet.video_url.includes('?') ? 
+                    `${snippet.video_url}&autoplay=${currentIndex === index ? '1' : '0'}` : 
+                    `${snippet.video_url}?autoplay=${currentIndex === index ? '1' : '0'}`
+                  }
+                  allow="autoplay; fullscreen; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                   className="absolute top-0 left-0 w-full h-full object-cover"
                   style={{display: currentIndex === index ? 'block' : 'none'}}

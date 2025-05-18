@@ -2842,8 +2842,210 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       ];
       
-      // Always use sample data for now until we have a proper database migration
-      let snippetsData = sampleSnippets
+      // Add more educational videos
+      const moreSnippets = [
+        {
+          id: 6,
+          title: "Positive Behavior Management Techniques",
+          video_url: "https://player.vimeo.com/video/759633227?autoplay=0",
+          thumbnail_url: "https://placehold.co/480x720/8A8AB4/FFF.png?text=Behavior+Management",
+          source_url: "https://vimeo.com/759633227",
+          license: "Educational",
+          view_count: 745,
+          likes: 153,
+          category: "Classroom Management",
+          tags: ["behavior", "positive discipline", "classroom culture"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 7,
+          title: "Supporting Multilingual Learners in Preschool",
+          video_url: "https://player.vimeo.com/video/759633264?autoplay=0",
+          thumbnail_url: "https://placehold.co/480x720/9195C9/FFF.png?text=Multilingual+Learners",
+          source_url: "https://vimeo.com/759633264",
+          license: "Educational",
+          view_count: 493,
+          likes: 87,
+          category: "Language Development",
+          tags: ["multilingual", "ELL", "inclusion"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 8,
+          title: "Quick Math Games for Circle Time",
+          video_url: "https://player.vimeo.com/video/759633319?autoplay=0",
+          thumbnail_url: "https://placehold.co/480x720/A5A8DD/FFF.png?text=Math+Games",
+          source_url: "https://vimeo.com/759633319",
+          license: "Educational",
+          view_count: 612,
+          likes: 124,
+          category: "Mathematics",
+          tags: ["circle time", "math games", "number sense"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 9,
+          title: "Outdoor Learning Activities for All Seasons",
+          video_url: "https://player.vimeo.com/video/759633356?autoplay=0",
+          thumbnail_url: "https://placehold.co/480x720/B1B3E8/FFF.png?text=Outdoor+Learning",
+          source_url: "https://vimeo.com/759633356",
+          license: "Educational",
+          view_count: 536,
+          likes: 112,
+          category: "Outdoor Education",
+          tags: ["nature", "outdoor play", "seasonal activities"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 10,
+          title: "Inclusive Circle Time Strategies",
+          video_url: "https://player.vimeo.com/video/759633400?autoplay=0",
+          thumbnail_url: "https://placehold.co/480x720/BDBCF2/FFF.png?text=Inclusive+Strategies",
+          source_url: "https://vimeo.com/759633400",
+          license: "Educational",
+          view_count: 483,
+          likes: 96,
+          category: "Inclusive Teaching",
+          tags: ["circle time", "inclusion", "diverse learners"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 11,
+          title: "Songs That Teach Phonological Awareness",
+          video_url: "https://player.vimeo.com/video/759633227?autoplay=0",
+          thumbnail_url: "https://placehold.co/480x720/C4C2FC/FFF.png?text=Songs+for+Phonics",
+          source_url: "https://vimeo.com/759633227",
+          license: "Educational",
+          view_count: 572,
+          likes: 125,
+          category: "Literacy",
+          tags: ["songs", "phonics", "early reading"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 12,
+          title: "How to Create an Effective Visual Schedule",
+          video_url: "https://player.vimeo.com/video/759633264?autoplay=0",
+          thumbnail_url: "https://placehold.co/480x720/CECAFF/FFF.png?text=Visual+Schedules",
+          source_url: "https://vimeo.com/759633264",
+          license: "Educational",
+          view_count: 428,
+          likes: 87,
+          category: "Classroom Organization",
+          tags: ["visual schedules", "routines", "classroom management"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 13,
+          title: "Simple Science Experiments for Preschoolers",
+          video_url: "https://player.vimeo.com/video/759633319?autoplay=0",
+          thumbnail_url: "https://placehold.co/480x720/D8D3FF/FFF.png?text=Science+Experiments",
+          source_url: "https://vimeo.com/759633319",
+          license: "Educational",
+          view_count: 678,
+          likes: 142,
+          category: "Science",
+          tags: ["STEM", "experiments", "inquiry"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 14,
+          title: "Supporting Social Skills Through Play",
+          video_url: "https://player.vimeo.com/video/759633356?autoplay=0",
+          thumbnail_url: "https://placehold.co/480x720/E3DDFF/FFF.png?text=Social+Skills",
+          source_url: "https://vimeo.com/759633356",
+          license: "Educational",
+          view_count: 521,
+          likes: 104,
+          category: "Social Development",
+          tags: ["play-based learning", "social skills", "friendship"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 15,
+          title: "Mindfulness Activities for Young Children",
+          video_url: "https://player.vimeo.com/video/759633400?autoplay=0",
+          thumbnail_url: "https://placehold.co/480x720/EDE7FF/FFF.png?text=Mindfulness",
+          source_url: "https://vimeo.com/759633400",
+          license: "Educational",
+          view_count: 589,
+          likes: 132,
+          category: "Mindfulness",
+          tags: ["mindfulness", "emotional regulation", "calm classroom"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 16,
+          title: "Art Projects that Teach Fine Motor Skills",
+          video_url: "https://player.vimeo.com/video/759633227?autoplay=0",
+          thumbnail_url: "https://placehold.co/480x720/F8F5FF/FFF.png?text=Art+Projects",
+          source_url: "https://vimeo.com/759633227",
+          license: "Educational",
+          view_count: 425,
+          likes: 95,
+          category: "Fine Motor Development",
+          tags: ["art", "fine motor", "creativity"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 17,
+          title: "Setting Up Learning Centers on a Budget",
+          video_url: "https://player.vimeo.com/video/759633264?autoplay=0",
+          thumbnail_url: "https://placehold.co/480x720/EEE6FF/FFF.png?text=Learning+Centers",
+          source_url: "https://vimeo.com/759633264",
+          license: "Educational",
+          view_count: 512,
+          likes: 108,
+          category: "Classroom Setup",
+          tags: ["learning centers", "budget-friendly", "classroom design"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 18,
+          title: "Building Classroom Community in the First Week",
+          video_url: "https://player.vimeo.com/video/759633319?autoplay=0",
+          thumbnail_url: "https://placehold.co/480x720/E4DAFF/FFF.png?text=Community+Building",
+          source_url: "https://vimeo.com/759633319",
+          license: "Educational",
+          view_count: 687,
+          likes: 148,
+          category: "Classroom Culture",
+          tags: ["community", "first week", "class culture"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 19,
+          title: "Teaching Emotional Vocabulary Through Puppets",
+          video_url: "https://player.vimeo.com/video/759633356?autoplay=0",
+          thumbnail_url: "https://placehold.co/480x720/DACEFF/FFF.png?text=Emotional+Vocabulary",
+          source_url: "https://vimeo.com/759633356",
+          license: "Educational",
+          view_count: 394,
+          likes: 84,
+          category: "Social-Emotional Development",
+          tags: ["puppets", "emotions", "vocabulary"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 20,
+          title: "Parent Communication Strategies for New Teachers",
+          video_url: "https://player.vimeo.com/video/759633400?autoplay=0",
+          thumbnail_url: "https://placehold.co/480x720/D0C2FF/FFF.png?text=Parent+Communication",
+          source_url: "https://vimeo.com/759633400",
+          license: "Educational",
+          view_count: 536,
+          likes: 113,
+          category: "Professional Development",
+          tags: ["parent communication", "new teachers", "family engagement"],
+          createdAt: new Date().toISOString()
+        }
+      ];
+      
+      // Combine original and new videos
+      const allSnippets = [...sampleSnippets, ...moreSnippets];
+      
+      // Filter based on cursor and limit
+      let snippetsData = allSnippets
         .filter(snippet => snippet.id > cursor)
         .slice(0, limit);
       
