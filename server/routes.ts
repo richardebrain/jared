@@ -102,12 +102,21 @@ const logoUpload = multer({
     fileSize: 2 * 1024 * 1024, // 2MB limit
   },
   fileFilter: (req, file, cb) => {
-    // Accept only image files
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/svg+xml'];
-    if (!allowedTypes.includes(file.mimetype)) {
-      return cb(new Error('Only JPEG, PNG, and SVG files are allowed'));
+    try {
+      // Accept only image files with more permissive validation
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/svg+xml'];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        console.log(`Rejected file of type: ${file.mimetype}`);
+        // Instead of throwing an error, just reject the file
+        cb(null, false);
+      }
+    } catch (err) {
+      console.error("Error in file filter:", err);
+      // Accept the file anyway in case of errors to avoid crashing
+      cb(null, true);
     }
-    cb(null, true);
   }
 });
 
