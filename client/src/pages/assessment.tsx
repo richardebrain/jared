@@ -20,27 +20,75 @@ import {
   ClipboardList, MapIcon, RefreshCw, Star, TrendingUp 
 } from "lucide-react";
 
-// Audio feedback functions for game-like experience
+// Audio feedback functions for Nintendo-like game experience
 const playLevelUpSound = () => {
   try {
-    // Just use a beep sound for now as audio files might not be available
     const context = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const oscillator = context.createOscillator();
-    const gainNode = context.createGain();
     
-    oscillator.connect(gainNode);
-    gainNode.connect(context.destination);
+    // Create multiple oscillators for a richer sound
+    const osc1 = context.createOscillator();
+    const osc2 = context.createOscillator();
+    const osc3 = context.createOscillator();
     
-    oscillator.type = 'sine';
-    oscillator.frequency.value = 880; // A5 note
-    gainNode.gain.value = 0.5;
+    // Create gain nodes for volume control
+    const gainNode1 = context.createGain();
+    const gainNode2 = context.createGain();
+    const gainNode3 = context.createGain();
     
-    oscillator.start();
-    gainNode.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 1.5);
+    // Connect oscillators to gain nodes
+    osc1.connect(gainNode1);
+    osc2.connect(gainNode2);
+    osc3.connect(gainNode3);
     
+    // Connect gain nodes to output
+    gainNode1.connect(context.destination);
+    gainNode2.connect(context.destination);
+    gainNode3.connect(context.destination);
+    
+    // Classic Nintendo level-up progression
+    osc1.type = 'triangle';
+    osc2.type = 'square';
+    osc3.type = 'sine';
+    
+    // Set initial gain values
+    gainNode1.gain.value = 0.2;
+    gainNode2.gain.value = 0.1;
+    gainNode3.gain.value = 0.3;
+    
+    // Start at different frequencies for a chord-like effect
+    osc1.frequency.value = 523.25; // C5
+    osc2.frequency.value = 659.25; // E5
+    osc3.frequency.value = 783.99; // G5
+    
+    // Start oscillators
+    osc1.start(context.currentTime);
+    osc2.start(context.currentTime);
+    osc3.start(context.currentTime);
+    
+    // Create a Mario-like ascending pattern
+    osc1.frequency.setValueAtTime(523.25, context.currentTime);
+    osc1.frequency.linearRampToValueAtTime(783.99, context.currentTime + 0.2);
+    osc1.frequency.linearRampToValueAtTime(1046.50, context.currentTime + 0.4);
+    
+    osc2.frequency.setValueAtTime(659.25, context.currentTime + 0.1);
+    osc2.frequency.linearRampToValueAtTime(880.00, context.currentTime + 0.3);
+    osc2.frequency.linearRampToValueAtTime(1318.51, context.currentTime + 0.5);
+    
+    osc3.frequency.setValueAtTime(783.99, context.currentTime + 0.2);
+    osc3.frequency.linearRampToValueAtTime(1046.50, context.currentTime + 0.4);
+    osc3.frequency.linearRampToValueAtTime(1567.98, context.currentTime + 0.6);
+    
+    // Fade out
+    gainNode1.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.7);
+    gainNode2.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.8);
+    gainNode3.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.9);
+    
+    // Stop oscillators after fade out
     setTimeout(() => {
-      oscillator.stop();
-    }, 1500);
+      osc1.stop();
+      osc2.stop();
+      osc3.stop();
+    }, 900);
   } catch (e) {
     console.error('Audio playback failed:', e);
   }
@@ -49,22 +97,55 @@ const playLevelUpSound = () => {
 const playCorrectSound = () => {
   try {
     const context = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const oscillator = context.createOscillator();
-    const gainNode = context.createGain();
     
-    oscillator.connect(gainNode);
-    gainNode.connect(context.destination);
+    // Create multiple oscillators for a richer sound
+    const osc1 = context.createOscillator();
+    const osc2 = context.createOscillator();
     
-    oscillator.type = 'sine';
-    oscillator.frequency.value = 440; // A4 note
-    gainNode.gain.value = 0.3;
+    // Create gain nodes
+    const gainNode1 = context.createGain();
+    const gainNode2 = context.createGain();
     
-    oscillator.start();
-    gainNode.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.5);
+    // Connect oscillators to gain nodes
+    osc1.connect(gainNode1);
+    osc2.connect(gainNode2);
     
+    // Connect gain nodes to output
+    gainNode1.connect(context.destination);
+    gainNode2.connect(context.destination);
+    
+    // Set oscillator types for a game-like sound
+    osc1.type = 'square';
+    osc2.type = 'triangle';
+    
+    // Set initial gain values
+    gainNode1.gain.value = 0.2;
+    gainNode2.gain.value = 0.1;
+    
+    // Coin sound effect (Mario-like)
+    osc1.frequency.value = 987.77; // B5
+    osc2.frequency.value = 1318.51; // E6
+    
+    // Frequency movement for coin-like sound
+    osc1.frequency.setValueAtTime(987.77, context.currentTime);
+    osc1.frequency.linearRampToValueAtTime(1318.51, context.currentTime + 0.1);
+    
+    osc2.frequency.setValueAtTime(1318.51, context.currentTime);
+    osc2.frequency.linearRampToValueAtTime(1567.98, context.currentTime + 0.1);
+    
+    // Start oscillators
+    osc1.start();
+    osc2.start();
+    
+    // Fade out
+    gainNode1.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.3);
+    gainNode2.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.3);
+    
+    // Stop oscillators
     setTimeout(() => {
-      oscillator.stop();
-    }, 500);
+      osc1.stop();
+      osc2.stop();
+    }, 300);
   } catch (e) {
     console.error('Audio playback failed:', e);
   }
@@ -73,21 +154,54 @@ const playCorrectSound = () => {
 const playWrongSound = () => {
   try {
     const context = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const oscillator = context.createOscillator();
-    const gainNode = context.createGain();
     
-    oscillator.connect(gainNode);
-    gainNode.connect(context.destination);
+    // Create oscillators
+    const osc1 = context.createOscillator();
+    const osc2 = context.createOscillator();
     
-    oscillator.type = 'sawtooth';
-    oscillator.frequency.value = 220; // A3 note
-    gainNode.gain.value = 0.2;
+    // Create gain nodes
+    const gainNode1 = context.createGain();
+    const gainNode2 = context.createGain();
     
-    oscillator.start();
-    gainNode.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.3);
+    // Connect oscillators to gain nodes
+    osc1.connect(gainNode1);
+    osc2.connect(gainNode2);
     
+    // Connect gain nodes to output
+    gainNode1.connect(context.destination);
+    gainNode2.connect(context.destination);
+    
+    // Set oscillator types
+    osc1.type = 'square';
+    osc2.type = 'sawtooth';
+    
+    // Set initial gain values
+    gainNode1.gain.value = 0.2;
+    gainNode2.gain.value = 0.1;
+    
+    // Mario-like "bump" sound effect
+    osc1.frequency.value = 196.00; // G3
+    osc2.frequency.value = 130.81; // C3
+    
+    // Frequency movement
+    osc1.frequency.setValueAtTime(196.00, context.currentTime);
+    osc1.frequency.linearRampToValueAtTime(146.83, context.currentTime + 0.2);
+    
+    osc2.frequency.setValueAtTime(130.81, context.currentTime);
+    osc2.frequency.linearRampToValueAtTime(98.00, context.currentTime + 0.2);
+    
+    // Start oscillators
+    osc1.start();
+    osc2.start();
+    
+    // Fade out
+    gainNode1.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.3);
+    gainNode2.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.3);
+    
+    // Stop oscillators
     setTimeout(() => {
-      oscillator.stop();
+      osc1.stop();
+      osc2.stop();
     }, 300);
   } catch (e) {
     console.error('Audio playback failed:', e);
@@ -130,6 +244,9 @@ export default function AssessmentPage() {
   
   // Define assessment domains
   const domains: Domain[] = [
+    { id: "core", name: "Raising Arizona CORE Values" },
+    { id: "mindful", name: "Mindful Morning" },
+    { id: "build", name: "Building a Human (Ch.1)" },
     { id: "language", name: "Language & Literacy" },
     { id: "reasoning", name: "Reasoning & Math" },
     { id: "social", name: "Social & Emotional" },
