@@ -15,6 +15,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 import { 
   AlertCircle, AlertTriangle, Award, BookOpen, Check, CheckCircle, ChevronRight, 
   ClipboardList, MapIcon, RefreshCw, Star, TrendingUp 
@@ -272,6 +273,11 @@ export default function AssessmentPage() {
     message: "",
     explanation: ""
   });
+  
+  // Adaptive difficulty settings
+  const [currentDifficulty, setCurrentDifficulty] = useState<DifficultyLevel>('beginner');
+  const [difficultyValue, setDifficultyValue] = useState<number[]>([0]); // 0=beginner, 1=intermediate, 2=advanced, 3=expert
+  const [adaptiveModeEnabled, setAdaptiveModeEnabled] = useState<boolean>(true);
   
   // Toast for notifications
   const { toast } = useToast();
