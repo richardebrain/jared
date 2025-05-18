@@ -71,6 +71,14 @@ export const users = pgTable("users", {
   isAdmin: boolean("is_admin").default(false),
   isSchoolAdmin: boolean("is_school_admin").default(false), // School directors/admins
   isOwner: boolean("is_owner").default(false), // App owner with full access to subscription management
+  // Certification tracking fields
+  fingerprintExpiration: date("fingerprint_expiration"), // Expiration date for fingerprint clearance
+  cprExpiration: date("cpr_expiration"), // Expiration date for CPR certification
+  firstAidExpiration: date("first_aid_expiration"), // Expiration date for First Aid certification
+  foodHandlerExpiration: date("food_handler_expiration"), // Expiration date for Food Handler card
+  jobTitle: text("job_title"), // Teacher, Lead Teacher, Director, etc.
+  designations: json("designations").$type<string[]>(), // Special qualifications or designations
+  hasUnreadMessages: boolean("has_unread_messages").default(false), // Flag for unread welcome messages
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -442,7 +450,9 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   assessments: many(assessments),
   userAchievements: many(userAchievements),
   userItems: many(userItems),
-  spinGameRewards: many(spinGameRewards)
+  spinGameRewards: many(spinGameRewards),
+  receivedMessages: many(teacherMessages, { relationName: "recipient" }),
+  sentMessages: many(teacherMessages, { relationName: "sender" })
 }));
 
 // Types
