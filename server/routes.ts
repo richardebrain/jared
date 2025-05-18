@@ -7,7 +7,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { updateChildDevelopmentModule } from "./updateChildDevelopmentModule";
 import { eq, sql } from "drizzle-orm";
-import { users } from "@shared/schema";
+import { users, eduTokSnippets, eduTokUserInteractions } from "@shared/schema";
 import * as notebookLmPlugin from "./notebookLmPlugin";
 import multer from "multer";
 import path from "path";
@@ -2842,24 +2842,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       ];
       
-      // Try to fetch from database if the table exists
-      let snippetsData = [];
-      try {
-        snippetsData = await db.select().from(eduTokSnippets)
-          .limit(limit);
-          
-        if (snippetsData.length === 0) {
-          snippetsData = sampleSnippets
-            .filter(snippet => snippet.id > cursor)
-            .slice(0, limit);
-        }
-      } catch (error) {
-        console.error("Error fetching from database, using sample data:", error);
-        // If table doesn't exist or error, use sample data
-        snippetsData = sampleSnippets
-          .filter(snippet => snippet.id > cursor)
-          .slice(0, limit);
-      }
+      // Always use sample data for now until we have a proper database migration
+      let snippetsData = sampleSnippets
+        .filter(snippet => snippet.id > cursor)
+        .slice(0, limit);
       
       res.json({ 
         snippets: snippetsData, 
