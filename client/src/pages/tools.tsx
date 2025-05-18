@@ -132,16 +132,21 @@ export default function ToolsPage() {
       component: (
         <div className="flex flex-col items-center justify-center py-8">
           <h3 className="text-xl font-semibold mb-4">EduTok - Teaching Wisdom in Shorts</h3>
-          <p className="text-muted-foreground mb-6 text-center max-w-lg">
-            Swipe through bite-sized teaching tips, classroom management ideas, and quick activities in a fun, easy-to-consume format.
-          </p>
+          <div className="text-center mb-6">
+            <Badge variant="outline" className="mb-3 bg-amber-100 text-amber-700 border-amber-200 px-3 py-1">
+              Coming Soon
+            </Badge>
+            <p className="text-muted-foreground max-w-lg">
+              Swipe through bite-sized teaching tips, classroom management ideas, and quick activities in a fun, easy-to-consume format.
+            </p>
+          </div>
           <Button 
             size="lg" 
-            className="gap-2" 
-            onClick={() => window.location.href = "/edutok"}
+            className="gap-2"
+            disabled
           >
             <Smartphone className="h-5 w-5" />
-            Open EduTok Experience
+            EduTok Experience Coming Soon
           </Button>
         </div>
       )
