@@ -269,11 +269,15 @@ export default function BusinessSignupPage() {
           }),
         });
         
-        // Check response
-        const registrationData = await basicRegistrationResponse.json().catch(() => {
-          console.error("Failed to parse registration response");
-          return { success: false, message: "Failed to parse server response" };
-        });
+        // Check response and handle parsing errors
+        let registrationData;
+        try {
+          registrationData = await basicRegistrationResponse.json();
+          console.log("Registration response received:", registrationData);
+        } catch (parseError) {
+          console.error("Failed to parse registration response:", parseError);
+          registrationData = { success: false, message: "Failed to parse server response" };
+        }
         
         if (!basicRegistrationResponse.ok) {
           const errorMessage = registrationData.message || "Failed to register school";
@@ -309,21 +313,38 @@ export default function BusinessSignupPage() {
             } else {
               logoFormData.append("schoolId", schoolId.toString());
               
-              // Use a dedicated upload endpoint
+              console.log(`Uploading logo for school ID: ${schoolId}`);
+              
+              // Use a dedicated upload endpoint with improved error handling
               const logoResponse = await fetch("/api/schools/upload-logo", {
                 method: "POST",
                 body: logoFormData,
+              })
+              .catch(error => {
+                console.error("Network error during logo upload:", error);
+                throw new Error("Network error during logo upload. Please try again.");
               });
               
+              // Try to parse the response carefully to prevent freezing
+              let logoData;
+              try {
+                logoData = await logoResponse.json();
+                console.log("Logo upload response:", logoData);
+              } catch (parseError) {
+                console.error("Failed to parse logo upload response:", parseError);
+                logoData = { success: false, message: "Failed to process logo upload response" };
+              }
+              
               if (!logoResponse.ok) {
-                console.warn("Logo upload unsuccessful but registration succeeded");
+                console.warn("Logo upload unsuccessful but registration succeeded:", 
+                  logoData?.message || "Unknown error");
                 toast({
                   title: "Logo Upload Issue",
                   description: "Your school was registered successfully, but there was an issue uploading your logo. You can add it later from settings.",
-                  variant: "warning"
+                  variant: "default"
                 });
               } else {
-                console.log("Logo uploaded successfully");
+                console.log("Logo uploaded successfully:", logoData);
                 // Display success message for both registration and logo
                 toast({
                   title: "Registration Complete",
@@ -338,8 +359,11 @@ export default function BusinessSignupPage() {
             toast({
               title: "Logo Upload Failed",
               description: "Your school was registered, but we encountered an error uploading your logo. You can add it later from settings.",
-              variant: "warning"
+              variant: "default"
             });
+            
+            // Add a small delay before redirecting to ensure error messages are seen
+            await new Promise(resolve => setTimeout(resolve, 1500));
           }
         }
         
