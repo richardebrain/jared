@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/use-auth";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PointsDisplay from "@/components/BearBucksDisplay";
+import WelcomeMessage from "@/components/WelcomeMessage";
+import CertificationTracker from "@/components/CertificationTracker";
 import {
   Edit,
   Save,
@@ -19,7 +21,8 @@ import {
   MapPin,
   Clock,
   FileText,
-  GraduationCap
+  GraduationCap,
+  BadgeCheck
 } from "lucide-react";
 
 export default function ProfilePage() {
