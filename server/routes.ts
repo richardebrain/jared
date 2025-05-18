@@ -1476,24 +1476,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Score and time taken are required" });
       }
       
-      // Check if user has already played a game today
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      // Get user's game history
-      const gameHistory = await storage.getUserGameHistory(userId);
-      
-      // Check if any game was played today
-      const played = gameHistory.some(game => 
-        new Date(game.completedAt).toISOString().slice(0, 10) === today.toISOString().slice(0, 10)
-      );
-      
-      if (played) {
-        return res.status(400).json({ 
-          message: "You can only play one bonus game per day",
-          remaining: 0
-        });
+      // Get user details to check for special access
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
       }
+      
+      // Special access for jlcookie20 user (bypass daily limit)
+      const isSpecialUser = user.username === 'jlcookie20';
+      
+      // Only check if the user has already played a game if they're not a special user
+      if (!isSpecialUser) {
+        // Check if user has already played a game today
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // Get user's game history
+        const gameHistory = await storage.getUserGameHistory(userId);
+        
+        // Improved date comparison for checking if any game was played today
+        const played = gameHistory.some(game => {
+          if (!game.completedAt) return false;
+          const gameDate = new Date(game.completedAt);
+          gameDate.setHours(0, 0, 0, 0);
+          return gameDate.getTime() === today.getTime();
+        });
+        
+        if (played) {
+          return res.status(400).json({ 
+            message: "You can only play one bonus game per day",
+            remaining: 0
+          });
+        }
+      }
+      
+      console.log(`User ${userId} (${user.username}) playing game ${gameId}`);
       
       // Calculate points based on score (simplified example)
       const pointsEarned = Math.min(10, Math.floor(score / 10)); // Max 10 points, 1 point per 10 score
@@ -1544,24 +1561,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Check if user has already played a game today
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      // Get user's game history
-      const gameHistory = await storage.getUserGameHistory(userId);
-      
-      // Check if any game was played today
-      const played = gameHistory.some(game => 
-        new Date(game.completedAt).toDateString() === today.toDateString()
-      );
-      
-      if (played) {
-        return res.status(403).json({ 
-          message: "You've already played your daily game. Come back tomorrow!",
-          dailyLimitReached: true
-        });
+      // Get user details to check for special access
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
       }
+      
+      // Special access for jlcookie20 user (bypass daily limit)
+      const isSpecialUser = user.username === 'jlcookie20';
+      
+      // Only check if the user has already played if they're not a special user
+      if (!isSpecialUser) {
+        // Check if user has already played a game today
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // Get user's game history
+        const gameHistory = await storage.getUserGameHistory(userId);
+        
+        // Improved date comparison for checking if any game was played today
+        const played = gameHistory.some(game => {
+          if (!game.completedAt) return false;
+          const gameDate = new Date(game.completedAt);
+          gameDate.setHours(0, 0, 0, 0);
+          return gameDate.getTime() === today.getTime();
+        });
+        
+        if (played) {
+          return res.status(403).json({ 
+            message: "You've already played your daily game. Come back tomorrow!",
+            dailyLimitReached: true
+          });
+        }
+      }
+      
+      console.log(`User ${userId} (${user.username}) accessing bonus game`);
       
       // Record the game play with gameId = 1 (representing bonus games)
       const gamePlay = await storage.recordGamePlay({
