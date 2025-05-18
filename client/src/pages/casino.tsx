@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Link, useLocation } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,7 +26,11 @@ import {
   Diamond,
   Gem,
   Award,
-  Sparkles
+  Sparkles,
+  RefreshCcw,
+  RefreshCw,
+  Flame,
+  Medal
 } from "lucide-react";
 
 // Import our gamification components from the barrel file

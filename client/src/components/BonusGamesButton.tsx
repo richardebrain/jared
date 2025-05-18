@@ -11,13 +11,19 @@ export default function BonusGamesButton() {
   const isJLCookie = user?.username === 'jlcookie20';
   
   // Fetch game history to check if a game was played today
-  const { data: gameHistory } = useQuery({
+  const { data: gameHistory, refetch: refetchGameHistory } = useQuery({
     queryKey: ["/api/games/history"],
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 60 * 1000, // 1 minute
     refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
   
-  // Also check localStorage for immediate update after playing a game
+  // Force refetch on component mount to ensure latest data
+  useEffect(() => {
+    refetchGameHistory();
+  }, [refetchGameHistory]);
+  
+  // Check game history from server data
   useEffect(() => {
     // Special override for jlcookie20 - always allow access
     if (isJLCookie) {
@@ -27,23 +33,29 @@ export default function BonusGamesButton() {
       return;
     }
     
-    // Normal logic for other users
-    const lastGamePlayedDate = localStorage.getItem('lastGamePlayedDate');
-    const today = new Date().toDateString();
-    
-    if (lastGamePlayedDate === today) {
-      setGamePlayed(true);
-    } else if (gameHistory && gameHistory.length > 0) {
+    if (gameHistory && gameHistory.length > 0) {
       // Check if any game was played today from API data
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
       const playedToday = gameHistory.some((game) => {
+        if (!game.completedAt) return false;
         const gameDate = new Date(game.completedAt);
         return gameDate.toDateString() === today.toDateString();
       });
       
       setGamePlayed(playedToday);
+      
+      // Update localStorage to match server state
+      if (playedToday) {
+        localStorage.setItem('lastGamePlayedDate', today.toDateString());
+      } else {
+        localStorage.removeItem('lastGamePlayedDate');
+      }
+    } else {
+      // No game history or empty - assume not played
+      setGamePlayed(false);
+      localStorage.removeItem('lastGamePlayedDate');
     }
   }, [gameHistory, user, isJLCookie]);
 
