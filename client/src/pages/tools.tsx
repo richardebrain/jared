@@ -104,7 +104,7 @@ const ToolCard: React.FC<ToolCardProps> = ({ icon, title, description, onClick, 
 };
 
 export default function ToolsPage() {
-  const [activeTab, setActiveTab] = useState("parent-responses");
+  const [activeTab, setActiveTab] = useState("music-library");
   const [viewMode, setViewMode] = useState<"cards" | "tabs">("cards");
 
   // Tools definitions
