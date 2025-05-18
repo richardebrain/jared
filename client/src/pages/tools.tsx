@@ -133,9 +133,9 @@ export default function ToolsPage() {
         <div className="flex flex-col items-center justify-center py-8">
           <h3 className="text-xl font-semibold mb-4">EduTok - Teaching Wisdom in Shorts</h3>
           <div className="text-center mb-6">
-            <Badge variant="outline" className="mb-3 bg-amber-100 text-amber-700 border-amber-200 px-3 py-1">
+            <div className="mb-3 inline-block py-1 px-3 bg-amber-100 text-amber-700 border border-amber-200 rounded-full text-sm font-medium">
               Coming Soon
-            </Badge>
+            </div>
             <p className="text-muted-foreground max-w-lg">
               Swipe through bite-sized teaching tips, classroom management ideas, and quick activities in a fun, easy-to-consume format.
             </p>
