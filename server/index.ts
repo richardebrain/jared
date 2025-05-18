@@ -5,6 +5,7 @@ import { seedDatabase } from "./seedDb";
 // Import our migration functions
 import { runSchoolMigration } from "./runMigration";
 import { runSchoolColumnsMigration } from "./schoolColumnsMigration";
+import { runCertificationMigration } from "./certificationMigration";
 
 const app = express();
 app.use(express.json());
@@ -97,6 +98,13 @@ app.use((req, res, next) => {
         })
         .then(() => {
           console.log('Welcome message migration completed successfully');
+          
+          // Run the certification tracking migration
+          console.log('Running certification tracking migration...');
+          return runCertificationMigration();
+        })
+        .then(() => {
+          console.log('Certification tracking migration completed successfully');
           
           // Then seed the database with initial data
           console.log('Seeding database...');
