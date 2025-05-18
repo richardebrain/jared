@@ -249,12 +249,16 @@ export default function BusinessSignupPage() {
         formData.append("schoolLogo", schoolLogo);
       }
       
+      console.log("Submitting form data...");
+      
       // Use fetch directly for FormData
       const response = await fetch("/api/schools/register", {
         method: "POST",
         body: formData,
         // Don't set Content-Type header, browser will set it with boundary
       });
+      
+      console.log("Response status:", response.status);
       
       let errorMessage = "Failed to register school";
       

@@ -2866,7 +2866,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create the school record
       try {
-        const newSchool = await storage.createSchool({
+        // Create the school with all the necessary data
+        const schoolData = {
           name: schoolName,
           address: address || null,
           city: city || null,
@@ -2880,7 +2881,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           subscriptionExpiresAt: subscriptionDetails.subscriptionExpiresAt,
           adminPasswordHash: hashedPassword,
           isFreeAccess: false
+        };
+        
+        console.log("About to create school with data:", {
+          name: schoolData.name,
+          contactEmail: schoolData.contactEmail,
+          logoUrl: schoolData.logoUrl
         });
+        
+        const newSchool = await storage.createSchool(schoolData);
         
         console.log(`School registered successfully: ${schoolName} (ID: ${newSchool.id})`);
         
@@ -2893,7 +2902,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } catch (createError) {
         console.error("Error creating school:", createError);
-        throw new Error(`Failed to create school: ${createError.message}`);
+        return res.status(500).json({
+          message: "Failed to create school", 
+          details: createError.message || "Database error occurred"
+        });
       }
     } catch (error) {
       console.error("School registration error:", error);
