@@ -2972,64 +2972,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Dedicated endpoint for school logo uploads
-  app.post("/api/schools/upload-logo", (req, res) => {
-    console.log("Processing school logo upload request...");
-    
-    // Use multer middleware for handling multipart/form-data
-    logoUpload.single('schoolLogo')(req, res, async (err) => {
-      if (err) {
-        console.error("Logo upload middleware error:", err);
+  app.post("/api/schools/upload-logo", logoUpload.single('schoolLogo'), async (req, res) => {
+    try {
+      console.log("Processing school logo upload with body:", req.body, "and file:", 
+        req.file ? {
+          filename: req.file.filename,
+          size: req.file.size,
+          mimetype: req.file.mimetype
+        } : "No file received");
+      
+      // Get schoolId from the form data - the client passes this
+      const schoolId = parseInt(req.body.schoolId);
+      
+      if (!schoolId || isNaN(schoolId)) {
+        console.error("Invalid or missing school ID:", req.body.schoolId);
         return res.status(400).json({ 
           success: false, 
-          message: "File upload error: " + err.message 
+          message: "Valid school ID is required" 
         });
       }
       
-      try {
-        // Get schoolId from the form data
-        const { schoolId } = req.body;
-        
-        if (!schoolId) {
-          return res.status(400).json({ 
-            success: false, 
-            message: "School ID is required" 
-          });
-        }
-        
-        // Check if file was uploaded
-        if (!req.file) {
-          return res.status(400).json({ 
-            success: false, 
-            message: "No logo file uploaded" 
-          });
-        }
-        
-        const logoPath = `/uploads/school-logos/${req.file.filename}`;
-        console.log(`Logo uploaded for school ID ${schoolId}: ${logoPath}`);
-        
-        // Update the school's logo path
-        const updatedSchool = await storage.updateSchoolLogo(parseInt(schoolId), logoPath);
-        
-        if (!updatedSchool) {
-          return res.status(404).json({ 
-            success: false, 
-            message: "School not found" 
-          });
-        }
-        
-        res.status(200).json({ 
-          success: true, 
-          message: "School logo updated successfully",
-          logoPath
-        });
-      } catch (error) {
-        console.error("Error updating school with logo:", error);
-        res.status(500).json({ 
+      // Check if file was uploaded
+      if (!req.file) {
+        console.error("No file received in upload request");
+        return res.status(400).json({ 
           success: false, 
-          message: "Failed to update school with logo: " + (error instanceof Error ? error.message : "Unknown error") 
+          message: "No logo file uploaded" 
         });
       }
-    });
+      
+      const logoPath = `/uploads/school-logos/${req.file.filename}`;
+      console.log(`Logo uploaded successfully for school ID ${schoolId}: ${logoPath}`);
+      
+      // Update the school's logo path 
+      const updatedSchool = await storage.updateSchoolLogo(schoolId, logoPath);
+      
+      if (!updatedSchool) {
+        console.error(`School not found with ID ${schoolId}`);
+        return res.status(404).json({ 
+          success: false, 
+          message: "School not found" 
+        });
+      }
+      
+      console.log("School logo updated successfully in database");
+      
+      // Return success response with updated school info
+      res.status(200).json({ 
+        success: true, 
+        message: "School logo updated successfully",
+        school: updatedSchool,
+        logoUrl: logoPath
+      });
+    } catch (error) {
+      console.error("Error processing logo upload:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to update school with logo", 
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
   });
   
   // EduTok Feed API - Get TikTok-style short video feed
