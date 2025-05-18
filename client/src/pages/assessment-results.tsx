@@ -39,16 +39,36 @@ export default function AssessmentResultsPage() {
     queryKey: ["/api/auth/user"],
   });
   
-  // Get user's assessment results
+  // Get user's assessment results - use the correct API endpoint
   const { data: assessmentResults, isLoading: isLoadingResults } = useQuery({
-    queryKey: ["/api/assessments"],
+    queryKey: ["/api/assessment-results"],
     enabled: !!user,
   });
   
   // Get recommended modules based on assessment results
   const { data: recommendedModules, isLoading: isLoadingModules } = useQuery({
-    queryKey: ["/api/recommended-modules"],
-    enabled: !!user && !!assessmentResults && assessmentResults.length > 0,
+    queryKey: ["/api/modules"],
+    enabled: !!user,
+    select: (data) => {
+      // If there are no assessment results, return all modules
+      if (!assessmentResults || assessmentResults.length === 0) {
+        return data?.slice(0, 5) || [];
+      }
+      
+      // Otherwise, apply some logic to recommend modules based on strengths/growth areas
+      const latestAssessment = assessmentResults[0];
+      const growthAreaKeywords = latestAssessment?.growthAreas || [];
+      
+      // Filter modules that match growth areas or return first 5 modules if no matches
+      const filteredModules = data?.filter(module => 
+        growthAreaKeywords.some(keyword => 
+          module.title.toLowerCase().includes(keyword.toLowerCase()) || 
+          module.description.toLowerCase().includes(keyword.toLowerCase())
+        )
+      ) || [];
+      
+      return filteredModules.length > 0 ? filteredModules.slice(0, 5) : (data?.slice(0, 5) || []);
+    }
   });
   
   const isLoading = isLoadingUser || isLoadingResults || isLoadingModules;

@@ -33,9 +33,13 @@ export default function AssessmentCelebration({
     setIsExploding(true);
     
     // Play success sound
-    const audio = new Audio("/sounds/level-up.mp3");
-    audio.volume = 0.5;
-    audio.play().catch(e => console.error("Error playing sound:", e));
+    try {
+      const audio = new Audio("sounds/mario-victory.mp3");
+      audio.volume = 0.5;
+      audio.play().catch(e => console.error("Error playing sound:", e));
+    } catch (error) {
+      console.error("Failed to load sound:", error);
+    }
     
     // Reset confetti after a delay
     const timer = setTimeout(() => {
