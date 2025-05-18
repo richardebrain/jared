@@ -542,7 +542,15 @@ export default function Dashboard() {
                       </div>
                     </Link>
                     
-                    {user && (Array.isArray(userProgress) && userProgress.some((p) => p.completed === true) || user.username === 'jlcookie20') ? (
+                    {user && (
+                      // Show games button for any of these conditions:
+                      // 1. User has completed modules
+                      // 2. User is jlcookie20 (special admin)
+                      // 3. User has a streak of at least 1 day (logged in two consecutive days)
+                      Array.isArray(userProgress) && userProgress.some((p) => p.completed === true) || 
+                      user.username === 'jlcookie20' || 
+                      (user.streak && user.streak > 0)
+                    ) ? (
                       <BonusGamesButton />
                     ) : (
                       <div className="group relative overflow-hidden bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700 text-white font-bold py-3 px-6 rounded-xl border-2 border-gray-400 opacity-90">
