@@ -35,6 +35,8 @@ import Header from "@/components/Header";
 import { Separator } from "@/components/ui/separator";
 
 export default function BusinessSignupPage() {
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [isPageReady, setIsPageReady] = useState(false);
   const { user } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
@@ -43,6 +45,17 @@ export default function BusinessSignupPage() {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [progress, setProgress] = useState(1); // Track progress through signup flow
+  
+  useEffect(() => {
+    // Page initialization logic
+    try {
+      // Perform any initial checks or data loading here
+      setIsPageReady(true);
+    } catch (err) {
+      console.error("Error initializing business signup page:", err);
+      setLoadError("Failed to initialize the business signup page. Please try again later.");
+    }
+  }, []);
   
   // School information
   const [schoolName, setSchoolName] = useState("");
