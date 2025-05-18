@@ -291,8 +291,7 @@ export default function AssessmentPage() {
   // Handle viewing detailed assessment results
   const handleViewResults = () => {
     // Navigate to results page or show detailed results view
-    setAssessmentState('initial');
-    setShowCompletionView(false);
+    navigate('/assessment-results');  // Redirect to the assessment results page
   };
   
   // Function to initialize the assessment

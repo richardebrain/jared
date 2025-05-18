@@ -11,6 +11,7 @@ import BusinessSignup from "@/pages/business-signup";
 import LandingPage from "@/pages/landing";
 import ProgressionMap from "@/pages/progression-map";
 import Assessment from "@/pages/assessment";
+import AssessmentResults from "@/pages/assessment-results";
 import LearningModulePage from "@/pages/learning-module";
 import MicroModulePage from "@/pages/micro-module";
 import LearningStylePage from "@/pages/learning-style";
@@ -95,6 +96,10 @@ function Router() {
       
       <Route path="/assessment">
         {isAuthenticated ? <Assessment /> : <Login />}
+      </Route>
+      
+      <Route path="/assessment-results">
+        {isAuthenticated ? <AssessmentResults /> : <Login />}
       </Route>
       
       <Route path="/learning-style">
