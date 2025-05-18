@@ -583,10 +583,15 @@ export default function AssessmentPage() {
     });
     
     // Check if we need to move to next domain or complete assessment
-    const shouldMoveToNextDomain = 
-      (updatedStats.questionsCorrect >= 10) || // User got 10 correct answers - proficient
-      (updatedStats.consecutiveIncorrect >= 3) || // User got 3 wrong answers in a row
-      (updatedStats.questionsAttempted >= 15); // User has attempted max questions
+    const simplifiedDomains = ['core', 'mindful']; // Domains with simplified assessment (no difficulty escalation)
+    const isSimplifiedDomain = simplifiedDomains.includes(domainId);
+    
+    // Different criteria for different domains
+    const shouldMoveToNextDomain = isSimplifiedDomain
+      ? (updatedStats.questionsAttempted >= 5) // For Core Values and Mindful Morning, just 5 questions
+      : (updatedStats.questionsCorrect >= 10) || // For other domains: User got 10 correct answers - proficient
+        (updatedStats.consecutiveIncorrect >= 3) || // User got 3 wrong answers in a row
+        (updatedStats.questionsAttempted >= 15); // User has attempted max questions
     
     // After a delay, move to next question or domain
     setTimeout(() => {
@@ -629,7 +634,8 @@ export default function AssessmentPage() {
         // Check if we should increase difficulty level
         let newDifficulty = currentDifficulty;
         
-        if (correct && updatedStats.consecutiveCorrect >= 3) {
+        // Only increase difficulty for domains that aren't simplified
+        if (!isSimplifiedDomain && correct && updatedStats.consecutiveCorrect >= 3) {
           // If user got 3 consecutive correct answers, increase difficulty
           if (newDifficulty === 'beginner') {
             newDifficulty = 'intermediate';
