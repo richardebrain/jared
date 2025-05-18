@@ -438,6 +438,27 @@ export const schoolsRelations = relations(schools, ({ many }) => ({
   users: many(users),
 }));
 
+// Teacher welcome messages and notifications table
+export const teacherMessages = pgTable("teacher_messages", {
+  id: serial("id").primaryKey(),
+  senderId: integer("sender_id").notNull().references(() => users.id),
+  recipientId: integer("recipient_id").notNull().references(() => users.id),
+  schoolId: integer("school_id").references(() => schools.id),
+  messageType: text("message_type").notNull(), // welcome, certification_reminder, announcement, personal, shoutout
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  isRead: boolean("is_read").default(false),
+  important: boolean("important").default(false),
+  expiresAt: timestamp("expires_at"), // Optional expiration time for time-sensitive messages
+  relatedId: integer("related_id"), // For linking to shoutouts or other entities
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertTeacherMessageSchema = createInsertSchema(teacherMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Update user relations to include school relation
 export const usersRelations = relations(users, ({ many, one }) => ({
   school: one(schools, {
