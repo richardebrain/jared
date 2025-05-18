@@ -452,15 +452,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Log dates for debugging
         console.log(`User ${user.id} - Last login: ${lastLoginDate.toISOString()}, Today: ${today.toISOString()}, Yesterday: ${yesterday.toISOString()}`);
         
-        // Check if last login was on a previous day (not same day) - this is a new day login
+        // Enhanced streak checking logic to properly handle consecutive days
+        // If user logged in before today (yesterday or earlier) and hasn't already logged in today
         if (lastLoginDate.getTime() < today.getTime()) {
-          // Continue the streak - increment by 1
-          await storage.updateUser(user.id, {
-            lastActive: new Date(),
-            streak: (user.streak || 0) + 1
-          });
-          streakUpdated = true;
-          console.log(`User ${user.id} login streak continued: ${(user.streak || 0) + 1} days`);
+          // Check if it was yesterday (continue streak) or earlier (reset streak)
+          const daysSinceLastLogin = Math.floor((today.getTime() - lastLoginDate.getTime()) / (1000 * 60 * 60 * 24));
+          
+          if (daysSinceLastLogin === 1) {
+            // Yesterday - continue streak
+            await storage.updateUser(user.id, {
+              lastActive: new Date(),
+              streak: (user.streak || 0) + 1
+            });
+            streakUpdated = true;
+            console.log(`User ${user.id} login streak continued: ${(user.streak || 0) + 1} days`);
+          } else if (daysSinceLastLogin > 1) {
+            // More than one day - reset streak
+            await storage.updateUser(user.id, {
+              lastActive: new Date(),
+              streak: 1 // Reset to 1 (today)
+            });
+            streakUpdated = true;
+            console.log(`User ${user.id} login streak reset to 1 day (gap of ${daysSinceLastLogin} days)`);
+          }
         } 
         // Check if user is logging in on the same day (no streak change)
         else if (lastLoginDate.getTime() === today.getTime()) {

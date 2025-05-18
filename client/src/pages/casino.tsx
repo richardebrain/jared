@@ -95,12 +95,39 @@ export default function CasinoPage() {
       return;
     }
     
-    // Normal restriction for regular users
-    const today = new Date().toDateString();
-    const lastPlayedDate = localStorage.getItem('lastGamePlayedDate');
-    if (lastPlayedDate === today) {
-      setDailyGameUsed(true);
-    }
+    // Check with server if user has played a game today
+    const checkGameHistory = async () => {
+      try {
+        const gameHistory = await apiRequest('/api/games/history', {
+          method: 'GET'
+        });
+        
+        if (Array.isArray(gameHistory)) {
+          // Check if any game was played today
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          
+          const playedToday = gameHistory.some(game => {
+            if (!game.completedAt) return false;
+            const gameDate = new Date(game.completedAt);
+            return gameDate.toDateString() === today.toDateString();
+          });
+          
+          setDailyGameUsed(playedToday);
+          
+          // Update localStorage to match server state
+          if (playedToday) {
+            localStorage.setItem('lastGamePlayedDate', today.toDateString());
+          } else {
+            localStorage.removeItem('lastGamePlayedDate');
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch game history", error);
+      }
+    };
+    
+    checkGameHistory();
   }, [user?.username]);
   
   // Use the new points reward hook
