@@ -512,29 +512,7 @@ export default function AssessmentPage() {
     }
   };
   
-  // Generate a personalized compliment for correct answers
-  const generatePersonalizedCompliment = (name: string) => {
-    const compliments = [
-      `Well done, ${name}!`,
-      `Excellent, ${name}!`,
-      `That's right, ${name}!`,
-      `Great job, ${name}!`,
-      `You got it, ${name}!`,
-      `Perfect answer, ${name}!`,
-      `Fantastic work, ${name}!`,
-      `Outstanding, ${name}!`,
-      `You're on fire, ${name}!`,
-      `Brilliant answer, ${name}!`,
-      `Amazing knowledge, ${name}!`,
-      `Impressive, ${name}!`,
-      `Spot on, ${name}!`,
-      `That's correct, ${name}!`,
-      `Wonderful, ${name}!`
-    ];
-    
-    // Select a random compliment
-    return compliments[Math.floor(Math.random() * compliments.length)];
-  };
+
   
   // Get the current active question
   const activeQuestion = domainQuestions[activeQuestionIndex] || {
