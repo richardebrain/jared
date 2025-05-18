@@ -3,7 +3,6 @@ import { AudioPlayer } from './AudioPlayer';
 import { Card, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Music, BookOpen, Volume, PlayCircle, Clock } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
 
 interface MusicTrack {
   id: string;
@@ -15,7 +14,6 @@ interface MusicTrack {
 }
 
 export function TeacherMusicLibrary() {
-  const { user } = useAuth();
   
   // Sample tracks
   const tracks: MusicTrack[] = [

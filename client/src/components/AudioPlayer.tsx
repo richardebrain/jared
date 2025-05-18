@@ -4,9 +4,6 @@ import { Button } from './ui/button';
 import { Slider } from './ui/slider';
 import { Card, CardContent } from './ui/card';
 import { cn } from '../lib/utils';
-import { useToast } from '../hooks/use-toast';
-import { apiRequest } from '../lib/queryClient';
-import { useAuth } from '../hooks/useAuth';
 
 interface AudioPlayerProps {
   src: string;
@@ -14,7 +11,6 @@ interface AudioPlayerProps {
   description?: string;
   showInModule?: boolean;
   moduleId?: number;
-  pointsValue?: number;
   className?: string;
 }
 
@@ -24,7 +20,6 @@ export function AudioPlayer({
   description,
   showInModule = false,
   moduleId,
-  pointsValue = 3,
   className
 }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -32,11 +27,7 @@ export function AudioPlayer({
   const [currentTime, setCurrentTime] = useState(0);
   const [volume, setVolume] = useState(0.7);
   const [isMuted, setIsMuted] = useState(false);
-  const [hasEarnedPoints, setHasEarnedPoints] = useState(false);
-  const [pointsAwarded, setPointsAwarded] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
-  const { toast } = useToast();
-  const { user } = useAuth();
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -45,27 +36,14 @@ export function AudioPlayer({
     const updateDuration = () => setDuration(audio.duration);
     const updateTime = () => setCurrentTime(audio.currentTime);
     
-    // To detect when audio has played at least 80% of its duration
-    const checkProgress = () => {
-      if (audio.currentTime > audio.duration * 0.8 && !hasEarnedPoints && pointsValue > 0) {
-        setHasEarnedPoints(true);
-        // Award points if this is within a module context
-        if (moduleId && user) {
-          awardPoints();
-        }
-      }
-    };
-
     audio.addEventListener('loadedmetadata', updateDuration);
     audio.addEventListener('timeupdate', updateTime);
-    audio.addEventListener('timeupdate', checkProgress);
     
     return () => {
       audio.removeEventListener('loadedmetadata', updateDuration);
       audio.removeEventListener('timeupdate', updateTime);
-      audio.removeEventListener('timeupdate', checkProgress);
     };
-  }, [hasEarnedPoints, moduleId, pointsValue, user]);
+  }, []);
 
   const togglePlayPause = () => {
     const audio = audioRef.current;
@@ -137,29 +115,7 @@ export function AudioPlayer({
     setCurrentTime(audio.currentTime);
   };
 
-  const awardPoints = async () => {
-    if (!user || !moduleId || pointsAwarded) return;
-    
-    try {
-      const response = await apiRequest('POST', '/api/award-audio-points', {
-        userId: user.id,
-        moduleId,
-        audioTitle: title,
-        pointsEarned: pointsValue
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setPointsAwarded(true);
-        toast({
-          title: "Points Awarded!",
-          description: `You earned ${pointsValue} points for listening to "${title}"`,
-        });
-      }
-    } catch (error) {
-      console.error('Failed to award points:', error);
-    }
-  };
+  // Audio player functionality (points system removed)
 
   return (
     <div className={cn("p-2", className)}>
