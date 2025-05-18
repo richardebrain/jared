@@ -7,13 +7,14 @@ import { MeetingScheduler } from "@/components/MeetingScheduler";
 import LessonPlanMaker from "@/components/LessonPlanMaker";
 import ParentResponseGenerator, { ParentScenario } from "@/components/ParentResponseGenerator";
 import TransitionTimerTool from "@/components/TransitionTimerTool";
+import { TeacherMusicLibrary } from "@/components/TeacherMusicLibrary";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   MessageSquare, BookOpen, Video, CalendarDays, ClipboardCheck, 
   GraduationCap, Lightbulb, Stars, BadgeHelp, PencilRuler, Timer,
-  Smartphone
+  Smartphone, Music
 } from "lucide-react";
 
 // Example scenarios for parent communication
@@ -108,6 +109,15 @@ export default function ToolsPage() {
 
   // Tools definitions
   const tools = [
+    {
+      id: "music-library",
+      title: "Teacher Music Library",
+      description: "Access music for classroom use and development",
+      icon: <Music className="h-6 w-6" />,
+      component: (
+        <TeacherMusicLibrary />
+      )
+    },
     {
       id: "parent-responses",
       title: "Parent Response Generator",
