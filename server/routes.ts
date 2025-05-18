@@ -82,6 +82,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create an HTTP server for the Express app (needed for WebSockets)
   const httpServer = createServer(app);
   
+  // Register welcome message routes - for teacher notifications and shout-outs
+  registerWelcomeMessageRoutes(app);
+  
   // Serve static files from the uploads directory
   app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
   

@@ -45,14 +45,16 @@ const messageTypeIcons = {
   welcome: <BadgeCheck className="h-5 w-5 text-green-500" />,
   certification_reminder: <AlertTriangle className="h-5 w-5 text-amber-500" />,
   announcement: <Bell className="h-5 w-5 text-blue-500" />,
-  personal: <MessageSquare className="h-5 w-5 text-purple-500" />
+  personal: <MessageSquare className="h-5 w-5 text-purple-500" />,
+  shoutout: <Award className="h-5 w-5 text-rose-500" />
 };
 
 const messageTypeBadges = {
   welcome: <Badge className="bg-green-100 text-green-800 hover:bg-green-200">Welcome</Badge>,
   certification_reminder: <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200">Certification</Badge>,
   announcement: <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200">Announcement</Badge>,
-  personal: <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-200">Personal</Badge>
+  personal: <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-200">Personal</Badge>,
+  shoutout: <Badge className="bg-rose-100 text-rose-800 hover:bg-rose-200">Core Value Shout-Out</Badge>
 };
 
 export default function WelcomeMessage() {
