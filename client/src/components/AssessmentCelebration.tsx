@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
 import { Star, Award, Trophy, ArrowRight } from 'lucide-react';
@@ -14,7 +14,7 @@ interface AssessmentCelebrationProps {
 }
 
 const AssessmentCelebration = ({ pointsEarned, onViewResults }: AssessmentCelebrationProps) => {
-  const navigate = useNavigate();
+  const [, navigate] = useLocation();
   const [showConfetti, setShowConfetti] = useState(true);
   const [showContent, setShowContent] = useState(false);
 
