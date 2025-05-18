@@ -2778,7 +2778,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         {
           id: 1,
           title: "Creating Calm Corners in Your Classroom",
-          video_url: "https://player.vimeo.com/video/759633227",
+          video_url: "https://player.vimeo.com/video/759633227?autoplay=0",
           thumbnail_url: "https://placehold.co/480x720/181D31/FFF.png?text=Calm+Corners",
           source_url: "https://vimeo.com/759633227",
           license: "Educational",
@@ -2791,7 +2791,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         {
           id: 2,
           title: "Mindful Transitions Between Activities",
-          video_url: "https://player.vimeo.com/video/759633264",
+          video_url: "https://player.vimeo.com/video/759633264?autoplay=0",
           thumbnail_url: "https://placehold.co/480x720/48425A/FFF.png?text=Activity+Transitions",
           source_url: "https://vimeo.com/759633264",
           license: "Educational",
@@ -2804,7 +2804,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         {
           id: 3,
           title: "Building Emotional Vocabulary with Preschoolers",
-          video_url: "https://player.vimeo.com/video/759633319",
+          video_url: "https://player.vimeo.com/video/759633319?autoplay=0",
           thumbnail_url: "https://placehold.co/480x720/5D5970/FFF.png?text=Emotional+Vocabulary",
           source_url: "https://vimeo.com/759633319",
           license: "Educational",
@@ -2817,7 +2817,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         {
           id: 4,
           title: "Quick Sensory Activities for Wiggly Kids",
-          video_url: "https://player.vimeo.com/video/759633356",
+          video_url: "https://player.vimeo.com/video/759633356?autoplay=0",
           thumbnail_url: "https://placehold.co/480x720/6D6A8C/FFF.png?text=Sensory+Activities",
           source_url: "https://vimeo.com/759633356",
           license: "Educational",
@@ -2830,7 +2830,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         {
           id: 5,
           title: "3-Minute Morning Meeting Ideas",
-          video_url: "https://player.vimeo.com/video/759633400",
+          video_url: "https://player.vimeo.com/video/759633400?autoplay=0",
           thumbnail_url: "https://placehold.co/480x720/7F7B9F/FFF.png?text=Morning+Meeting",
           source_url: "https://vimeo.com/759633400",
           license: "Educational",

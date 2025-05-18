@@ -85,7 +85,7 @@ export default function EduTokFeed() {
       {
         id: 1,
         title: "Creating Calm Corners in Your Classroom",
-        video_url: "https://player.vimeo.com/video/759633319",
+        video_url: "https://player.vimeo.com/video/759633319?autoplay=0",
         thumbnail_url: "https://placehold.co/480x720/181D31/FFF.png?text=Calm+Corners",
         source_url: "https://vimeo.com/759633319",
         license: "Educational"
@@ -93,7 +93,7 @@ export default function EduTokFeed() {
       {
         id: 2,
         title: "Mindful Transitions Between Activities",
-        video_url: "https://player.vimeo.com/video/759633356",
+        video_url: "https://player.vimeo.com/video/759633356?autoplay=0",
         thumbnail_url: "https://placehold.co/480x720/48425A/FFF.png?text=Activity+Transitions",
         source_url: "https://vimeo.com/759633356",
         license: "Educational"
@@ -101,7 +101,7 @@ export default function EduTokFeed() {
       {
         id: 3,
         title: "Building Emotional Vocabulary with Preschoolers",
-        video_url: "https://player.vimeo.com/video/759633400",
+        video_url: "https://player.vimeo.com/video/759633400?autoplay=0",
         thumbnail_url: "https://placehold.co/480x720/5D5970/FFF.png?text=Emotional+Vocabulary",
         source_url: "https://vimeo.com/759633400",
         license: "Educational"
@@ -154,8 +154,9 @@ export default function EduTokFeed() {
                 
                 <iframe
                   id={`video-${index}`}
+                  key={`${snippet.video_url}${currentIndex === index ? '?autoplay=1' : ''}`}
                   src={`${snippet.video_url}${currentIndex === index ? '?autoplay=1' : ''}`}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                   className="absolute top-0 left-0 w-full h-full object-cover"
                   style={{display: currentIndex === index ? 'block' : 'none'}}
