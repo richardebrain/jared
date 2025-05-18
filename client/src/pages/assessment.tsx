@@ -512,6 +512,30 @@ export default function AssessmentPage() {
     }
   };
   
+  // Generate a personalized compliment for correct answers
+  const generatePersonalizedCompliment = (name: string) => {
+    const compliments = [
+      `Well done, ${name}!`,
+      `Excellent, ${name}!`,
+      `That's right, ${name}!`,
+      `Great job, ${name}!`,
+      `You got it, ${name}!`,
+      `Perfect answer, ${name}!`,
+      `Fantastic work, ${name}!`,
+      `Outstanding, ${name}!`,
+      `You're on fire, ${name}!`,
+      `Brilliant answer, ${name}!`,
+      `Amazing knowledge, ${name}!`,
+      `Impressive, ${name}!`,
+      `Spot on, ${name}!`,
+      `That's correct, ${name}!`,
+      `Wonderful, ${name}!`
+    ];
+    
+    // Select a random compliment
+    return compliments[Math.floor(Math.random() * compliments.length)];
+  };
+  
   // Get the current active question
   const activeQuestion = domainQuestions[activeQuestionIndex] || {
     id: '',
@@ -675,25 +699,33 @@ export default function AssessmentPage() {
         // Only increase difficulty for domains that aren't simplified
         if (!isSimplifiedDomain && correct && updatedStats.consecutiveCorrect >= 3) {
           // If user got 3 consecutive correct answers, increase difficulty
+          // Get user's first name for personalized messages
+          const userFirstName = user?.firstName || 'Teacher';
+          
+          // Play level up sound when difficulty increases
+          const levelUpSound = new Audio('/sounds/level-up.mp3');
+          levelUpSound.volume = 0.5;
+          levelUpSound.play().catch(e => console.error("Error playing sound:", e));
+          
           if (newDifficulty === 'beginner') {
             newDifficulty = 'intermediate';
             toast({
               title: "Difficulty Increased!",
-              description: "Great job! Questions will now be at intermediate level.",
+              description: `${userFirstName}, that's impressive! You've advanced to intermediate level.`,
               variant: "default",
             });
           } else if (newDifficulty === 'intermediate') {
             newDifficulty = 'advanced';
             toast({
               title: "Difficulty Increased!",
-              description: "Excellent! Questions will now be at advanced level.",
+              description: `Excellent work, ${userFirstName}! You've advanced to advanced level.`,
               variant: "default",
             });
           } else if (newDifficulty === 'advanced') {
             newDifficulty = 'expert';
             toast({
               title: "Difficulty Increased!",
-              description: "Amazing! Questions will now be at expert level.",
+              description: `Outstanding, ${userFirstName}! You've reached expert level!`,
               variant: "default",
             });
           }
