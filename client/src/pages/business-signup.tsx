@@ -341,7 +341,7 @@ export default function BusinessSignupPage() {
                 toast({
                   title: "Logo Upload Issue",
                   description: "Your school was registered successfully, but there was an issue uploading your logo. You can add it later from settings.",
-                  variant: "default"
+                  variant: "warning"
                 });
               } else {
                 console.log("Logo uploaded successfully:", logoData);
@@ -359,7 +359,7 @@ export default function BusinessSignupPage() {
             toast({
               title: "Logo Upload Failed",
               description: "Your school was registered, but we encountered an error uploading your logo. You can add it later from settings.",
-              variant: "default"
+              variant: "warning"
             });
             
             // Add a small delay before redirecting to ensure error messages are seen
