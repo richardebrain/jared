@@ -50,17 +50,11 @@ export default function EduTokFeed() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Handle video playing - ensure only one plays at a time
+  // Handle video display - for iframes we just control which one is visible
   const handleVideoPlay = (index: number) => {
     setCurrentIndex(index);
-    snippets.forEach((_, idx) => {
-      const video = document.getElementById(`video-${idx}`) as HTMLVideoElement;
-      if (idx === index) {
-        video?.play();
-      } else {
-        video?.pause();
-      }
-    });
+    // No need to call play() or pause() since we're using iframes
+    // The video visibility is controlled by the currentIndex state
   };
 
   // Handle interaction buttons
@@ -160,10 +154,11 @@ export default function EduTokFeed() {
                 
                 <iframe
                   id={`video-${index}`}
-                  src={snippet.video_url}
+                  src={`${snippet.video_url}${currentIndex === index ? '?autoplay=1' : ''}`}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                   className="absolute top-0 left-0 w-full h-full object-cover"
+                  style={{display: currentIndex === index ? 'block' : 'none'}}
                   onClick={(e) => {
                     e.stopPropagation();
                   }}
