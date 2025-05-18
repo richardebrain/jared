@@ -296,26 +296,50 @@ export default function BusinessSignupPage() {
             console.log("Uploading school logo separately...");
             const logoFormData = new FormData();
             logoFormData.append("schoolLogo", schoolLogo);
-            logoFormData.append("schoolId", registrationData.schoolId?.toString() || "");
+            // Make sure we're using the correct property from the response
+            const schoolId = registrationData.school?.id || registrationData.schoolId;
             
-            const logoResponse = await fetch("/api/schools/update-logo", {
-              method: "POST",
-              body: logoFormData,
-            });
-            
-            if (!logoResponse.ok) {
-              console.warn("Logo upload unsuccessful but registration succeeded");
+            if (!schoolId) {
+              console.error("Missing school ID in registration response:", registrationData);
               toast({
-                title: "Logo Upload Issue",
-                description: "Your school was registered successfully, but there was an issue uploading your logo. You can add it later from settings.",
+                title: "Logo Upload Skipped",
+                description: "Your school was registered successfully, but we couldn't upload your logo due to missing school ID.",
                 variant: "warning"
               });
             } else {
-              console.log("Logo uploaded successfully");
+              logoFormData.append("schoolId", schoolId.toString());
+              
+              // Use a dedicated upload endpoint
+              const logoResponse = await fetch("/api/schools/upload-logo", {
+                method: "POST",
+                body: logoFormData,
+              });
+              
+              if (!logoResponse.ok) {
+                console.warn("Logo upload unsuccessful but registration succeeded");
+                toast({
+                  title: "Logo Upload Issue",
+                  description: "Your school was registered successfully, but there was an issue uploading your logo. You can add it later from settings.",
+                  variant: "warning"
+                });
+              } else {
+                console.log("Logo uploaded successfully");
+                // Display success message for both registration and logo
+                toast({
+                  title: "Registration Complete",
+                  description: "Your school was registered and your logo was uploaded successfully!",
+                  variant: "default"
+                });
+              }
             }
           } catch (logoError) {
             console.error("Error during logo upload:", logoError);
             // Don't fail the whole registration for logo issues
+            toast({
+              title: "Logo Upload Failed",
+              description: "Your school was registered, but we encountered an error uploading your logo. You can add it later from settings.",
+              variant: "warning"
+            });
           }
         }
         
