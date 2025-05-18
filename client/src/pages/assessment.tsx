@@ -309,6 +309,10 @@ export default function AssessmentPage() {
     setActiveQuestionIndex(0);
     setAssessmentState('assessment');
     
+    // Reset difficulty settings
+    setCurrentDifficulty('beginner');
+    setDifficultyValue([0]);
+    
     // Load first domain questions
     updateDomainQuestions(domains[0].id, 'beginner');
   };
@@ -337,8 +341,34 @@ export default function AssessmentPage() {
     loadQuestions();
   }, [toast]);
   
+  // Function to determine difficulty level based on slider value
+  const getDifficultyFromValue = (value: number): DifficultyLevel => {
+    switch (value) {
+      case 0: return 'beginner';
+      case 1: return 'intermediate';
+      case 2: return 'advanced';
+      case 3: return 'expert';
+      default: return 'beginner';
+    }
+  };
+  
+  // Function to determine slider value based on difficulty level
+  const getValueFromDifficulty = (difficulty: DifficultyLevel): number => {
+    switch (difficulty) {
+      case 'beginner': return 0;
+      case 'intermediate': return 1;
+      case 'advanced': return 2;
+      case 'expert': return 3;
+      default: return 0;
+    }
+  };
+  
   // Function to update questions for the current domain
   const updateDomainQuestions = (domainId: string, difficulty: DifficultyLevel) => {
+    // Update current difficulty state
+    setCurrentDifficulty(difficulty);
+    setDifficultyValue([getValueFromDifficulty(difficulty)]);
+    
     // Filter questions for the current domain and difficulty level
     const questions = assessmentQuestions.filter(
       q => q.domain === domainId && q.difficulty === difficulty
@@ -352,6 +382,12 @@ export default function AssessmentPage() {
       } else if (difficulty === 'intermediate') {
         // Try beginner if intermediate has no questions (fallback)
         updateDomainQuestions(domainId, 'beginner');
+      } else if (difficulty === 'advanced') {
+        // Try intermediate if advanced has no questions (fallback)
+        updateDomainQuestions(domainId, 'intermediate');
+      } else if (difficulty === 'expert') {
+        // Try advanced if expert has no questions (fallback)
+        updateDomainQuestions(domainId, 'advanced');
       } else {
         // If still no questions, show error
         toast({
@@ -505,7 +541,15 @@ export default function AssessmentPage() {
           const nextDomainIndex = activeDomainIndex + 1;
           setActiveDomainIndex(nextDomainIndex);
           setCurrentDomain(domains[nextDomainIndex].id);
-          updateDomainQuestions(domains[nextDomainIndex].id, 'beginner');
+          
+          // Use current difficulty setting for next domain if adaptive mode is enabled
+          if (adaptiveModeEnabled) {
+            updateDomainQuestions(domains[nextDomainIndex].id, currentDifficulty);
+          } else {
+            // Default to beginner if adaptive mode is disabled
+            updateDomainQuestions(domains[nextDomainIndex].id, 'beginner');
+          }
+          
           setSelectedAnswer(null);
           setIsCorrect(null);
         } else {
@@ -522,7 +566,9 @@ export default function AssessmentPage() {
     mutationFn: async () => {
       return await apiRequest('POST', '/api/submit-assessment', {
         answers,
-        domains: domains.map(d => d.id)
+        domains: domains.map(d => d.id),
+        difficulty: currentDifficulty,
+        adaptiveModeEnabled
       });
     },
     onSuccess: (data) => {
@@ -673,6 +719,45 @@ export default function AssessmentPage() {
                   <CardTitle className="text-xl mt-3">
                     {activeQuestion.text}
                   </CardTitle>
+                  
+                  {/* Adaptive Difficulty Slider */}
+                  <div className="mt-6 mb-2">
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="flex items-center">
+                        <span className="text-sm font-medium mr-2">Difficulty: </span>
+                        <Badge variant="secondary" className="px-2 py-0.5 capitalize">
+                          {currentDifficulty}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center">
+                        <Label htmlFor="adaptive-mode" className="text-xs mr-2">Adaptive Mode</Label>
+                        <Checkbox
+                          id="adaptive-mode"
+                          checked={adaptiveModeEnabled}
+                          onCheckedChange={(checked) => setAdaptiveModeEnabled(!!checked)}
+                        />
+                      </div>
+                    </div>
+                    <Slider
+                      className={`${!adaptiveModeEnabled ? 'opacity-50' : ''}`}
+                      disabled={!adaptiveModeEnabled || answerFeedback.shown}
+                      value={difficultyValue}
+                      onValueChange={(value) => {
+                        if (adaptiveModeEnabled && !answerFeedback.shown) {
+                          setDifficultyValue(value);
+                          updateDomainQuestions(currentDomain, getDifficultyFromValue(value[0]));
+                        }
+                      }}
+                      max={3}
+                      step={1}
+                      marks={[
+                        { value: 0, label: 'Beginner' },
+                        { value: 1, label: 'Intermediate' },
+                        { value: 2, label: 'Advanced' },
+                        { value: 3, label: 'Expert' }
+                      ]}
+                    />
+                  </div>
                 </CardHeader>
                 
                 <CardContent className="pt-4">
