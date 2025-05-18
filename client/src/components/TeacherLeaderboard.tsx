@@ -21,9 +21,9 @@ interface TeacherRanking {
 }
 
 export default function TeacherLeaderboard() {
-  // Fetch leaderboard data
-  const { data: leaderboardData, isLoading } = useQuery({
-    queryKey: ['/api/leaderboard'],
+  // Fetch school-filtered teachers for leaderboard
+  const { data: teacherData, isLoading } = useQuery({
+    queryKey: ['/api/teachers-by-school'],
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
@@ -51,7 +51,40 @@ export default function TeacherLeaderboard() {
     );
   }
 
-  const rankings: TeacherRanking[] = leaderboardData?.rankings || [];
+  // Process teacher data into rankings format
+  const rankings: TeacherRanking[] = React.useMemo(() => {
+    if (!teacherData || !Array.isArray(teacherData)) return [];
+    
+    // Sort teachers by points in descending order
+    const sortedTeachers = [...teacherData].sort((a, b) => {
+      return (b.points || 0) - (a.points || 0);
+    });
+    
+    // Map to ranking format
+    return sortedTeachers.map((teacher, index) => {
+      // Determine teacher level based on points
+      let level = 'Teacher in Training';
+      const points = teacher.points || 0;
+      
+      if (points >= 1000) level = 'Master Lead Teacher';
+      else if (points >= 501) level = 'Lead Teacher';
+      else if (points >= 251) level = 'Experienced Teacher';
+      else if (points >= 101) level = 'Teacher';
+      
+      return {
+        id: teacher.id,
+        username: teacher.username,
+        firstName: teacher.firstName || '',
+        lastName: teacher.lastName || '',
+        profileImage: teacher.profilePicture,
+        totalPoints: points,
+        level,
+        completedModules: teacher.completedModulesCount || 0,
+        rank: index + 1,
+        isCurrentUser: teacher.id === currentUser?.id
+      };
+    });
+  }, [teacherData, currentUser?.id]);
 
   // Get rank icon based on position
   const getRankIcon = (rank: number) => {
