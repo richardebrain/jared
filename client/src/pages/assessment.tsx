@@ -279,6 +279,38 @@ export default function AssessmentPage() {
   const [difficultyValue, setDifficultyValue] = useState<number[]>([0]); // 0=beginner, 1=intermediate, 2=advanced, 3=expert
   const [adaptiveModeEnabled, setAdaptiveModeEnabled] = useState<boolean>(true);
   
+  // Track user progress and correct answers for adaptive assessment
+  const [userStats, setUserStats] = useState<Record<string, {
+    questionsAttempted: number;
+    questionsCorrect: number;
+    consecutiveCorrect: number;
+    consecutiveIncorrect: number;
+    currentDifficulty: DifficultyLevel;
+  }>>({});
+  
+  // Generate a personalized compliment using user's name
+  const generatePersonalizedCompliment = (userName: string) => {
+    const compliments = [
+      `${userName}, you're absolutely brilliant!`,
+      `Wow ${userName}! That's exactly right!`,
+      `${userName}, you're on fire today!`,
+      `Amazing work, ${userName}! You're so smart!`,
+      `Incredible answer, ${userName}! You're a natural!`,
+      `That's perfect, ${userName}! You really know your stuff!`,
+      `You're crushing this, ${userName}!`,
+      `${userName}, that's spot on! Impressive knowledge!`,
+      `Fantastic job, ${userName}! You're a teaching superstar!`,
+      `${userName}, you are sooooo smart! Wow!`,
+      `Brilliant thinking, ${userName}!`,
+      `${userName}, that's absolutely correct! Great job!`,
+      `You're doing amazing, ${userName}!`,
+      `${userName}, your knowledge is impressive!`,
+      `That's right, ${userName}! Keep up the excellent work!`
+    ];
+    
+    return compliments[Math.floor(Math.random() * compliments.length)];
+  };
+  
   // Toast for notifications
   const { toast } = useToast();
   
@@ -502,6 +534,34 @@ export default function AssessmentPage() {
     // Set correctness state
     setIsCorrect(correct);
     
+    // Update stats and get new difficulty
+    const userFirstName = user?.firstName || "Teacher";
+    const domainId = currentDomain;
+    
+    // Get current stats or create default if none exists
+    const currentStats = userStats[domainId] || {
+      questionsAttempted: 0,
+      questionsCorrect: 0,
+      consecutiveCorrect: 0,
+      consecutiveIncorrect: 0,
+      currentDifficulty: currentDifficulty
+    };
+    
+    // Update stats based on answer
+    const updatedStats = {
+      ...currentStats,
+      questionsAttempted: currentStats.questionsAttempted + 1,
+      questionsCorrect: correct ? currentStats.questionsCorrect + 1 : currentStats.questionsCorrect,
+      consecutiveCorrect: correct ? currentStats.consecutiveCorrect + 1 : 0,
+      consecutiveIncorrect: correct ? 0 : currentStats.consecutiveIncorrect + 1
+    };
+    
+    // Save updated stats
+    setUserStats(prev => ({
+      ...prev,
+      [domainId]: updatedStats
+    }));
+    
     // Show appropriate sound effect
     if (correct) {
       playCorrectSound();
@@ -509,16 +569,24 @@ export default function AssessmentPage() {
       playWrongSound();
     }
     
-    // Show feedback
+    // Show personalized feedback
     setAnswerFeedback({
       shown: true,
       correct,
-      message: correct ? "You got it right!" : "Not quite right, but that's okay!",
+      message: correct 
+        ? generatePersonalizedCompliment(userFirstName) 
+        : "Not quite right, but that's okay!",
       explanation: activeQuestion.explanation || 
         (correct 
           ? "Great job! You've demonstrated knowledge in this area." 
           : `The correct answer is: ${activeQuestion.correctAnswer}`)
     });
+    
+    // Check if we need to move to next domain or complete assessment
+    const shouldMoveToNextDomain = 
+      (updatedStats.questionsCorrect >= 10) || // User got 10 correct answers - proficient
+      (updatedStats.consecutiveIncorrect >= 3) || // User got 3 wrong answers in a row
+      (updatedStats.questionsAttempted >= 15); // User has attempted max questions
     
     // After a delay, move to next question or domain
     setTimeout(() => {
@@ -531,19 +599,24 @@ export default function AssessmentPage() {
       });
       setSelectedAnswer(null);
       
-      // Move to next question if available
-      if (activeQuestionIndex < domainQuestions.length - 1) {
-        setActiveQuestionIndex(prevIndex => prevIndex + 1);
-      } else {
-        // If no more questions in this domain
+      if (shouldMoveToNextDomain) {
+        // User has demonstrated proficiency or struggled enough in this domain
+        // Show a notification about moving to next domain
+        if (updatedStats.questionsCorrect >= 10) {
+          toast({
+            title: "Domain Completed",
+            description: `Great job! You've demonstrated proficiency in ${domains.find(d => d.id === domainId)?.name || domainId}`,
+            variant: "default",
+          });
+        }
+        
+        // Move to next domain if available
         if (activeDomainIndex < domains.length - 1) {
-          // Move to next domain
           const nextDomainIndex = activeDomainIndex + 1;
           setActiveDomainIndex(nextDomainIndex);
           setCurrentDomain(domains[nextDomainIndex].id);
           
-          // Always use beginner difficulty for the initial assessment
-          // Adaptive difficulty will be implemented in Assessment Level 2
+          // Start with beginner difficulty
           updateDomainQuestions(domains[nextDomainIndex].id, 'beginner');
           
           setSelectedAnswer(null);
@@ -551,6 +624,49 @@ export default function AssessmentPage() {
         } else {
           // Assessment is complete, submit results
           submitAssessmentResults();
+        }
+      } else {
+        // Check if we should increase difficulty level
+        let newDifficulty = currentDifficulty;
+        
+        if (correct && updatedStats.consecutiveCorrect >= 3) {
+          // If user got 3 consecutive correct answers, increase difficulty
+          if (newDifficulty === 'beginner') {
+            newDifficulty = 'intermediate';
+            toast({
+              title: "Difficulty Increased!",
+              description: "Great job! Questions will now be at intermediate level.",
+              variant: "default",
+            });
+          } else if (newDifficulty === 'intermediate') {
+            newDifficulty = 'advanced';
+            toast({
+              title: "Difficulty Increased!",
+              description: "Excellent! Questions will now be at advanced level.",
+              variant: "default",
+            });
+          } else if (newDifficulty === 'advanced') {
+            newDifficulty = 'expert';
+            toast({
+              title: "Difficulty Increased!",
+              description: "Amazing! Questions will now be at expert level.",
+              variant: "default",
+            });
+          }
+          
+          // If difficulty changed, update questions
+          if (newDifficulty !== currentDifficulty) {
+            updateDomainQuestions(domainId, newDifficulty);
+            return;
+          }
+        }
+        
+        // Move to next question if available
+        if (activeQuestionIndex < domainQuestions.length - 1) {
+          setActiveQuestionIndex(prevIndex => prevIndex + 1);
+        } else {
+          // Need to generate more questions at current difficulty level
+          updateDomainQuestions(domainId, newDifficulty);
         }
       }
     }, 2000);
