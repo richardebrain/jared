@@ -639,6 +639,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Internal server error" });
     }
   });
+  
+  // Get teachers from the same school as the current user for the leaderboard
+  app.get("/api/teachers-by-school", async (req, res) => {
+    try {
+      const { userId } = req.session;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const currentUser = await storage.getUser(userId as number);
+      
+      if (!currentUser || !currentUser.schoolId) {
+        return res.status(404).json({ message: "User or school not found" });
+      }
+      
+      console.log(`Fetching teachers for school ID: ${currentUser.schoolId}`);
+      
+      // Get all users from the same school
+      const teachers = await storage.getUsersBySchoolId(currentUser.schoolId);
+      console.log(`Found ${teachers.length} teachers at the same school`);
+      
+      // Return teachers with only the necessary data for the leaderboard
+      const teacherData = teachers.map(teacher => {
+        const { password, ...teacherWithoutPassword } = teacher;
+        return {
+          ...teacherWithoutPassword,
+          isCurrentUser: teacher.id === userId
+        };
+      });
+      
+      res.status(200).json(teacherData);
+    } catch (error) {
+      console.error("Error fetching teachers by school:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
 
   // Learning modules routes
   app.get("/api/modules", requireAuth, requirePaidAccess, async (req, res) => {
