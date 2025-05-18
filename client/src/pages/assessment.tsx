@@ -542,13 +542,9 @@ export default function AssessmentPage() {
           setActiveDomainIndex(nextDomainIndex);
           setCurrentDomain(domains[nextDomainIndex].id);
           
-          // Use current difficulty setting for next domain if adaptive mode is enabled
-          if (adaptiveModeEnabled) {
-            updateDomainQuestions(domains[nextDomainIndex].id, currentDifficulty);
-          } else {
-            // Default to beginner if adaptive mode is disabled
-            updateDomainQuestions(domains[nextDomainIndex].id, 'beginner');
-          }
+          // Always use beginner difficulty for the initial assessment
+          // Adaptive difficulty will be implemented in Assessment Level 2
+          updateDomainQuestions(domains[nextDomainIndex].id, 'beginner');
           
           setSelectedAnswer(null);
           setIsCorrect(null);
@@ -566,9 +562,7 @@ export default function AssessmentPage() {
     mutationFn: async () => {
       return await apiRequest('POST', '/api/submit-assessment', {
         answers,
-        domains: domains.map(d => d.id),
-        difficulty: currentDifficulty,
-        adaptiveModeEnabled
+        domains: domains.map(d => d.id)
       });
     },
     onSuccess: (data) => {
@@ -719,45 +713,8 @@ export default function AssessmentPage() {
                   <CardTitle className="text-xl mt-3">
                     {activeQuestion.text}
                   </CardTitle>
-                  
-                  {/* Adaptive Difficulty Slider */}
-                  <div className="mt-6 mb-2">
-                    <div className="flex justify-between items-center mb-2">
-                      <div className="flex items-center">
-                        <span className="text-sm font-medium mr-2">Difficulty: </span>
-                        <Badge variant="secondary" className="px-2 py-0.5 capitalize">
-                          {currentDifficulty}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center">
-                        <Label htmlFor="adaptive-mode" className="text-xs mr-2">Adaptive Mode</Label>
-                        <Checkbox
-                          id="adaptive-mode"
-                          checked={adaptiveModeEnabled}
-                          onCheckedChange={(checked) => setAdaptiveModeEnabled(!!checked)}
-                        />
-                      </div>
-                    </div>
-                    <Slider
-                      className={`${!adaptiveModeEnabled ? 'opacity-50' : ''}`}
-                      disabled={!adaptiveModeEnabled || answerFeedback.shown}
-                      value={difficultyValue}
-                      onValueChange={(value) => {
-                        if (adaptiveModeEnabled && !answerFeedback.shown) {
-                          setDifficultyValue(value);
-                          updateDomainQuestions(currentDomain, getDifficultyFromValue(value[0]));
-                        }
-                      }}
-                      max={3}
-                      step={1}
-                      marks={[
-                        { value: 0, label: 'Beginner' },
-                        { value: 1, label: 'Intermediate' },
-                        { value: 2, label: 'Advanced' },
-                        { value: 3, label: 'Expert' }
-                      ]}
-                    />
-                  </div>
+                  {/* Difficulty slider is removed from the initial assessment
+                      and will be implemented in Assessment Level 2 */}
                 </CardHeader>
                 
                 <CardContent className="pt-4">
