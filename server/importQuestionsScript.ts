@@ -107,23 +107,21 @@ function mapQuestionToDomain(question: string): string {
 }
 
 async function importQuestionsFromCSV(filePath: string): Promise<void> {
-  const fileContent = fs.readFileSync(filePath, { encoding: 'utf-8' });
-  
-  // Parse CSV file
-  parse(fileContent, {
-    columns: true,
-    skip_empty_lines: true
-  }, async (err, records: QuestionData[]) => {
-    if (err) {
-      console.error('Error parsing CSV file:', err);
-      return;
-    }
+  try {
+    const fileContent = fs.readFileSync(filePath, { encoding: 'utf-8' });
+    
+    // Parse CSV file synchronously to avoid callback issues
+    const records = parse(fileContent, {
+      columns: true,
+      skip_empty_lines: true
+    }) as QuestionData[];
     
     console.log(`Found ${records.length} questions in CSV file`);
     
     // Check if we already have questions in the database
     const existingQuestions = await db.select().from(assessmentQuestions);
     const existingQuestionIds = new Set(existingQuestions.map(q => q.id));
+    const existingQuestionTexts = new Set(existingQuestions.map(q => q.text.trim()));
     
     let importCount = 0;
     let skipCount = 0;
@@ -131,20 +129,28 @@ async function importQuestionsFromCSV(filePath: string): Promise<void> {
     
     // Process each question record
     for (const record of records) {
+      // Skip empty or invalid records
+      if (!record.ID || !record.Question || !record.Answer) {
+        console.log('Skipping invalid record:', record.ID);
+        skipCount++;
+        continue;
+      }
+      
       const questionId = `csv-${record.ID}`;
       
-      // Skip if this question ID already exists
-      if (existingQuestionIds.has(questionId)) {
+      // Skip if this question ID already exists or text is duplicate
+      if (existingQuestionIds.has(questionId) || 
+          existingQuestionTexts.has(record.Question.trim())) {
         skipCount++;
         continue;
       }
       
       // Create options array from the separate columns
       const options = [
-        record['Option A'],
-        record['Option B'],
-        record['Option C'],
-        record['Option D']
+        record['Option A'] || 'No option provided',
+        record['Option B'] || 'No option provided',
+        record['Option C'] || 'No option provided',
+        record['Option D'] || 'No option provided'
       ];
       
       // Map the domain based on question content
@@ -158,27 +164,43 @@ async function importQuestionsFromCSV(filePath: string): Promise<void> {
         options: JSON.stringify(options),
         correctAnswer: mapAnswerToCorrectOption(record.Answer),
         difficulty: mapDifficulty(record.Difficulty),
-        explanation: record['Teaching Explanation'] || record['Why Behind It'] || undefined
+        explanation: record['Teaching Explanation'] || record['Why Behind It'] || ''
       };
       
       questionBatch.push(question);
       importCount++;
+      existingQuestionIds.add(questionId); // Prevent duplicates within the same import
+      existingQuestionTexts.add(record.Question.trim());
       
-      // Insert in batches of 100 to avoid overwhelming the database
-      if (questionBatch.length >= 100) {
-        await db.insert(assessmentQuestions).values(questionBatch);
-        questionBatch.length = 0; // Clear the batch
+      // Insert in batches of 50 to avoid overwhelming the database
+      if (questionBatch.length >= 50) {
+        try {
+          await db.insert(assessmentQuestions).values(questionBatch);
+          console.log(`Inserted batch of ${questionBatch.length} questions`);
+          questionBatch.length = 0; // Clear the batch
+        } catch (error) {
+          console.error('Error inserting batch:', error);
+          // Continue with next batch instead of failing entire import
+          questionBatch.length = 0;
+        }
       }
     }
     
     // Insert any remaining questions
     if (questionBatch.length > 0) {
-      await db.insert(assessmentQuestions).values(questionBatch);
+      try {
+        await db.insert(assessmentQuestions).values(questionBatch);
+        console.log(`Inserted final batch of ${questionBatch.length} questions`);
+      } catch (error) {
+        console.error('Error inserting final batch:', error);
+      }
     }
     
     console.log(`Successfully imported ${importCount} new questions`);
-    console.log(`Skipped ${skipCount} questions that already existed`);
-  });
+    console.log(`Skipped ${skipCount} questions that already existed or were invalid`);
+  } catch (error) {
+    console.error('Error in importQuestionsFromCSV:', error);
+  }
 }
 
 // Update the assessment-questions.json file with the imported questions
@@ -188,17 +210,31 @@ async function updateAssessmentQuestionsJson(): Promise<void> {
     const allQuestions = await db.select().from(assessmentQuestions);
     
     // Format them for the JSON file
-    const formattedQuestions = allQuestions.map(q => ({
-      id: q.id,
-      text: q.text,
-      domain: q.domain,
-      type: "multiple-choice",
-      difficulty: q.difficulty,
-      options: JSON.parse(q.options),
-      correctAnswer: q.options[q.correctAnswer],
-      required: true,
-      explanation: q.explanation || ""
-    }));
+    const formattedQuestions = allQuestions.map(q => {
+      // Parse the options JSON string
+      let parsedOptions: string[] = [];
+      try {
+        parsedOptions = JSON.parse(q.options);
+      } catch (err) {
+        console.error(`Error parsing options for question ${q.id}:`, err);
+        parsedOptions = ["Error parsing options", "Please contact support", "This question may be invalid", "Option D"];
+      }
+      
+      // Get the correct answer text
+      const correctAnswerText = parsedOptions[q.correctAnswer] || "Error: Missing correct answer";
+      
+      return {
+        id: q.id,
+        text: q.text,
+        domain: q.domain,
+        type: "multiple-choice",
+        difficulty: q.difficulty,
+        options: parsedOptions,
+        correctAnswer: correctAnswerText,
+        required: true,
+        explanation: q.explanation || ""
+      };
+    });
     
     // Write to the public file for client-side access
     fs.writeFileSync(
