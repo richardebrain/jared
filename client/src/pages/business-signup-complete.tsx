@@ -79,8 +79,8 @@ export default function BusinessSignupComplete() {
     try {
       console.log("Starting all-in-one business registration");
       
-      // Make request to the all-in-one endpoint
-      const response = await apiRequest("POST", "/api/business-signup/complete", {
+      // Create payload with all necessary data
+      const payload = {
         // School information
         schoolName,
         adminPassword,
@@ -92,10 +92,26 @@ export default function BusinessSignupComplete() {
         firstName,
         lastName,
         email
-      });
-
-      const data = await response.json();
+      };
       
+      console.log("Sending request to server...");
+      
+      // Use fetch directly instead of apiRequest for more control
+      const response = await fetch("/api/business-signup/complete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Server error response:", errorText);
+        throw new Error(`Server error: ${response.status} ${errorText}`);
+      }
+      
+      const data = await response.json();
       console.log("Registration successful:", data);
       
       // Show success message

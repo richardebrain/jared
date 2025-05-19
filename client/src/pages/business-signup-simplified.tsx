@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Card,
   CardContent,
@@ -14,209 +14,119 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  AlertTriangle,
-  CheckCircle2,
-} from "lucide-react";
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import Header from "@/components/Header";
-import { Separator } from "@/components/ui/separator";
 
+// Simple, robust business signup component
 export default function BusinessSignupSimplified() {
-  const { user } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   
-  // Form fields
+  // School information
   const [schoolName, setSchoolName] = useState("");
-  const [address, setAddress] = useState("");
-  const [city, setCity] = useState("");
-  const [state, setState] = useState("");
-  const [zipCode, setZipCode] = useState("");
   const [contactEmail, setContactEmail] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
+  
+  // User (owner) information
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [planType, setPlanType] = useState("annual");
-  const [schoolLogo, setSchoolLogo] = useState<File | null>(null);
-  const [schoolLogoPreview, setSchoolLogoPreview] = useState<string | null>(null);
-  
-  // Form validation
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  
-  // Handle logo file upload
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/png', 'image/svg+xml'];
-    if (!validTypes.includes(file.type)) {
-      toast({
-        title: "Invalid File Type",
-        description: "Please upload a JPG, PNG, or SVG image.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Validate file size (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      toast({
-        title: "File Too Large",
-        description: "Logo image must be less than 2MB.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Create preview
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setSchoolLogoPreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-    
-    setSchoolLogo(file);
-  };
-
-  // Validate form
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-    
-    if (!schoolName.trim()) {
-      newErrors.schoolName = "School name is required";
-    }
-    
-    if (!contactEmail.trim()) {
-      newErrors.contactEmail = "Contact email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
-      newErrors.contactEmail = "Please enter a valid email address";
-    }
-    
-    if (!adminPassword.trim()) {
-      newErrors.adminPassword = "Admin password is required";
-    } else if (adminPassword.length < 8) {
-      newErrors.adminPassword = "Password must be at least 8 characters";
-    }
-    
-    if (adminPassword !== confirmPassword) {
-      newErrors.confirmPassword = "Passwords don't match";
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) {
+    // Validate form fields
+    if (!schoolName || !contactEmail || !adminPassword) {
       toast({
-        title: "Please Fix Form Errors",
-        description: "There are validation errors that need to be fixed before proceeding.",
-        variant: "destructive"
+        title: "Missing School Information",
+        description: "Please fill in all required school information fields.",
+        variant: "destructive",
       });
       return;
     }
     
+    if (!username || !password || !firstName || !lastName || !email) {
+      toast({
+        title: "Missing Account Information",
+        description: "Please fill in all required account information fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      toast({
+        title: "Passwords Don't Match",
+        description: "Please make sure your passwords match.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Proceed with registration
     setIsLoading(true);
     
     try {
-      // Register school
-      const registrationResponse = await fetch("/api/schools/register", {
+      // Create payload with all necessary data
+      const payload = {
+        // School information
+        schoolName,
+        adminPassword,
+        contactEmail,
+        
+        // User information
+        username,
+        password,
+        firstName,
+        lastName,
+        email
+      };
+      
+      // Use fetch directly with improved error handling
+      const response = await fetch("/api/business-signup/complete", {
         method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          schoolName,
-          address: address || "",
-          city: city || "",
-          state: state || "",
-          zipCode: zipCode || "",
-          contactEmail,
-          contactPhone: contactPhone || "",
-          adminPassword,
-          planType,
-        }),
+        body: JSON.stringify(payload)
       });
       
-      // Handle registration response
-      if (!registrationResponse.ok) {
-        const data = await registrationResponse.json();
-        throw new Error(data.message || "Failed to register school");
-      }
-      
-      const registrationData = await registrationResponse.json();
-      
-      toast({
-        title: "Registration Successful",
-        description: schoolLogo 
-          ? "Your school has been registered! Uploading logo..." 
-          : "Your school has been registered successfully!",
-      });
-      
-      // Upload logo if provided
-      if (schoolLogo) {
+      if (!response.ok) {
+        let errorMessage = "Registration failed";
         try {
-          const logoFormData = new FormData();
-          logoFormData.append("schoolLogo", schoolLogo);
-          const schoolId = registrationData.school?.id || registrationData.schoolId;
-          
-          if (!schoolId) {
-            toast({
-              title: "Logo Upload Skipped",
-              description: "Your school was registered successfully, but we couldn't upload your logo.",
-              variant: "warning"
-            });
-          } else {
-            logoFormData.append("schoolId", schoolId.toString());
-            
-            const logoResponse = await fetch("/api/schools/upload-logo", {
-              method: "POST",
-              body: logoFormData,
-            });
-            
-            if (!logoResponse.ok) {
-              toast({
-                title: "Logo Upload Issue",
-                description: "Your school was registered successfully, but there was an issue uploading your logo.",
-                variant: "warning"
-              });
-            } else {
-              toast({
-                title: "Registration Complete",
-                description: "Your school was registered and your logo was uploaded successfully!",
-              });
-            }
-          }
-        } catch (logoError) {
-          toast({
-            title: "Logo Upload Failed",
-            description: "Your school was registered, but we encountered an error uploading your logo.",
-            variant: "warning"
-          });
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (err) {
+          console.error("Error parsing error response:", err);
         }
+        throw new Error(errorMessage);
       }
       
-      // Redirect to login page after a short delay
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
+      const data = await response.json();
       
-    } catch (error: any) {
+      // Show success message
+      toast({
+        title: "Registration Successful!",
+        description: `Welcome to MentorMe, ${firstName}! Your school "${schoolName}" has been registered.`,
+      });
+      
+      // Redirect to dashboard
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Registration error:", error);
       toast({
         title: "Registration Failed",
-        description: error?.message || "There was an error registering your school.",
-        variant: "destructive"
+        description: error instanceof Error ? error.message : "Could not complete your registration. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -224,241 +134,190 @@ export default function BusinessSignupSimplified() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-10">
+    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20">
       <Header />
-      <div className="container max-w-3xl px-4 pt-8">
-        <h1 className="text-3xl font-bold mb-2">School Registration</h1>
-        <p className="text-slate-600 mb-6">
-          Register your preschool or childcare center to use MentorMe for teacher training and professional development.
-        </p>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>School Information</CardTitle>
-            <CardDescription>
-              Please provide details about your school and subscription preferences
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* School Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">School Details</h3>
-                <Separator />
-                
-                <div className="space-y-2">
-                  <Label htmlFor="school-name">
-                    School Name <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="school-name"
-                    placeholder="Preschool Name"
-                    value={schoolName}
-                    onChange={(e) => setSchoolName(e.target.value)}
-                    className={errors.schoolName ? "border-red-500" : ""}
-                  />
-                  {errors.schoolName && (
-                    <p className="text-red-500 text-sm">{errors.schoolName}</p>
-                  )}
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="address">Address</Label>
-                  <Input
-                    id="address"
-                    placeholder="123 Main St"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                  />
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="city">City</Label>
-                    <Input
-                      id="city"
-                      placeholder="City"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="state">State</Label>
-                    <Input
-                      id="state"
-                      placeholder="State"
-                      value={state}
-                      onChange={(e) => setState(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="zip-code">ZIP Code</Label>
-                    <Input
-                      id="zip-code"
-                      placeholder="12345"
-                      value={zipCode}
-                      onChange={(e) => setZipCode(e.target.value)}
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="contact-email">
-                    Contact Email <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="contact-email"
-                    type="email"
-                    placeholder="contact@yourschool.com"
-                    value={contactEmail}
-                    onChange={(e) => setContactEmail(e.target.value)}
-                    className={errors.contactEmail ? "border-red-500" : ""}
-                  />
-                  {errors.contactEmail && (
-                    <p className="text-red-500 text-sm">{errors.contactEmail}</p>
-                  )}
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="contact-phone">Contact Phone</Label>
-                  <Input
-                    id="contact-phone"
-                    placeholder="(555) 123-4567"
-                    value={contactPhone}
-                    onChange={(e) => setContactPhone(e.target.value)}
-                  />
-                </div>
-              </div>
-              
-              {/* Admin Password */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Admin Access</h3>
-                <Separator />
-                <p className="text-sm text-slate-600">
-                  Set an administrator password to access your school's dashboard and manage settings
-                </p>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="admin-password">
-                    Admin Password <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="admin-password"
-                    type="password"
-                    placeholder="Set a secure password"
-                    value={adminPassword}
-                    onChange={(e) => setAdminPassword(e.target.value)}
-                    className={errors.adminPassword ? "border-red-500" : ""}
-                  />
-                  {errors.adminPassword && (
-                    <p className="text-red-500 text-sm">{errors.adminPassword}</p>
-                  )}
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password">
-                    Confirm Password <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="confirm-password"
-                    type="password"
-                    placeholder="Confirm your password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className={errors.confirmPassword ? "border-red-500" : ""}
-                  />
-                  {errors.confirmPassword && (
-                    <p className="text-red-500 text-sm">{errors.confirmPassword}</p>
-                  )}
-                </div>
-              </div>
-              
-              {/* School Logo */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">School Logo</h3>
-                <Separator />
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="school-logo">Upload School Logo (Optional)</Label>
-                    <Input
-                      id="school-logo"
-                      type="file"
-                      accept="image/jpeg,image/png,image/svg+xml"
-                      onChange={handleLogoUpload}
-                      className="cursor-pointer"
-                    />
-                    <p className="text-sm text-slate-500">
-                      Upload JPG, PNG or SVG (max 2MB)
-                    </p>
-                  </div>
+      
+      <div className="container pt-8 pb-16">
+        <div className="max-w-3xl mx-auto">
+          <Card className="w-full">
+            <CardHeader className="text-center">
+              <CardTitle className="text-3xl">Register Your School</CardTitle>
+              <CardDescription>
+                Get started with MentorMe professional development
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent>
+              <form onSubmit={handleSubmit}>
+                <Tabs defaultValue="school" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="school">School Information</TabsTrigger>
+                    <TabsTrigger value="account">Account Information</TabsTrigger>
+                  </TabsList>
                   
-                  <div className="flex items-center justify-center border rounded-md p-4 min-h-[120px]">
-                    {schoolLogoPreview ? (
-                      <img
-                        src={schoolLogoPreview}
-                        alt="School logo preview"
-                        className="max-h-24 max-w-full object-contain"
+                  <TabsContent value="school" className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="schoolName">School Name *</Label>
+                      <Input
+                        id="schoolName"
+                        type="text"
+                        placeholder="Enter your school name"
+                        value={schoolName}
+                        onChange={(e) => setSchoolName(e.target.value)}
+                        required
                       />
-                    ) : (
-                      <p className="text-sm text-slate-500 text-center">
-                        Logo preview will appear here
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="contactEmail">Contact Email *</Label>
+                      <Input
+                        id="contactEmail"
+                        type="email"
+                        placeholder="contact@yourschool.com"
+                        value={contactEmail}
+                        onChange={(e) => setContactEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="adminPassword">School Admin Password *</Label>
+                      <Input
+                        id="adminPassword"
+                        type="password"
+                        placeholder="Create a secure password for school administration"
+                        value={adminPassword}
+                        onChange={(e) => setAdminPassword(e.target.value)}
+                        required
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        This password is used for school-level administration and is separate from your personal account password.
                       </p>
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="account" className="space-y-4 mt-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="firstName">First Name *</Label>
+                        <Input
+                          id="firstName"
+                          type="text"
+                          placeholder="Your first name"
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          required
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="lastName">Last Name *</Label>
+                        <Input
+                          id="lastName"
+                          type="text"
+                          placeholder="Your last name"
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email Address *</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="username">Username *</Label>
+                      <Input
+                        id="username"
+                        type="text"
+                        placeholder="Choose a username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="password">Password *</Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        placeholder="Create a secure password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        placeholder="Confirm your password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </TabsContent>
+                </Tabs>
+                
+                <div className="mt-8 text-center">
+                  <Button type="submit" size="lg" disabled={isLoading} className="w-full md:w-auto">
+                    {isLoading ? (
+                      <>
+                        <Spinner className="mr-2" />
+                        Registering...
+                      </>
+                    ) : (
+                      "Complete Registration"
                     )}
-                  </div>
-                </div>
-              </div>
-              
-              {/* Subscription Plan */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Subscription Plan</h3>
-                <Separator />
-                
-                <div className="space-y-2">
-                  <Label htmlFor="plan-type">Select Plan</Label>
-                  <Select
-                    value={planType}
-                    onValueChange={(value) => setPlanType(value)}
-                  >
-                    <SelectTrigger id="plan-type">
-                      <SelectValue placeholder="Select a plan" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="monthly">Monthly ($250/month)</SelectItem>
-                      <SelectItem value="annual">Annual ($2,500/year - save $500)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  </Button>
                 </div>
                 
-                <div className="bg-primary/5 p-4 rounded-md">
-                  <p className="text-sm">
-                    <strong>Monthly Plan:</strong> $250 per month, billed monthly
-                  </p>
-                  <p className="text-sm mt-2">
-                    <strong>Annual Plan:</strong> $2,500 billed annually (save $500 compared to monthly)
+                <div className="mt-4 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Already have an account?{" "}
+                    <a 
+                      href="/login" 
+                      className="text-primary underline underline-offset-4 hover:opacity-80"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigate("/login");
+                      }}
+                    >
+                      Login
+                    </a>
                   </p>
                 </div>
-              </div>
+              </form>
+            </CardContent>
+            
+            <CardFooter className="flex justify-between border-t pt-6">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate("/")}
+              >
+                Cancel
+              </Button>
               
-              <CardFooter className="flex justify-end px-0 pt-4">
-                <Button
-                  type="submit"
-                  className="w-full md:w-auto"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <span className="mr-2">Registering...</span>
-                      <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                    </>
-                  ) : (
-                    "Complete Registration"
-                  )}
-                </Button>
-              </CardFooter>
-            </form>
-          </CardContent>
-        </Card>
+              <div className="text-xs text-muted-foreground text-right max-w-[280px]">
+                By completing registration, you agree to our Terms of Service and Privacy Policy.
+              </div>
+            </CardFooter>
+          </Card>
+        </div>
       </div>
     </div>
   );
