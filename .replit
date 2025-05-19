@@ -4,7 +4,7 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["firebase-tools", "jq", "poppler_utils", "unzip", "libreoffice"]
+packages = ["firebase-tools", "glibcLocales", "jq", "libreoffice", "poppler_utils", "unzip"]
 
 [deployment]
 deploymentTarget = "autoscale"
