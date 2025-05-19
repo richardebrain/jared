@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 import { 
   Dialog, 
   DialogContent, 
@@ -45,7 +45,7 @@ const EnhancedAssessment: React.FC<EnhancedAssessmentProps> = ({
   const [showResults, setShowResults] = useState(false);
   const [currentDifficulty, setCurrentDifficulty] = useState(1);
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const [, navigate] = useLocation();
 
   // Check if assessment API is available
   useEffect(() => {

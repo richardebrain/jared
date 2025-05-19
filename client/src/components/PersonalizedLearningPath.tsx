@@ -136,8 +136,8 @@ const PersonalizedLearningPath: React.FC<PersonalizedLearningPathProps> = ({ ass
             <p className="text-muted-foreground mb-6 max-w-md">
               Complete an assessment to receive your personalized learning path based on your specific strengths and growth areas.
             </p>
-            <Button onClick={() => setLocation('/assessment')}>
-              Take Assessment
+            <Button onClick={() => setShowEnhancedAssessment(true)}>
+              Take Enhanced Assessment
             </Button>
           </div>
         </CardContent>
