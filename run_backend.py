@@ -3,69 +3,69 @@
 Main entry point for MentorMe Assessment API
 This script starts the FastAPI server for the assessment system
 """
-import os
-import logging
+
 import argparse
+import logging
+import importlib
+import sys
+from pathlib import Path
+
 import uvicorn
-from backend.import_data import run_import, setup_database
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
+from backend.models import Base
 
 # Set up logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("mentorme-backend")
+
+# Get the database URL from environment, with SQLite as fallback
+from os import environ
+DATABASE_URL = environ.get("DATABASE_URL", "sqlite:///./mentorme.db")
 
 def setup_database():
     """Create database tables if they don't exist"""
-    from backend.import_data import setup_database
-    setup_database()
-    logger.info("Database initialized successfully")
+    engine = create_engine(DATABASE_URL)
+    Base.metadata.create_all(bind=engine)
+    logger.info("Database tables created successfully")
 
 def main():
     """Main entry point"""
-    parser = argparse.ArgumentParser(description="MentorMe Assessment API Server")
-    parser.add_argument(
-        "--host", 
-        type=str, 
-        default="0.0.0.0", 
-        help="Host to run the server on (default: 0.0.0.0)"
-    )
-    parser.add_argument(
-        "--port", 
-        type=int, 
-        default=8000, 
-        help="Port to run the server on (default: 8000)"
-    )
-    parser.add_argument(
-        "--reload", 
-        action="store_true", 
-        help="Enable auto-reload for development"
-    )
-    parser.add_argument(
-        "--import-data", 
-        action="store_true", 
-        help="Import assessment questions data from CSV"
-    )
+    parser = argparse.ArgumentParser(description="Run the MentorMe Assessment API server")
+    parser.add_argument("--host", type=str, default="127.0.0.1", help="Host to listen on")
+    parser.add_argument("--port", type=int, default=8000, help="Port to listen on")
+    parser.add_argument("--reload", action="store_true", help="Enable auto-reload")
+    parser.add_argument("--import-data", action="store_true", help="Import assessment data on startup")
     
     args = parser.parse_args()
     
-    # Initialize database
+    # Set up database
     setup_database()
     
     # Import data if requested
     if args.import_data:
-        logger.info("Importing assessment questions data...")
-        run_import()
+        try:
+            logger.info("Starting data import process...")
+            from backend.import_data import run_import
+            run_import()
+            logger.info("Data import completed successfully")
+        except Exception as e:
+            logger.error(f"Failed to import data: {e}")
+            sys.exit(1)
     
-    # Start server
-    logger.info(f"Starting MentorMe Assessment API on {args.host}:{args.port}")
+    # Run the FastAPI server
+    logger.info(f"Starting FastAPI server on {args.host}:{args.port}")
     uvicorn.run(
         "backend.server:app",
         host=args.host,
         port=args.port,
         reload=args.reload,
-        log_level="info"
+        log_level="info",
     )
 
 if __name__ == "__main__":

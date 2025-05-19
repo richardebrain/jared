@@ -2,19 +2,21 @@
 Question loader module for the assessment system
 This module provides functions to load questions from the database
 """
+
 import logging
 import random
+from typing import List, Optional, Dict, Any
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
-from typing import List, Optional, Dict, Any
-from backend.models import Question
+
+from .models import Question
 
 # Set up logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("mentorme-loader")
 
 def load_questions(db: Session, domain=None, difficulty=None, exclude_ids=None, limit=10):
     """
@@ -30,34 +32,28 @@ def load_questions(db: Session, domain=None, difficulty=None, exclude_ids=None, 
     Returns:
         List of Question objects
     """
-    try:
-        # Start query
-        query = db.query(Question)
-        
-        # Apply filters
-        if domain:
-            query = query.filter(Question.domain == domain)
-        
-        if difficulty:
-            query = query.filter(Question.difficulty == difficulty)
-        
-        if exclude_ids:
-            query = query.filter(Question.id.notin_(exclude_ids))
-        
-        # Randomize the order
-        query = query.order_by(func.random())
-        
-        # Limit the results
-        query = query.limit(limit)
-        
-        # Execute query
-        questions = query.all()
-        
-        return questions
+    query = db.query(Question)
     
-    except Exception as e:
-        logger.error(f"Error loading questions: {e}")
-        return []
+    # Apply domain filter if provided
+    if domain:
+        query = query.filter(Question.domain == domain)
+    
+    # Apply difficulty filter if provided
+    if difficulty:
+        query = query.filter(Question.difficulty == difficulty)
+    
+    # Exclude specific IDs if provided
+    if exclude_ids:
+        query = query.filter(~Question.id.in_(exclude_ids))
+    
+    # Order randomly and limit
+    query = query.order_by(func.random()).limit(limit)
+    
+    # Execute query
+    questions = query.all()
+    
+    logger.info(f"Loaded {len(questions)} questions (domain={domain}, difficulty={difficulty})")
+    return questions
 
 def load_random_question(db: Session, domain=None, difficulty=None, exclude_ids=None):
     """
@@ -73,14 +69,20 @@ def load_random_question(db: Session, domain=None, difficulty=None, exclude_ids=
         Single Question object or None if no matching questions
     """
     questions = load_questions(
-        db=db,
-        domain=domain,
-        difficulty=difficulty,
-        exclude_ids=exclude_ids,
-        limit=1
+        db, domain=domain, difficulty=difficulty, exclude_ids=exclude_ids, limit=1
     )
     
-    return questions[0] if questions else None
+    if questions:
+        return questions[0]
+    else:
+        # If no questions found with exact difficulty, try finding any question in the domain
+        if difficulty and domain:
+            logger.info(f"No questions found with difficulty {difficulty} in domain {domain}, trying any difficulty")
+            return load_random_question(db, domain=domain, exclude_ids=exclude_ids)
+        
+        # If that also fails, return None
+        logger.warning(f"No matching questions found (domain={domain}, difficulty={difficulty})")
+        return None
 
 def get_domains(db: Session):
     """
@@ -92,13 +94,8 @@ def get_domains(db: Session):
     Returns:
         List of domain strings
     """
-    try:
-        domains = db.query(Question.domain).distinct().all()
-        # Convert from list of tuples to list of strings
-        return [domain[0] for domain in domains if domain[0]]
-    except Exception as e:
-        logger.error(f"Error getting domains: {e}")
-        return []
+    domains = db.query(Question.domain).distinct().all()
+    return [domain[0] for domain in domains if domain[0]]
 
 def get_question_by_id(db: Session, question_id):
     """
@@ -111,11 +108,7 @@ def get_question_by_id(db: Session, question_id):
     Returns:
         Question object or None
     """
-    try:
-        return db.query(Question).filter(Question.id == question_id).first()
-    except Exception as e:
-        logger.error(f"Error getting question by ID: {e}")
-        return None
+    return db.query(Question).filter(Question.id == question_id).first()
 
 def get_question_counts_by_domain(db: Session):
     """
@@ -127,18 +120,14 @@ def get_question_counts_by_domain(db: Session):
     Returns:
         Dictionary with domain names as keys and counts as values
     """
-    try:
-        domains = get_domains(db)
-        result = {}
-        
-        for domain in domains:
-            count = db.query(Question).filter(Question.domain == domain).count()
-            result[domain] = count
-        
-        return result
-    except Exception as e:
-        logger.error(f"Error getting question counts by domain: {e}")
-        return {}
+    result = {}
+    domains = get_domains(db)
+    
+    for domain in domains:
+        count = db.query(func.count(Question.id)).filter(Question.domain == domain).scalar()
+        result[domain] = count
+    
+    return result
 
 def get_next_difficulty_level(db: Session, domain: str, current_difficulty: int, correct: bool):
     """
@@ -153,37 +142,41 @@ def get_next_difficulty_level(db: Session, domain: str, current_difficulty: int,
     Returns:
         Next difficulty level (int)
     """
-    # If we're in special domains like Core Values or Mindful Morning, don't increase difficulty
-    if domain in ["Core Values", "Mindful Morning"]:
-        return current_difficulty
+    # If answer was correct, increase difficulty (if not already at max)
+    if correct:
+        next_difficulty = min(current_difficulty + 1, 4)
+    else:
+        # If answer was incorrect, decrease difficulty (if not already at min)
+        next_difficulty = max(current_difficulty - 1, 1)
     
-    try:
-        # Check if there are questions available at higher difficulty
-        max_difficulty = 4  # Maximum difficulty level
+    # Verify that questions exist at this difficulty level
+    count = db.query(func.count(Question.id)).filter(
+        Question.domain == domain,
+        Question.difficulty == next_difficulty
+    ).scalar()
+    
+    # If no questions at next difficulty, find the nearest available difficulty
+    if count == 0:
+        logger.info(f"No questions found at difficulty {next_difficulty} for domain {domain}, looking for nearest")
         
-        if correct:
-            # If the answer was correct, try to increase difficulty
-            next_difficulty = min(current_difficulty + 1, max_difficulty)
-            
-            # Check if questions exist at the next difficulty level
-            questions_at_next = db.query(Question).filter(
+        # Check higher difficulties
+        for diff in range(next_difficulty + 1, 5):
+            count = db.query(func.count(Question.id)).filter(
                 Question.domain == domain,
-                Question.difficulty == next_difficulty
-            ).count()
-            
-            if questions_at_next > 0:
-                return next_difficulty
-            else:
-                # If no questions at next difficulty, stay at current level
-                return current_difficulty
-        else:
-            # If the answer was incorrect, stay at the same level or decrease
-            # Decrease only if we're above level 1
-            if current_difficulty > 1:
-                return current_difficulty - 1
-            else:
-                return 1
+                Question.difficulty == diff
+            ).scalar()
+            if count > 0:
+                logger.info(f"Found {count} questions at difficulty {diff}")
+                return diff
+        
+        # Check lower difficulties
+        for diff in range(next_difficulty - 1, 0, -1):
+            count = db.query(func.count(Question.id)).filter(
+                Question.domain == domain,
+                Question.difficulty == diff
+            ).scalar()
+            if count > 0:
+                logger.info(f"Found {count} questions at difficulty {diff}")
+                return diff
     
-    except Exception as e:
-        logger.error(f"Error determining next difficulty level: {e}")
-        return current_difficulty  # Default to staying at the same level
+    return next_difficulty

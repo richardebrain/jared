@@ -1,19 +1,27 @@
 #!/bin/bash
-# Start the assessment server that imports ECE question database and exposes the API
+# Shell script to start the MentorMe Assessment Server with data import
+# This script runs the FastAPI server and imports assessment data
 
-# Make both scripts executable
-chmod +x start_assessment_api.sh
+echo "Starting MentorMe Assessment Server with data import..."
 
-# Set up Python environment
-echo "Setting up Python environment..."
-pip install -q fastapi uvicorn sqlalchemy psycopg2-binary python-dotenv pandas pydantic
+# Ensure required packages are installed
+pip install fastapi uvicorn sqlalchemy python-dotenv psycopg2-binary pydantic --quiet
+
+# Set default port (can be overridden with environment variable)
+API_PORT=${ASSESSMENT_API_PORT:-8000}
 
 # Check if CSV file exists
-if [ ! -f "attached_assets/ece_master_database_full_with_why.csv" ]; then
-  echo "Error: CSV file not found. Please make sure the ECE question database file exists."
-  exit 1
+if [ -f "attached_assets/ece_master_database_full_with_why.csv" ]; then
+  echo "Found ECE question database CSV"
+  
+  # Run the FastAPI server with data import
+  python run_backend.py --host 0.0.0.0 --port $API_PORT --reload --import-data
+else
+  echo "Warning: ECE question database CSV not found at attached_assets/ece_master_database_full_with_why.csv"
+  echo "The assessment server will start, but no questions will be imported"
+  
+  # Run the FastAPI server without data import
+  python run_backend.py --host 0.0.0.0 --port $API_PORT --reload
 fi
 
-# Start the assessment API
-echo "Starting the MentorMe Enhanced Assessment API..."
-./start_assessment_api.sh
+echo "Assessment server shutdown"

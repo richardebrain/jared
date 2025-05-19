@@ -1,15 +1,16 @@
 #!/bin/bash
-# Start the FastAPI assessment API server
+# Shell script to start the MentorMe Assessment API
+# This script runs the FastAPI server with the appropriate parameters
 
-# Set environment variables
-export ASSESSMENT_API_PORT=8000
+echo "Starting MentorMe Assessment API..."
 
-# Install required Python packages if not already installed
-pip install -q fastapi uvicorn sqlalchemy psycopg2-binary python-dotenv pydantic
+# Ensure required packages are installed
+pip install fastapi uvicorn sqlalchemy python-dotenv psycopg2-binary pydantic --quiet
 
-# Import data if needed
-python -c "from backend.import_data import run_import; run_import()"
+# Set default port (can be overridden with environment variable)
+API_PORT=${ASSESSMENT_API_PORT:-8000}
 
-# Start the FastAPI server
-echo "Starting MentorMe Assessment API on port $ASSESSMENT_API_PORT..."
-python run_backend.py
+# Run the FastAPI server
+python run_backend.py --host 0.0.0.0 --port $API_PORT --reload
+
+echo "Assessment API shutdown"
