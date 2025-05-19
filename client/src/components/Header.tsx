@@ -206,6 +206,14 @@ export default function Header() {
                 </>
               )}
               
+              {/* Special direct access to Bob's Daycare Admin */}
+              {user?.schoolId === 2 && (
+                <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation(`/schools/2?adminKey=Bigsurf99`)}>
+                  <i className="ri-building-2-line mr-2"></i>
+                  Bob's Daycare Admin
+                </DropdownMenuItem>
+              )}
+              
               {isAdmin && (
                 <>
                   <DropdownMenuSeparator />

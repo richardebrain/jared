@@ -65,15 +65,19 @@ export default function RegistrationSuccess() {
               </li>
               <li className="flex items-start">
                 <span className="inline-block mr-2">2.</span>
-                <span>Customize your school settings and branding in the admin dashboard</span>
+                <span>Access your School Admin Dashboard by clicking on your profile picture and selecting "School Dashboard"</span>
               </li>
               <li className="flex items-start">
                 <span className="inline-block mr-2">3.</span>
-                <span>Invite teachers to join your school's training platform</span>
+                <span>Use the password <strong>"Bigsurf99"</strong> if prompted when accessing your school dashboard</span>
               </li>
               <li className="flex items-start">
                 <span className="inline-block mr-2">4.</span>
-                <span>Monitor teacher progress and achievements</span>
+                <span>Customize your school settings and add teachers through the admin panel</span>
+              </li>
+              <li className="flex items-start">
+                <span className="inline-block mr-2">5.</span>
+                <span>Monitor teacher progress, points, and achievements from your dashboard</span>
               </li>
             </ul>
           </div>
