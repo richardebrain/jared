@@ -38,36 +38,49 @@ export default function BusinessSignup() {
     }
     
     setIsLoading(true);
+    console.log("Starting simplified business registration process");
     
     try {
-      const response = await fetch("/api/schools/register", {
+      // Create school first
+      console.log("Step 1: Creating school");
+      const schoolResponse = await fetch("/api/schools/create", {
         method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          schoolName,
-          contactEmail,
-          adminPassword,
-          planType: "annual",
-        }),
+          name: schoolName,
+          adminPasswordHash: adminPassword,
+          contactEmail: contactEmail
+        })
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to register school");
+      if (!schoolResponse.ok) {
+        const errorData = await schoolResponse.json();
+        console.error("School creation error:", errorData);
+        throw new Error(errorData.message || "Failed to create school");
       }
       
+      const schoolData = await schoolResponse.json();
+      console.log("School created successfully:", schoolData.id);
+      
       toast({
-        title: "Registration Successful",
-        description: "Your school has been registered successfully!"
+        title: "School Registration Successful",
+        description: "Your school has been registered! You can now create a teacher account."
       });
       
+      // Navigate to register page so they can create a teacher account associated with their school
       setTimeout(() => {
-        navigate("/login");
+        navigate("/register", { 
+          state: { 
+            schoolId: schoolData.id,
+            schoolName: schoolName
+          } 
+        });
       }, 2000);
       
     } catch (error: any) {
+      console.error("Registration error:", error);
       toast({
         title: "Registration Failed",
         description: error?.message || "There was an error registering your school.",
