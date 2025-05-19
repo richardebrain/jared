@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLocation } from 'wouter';
 import { BookOpen, Star, ArrowUpRight, Award, Calendar, Timer, Zap, AlertCircle } from 'lucide-react';
+import EnhancedAssessment from './EnhancedAssessment';
 
 interface AssessmentScore {
   category: string;
@@ -117,6 +118,7 @@ const getModuleTypeIcon = (level: string) => {
 
 const PersonalizedLearningPath: React.FC<PersonalizedLearningPathProps> = ({ assessments, user, modules }) => {
   const [, setLocation] = useLocation();
+  const [showEnhancedAssessment, setShowEnhancedAssessment] = useState(false);
 
   // Get the most recent assessment
   const latestAssessment = assessments && assessments.length > 0 
@@ -128,20 +130,29 @@ const PersonalizedLearningPath: React.FC<PersonalizedLearningPathProps> = ({ ass
   // If no assessment found, show prompt to take assessment
   if (!latestAssessment) {
     return (
-      <Card className="mb-6">
-        <CardContent className="pt-6">
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <AlertCircle className="h-12 w-12 text-amber-500 mb-4" />
-            <h3 className="text-xl font-bold mb-2">Assessment Needed</h3>
-            <p className="text-muted-foreground mb-6 max-w-md">
-              Complete an assessment to receive your personalized learning path based on your specific strengths and growth areas.
-            </p>
-            <Button onClick={() => setShowEnhancedAssessment(true)}>
-              Take Enhanced Assessment
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <>
+        {user && (
+          <EnhancedAssessment 
+            userId={user.id} 
+            open={showEnhancedAssessment} 
+            onOpenChange={setShowEnhancedAssessment} 
+          />
+        )}
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <AlertCircle className="h-12 w-12 text-amber-500 mb-4" />
+              <h3 className="text-xl font-bold mb-2">Assessment Needed</h3>
+              <p className="text-muted-foreground mb-6 max-w-md">
+                Complete an assessment to receive your personalized learning path based on your specific strengths and growth areas.
+              </p>
+              <Button onClick={() => setShowEnhancedAssessment(true)}>
+                Take Enhanced Assessment
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </>
     );
   }
 
@@ -156,20 +167,29 @@ const PersonalizedLearningPath: React.FC<PersonalizedLearningPathProps> = ({ ass
   // If no scores, provide default guidance
   if (sortedScores.length === 0) {
     return (
-      <Card className="mb-6">
-        <CardContent className="pt-6">
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <AlertCircle className="h-12 w-12 text-amber-500 mb-4" />
-            <h3 className="text-xl font-bold mb-2">Assessment Incomplete</h3>
-            <p className="text-muted-foreground mb-6 max-w-md">
-              Your assessment needs to be completed to generate personalized learning recommendations.
-            </p>
-            <Button onClick={() => setLocation('/assessment')}>
-              Take Assessment Again
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <>
+        {user && (
+          <EnhancedAssessment 
+            userId={user.id} 
+            open={showEnhancedAssessment} 
+            onOpenChange={setShowEnhancedAssessment} 
+          />
+        )}
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <AlertCircle className="h-12 w-12 text-amber-500 mb-4" />
+              <h3 className="text-xl font-bold mb-2">Assessment Incomplete</h3>
+              <p className="text-muted-foreground mb-6 max-w-md">
+                Your assessment needs to be completed to generate personalized learning recommendations.
+              </p>
+              <Button onClick={() => setShowEnhancedAssessment(true)}>
+                Take Enhanced Assessment
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </>
     );
   }
   
@@ -190,73 +210,82 @@ const PersonalizedLearningPath: React.FC<PersonalizedLearningPathProps> = ({ ass
   });
 
   return (
-    <Card className="mb-6">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-xl font-bold flex items-center">
-              <Star className="h-5 w-5 mr-2 text-yellow-500" />
-              Your Growth Priorities
-            </CardTitle>
-            <CardDescription>
-              Based on your assessment results, focus on these key areas to improve your teaching skills
-            </CardDescription>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {learningPath.map((item, index) => (
-            <div key={index} 
-              className="border rounded-lg p-4 hover:bg-neutral-50 transition-all"
-              style={{ borderLeftWidth: '4px', borderLeftColor: getLevelColor(item.level || 'beginner') }}
-            >
-              <div className="flex justify-between items-start mb-2">
-                <h4 className="font-semibold text-lg">{item.domainName}</h4>
-                <Badge className={`${getPriorityColor(item.priority)} capitalize`}>
-                  {item.priority === 'high' ? 'Focus Area' : 
-                   item.priority === 'medium' ? 'Important' : 
-                   item.priority === 'low' ? 'Recommended' : 'Optional'}
-                </Badge>
-              </div>
-              
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-full bg-secondary/30 rounded-full h-2">
-                  <div 
-                    className="h-2 rounded-full transition-all duration-1000 ease-out" 
-                    style={{ 
-                      width: `${item.score}%`,
-                      backgroundColor: getLevelColor(item.level || 'beginner')
-                    }}
-                  />
-                </div>
-                <span className="text-sm font-medium w-12 text-right">{item.score}%</span>
-              </div>
-              
-              <p className="text-neutral-700 mb-3">{item.recommendation}</p>
-              
-              <div className="flex items-center text-sm text-neutral-500 mb-3">
-                <div className="flex items-center mr-4">
-                  {getModuleTypeIcon(item.level || 'beginner')}
-                  <span className="capitalize">{getRecommendedModuleType(item.level || 'beginner')}</span>
-                </div>
-                <span className="text-sm italic">{item.reason}</span>
-              </div>
-              
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="text-primary hover:text-primary-dark hover:bg-primary-50"
-                onClick={() => setLocation(`/modules?domain=${item.domainId}`)}
-              >
-                View Related Modules
-                <ArrowUpRight className="ml-2 h-4 w-4" />
-              </Button>
+    <>
+      {user && (
+        <EnhancedAssessment 
+          userId={user.id} 
+          open={showEnhancedAssessment} 
+          onOpenChange={setShowEnhancedAssessment} 
+        />
+      )}
+      <Card className="mb-6">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-xl font-bold flex items-center">
+                <Star className="h-5 w-5 mr-2 text-yellow-500" />
+                Your Growth Priorities
+              </CardTitle>
+              <CardDescription>
+                Based on your assessment results, focus on these key areas to improve your teaching skills
+              </CardDescription>
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {learningPath.map((item, index) => (
+              <div key={index} 
+                className="border rounded-lg p-4 hover:bg-neutral-50 transition-all"
+                style={{ borderLeftWidth: '4px', borderLeftColor: getLevelColor(item.level || 'beginner') }}
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className="font-semibold text-lg">{item.domainName}</h4>
+                  <Badge className={`${getPriorityColor(item.priority)} capitalize`}>
+                    {item.priority === 'high' ? 'Focus Area' : 
+                     item.priority === 'medium' ? 'Important' : 
+                     item.priority === 'low' ? 'Recommended' : 'Optional'}
+                  </Badge>
+                </div>
+                
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-full bg-secondary/30 rounded-full h-2">
+                    <div 
+                      className="h-2 rounded-full transition-all duration-1000 ease-out" 
+                      style={{ 
+                        width: `${item.score}%`,
+                        backgroundColor: getLevelColor(item.level || 'beginner')
+                      }}
+                    />
+                  </div>
+                  <span className="text-sm font-medium w-12 text-right">{item.score}%</span>
+                </div>
+                
+                <p className="text-neutral-700 mb-3">{item.recommendation}</p>
+                
+                <div className="flex items-center text-sm text-neutral-500 mb-3">
+                  <div className="flex items-center mr-4">
+                    {getModuleTypeIcon(item.level || 'beginner')}
+                    <span className="capitalize">{getRecommendedModuleType(item.level || 'beginner')}</span>
+                  </div>
+                  <span className="text-sm italic">{item.reason}</span>
+                </div>
+                
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="text-primary hover:text-primary-dark hover:bg-primary-50"
+                  onClick={() => setLocation(`/modules?domain=${item.domainId}`)}
+                >
+                  View Related Modules
+                  <ArrowUpRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </>
   );
 };
 
