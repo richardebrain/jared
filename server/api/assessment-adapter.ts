@@ -120,12 +120,31 @@ router.post('/answer',
     }
 
     try {
+      // Add logging to help debug
+      console.log('Submitting answer to assessment backend:', req.body);
+      
       const response = await axios.post(`${ASSESSMENT_API_URL}/assessment/answer`, req.body);
+      
+      // Log successful response
+      console.log('Assessment answer response received');
+      
       return res.json(response.data);
     } catch (error) {
-      console.error('Failed to submit answer:', error);
+      console.error('Failed to submit answer:', error.message);
+      
+      // Provide more detailed error information for debugging
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+        return res.status(error.response.status).json({
+          error: 'Failed to submit assessment answer',
+          details: error.response.data
+        });
+      }
+      
       return res.status(500).json({
-        error: 'Failed to submit assessment answer'
+        error: 'Failed to submit assessment answer',
+        message: error.message
       });
     }
   }

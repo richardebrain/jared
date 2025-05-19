@@ -96,11 +96,13 @@ class EnhancedAssessmentService {
    */
   async startAssessment(domain: string, userId: number, difficulty?: number): Promise<AssessmentQuestion> {
     try {
+      console.log('Starting assessment with params:', { domain, user_id: userId, difficulty });
       const response = await axios.post(`${BASE_URL}/start`, {
         domain,
         user_id: userId,
         difficulty
       });
+      console.log('Assessment started successfully, question received');
       return response.data;
     } catch (error) {
       console.error('Error starting assessment:', error);
