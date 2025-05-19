@@ -133,11 +133,33 @@ class EnhancedAssessmentService {
         domain,
         user_id: userId,
         difficulty
-      });
+      }, { timeout: 8000 });
       console.log('Assessment started successfully, question received');
       return response.data;
     } catch (error) {
       console.error('Error starting assessment:', error);
+      
+      // Check if API is available with a quick health check
+      const isAvailable = await this.checkHealth().catch(() => false);
+      
+      if (!isAvailable) {
+        // Return a fallback question if the assessment API is unavailable
+        return {
+          id: 999,
+          question: "What are the key developmental milestones for a 4-year-old child?",
+          domain: domain,
+          difficulty: difficulty || 1,
+          q_type: "multiple_choice",
+          options: {
+            "a": "Using complete sentences and following 2-3 step instructions",
+            "b": "Walking and basic self-feeding",
+            "c": "Abstract reasoning and algebra",
+            "d": "Writing in cursive and reading chapter books"
+          },
+          points_value: 10
+        };
+      }
+      
       throw error;
     }
   }
@@ -157,10 +179,40 @@ class EnhancedAssessmentService {
         answer,
         user_id: userId,
         time_taken: timeTaken
-      });
+      }, { timeout: 8000 });
       return response.data;
     } catch (error) {
       console.error('Error submitting answer:', error);
+      
+      // Check if API is available
+      const isAvailable = await this.checkHealth().catch(() => false);
+      
+      if (!isAvailable) {
+        // Return a fallback response if the assessment API is unavailable
+        const isCorrect = questionId === 999 && answer === "a"; // For our fallback question
+        
+        // Simulate a response for the fallback question
+        return {
+          is_correct: isCorrect,
+          correct_answer: "a",
+          explanation: "Using complete sentences and following multi-step instructions are key developmental milestones for 4-year-olds.",
+          points_earned: isCorrect ? 10 : 0,
+          message: isCorrect ? 
+            "Great job! That's correct!" : 
+            "Not quite. Four-year-olds typically can use complete sentences and follow 2-3 step instructions.",
+          next_difficulty: 1,
+          assessment_complete: true,
+          completion_stats: {
+            questions_attempted: 1,
+            questions_correct: isCorrect ? 1 : 0,
+            accuracy: isCorrect ? 100 : 0,
+            proficiency: isCorrect ? 25 : 0,
+            highest_difficulty: 1,
+            total_points: isCorrect ? 10 : 0
+          }
+        };
+      }
+      
       throw error;
     }
   }
@@ -170,10 +222,29 @@ class EnhancedAssessmentService {
    */
   async getUserProgress(userId: number): Promise<any> {
     try {
-      const response = await axios.get(`${BASE_URL}/progress/${userId}`);
+      const response = await axios.get(`${BASE_URL}/progress/${userId}`, { timeout: 8000 });
       return response.data;
     } catch (error) {
       console.error('Error fetching user progress:', error);
+      
+      // Check if API is available
+      const isAvailable = await this.checkHealth().catch(() => false);
+      
+      if (!isAvailable) {
+        // Return fallback progress data
+        return {
+          domains: FALLBACK_DOMAINS.map(domain => ({
+            domain: domain.name,
+            questions_attempted: 0,
+            questions_correct: 0,
+            accuracy: 0,
+            highest_difficulty: 0,
+            current_level: 0,
+            points_earned: 0
+          }))
+        };
+      }
+      
       throw error;
     }
   }
@@ -183,10 +254,41 @@ class EnhancedAssessmentService {
    */
   async getLearningPath(userId: number): Promise<LearningPath> {
     try {
-      const response = await axios.get(`${BASE_URL}/learning-path/${userId}`);
+      const response = await axios.get(`${BASE_URL}/learning-path/${userId}`, { timeout: 8000 });
       return response.data;
     } catch (error) {
       console.error('Error fetching learning path:', error);
+      
+      // Check if API is available
+      const isAvailable = await this.checkHealth().catch(() => false);
+      
+      if (!isAvailable) {
+        // Return fallback learning path
+        // We'll get the user's name from the frontend if needed
+        return {
+          user_id: userId,
+          questions_asked: 0,
+          questions_correct: 0,
+          strongest_domain: "Classroom Management",
+          weakest_domain: "Child Development",
+          user_name: "User",
+          total_points_earned: 0,
+          recommendations: [
+            {
+              type: "suggested_learning",
+              domain: "Child Development",
+              message: "Take some time to explore child development resources",
+              description: "Understanding developmental milestones will help you create age-appropriate activities"
+            },
+            {
+              type: "strength",
+              domain: "Classroom Management",
+              message: "You're doing well with classroom management skills"
+            }
+          ]
+        };
+      }
+      
       throw error;
     }
   }
@@ -202,10 +304,19 @@ class EnhancedAssessmentService {
       
       const url = `${BASE_URL}/leaderboard?${params.toString()}`;
       
-      const response = await axios.get(url);
+      const response = await axios.get(url, { timeout: 8000 });
       return response.data;
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
+      
+      // Check if API is available
+      const isAvailable = await this.checkHealth().catch(() => false);
+      
+      if (!isAvailable) {
+        // Return empty leaderboard if assessment API is unavailable
+        return [];
+      }
+      
       throw error;
     }
   }
