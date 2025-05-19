@@ -110,54 +110,62 @@ export default function Register() {
           email: data.email.trim(),
         };
         
-        // If this is a school owner registration, we need to create a school and make this user an admin
+        // If this is a school owner registration
         if (data.isSchoolOwner && data.schoolName && data.adminPassword) {
           console.log("Registering as school owner");
           
-          // First create the school
-          const formData = new FormData();
-          formData.append('name', data.schoolName.trim());
-          formData.append('adminPasswordHash', data.adminPassword.trim());
-          formData.append('contactEmail', data.email.trim());
-          formData.append('contactPhone', ''); // Could be added later
-          formData.append('address', '');
-          formData.append('city', '');
-          formData.append('state', '');
-          formData.append('zipCode', '');
-          formData.append('customization', JSON.stringify({
-            primaryColor: "#1e88e5",
-            secondaryColor: "#ffca28",
-            accentColor: "#ff5722"
-          }));
+          // First create the school - simple JSON request
+          const schoolData = {
+            name: data.schoolName.trim(),
+            adminPasswordHash: data.adminPassword.trim(),
+            contactEmail: data.email.trim(),
+            contactPhone: '',
+            address: '',
+            city: '',
+            state: '',
+            zipCode: '',
+            customization: {
+              primaryColor: "#1e88e5",
+              secondaryColor: "#ffca28",
+              accentColor: "#ff5722"
+            }
+          };
           
-          // Add logo if provided
-          if (schoolLogo) {
-            formData.append('logo', schoolLogo);
-          }
-          
-          // Create the school first
-          const schoolResponse = await fetch('/api/schools', {
-            method: 'POST',
-            body: formData
+          // Create school with simple JSON request
+          const schoolResponse = await apiRequest("/api/schools/create", {
+            method: "POST",
+            data: schoolData
           });
-          
-          if (!schoolResponse.ok) {
-            throw new Error('Failed to create school');
-          }
-          
-          const school = await schoolResponse.json();
           
           // Then register the user with the new school ID
           const userRegData = {
             ...cleanData,
-            schoolId: school.id, // Associate with the newly created school
-            isSchoolAdmin: true // Make them a school admin
+            schoolId: schoolResponse.id,
+            isSchoolAdmin: true
           };
           
-          return await apiRequest("/api/auth/register", {
+          // If we had logo, we can update it after user registration in a separate step
+          const logoPromise = schoolLogo ? Promise.resolve() : null;
+          
+          // Register the user
+          const userResponse = await apiRequest("/api/auth/register", {
             method: "POST",
             data: userRegData
           });
+          
+          // Upload logo if we have one, after user is created
+          if (schoolLogo && logoPromise) {
+            const formData = new FormData();
+            formData.append('logo', schoolLogo);
+            formData.append('schoolId', schoolResponse.id.toString());
+            
+            await fetch('/api/schools/logo', {
+              method: 'POST',
+              body: formData
+            });
+          }
+          
+          return userResponse;
         } else {
           // Regular user registration
           console.log("Sending registration data:", { 

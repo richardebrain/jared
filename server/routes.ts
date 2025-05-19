@@ -2971,6 +2971,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Simple endpoint for creating schools with JSON data only
+  app.post("/api/schools/create", async (req, res) => {
+    try {
+      const { 
+        name, 
+        adminPasswordHash, 
+        contactEmail, 
+        contactPhone, 
+        address, 
+        city, 
+        state, 
+        zipCode, 
+        customization 
+      } = req.body;
+      
+      if (!name || !contactEmail) {
+        return res.status(400).json({ message: "School name and contact email are required" });
+      }
+      
+      // Hash admin password
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(adminPasswordHash, saltRounds);
+      
+      // Create school
+      const newSchool = await storage.createSchool({
+        name,
+        address: address || "",
+        city: city || "",
+        state: state || "",
+        zipCode: zipCode || "",
+        contactEmail,
+        contactPhone: contactPhone || "",
+        adminPasswordHash: hashedPassword,
+        createdAt: new Date(),
+        isSubscriptionActive: true, // Default to active for now
+        isFreeAccess: false,        // Non-Raising Arizona schools aren't free by default
+        subscriptionType: "trial",  // Start with trial
+        subscriptionStartedAt: new Date(),
+        subscriptionExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+        teacherCount: 0,
+        customization: customization || {
+          primaryColor: "#1e88e5", // Default blue
+          secondaryColor: "#ffca28", // Default amber
+          accentColor: "#ff5722" // Default deep orange
+        },
+        logoUrl: null
+      });
+      
+      console.log(`School created successfully: ${name} (ID: ${newSchool.id})`);
+      
+      // Return created school
+      res.json(newSchool);
+    } catch (error) {
+      console.error("Error creating school:", error);
+      res.status(500).json({ 
+        message: "Failed to create school", 
+        details: error.message 
+      });
+    }
+  });
+  
+  // Simplified endpoint for uploading school logos
+  app.post("/api/schools/logo", logoUpload.single('logo'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No logo file uploaded" });
+      }
+      
+      const schoolId = parseInt(req.body.schoolId);
+      if (!schoolId || isNaN(schoolId)) {
+        return res.status(400).json({ message: "Valid school ID is required" });
+      }
+      
+      // Get the current school
+      const school = await storage.getSchool(schoolId);
+      if (!school) {
+        return res.status(404).json({ message: "School not found" });
+      }
+      
+      // Update the school's logo URL
+      const logoUrl = `/uploads/${req.file.filename}`;
+      await storage.updateSchool(schoolId, { logoUrl });
+      
+      console.log(`Logo uploaded successfully for school ID ${schoolId}: ${logoUrl}`);
+      
+      res.json({ 
+        message: "Logo uploaded successfully",
+        logoUrl
+      });
+    } catch (error) {
+      console.error("Error uploading school logo:", error);
+      res.status(500).json({ 
+        message: "Failed to upload logo", 
+        details: error.message 
+      });
+    }
+  });
+  
   // Dedicated endpoint for school logo uploads
   app.post("/api/schools/upload-logo", logoUpload.single('schoolLogo'), async (req, res) => {
     try {
