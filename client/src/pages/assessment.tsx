@@ -404,20 +404,26 @@ export default function AssessmentPage() {
     // Get already answered question IDs to prevent repeats
     const answeredQuestionIds = Object.keys(answers);
     
-    // Filter questions for the current domain and difficulty level that haven't been answered
-    // Use a Set to track questions we've already included to avoid duplicates
-    const seen = new Set();
+    console.log(`Filtering questions for domain: ${domainId}, difficulty: ${difficulty}`);
+    console.log(`Already answered questions: ${answeredQuestionIds.length}`);
+    
+    // Create a Set of question texts that have already been answered
+    // This is more reliable than using IDs, especially when importing from multiple sources
+    const answeredQuestionTexts = new Set();
+    answeredQuestionIds.forEach(id => {
+      const question = assessmentQuestions.find(q => q.id === id);
+      if (question) {
+        answeredQuestionTexts.add(question.text.trim());
+      }
+    });
+    
+    // Filter questions for the current domain and difficulty level
     const questions = assessmentQuestions.filter(q => {
-      // Only include questions for this domain and difficulty that haven't been answered
-      if (q.domain === domainId && 
-          q.difficulty === difficulty &&
-          !answeredQuestionIds.includes(q.id)) {
-        
-        // Check if we've already seen this question text
-        // This ensures we don't include duplicate questions even if they have the same ID
-        const questionKey = q.text.trim();
-        if (!seen.has(questionKey)) {
-          seen.add(questionKey);
+      // Check if the question is in the right domain and difficulty
+      if (q.domain === domainId && q.difficulty === difficulty) {
+        // Check if we've already answered this question by its text (more reliable)
+        const questionText = q.text.trim();
+        if (!answeredQuestionTexts.has(questionText)) {
           return true;
         }
       }
