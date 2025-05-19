@@ -1,42 +1,71 @@
+#!/usr/bin/env python3
 """
 Main entry point for MentorMe Assessment API
 This script starts the FastAPI server for the assessment system
 """
-import uvicorn
-import sys
 import os
-from dotenv import load_dotenv
-from backend.database import Base, engine
-from backend.import_data import run_import
+import logging
+import argparse
+import uvicorn
+from backend.import_data import run_import, setup_database
+
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 def setup_database():
     """Create database tables if they don't exist"""
-    try:
-        print("Setting up database tables...")
-        Base.metadata.create_all(bind=engine)
-        print("Database tables created successfully.")
-    except Exception as e:
-        print(f"Error setting up database: {str(e)}")
-        sys.exit(1)
+    from backend.import_data import setup_database
+    setup_database()
+    logger.info("Database initialized successfully")
 
 def main():
     """Main entry point"""
-    # Load environment variables
-    load_dotenv()
+    parser = argparse.ArgumentParser(description="MentorMe Assessment API Server")
+    parser.add_argument(
+        "--host", 
+        type=str, 
+        default="0.0.0.0", 
+        help="Host to run the server on (default: 0.0.0.0)"
+    )
+    parser.add_argument(
+        "--port", 
+        type=int, 
+        default=8000, 
+        help="Port to run the server on (default: 8000)"
+    )
+    parser.add_argument(
+        "--reload", 
+        action="store_true", 
+        help="Enable auto-reload for development"
+    )
+    parser.add_argument(
+        "--import-data", 
+        action="store_true", 
+        help="Import assessment questions data from CSV"
+    )
     
-    # Set up database and import data
+    args = parser.parse_args()
+    
+    # Initialize database
     setup_database()
     
-    # Import data if needed (only runs if questions table is empty)
-    run_import()
-
-    # Start the FastAPI server
-    print("Starting FastAPI server...")
+    # Import data if requested
+    if args.import_data:
+        logger.info("Importing assessment questions data...")
+        run_import()
+    
+    # Start server
+    logger.info(f"Starting MentorMe Assessment API on {args.host}:{args.port}")
     uvicorn.run(
-        "backend.server:app", 
-        host="0.0.0.0",  # Listen on all interfaces
-        port=int(os.getenv("ASSESSMENT_API_PORT", "8000")),
-        reload=True  # Enable auto-reload for development
+        "backend.server:app",
+        host=args.host,
+        port=args.port,
+        reload=args.reload,
+        log_level="info"
     )
 
 if __name__ == "__main__":
