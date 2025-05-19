@@ -303,7 +303,45 @@ export default function ModuleView({ moduleId, user, onBack, module: providedMod
             </TabsList>
             
             <TabsContent value="content" className="pt-4">
-              <div className="module-content" dangerouslySetInnerHTML={{ __html: module.content }} />
+              {currentProgress > 0 ? (
+                <div className="module-content" dangerouslySetInnerHTML={{ __html: module.content }} />
+              ) : (
+                <div className="flex flex-col items-center justify-center py-10 space-y-6">
+                  <div className="text-center space-y-3">
+                    <div className="bg-amber-100 p-3 rounded-full inline-flex mb-3">
+                      <BookOpen className="h-6 w-6 text-amber-600" />
+                    </div>
+                    <h3 className="text-xl font-bold">Complete Onboarding Training</h3>
+                    <p className="text-muted-foreground max-w-md mx-auto">
+                      This training module will help you understand key concepts and strategies related to {module.title.toLowerCase()}.
+                    </p>
+                  </div>
+                  
+                  <Button
+                    onClick={handleStartLesson}
+                    size="lg"
+                    className="gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
+                  >
+                    <Play className="h-4 w-4" />
+                    Start Training Module
+                    <Badge variant="secondary" className="ml-2 bg-white text-amber-700">
+                      +15 points
+                    </Badge>
+                  </Button>
+                  
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground mt-4">
+                    <div className="flex items-center">
+                      <Clock className="h-4 w-4 mr-1" />
+                      <span>{module.duration} min</span>
+                    </div>
+                    <div className="w-1 h-1 bg-muted-foreground rounded-full"></div>
+                    <div className="flex items-center">
+                      <Award className="h-4 w-4 mr-1" />
+                      <span>Earn points & Bear Bucks</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </TabsContent>
             
             <TabsContent value="overview" className="pt-4">
