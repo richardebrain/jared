@@ -3032,6 +3032,129 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // All-in-one endpoint for school and owner registration
+  app.post("/api/business-signup/complete", async (req, res) => {
+    console.log("Starting all-in-one business signup process");
+    try {
+      const { 
+        // School information
+        schoolName, 
+        adminPassword,
+        contactEmail,
+        
+        // User information
+        username,
+        password,
+        firstName,
+        lastName,
+        email
+      } = req.body;
+      
+      // Validate required fields
+      if (!schoolName || !adminPassword || !contactEmail || !username || !password || !firstName || !lastName || !email) {
+        return res.status(400).json({ 
+          message: "Missing required fields",
+          details: "All fields are required to complete registration"
+        });
+      }
+      
+      console.log("Step 1: Creating school");
+      
+      // Create school first
+      const saltRounds = 10;
+      const hashedAdminPassword = await bcrypt.hash(adminPassword, saltRounds);
+      
+      const schoolData = {
+        name: schoolName,
+        address: "",
+        city: "", 
+        state: "",
+        zipCode: "",
+        contactEmail,
+        contactPhone: "",
+        adminPasswordHash: hashedAdminPassword,
+        createdAt: new Date(),
+        isSubscriptionActive: true,
+        isFreeAccess: false,
+        subscriptionType: "trial",
+        subscriptionStartedAt: new Date(),
+        subscriptionExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        teacherCount: 0,
+        customization: {
+          primaryColor: "#1e88e5",
+          secondaryColor: "#ffca28",
+          accentColor: "#ff5722"
+        },
+        logoUrl: null
+      };
+      
+      const newSchool = await storage.createSchool(schoolData);
+      console.log(`School created successfully: ${schoolName} (ID: ${newSchool.id})`);
+      
+      // Now create the user with the school association
+      console.log("Step 2: Creating owner user account");
+      
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      
+      const userData = {
+        username,
+        password: hashedPassword,
+        firstName,
+        lastName,
+        email,
+        language: "English",
+        nativeLanguage: "English",
+        timeZone: "UTC-05:00",
+        schoolId: newSchool.id,
+        isSchoolAdmin: true,
+        isSchoolOwner: true,
+        isOwner: true, // Mark as owner in general sense as well
+        points: 50, // Start with some points
+        streak: 0,
+        level: 1
+      };
+      
+      const newUser = await storage.createUser(userData);
+      console.log(`User created successfully: ${username} (ID: ${newUser.id})`);
+      
+      // Log the user in automatically
+      console.log("Step 3: Automatically logging in the user");
+      
+      // Start a session for the user
+      req.session.userId = newUser.id;
+      req.session.loginTime = new Date().toISOString();
+      
+      // Wait for session to be saved
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) {
+            console.error("Error saving session:", err);
+            reject(err);
+          } else {
+            console.log("Session saved successfully with userId:", newUser.id);
+            resolve();
+          }
+        });
+      });
+      
+      // Omit password from response
+      const { password: _, ...userWithoutPassword } = newUser;
+      
+      // Return success with both school and user data
+      res.status(201).json({
+        message: "Business registration successful!",
+        school: newSchool,
+        user: userWithoutPassword
+      });
+    } catch (error) {
+      console.error("All-in-one business registration error:", error);
+      res.status(500).json({
+        message: "Failed to complete business registration",
+        details: error.message || "An unexpected error occurred"
+      });
+    }
+  });
+  
   // Simplified endpoint for uploading school logos
   app.post("/api/schools/logo", logoUpload.single('logo'), async (req, res) => {
     try {
