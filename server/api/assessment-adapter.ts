@@ -32,7 +32,7 @@ router.get('/health', async (_req, res) => {
     console.error('Assessment API health check failed:', error.message);
     // Return 200 instead of 503 to prevent frontend from breaking completely
     // This allows the rest of the app to function while showing a warning about assessment availability
-    return res.json({
+    return res.status(200).json({
       status: 'degraded',
       available: false,
       error: 'Assessment service is not running. Please run start_assessment_api.sh to start the service.',
