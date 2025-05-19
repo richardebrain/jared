@@ -1,8 +1,13 @@
 #!/bin/bash
-# Auto-start script for the MentorMe Assessment API
-# This gets called when the main application starts
+# Script to start the Assessment API when the application boots up
 
-# Run in background with nohup to avoid blocking
-nohup bash start_assessment_api.sh > assessment_server.log 2>&1 &
+echo "Starting MentorMe Assessment API on application boot..."
 
-echo "Started assessment server in background. Check assessment_server.log for details."
+# Run the assessment API in the background
+nohup bash ./start_assessment_api.sh > assessment_api.log 2>&1 &
+
+# Log the PID for potential cleanup later
+echo $! > assessment_api.pid
+
+echo "MentorMe Assessment API started in the background"
+echo "Check assessment_api.log for output"

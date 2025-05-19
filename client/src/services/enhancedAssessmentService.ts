@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Base URL for the enhanced assessment API
-const BASE_URL = 'http://localhost:8088/api';
+// Base URL for the enhanced assessment API adapter
+const BASE_URL = '/api/assessment';
 
 // Types
 export interface AssessmentQuestion {
@@ -96,7 +96,7 @@ class EnhancedAssessmentService {
    */
   async startAssessment(domain: string, userId: number, difficulty?: number): Promise<AssessmentQuestion> {
     try {
-      const response = await axios.post(`${BASE_URL}/assessments/start`, {
+      const response = await axios.post(`${BASE_URL}/start`, {
         domain,
         user_id: userId,
         difficulty
@@ -118,7 +118,7 @@ class EnhancedAssessmentService {
     timeTaken?: number
   ): Promise<AnswerResponse> {
     try {
-      const response = await axios.post(`${BASE_URL}/assessments/answer`, {
+      const response = await axios.post(`${BASE_URL}/answer`, {
         question_id: questionId,
         answer,
         user_id: userId,
@@ -136,7 +136,7 @@ class EnhancedAssessmentService {
    */
   async getUserProgress(userId: number): Promise<any> {
     try {
-      const response = await axios.get(`${BASE_URL}/users/${userId}/progress`);
+      const response = await axios.get(`${BASE_URL}/progress/${userId}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching user progress:', error);
@@ -149,7 +149,7 @@ class EnhancedAssessmentService {
    */
   async getLearningPath(userId: number): Promise<LearningPath> {
     try {
-      const response = await axios.get(`${BASE_URL}/users/${userId}/learning-path`);
+      const response = await axios.get(`${BASE_URL}/learning-path/${userId}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching learning path:', error);
@@ -162,9 +162,11 @@ class EnhancedAssessmentService {
    */
   async getLeaderboard(schoolId?: number, limit = 10): Promise<any[]> {
     try {
-      const url = schoolId 
-        ? `${BASE_URL}/leaderboard?school_id=${schoolId}&limit=${limit}`
-        : `${BASE_URL}/leaderboard?limit=${limit}`;
+      let params = new URLSearchParams();
+      if (schoolId) params.append('school_id', schoolId.toString());
+      if (limit) params.append('limit', limit.toString());
+      
+      const url = `${BASE_URL}/leaderboard?${params.toString()}`;
       
       const response = await axios.get(url);
       return response.data;
