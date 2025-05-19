@@ -141,9 +141,14 @@ Category: ${video.category.join(', ')}
       // Submit quiz results to the API
       const response = await apiRequest('/api/videos/quiz/complete', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         data: {
           videoId: video.id,
-          points: points
+          points: points > 0 ? 1 : 0, // Send 1 if points earned, 0 if not
+          duration: video.duration || 5 // Pass video duration for proper point calculation
         }
       });
       
