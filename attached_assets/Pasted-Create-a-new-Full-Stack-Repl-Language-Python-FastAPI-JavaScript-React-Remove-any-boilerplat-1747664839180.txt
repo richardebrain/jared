@@ -1,0 +1,163 @@
+Create a new Full-Stack Repl
+
+Language: Python (FastAPI) + JavaScript (React)
+
+Remove any boilerplate files so you start with an empty /backend and /frontend.
+
+Upload your question bank
+
+In Replit’s file pane, add /data/ece_master_database_ready.csv (the CSV we generated).
+
+Install backend dependencies
+In the Shell tab, run:
+
+bash
+Copy
+Edit
+pip install fastapi uvicorn sqlalchemy pandas python-dotenv
+Initialize the database
+
+In /backend/database.py create a SQLite engine and session factory.
+
+In /backend/models.py define a Question model matching all CSV columns (ID, domain, sub_competency, difficulty, q_type, Question, Option A–D, Answer, Teaching Explanation, Story, Implementation, Reflection, Child Impact, Science, Strategy, Why, resources).
+
+Write a CSV-to-DB loader
+In /backend/loader.py:
+
+python
+Copy
+Edit
+import pandas as pd
+from .database import SessionLocal, engine, Base
+from .models import Question
+
+Base.metadata.create_all(bind=engine)
+df = pd.read_csv("../data/ece_master_database_ready.csv")
+db = SessionLocal()
+for _, row in df.iterrows():
+    q = Question(**row.to_dict())
+    db.add(q)
+db.commit()
+db.close()
+Run python backend/loader.py once to seed the DB.
+
+Build the adaptive assessment API
+In /backend/main.py:
+
+python
+Copy
+Edit
+from fastapi import FastAPI, Depends
+from sqlalchemy.orm import Session
+from .database import get_db
+from .models import Question, Response
+app = FastAPI()
+
+@app.post("/api/assessment/start")
+def start_assessment(db: Session = Depends(get_db)):
+    # Optional: create an Assessment record, return assessment_id
+    return {"assessment_id": 1}
+
+@app.get("/api/assessment/next")
+def next_question(assessment_id: int, history: list[dict], db: Session = Depends(get_db)):
+    # history = [{"question_id":X, "correct":bool}, ...]
+    # Compute domain scores, pick weakest domain, select a question of appropriate difficulty
+    # For first call, just pick a mid-difficulty random question
+    q = db.query(Question).filter(...).first()
+    return {
+      "id": q.ID,
+      "q_type": q.q_type,
+      "question": q.Question,
+      "options": {"A": q.Option_A, "B": q.Option_B, ...}
+    }
+
+@app.post("/api/assessment/finish")
+def finish_assessment(assessment_id: int, history: list[dict], db: Session = Depends(get_db)):
+    # Aggregate correct/incorrect by domain
+    # Return personalized path: { domain: [resourceIDs...] }
+    return {"learning_path": {"Handwashing": ["handwashing_video", ...], ...}}
+Define ORM for responses (optional)
+In /backend/models.py add a Response table to log user answers tied to an assessment record.
+
+Configure environment & run backend
+
+Create .env if needed for DB_URL.
+
+Add .replit in project root:
+
+ini
+Copy
+Edit
+run = "bash -lc 'uvicorn backend.main:app --host 0.0.0.0 --port $PORT & cd frontend && npm start'"
+Bootstrap the React front-end
+In /frontend:
+
+bash
+Copy
+Edit
+npx create-react-app .
+npm install axios react-infinite-scroll-component
+In package.json add "proxy": "http://localhost:8000".
+
+Build the Assessment UI
+
+Create src/Assessment.js:
+
+jsx
+Copy
+Edit
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+
+function Assessment() {
+  const [step, setStep] = useState("start"); 
+  const [history, setHistory] = useState([]);
+
+  useEffect(() => {
+    if (step==="start") {
+      axios.post("/api/assessment/start").then(()=>setStep("next"));
+    }
+  }, [step]);
+
+  const getNext = () => {
+    axios.get("/api/assessment/next", { params:{ history } })
+      .then(res => setStep(res.data));
+  };
+
+  const submit = (questionId, choice) => {
+    const correct = choice===step.answer;
+    setHistory([...history, { question_id: questionId, correct }]);
+    setStep("next");
+  };
+
+  if (step==="next") { getNext(); return <div>Loading question…</div>; }
+  if (step.id) {
+    return (
+      <div>
+        <h2>{step.question}</h2>
+        {Object.entries(step.options).map(([key, txt])=>(
+          <button key={key} onClick={()=>submit(step.id, key)}>{key}. {txt}</button>
+        ))}
+      </div>
+    );
+  }
+  return <div>Starting assessment…</div>;
+}
+export default Assessment;
+In src/App.js, render <Assessment />.
+
+Test & Iterate
+
+Run “▶️” in Replit.
+
+Hit your React UI, go through 5–10 questions.
+
+Inspect DevTools to ensure API calls flow correctly and the learning_path result looks reasonable.
+
+Next Enhancements
+
+Implement real adaptive logic in next_question.
+
+Add progress bars, badges, and micro-learning modules in the front end.
+
+Hook up actual video/quiz modules by id in the learning path.
