@@ -47,7 +47,7 @@ import CasinoPage from "@/pages/casino";
 import TransitionTimer from "@/pages/transition-timer";
 import TestAssessmentGraph from "@/pages/test-assessment-graph";
 import SchoolDashboard from "@/pages/school-dashboard";
-import BobsDashboard from "./pages/bobs-dashboard";
+import BobsAdmin from "@/pages/bobs-admin";
 import ProfilePage from "@/pages/profile";
 import AppOwnerDashboard from "@/pages/app-owner-dashboard";
 import EduTokPage from "@/pages/edutok";
@@ -268,7 +268,7 @@ function Router() {
       
       {/* Bob's Daycare Dashboard - Direct Access Route */}
       <Route path="/bobs-daycare-admin">
-        {isAuthenticated ? <SchoolDashboard /> : <Login />}
+        {isAuthenticated ? <BobsAdmin /> : <Login />}
       </Route>
       
       <Route path="/profile">
