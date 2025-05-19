@@ -184,14 +184,8 @@ async def health_check():
 @app.get("/api/domains", response_model=List[Dict[str, Any]])
 async def get_domains(db: Session = Depends(get_db)):
     """Get all available domains"""
-    try:
-        # Get parent domains
-        parent_domains = db.query(Domain).filter(Domain.parent_id.is_(None)).all()
-        
-        # Format response
-        result = []
-        for domain in parent_domains:
-            domain_dict = domain.to_dict()
+    from backend.adapter import DatabaseAdapter
+    return DatabaseAdapter.get_all_domains(db)
             # Add sub-domains
             sub_domains = db.query(Domain).filter(Domain.parent_id == domain.id).all()
             domain_dict["sub_domains"] = [sub.to_dict() for sub in sub_domains]

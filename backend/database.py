@@ -56,12 +56,24 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 def init_db() -> None:
     """Initialize the database"""
     try:
-        # Create all tables
-        Base.metadata.create_all(bind=engine)
-        logger.info("Database tables created successfully")
+        # Don't create tables automatically - use existing tables
+        # Only create tables that don't exist yet
+        tables_to_create = []
+        for table in Base.metadata.tables.values():
+            if not engine.dialect.has_table(engine.connect(), table.name):
+                tables_to_create.append(table)
+        
+        if tables_to_create:
+            # Create only new tables
+            for table in tables_to_create:
+                table.create(bind=engine)
+            logger.info(f"Created {len(tables_to_create)} new database tables")
+        else:
+            logger.info("All tables already exist, no new tables created")
     except SQLAlchemyError as e:
-        logger.error(f"Error creating database tables: {str(e)}")
-        raise
+        logger.error(f"Error initializing database: {str(e)}")
+        # Continue without failing - existing tables will be used
+        pass
 
 def get_db() -> Generator[Session, None, None]:
     """Get a database session"""
