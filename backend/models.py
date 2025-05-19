@@ -50,25 +50,48 @@ class Question(Base):
     sub_domain = Column(String(100), nullable=True, index=True)
     difficulty = Column(Integer, nullable=False, default=1)
     q_type = Column(String(20), nullable=False, default="multiple_choice")
-    options = Column(JSON, nullable=True)
+    options = Column(Text, nullable=True)
     correct_answer = Column(String(255), nullable=False)
-    explanation = Column(Text, nullable=True)
-    hints = Column(JSON, nullable=True)
-    resources = Column(JSON, nullable=True)
+    tags = Column(Text, nullable=True)
+    enhanced_content = Column(Text, nullable=True)
     time_limit = Column(Integer, nullable=True)  # Seconds
-    is_active = Column(Boolean, default=True)
+    points = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    tags = relationship("Tag", secondary=question_tag_association, backref="questions")
     answers = relationship("UserAnswer", back_populates="question")
     
     @hybrid_property
     def points_value(self) -> int:
-        """Calculate points value based on difficulty"""
-        # Base points: 5 for easiest, up to 25 for hardest
+        """Get points value"""
+        if self.points:
+            return self.points
+        # Fallback: base points on difficulty if points field is not set
         return 5 * self.difficulty
+    
+    def parse_options(self) -> Dict[str, str]:
+        """Parse options from string format"""
+        if self.options is None:
+            return {}
+        try:
+            if isinstance(self.options, dict):
+                return self.options
+            return eval(self.options)
+        except:
+            # If parsing fails, return empty dict
+            return {}
+    
+    def parse_tags(self) -> List[str]:
+        """Parse tags from string format"""
+        if self.tags is None:
+            return []
+        try:
+            if isinstance(self.tags, list):
+                return self.tags
+            return [tag.strip() for tag in self.tags.split(',')]
+        except:
+            return []
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for API response"""
@@ -79,14 +102,12 @@ class Question(Base):
             "sub_domain": self.sub_domain,
             "difficulty": self.difficulty,
             "q_type": self.q_type,
-            "options": self.options or {},
+            "options": self.parse_options(),
             "correct_answer": self.correct_answer,
-            "explanation": self.explanation,
-            "hints": self.hints or [],
-            "resources": self.resources or [],
+            "hints": [],
+            "tags": self.parse_tags(),
             "time_limit": self.time_limit,
-            "points_value": self.points_value,
-            "is_active": self.is_active
+            "points_value": self.points_value
         }
 
 class Tag(Base):
@@ -134,18 +155,27 @@ class School(Base):
     __tablename__ = 'schools'
     
     id = Column(Integer, primary_key=True)
-    name = Column(String(255), nullable=False)
-    contact_email = Column(String(255), nullable=True)
-    logo_url = Column(String(255), nullable=True)
-    is_active = Column(Boolean, default=True)
-    is_default = Column(Boolean, default=False)
-    max_users = Column(Integer, default=10)
+    name = Column(Text, nullable=False)
+    contact_email = Column(Text, nullable=True)
+    logo_url = Column(Text, nullable=True)
+    city = Column(Text, nullable=True)
+    state = Column(Text, nullable=True)
+    zip_code = Column(Text, nullable=True)
+    address = Column(Text, nullable=True)
+    contact_phone = Column(Text, nullable=True)
+    website_url = Column(Text, nullable=True)
+    subscription_type = Column(Text, nullable=True)
+    subscription_active = Column(Boolean, default=True)
+    is_free_access = Column(Boolean, default=False)
+    subscription_started_at = Column(DateTime, nullable=True)
+    subscription_expires_at = Column(DateTime, nullable=True)
+    teacher_count = Column(Integer, default=0)
+    admin_password_hash = Column(Text, nullable=True)
+    customization = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
     users = relationship("User", back_populates="school")
-    subscriptions = relationship("Subscription", back_populates="school")
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for API response"""
@@ -154,9 +184,9 @@ class School(Base):
             "name": self.name,
             "contact_email": self.contact_email,
             "logo_url": self.logo_url,
-            "is_active": self.is_active,
-            "is_default": self.is_default,
-            "max_users": self.max_users
+            "subscription_active": self.subscription_active,
+            "is_free_access": self.is_free_access,
+            "teacher_count": self.teacher_count
         }
 
 class Subscription(Base):
