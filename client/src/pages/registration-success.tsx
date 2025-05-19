@@ -57,9 +57,25 @@ export default function RegistrationSuccess() {
           )}
           
           <div className="p-4 bg-blue-50 border border-blue-200 rounded-md mb-6">
-            <p className="text-blue-700">
-              The school owner account has been created. You can now log in with your username and password.
-            </p>
+            <h3 className="text-lg font-semibold text-blue-800 mb-2">What's next?</h3>
+            <ul className="text-blue-700 text-left space-y-2">
+              <li className="flex items-start">
+                <span className="inline-block mr-2">1.</span>
+                <span>Log in with your new owner account credentials</span>
+              </li>
+              <li className="flex items-start">
+                <span className="inline-block mr-2">2.</span>
+                <span>Customize your school settings and branding in the admin dashboard</span>
+              </li>
+              <li className="flex items-start">
+                <span className="inline-block mr-2">3.</span>
+                <span>Invite teachers to join your school's training platform</span>
+              </li>
+              <li className="flex items-start">
+                <span className="inline-block mr-2">4.</span>
+                <span>Monitor teacher progress and achievements</span>
+              </li>
+            </ul>
           </div>
           
           <div className="space-y-4">

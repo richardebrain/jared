@@ -64,7 +64,13 @@ function Router() {
   
   // We'll handle admin check in the platform integration component instead
   
-  if (isLoading) {
+  // Only show loading spinner for protected routes, not for public routes like registration
+  const isPublicRoute = window.location.pathname.includes('registration') || 
+                        window.location.pathname.includes('login') || 
+                        window.location.pathname.includes('business-signup') || 
+                        window.location.pathname === '/';
+  
+  if (isLoading && !isPublicRoute) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>

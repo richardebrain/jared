@@ -1,8 +1,32 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
+import { useLocation } from "wouter";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
-// Pure HTML form with absolutely minimal React - just rendering static HTML
+// Pure HTML form with minimal React
 export default function SimpleRegistration() {
+  const [location] = useLocation();
+  const [error, setError] = useState<string | null>(null);
+  
+  useEffect(() => {
+    // Parse error from URL if present
+    const params = new URLSearchParams(window.location.search);
+    const errorParam = params.get('error');
+    
+    if (errorParam) {
+      const errorMessages: {[key: string]: string} = {
+        'missing-school-info': 'Missing required school information. Please fill in all required fields.',
+        'missing-owner-info': 'Missing required owner account information. Please fill in all required fields.',
+        'passwords-mismatch': 'Passwords do not match. Please try again.',
+        'username-taken': 'This username is already taken. Please choose another one.',
+        'school-exists': 'A school with this name is already registered.',
+        'server-error': 'An unexpected error occurred. Please try again later.'
+      };
+      
+      setError(errorMessages[errorParam] || 'An error occurred during registration. Please try again.');
+    }
+  }, [location]);
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-primary/5">
       <Header />
@@ -17,6 +41,14 @@ export default function SimpleRegistration() {
               <strong>Note:</strong> After submitting this form, please wait for a few moments while your school is being registered.
             </p>
           </div>
+          
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4 mr-2" />
+              <AlertTitle>Registration Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
           
           {/* Absolute minimal HTML form */}
           <form
