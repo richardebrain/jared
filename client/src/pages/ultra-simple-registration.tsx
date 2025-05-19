@@ -1,209 +1,237 @@
-import { useState } from "react";
-import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+import React, { useState } from 'react';
+import { Link } from 'wouter';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+
+// Form validation schema
+const registrationSchema = z.object({
+  schoolName: z.string().min(2, 'School name must be at least 2 characters'),
+  adminPassword: z.string().min(8, 'Admin password must be at least 8 characters'),
+  contactEmail: z.string().email('Please enter a valid email address'),
+  username: z.string().min(3, 'Username must be at least 3 characters'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  email: z.string().email('Please enter a valid email address'),
+});
+
+type RegistrationForm = z.infer<typeof registrationSchema>;
 
 export default function UltraSimpleRegistration() {
   const [isLoading, setIsLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState("");
-  const { toast } = useToast();
-  
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const [, setLocation] = useLocation();
+
+  const form = useForm<RegistrationForm>({
+    resolver: zodResolver(registrationSchema),
+    defaultValues: {
+      schoolName: '',
+      adminPassword: '',
+      contactEmail: '',
+      username: '',
+      password: '',
+      firstName: '',
+      lastName: '',
+      email: '',
+    },
+  });
+
+  const onSubmit = async (data: RegistrationForm) => {
     setIsLoading(true);
-    setError("");
-    
-    const formData = new FormData(e.currentTarget);
-    const schoolName = formData.get("schoolName") as string;
-    const email = formData.get("email") as string;
-    const phoneNumber = formData.get("phoneNumber") as string;
-    const adminUsername = formData.get("adminUsername") as string;
-    const adminPassword = formData.get("adminPassword") as string;
-    const adminName = formData.get("adminName") as string;
-    
-    // Validate required fields
-    if (!schoolName || !email || !adminUsername || !adminPassword || !adminName) {
-      setError("All fields marked with * are required");
-      setIsLoading(false);
-      return;
-    }
-    
     try {
-      const response = await fetch("/api/register-business-simplified", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          schoolName,
-          email,
-          phoneNumber,
-          adminUsername,
-          adminPassword,
-          adminName,
-        }),
-      });
+      const response = await apiRequest(
+        'POST',
+        '/api/register-business-simplified',
+        data
+      );
       
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to register school");
+      if (response.ok) {
+        toast({
+          title: "Registration successful!",
+          description: "Your school has been registered successfully.",
+        });
+        navigate('/registration-success');
+      } else {
+        const errorData = await response.json();
+        toast({
+          variant: "destructive",
+          title: "Registration failed",
+          description: errorData.message || "An error occurred during registration.",
+        });
       }
-      
-      setSuccess(true);
+    } catch (error) {
       toast({
-        title: "Registration Successful",
-        description: "Your school has been registered successfully!",
-      });
-      
-      // Redirect to success page
-      window.location.href = "/registration-success";
-    } catch (err: any) {
-      setError(err.message || "An unexpected error occurred");
-      toast({
-        title: "Registration Failed",
-        description: err.message || "Failed to register school",
         variant: "destructive",
+        title: "Registration failed",
+        description: "Unable to complete registration. Please try again.",
       });
     } finally {
       setIsLoading(false);
     }
   };
-  
-  if (success) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4">
-        <div className="w-full max-w-md space-y-8 rounded-xl bg-white p-8 shadow-lg">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-primary">Registration Successful!</h1>
-            <p className="mt-2 text-gray-600">
-              Your school has been registered. Redirecting to success page...
-            </p>
-          </div>
-          <div className="flex justify-center">
-            <Button asChild>
-              <Link href="/registration-success">Continue</Link>
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4">
-      <div className="w-full max-w-md space-y-6 rounded-xl bg-white p-8 shadow-lg">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-primary">Register Your School</h1>
-          <p className="mt-2 text-gray-600">
-            Join MentorMe's professional development platform
-          </p>
-        </div>
-        
-        {error && (
-          <div className="rounded-md bg-red-50 p-4 text-sm text-red-800">
-            {error}
-          </div>
-        )}
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="schoolName">School Name *</Label>
-            <Input
-              id="schoolName"
-              name="schoolName"
-              placeholder="Raising Arizona Preschool"
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="email">Contact Email *</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="contact@yourschool.com"
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="phoneNumber">Phone Number</Label>
-            <Input
-              id="phoneNumber"
-              name="phoneNumber"
-              placeholder="(555) 123-4567"
-            />
-          </div>
-          
-          <div className="pt-4 border-t">
-            <h2 className="text-lg font-medium mb-2">Admin Account Details</h2>
-            <p className="text-sm text-gray-500 mb-4">
-              Create an owner account to manage your school's subscription
-            </p>
-            
-            <div className="space-y-2">
-              <Label htmlFor="adminName">Admin Full Name *</Label>
-              <Input
-                id="adminName"
-                name="adminName"
-                placeholder="Jane Smith"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="adminUsername">Admin Username *</Label>
-              <Input
-                id="adminUsername"
-                name="adminUsername"
-                placeholder="jane_smith"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="adminPassword">Admin Password *</Label>
-              <Input
-                id="adminPassword"
-                name="adminPassword"
-                type="password"
-                placeholder="••••••••"
-                required
-              />
-              <p className="text-xs text-gray-500">
-                Password must be at least 8 characters
-              </p>
-            </div>
-          </div>
-          
-          <Button
-            type="submit"
-            className="w-full py-6"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></span>
-                Registering...
-              </>
-            ) : (
-              "Register School"
-            )}
-          </Button>
-          
-          <div className="mt-4 text-center text-sm">
-            <span className="text-gray-600">Already registered?</span>{" "}
-            <Link href="/login" className="text-primary hover:underline">
-              Login here
-            </Link>
-          </div>
-        </form>
-      </div>
+    <div className="container mx-auto py-8 px-4">
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader className="text-center">
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+            Register Your School
+          </CardTitle>
+          <CardDescription>
+            Join MentorMe's professional development platform for early childhood educators
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold">School Information</h3>
+                
+                <FormField
+                  control={form.control}
+                  name="schoolName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>School Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Raising Arizona Preschool" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="contactEmail"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>School Contact Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="contact@yourschool.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="adminPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>School Admin Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="••••••••" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold">Owner Account Information</h3>
+                
+                <FormField
+                  control={form.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Jane" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Smith" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Personal Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="jane@example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <Input placeholder="jane_smith" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="••••••••" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Registering...
+                  </>
+                ) : (
+                  'Register School'
+                )}
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
