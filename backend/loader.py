@@ -5,7 +5,9 @@ This module provides functions to load questions from the database
 
 import random
 from sqlalchemy.orm import Session
-from sqlalchemy import func, select, and_
+from sqlalchemy import func, distinct, and_, or_
+from typing import List, Dict, Optional
+
 from .models import Question
 
 def load_questions(db: Session, domain=None, difficulty=None, exclude_ids=None, limit=10):
@@ -34,13 +36,8 @@ def load_questions(db: Session, domain=None, difficulty=None, exclude_ids=None, 
     if exclude_ids:
         query = query.filter(~Question.id.in_(exclude_ids))
     
-    # Randomize the results
-    query = query.order_by(func.random())
-    
-    # Limit the number of results
-    query = query.limit(limit)
-    
-    return query.all()
+    # Get questions ordered randomly with limit
+    return query.order_by(func.random()).limit(limit).all()
 
 def load_random_question(db: Session, domain=None, difficulty=None, exclude_ids=None):
     """
@@ -55,7 +52,11 @@ def load_random_question(db: Session, domain=None, difficulty=None, exclude_ids=
     Returns:
         Single Question object or None if no matching questions
     """
-    questions = load_questions(db, domain, difficulty, exclude_ids, limit=1)
+    questions = load_questions(
+        db, domain=domain, difficulty=difficulty, 
+        exclude_ids=exclude_ids, limit=1
+    )
+    
     return questions[0] if questions else None
 
 def get_domains(db: Session):
@@ -68,8 +69,8 @@ def get_domains(db: Session):
     Returns:
         List of domain strings
     """
-    domains = db.query(Question.domain).distinct().all()
-    return [domain[0] for domain in domains if domain[0]]  # Filter out None values
+    domains = db.query(distinct(Question.domain)).filter(Question.domain != None).all()
+    return [domain[0] for domain in domains if domain[0]]
 
 def get_question_by_id(db: Session, question_id):
     """
@@ -94,14 +95,11 @@ def get_question_counts_by_domain(db: Session):
     Returns:
         Dictionary with domain names as keys and counts as values
     """
-    counts = {}
-    domains = get_domains(db)
+    results = db.query(
+        Question.domain, func.count(Question.id).label('count')
+    ).group_by(Question.domain).all()
     
-    for domain in domains:
-        count = db.query(func.count(Question.id)).filter(Question.domain == domain).scalar()
-        counts[domain] = count
-    
-    return counts
+    return {result.domain: result.count for result in results if result.domain}
 
 def get_next_difficulty_level(db: Session, domain: str, current_difficulty: int, correct: bool):
     """
@@ -116,19 +114,34 @@ def get_next_difficulty_level(db: Session, domain: str, current_difficulty: int,
     Returns:
         Next difficulty level (int)
     """
-    # Special case for Core Values and Mindful Morning sections
-    if domain in ["Core Values", "Mindful Morning"]:
-        return current_difficulty  # Keep the same difficulty
+    # Get the difficulty distribution for this domain
+    difficulty_distribution = get_question_difficulty_distribution(db, domain)
     
-    # Get the maximum difficulty level available for this domain
-    max_difficulty = db.query(func.max(Question.difficulty)).filter(Question.domain == domain).scalar() or 4
-    
-    # If the answer was correct, increase difficulty (if not at max)
     if correct:
-        return min(current_difficulty + 1, max_difficulty)
+        # If answer was correct, try to increase difficulty
+        next_difficulty = current_difficulty + 1
+        
+        # Make sure we don't exceed max difficulty and that questions exist
+        max_available_difficulty = max(difficulty_distribution.keys()) if difficulty_distribution else 4
+        if next_difficulty > max_available_difficulty:
+            next_difficulty = max_available_difficulty
+            
+        # Make sure questions exist at this level
+        if next_difficulty in difficulty_distribution and difficulty_distribution[next_difficulty] > 0:
+            return next_difficulty
+        
+        # If no questions at next level, stay at current level
+        return current_difficulty
     else:
-        # If incorrect, decrease difficulty (if not at min)
-        return max(current_difficulty - 1, 1)
+        # If answer was incorrect, try to decrease difficulty
+        next_difficulty = max(1, current_difficulty - 1)
+        
+        # Make sure questions exist at this level
+        if next_difficulty in difficulty_distribution and difficulty_distribution[next_difficulty] > 0:
+            return next_difficulty
+        
+        # If no questions at lower level, stay at current level
+        return current_difficulty
 
 def get_domain_questions_count(db: Session, domain: str):
     """
@@ -154,14 +167,11 @@ def get_question_difficulty_distribution(db: Session, domain: str):
     Returns:
         Dictionary with difficulty levels as keys and counts as values
     """
-    distribution = {}
+    results = db.query(
+        Question.difficulty, func.count(Question.id).label('count')
+    ).filter(
+        Question.domain == domain,
+        Question.difficulty != None
+    ).group_by(Question.difficulty).all()
     
-    for difficulty in range(1, 5):
-        count = db.query(func.count(Question.id)).filter(
-            Question.domain == domain,
-            Question.difficulty == difficulty
-        ).scalar()
-        
-        distribution[difficulty] = count
-    
-    return distribution
+    return {result.difficulty: result.count for result in results}

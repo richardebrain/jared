@@ -2,9 +2,13 @@
 Database models for the assessment system
 """
 
-from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, JSON
-from sqlalchemy.orm import relationship
+import json
 from datetime import datetime
+from sqlalchemy import (
+    Column, Integer, String, Text, Boolean, 
+    ForeignKey, JSON, func
+)
+from sqlalchemy.orm import relationship
 
 from .database import Base
 
@@ -25,7 +29,7 @@ class Question(Base):
     option_d = Column(Text)
     answer = Column(String)  # A, B, C, or D
     
-    # Enhanced content for each question
+    # Enhanced content for learning
     teaching_explanation = Column(Text)
     story_why = Column(Text, nullable=True)
     implementation_how = Column(Text, nullable=True)
@@ -42,35 +46,57 @@ class Question(Base):
                        onupdate=lambda: datetime.utcnow().isoformat())
     
     def __repr__(self):
-        return f"<Question(id={self.id}, domain={self.domain}, difficulty={self.difficulty})>"
+        return f"<Question {self.id}: {self.question_text[:30]}...>"
     
     def to_dict(self):
         """Convert the question to a dictionary for API responses"""
-        return {
+        options = {}
+        if self.option_a:
+            options["A"] = self.option_a
+        if self.option_b:
+            options["B"] = self.option_b
+        if self.option_c:
+            options["C"] = self.option_c
+        if self.option_d:
+            options["D"] = self.option_d
+            
+        result = {
             "id": self.id,
-            "question_text": self.question_text,
+            "question": self.question_text,
+            "options": options,
             "domain": self.domain,
             "sub_competency": self.sub_competency,
             "difficulty": self.difficulty,
             "q_type": self.q_type,
-            "options": {
-                "A": self.option_a,
-                "B": self.option_b,
-                "C": self.option_c,
-                "D": self.option_d
-            },
             "answer": self.answer,
             "teaching_explanation": self.teaching_explanation,
-            "story_why": self.story_why,
-            "implementation_how": self.implementation_how,
-            "reflection_considerations": self.reflection_considerations,
-            "child_impact_story": self.child_impact_story,
-            "science_behind_it": self.science_behind_it,
-            "practical_application_strategy": self.practical_application_strategy,
-            "why_behind_it": self.why_behind_it,
-            "resources": self.resources,
         }
-
+        
+        # Add enhanced content if available
+        enhanced_content = {}
+        if self.story_why:
+            enhanced_content["story_why"] = self.story_why
+        if self.implementation_how:
+            enhanced_content["implementation_how"] = self.implementation_how
+        if self.reflection_considerations:
+            enhanced_content["reflection_considerations"] = self.reflection_considerations
+        if self.child_impact_story:
+            enhanced_content["child_impact_story"] = self.child_impact_story
+        if self.science_behind_it:
+            enhanced_content["science_behind_it"] = self.science_behind_it
+        if self.practical_application_strategy:
+            enhanced_content["practical_application_strategy"] = self.practical_application_strategy
+        if self.why_behind_it:
+            enhanced_content["why_behind_it"] = self.why_behind_it
+            
+        if enhanced_content:
+            result["enhanced_content"] = enhanced_content
+            
+        # Add resources if available
+        if self.resources:
+            result["resources"] = self.resources
+            
+        return result
 
 class Assessment(Base):
     __tablename__ = "assessments"
@@ -80,7 +106,7 @@ class Assessment(Base):
     started_at = Column(String)  # ISO timestamp
     completed_at = Column(String, nullable=True)  # ISO timestamp
     
-    # Stats
+    # Progress metrics
     questions_asked = Column(Integer, default=0)
     questions_correct = Column(Integer, default=0)
     
@@ -92,8 +118,7 @@ class Assessment(Base):
     responses = relationship("Response", back_populates="assessment")
     
     def __repr__(self):
-        return f"<Assessment(id={self.id}, user_id={self.user_id}, completed={self.completed_at is not None})>"
-
+        return f"<Assessment {self.id} for user {self.user_id}>"
 
 class Response(Base):
     __tablename__ = "responses"
@@ -112,4 +137,4 @@ class Response(Base):
     question = relationship("Question")
     
     def __repr__(self):
-        return f"<Response(id={self.id}, assessment_id={self.assessment_id}, is_correct={self.is_correct})>"
+        return f"<Response {self.id} for question {self.question_id}>"

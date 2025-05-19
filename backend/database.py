@@ -7,29 +7,29 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# Get database URL from environment variable or use SQLite as fallback
-DATABASE_URL = os.getenv("DATABASE_URL")
+# Get database URL from environment or use SQLite as fallback
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
-# Determine which database to use
-if DATABASE_URL and DATABASE_URL.startswith("postgresql"):
-    # PostgreSQL connection
-    engine = create_engine(
-        DATABASE_URL,
-        pool_pre_ping=True,  # Verify connection is still active
-        pool_recycle=3600,   # Recycle connections after 1 hour
-    )
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    # Heroku provides DATABASE_URL in postgres:// format which SQLAlchemy no longer supports
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+# Use PostgreSQL in production or SQLite in development
+if DATABASE_URL:
+    # Use PostgreSQL database
+    engine = create_engine(DATABASE_URL)
 else:
-    # SQLite connection (for development/testing)
-    SQLITE_DATABASE_URL = "sqlite:///./assessment.db"
+    # Use SQLite for development and testing
+    SQLITE_DATABASE_URL = "sqlite:///./assessment_data.db"
     engine = create_engine(
-        SQLITE_DATABASE_URL, 
-        connect_args={"check_same_thread": False}  # Needed for SQLite
+        SQLITE_DATABASE_URL, connect_args={"check_same_thread": False}
     )
+    print("WARNING: Using SQLite database. For production, set DATABASE_URL environment variable.")
 
-# Create session factory
+# Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Create declarative base class for models
+# Create a base class for models
 Base = declarative_base()
 
 def get_db():

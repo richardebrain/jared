@@ -7,54 +7,48 @@ import os
 import argparse
 import uvicorn
 from backend.database import Base, engine
-from backend import import_data
 
 def setup_database():
     """Create database tables if they don't exist"""
+    from backend.database import Base, engine
     Base.metadata.create_all(bind=engine)
-    print("Database tables created successfully")
 
 def main():
     """Main entry point"""
-    parser = argparse.ArgumentParser(description="MentorMe Enhanced Assessment API")
-    parser.add_argument(
-        "--host", 
-        default="0.0.0.0", 
-        help="Host to bind the server to (default: 0.0.0.0)"
-    )
-    parser.add_argument(
-        "--port", 
-        type=int, 
-        default=5050, 
-        help="Port to bind the server to (default: 5050)"
-    )
-    parser.add_argument(
-        "--reload", 
-        action="store_true", 
-        help="Enable auto-reload for development"
-    )
-    parser.add_argument(
-        "--import-questions", 
-        action="store_true", 
-        help="Import questions from CSV before starting the server"
-    )
-
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description="MentorMe Enhanced Assessment API Server")
+    parser.add_argument("--host", type=str, default="0.0.0.0", help="Host to bind the server to")
+    parser.add_argument("--port", type=int, default=8000, help="Port to bind the server to")
+    parser.add_argument("--reload", action="store_true", help="Enable auto-reload for development")
+    parser.add_argument("--import-data", action="store_true", help="Import assessment questions from CSV")
+    parser.add_argument("--data-file", type=str, help="Path to CSV file containing questions")
+    
     args = parser.parse_args()
     
-    # Setup database
+    # First, make sure database tables exist
+    print("Setting up database...")
     setup_database()
+    print("Database setup complete")
     
-    # Import questions if requested
-    if args.import_questions:
-        print("Importing questions from CSV...")
-        import_data.run_import()
+    # Import data if requested
+    if args.import_data:
+        from backend.import_data import import_questions_from_csv
+        file_path = args.data_file or "attached_assets/ece_master_database_full_with_why.csv"
+        
+        print(f"Importing questions from {file_path}...")
+        success = import_questions_from_csv(file_path)
+        
+        if success:
+            print("Questions imported successfully")
+        else:
+            print("Question import failed")
     
-    # Start the FastAPI server
-    print(f"Starting MentorMe Enhanced Assessment API on {args.host}:{args.port}")
+    # Start the server
+    print(f"Starting server on {args.host}:{args.port}...")
     uvicorn.run(
         "backend.server:app", 
         host=args.host, 
-        port=args.port, 
+        port=args.port,
         reload=args.reload
     )
 

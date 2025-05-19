@@ -8,113 +8,86 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List, Dict, Optional
 
-from .database import get_db
-from .models import Question, Assessment, Response
-from . import loader
-from . import main
-from . import import_data
+from .database import get_db, setup_database
+from . import main, loader
+from .models import Question
 
-# Create FastAPI application
+# Initialize FastAPI app
 app = FastAPI(
     title="MentorMe Enhanced Assessment API",
-    description="API for MentorMe teacher assessment and personalized learning paths",
-    version="1.0.0"
+    description="API for the MentorMe assessment system that provides adaptive learning assessments for ECE educators",
+    version="1.0.0",
 )
 
-# Configure CORS
+# Add CORS middleware to allow cross-origin requests
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For development; restrict in production
+    allow_origins=["*"],  # In production, replace with specific origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Startup event handler
 @app.on_event("startup")
 async def startup():
     """Initialize database on startup"""
-    import_data.setup_database()
-
-# API Routes
+    setup_database()
+    
 @app.get("/")
 async def read_root():
     """API root endpoint with basic information"""
     return {
-        "name": "MentorMe Enhanced Assessment API",
+        "message": "MentorMe Enhanced Assessment API",
         "version": "1.0.0",
-        "status": "running"
+        "docs": "/docs",
     }
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {"status": "ok"}
+    return {"status": "healthy"}
 
-# Assessment management endpoints
-@app.post("/assessments/start")
+@app.post("/api/assessments/start")
 async def api_start_assessment(request: main.AssessmentStartRequest, db: Session = Depends(get_db)):
     """Start a new assessment for a user"""
-    try:
-        assessment_id = main.start_assessment(request, db)
-        return {"assessment_id": assessment_id}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return main.start_assessment(request, db)
 
-@app.post("/assessments/{assessment_id}/next-question")
+@app.post("/api/assessments/{assessment_id}/next-question")
 async def api_next_question(assessment_id: int, request: main.NextQuestionRequest, db: Session = Depends(get_db)):
     """Get the next question in an assessment"""
-    try:
-        return main.next_question(request, db)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    # Make sure assessment ID in path matches request body
+    if assessment_id != request.assessment_id:
+        raise HTTPException(status_code=400, detail="Assessment ID mismatch")
+    
+    return main.next_question(request, db)
 
-@app.post("/assessments/{assessment_id}/submit-answer")
+@app.post("/api/assessments/{assessment_id}/submit-answer")
 async def api_submit_answer(assessment_id: int, submission: main.AnswerSubmission, db: Session = Depends(get_db)):
     """Submit an answer for a question"""
-    try:
-        return main.submit_answer(assessment_id, submission, db)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return main.submit_answer(assessment_id, submission, db)
 
-@app.post("/assessments/{assessment_id}/finish")
+@app.post("/api/assessments/{assessment_id}/finish")
 async def api_finish_assessment(assessment_id: int, db: Session = Depends(get_db)):
     """Finish an assessment and get results"""
-    try:
-        return main.finish_assessment(assessment_id, db)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return main.finish_assessment(assessment_id, db)
 
-# Information endpoints
-@app.get("/domains")
+@app.get("/api/domains")
 async def get_domains(db: Session = Depends(get_db)):
     """Get a list of all assessment domains"""
-    try:
-        domains = loader.get_domains(db)
-        return {"domains": domains}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    domains = loader.get_domains(db)
+    return {"domains": domains}
 
-@app.get("/domains/question-counts")
+@app.get("/api/domain-question-counts")
 async def get_domain_question_counts(db: Session = Depends(get_db)):
     """Get the count of questions for each domain"""
-    try:
-        counts = loader.get_question_counts_by_domain(db)
-        return {"counts": counts}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    counts = loader.get_question_counts_by_domain(db)
+    return {"domain_counts": counts}
 
-@app.get("/questions/{question_id}")
+@app.get("/api/questions/{question_id}")
 async def get_question(question_id: int, db: Session = Depends(get_db)):
     """Get a specific question by ID"""
-    try:
-        question = loader.get_question_by_id(db, question_id)
-        
-        if not question:
-            raise HTTPException(status_code=404, detail="Question not found")
-            
-        return main.format_question(question)
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    question = loader.get_question_by_id(db, question_id)
+    if not question:
+        raise HTTPException(status_code=404, detail="Question not found")
+    
+    return main.format_question(question)
