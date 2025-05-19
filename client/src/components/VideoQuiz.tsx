@@ -78,12 +78,19 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
             // Use pre-defined quiz questions if available
             if (response.quiz && response.quiz.questions && response.quiz.questions.length > 0) {
               // Map API quiz format to our component format
-              const formattedQuestions: QuizQuestion[] = response.quiz.questions.map((q: any, index: number) => ({
-                id: `q${index + 1}`,
-                question: q.question,
-                options: q.options,
-                correctAnswer: q.options[q.correctAnswer] // Convert from index to actual answer text
-              }));
+              const formattedQuestions: QuizQuestion[] = response.quiz.questions.map((q: any, index: number) => {
+                // The correctAnswer might be stored as an index (number) or as the actual answer (string)
+                const correctAnswerValue = typeof q.correctAnswer === 'number' 
+                  ? q.options[q.correctAnswer] 
+                  : q.correctAnswer;
+                
+                return {
+                  id: `q${index + 1}`,
+                  question: q.question,
+                  options: q.options,
+                  correctAnswer: correctAnswerValue
+                };
+              });
               
               setQuestions(formattedQuestions);
             } else {
