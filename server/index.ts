@@ -6,6 +6,7 @@ import { seedDatabase } from "./seedDb";
 import { runSchoolMigration } from "./runMigration";
 import { runSchoolColumnsMigration } from "./schoolColumnsMigration";
 import { runCertificationMigration } from "./certificationMigration";
+import { createVideoQuizCompletionsTable } from "./migrations/create_video_quiz_completions";
 // Import module management system
 import { ModuleManager } from "./module-management/moduleManager";
 // Import assessment API auto-starter
