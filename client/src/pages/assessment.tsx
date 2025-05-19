@@ -401,37 +401,67 @@ export default function AssessmentPage() {
     setCurrentDifficulty(difficulty);
     setDifficultyValue([getValueFromDifficulty(difficulty)]);
     
-    // Get already answered question IDs to prevent repeats
-    const answeredQuestionIds = Object.keys(answers);
+    // Extra logging for the Building a Human section that was getting stuck
+    const isHumanSection = domainId === 'human';
+    if (isHumanSection) {
+      console.log(`🔍 DEBUGGING Building a Human section - difficulty: ${difficulty}`);
+    }
     
-    console.log(`Filtering questions for domain: ${domainId}, difficulty: ${difficulty}`);
-    console.log(`Already answered questions: ${answeredQuestionIds.length}`);
+    // Create a stable collection of answered question "fingerprints"
+    // This helps us reliably detect which questions we've already seen
+    const answeredFingerprints = new Set();
     
-    // Create a Set of question texts that have already been answered
-    // This is more reliable than using IDs, especially when importing from multiple sources
-    const answeredQuestionTexts = new Set();
-    answeredQuestionIds.forEach(id => {
-      const question = assessmentQuestions.find(q => q.id === id);
-      if (question) {
-        answeredQuestionTexts.add(question.text.trim());
+    // For each answer we've given, find that question and add its fingerprint to our set
+    Object.keys(answers).forEach(answeredId => {
+      const answeredQuestion = assessmentQuestions.find(q => q.id === answeredId);
+      if (answeredQuestion) {
+        // Create a fingerprint using both text and options to uniquely identify each question
+        const fingerprint = `${answeredQuestion.domain}_${answeredQuestion.text.trim().toLowerCase()}_${answeredQuestion.options.join('_')}`;
+        answeredFingerprints.add(fingerprint);
+        
+        // Log for the Building a Human section
+        if (isHumanSection && answeredQuestion.domain === 'human') {
+          console.log(`✓ Already answered: ${answeredQuestion.text.substring(0, 30)}...`);
+        }
       }
     });
     
-    // Filter questions for the current domain and difficulty level
-    const questions = assessmentQuestions.filter(q => {
-      // Check if the question is in the right domain and difficulty
+    if (isHumanSection) {
+      console.log(`Total answered questions across all domains: ${answeredFingerprints.size}`);
+    }
+    
+    // Find all questions that match our domain and difficulty and haven't been answered yet
+    const availableQuestions = assessmentQuestions.filter(q => {
+      // First, check if it's the right domain and difficulty
       if (q.domain === domainId && q.difficulty === difficulty) {
-        // Check if we've already answered this question by its text (more reliable)
-        const questionText = q.text.trim();
-        if (!answeredQuestionTexts.has(questionText)) {
-          return true;
+        // Create a fingerprint to check if we've answered this question
+        const fingerprint = `${q.domain}_${q.text.trim().toLowerCase()}_${q.options.join('_')}`;
+        const isAvailable = !answeredFingerprints.has(fingerprint);
+        
+        // Log for the Building a Human section
+        if (isHumanSection && isAvailable) {
+          console.log(`📋 Available question: ${q.text.substring(0, 30)}...`);
         }
+        
+        return isAvailable;
       }
       return false;
     });
     
+    // Log detailed info about available questions
+    if (isHumanSection) {
+      console.log(`Found ${availableQuestions.length} available questions for Building a Human (${difficulty})`);
+      if (availableQuestions.length === 0) {
+        // This indicates we've exhausted all questions for this domain and difficulty
+        console.log(`⚠️ No more questions available for Building a Human (${difficulty}). Will try another difficulty.`);
+      }
+    }
+    
+    // Randomize the questions to prevent predictable order
+    const shuffledQuestions = [...availableQuestions].sort(() => Math.random() - 0.5);
+    
     // If no questions are available, try a different difficulty level
-    if (questions.length === 0) {
+    if (shuffledQuestions.length === 0) {
       if (difficulty === 'beginner') {
         // Try intermediate if beginner has no questions
         updateDomainQuestions(domainId, 'intermediate');
@@ -468,9 +498,8 @@ export default function AssessmentPage() {
     const isSimplifiedDomain = simplifiedDomains.includes(domainId);
     const questionCount = isSimplifiedDomain ? 5 : 10;
     
-    // Shuffle questions and limit to appropriate number
-    const shuffled = [...questions].sort(() => 0.5 - Math.random());
-    const limitedQuestions = shuffled.slice(0, questionCount);
+    // Use our shuffled questions and limit to appropriate number
+    const limitedQuestions = shuffledQuestions.slice(0, questionCount);
     
     setDomainQuestions(limitedQuestions);
     setActiveQuestionIndex(0);
