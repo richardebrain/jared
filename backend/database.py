@@ -5,13 +5,12 @@ Database connection module for the FastAPI backend
 import os
 import logging
 from typing import Generator
+from contextlib import contextmanager
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
+from sqlalchemy.exc import SQLAlchemyError
 
 # Configure logging
 logging.basicConfig(
@@ -20,34 +19,34 @@ logging.basicConfig(
 )
 logger = logging.getLogger("database")
 
+# SQLAlchemy Base for models
+Base = declarative_base()
+
 # Get database URL from environment variables
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.environ.get("DATABASE_URL")
+if not DATABASE_URL:
+    logger.warning("DATABASE_URL not found in environment. Using SQLite database.")
+    DATABASE_URL = "sqlite:///./mentorme.db"
 
-# Create engine - Support both PostgreSQL (production) and SQLite (development)
-if DATABASE_URL and DATABASE_URL.startswith("postgresql"):
-    # PostgreSQL connection
-    logger.info("Using PostgreSQL database")
-    engine = create_engine(DATABASE_URL)
-else:
-    # SQLite connection (fallback for development)
-    logger.warning("PostgreSQL URL not found, using SQLite database (development only)")
-    SQLITE_DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assessment.db")
-    engine = create_engine(f"sqlite:///{SQLITE_DB_PATH}", connect_args={"check_same_thread": False})
-
-# Create sessionmaker
+# Create engine and session factory
+engine = create_engine(
+    DATABASE_URL,
+    echo=False,  # Set to True for SQL debugging
+    pool_pre_ping=True,  # Test connections before using them
+    pool_recycle=300  # Recycle connections after 5 minutes
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Import models to create tables
-from .models import Base
 
 def setup_database():
     """Create database tables if they don't exist"""
     try:
-        Base.metadata.create_all(bind=engine)
-        logger.info("Database tables created or verified")
-    except Exception as e:
-        logger.error(f"Error creating database tables: {e}")
-        raise
+        # Create tables based on model classes
+        Base.metadata.create_all(engine)
+        logger.info("Database tables created successfully")
+        return True, "Database setup successful"
+    except SQLAlchemyError as e:
+        logger.error(f"Database setup error: {e}")
+        return False, str(e)
 
 def get_db() -> Generator[Session, None, None]:
     """Provide a database session for a request"""
@@ -57,10 +56,14 @@ def get_db() -> Generator[Session, None, None]:
     finally:
         db.close()
 
+@contextmanager
 def get_db_context() -> Generator[Session, None, None]:
     """Context manager for database sessions"""
     db = SessionLocal()
     try:
         yield db
+    except Exception as e:
+        db.rollback()
+        raise e
     finally:
         db.close()

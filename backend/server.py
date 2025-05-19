@@ -1,26 +1,17 @@
 """
-FastAPI server for the MentorMe Enhanced Assessment system
+Server module for the MentorMe Enhanced Assessment API
+This module sets up the FastAPI server with all routes
 """
 
 import logging
-from typing import Optional
-
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from .database import get_db, setup_database
-from .main import (
-    AssessmentStartRequest, 
-    NextQuestionRequest, 
-    AnswerSubmission,
-    start_assessment,
-    next_question,
-    submit_answer,
-    finish_assessment,
-    read_root,
-    startup_event
-)
+from .models import Question, Assessment, QuestionResponse as QuestionResponseModel
+from .import_data import run_import
+from . import main
 
 # Configure logging
 logging.basicConfig(
@@ -32,67 +23,123 @@ logger = logging.getLogger("server")
 # Create FastAPI app
 app = FastAPI(
     title="MentorMe Enhanced Assessment API",
-    description="API for the MentorMe enhanced assessment system",
-    version="1.0.0",
+    description="API for the MentorMe Assessment System",
+    version="1.0.0"
 )
 
-# Configure CORS
+# Add CORS middleware for frontend access
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins in development
+    allow_origins=["*"],  # Allow all origins for development
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Allow all methods
+    allow_headers=["*"],  # Allow all headers
 )
 
-# Add startup event to initialize database
 @app.on_event("startup")
-async def on_startup():
-    """Initialize on startup"""
-    await startup_event()
+async def startup_event():
+    """Initialize database on startup"""
+    logger.info("Starting up MentorMe Assessment API")
+    
+    # Setup database
+    success, message = setup_database()
+    if not success:
+        logger.error(f"Database setup failed: {message}")
+        # We'll continue anyway, as database might already exist
+    
+    # Optionally, run data import if database is empty
+    # This is useful for first-time setup
+    db = next(get_db())
+    question_count = db.query(Question).count()
+    
+    if question_count == 0:
+        logger.info("No questions found in database. Running import...")
+        import_success, import_result = run_import()
+        if import_success:
+            logger.info(f"Import completed successfully: {import_result}")
+        else:
+            logger.warning(f"Import failed: {import_result}")
 
-# Root endpoint
 @app.get("/")
-def root():
+def read_root():
     """Root endpoint"""
-    return read_root()
+    return main.read_root()
 
-# Start a new assessment
-@app.post("/api/assessment/start")
-def api_start_assessment(request: AssessmentStartRequest, db: Session = Depends(get_db)):
+@app.post("/assessments/start")
+def start_assessment(request: main.AssessmentStartRequest, db: Session = Depends(get_db)):
     """Start a new assessment for a user"""
-    return start_assessment(request, db)
+    return main.start_assessment(request, db)
 
-# Get the next question in an assessment
-@app.post("/api/assessment/{assessment_id}/next-question")
-def api_next_question(assessment_id: int, request: NextQuestionRequest, db: Session = Depends(get_db)):
-    """Get the next question based on assessment history"""
-    # Ensure assessment ID matches request
-    if assessment_id != request.assessment_id:
+@app.post("/assessments/{assessment_id}/next-question")
+def next_question(request: main.NextQuestionRequest, db: Session = Depends(get_db)):
+    """Get the next question for an assessment"""
+    return main.next_question(request, db)
+
+@app.post("/assessments/{assessment_id}/submit-answer")
+def submit_answer(
+    assessment_id: int, 
+    submission: main.AnswerSubmission, 
+    db: Session = Depends(get_db)
+):
+    """Submit an answer for a question"""
+    return main.submit_answer(assessment_id, submission, db)
+
+@app.post("/assessments/{assessment_id}/finish")
+def finish_assessment(assessment_id: int, db: Session = Depends(get_db)):
+    """Finish an assessment and get personalized learning path"""
+    return main.finish_assessment(assessment_id, db)
+
+@app.get("/questions/{question_id}")
+def get_question(question_id: int, db: Session = Depends(get_db)):
+    """Get a specific question by ID"""
+    question = db.query(Question).filter(Question.id == question_id).first()
+    
+    if not question:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Assessment ID in path must match assessment ID in request body"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Question ID {question_id} not found"
         )
     
-    return next_question(request, db)
+    return main.format_question(question)
 
-# Submit an answer to a question
-@app.post("/api/assessment/{assessment_id}/submit")
-def api_submit_answer(assessment_id: int, submission: AnswerSubmission, db: Session = Depends(get_db)):
-    """Submit an answer for a question"""
-    return submit_answer(assessment_id, submission, db)
+@app.get("/domains")
+def get_domains(db: Session = Depends(get_db)):
+    """Get all available domains"""
+    from .loader import get_domains
+    domains = get_domains(db)
+    return {"domains": domains}
 
-# Finish an assessment and get results
-@app.post("/api/assessment/{assessment_id}/finish")
-def api_finish_assessment(assessment_id: int, db: Session = Depends(get_db)):
-    """Finish an assessment and get personalized learning path"""
-    return finish_assessment(assessment_id, db)
-
-# Health check endpoint
-@app.get("/health")
-def health_check():
-    """Health check endpoint"""
+@app.get("/status")
+def get_status(db: Session = Depends(get_db)):
+    """Get API status and database statistics"""
+    question_count = db.query(Question).count()
+    domains = db.query(Question.domain).distinct().count()
+    assessments = db.query(Assessment).count()
+    responses = db.query(QuestionResponseModel).count()
+    
     return {
         "status": "healthy",
-        "database": "connected"
+        "database": {
+            "questions": question_count,
+            "domains": domains,
+            "assessments": assessments,
+            "responses": responses
+        },
+        "version": "1.0.0"
+    }
+
+@app.post("/import")
+def import_questions(db: Session = Depends(get_db)):
+    """Import questions from CSV file"""
+    import_success, import_result = run_import()
+    
+    if not import_success:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Import failed: {import_result}"
+        )
+    
+    return {
+        "success": True,
+        "result": import_result
     }
