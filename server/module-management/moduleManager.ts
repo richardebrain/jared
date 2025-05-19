@@ -3,7 +3,7 @@ import { learningModules, type LearningModule, type InsertLearningModule } from 
 import { eq } from "drizzle-orm";
 import { createRaisingArizonaCoreModule } from "../createCoreModule";
 import { createChapterOneModule } from "../createChapterOneModule";
-import { createMindfulMorningsModule } from "./createMindfulMorningsModule";
+import { createMindfulMorningsModule } from "../createMindfulMorningsModule";
 
 /**
  * ModuleManager

@@ -7,6 +7,7 @@ import {
 } from "@shared/schema";
 import { createRaisingArizonaCoreModule } from "./createCoreModule";
 import { createChapterOneModule } from "./createChapterOneModule";
+import { createMindfulMorningsModule } from "./createMindfulMorningsModule";
 
 async function seedDatabase() {
   console.log("Starting database seeding");
@@ -39,6 +40,18 @@ async function seedDatabase() {
         await createChapterOneModule();
       } else {
         console.log("Chapter 1: Building a Human module already exists with ID:", chapterOneModule.id);
+      }
+      
+      // Check if Mindful Morning module exists
+      const mindfulMorningModule = await db.query.learningModules.findFirst({
+        where: (modules, { eq }) => eq(modules.title, "Mindful Morning")
+      });
+      
+      if (!mindfulMorningModule) {
+        console.log("Creating missing Mindful Morning module.");
+        await createMindfulMorningsModule();
+      } else {
+        console.log("Mindful Morning module already exists with ID:", mindfulMorningModule.id);
       }
       
       return;
