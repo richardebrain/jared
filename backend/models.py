@@ -7,9 +7,8 @@ from .database import Base
 
 class Question(Base):
     __tablename__ = "questions"
-
-    id = Column(Integer, primary_key=True, index=True)
     
+    id = Column(Integer, primary_key=True, index=True)
     # Basic question data
     domain = Column(String, index=True)
     sub_competency = Column(String, index=True)
@@ -17,14 +16,14 @@ class Question(Base):
     q_type = Column(String)  # mcq, etc.
     question_text = Column(Text)
     
-    # Multiple choice options
+    # Options for multiple choice questions
     option_a = Column(Text)
     option_b = Column(Text)
     option_c = Column(Text)
     option_d = Column(Text)
     answer = Column(String)  # A, B, C, or D
     
-    # Extended content for learning
+    # Enhanced content for explanations and learning resources
     teaching_explanation = Column(Text)
     story_why = Column(Text, nullable=True)
     implementation_how = Column(Text, nullable=True)
@@ -43,15 +42,15 @@ class Assessment(Base):
     started_at = Column(String)  # ISO timestamp
     completed_at = Column(String, nullable=True)  # ISO timestamp
     
-    # Assessment metrics
+    # Assessment progress
     questions_asked = Column(Integer, default=0)
     questions_correct = Column(Integer, default=0)
     
-    # Results and recommendations
+    # Assessment results
     domain_scores = Column(JSON)  # JSON object with domain scores
     learning_path = Column(JSON, nullable=True)  # Recommended learning path
     
-    # Relationships
+    # Relationship to responses
     responses = relationship("Response", back_populates="assessment")
 
 class Response(Base):
