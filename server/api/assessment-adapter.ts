@@ -20,17 +20,20 @@ const router = Router();
  */
 router.get('/health', async (_req, res) => {
   try {
-    const response = await axios.get(`${ASSESSMENT_API_URL}/health`);
+    console.log('Checking assessment API health status...');
+    const response = await axios.get(`${ASSESSMENT_API_URL}/health`, { timeout: 5000 });
+    console.log('Assessment API health check successful');
     return res.json({
       status: response.data.status,
       version: response.data.version,
       timestamp: response.data.timestamp
     });
   } catch (error) {
-    console.error('Assessment API health check failed:', error);
+    console.error('Assessment API health check failed:', error.message);
     return res.status(503).json({
       status: 'unavailable',
-      error: 'Assessment service is not running'
+      error: 'Assessment service is not running. Please run start_assessment_api.sh to start the service.',
+      message: error.message
     });
   }
 });
@@ -156,7 +159,9 @@ router.post('/answer',
 router.get('/progress/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
+    console.log(`Fetching progress for user ${userId}`);
     const response = await axios.get(`${ASSESSMENT_API_URL}/user/${userId}/progress`);
+    console.log('Progress data received successfully');
     return res.json(response.data);
   } catch (error) {
     console.error('Failed to fetch user progress:', error);
@@ -172,7 +177,9 @@ router.get('/progress/:userId', async (req, res) => {
 router.get('/learning-path/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
+    console.log(`Fetching learning path for user ${userId}`);
     const response = await axios.get(`${ASSESSMENT_API_URL}/user/${userId}/learning-path`);
+    console.log('Learning path data received successfully');
     return res.json(response.data);
   } catch (error) {
     console.error('Failed to fetch learning path:', error);
