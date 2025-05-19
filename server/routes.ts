@@ -1314,6 +1314,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Video Quiz Completion routes
+  // This route is for backward compatibility
+  app.post("/api/videos/quiz/complete", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const { videoId, duration } = req.body;
+      
+      // Check if user has already completed 2 video quizzes today
+      const completionsToday = await storage.getDailyVideoCompletionsCount(userId);
+      
+      if (completionsToday >= 2) {
+        return res.status(200).json({ 
+          success: true,
+          pointsAwarded: 0,
+          limitReached: true,
+          message: "You can only earn points for 2 videos per day",
+          remaining: 0
+        });
+      }
+      
+      // Determine points based on video duration
+      const videoDuration = duration || 5; // Default to 5 minutes if not provided
+      const pointsEarned = videoDuration >= 10 ? 8 : 5; // 8 points for videos 10+ minutes, 5 points for shorter videos
+      
+      // Record the completion
+      const completion = await storage.createVideoQuizCompletion({
+        userId,
+        videoId,
+        pointsEarned,
+        completedAt: new Date()
+      });
+      
+      // Add points to user
+      const user = await storage.getUser(userId);
+      const updatedUser = await storage.updateUser(userId, { 
+        points: (user?.points || 0) + pointsEarned
+      });
+      
+      res.status(200).json({ 
+        success: true,
+        pointsAwarded: pointsEarned,
+        totalPoints: updatedUser.points,
+        remaining: 2 - (completionsToday + 1) // Remaining videos for today
+      });
+    } catch (error) {
+      console.error("Error recording video quiz completion:", error);
+      res.status(500).json({ success: false, message: "Internal server error" });
+    }
+  });
+  
   app.post("/api/videos/quiz-complete/:videoId", requireAuth, async (req, res) => {
     try {
       const userId = req.session.userId as number;
