@@ -704,7 +704,7 @@ export default function Dashboard() {
                       : null;
                       
                     return (
-                      <div key={`required-${module.id}`}>
+                      <div key={`required-${module.id}`} className="transform scale-90 origin-top-left">
                         <ModuleView 
                           module={module} 
                           progress={moduleProgress?.progress || 0} 
