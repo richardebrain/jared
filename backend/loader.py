@@ -1,6 +1,7 @@
 import pandas as pd
-from database import SessionLocal, engine, Base
-from models import Question
+import json
+from .database import SessionLocal, engine, Base
+from .models import Question
 
 def load_questions():
     print("Creating database tables...")
@@ -33,10 +34,13 @@ def load_questions():
             try:
                 # Convert resources from string to JSON if present
                 resources = None
-                if isinstance(row['resources'], str) and row['resources'].strip():
+                if 'resources' in row and row['resources'] is not None:
                     try:
-                        # Handle resources which should be a JSON string in the CSV
-                        resources = row['resources'].replace("'", '"')  # Replace single quotes with double quotes for valid JSON
+                        # Convert to string first if it's not already
+                        resources_str = str(row['resources'])
+                        if resources_str.strip():
+                            # Handle resources which should be a JSON string in the CSV
+                            resources = resources_str.replace("'", '"')  # Replace single quotes with double quotes for valid JSON
                     except Exception as e:
                         print(f"Warning: Could not parse resources for row {idx}: {e}")
                 
