@@ -10,6 +10,7 @@ import Register from "@/pages/register";
 import BusinessSignup from "@/pages/business-signup-simple";
 import BusinessSignupBasic from "@/pages/business-signup-basic";
 import BusinessSignupComplete from "@/pages/business-signup-simplified";
+import BusinessDirectSignup from "@/pages/business-direct-signup";
 import LandingPage from "@/pages/landing-updated";
 import ProgressionMap from "@/pages/progression-map";
 import Assessment from "@/pages/assessment";
@@ -90,6 +91,14 @@ function Router() {
       
       <Route path="/business-signup-complete">
         <BusinessSignupComplete />
+      </Route>
+      
+      <Route path="/business-register">
+        <BusinessSignupComplete />
+      </Route>
+      
+      <Route path="/business-direct-signup">
+        <BusinessDirectSignup />
       </Route>
       
       {/* Protected routes - redirect to login when not authenticated */}
