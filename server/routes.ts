@@ -3117,7 +3117,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const newUser = await storage.createUser(userData);
       console.log(`User created successfully: ${username} (ID: ${newUser.id})`);
       
-      // Log the user in automatically
+      // Check if it's a form submission 
+      const isFormSubmission = req.headers['content-type']?.includes('application/x-www-form-urlencoded');
+      
+      if (isFormSubmission) {
+        // Redirect to success page for form submissions
+        return res.redirect('/registration-success');
+      }
       console.log("Step 3: Automatically logging in the user");
       
       // Start a session for the user
