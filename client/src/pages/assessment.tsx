@@ -560,7 +560,8 @@ export default function AssessmentPage() {
     setIsCorrect(correct);
     
     // Update stats and get new difficulty
-    const userFirstName = user?.firstName || "Teacher";
+    const userFirstName = typeof user === 'object' && user !== null && 'firstName' in user ? 
+      String(user.firstName) : "Teacher";
     const domainId = currentDomain;
     
     // Get current stats or create default if none exists
@@ -691,7 +692,8 @@ export default function AssessmentPage() {
         if (!isSimplifiedDomain && correct && updatedStats.consecutiveCorrect >= 3) {
           // If user got 3 consecutive correct answers, increase difficulty
           // Get user's first name for personalized messages
-          const userFirstName = user?.firstName || 'Teacher';
+          const userFirstName = typeof user === 'object' && user !== null && 'firstName' in user ? 
+            String(user.firstName) : 'Teacher';
           
           // Play level up sound when difficulty increases
           const levelUpSound = new Audio('/sounds/level-up.mp3');
