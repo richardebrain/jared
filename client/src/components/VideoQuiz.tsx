@@ -62,329 +62,340 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
       try {
         setLoading(true);
         
-        // Get video information including duration and pre-defined quiz questions
-        try {
-          // Fetch the video resource from our API with all details
-          const response = await apiRequest(`/api/videos/${videoId}`);
-          console.log("video data in VideoQuiz:", response, "Categories:", response.category, "Tags:", response.tags);
-          
-          if (response) {
-            // Set video duration
-            if (response.duration) {
-              setVideoDuration(response.duration);
-            } else {
-              setVideoDuration(5); // Default to 5 minutes
-            }
-            
-            // Detect video type based on metadata for more relevant questions
-            let videoType = "generic";
-            const title = response.title?.toLowerCase() || "";
-            const description = response.description?.toLowerCase() || "";
-            const tags = response.tags || [];
-            const categories = response.category || [];
-            
-            // Detect yoga/mindfulness videos
-            if (title.includes("yoga") || 
-                title.includes("cosmic kids") ||
-                title.includes("mindful") ||
-                tags.some((tag: string) => ["yoga", "mindfulness", "breathing", "zen"].includes(tag.toLowerCase()))) {
-              videoType = "mindfulness";
-            }
-            // Detect social-emotional learning videos
-            else if (title.includes("emotion") || 
-                title.includes("feeling") ||
-                title.includes("self-regulation") ||
-                categories.some((cat: string) => cat.toLowerCase().includes("social")) ||
-                tags.some((tag: string) => ["emotions", "self-regulation", "social", "emotional"].includes(tag.toLowerCase()))) {
-              videoType = "socialEmotional";
-            }
-            // Detect TED talks
-            else if (title.includes("ted") ||
-                description.includes("ted talk") ||
-                response.source?.toLowerCase().includes("ted")) {
-              videoType = "tedTalk";
-            }
-            
-            console.log("Detected video type:", videoType);
-            
-            // Generate appropriate quiz questions based on video type
-            let quizQuestions: QuizQuestion[] = [];
-            
-            // Use predefined quiz questions from API if available
-            if (response.quiz && response.quiz.questions && response.quiz.questions.length > 0) {
-              console.log("Using predefined quiz questions from API");
-              quizQuestions = response.quiz.questions.map((q: any, index: number) => {
-                const correctAnswerValue = typeof q.correctAnswer === 'number' 
-                  ? q.options[q.correctAnswer] 
-                  : q.correctAnswer;
-                
-                return {
-                  id: `q${index + 1}`,
-                  question: q.question,
-                  options: q.options,
-                  correctAnswer: correctAnswerValue
-                };
-              });
-            } 
-            // Otherwise generate content-specific questions based on the video type
-            else {
-              console.log("Generating type-specific questions for:", videoType);
-              
-              switch(videoType) {
-                case "mindfulness":
-                  quizQuestions = [
-                    {
-                      id: 'q1',
-                      question: 'What is a key benefit of incorporating mindfulness practices like yoga in early childhood settings?',
-                      options: [
-                        'Supporting children\'s self-regulation skills',
-                        'Replacing academic instruction time',
-                        'Eliminating the need for outdoor play',
-                        'Ensuring children sit still for longer periods'
-                      ],
-                      correctAnswer: 'Supporting children\'s self-regulation skills'
-                    },
-                    {
-                      id: 'q2',
-                      question: 'How would you introduce mindfulness or yoga activities like those shown in the video?',
-                      options: [
-                        'Start with brief, engaging sessions and gradually extend the duration',
-                        'Begin with 30-minute meditation sessions',
-                        'Only practice with children who are already calm',
-                        'Use it exclusively as a punishment when children are disruptive'
-                      ],
-                      correctAnswer: 'Start with brief, engaging sessions and gradually extend the duration'
-                    },
-                    {
-                      id: 'q3',
-                      question: 'What practices shown in this video could help during classroom transitions?',
-                      options: [
-                        'Simple breathing or movement exercises to help children center themselves',
-                        'Asking children to sit perfectly still and silent',
-                        'Using competitive games to determine who transitions fastest',
-                        'Extended meditation sessions'
-                      ],
-                      correctAnswer: 'Simple breathing or movement exercises to help children center themselves'
-                    },
-                    {
-                      id: 'q4',
-                      question: 'How does mindfulness and movement support the "whole child" approach to early education?',
-                      options: [
-                        'It helps children develop both emotional awareness and focused attention skills',
-                        'It focuses exclusively on physical development',
-                        'It replaces social-emotional learning',
-                        'It prioritizes stillness over all other developmental needs'
-                      ],
-                      correctAnswer: 'It helps children develop both emotional awareness and focused attention skills'
-                    },
-                    {
-                      id: 'q5',
-                      question: 'What is an appropriate way to modify yoga activities for diverse learners?',
-                      options: [
-                        'Offer multiple ways to participate with different levels of movement and engagement',
-                        'Exclude children who cannot remain still',
-                        'Always separate children by ability level',
-                        'Only use mindfulness with older children'
-                      ],
-                      correctAnswer: 'Offer multiple ways to participate with different levels of movement and engagement'
-                    }
-                  ];
-                  break;
-                
-                case "socialEmotional":
-                  quizQuestions = [
-                    {
-                      id: 'q1',
-                      question: 'What is one of the primary goals of social-emotional learning in early childhood?',
-                      options: [
-                        'Helping children recognize and express emotions appropriately',
-                        'Ensuring children never experience negative emotions',
-                        'Teaching children to hide their feelings',
-                        'Focusing exclusively on happiness'
-                      ],
-                      correctAnswer: 'Helping children recognize and express emotions appropriately'
-                    },
-                    {
-                      id: 'q2',
-                      question: 'How can you effectively implement the social-emotional strategies shown in this video?',
-                      options: [
-                        'Incorporate them consistently throughout the day in authentic contexts',
-                        'Schedule one SEL lesson per week',
-                        'Only address emotions when conflicts arise',
-                        'Use worksheets to teach emotional concepts'
-                      ],
-                      correctAnswer: 'Incorporate them consistently throughout the day in authentic contexts'
-                    },
-                    {
-                      id: 'q3',
-                      question: 'What role does teacher modeling play in social-emotional development?',
-                      options: [
-                        'Teachers demonstrate emotional awareness and regulation through their own actions',
-                        'Teacher modeling is not important for social-emotional learning',
-                        'Teachers should hide their emotions from children',
-                        'Teachers should only model positive emotions'
-                      ],
-                      correctAnswer: 'Teachers demonstrate emotional awareness and regulation through their own actions'
-                    },
-                    {
-                      id: 'q4',
-                      question: 'How does well-developed social-emotional competence affect other areas of learning?',
-                      options: [
-                        'It creates a foundation for success across all developmental domains',
-                        'It has little impact on cognitive development',
-                        'It only matters for children with behavioral challenges',
-                        'It delays academic progress'
-                      ],
-                      correctAnswer: 'It creates a foundation for success across all developmental domains'
-                    },
-                    {
-                      id: 'q5',
-                      question: 'What approach to challenging behavior is most aligned with the social-emotional principles in this video?',
-                      options: [
-                        'View behavior as communication and teach needed skills',
-                        'Use punishment to eliminate unwanted behaviors',
-                        'Remove children who display challenging behaviors',
-                        'Ignore all challenging behaviors'
-                      ],
-                      correctAnswer: 'View behavior as communication and teach needed skills'
-                    }
-                  ];
-                  break;
-                
-                case "tedTalk":
-                  quizQuestions = [
-                    {
-                      id: 'q1',
-                      question: `What is the main message of "${response.title}"?`,
-                      options: [
-                        'Building strong relationships with children is fundamental to effective education',
-                        'Teaching should focus exclusively on academic content',
-                        'Standardized testing is the best measure of educational quality',
-                        'Educational innovation requires expensive technology'
-                      ],
-                      correctAnswer: 'Building strong relationships with children is fundamental to effective education'
-                    },
-                    {
-                      id: 'q2',
-                      question: 'How might you apply the key principles from this talk in your classroom?',
-                      options: [
-                        'Reflect on how your beliefs about children affect your interactions with them',
-                        'Focus primarily on academic outcomes rather than relationships',
-                        'Implement exactly the same approach with all children',
-                        'Minimize individual connections to maintain authority'
-                      ],
-                      correctAnswer: 'Reflect on how your beliefs about children affect your interactions with them'
-                    },
-                    {
-                      id: 'q3',
-                      question: 'According to the principles shared in this talk, what is most important for effective teaching?',
-                      options: [
-                        'Authentic connection and meeting children where they are developmentally',
-                        'Following prescribed curriculum with fidelity',
-                        'Maintaining strict classroom control',
-                        'Focusing on weaknesses rather than strengths'
-                      ],
-                      correctAnswer: 'Authentic connection and meeting children where they are developmentally'
-                    },
-                    {
-                      id: 'q4',
-                      question: 'How does the message of this talk align with developmental science?',
-                      options: [
-                        'It recognizes that relationships are the foundation of healthy brain development',
-                        'It contradicts what we know about early brain development',
-                        'It places too much emphasis on relationships over content',
-                        'It suggests children develop best in competitive environments'
-                      ],
-                      correctAnswer: 'It recognizes that relationships are the foundation of healthy brain development'
-                    },
-                    {
-                      id: 'q5',
-                      question: 'What small step could you take tomorrow to implement ideas from this talk?',
-                      options: [
-                        'Set an intention to have a positive individual interaction with each child',
-                        'Redesign your entire curriculum immediately',
-                        'Focus more on assessment and evaluation',
-                        'Create stricter classroom rules'
-                      ],
-                      correctAnswer: 'Set an intention to have a positive individual interaction with each child'
-                    }
-                  ];
-                  break;
-                
-                default:
-                  quizQuestions = [
-                    {
-                      id: 'q1',
-                      question: `What is the main focus of "${response.title}"?`,
-                      options: [
-                        `Understanding key concepts in early childhood education`,
-                        `Specific teaching strategies rather than foundational principles`,
-                        `Administrative procedures rather than teaching approaches`,
-                        `Standardized assessment rather than child development`
-                      ],
-                      correctAnswer: `Understanding key concepts in early childhood education`
-                    },
-                    {
-                      id: 'q2',
-                      question: `How could you apply the ideas in "${response.title}" to your classroom practice?`,
-                      options: [
-                        `Integrate these concepts into your regular routines and interactions`,
-                        `Create separate lessons that only focus on these topics`,
-                        `Wait until children are older before introducing these ideas`,
-                        `Focus only on children who are struggling with these concepts`
-                      ],
-                      correctAnswer: `Integrate these concepts into your regular routines and interactions`
-                    },
-                    {
-                      id: 'q3',
-                      question: `According to developmentally appropriate practice, which approach to teaching is most effective?`,
-                      options: [
-                        `Child-centered learning with thoughtful teacher guidance`,
-                        `Highly structured teacher-directed instruction`,
-                        `Letting children learn entirely on their own`,
-                        `Following a rigid curriculum regardless of children's interests`
-                      ],
-                      correctAnswer: `Child-centered learning with thoughtful teacher guidance`
-                    },
-                    {
-                      id: 'q4',
-                      question: `How does the content in this video support children's development?`,
-                      options: [
-                        `It helps create meaningful learning experiences that build a strong foundation`,
-                        `It prioritizes academic achievement over other developmental domains`,
-                        `It focuses exclusively on future academic success`,
-                        `It treats all children as if they develop at exactly the same rate`
-                      ],
-                      correctAnswer: `It helps create meaningful learning experiences that build a strong foundation`
-                    },
-                    {
-                      id: 'q5',
-                      question: `What is a key takeaway from "${response.title}" that you can implement immediately?`,
-                      options: [
-                        `Look for opportunities to incorporate these ideas throughout your day`,
-                        `Create a rigid schedule for teaching these concepts`,
-                        `Wait for perfect conditions before trying these approaches`,
-                        `Exclude children who might not be ready for these concepts`
-                      ],
-                      correctAnswer: `Look for opportunities to incorporate these ideas throughout your day`
-                    }
-                  ];
-              }
-            }
-            
-            setQuestions(quizQuestions);
-          } else {
-            // Fallback to generic questions if API fails
-            setVideoDuration(5);
-            const generatedQuestions: QuizQuestion[] = generateContentBasedQuestions(videoTitle, "", [], []);
-            setQuestions(generatedQuestions);
-          }
-        } catch (error) {
-          console.error('Error fetching video data:', error);
-          setVideoDuration(5); // Default to 5 minutes
-          const generatedQuestions: QuizQuestion[] = generateContentBasedQuestions(videoTitle, "", [], []);
-          setQuestions(generatedQuestions);
+        // Identify specific video type based on ID or title
+        let videoType = "generic";
+        let videoDurationMinutes = 5;
+        
+        // Check if this is a yoga/mindfulness video based on ID and title
+        if (videoId === "video-003" || videoTitle.toLowerCase().includes("yoga") || 
+            videoTitle.toLowerCase().includes("cosmic kids") || videoTitle.toLowerCase().includes("mindful")) {
+          videoType = "mindfulness";
+          videoDurationMinutes = 23; // For Coco the Butterfly video
         }
+        // Check if this is a social-emotional video
+        else if (videoId === "video-008" || videoTitle.toLowerCase().includes("emotion") || 
+                 videoTitle.toLowerCase().includes("feeling") || videoTitle.toLowerCase().includes("self-regulation")) {
+          videoType = "socialEmotional";
+        }
+        // Check if this is a TED talk
+        else if (videoTitle.toLowerCase().includes("ted") || videoTitle.toLowerCase().includes("rita pierson")) {
+          videoType = "tedTalk";
+        }
+        
+        console.log("Detected video type:", videoType, "for video:", videoTitle);
+        setVideoDuration(videoDurationMinutes);
+        
+        // Generate appropriate quiz questions based on video type
+        let quizQuestions: QuizQuestion[] = [];
+        
+        switch(videoType) {
+          case "mindfulness":
+            // Yoga-specific questions for the Cosmic Kids video
+            quizQuestions = [
+              {
+                id: 'q1',
+                question: 'What is a key benefit of incorporating yoga in early childhood classrooms?',
+                options: [
+                  'Supporting children\'s self-regulation and body awareness skills',
+                  'Replacing all other physical activities',
+                  'Eliminating the need for outdoor play',
+                  'Ensuring children sit still for longer periods'
+                ],
+                correctAnswer: 'Supporting children\'s self-regulation and body awareness skills'
+              },
+              {
+                id: 'q2',
+                question: 'How would you introduce yoga activities like those shown in "Coco the Butterfly"?',
+                options: [
+                  'Start with brief, engaging sessions and gradually extend the duration',
+                  'Begin with 30-minute meditation sessions',
+                  'Only practice with children who are already calm',
+                  'Use it exclusively as a quiet time activity'
+                ],
+                correctAnswer: 'Start with brief, engaging sessions and gradually extend the duration'
+              },
+              {
+                id: 'q3',
+                question: 'What makes the Cosmic Kids approach effective for young children?',
+                options: [
+                  'It combines storytelling and movement in a way that engages imagination',
+                  'It focuses solely on perfect yoga form',
+                  'It eliminates all imaginative elements',
+                  'It requires expensive equipment'
+                ],
+                correctAnswer: 'It combines storytelling and movement in a way that engages imagination'
+              },
+              {
+                id: 'q4',
+                question: 'How does children\'s yoga support the "whole child" approach to early education?',
+                options: [
+                  'It integrates physical, emotional, and cognitive development',
+                  'It focuses exclusively on physical development',
+                  'It replaces social-emotional learning',
+                  'It prioritizes stillness over exploration'
+                ],
+                correctAnswer: 'It integrates physical, emotional, and cognitive development'
+              },
+              {
+                id: 'q5',
+                question: 'What is an appropriate way to modify yoga activities for diverse learners?',
+                options: [
+                  'Offer multiple ways to participate with different levels of movement',
+                  'Exclude children who cannot perform poses exactly',
+                  'Always separate children by ability level',
+                  'Only use yoga with children who are naturally flexible'
+                ],
+                correctAnswer: 'Offer multiple ways to participate with different levels of movement'
+              }
+            ];
+            break;
+          
+          case "socialEmotional":
+            quizQuestions = [
+              {
+                id: 'q1',
+                question: 'What is one of the primary goals of social-emotional learning in early childhood?',
+                options: [
+                  'Helping children recognize and express emotions appropriately',
+                  'Ensuring children never experience negative emotions',
+                  'Teaching children to hide their feelings',
+                  'Focusing exclusively on happiness'
+                ],
+                correctAnswer: 'Helping children recognize and express emotions appropriately'
+              },
+              {
+                id: 'q2',
+                question: 'How can you effectively implement social-emotional learning in your classroom?',
+                options: [
+                  'Incorporate strategies consistently throughout the day in authentic contexts',
+                  'Schedule one SEL lesson per week',
+                  'Only address emotions when conflicts arise',
+                  'Use worksheets to teach emotional concepts'
+                ],
+                correctAnswer: 'Incorporate strategies consistently throughout the day in authentic contexts'
+              },
+              {
+                id: 'q3',
+                question: 'What role does teacher modeling play in social-emotional development?',
+                options: [
+                  'Teachers demonstrate emotional awareness and regulation through their own actions',
+                  'Teacher modeling is not important for social-emotional learning',
+                  'Teachers should hide their emotions from children',
+                  'Teachers should only model positive emotions'
+                ],
+                correctAnswer: 'Teachers demonstrate emotional awareness and regulation through their own actions'
+              },
+              {
+                id: 'q4',
+                question: 'How does well-developed social-emotional competence affect other areas of learning?',
+                options: [
+                  'It creates a foundation for success across all developmental domains',
+                  'It has little impact on cognitive development',
+                  'It only matters for children with behavioral challenges',
+                  'It delays academic progress'
+                ],
+                correctAnswer: 'It creates a foundation for success across all developmental domains'
+              },
+              {
+                id: 'q5',
+                question: 'What approach to challenging behavior is most aligned with social-emotional learning principles?',
+                options: [
+                  'View behavior as communication and teach needed skills',
+                  'Use punishment to eliminate unwanted behaviors',
+                  'Remove children who display challenging behaviors',
+                  'Ignore all challenging behaviors'
+                ],
+                correctAnswer: 'View behavior as communication and teach needed skills'
+              }
+            ];
+            break;
+          
+          case "tedTalk":
+            quizQuestions = [
+              {
+                id: 'q1',
+                question: `What is the main message of "${videoTitle}"?`,
+                options: [
+                  'Building strong relationships with children is fundamental to effective education',
+                  'Teaching should focus exclusively on academic content',
+                  'Standardized testing is the best measure of educational quality',
+                  'Educational innovation requires expensive technology'
+                ],
+                correctAnswer: 'Building strong relationships with children is fundamental to effective education'
+              },
+              {
+                id: 'q2',
+                question: 'How might you apply the key principles from this talk in your classroom?',
+                options: [
+                  'Reflect on how your beliefs about children affect your interactions with them',
+                  'Focus primarily on academic outcomes rather than relationships',
+                  'Implement exactly the same approach with all children',
+                  'Minimize individual connections to maintain authority'
+                ],
+                correctAnswer: 'Reflect on how your beliefs about children affect your interactions with them'
+              },
+              {
+                id: 'q3',
+                question: 'According to many education-focused TED talks, what is most important for effective teaching?',
+                options: [
+                  'Authentic connection and meeting children where they are developmentally',
+                  'Following prescribed curriculum with fidelity',
+                  'Maintaining strict classroom control',
+                  'Focusing on weaknesses rather than strengths'
+                ],
+                correctAnswer: 'Authentic connection and meeting children where they are developmentally'
+              },
+              {
+                id: 'q4',
+                question: 'How does the message of this talk align with developmental science?',
+                options: [
+                  'It recognizes that relationships are the foundation of healthy brain development',
+                  'It contradicts what we know about early brain development',
+                  'It places too much emphasis on relationships over content',
+                  'It suggests children develop best in competitive environments'
+                ],
+                correctAnswer: 'It recognizes that relationships are the foundation of healthy brain development'
+              },
+              {
+                id: 'q5',
+                question: 'What small step could you take tomorrow to implement ideas from this talk?',
+                options: [
+                  'Set an intention to have a positive individual interaction with each child',
+                  'Redesign your entire curriculum immediately',
+                  'Focus more on assessment and evaluation',
+                  'Create stricter classroom rules'
+                ],
+                correctAnswer: 'Set an intention to have a positive individual interaction with each child'
+              }
+            ];
+            break;
+          
+          default:
+            quizQuestions = [
+              {
+                id: 'q1',
+                question: `What is the main focus of "${videoTitle}"?`,
+                options: [
+                  `Understanding key concepts in early childhood education`,
+                  `Specific teaching strategies rather than foundational principles`,
+                  `Administrative procedures rather than teaching approaches`,
+                  `Standardized assessment rather than child development`
+                ],
+                correctAnswer: `Understanding key concepts in early childhood education`
+              },
+              {
+                id: 'q2',
+                question: `How could you apply the ideas in "${videoTitle}" to your classroom practice?`,
+                options: [
+                  `Integrate these concepts into your regular routines and interactions`,
+                  `Create separate lessons that only focus on these topics`,
+                  `Wait until children are older before introducing these ideas`,
+                  `Focus only on children who are struggling with these concepts`
+                ],
+                correctAnswer: `Integrate these concepts into your regular routines and interactions`
+              },
+              {
+                id: 'q3',
+                question: `According to developmentally appropriate practice, which approach to teaching is most effective?`,
+                options: [
+                  `Child-centered learning with thoughtful teacher guidance`,
+                  `Highly structured teacher-directed instruction`,
+                  `Letting children learn entirely on their own`,
+                  `Following a rigid curriculum regardless of children's interests`
+                ],
+                correctAnswer: `Child-centered learning with thoughtful teacher guidance`
+              },
+              {
+                id: 'q4',
+                question: `How does the content in this video support children's development?`,
+                options: [
+                  `It helps create meaningful learning experiences that build a strong foundation`,
+                  `It prioritizes academic achievement over other developmental domains`,
+                  `It focuses exclusively on future academic success`,
+                  `It treats all children as if they develop at exactly the same rate`
+                ],
+                correctAnswer: `It helps create meaningful learning experiences that build a strong foundation`
+              },
+              {
+                id: 'q5',
+                question: `What is a key takeaway from this video that you can implement immediately?`,
+                options: [
+                  `Look for opportunities to incorporate these ideas throughout your day`,
+                  `Create a rigid schedule for teaching these concepts`,
+                  `Wait for perfect conditions before trying these approaches`,
+                  `Exclude children who might not be ready for these concepts`
+                ],
+                correctAnswer: `Look for opportunities to incorporate these ideas throughout your day`
+              }
+            ];
+        }
+        
+        setQuestions(quizQuestions);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error generating quiz questions:', error);
+        // Provide default questions in case of error
+        const defaultQuestions: QuizQuestion[] = [
+          {
+            id: 'q1',
+            question: 'What is a principle of developmentally appropriate practice in early childhood education?',
+            options: [
+              'Meeting children where they are developmentally and helping them reach challenging but achievable goals',
+              'Treating all children the same regardless of individual differences',
+              'Following a rigid curriculum regardless of children\'s interests',
+              'Focusing exclusively on academic skills'
+            ],
+            correctAnswer: 'Meeting children where they are developmentally and helping them reach challenging but achievable goals'
+          },
+          {
+            id: 'q2',
+            question: 'How can you best apply what you learned from this video in your classroom?',
+            options: [
+              'Reflect on how to incorporate these ideas into your regular interactions with children',
+              'Create a separate lesson to teach these concepts',
+              'Wait for the perfect time to implement these ideas',
+              'Only use these approaches with advanced students'
+            ],
+            correctAnswer: 'Reflect on how to incorporate these ideas into your regular interactions with children'
+          },
+          {
+            id: 'q3',
+            question: 'Which approach best supports whole child development?',
+            options: [
+              'Integrating learning across domains (social, emotional, cognitive, physical)',
+              'Focusing primarily on academic readiness',
+              'Keeping developmental domains separate',
+              'Prioritizing future academic skills over present development'
+            ],
+            correctAnswer: 'Integrating learning across domains (social, emotional, cognitive, physical)'
+          },
+          {
+            id: 'q4',
+            question: 'What is an important consideration when adapting teaching approaches for diverse learners?',
+            options: [
+              'Offering multiple pathways to engage with the same content',
+              'Using the same approach with all children',
+              'Lowering expectations for children who struggle',
+              'Focusing exclusively on areas of difficulty'
+            ],
+            correctAnswer: 'Offering multiple pathways to engage with the same content'
+          },
+          {
+            id: 'q5',
+            question: 'What role does reflection play in effective teaching practices?',
+            options: [
+              'It helps teachers continually improve and adapt their teaching approach',
+              'It is only necessary when something goes wrong',
+              'It requires extensive documentation to be valuable',
+              'It is useful for administrators but not for daily teaching'
+            ],
+            correctAnswer: 'It helps teachers continually improve and adapt their teaching approach'
+          }
+        ];
+        setQuestions(defaultQuestions);
+        setVideoDuration(5);
+        setLoading(false);
+      }
         
         // Always include an implementation question
         const implQuestion: ImplementationQuestion = {
