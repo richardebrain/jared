@@ -1,0 +1,240 @@
+[
+  {
+    "id": "core-1",
+    "text": "Which of Raising Arizona's CORE values focuses on providing stable, predictable environments where children can thrive?",
+    "domain": "core",
+    "type": "multiple-choice",
+    "difficulty": "beginner",
+    "options": [
+      "Be Prepared",
+      "Be Consistent",
+      "Be Caring",
+      "Be Positive"
+    ],
+    "correctAnswer": "Be Consistent",
+    "required": true,
+    "explanation": "The CORE value 'Be Consistent' emphasizes the importance of providing stable, predictable environments that help children feel secure and able to thrive."
+  },
+  {
+    "id": "core-2",
+    "text": "Which CORE value emphasizes planning effectively to deliver excellent educational experiences?",
+    "domain": "core",
+    "type": "multiple-choice",
+    "difficulty": "beginner",
+    "options": [
+      "Be Prepared",
+      "Be Consistent",
+      "Be Committed",
+      "Be Caring"
+    ],
+    "correctAnswer": "Be Prepared",
+    "required": true,
+    "explanation": "The CORE value 'Be Prepared' focuses on planning effectively and being ready to deliver excellent educational experiences for children."
+  },
+  {
+    "id": "core-3",
+    "text": "Which CORE value represents showing dedication to each child's growth and development?",
+    "domain": "core",
+    "type": "multiple-choice",
+    "difficulty": "beginner",
+    "options": [
+      "Be Prepared",
+      "Be Consistent",
+      "Be Committed",
+      "Be Caring"
+    ],
+    "correctAnswer": "Be Committed",
+    "required": true,
+    "explanation": "The CORE value 'Be Committed' reflects the dedication to each child's individual growth and development throughout their educational journey."
+  },
+  {
+    "id": "core-4",
+    "text": "Which CORE value involves showing genuine compassion and empathy for every child?",
+    "domain": "core",
+    "type": "multiple-choice",
+    "difficulty": "beginner",
+    "options": [
+      "Be Prepared",
+      "Be Caring",
+      "Be Positive",
+      "Be Committed"
+    ],
+    "correctAnswer": "Be Caring",
+    "required": true,
+    "explanation": "The CORE value 'Be Caring' emphasizes showing genuine compassion and empathy for each child in your care."
+  },
+  {
+    "id": "core-5",
+    "text": "Which CORE value focuses on maintaining an optimistic attitude that inspires and encourages children?",
+    "domain": "core",
+    "type": "multiple-choice",
+    "difficulty": "beginner",
+    "options": [
+      "Be Prepared",
+      "Be Consistent",
+      "Be Caring",
+      "Be Positive"
+    ],
+    "correctAnswer": "Be Positive",
+    "required": true,
+    "explanation": "The CORE value 'Be Positive' is about maintaining an optimistic attitude that inspires and encourages children to have a positive outlook as well."
+  },
+  {
+    "id": "mindful-1",
+    "text": "What is a key benefit of implementing mindfulness practices in your teaching routine?",
+    "domain": "mindful",
+    "type": "multiple-choice",
+    "difficulty": "beginner",
+    "options": [
+      "Eliminating the need for classroom management strategies",
+      "Reducing teacher stress and improving emotional regulation",
+      "Replacing academic instruction time",
+      "Avoiding difficult conversations with parents"
+    ],
+    "correctAnswer": "Reducing teacher stress and improving emotional regulation",
+    "required": true,
+    "explanation": "Mindfulness practices help teachers manage their own stress levels and improve emotional regulation, which directly impacts their effectiveness in the classroom."
+  },
+  {
+    "id": "mindful-2",
+    "text": "Which mindfulness practice can be most easily integrated into a busy classroom routine?",
+    "domain": "mindful",
+    "type": "multiple-choice",
+    "difficulty": "beginner",
+    "options": [
+      "30-minute daily meditation sessions",
+      "Brief breathing exercises during transitions",
+      "Weekend retreats for the class",
+      "Extended yoga sessions during academic time"
+    ],
+    "correctAnswer": "Brief breathing exercises during transitions",
+    "required": true,
+    "explanation": "Brief breathing exercises can be easily integrated into transition times, helping both teachers and students regulate emotions and prepare for the next activity."
+  },
+  {
+    "id": "mindful-3",
+    "text": "How can mindfulness help teachers respond to challenging classroom situations?",
+    "domain": "mindful",
+    "type": "multiple-choice",
+    "difficulty": "beginner",
+    "options": [
+      "By helping teachers ignore disruptive behaviors",
+      "By creating distance from difficult students",
+      "By creating awareness of reactions before responding",
+      "By encouraging teachers to take more time off"
+    ],
+    "correctAnswer": "By creating awareness of reactions before responding",
+    "required": true,
+    "explanation": "Mindfulness helps teachers notice their own emotional responses before reacting, creating space for more thoughtful and effective responses to challenging situations."
+  },
+  {
+    "id": "mindful-4",
+    "text": "What is the most effective way to introduce mindfulness to young children?",
+    "domain": "mindful",
+    "type": "multiple-choice",
+    "difficulty": "beginner",
+    "options": [
+      "Through playful, age-appropriate activities focusing on senses and feelings",
+      "Through formal seated meditation practice",
+      "Through academic lessons about brain development",
+      "By having children sit quietly for extended periods"
+    ],
+    "correctAnswer": "Through playful, age-appropriate activities focusing on senses and feelings",
+    "required": true,
+    "explanation": "Young children engage best with mindfulness through playful, concrete activities that focus on noticing their senses, body sensations, and feelings rather than abstract concepts."
+  },
+  {
+    "id": "mindful-5",
+    "text": "What mindfulness practice helps teachers maintain awareness throughout the day?",
+    "domain": "mindful",
+    "type": "multiple-choice",
+    "difficulty": "beginner",
+    "options": [
+      "Checking email regularly during class",
+      "Setting reminders to pause and check in with yourself",
+      "Keeping the classroom as quiet as possible",
+      "Limiting interactions with challenging students"
+    ],
+    "correctAnswer": "Setting reminders to pause and check in with yourself",
+    "required": true,
+    "explanation": "Setting brief, regular reminders to pause and check in with yourself helps maintain mindful awareness throughout a busy teaching day."
+  },
+  {
+    "id": "build-1",
+    "text": "How does early childhood trauma impact brain development?",
+    "domain": "build",
+    "type": "multiple-choice",
+    "difficulty": "beginner",
+    "options": [
+      "It has minimal impact as long as basic needs are met",
+      "It affects only emotional development, not cognitive areas",
+      "It can alter stress response systems and affect multiple developmental domains",
+      "Its effects are generally limited to the teenage years"
+    ],
+    "correctAnswer": "It can alter stress response systems and affect multiple developmental domains",
+    "required": true,
+    "explanation": "Early childhood trauma can fundamentally alter brain architecture, particularly affecting stress response systems, and can impact cognitive, social-emotional, and physical development."
+  },
+  {
+    "id": "build-2",
+    "text": "What is the significance of secure attachment for children's development?",
+    "domain": "build",
+    "type": "multiple-choice",
+    "difficulty": "beginner",
+    "options": [
+      "It ensures children become independent quickly",
+      "It provides a foundation for healthy relationships, emotional regulation, and exploration",
+      "It mainly affects only parent-child relationships",
+      "It is only relevant during infancy and toddlerhood"
+    ],
+    "correctAnswer": "It provides a foundation for healthy relationships, emotional regulation, and exploration",
+    "required": true,
+    "explanation": "Secure attachment provides children with a safe base from which to explore their world, develop emotional regulation, and form healthy relationships throughout life."
+  },
+  {
+    "id": "build-3",
+    "text": "How can teachers support children who have experienced trauma?",
+    "domain": "build",
+    "type": "multiple-choice",
+    "difficulty": "beginner",
+    "options": [
+      "By maintaining strict discipline and clear consequences",
+      "By creating predictable routines, safe relationships, and self-regulation support",
+      "By avoiding emotional topics completely",
+      "By focusing primarily on academic skills to ensure future success"
+    ],
+    "correctAnswer": "By creating predictable routines, safe relationships, and self-regulation support",
+    "required": true,
+    "explanation": "Children who have experienced trauma benefit from predictable environments, supportive relationships, and specific help learning to regulate emotions and behaviors."
+  },
+  {
+    "id": "build-4",
+    "text": "What role do serve-and-return interactions play in early brain development?",
+    "domain": "build",
+    "type": "multiple-choice",
+    "difficulty": "beginner",
+    "options": [
+      "They are primarily important for language development only",
+      "They help children learn to be patient and wait their turn",
+      "They build neural connections through responsive, back-and-forth exchanges",
+      "They are only significant during the first year of life"
+    ],
+    "correctAnswer": "They build neural connections through responsive, back-and-forth exchanges",
+    "required": true,
+    "explanation": "Serve-and-return interactions, where adults respond appropriately to a child's cues, build neural connections that form the foundation for all areas of development."
+  },
+  {
+    "id": "build-5",
+    "text": "How do executive function skills develop in early childhood?",
+    "domain": "build",
+    "type": "multiple-choice",
+    "difficulty": "beginner",
+    "options": [
+      "Automatically as the brain matures, regardless of experience",
+      "Only through direct academic instruction",
+      "Through scaffolded practice in social play, games with rules, and supportive relationships",
+      "Executive functions cannot be developed until school age"
+    ],
+    "correctAnswer": "Through scaffolded practice in social play, games with rules, and supportive relationships",
+    "required": true,
+    "explanation": "Executive function skills develop through practice in meaningful contexts like play, games with rules, and everyday activities with adult scaffolding and support."
