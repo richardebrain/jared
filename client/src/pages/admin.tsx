@@ -43,16 +43,21 @@ export default function AdminPage() {
         description: "Welcome to the admin dashboard.",
       });
     } else if (password === SCHOOL_ADMIN_PASSWORD) {
-      // If it's Bigsurf99, redirect to school-dashboard page with admin access
+      // If it's Bigsurf99, redirect to schools/:schoolId page with admin access
       localStorage.setItem('adminAccessGranted', 'true');
       localStorage.setItem('adminKey', 'Bigsurf99');
+      
+      // Get user's school ID for redirection
+      const schoolId = user?.schoolId || 2; // Default to school ID 2 if not found
+      
       toast({
         title: "School Admin Access Granted",
-        description: "Redirecting to school dashboard...",
+        description: "Redirecting to your school dashboard...",
       });
+      
       // Short delay for the toast to be visible
       setTimeout(() => {
-        navigate('/school-dashboard');
+        navigate(`/schools/${schoolId}`);
       }, 1000);
     } else {
       toast({
