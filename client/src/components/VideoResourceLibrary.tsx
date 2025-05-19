@@ -30,13 +30,18 @@ import {
   CheckCircle2,
   AlertTriangle,
   ExternalLink,
-  ThumbsUp
+  ThumbsUp,
+  Award,
+  Calendar
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { VideoResource, videoResourcesData } from '@shared/videoResources';
 import '../lib/videoValidator'; // Import the validator for global use
 import VideoResourceCard from '@/components/VideoResourceCard';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { Progress } from "@/components/ui/progress";
 
 // Component for the Video Resource Library
 interface VideoResourceLibraryProps {
@@ -57,6 +62,41 @@ export function VideoResourceLibrary({
   const [watchedVideos, setWatchedVideos] = useState<string[]>([]);
   const [showAdminTools, setShowAdminTools] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
+  const [videosRemaining, setVideosRemaining] = useState<number>(2);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const { toast } = useToast();
+  
+  // Fetch daily video completion count
+  useEffect(() => {
+    const fetchVideoRemainingCount = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/videos/completions');
+        if (response.ok) {
+          const data = await response.json();
+          // Calculate how many videos can still earn points today (max 2)
+          const completedToday = data.filter((completion: any) => {
+            const completedDate = new Date(completion.completedAt);
+            const today = new Date();
+            return completedDate.toDateString() === today.toDateString();
+          }).length;
+          
+          setVideosRemaining(Math.max(0, 2 - completedToday));
+        } else {
+          console.error('Failed to fetch video completions');
+          // Default to 2 if we can't determine the actual count
+          setVideosRemaining(2);
+        }
+      } catch (error) {
+        console.error('Error fetching video completions:', error);
+        setVideosRemaining(2);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchVideoRemainingCount();
+  }, []);
   
   // Expose videos data globally for the validation utility
   useEffect(() => {
@@ -172,6 +212,28 @@ export function VideoResourceLibrary({
   return (
     <div className={compactMode ? "w-full" : "container mx-auto px-4 py-6 max-w-6xl"}>
       {/* Content filtering controls below */}
+      
+      {/* Daily Video Limit Counter */}
+      <div className="mb-6 bg-muted/30 rounded-lg p-4 border border-muted">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-medium flex items-center">
+            <Award className="h-4 w-4 text-primary mr-2" />
+            Daily Video Points
+          </h3>
+          <span className="text-sm font-medium">
+            {videosRemaining > 0 
+              ? `${videosRemaining} video${videosRemaining > 1 ? 's' : ''} remaining today` 
+              : 'Daily limit reached'}
+          </span>
+        </div>
+        <Progress 
+          value={((2 - videosRemaining) / 2) * 100} 
+          className="h-2 mb-1" 
+        />
+        <p className="text-xs text-muted-foreground">
+          You can earn points for up to 2 videos per day. Each video can earn you 5-8 points based on length.
+        </p>
+      </div>
       
       {showFilters && (
         <>
