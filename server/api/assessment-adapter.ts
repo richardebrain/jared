@@ -130,7 +130,9 @@ router.post('/answer',
       // Add logging to help debug
       console.log('Submitting answer to assessment backend:', req.body);
       
-      const response = await axios.post(`${ASSESSMENT_API_URL}/assessment/answer`, req.body);
+      const response = await axios.post(`${ASSESSMENT_API_URL}/assessment/answer`, req.body, {
+        timeout: 10000 // Add timeout to prevent hanging requests
+      });
       
       // Log successful response
       console.log('Assessment answer response received');
@@ -164,13 +166,18 @@ router.get('/progress/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
     console.log(`Fetching progress for user ${userId}`);
-    const response = await axios.get(`${ASSESSMENT_API_URL}/user/${userId}/progress`);
+    // Updated URL to match FastAPI backend routes
+    const response = await axios.get(`${ASSESSMENT_API_URL}/user/progress/${userId}`, {
+      timeout: 8000
+    });
     console.log('Progress data received successfully');
     return res.json(response.data);
   } catch (error) {
-    console.error('Failed to fetch user progress:', error);
+    console.error('Failed to fetch user progress:', error.message);
     return res.status(500).json({
-      error: 'Failed to fetch user progress'
+      error: 'Failed to fetch user progress',
+      message: error.message,
+      tip: 'Make sure the assessment API is running with bash start_assessment_api.sh'
     });
   }
 });
@@ -182,13 +189,19 @@ router.get('/learning-path/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
     console.log(`Fetching learning path for user ${userId}`);
-    const response = await axios.get(`${ASSESSMENT_API_URL}/user/${userId}/learning-path`);
+    // Updated URL to match what the Python backend expects
+    const response = await axios.get(`${ASSESSMENT_API_URL}/learning-path/${userId}`, {
+      timeout: 8000
+    });
     console.log('Learning path data received successfully');
     return res.json(response.data);
   } catch (error) {
-    console.error('Failed to fetch learning path:', error);
+    console.error('Failed to fetch learning path:', error.message);
+    // More detailed error reporting
     return res.status(500).json({
-      error: 'Failed to fetch learning path'
+      error: 'Failed to fetch learning path',
+      message: error.message,
+      tip: 'Make sure the assessment API is running. Use bash start_assessment_api.sh to start it.'
     });
   }
 });
@@ -209,12 +222,18 @@ router.get('/leaderboard', async (req, res) => {
       url += `?${params.toString()}`;
     }
     
-    const response = await axios.get(url);
+    console.log(`Fetching leaderboard data from: ${url}`);
+    const response = await axios.get(url, {
+      timeout: 8000
+    });
+    console.log('Leaderboard data received successfully');
     return res.json(response.data);
   } catch (error) {
-    console.error('Failed to fetch leaderboard:', error);
+    console.error('Failed to fetch leaderboard:', error.message);
     return res.status(500).json({
-      error: 'Failed to fetch leaderboard'
+      error: 'Failed to fetch leaderboard',
+      message: error.message,
+      tip: 'Make sure the assessment API is running with bash start_assessment_api.sh'
     });
   }
 });
