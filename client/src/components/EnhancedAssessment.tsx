@@ -1,388 +1,488 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'wouter';
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { CheckCircle, XCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
-import * as assessmentService from '@/services/assessmentService';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "wouter";
+import { 
+  startAssessment, 
+  getNextQuestion, 
+  submitAnswer, 
+  finishAssessment,
+  type Question,
+  type AnswerResult,
+  type AssessmentHistoryItem,
+  type AssessmentResult
+} from "@/services/assessmentService";
 
-interface AssessmentState {
-  assessmentId: number | null;
-  currentQuestion: assessmentService.QuestionResponse | null;
-  history: assessmentService.AssessmentHistoryItem[];
-  selectedAnswer: string | null;
-  answerResult: assessmentService.AnswerResult | null;
-  learningPath: assessmentService.LearningPathResponse | null;
-  loading: boolean;
-  completed: boolean;
-  startTime: number | null;
-}
+// Sound effects URLs
+const correctSoundUrl = "/sounds/correct.mp3";
+const incorrectSoundUrl = "/sounds/incorrect.mp3";
+const completeSoundUrl = "/sounds/complete.mp3";
 
-const EnhancedAssessment = () => {
+const EnhancedAssessment: React.FC = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const navigate = useNavigate();
-  const [state, setState] = useState<AssessmentState>({
-    assessmentId: null,
-    currentQuestion: null,
-    history: [],
-    selectedAnswer: null,
-    answerResult: null,
-    learningPath: null,
-    loading: true,
-    completed: false,
-    startTime: null
-  });
+  const { toast } = useToast();
 
-  // Sound effects for feedback
-  const correctSound = new Audio("/sounds/correct-answer.mp3");
-  const incorrectSound = new Audio("/sounds/incorrect-answer.mp3");
-  const completionSound = new Audio("/sounds/assessment-complete.mp3");
+  // Assessment state
+  const [assessmentId, setAssessmentId] = useState<number | null>(null);
+  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [answerResult, setAnswerResult] = useState<AnswerResult | null>(null);
+  const [answerSubmitted, setAnswerSubmitted] = useState(false);
+  const [history, setHistory] = useState<AssessmentHistoryItem[]>([]);
+  const [assessmentComplete, setAssessmentComplete] = useState(false);
+  const [assessmentResult, setAssessmentResult] = useState<AssessmentResult | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showExtendedContent, setShowExtendedContent] = useState(false);
+  
+  // Timer state
+  const [timeStarted, setTimeStarted] = useState<number | null>(null);
+  
+  // Sound effect references
+  const correctSoundRef = useRef<HTMLAudioElement | null>(null);
+  const incorrectSoundRef = useRef<HTMLAudioElement | null>(null);
+  const completeSoundRef = useRef<HTMLAudioElement | null>(null);
 
-  // Start assessment when component mounts
+  // Initialize sounds
   useEffect(() => {
-    startAssessment();
+    correctSoundRef.current = new Audio(correctSoundUrl);
+    incorrectSoundRef.current = new Audio(incorrectSoundUrl);
+    completeSoundRef.current = new Audio(completeSoundUrl);
   }, []);
 
-  // Start a new assessment
-  const startAssessment = async () => {
+  // Start the assessment when component mounts
+  useEffect(() => {
+    if (user) {
+      initAssessment();
+    }
+  }, [user]);
+
+  // Handle assessment initialization
+  const initAssessment = async () => {
     if (!user) {
       toast({
-        title: "Authentication Required",
+        title: "Authentication required",
         description: "Please log in to take the assessment.",
         variant: "destructive",
       });
-      navigate('/login');
       return;
     }
 
-    setState(prev => ({ ...prev, loading: true }));
-    
     try {
-      const result = await assessmentService.startAssessment(user.id);
-      
-      setState(prev => ({ 
-        ...prev, 
-        assessmentId: result.assessment_id,
-        history: [],
-        answerResult: null,
-        learningPath: null,
-        completed: false,
-        loading: false
-      }));
-      
-      // Get first question
-      await getNextQuestion(result.assessment_id, []);
+      setIsLoading(true);
+      const response = await startAssessment(user.id);
+      setAssessmentId(response.assessment_id);
+      await loadNextQuestion(response.assessment_id, []);
     } catch (error) {
-      console.error("Error starting assessment:", error);
+      console.error("Failed to start assessment:", error);
       toast({
         title: "Error",
-        description: "Failed to start assessment. Please try again.",
+        description: "Failed to start the assessment. Please try again later.",
         variant: "destructive",
       });
-      setState(prev => ({ ...prev, loading: false }));
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Get the next question
-  const getNextQuestion = async (assessmentId: number, history: assessmentService.AssessmentHistoryItem[]) => {
-    setState(prev => ({ ...prev, loading: true }));
-    
+  // Load the next question
+  const loadNextQuestion = async (assessmentId: number, history: AssessmentHistoryItem[]) => {
     try {
-      const question = await assessmentService.getNextQuestion(assessmentId, history);
+      setIsLoading(true);
+      setSelectedAnswer(null);
+      setAnswerResult(null);
+      setAnswerSubmitted(false);
+      setShowExtendedContent(false);
       
-      setState(prev => ({ 
-        ...prev, 
-        currentQuestion: question,
-        selectedAnswer: null,
-        answerResult: null,
-        loading: false,
-        startTime: Date.now()
-      }));
-    } catch (error: any) {
-      console.error("Error getting next question:", error);
+      const question = await getNextQuestion(assessmentId, history);
       
-      // Check if this is the "All sections completed" message (status 200)
-      if (error.message && error.message.includes("All sections completed")) {
-        finishAssessment();
+      if (!question) {
+        // Assessment is complete
+        completeAssessment();
         return;
       }
-
+      
+      setCurrentQuestion(question);
+      setTimeStarted(Date.now());
+    } catch (error) {
+      console.error("Failed to load next question:", error);
       toast({
         title: "Error",
-        description: "Failed to get the next question. Please try again.",
+        description: "Failed to load the next question. Please try again.",
         variant: "destructive",
       });
-      setState(prev => ({ ...prev, loading: false }));
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Submit an answer
-  const submitAnswer = async (answer: string) => {
-    if (!state.assessmentId || !state.currentQuestion) return;
-
-    setState(prev => ({ 
-      ...prev, 
-      selectedAnswer: answer,
-      loading: true 
-    }));
-
-    const timeTaken = state.startTime ? Date.now() - state.startTime : undefined;
+  // Handle submitting an answer
+  const handleAnswerSubmit = async () => {
+    if (!selectedAnswer || !assessmentId || !currentQuestion || answerSubmitted) return;
+    
+    const timeTaken = timeStarted ? Date.now() - timeStarted : 0;
     
     try {
-      const result = await assessmentService.submitAnswer(
-        state.assessmentId, 
-        state.currentQuestion.id, 
-        answer,
-        timeTaken
-      );
-
-      // Play sound based on result
+      setIsLoading(true);
+      const result = await submitAnswer(assessmentId, {
+        question_id: currentQuestion.id,
+        user_answer: selectedAnswer,
+        time_taken_ms: timeTaken
+      });
+      
+      setAnswerResult(result);
+      setAnswerSubmitted(true);
+      
+      // Play sound effect
       if (result.is_correct) {
-        correctSound.play();
+        correctSoundRef.current?.play();
       } else {
-        incorrectSound.play();
+        incorrectSoundRef.current?.play();
       }
-
-      setState(prev => ({ 
-        ...prev, 
-        answerResult: result,
-        loading: false
-      }));
-
+      
       // Add to history
-      const historyItem: assessmentService.AssessmentHistoryItem = {
-        question_id: state.currentQuestion.id,
-        domain: state.currentQuestion.domain,
-        difficulty: state.currentQuestion.difficulty,
-        correct: result.is_correct
+      const historyItem: AssessmentHistoryItem = {
+        question_id: currentQuestion.id,
+        domain: currentQuestion.domain,
+        correct: result.is_correct,
+        difficulty: currentQuestion.difficulty
       };
-
-      // Update history
-      const updatedHistory = [...state.history, historyItem];
-      setState(prev => ({ ...prev, history: updatedHistory }));
-
-      // Automatically move to next question after delay
-      setTimeout(() => {
-        getNextQuestion(state.assessmentId!, updatedHistory);
-      }, 3000);
-
+      
+      setHistory(prev => [...prev, historyItem]);
     } catch (error) {
-      console.error("Error submitting answer:", error);
+      console.error("Failed to submit answer:", error);
       toast({
         title: "Error",
         description: "Failed to submit your answer. Please try again.",
         variant: "destructive",
       });
-      setState(prev => ({ ...prev, loading: false }));
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Finish the assessment
-  const finishAssessment = async () => {
-    if (!state.assessmentId) return;
-
-    setState(prev => ({ ...prev, loading: true }));
+  // Handle completing the assessment
+  const completeAssessment = async () => {
+    if (!assessmentId) return;
     
     try {
-      const result = await assessmentService.finishAssessment(state.assessmentId);
+      setIsLoading(true);
+      const result = await finishAssessment(assessmentId);
+      
+      setAssessmentResult(result);
+      setAssessmentComplete(true);
       
       // Play completion sound
-      completionSound.play();
-
-      setState(prev => ({ 
-        ...prev, 
-        learningPath: result,
-        completed: true,
-        loading: false
-      }));
-
-      // Award points for completing the assessment
-      // This should be handled by the backend in a production app
-      // Here we're just showing a toast for demonstration
+      completeSoundRef.current?.play();
+      
+      // Award points for completing assessment
+      // This would be handled by the backend as well
+      
       toast({
-        title: "Assessment Completed! +10 points",
-        description: "Great job completing the assessment! You've earned 10 points.",
-        variant: "default",
+        title: "Assessment Complete!",
+        description: `Great job! You answered ${result.questions_correct} out of ${result.questions_asked} questions correctly.`,
       });
-
     } catch (error) {
-      console.error("Error finishing assessment:", error);
+      console.error("Failed to complete assessment:", error);
       toast({
         title: "Error",
         description: "Failed to complete the assessment. Please try again.",
         variant: "destructive",
       });
-      setState(prev => ({ ...prev, loading: false }));
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // View assessment results and learning path
-  const viewResults = () => {
-    // In a real app, this would navigate to a detailed results page
-    navigate('/dashboard');
+  // Proceed to the next question
+  const handleNextQuestion = () => {
+    if (!assessmentId) return;
+    loadNextQuestion(assessmentId, history);
   };
 
-  // Render functions
-  const renderQuestion = () => {
-    const { currentQuestion, selectedAnswer, answerResult, loading } = state;
+  // View assessment results
+  const handleViewResults = () => {
+    navigate("/assessment-results");
+  };
+
+  // Render the progress indicator
+  const renderProgress = () => {
+    if (!assessmentComplete) {
+      const correctCount = history.filter(item => item.correct).length;
+      return (
+        <div className="mb-4">
+          <div className="flex justify-between mb-2">
+            <span className="text-sm text-muted-foreground">Questions: {history.length}</span>
+            <span className="text-sm text-muted-foreground">Correct: {correctCount}</span>
+          </div>
+          <Progress value={(correctCount / Math.max(1, history.length)) * 100} className="h-2" />
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Generate personalized feedback
+  const getPersonalizedFeedback = () => {
+    if (!answerResult || !user) return "";
     
-    if (!currentQuestion) return null;
-    
+    if (answerResult.is_correct) {
+      const praises = [
+        `Great job, ${user.firstName}!`,
+        `Excellent work, ${user.firstName}!`,
+        `You're right, ${user.firstName}!`,
+        `Well done, ${user.firstName}!`,
+        `Fantastic, ${user.firstName}!`
+      ];
+      return praises[Math.floor(Math.random() * praises.length)];
+    } else {
+      const encouragements = [
+        `Not quite, ${user.firstName}, but that's okay!`,
+        `Let's review this one, ${user.firstName}.`,
+        `Keep going, ${user.firstName}, you're still learning!`,
+        `That's not correct, ${user.firstName}, but let's learn why.`,
+        `Don't worry, ${user.firstName}, learning is a journey!`
+      ];
+      return encouragements[Math.floor(Math.random() * encouragements.length)];
+    }
+  };
+
+  // Render the assessment completion screen
+  if (assessmentComplete && assessmentResult) {
     return (
-      <Card className="p-6 shadow-lg max-w-3xl mx-auto">
-        <div className="flex justify-between items-center mb-4">
-          <span className="text-sm font-medium bg-primary/10 text-primary px-3 py-1 rounded-full">
-            {currentQuestion.domain}
-          </span>
-          <span className="text-sm font-medium bg-secondary/10 text-secondary px-3 py-1 rounded-full">
-            Difficulty: {currentQuestion.difficulty}
-          </span>
-        </div>
-        
-        <h2 className="text-xl font-bold mb-6">{currentQuestion.question}</h2>
-        
-        <div className="space-y-3">
-          {Object.entries(currentQuestion.options).map(([key, value]) => (
-            <Button
-              key={key}
-              variant={selectedAnswer === key ? "default" : "outline"}
-              className={`w-full justify-start text-left p-4 h-auto ${
-                answerResult && answerResult.correct_answer === key
-                  ? "border-green-500 bg-green-50"
-                  : answerResult && selectedAnswer === key && selectedAnswer !== answerResult.correct_answer
-                  ? "border-red-500 bg-red-50"
-                  : ""
-              }`}
-              disabled={loading || selectedAnswer !== null}
-              onClick={() => submitAnswer(key)}
-            >
-              <span className="font-semibold mr-2">{key}.</span> {value}
-              {answerResult && answerResult.correct_answer === key && (
-                <CheckCircle className="ml-auto text-green-500" />
-              )}
-              {answerResult && selectedAnswer === key && selectedAnswer !== answerResult.correct_answer && (
-                <XCircle className="ml-auto text-red-500" />
-              )}
-            </Button>
-          ))}
-        </div>
-        
-        {answerResult && (
-          <div className={`mt-6 p-4 rounded-md ${
-            answerResult.is_correct ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"
-          }`}>
-            <h3 className={`font-bold ${
-              answerResult.is_correct ? "text-green-700" : "text-red-700"
-            }`}>
-              {answerResult.is_correct 
-                ? "Correct!" 
-                : `Incorrect. The correct answer is ${answerResult.correct_answer}.`}
-            </h3>
-            <p className="mt-2">{answerResult.explanation}</p>
-            
-            {answerResult.extended_content && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <details>
-                  <summary className="font-medium cursor-pointer">Learn More</summary>
-                  <div className="mt-2 space-y-2">
-                    {Object.entries(answerResult.extended_content).map(([key, value]) => (
-                      <div key={key}>
-                        <h4 className="font-medium capitalize">{key.replace(/_/g, ' ')}</h4>
-                        <p className="text-sm">{value}</p>
-                      </div>
-                    ))}
+      <Card className="w-full max-w-3xl mx-auto">
+        <CardHeader className="bg-primary/10 border-b">
+          <CardTitle className="text-2xl text-center">Assessment Complete!</CardTitle>
+          <CardDescription className="text-center">
+            Congratulations on completing your assessment!
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6 space-y-6">
+          <div className="text-center">
+            <h3 className="text-xl font-semibold mb-2">Your Results</h3>
+            <p className="mb-4">
+              You answered <span className="font-bold text-primary">{assessmentResult.questions_correct}</span> out 
+              of <span className="font-bold">{assessmentResult.questions_asked}</span> questions correctly!
+            </p>
+            <div className="mb-4">
+              <Progress 
+                value={(assessmentResult.questions_correct / assessmentResult.questions_asked) * 100} 
+                className="h-3"
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">Your Strengths and Areas for Growth</h3>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Card className="bg-green-50 dark:bg-green-900/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Strongest Area</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{assessmentResult.strongest_domain}</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-amber-50 dark:bg-amber-900/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Area for Growth</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{assessmentResult.weakest_domain}</p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">Recommended Learning Path</h3>
+            <div className="space-y-2">
+              {assessmentResult.learning_path.recommended_modules.map((module, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold flex-shrink-0">
+                    {index + 1}
                   </div>
-                </details>
+                  <div className="p-3 bg-muted rounded-md flex-grow">
+                    {module}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">Focus Areas</h3>
+            <div className="flex flex-wrap gap-2">
+              {assessmentResult.learning_path.focus_areas.map((area, index) => (
+                <Badge key={index} variant="outline" className="text-sm py-1 px-3">
+                  {area}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-center border-t pt-6">
+          <Button onClick={handleViewResults} size="lg">
+            View Detailed Results
+          </Button>
+        </CardFooter>
+      </Card>
+    );
+  }
+
+  // Render the question card
+  return (
+    <Card className="w-full max-w-3xl mx-auto">
+      <CardHeader className="bg-primary/10 border-b">
+        <div className="flex justify-between items-center mb-2">
+          <Badge variant="outline" className="px-3 py-1">
+            {currentQuestion?.domain || "Loading..."}
+          </Badge>
+          <Badge variant="outline" className="px-3 py-1">
+            Difficulty: {currentQuestion?.difficulty || 1}
+          </Badge>
+        </div>
+        <CardTitle className="text-xl">Assessment Question</CardTitle>
+        {renderProgress()}
+      </CardHeader>
+      
+      <CardContent className="pt-6">
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <>
+            {currentQuestion && (
+              <div className="space-y-6">
+                <h3 className="text-lg font-medium">{currentQuestion.question}</h3>
+                
+                <div className="space-y-3">
+                  {Object.entries(currentQuestion.options).map(([key, value]) => (
+                    <div
+                      key={key}
+                      className={`p-4 rounded-md border-2 cursor-pointer transition-colors ${
+                        selectedAnswer === key 
+                          ? "border-primary bg-primary/10" 
+                          : "border-muted hover:border-muted-foreground"
+                      } ${
+                        answerSubmitted && answerResult
+                          ? answerResult.correct_answer === key
+                            ? "bg-green-100 dark:bg-green-900/20 border-green-500"
+                            : selectedAnswer === key && answerResult.correct_answer !== key
+                              ? "bg-red-100 dark:bg-red-900/20 border-red-500"
+                              : ""
+                          : ""
+                      }`}
+                      onClick={() => !answerSubmitted && setSelectedAnswer(key)}
+                    >
+                      <div className="flex gap-3 items-center">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                          selectedAnswer === key 
+                            ? "bg-primary text-white" 
+                            : "bg-muted"
+                        }`}>
+                          {key}
+                        </div>
+                        <div>{value}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {answerSubmitted && answerResult && (
+                  <div className={`p-4 rounded-md ${
+                    answerResult.is_correct 
+                      ? "bg-green-100 dark:bg-green-900/20 border border-green-500" 
+                      : "bg-red-100 dark:bg-red-900/20 border border-red-500"
+                  }`}>
+                    <h4 className="font-bold mb-2">{getPersonalizedFeedback()}</h4>
+                    <p>{answerResult.explanation}</p>
+                    
+                    {answerResult.extended_content && (
+                      <div className="mt-4">
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowExtendedContent(!showExtendedContent)}
+                          className="w-full"
+                        >
+                          {showExtendedContent ? "Hide" : "Show"} Additional Information
+                        </Button>
+                        
+                        {showExtendedContent && (
+                          <div className="mt-4 space-y-4">
+                            {answerResult.extended_content.story_why && (
+                              <div>
+                                <h5 className="font-bold mb-1">Why This Matters:</h5>
+                                <p>{answerResult.extended_content.story_why}</p>
+                              </div>
+                            )}
+                            
+                            {answerResult.extended_content.implementation_how && (
+                              <div>
+                                <h5 className="font-bold mb-1">How To Implement:</h5>
+                                <p>{answerResult.extended_content.implementation_how}</p>
+                              </div>
+                            )}
+                            
+                            {answerResult.extended_content.science_behind_it && (
+                              <div>
+                                <h5 className="font-bold mb-1">The Science Behind It:</h5>
+                                <p>{answerResult.extended_content.science_behind_it}</p>
+                              </div>
+                            )}
+                            
+                            {answerResult.extended_content.practical_application && (
+                              <div>
+                                <h5 className="font-bold mb-1">Practical Application:</h5>
+                                <p>{answerResult.extended_content.practical_application}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
-          </div>
+          </>
         )}
-      </Card>
-    );
-  };
-
-  const renderCompletionScreen = () => {
-    const { learningPath } = state;
-    
-    if (!learningPath) return null;
-    
-    return (
-      <Card className="p-6 shadow-lg max-w-3xl mx-auto">
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold mb-2">Assessment Completed!</h2>
-          <p className="text-muted-foreground">
-            You answered {learningPath.questions_correct} out of {learningPath.questions_asked} questions correctly.
-          </p>
-        </div>
-        
-        <Separator className="my-4" />
-        
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-2">Your Strengths and Areas for Growth</h3>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="p-3 border rounded-md bg-green-50">
-              <span className="block text-sm font-medium text-muted-foreground">Strongest Area</span>
-              <span className="font-semibold">{learningPath.strongest_domain}</span>
-            </div>
-            <div className="p-3 border rounded-md bg-amber-50">
-              <span className="block text-sm font-medium text-muted-foreground">Area for Growth</span>
-              <span className="font-semibold">{learningPath.weakest_domain}</span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-2">Recommended Learning Path</h3>
-          <div className="space-y-2">
-            {learningPath.learning_path.recommended_modules.map((module, index) => (
-              <div key={index} className="p-3 border rounded-md flex items-center">
-                <div className="h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center mr-3">
-                  {index + 1}
-                </div>
-                <span>{module}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-2">Focus Areas</h3>
-          <div className="space-y-2">
-            {learningPath.learning_path.focus_areas.map((area, index) => (
-              <div key={index} className="p-3 border rounded-md">
-                {area}
-              </div>
-            ))}
-          </div>
-        </div>
-        
-        <div className="flex justify-center mt-6">
-          <Button onClick={viewResults} size="lg">
-            Take Me to My Learning Dashboard
+      </CardContent>
+      
+      <CardFooter className="flex justify-between border-t pt-6">
+        {!answerSubmitted ? (
+          <Button 
+            onClick={handleAnswerSubmit} 
+            disabled={!selectedAnswer || isLoading}
+            className="w-full"
+          >
+            Submit Answer
           </Button>
-        </div>
-      </Card>
-    );
-  };
-
-  const renderLoading = () => (
-    <div className="flex justify-center items-center h-64">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-    </div>
+        ) : (
+          <Button 
+            onClick={handleNextQuestion}
+            disabled={isLoading}
+            className="w-full"
+          >
+            Next Question
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
   );
-
-  if (state.loading) {
-    return renderLoading();
-  }
-
-  if (state.completed) {
-    return renderCompletionScreen();
-  }
-
-  return renderQuestion();
 };
 
 export default EnhancedAssessment;

@@ -1,1 +1,4 @@
-# This file marks the directory as a Python package
+"""
+MentorMe Enhanced Assessment API
+Package initialization
+"""

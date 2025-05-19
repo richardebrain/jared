@@ -1,9 +1,15 @@
 #!/bin/bash
+# Start the FastAPI assessment API server
 
-echo "Starting MentorMe Assessment API with data import..."
+# Set environment variables
+export ASSESSMENT_API_PORT=8000
 
-# Set environment variable to enable data import
-export IMPORT_DATA=true
+# Install required Python packages if not already installed
+pip install -q fastapi uvicorn sqlalchemy psycopg2-binary python-dotenv pydantic
 
-# Run the Python script to start the server
-python3 run_backend.py
+# Import data if needed
+python -c "from backend.import_data import run_import; run_import()"
+
+# Start the FastAPI server
+echo "Starting MentorMe Assessment API on port $ASSESSMENT_API_PORT..."
+python run_backend.py
