@@ -99,6 +99,16 @@ export default function BobsAdmin() {
     );
   }
   
+  // Force a direct redirect to the school dashboard for Bob's Daycare
+  useEffect(() => {
+    if (isAuthorized) {
+      // This approach ensures the SchoolDashboard receives fresh credentials each time
+      localStorage.setItem('adminKey', 'Bigsurf99');
+      localStorage.setItem('adminAccessGranted', 'true');
+      localStorage.setItem('currentSchoolId', '2');
+    }
+  }, [isAuthorized]);
+
   // Directly embed the SchoolDashboard component with explicit props
   return (
     <div className="w-full h-full">

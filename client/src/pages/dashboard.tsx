@@ -673,23 +673,28 @@ export default function Dashboard() {
                   Required Training
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Core Values Card */}
-                  <CoreValuesCard />
-                  
-                  {/* Chapter One Card */}
-                  <ChapterOneCard />
-                  
-                  {/* Explicitly add Mindful Mornings Card to Required Section */}
-                  <MindfulMorningsCard />
-                  
-                  {/* Then show additional Health & Safety modules */}
+                  {/* Map all required modules from the database */}
                   {modules && Array.isArray(modules) && modules.map((module) => {
-                    // Only include Health & Safety in this section
+                    // Check for required training modules
+                    const isRaisingArizonasCore = module.title && 
+                      module.title.toLowerCase().includes("core") && 
+                      module.title.toLowerCase().includes("raising arizona");
+                      
+                    const isChapterOne = module.title && 
+                      module.title.toLowerCase().includes("chapter 1") && 
+                      module.title.toLowerCase().includes("building a human");
+                      
+                    const isMindfulMornings = module.title && 
+                      module.title.toLowerCase().includes("mindful morning");
+                      
                     const isHealthSafety = module.title && 
                       module.title.toLowerCase().includes("health and safety");
+                    
+                    // Only include required modules in this section
+                    const isRequiredModule = isRaisingArizonasCore || isChapterOne || 
+                      isMindfulMornings || isHealthSafety;
                       
-                    // Skip other modules - we're already showing Mindful Mornings with its own card
-                    if (!isHealthSafety) {
+                    if (!isRequiredModule) {
                       return null;
                     }
                     
@@ -709,6 +714,15 @@ export default function Dashboard() {
                       </div>
                     );
                   })}
+                  
+                  {/* Fallback cards in case modules aren't properly loaded yet */}
+                  {modules && (!Array.isArray(modules) || modules.length === 0) && (
+                    <>
+                      <CoreValuesCard />
+                      <ChapterOneCard />
+                      <MindfulMorningsCard />
+                    </>
+                  )}
                 </div>
               </div>
               
