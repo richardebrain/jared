@@ -666,15 +666,47 @@ export default function Dashboard() {
                 `}</style>
               </div>
               
-              {/* Required Modules Section */}
+              {/* Required Modules Section - Using our enhanced required modules hook */}
               <div className="space-y-4">
                 <h2 className="text-xl font-bold text-gray-800 flex items-center">
                   <Shield className="h-5 w-5 mr-2 text-indigo-600" />
                   Required Training
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* First show our special cards for core modules */}
                   <CoreValuesCard />
                   <ChapterOneCard />
+                  
+                  {/* Then show Mindful Mornings and Health & Safety modules */}
+                  {modules && Array.isArray(modules) && modules.map((module) => {
+                    // Only include Mindful Mornings and Health & Safety in this section
+                    const isMindfulMorning = module.title && 
+                      module.title.toLowerCase().includes("mindful morning");
+                    
+                    const isHealthSafety = module.title && 
+                      module.title.toLowerCase().includes("health and safety");
+                      
+                    // Skip other modules - only show our 3rd and 4th required trainings
+                    if (!(isMindfulMorning || isHealthSafety)) {
+                      return null;
+                    }
+                    
+                    // Get progress for this module
+                    const moduleProgress = Array.isArray(userProgress) 
+                      ? userProgress.find(p => p.moduleId === module.id)
+                      : null;
+                      
+                    return (
+                      <div key={`required-${module.id}`}>
+                        <ModuleView 
+                          module={module} 
+                          progress={moduleProgress?.progress || 0} 
+                          completed={moduleProgress?.completed || false}
+                          showCategory
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
               
