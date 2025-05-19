@@ -62,14 +62,16 @@ export default function SchoolDashboard() {
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   
-  // Extract admin key from URL if present
-  const extractAdminKey = () => {
-    const searchParams = new URLSearchParams(window.location.search);
-    return searchParams.get('adminKey') || "";
+  // Check if admin access was granted via localStorage
+  const checkAdminAccess = () => {
+    const isGranted = localStorage.getItem('adminAccessGranted') === 'true';
+    const storedKey = localStorage.getItem('adminKey') || '';
+    return { isGranted, adminKey: isGranted ? storedKey : '' };
   };
   
-  const [adminKey, setAdminKey] = useState(extractAdminKey());
-  const [showAdminAuth, setShowAdminAuth] = useState(!extractAdminKey());
+  const { isGranted, adminKey: initialAdminKey } = checkAdminAccess();
+  const [adminKey, setAdminKey] = useState(initialAdminKey);
+  const [showAdminAuth, setShowAdminAuth] = useState(!isGranted);
   const [addTeacherOpen, setAddTeacherOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   

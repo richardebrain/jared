@@ -215,7 +215,12 @@ export default function Header() {
               {isSchoolAdmin && user && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation(`/schools/${user.schoolId}?adminKey=Bigsurf99`)}>
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => {
+                    // Set admin access directly in the school dashboard page
+                    localStorage.setItem('adminAccessGranted', 'true');
+                    localStorage.setItem('adminKey', 'Bigsurf99');
+                    setLocation(`/school-dashboard`);
+                  }}>
                     <i className="ri-school-line mr-2"></i>
                     School Admin
                   </DropdownMenuItem>
