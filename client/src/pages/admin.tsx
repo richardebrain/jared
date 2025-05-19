@@ -64,8 +64,8 @@ export default function AdminPage() {
       
       // Then navigate
       setTimeout(() => {
-        // Navigate to the Bob's Daycare admin page
-        window.location.href = '/schools/2';
+        // Navigate to the special Bob's Daycare admin page route
+        window.location.href = '/bobs-daycare-admin';
       }, 1000);
     } else {
       toast({

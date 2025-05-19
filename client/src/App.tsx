@@ -266,9 +266,16 @@ function Router() {
         {isAuthenticated ? <SchoolDashboard /> : <Login />}
       </Route>
       
-      {/* Bob's Daycare Dashboard - Direct Access Route */}
+      {/* Bob's Daycare Dashboard - Direct Access Route with explicit forced parameters */}
       <Route path="/bobs-daycare-admin">
-        {isAuthenticated ? <SchoolDashboard forcedSchoolId={2} forcedAdminKey="Bigsurf99" /> : <Login />}
+        {isAuthenticated ? (
+          <div className="h-full w-full">
+            <SchoolDashboard 
+              forcedSchoolId={2} 
+              forcedAdminKey="Bigsurf99" 
+            />
+          </div>
+        ) : <Login />}
       </Route>
       
       <Route path="/profile">
