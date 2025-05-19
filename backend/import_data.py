@@ -1,366 +1,415 @@
 """
-Import data module for the MentorMe assessment system
-This module handles importing questions and other data
+Data import module for the MentorMe assessment system
+This module handles importing questions and other data from CSV files
 """
+
 import csv
-import json
 import logging
-import os
-from typing import List, Dict, Any, Optional, Tuple
+import json
+from typing import Dict, List, Any, Tuple, Optional
+from datetime import datetime
 
 from sqlalchemy.orm import Session
+from sqlalchemy import func, exc
 
-from .models import (
-    Question, Domain, Tag, QuestionType, 
-    School, User, Subscription
+from backend.database import get_db_context
+from backend.models import (
+    Question, Domain, Tag, School, Subscription, User,
+    QuestionType
 )
-from .database import get_db
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger("mentorme.import_data")
+# Setup logging
+logger = logging.getLogger("mentorme-assessment-api")
 
-
-def import_questions_from_csv(
-    db: Session,
-    file_path: str,
-    update_existing: bool = False
-) -> Dict[str, Any]:
-    """
-    Import questions from a CSV file
+def import_questions_from_csv(file_path: str) -> int:
+    """Import questions from a CSV file
     
-    Returns a summary of the import operation
+    Args:
+        file_path: Path to the CSV file
+        
+    Returns:
+        Number of questions imported
     """
-    if not os.path.exists(file_path):
-        logger.error(f"File not found: {file_path}")
-        return {
-            "success": False,
-            "error": "File not found",
-            "imported": 0,
-            "updated": 0,
-            "skipped": 0,
-            "failed": 0
-        }
-    
+    count = 0
     try:
-        stats = {
-            "imported": 0,
-            "updated": 0,
-            "skipped": 0,
-            "failed": 0,
-            "domains": set()
-        }
-        
-        with open(file_path, 'r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row_num, row in enumerate(reader, start=2):  # Start at 2 to account for header row
-                try:
-                    # Check for required fields
-                    required_fields = ['question', 'domain', 'type', 'correct_answer']
-                    missing_fields = [field for field in required_fields if not row.get(field)]
-                    if missing_fields:
-                        logger.warning(
-                            f"Row {row_num} is missing required fields: {', '.join(missing_fields)}"
-                        )
-                        stats["failed"] += 1
-                        continue
-                    
-                    # Check for existing question with same text
-                    existing = db.query(Question).filter(
-                        Question.question == row['question']
-                    ).first()
-                    
-                    if existing and not update_existing:
-                        logger.info(f"Question already exists (row {row_num}), skipping")
-                        stats["skipped"] += 1
-                        continue
-                    
-                    # Process domain
-                    domain_name = row['domain'].strip()
-                    stats["domains"].add(domain_name)
-                    
-                    # Get or create domain
-                    domain = get_or_create_domain(db, domain_name)
-                    
-                    # Process question type
-                    type_map = {
-                        'multiple_choice': QuestionType.MULTIPLE_CHOICE,
-                        'true_false': QuestionType.TRUE_FALSE,
-                        'fill_blank': QuestionType.FILL_BLANK,
-                        'short_answer': QuestionType.SHORT_ANSWER,
-                        'matching': QuestionType.MATCHING
-                    }
-                    
-                    q_type_str = row['type'].lower().strip()
-                    if q_type_str not in type_map:
-                        logger.warning(
-                            f"Invalid question type in row {row_num}: {q_type_str}"
-                        )
-                        stats["failed"] += 1
-                        continue
-                    
-                    q_type = type_map[q_type_str]
-                    
-                    # Process difficulty (default to 1 if invalid)
+        with get_db_context() as db:
+            # First ensure domains exist
+            ensure_default_domains(db)
+            
+            # Read CSV file
+            with open(file_path, "r", encoding="utf-8") as csv_file:
+                reader = csv.DictReader(csv_file)
+                for row in reader:
                     try:
-                        difficulty = int(row.get('difficulty', 1))
-                        if difficulty < 1:
-                            difficulty = 1
-                        elif difficulty > 5:
-                            difficulty = 5
-                    except (ValueError, TypeError):
-                        difficulty = 1
-                    
-                    # Process options for multiple choice
-                    options = {}
-                    if q_type == QuestionType.MULTIPLE_CHOICE:
-                        option_prefixes = ['option_a', 'option_b', 'option_c', 'option_d']
-                        for letter, prefix in zip(['A', 'B', 'C', 'D'], option_prefixes):
-                            if prefix in row and row[prefix].strip():
-                                options[letter] = row[prefix].strip()
-                        
-                        # Check for sufficient options
-                        if len(options) < 2:
-                            logger.warning(
-                                f"Multiple choice question in row {row_num} has fewer than 2 options"
-                            )
-                            stats["failed"] += 1
+                        # Skip if missing required fields
+                        if not all(k in row and row[k] for k in ["question", "domain", "difficulty", "type", "correct_answer"]):
+                            logger.warning(f"Skipping row with missing required fields: {row.get('question', 'Unknown')}")
                             continue
-                    
-                    # Process hints (comma-separated)
-                    hints = []
-                    if 'hints' in row and row['hints']:
-                        hints = [hint.strip() for hint in row['hints'].split(',')]
-                    
-                    # Process time limit
-                    time_limit = None
-                    if 'time_limit' in row and row['time_limit']:
-                        try:
-                            time_limit = int(row['time_limit'])
-                        except (ValueError, TypeError):
-                            time_limit = None
-                    
-                    # Process resources (JSON string)
-                    resources = []
-                    if 'resources' in row and row['resources']:
-                        try:
-                            resources = json.loads(row['resources'])
-                        except json.JSONDecodeError:
-                            logger.warning(
-                                f"Invalid resources JSON in row {row_num}: {row['resources']}"
-                            )
-                            resources = []
-                    
-                    # Process tags
-                    tag_objects = []
-                    if 'tags' in row and row['tags']:
-                        tag_names = [tag.strip() for tag in row['tags'].split(',')]
-                        tag_objects = get_or_create_tags(db, tag_names)
-                    
-                    if existing and update_existing:
-                        # Update existing question
-                        existing.domain = domain_name
-                        existing.sub_domain = row.get('sub_domain')
-                        existing.difficulty = difficulty
-                        existing.q_type = q_type
-                        existing.correct_answer = row['correct_answer']
-                        existing.explanation = row.get('explanation')
-                        existing.hints = hints
-                        existing.options = options
-                        existing.resources = resources
-                        existing.time_limit = time_limit
                         
-                        # Update tags
-                        existing.tags.clear()
-                        for tag in tag_objects:
-                            existing.tags.append(tag)
-                        
-                        stats["updated"] += 1
-                    else:
-                        # Create new question
-                        question = Question(
-                            question=row['question'],
-                            domain=domain_name,
-                            sub_domain=row.get('sub_domain'),
-                            difficulty=difficulty,
-                            q_type=q_type,
-                            correct_answer=row['correct_answer'],
-                            explanation=row.get('explanation'),
-                            hints=hints,
-                            options=options,
-                            resources=resources,
-                            time_limit=time_limit
-                        )
-                        
-                        # Add tags
-                        for tag in tag_objects:
-                            question.tags.append(tag)
-                        
-                        db.add(question)
-                        stats["imported"] += 1
-                
-                except Exception as e:
-                    logger.error(f"Error processing row {row_num}: {e}")
-                    stats["failed"] += 1
-                    continue
-            
-            # Commit changes
-            db.commit()
-            
-            # Convert domain set to list for return value
-            stats["domains"] = list(stats["domains"])
-            stats["success"] = True
-            
-            return stats
-    
+                        # Process question
+                        process_question(db, row)
+                        count += 1
+                    except Exception as e:
+                        logger.error(f"Error processing question: {str(e)}")
+                        continue
     except Exception as e:
-        logger.error(f"Error importing questions: {e}")
-        db.rollback()
+        logger.error(f"Error importing questions: {str(e)}")
         
-        return {
-            "success": False,
-            "error": str(e),
-            "imported": 0,
-            "updated": 0,
-            "skipped": 0,
-            "failed": 0
+    return count
+
+def ensure_default_domains(db: Session):
+    """Ensure default domains exist in the database"""
+    default_domains = [
+        {
+            "name": "Child Development",
+            "description": "Topics related to how children develop across physical, cognitive, social-emotional, and language domains",
+            "sub_domains": [
+                "Cognitive Development", 
+                "Social-Emotional Development", 
+                "Physical Development", 
+                "Language Development",
+                "Brain Development",
+                "General"
+            ]
+        },
+        {
+            "name": "Curriculum",
+            "description": "Content and approaches for teaching young children",
+            "sub_domains": [
+                "Literacy Development",
+                "Mathematics",
+                "Educational Approaches",
+                "Creative Arts",
+                "Fine Motor Development"
+            ]
+        },
+        {
+            "name": "Assessment",
+            "description": "Methods for evaluating children's learning and program quality",
+            "sub_domains": [
+                "Classroom Quality",
+                "Authentic Assessment"
+            ]
+        },
+        {
+            "name": "Teaching Practices",
+            "description": "Effective strategies and approaches for teaching young children",
+            "sub_domains": [
+                "Developmentally Appropriate Practice",
+                "Motivation",
+                "Quality Indicators",
+                "Social Development"
+            ]
+        },
+        {
+            "name": "Play",
+            "description": "Understanding and supporting play as a learning medium",
+            "sub_domains": [
+                "Play-Based Learning",
+                "Types of Play",
+                "Sensory Development"
+            ]
+        },
+        {
+            "name": "Social-Emotional Development",
+            "description": "Supporting children's social skills and emotional well-being",
+            "sub_domains": [
+                "Emotional Development",
+                "Social Development",
+                "Moral Development"
+            ]
+        },
+        {
+            "name": "Diversity and Inclusion",
+            "description": "Creating inclusive environments that respect and respond to diversity",
+            "sub_domains": [
+                "Culturally Responsive Practice",
+                "Dual Language Learners",
+                "Cultural Competence"
+            ]
+        },
+        {
+            "name": "Family Engagement",
+            "description": "Working effectively with families as partners in children's education",
+            "sub_domains": [
+                "Partnership Approaches"
+            ]
+        },
+        {
+            "name": "Learning Environment",
+            "description": "Creating effective physical and social environments for learning",
+            "sub_domains": [
+                "Physical Space",
+                "Outdoor Space"
+            ]
+        },
+        {
+            "name": "Guidance",
+            "description": "Approaches to supporting positive behavior and addressing challenges",
+            "sub_domains": [
+                "Challenging Behavior",
+                "Positive Guidance"
+            ]
+        },
+        {
+            "name": "Professionalism",
+            "description": "Professional and ethical responsibilities of early childhood educators",
+            "sub_domains": [
+                "Ethics"
+            ]
+        },
+        {
+            "name": "Special Education",
+            "description": "Supporting children with disabilities and developmental delays",
+            "sub_domains": [
+                "Inclusion",
+                "Legal Requirements"
+            ]
+        },
+        {
+            "name": "Program Structure",
+            "description": "How early childhood programs are organized",
+            "sub_domains": [
+                "Classroom Composition"
+            ]
         }
-
-
-def get_or_create_domain(db: Session, domain_name: str) -> Domain:
-    """Get or create a domain"""
-    domain = db.query(Domain).filter(Domain.name == domain_name).first()
-    if not domain:
-        domain = Domain(name=domain_name)
-        db.add(domain)
-        db.flush()  # Flush to generate ID but don't commit yet
-    return domain
-
-
-def get_or_create_tags(db: Session, tag_names: List[str]) -> List[Tag]:
-    """Get or create multiple tags"""
-    result = []
-    for name in tag_names:
-        tag = db.query(Tag).filter(Tag.name == name).first()
-        if not tag:
-            tag = Tag(name=name)
-            db.add(tag)
-            db.flush()  # Flush to generate ID but don't commit yet
-        result.append(tag)
-    return result
-
-
-def create_default_school(db: Session) -> School:
-    """Create the default Raising Arizona school if it doesn't exist"""
-    default_school = db.query(School).filter(School.is_default == True).first()
-    if not default_school:
-        default_school = School(
-            name="Raising Arizona Preschool",
-            contact_email="info@raisingarizonapreschool.com",
-            address="123 Main St, Phoenix, AZ 85001",
-            is_active=True,
-            is_default=True
-        )
-        db.add(default_school)
-        db.commit()
-        logger.info("Created default school: Raising Arizona Preschool")
+    ]
     
-    return default_school
-
-
-def create_owner_account(db: Session, school_id: int, username: str, email: str) -> User:
-    """Create an owner account for the specified school"""
-    # Check if account already exists
-    existing_user = db.query(User).filter(User.username == username).first()
-    if existing_user:
-        logger.info(f"Owner account {username} already exists")
-        existing_user.role = "owner"  # Ensure they have owner privileges
-        db.commit()
-        return existing_user
+    # Create parent domains first
+    for domain_data in default_domains:
+        domain_name = domain_data["name"]
+        domain_desc = domain_data["description"]
+        
+        # Check if domain exists
+        domain = db.query(Domain).filter(Domain.name == domain_name).first()
+        if not domain:
+            domain = Domain(
+                name=domain_name,
+                description=domain_desc,
+                is_active=True
+            )
+            db.add(domain)
+            db.flush()
+            logger.info(f"Created parent domain: {domain_name}")
+        
+        # Create sub-domains
+        for sub_name in domain_data["sub_domains"]:
+            sub_domain = db.query(Domain).filter(Domain.name == sub_name).first()
+            if not sub_domain:
+                sub_domain = Domain(
+                    name=sub_name,
+                    parent_id=domain.id,
+                    is_active=True
+                )
+                db.add(sub_domain)
+                logger.info(f"Created sub-domain: {sub_name} under {domain_name}")
     
-    # Create new owner account
-    owner = User(
-        username=username,
-        email=email,
-        first_name="App",
-        last_name="Owner",
-        school_id=school_id,
-        role="owner",
-        is_active=True
-    )
-    db.add(owner)
     db.commit()
-    logger.info(f"Created owner account: {username}")
+
+def process_question(db: Session, row: Dict[str, Any]):
+    """Process a question from a CSV row and add to database
+    
+    Args:
+        db: Database session
+        row: CSV row as dictionary
+    """
+    # Check if question already exists (to avoid duplicates)
+    question_text = row["question"].strip()
+    existing = db.query(Question).filter(Question.question == question_text).first()
+    if existing:
+        logger.info(f"Question already exists: {question_text[:50]}...")
+        return
+    
+    # Parse question type
+    q_type_str = row["type"].lower().strip()
+    if q_type_str == "multiple_choice" or q_type_str == "multiple choice":
+        q_type = QuestionType.MULTIPLE_CHOICE
+    elif q_type_str == "true_false" or q_type_str == "true false":
+        q_type = QuestionType.TRUE_FALSE
+    elif q_type_str == "fill_blank" or q_type_str == "fill blank":
+        q_type = QuestionType.FILL_BLANK
+    elif q_type_str == "short_answer" or q_type_str == "short answer":
+        q_type = QuestionType.SHORT_ANSWER
+    elif q_type_str == "matching":
+        q_type = QuestionType.MATCHING
+    else:
+        q_type = QuestionType.MULTIPLE_CHOICE  # Default
+    
+    # Process options for multiple choice
+    options = {}
+    if q_type == QuestionType.MULTIPLE_CHOICE:
+        # Look for options in format option_a, option_b, etc.
+        for opt_key in ["option_a", "option_b", "option_c", "option_d", "option_e", "option_f"]:
+            if opt_key in row and row[opt_key]:
+                option_letter = opt_key[-1].upper()
+                options[option_letter] = row[opt_key]
+    
+    # Process hints
+    hints = []
+    if "hints" in row and row["hints"]:
+        hints = [row["hints"]]
+    
+    # Process difficulty
+    try:
+        difficulty = int(row["difficulty"])
+        if difficulty < 1:
+            difficulty = 1
+        elif difficulty > 5:
+            difficulty = 5
+    except (ValueError, TypeError):
+        difficulty = 1
+    
+    # Process time limit
+    time_limit = None
+    if "time_limit" in row and row["time_limit"]:
+        try:
+            time_limit = int(row["time_limit"])
+        except (ValueError, TypeError):
+            pass
+    
+    # Create question object
+    new_question = Question()
+    new_question.question = question_text
+    new_question.domain = row["domain"].strip()
+    new_question.sub_domain = row.get("sub_domain", "").strip() or None
+    new_question.difficulty = difficulty
+    new_question.q_type = q_type.value
+    new_question.correct_answer = row["correct_answer"].strip()
+    new_question.explanation = row.get("explanation", "").strip() or None
+    new_question.hints = hints
+    new_question.options = options
+    new_question.resources = row.get("resources", [])
+    new_question.time_limit = time_limit
+    new_question.is_active = True
+    
+    db.add(new_question)
+    db.flush()
+    
+    # Add tags if present
+    if "tags" in row and row["tags"]:
+        tags = [t.strip() for t in row["tags"].split(",")]
+        for tag_name in tags:
+            if not tag_name:
+                continue
+                
+            # Find or create tag
+            tag = db.query(Tag).filter(Tag.name == tag_name).first()
+            if not tag:
+                tag = Tag(name=tag_name)
+                db.add(tag)
+                db.flush()
+            
+            # Add tag to question
+            new_question.tags.append(tag)
+    
+    logger.info(f"Added question: {question_text[:50]}...")
+
+def ensure_raising_arizona_school(db: Session) -> School:
+    """Ensure Raising Arizona school exists in the database
+    
+    Returns:
+        School: The Raising Arizona school object
+    """
+    # Check if school exists
+    ra_school = db.query(School).filter(School.name == "Raising Arizona Preschool").first()
+    if not ra_school:
+        # Create school
+        ra_school = School(
+            name="Raising Arizona Preschool",
+            contact_email="admin@raisingarizonapreschool.com",
+            logo_url="/assets/raising-arizona-logo.jpg",
+            is_active=True,
+            is_default=True,
+            max_users=100
+        )
+        db.add(ra_school)
+        db.flush()
+        logger.info("Created Raising Arizona school")
+        
+        # Create unlimited subscription
+        create_unlimited_subscription(db, ra_school.id)
+    
+    return ra_school
+
+def create_owner_account(db: Session, school_id: int) -> User:
+    """Create an owner account for a school
+    
+    Args:
+        db: Database session
+        school_id: School ID
+        
+    Returns:
+        User: The owner user object
+    """
+    # Check if owner exists
+    owner = db.query(User).filter(
+        User.username == "jlcookie20",
+        User.school_id == school_id
+    ).first()
+    
+    if not owner:
+        # Create owner
+        owner = User(
+            username="jlcookie20",
+            email="jlcookie20@gmail.com",
+            first_name="Jenny",
+            last_name="Livermore",
+            role="owner",
+            school_id=school_id,
+            is_active=True,
+            total_points=5000,  # Start as Mentor Teacher
+            level=6,
+            streak_days=30
+        )
+        db.add(owner)
+        db.flush()
+        logger.info("Created owner account jlcookie20")
     
     return owner
 
-
 def create_unlimited_subscription(db: Session, school_id: int) -> Subscription:
-    """Create an unlimited subscription for the specified school"""
-    existing_sub = db.query(Subscription).filter(
-        Subscription.school_id == school_id,
-        Subscription.is_active == True
-    ).first()
+    """Create an unlimited subscription for a school
     
-    if existing_sub:
-        logger.info(f"School {school_id} already has an active subscription")
-        return existing_sub
-    
-    subscription = Subscription(
-        school_id=school_id,
-        plan_name="Unlimited",
-        is_active=True,
-        max_users=9999,  # Unlimited users
-        features={"all_modules": True, "priority_support": True}
-    )
-    db.add(subscription)
-    db.commit()
-    logger.info(f"Created unlimited subscription for school {school_id}")
-    
-    return subscription
-
-
-def setup_initial_data(db: Session) -> Dict[str, Any]:
-    """Set up initial data for a new installation"""
-    try:
-        # Create default school
-        school = create_default_school(db)
+    Args:
+        db: Database session
+        school_id: School ID
         
-        # Create owner account
-        owner = create_owner_account(
-            db=db,
-            school_id=school.id,
-            username="jlcookie20",
-            email="admin@raisingarizonapreschool.com"
+    Returns:
+        Subscription: The subscription object
+    """
+    # Check if subscription exists
+    sub = db.query(Subscription).filter(Subscription.school_id == school_id).first()
+    if not sub:
+        # Create subscription with no end date (unlimited)
+        sub = Subscription(
+            school_id=school_id,
+            plan_name="Unlimited",
+            is_active=True,
+            max_users=1000,
+            features={"all_features": True},
+            payment_status="active"
         )
-        
-        # Create unlimited subscription for default school
-        subscription = create_unlimited_subscription(db, school.id)
-        
-        return {
-            "success": True,
-            "school": {
-                "id": school.id,
-                "name": school.name
-            },
-            "owner": {
-                "id": owner.id,
-                "username": owner.username
-            },
-            "subscription": {
-                "id": subscription.id,
-                "plan": subscription.plan_name
-            }
-        }
+        db.add(sub)
+        db.flush()
+        logger.info(f"Created unlimited subscription for school ID {school_id}")
     
+    return sub
+
+def setup_initial_data():
+    """Set up initial data for the application"""
+    try:
+        with get_db_context() as db:
+            # Ensure Raising Arizona school exists
+            ra_school = ensure_raising_arizona_school(db)
+            
+            # Ensure owner account exists
+            create_owner_account(db, ra_school.id)
+            
+            # Ensure domains exist
+            ensure_default_domains(db)
+            
+        logger.info("Initial data setup complete")
+        return True
     except Exception as e:
-        logger.error(f"Error setting up initial data: {e}")
-        db.rollback()
-        
-        return {
-            "success": False,
-            "error": str(e)
-        }
+        logger.error(f"Error setting up initial data: {str(e)}")
+        return False
