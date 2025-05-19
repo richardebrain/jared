@@ -5,9 +5,7 @@ This module provides functions to load questions from the database
 
 import random
 from sqlalchemy.orm import Session
-from sqlalchemy import func, distinct, desc
-from typing import List, Optional, Dict, Tuple, Any
-
+from sqlalchemy import func, select, and_
 from .models import Question
 
 def load_questions(db: Session, domain=None, difficulty=None, exclude_ids=None, limit=10):
@@ -26,7 +24,7 @@ def load_questions(db: Session, domain=None, difficulty=None, exclude_ids=None, 
     """
     query = db.query(Question)
     
-    # Apply filters
+    # Apply filters if provided
     if domain:
         query = query.filter(Question.domain == domain)
     
@@ -36,12 +34,13 @@ def load_questions(db: Session, domain=None, difficulty=None, exclude_ids=None, 
     if exclude_ids:
         query = query.filter(~Question.id.in_(exclude_ids))
     
-    # Get random questions up to the limit
-    # Note: This is not the most efficient way to get random rows,
-    # but it works for our purposes
-    questions = query.order_by(func.random()).limit(limit).all()
+    # Randomize the results
+    query = query.order_by(func.random())
     
-    return questions
+    # Limit the number of results
+    query = query.limit(limit)
+    
+    return query.all()
 
 def load_random_question(db: Session, domain=None, difficulty=None, exclude_ids=None):
     """
@@ -69,8 +68,8 @@ def get_domains(db: Session):
     Returns:
         List of domain strings
     """
-    domains = db.query(distinct(Question.domain)).all()
-    return [domain[0] for domain in domains if domain[0]]
+    domains = db.query(Question.domain).distinct().all()
+    return [domain[0] for domain in domains if domain[0]]  # Filter out None values
 
 def get_question_by_id(db: Session, question_id):
     """
@@ -95,11 +94,14 @@ def get_question_counts_by_domain(db: Session):
     Returns:
         Dictionary with domain names as keys and counts as values
     """
-    results = db.query(
-        Question.domain, func.count(Question.id)
-    ).group_by(Question.domain).all()
+    counts = {}
+    domains = get_domains(db)
     
-    return {domain: count for domain, count in results if domain}
+    for domain in domains:
+        count = db.query(func.count(Question.id)).filter(Question.domain == domain).scalar()
+        counts[domain] = count
+    
+    return counts
 
 def get_next_difficulty_level(db: Session, domain: str, current_difficulty: int, correct: bool):
     """
@@ -114,20 +116,18 @@ def get_next_difficulty_level(db: Session, domain: str, current_difficulty: int,
     Returns:
         Next difficulty level (int)
     """
-    # If Core Values or Mindful Morning, don't increase difficulty (always level 1)
+    # Special case for Core Values and Mindful Morning sections
     if domain in ["Core Values", "Mindful Morning"]:
-        return 1
+        return current_difficulty  # Keep the same difficulty
     
-    # Regular domains follow adaptive difficulty
-    max_difficulty = db.query(func.max(Question.difficulty)).filter(
-        Question.domain == domain
-    ).scalar() or 4
+    # Get the maximum difficulty level available for this domain
+    max_difficulty = db.query(func.max(Question.difficulty)).filter(Question.domain == domain).scalar() or 4
     
+    # If the answer was correct, increase difficulty (if not at max)
     if correct:
-        # Increase difficulty if correct (max 4)
         return min(current_difficulty + 1, max_difficulty)
     else:
-        # Decrease difficulty if wrong (min 1)
+        # If incorrect, decrease difficulty (if not at min)
         return max(current_difficulty - 1, 1)
 
 def get_domain_questions_count(db: Session, domain: str):
@@ -141,9 +141,7 @@ def get_domain_questions_count(db: Session, domain: str):
     Returns:
         Integer count of questions
     """
-    return db.query(func.count(Question.id)).filter(
-        Question.domain == domain
-    ).scalar()
+    return db.query(func.count(Question.id)).filter(Question.domain == domain).scalar()
 
 def get_question_difficulty_distribution(db: Session, domain: str):
     """
@@ -156,10 +154,14 @@ def get_question_difficulty_distribution(db: Session, domain: str):
     Returns:
         Dictionary with difficulty levels as keys and counts as values
     """
-    results = db.query(
-        Question.difficulty, func.count(Question.id)
-    ).filter(
-        Question.domain == domain
-    ).group_by(Question.difficulty).all()
+    distribution = {}
     
-    return {difficulty: count for difficulty, count in results}
+    for difficulty in range(1, 5):
+        count = db.query(func.count(Question.id)).filter(
+            Question.domain == domain,
+            Question.difficulty == difficulty
+        ).scalar()
+        
+        distribution[difficulty] = count
+    
+    return distribution
