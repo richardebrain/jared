@@ -14,9 +14,12 @@ export function useRequiredModules(modules: any[] = [], userProgress: any[] = []
     
     // IMPORTANT: Always include all four required onboarding modules
     // Find the four required modules by title (case insensitive)
-    // NOTE: Chapter 1 should replace Raising Arizona's CORE module which doesn't have content
     
-    // Use Chapter 1 as primary module (not CORE)
+    // Find both Raising Arizona's CORE and Chapter 1 modules
+    const coreModule = modules.find(m => 
+      m.title && m.title.toLowerCase().includes("core") && m.title.toLowerCase().includes("raising arizona")
+    );
+    
     const chapterOneModule = modules.find(m => 
       m.title && m.title.toLowerCase().includes("chapter 1") && m.title.toLowerCase().includes("building a human")
     );
@@ -32,13 +35,18 @@ export function useRequiredModules(modules: any[] = [], userProgress: any[] = []
     // Create a list of always-required module IDs
     const requiredOnboardingIds = [];
     
-    // Add the required training modules - prioritize Chapter 1 over CORE
+    // Add the four required training modules
+    if (coreModule?.id) requiredOnboardingIds.push(coreModule.id);
     if (chapterOneModule?.id) requiredOnboardingIds.push(chapterOneModule.id);
     if (mindfulMorningsModule?.id) requiredOnboardingIds.push(mindfulMorningsModule.id);
     if (healthSafetyModule?.id) requiredOnboardingIds.push(healthSafetyModule.id);
     
     // Alternate search with explicit IDs (as fallback)
-    // Always ensure Chapter 1 (ID 34) is included
+    // Always ensure both CORE and Chapter 1 are included
+    if (!coreModule && modules.find(m => m.id === 33)) {
+      requiredOnboardingIds.push(33); // Raising Arizona's CORE id
+    }
+    
     if (!chapterOneModule && modules.find(m => m.id === 34)) {
       requiredOnboardingIds.push(34); // Chapter 1: Building a Human id
     }
