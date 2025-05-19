@@ -110,90 +110,105 @@ export default function Register() {
           email: data.email.trim(),
         };
         
-        // Regular user registration (always register user first for simplicity)
-        console.log("Registering user");
+        console.log("Registration step 1: Creating regular user account");
         
-        // For school owners, we'll use the default school and then update later
-        // This avoids the issue with creating schools causing freezing
-        const regData = {
-          ...cleanData,
-          // Set schoolId to 1 (Raising Arizona) by default
-          // We'll update this after user creation if they're a school owner
-          schoolId: 1,
-          isSchoolAdmin: data.isSchoolOwner
+        // SIMPLIFIED: Always register as a normal user first 
+        // WITHOUT any business owner fields - this avoids the freezing issue
+        const simpleRegData = {
+          username: cleanData.username,
+          password: cleanData.password,
+          firstName: cleanData.firstName,
+          lastName: cleanData.lastName,
+          email: cleanData.email,
+          language: cleanData.language || "English",
+          nativeLanguage: cleanData.nativeLanguage || "English",
+          timeZone: cleanData.timeZone || "UTC-05:00",
+          schoolId: 1, // Always start with Raising Arizona
+          isSchoolAdmin: false // We'll update this later if needed
         };
         
-        console.log("Sending registration data:", { 
-          ...regData,
-          password: "***" // Don't log actual password
-        });
+        console.log("Sending basic registration data first");
         
-        // Register the user with default school first
+        // Register ONLY the user first - no school creation
         const userResponse = await apiRequest("/api/auth/register", {
           method: "POST",
-          data: regData
+          data: simpleRegData
         });
         
-        // If this is a school owner, we'll create their school after user creation
+        console.log("User account created successfully:", userResponse.id);
+        
+        // If this is a school owner, we'll handle that separately after the user is created
         if (data.isSchoolOwner && data.schoolName && data.adminPassword) {
-          console.log("User registered, now creating school for owner");
+          console.log("Registration step 2: Creating school for owner");
           
-          try {
-            // Create the school
-            const schoolData = {
-              name: data.schoolName.trim(),
-              adminPasswordHash: data.adminPassword.trim(),
-              contactEmail: data.email.trim(),
-              contactPhone: '',
-              address: '',
-              city: '',
-              state: '',
-              zipCode: '',
-              customization: {
-                primaryColor: "#1e88e5",
-                secondaryColor: "#ffca28",
-                accentColor: "#ff5722"
-              }
-            };
-            
-            // Create school
-            const schoolResponse = await apiRequest("/api/schools/create", {
-              method: "POST", 
-              data: schoolData
-            });
-            
-            console.log("School created successfully:", schoolResponse);
-            
-            // Update the user's school ID 
-            if (schoolResponse && schoolResponse.id) {
-              console.log("Updating user school ID to:", schoolResponse.id);
-              
-              await apiRequest(`/api/users/${userResponse.id}/update-school`, {
-                method: "PATCH",
-                data: {
-                  schoolId: schoolResponse.id,
-                  isSchoolAdmin: true
+          // Complete this part asynchronously - don't wait for it to complete
+          // This ensures we return the user data even if the school creation fails
+          setTimeout(async () => {
+            try {
+              // Create the school
+              const schoolData = {
+                name: data.schoolName.trim(),
+                adminPasswordHash: data.adminPassword.trim(),
+                contactEmail: data.email.trim(),
+                contactPhone: '',
+                address: '',
+                city: '',
+                state: '',
+                zipCode: '',
+                customization: {
+                  primaryColor: "#1e88e5",
+                  secondaryColor: "#ffca28",
+                  accentColor: "#ff5722"
                 }
+              };
+              
+              console.log("Creating school:", schoolData.name);
+              
+              // Create school
+              const schoolResponse = await apiRequest("/api/schools/create", {
+                method: "POST", 
+                data: schoolData
               });
               
-              // Upload logo if we have one
-              if (schoolLogo) {
-                console.log("Uploading school logo");
-                const formData = new FormData();
-                formData.append('logo', schoolLogo);
-                formData.append('schoolId', schoolResponse.id.toString());
+              console.log("School created successfully:", schoolResponse);
+              
+              // Update the user's school ID
+              if (schoolResponse && schoolResponse.id) {
+                console.log("Updating user school ID to:", schoolResponse.id);
                 
-                await fetch('/api/schools/logo', {
-                  method: 'POST',
-                  body: formData
+                await apiRequest(`/api/users/${userResponse.id}/update-school`, {
+                  method: "PATCH",
+                  data: {
+                    schoolId: schoolResponse.id,
+                    isSchoolAdmin: true
+                  }
                 });
+                
+                console.log("User updated with new school ID");
+                
+                // Upload logo if we have one
+                if (schoolLogo) {
+                  console.log("Uploading school logo");
+                  const formData = new FormData();
+                  formData.append('logo', schoolLogo);
+                  formData.append('schoolId', schoolResponse.id.toString());
+                  
+                  await fetch('/api/schools/logo', {
+                    method: 'POST',
+                    body: formData
+                  });
+                  
+                  console.log("Logo uploaded successfully");
+                }
+                
+                // Clear recovery data as everything worked
+                localStorage.removeItem("recoveryFormData");
               }
+            } catch (schoolError) {
+              console.error("Error in async school creation:", schoolError);
+              // No throw - this runs after the user is already created
             }
-          } catch (schoolError) {
-            console.error("Error creating/updating school:", schoolError);
-            // We don't throw here because the user was created successfully
-            // Just log the error and continue
-          }
+          }, 100); // Small delay to ensure user registration completes first
         }
         
         return userResponse;
@@ -243,8 +258,31 @@ export default function Register() {
   });
 
   // Form submission handler
-  function onSubmit(values: z.infer<typeof registerSchema>) {
-    register(values);
+  async function onSubmit(values: z.infer<typeof registerSchema>) {
+    try {
+      // Add detailed logging to track where freezing occurs
+      console.log("Starting registration process...");
+      
+      // Save form data temporarily for debugging
+      if (values.isSchoolOwner) {
+        console.log("Registering as school owner");
+        // Save recovery data in case of page freeze
+        const recoveryData = {
+          ...values,
+          password: "[REDACTED]",
+          adminPassword: values.adminPassword ? "[REDACTED]" : undefined,
+          timestamp: new Date().toISOString()
+        };
+        localStorage.setItem("recoveryFormData", JSON.stringify(recoveryData));
+      }
+      
+      console.log("Submitting registration...");
+      await register(values);
+      console.log("Registration successful!");
+    } catch (error) {
+      console.error("Registration submission error:", error);
+      // Try to recover data later if needed
+    }
   }
 
   // No need to manually set defaults anymore as we're using default values
