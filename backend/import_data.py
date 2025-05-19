@@ -3,18 +3,21 @@ Data import module for the MentorMe assessment system
 This module provides functions to import questions from CSV files
 """
 
+import os
 import csv
 import json
 import logging
 from typing import Dict, Any, List, Optional
-
 from sqlalchemy.orm import Session
 
-from .database import SessionLocal
-from .models import Question
+from backend.database import get_db
+from backend.models import Question
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
 logger = logging.getLogger("import_data")
 
 def parse_options_from_csv(row: Dict[str, Any]) -> Dict[str, str]:
@@ -28,14 +31,13 @@ def parse_options_from_csv(row: Dict[str, Any]) -> Dict[str, str]:
         Dictionary of options
     """
     options = {}
+    option_keys = ['option_a', 'option_b', 'option_c', 'option_d', 'option_e', 'option_f']
     
-    # Check for option keys (option_a, option_b, etc.)
-    for key in row.keys():
-        if key.startswith("option_") and row[key]:
-            # Extract the option letter (a, b, c, etc.)
-            option_letter = key.split("_")[1].upper()
-            options[option_letter] = row[key]
-    
+    for i, key in enumerate(option_keys):
+        if key in row and row[key]:
+            # Use A, B, C, etc. as the option keys
+            options[chr(65 + i)] = row[key]
+            
     return options
 
 def parse_tags_from_csv(row: Dict[str, Any]) -> List[str]:
@@ -49,12 +51,9 @@ def parse_tags_from_csv(row: Dict[str, Any]) -> List[str]:
         List of tags
     """
     tags = []
-    
-    # Check for tags column
-    if "tags" in row and row["tags"]:
-        # Split by comma
-        tags = [tag.strip() for tag in row["tags"].split(",")]
-    
+    if 'tags' in row and row['tags']:
+        # Split tags by comma and trim whitespace
+        tags = [tag.strip() for tag in row['tags'].split(',')]
     return tags
 
 def parse_enhanced_content_from_csv(row: Dict[str, Any]) -> Dict[str, Any]:
@@ -67,18 +66,36 @@ def parse_enhanced_content_from_csv(row: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Dictionary of enhanced content
     """
-    # If enhanced_content is directly provided as JSON
-    if "enhanced_content" in row and row["enhanced_content"]:
-        try:
-            if isinstance(row["enhanced_content"], str):
-                return json.loads(row["enhanced_content"])
-            elif isinstance(row["enhanced_content"], dict):
-                return row["enhanced_content"]
-        except json.JSONDecodeError:
-            logger.warning(f"Invalid JSON in enhanced_content for question '{row.get('question', 'Unknown')}'")
+    enhanced_content = {}
     
-    # Otherwise, return empty dict
-    return {}
+    # Add explanation if available
+    if 'explanation' in row and row['explanation']:
+        enhanced_content['explanation'] = row['explanation']
+    
+    # Add hints if available
+    if 'hints' in row and row['hints']:
+        enhanced_content['hints'] = row['hints']
+    
+    # Add resources if available
+    if 'resources' in row and row['resources']:
+        resources = []
+        # Check if resources are in format "title|url, title|url"
+        resource_items = row['resources'].split(',')
+        
+        for item in resource_items:
+            parts = item.strip().split('|')
+            if len(parts) == 2:
+                resources.append({
+                    'title': parts[0].strip(),
+                    'url': parts[1].strip()
+                })
+            else:
+                # Just add as a simple string if not in title|url format
+                resources.append({'title': item.strip(), 'url': None})
+        
+        enhanced_content['resources'] = resources
+    
+    return enhanced_content
 
 def create_question_from_csv_row(row: Dict[str, Any]) -> Question:
     """
@@ -99,19 +116,45 @@ def create_question_from_csv_row(row: Dict[str, Any]) -> Question:
     # Parse enhanced content
     enhanced_content = parse_enhanced_content_from_csv(row)
     
+    # Map CSV question type to internal type
+    question_type = row.get('question_type', '').lower()
+    if question_type not in ['multiple_choice', 'true_false', 'short_answer']:
+        # Default to multiple choice if not specified or not a recognized type
+        question_type = 'multiple_choice'
+        
+    # Determine difficulty level (1-5)
+    try:
+        difficulty = int(row.get('difficulty', 1))
+        if difficulty < 1 or difficulty > 5:
+            difficulty = 1
+    except (ValueError, TypeError):
+        difficulty = 1
+    
+    # Determine time limit
+    try:
+        time_limit = int(row.get('time_limit', 60))
+    except (ValueError, TypeError):
+        time_limit = 60
+    
+    # Determine points
+    try:
+        points = int(row.get('points', 10))
+    except (ValueError, TypeError):
+        points = 10
+    
     # Create and return the question
     return Question(
-        question=row.get("question", ""),
-        correct_answer=row.get("correct_answer", ""),
-        options=json.dumps(options) if options else None,
-        q_type=row.get("question_type", "multiple_choice"),
-        difficulty=int(row.get("difficulty", 1)),
-        domain=row.get("domain", "General"),
-        sub_domain=row.get("sub_domain"),
-        tags=json.dumps(tags) if tags else None,
-        enhanced_content=json.dumps(enhanced_content) if enhanced_content else None,
-        time_limit=int(row.get("time_limit", 60)),
-        points=int(row.get("points", 10))
+        question=row['question'],
+        correct_answer=row['correct_answer'],
+        options=json.dumps(options),
+        q_type=question_type,
+        difficulty=difficulty,
+        domain=row.get('domain', 'General'),
+        sub_domain=row.get('sub_domain', None),
+        tags=json.dumps(tags),
+        enhanced_content=json.dumps(enhanced_content),
+        time_limit=time_limit,
+        points=points
     )
 
 def import_questions_from_csv(
@@ -128,60 +171,65 @@ def import_questions_from_csv(
     Returns:
         Number of questions imported
     """
-    # Create session if not provided
     close_db = False
-    if db is None:
-        db = SessionLocal()
-        close_db = True
+    imported_count = 0
+    
+    if not os.path.exists(file_path):
+        logger.error(f"File not found: {file_path}")
+        return 0
     
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
+        # Open database session if not provided
+        if db is None:
+            close_db = True
+            db = next(get_db())
+        
+        with open(file_path, 'r', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
             
-            # Check required columns
-            required_columns = ["question", "correct_answer"]
-            for col in required_columns:
-                if col not in reader.fieldnames:
-                    raise ValueError(f"CSV file missing required column: {col}")
-            
-            # Process each row
-            count = 0
-            error_count = 0
-            
+            # Track questions to detect duplicates
+            existing_questions = {}
             for row in reader:
+                # Skip rows without required fields
+                if 'question' not in row or not row['question'] or 'correct_answer' not in row:
+                    logger.warning(f"Skipping row with missing required fields: {row}")
+                    continue
+                
+                # Check for duplicate questions
+                question_text = row['question'].strip()
+                if question_text in existing_questions:
+                    logger.warning(f"Skipping duplicate question: {question_text}")
+                    continue
+                
+                # Check if question already exists in the database
+                existing_db_question = db.query(Question).filter(
+                    Question.question == question_text
+                ).first()
+                
+                if existing_db_question:
+                    logger.warning(f"Question already exists in database: {question_text}")
+                    continue
+                
+                # Create and add the question
                 try:
-                    # Skip empty rows
-                    if not row.get("question"):
-                        continue
-                    
-                    # Create question from row
                     question = create_question_from_csv_row(row)
-                    
-                    # Add to session
                     db.add(question)
-                    
-                    # Increment counter
-                    count += 1
-                    
-                    # Log
-                    logger.info(f"Added new question: {question.question[:50]}...")
+                    existing_questions[question_text] = True
+                    imported_count += 1
                 except Exception as e:
-                    error_count += 1
-                    logger.error(f"Error importing question: {e}")
+                    logger.error(f"Error creating question from row: {e}")
+                    continue
             
-            # Commit changes
+            # Commit the transaction
             db.commit()
+            logger.info(f"Successfully imported {imported_count} questions from {file_path}")
             
-            # Log results
-            logger.info(f"Import completed. Imported {count} questions with {error_count} errors")
-            
-            return count
-    
     except Exception as e:
-        db.rollback()
-        logger.error(f"Error importing CSV: {e}")
-        raise
-    
+        logger.error(f"Error importing questions from {file_path}: {e}")
+        if db and close_db:
+            db.rollback()
     finally:
-        if close_db:
+        if db and close_db:
             db.close()
+    
+    return imported_count

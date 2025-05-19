@@ -1,63 +1,37 @@
 """
-Main FastAPI application for the MentorMe assessment API
+Main entry point for the MentorMe Assessment API
 """
 
+import os
 import logging
-from fastapi import FastAPI, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-
-from .database import get_db
-from .server import app as api_router
+from fastapi import FastAPI
+from .server import get_app
+from .database import setup_database
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
 logger = logging.getLogger("main")
 
+# Initialize database
+try:
+    setup_database()
+    logger.info("Database setup complete")
+except Exception as e:
+    logger.error(f"Error setting up database: {e}")
+    raise
+
 # Create FastAPI app
-app = FastAPI(
-    title="MentorMe Enhanced Assessment API",
-    description="API for adaptive assessment and learning path generation for early childhood educators",
-    version="1.0.0"
-)
+app = get_app()
 
-# Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins in development
-    allow_credentials=True,
-    allow_methods=["*"],  # Allow all methods
-    allow_headers=["*"],  # Allow all headers
-)
-
-# Include API routes
-app.include_router(api_router, prefix="/api/assessment")
-
-# Root endpoint
-@app.get("/")
-async def root():
-    """Root endpoint for the API"""
-    return {
-        "message": "MentorMe Enhanced Assessment API",
-        "version": "1.0.0",
-        "status": "active"
-    }
-
-# Health check endpoint
-@app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    return {"status": "healthy"}
-
-# Readiness check endpoint
-@app.get("/ready")
-async def ready_check():
-    """Readiness check endpoint"""
-    try:
-        # Check database connection
-        db = next(get_db())
-        db.execute("SELECT 1")
-        return {"status": "ready", "database": "connected"}
-    except Exception as e:
-        logger.error(f"Database connection check failed: {str(e)}")
-        return {"status": "not ready", "database": "disconnected", "error": str(e)}
+# If running this file directly as a module
+if __name__ == "__main__":
+    import uvicorn
+    
+    # Get port from environment variable or use 8000 as default
+    port = int(os.getenv("PORT", 8000))
+    
+    logger.info(f"Starting MentorMe Assessment API on port {port}")
+    uvicorn.run("backend.main:app", host="0.0.0.0", port=port, reload=True)
