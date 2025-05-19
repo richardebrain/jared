@@ -1,95 +1,137 @@
 """
-FastAPI server for assessment API endpoints
+FastAPI server for the MentorMe assessment system
 """
 
 import logging
 import json
+from typing import Dict, List, Any, Optional
+from pathlib import Path
 from datetime import datetime
-from typing import List, Dict, Any, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, Depends, HTTPException, Body, Query, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-from .database import get_db
+from .database import get_db, setup_database
 from .models import Question, UserPerformance, UserDomainProgress, AssessmentSession
 from .loader import (
     load_questions, 
-    load_random_question,
-    get_domains,
-    get_question_by_id,
+    load_random_question, 
+    get_domains, 
+    get_question_by_id, 
     get_random_question_with_adaptive_difficulty,
-    update_user_performance,
     generate_answer_feedback,
-    LearningPath,
-    QuestionResponse,
-    AnswerFeedback
+    LearningPath
 )
+from .import_data import import_questions_from_csv
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("server")
 
-# Create router
-app = APIRouter(tags=["assessment"])
+# Create FastAPI app
+app = FastAPI(title="MentorMe Assessment API")
 
-# Pydantic models for request and response validation
-class AnswerSubmission(BaseModel):
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, replace with specific origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Pydantic models for API
+class QuestionRequest(BaseModel):
+    domain: Optional[str] = None
+    difficulty: Optional[int] = None
+    exclude_ids: Optional[List[int]] = []
+
+class AnswerRequest(BaseModel):
     question_id: int
     user_answer: str
     user_id: int
     domain: str
-    current_difficulty: int
     time_taken: Optional[int] = None
+    current_difficulty: int = 1
 
-class AssessmentStartRequest(BaseModel):
+class AssessmentRequest(BaseModel):
     user_id: int
     domain: Optional[str] = None
 
-class AssessmentProgress(BaseModel):
+class AssessmentCompleteRequest(BaseModel):
+    session_id: int
+    user_id: int
+    domain: Optional[str] = None
     questions_asked: int
     questions_correct: int
-    domain: str
-    current_difficulty: int
-    excluded_question_ids: List[int] = Field(default_factory=list)
+    total_points: int
 
-# Endpoints
+class DomainProgressRequest(BaseModel):
+    user_id: int
+    domain: str
+
+# Startup event
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database on startup"""
+    try:
+        setup_database()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Error initializing database: {e}")
+
+# Routes
+@app.get("/")
+async def root():
+    """API root endpoint"""
+    return {"message": "MentorMe Assessment API", "version": "1.0.0"}
+
 @app.get("/questions")
 async def get_questions(
     domain: Optional[str] = None,
     difficulty: Optional[int] = None,
-    exclude_ids: Optional[str] = None,
     limit: int = 10,
     db: Session = Depends(get_db)
 ):
-    """
-    Get a list of questions based on filters
-    """
+    """Get a list of questions"""
     try:
-        # Parse exclude_ids if provided
-        excluded = []
-        if exclude_ids:
-            try:
-                excluded = [int(id) for id in exclude_ids.split(",")]
-            except ValueError:
-                raise HTTPException(status_code=400, detail="Invalid exclude_ids format")
-        
         questions = load_questions(
             db=db,
             domain=domain,
             difficulty=difficulty,
-            exclude_ids=excluded,
             limit=limit
         )
-        
-        # Return sanitized questions without answers
-        return {
-            "questions": [q.sanitize_for_api() for q in questions],
-            "count": len(questions)
-        }
+        return {"questions": [q.sanitize_for_api() for q in questions]}
     except Exception as e:
-        logger.error(f"Error getting questions: {str(e)}")
+        logger.error(f"Error getting questions: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/questions/random")
+async def get_random_question(
+    request: QuestionRequest = Body(...),
+    db: Session = Depends(get_db)
+):
+    """Get a random question"""
+    try:
+        question = load_random_question(
+            db=db,
+            domain=request.domain,
+            difficulty=request.difficulty,
+            exclude_ids=request.exclude_ids
+        )
+        
+        if not question:
+            raise HTTPException(status_code=404, detail="No matching questions found")
+        
+        return {"question": question.sanitize_for_api()}
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        logger.error(f"Error getting random question: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/questions/{question_id}")
@@ -97,104 +139,108 @@ async def get_question(
     question_id: int,
     db: Session = Depends(get_db)
 ):
-    """
-    Get a specific question by ID
-    """
+    """Get a specific question by ID"""
     try:
-        question = get_question_by_id(db, question_id)
+        question = get_question_by_id(db=db, question_id=question_id)
+        
         if not question:
-            raise HTTPException(status_code=404, detail="Question not found")
-            
-        return question.sanitize_for_api()
+            raise HTTPException(status_code=404, detail=f"Question {question_id} not found")
+        
+        return {"question": question.sanitize_for_api()}
     except HTTPException:
+        # Re-raise HTTP exceptions
         raise
     except Exception as e:
-        logger.error(f"Error getting question {question_id}: {str(e)}")
+        logger.error(f"Error getting question {question_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/domains")
-async def get_all_domains(
-    db: Session = Depends(get_db)
-):
-    """
-    Get a list of all available domains
-    """
-    try:
-        domains = get_domains(db)
-        return {"domains": domains}
-    except Exception as e:
-        logger.error(f"Error getting domains: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/submit-answer")
+@app.post("/questions/answer")
 async def submit_answer(
-    submission: AnswerSubmission,
+    request: AnswerRequest = Body(...),
     db: Session = Depends(get_db)
 ):
-    """
-    Submit an answer for a question and get feedback
-    """
+    """Submit an answer to a question"""
     try:
         # Get the question
-        question = get_question_by_id(db, submission.question_id)
+        question = get_question_by_id(db=db, question_id=request.question_id)
+        
         if not question:
-            raise HTTPException(status_code=404, detail="Question not found")
+            raise HTTPException(status_code=404, detail=f"Question {request.question_id} not found")
         
-        # Generate feedback
-        feedback = generate_answer_feedback(
-            db=db,
-            question=question,
-            user_answer=submission.user_answer,
-            user_id=submission.user_id,
-            domain=submission.domain,
-            current_difficulty=submission.current_difficulty
-        )
+        # Check if the answer is correct
+        is_correct = question.is_correct_answer(request.user_answer)
         
-        # Record performance
+        # Calculate points earned
+        points_earned = question.calculate_points(is_correct, request.time_taken)
+        
+        # Record the performance
         performance = UserPerformance(
-            user_id=submission.user_id,
-            domain=submission.domain,
-            question_id=submission.question_id,
-            is_correct=feedback.correct,
-            difficulty=submission.current_difficulty,
-            points_earned=question.calculate_points(
-                feedback.correct, 
-                submission.time_taken
-            ),
-            time_taken=submission.time_taken
+            user_id=request.user_id,
+            domain=request.domain,
+            question_id=request.question_id,
+            is_correct=is_correct,
+            difficulty=question.difficulty,
+            points_earned=points_earned,
+            time_taken=request.time_taken
         )
         
         db.add(performance)
         
-        # Update user domain progress
-        progress = update_user_performance(
+        # Update assessment session if it exists
+        session = db.query(AssessmentSession).filter(
+            AssessmentSession.user_id == request.user_id,
+            AssessmentSession.is_completed == False
+        ).order_by(AssessmentSession.started_at.desc()).first()
+        
+        if session:
+            session.questions_asked += 1
+            if is_correct:
+                session.questions_correct += 1
+            session.total_points += points_earned
+        
+        # Generate personalized feedback
+        feedback = generate_answer_feedback(
             db=db,
-            user_id=submission.user_id,
-            domain=submission.domain,
-            is_correct=feedback.correct,
-            difficulty=submission.current_difficulty
+            question=question,
+            user_answer=request.user_answer,
+            user_id=request.user_id,
+            domain=request.domain,
+            current_difficulty=request.current_difficulty
         )
         
         # Commit changes
         db.commit()
         
-        # Return feedback
-        return feedback.to_dict()
+        # Return response
+        return {
+            "is_correct": is_correct,
+            "points_earned": points_earned,
+            "feedback": feedback.to_dict()
+        }
     except HTTPException:
+        # Re-raise HTTP exceptions
         raise
     except Exception as e:
-        logger.error(f"Error submitting answer: {str(e)}")
         db.rollback()
+        logger.error(f"Error submitting answer: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/start-assessment")
+@app.get("/domains")
+async def get_all_domains(db: Session = Depends(get_db)):
+    """Get a list of all available domains"""
+    try:
+        domains = get_domains(db=db)
+        return {"domains": domains}
+    except Exception as e:
+        logger.error(f"Error getting domains: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/assessment/start")
 async def start_assessment(
-    request: AssessmentStartRequest,
+    request: AssessmentRequest = Body(...),
     db: Session = Depends(get_db)
 ):
-    """
-    Start a new assessment session
-    """
+    """Start a new assessment session"""
     try:
         # Create a new assessment session
         session = AssessmentSession(
@@ -203,186 +249,259 @@ async def start_assessment(
             is_completed=False,
             questions_asked=0,
             questions_correct=0,
-            total_points=0
+            total_points=0,
+            started_at=datetime.utcnow()
         )
         
         db.add(session)
         db.commit()
         
-        return {
-            "session_id": session.id,
-            "user_id": session.user_id,
-            "domain": session.domain,
-            "started_at": session.started_at.isoformat() if session.started_at else None
-        }
+        # Refresh to get the ID
+        db.refresh(session)
+        
+        return {"session": session.to_dict()}
     except Exception as e:
-        logger.error(f"Error starting assessment: {str(e)}")
         db.rollback()
+        logger.error(f"Error starting assessment: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/next-question")
-async def get_next_question(
-    user_id: int,
-    domain: str,
-    performance: float = 0.5,
-    exclude_ids: Optional[str] = None,
-    db: Session = Depends(get_db)
-):
-    """
-    Get the next question with adaptive difficulty
-    """
-    try:
-        # Parse exclude_ids if provided
-        excluded = []
-        if exclude_ids:
-            try:
-                excluded = [int(id) for id in exclude_ids.split(",")]
-            except ValueError:
-                raise HTTPException(status_code=400, detail="Invalid exclude_ids format")
-        
-        # Get next question with adaptive difficulty
-        question, finished = get_random_question_with_adaptive_difficulty(
-            db=db,
-            domain=domain,
-            user_performance=performance,
-            exclude_ids=excluded
-        )
-        
-        if finished:
-            return {
-                "status": "complete",
-                "assessment_complete": True,
-                "message": "Assessment for this domain is complete"
-            }
-        
-        if not question:
-            return {
-                "status": "error",
-                "message": "No questions available for this domain"
-            }
-            
-        # Return sanitized question
-        return {
-            "status": "success",
-            **question.sanitize_for_api()
-        }
-    except Exception as e:
-        logger.error(f"Error getting next question: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/complete-assessment")
+@app.post("/assessment/complete")
 async def complete_assessment(
-    session_id: int,
+    request: AssessmentCompleteRequest = Body(...),
     db: Session = Depends(get_db)
 ):
-    """
-    Complete an assessment session and generate a learning path
-    """
+    """Complete an assessment session and generate a learning path"""
     try:
         # Get the session
         session = db.query(AssessmentSession).filter(
-            AssessmentSession.id == session_id
+            AssessmentSession.id == request.session_id,
+            AssessmentSession.user_id == request.user_id
         ).first()
         
         if not session:
-            raise HTTPException(status_code=404, detail="Assessment session not found")
+            raise HTTPException(status_code=404, detail=f"Assessment session {request.session_id} not found")
         
-        # Mark session as completed
+        # Update session
         session.is_completed = True
+        session.questions_asked = request.questions_asked
+        session.questions_correct = request.questions_correct
+        session.total_points = request.total_points
         session.completed_at = datetime.utcnow()
         
-        # Update session totals from performances
-        performances = db.query(UserPerformance).filter(
-            UserPerformance.user_id == session.user_id
-        ).all()
+        # Get domain performances
+        if request.domain:
+            # Single domain assessment
+            domains = [request.domain]
+        else:
+            # Multi-domain assessment
+            domains = get_domains(db=db)
         
-        questions_asked = len(performances)
-        questions_correct = sum(1 for p in performances if p.is_correct)
-        total_points = sum(p.points_earned for p in performances)
+        # Get progress for each domain
+        domain_progress = {}
+        for domain in domains:
+            progress = db.query(UserDomainProgress).filter(
+                UserDomainProgress.user_id == request.user_id,
+                UserDomainProgress.domain == domain
+            ).first()
+            
+            if progress:
+                domain_progress[domain] = progress.to_dict()
         
-        session.questions_asked = questions_asked
-        session.questions_correct = questions_correct
-        session.total_points = total_points
+        # Calculate domain scores
+        domain_scores = {}
+        for domain, progress in domain_progress.items():
+            if progress["questions_answered"] > 0:
+                score = progress["questions_correct"] / progress["questions_answered"]
+            else:
+                score = 0
+            domain_scores[domain] = round(score * 100, 1)
         
         # Find strongest and weakest domains
-        domain_performances = db.query(UserDomainProgress).filter(
-            UserDomainProgress.user_id == session.user_id
-        ).all()
-        
-        # Default values
-        strongest_domain = "General"
-        weakest_domain = "General"
-        domain_scores = {}
-        
-        if domain_performances:
-            # Get scores for each domain
-            domain_scores = {
-                dp.domain: dp.performance_score for dp in domain_performances
-            }
-            
-            # Find strongest and weakest domains
-            if domain_scores:
-                strongest_domain = max(domain_scores.items(), key=lambda x: x[1])[0]
-                weakest_domain = min(domain_scores.items(), key=lambda x: x[1])[0]
+        if domain_scores:
+            strongest_domain = max(domain_scores.items(), key=lambda x: x[1])[0]
+            weakest_domain = min(domain_scores.items(), key=lambda x: x[1])[0]
+        else:
+            strongest_domain = "General"
+            weakest_domain = "General"
         
         # Generate learning path recommendations
         learning_path = {
-            "high_priority": [
-                f"Review key concepts in {weakest_domain}",
-                f"Complete practice exercises in {weakest_domain}"
+            "recommended_modules": [
+                f"Module on {weakest_domain}",
+                f"Advanced concepts in {strongest_domain}"
             ],
-            "medium_priority": [
-                f"Strengthen understanding in related domains",
-                f"Apply knowledge in practical scenarios"
-            ],
-            "future_growth": [
-                f"Explore advanced topics in {strongest_domain}",
-                f"Connect concepts across domains"
+            "practice_areas": [weakest_domain],
+            "resources": [
+                {
+                    "title": f"Introduction to {weakest_domain}",
+                    "type": "video",
+                    "url": f"/videos/{weakest_domain.lower().replace(' ', '_')}_intro"
+                },
+                {
+                    "title": f"Practice exercises for {weakest_domain}",
+                    "type": "quiz",
+                    "url": f"/exercises/{weakest_domain.lower().replace(' ', '_')}"
+                }
             ]
         }
         
-        # Create learning path response
+        # Create learning path object
         path = LearningPath(
             learning_path=learning_path,
             domain_scores=domain_scores,
-            questions_asked=questions_asked,
-            questions_correct=questions_correct,
+            questions_asked=request.questions_asked,
+            questions_correct=request.questions_correct,
             strongest_domain=strongest_domain,
             weakest_domain=weakest_domain,
-            user_name=None,  # Will be filled in by function
-            total_points_earned=total_points
+            total_points_earned=request.total_points
         )
         
         # Commit changes
         db.commit()
         
-        return path.to_dict()
+        return {
+            "session": session.to_dict(),
+            "learning_path": path.to_dict()
+        }
     except HTTPException:
+        # Re-raise HTTP exceptions
         raise
     except Exception as e:
-        logger.error(f"Error completing assessment: {str(e)}")
         db.rollback()
+        logger.error(f"Error completing assessment: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/user-progress/{user_id}")
+@app.post("/assessment/adaptive-question")
+async def get_adaptive_question(
+    user_id: int = Body(...),
+    domain: str = Body(...),
+    exclude_ids: List[int] = Body([]),
+    db: Session = Depends(get_db)
+):
+    """Get a question with adaptive difficulty based on user performance"""
+    try:
+        # Get user progress for this domain
+        progress = db.query(UserDomainProgress).filter(
+            UserDomainProgress.user_id == user_id,
+            UserDomainProgress.domain == domain
+        ).first()
+        
+        # Default performance if no progress exists
+        user_performance = 0.5  # Start at middle difficulty
+        if progress:
+            user_performance = progress.performance_score
+        
+        # Get adaptive question
+        question, is_finished = get_random_question_with_adaptive_difficulty(
+            db=db,
+            domain=domain,
+            user_performance=user_performance,
+            exclude_ids=exclude_ids,
+            max_questions_per_domain=15  # Adjust as needed
+        )
+        
+        if not question:
+            return {
+                "finished": True,
+                "message": f"No more questions available for domain: {domain}"
+            }
+        
+        return {
+            "question": question.sanitize_for_api(),
+            "finished": is_finished,
+            "current_difficulty": question.difficulty,
+            "performance": user_performance
+        }
+    except Exception as e:
+        logger.error(f"Error getting adaptive question: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/progress/{user_id}")
 async def get_user_progress(
     user_id: int,
     db: Session = Depends(get_db)
 ):
-    """
-    Get a user's progress across all domains
-    """
+    """Get a user's progress across all domains"""
     try:
-        # Get all domain progress
-        progress = db.query(UserDomainProgress).filter(
+        # Get all progress records for this user
+        progress_records = db.query(UserDomainProgress).filter(
             UserDomainProgress.user_id == user_id
         ).all()
         
-        results = {}
-        for p in progress:
-            results[p.domain] = p.to_dict()
-            
-        return results
+        # Convert to dictionary
+        progress = {record.domain: record.to_dict() for record in progress_records}
+        
+        # Get total points
+        total_points = sum(record.total_points for record in progress_records)
+        
+        # Calculate level based on points
+        level = 1
+        if total_points >= 3500:
+            level = 6  # Mentor Teacher
+        elif total_points >= 2500:
+            level = 5  # Master Lead Teacher
+        elif total_points >= 1500:
+            level = 4  # Lead Teacher
+        elif total_points >= 800:
+            level = 3  # Associate Teacher
+        elif total_points >= 300:
+            level = 2  # Assistant Teacher
+        
+        # Get level name
+        level_names = {
+            1: "Teacher in Training",
+            2: "Assistant Teacher",
+            3: "Associate Teacher",
+            4: "Lead Teacher",
+            5: "Master Lead Teacher",
+            6: "Mentor Teacher"
+        }
+        
+        level_name = level_names.get(level, "Unknown")
+        
+        # Calculate bear bucks
+        bear_bucks = total_points // 50
+        
+        return {
+            "user_id": user_id,
+            "progress": progress,
+            "total_points": total_points,
+            "level": level,
+            "level_name": level_name,
+            "bear_bucks": bear_bucks,
+            "domains_mastered": sum(1 for record in progress_records if record.mastered)
+        }
     except Exception as e:
-        logger.error(f"Error getting user progress: {str(e)}")
+        logger.error(f"Error getting user progress: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/import/questions")
+async def import_questions(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    """Import questions from a CSV file"""
+    try:
+        # Save the uploaded file
+        temp_file = Path("temp_upload.csv")
+        with open(temp_file, "wb") as f:
+            f.write(await file.read())
+        
+        # Import questions
+        count = import_questions_from_csv(
+            file_path=str(temp_file),
+            db=db
+        )
+        
+        # Delete the temporary file
+        temp_file.unlink()
+        
+        return {"message": f"Successfully imported {count} questions", "count": count}
+    except Exception as e:
+        logger.error(f"Error importing questions: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Return the FastAPI app
+def get_app():
+    """Get the FastAPI app"""
+    return app

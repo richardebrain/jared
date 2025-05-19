@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Main entry point for MentorMe Assessment API
 This script starts the FastAPI server for the assessment system
@@ -8,83 +9,89 @@ import sys
 import logging
 import argparse
 import uvicorn
-from contextlib import asynccontextmanager
-
-from backend.database import setup_database, import_questions_from_csv
+from dotenv import load_dotenv
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
 )
-logger = logging.getLogger("run_backend")
+logger = logging.getLogger("main")
 
 def setup_database_wrapper():
     """Wrapper for database setup to handle exceptions"""
     try:
-        success, message = setup_database()
-        if success:
-            logger.info(message)
-        else:
-            logger.error(message)
-        return success
+        from backend.database import setup_database
+        setup_database()
+        logger.info("Database setup complete")
     except Exception as e:
-        logger.error(f"Database setup failed: {str(e)}")
-        return False
+        logger.error(f"Error setting up database: {e}")
+        sys.exit(1)
 
 def main():
     """Main entry point"""
-    parser = argparse.ArgumentParser(description="Run the MentorMe Assessment API")
-    parser.add_argument("--host", default=os.environ.get("HOST", "127.0.0.1"), help="Host to bind to")
-    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", 8000)), help="Port to bind to")
-    parser.add_argument("--reload", action="store_true", default=False, help="Enable auto-reload")
-    parser.add_argument("--import-csv", help="Import questions from a CSV file on startup")
+    # Load environment variables
+    load_dotenv()
     
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description="MentorMe Assessment API Server")
+    parser.add_argument(
+        "--host", 
+        type=str, 
+        default="0.0.0.0", 
+        help="Host to bind the server to (default: 0.0.0.0)"
+    )
+    parser.add_argument(
+        "--port", 
+        type=int, 
+        default=int(os.getenv("PORT", 8000)), 
+        help="Port to bind the server to (default: from PORT env var or 8000)"
+    )
+    parser.add_argument(
+        "--reload", 
+        action="store_true", 
+        help="Enable auto-reload on file changes (for development)"
+    )
+    parser.add_argument(
+        "--import-questions", 
+        type=str, 
+        help="Import questions from CSV file before starting server"
+    )
     args = parser.parse_args()
     
-    # Setup database
-    if not setup_database_wrapper():
-        logger.error("Failed to set up database. Exiting.")
+    # Import questions if specified
+    if args.import_questions:
+        try:
+            from backend.database import SessionLocal
+            from backend.import_data import import_questions_from_csv
+            
+            db = SessionLocal()
+            count = import_questions_from_csv(args.import_questions, db)
+            logger.info(f"Imported {count} questions from {args.import_questions}")
+        except Exception as e:
+            logger.error(f"Error importing questions: {e}")
+            sys.exit(1)
+    
+    # Setup database (create tables if they don't exist)
+    setup_database_wrapper()
+    
+    # Get the FastAPI app
+    try:
+        from backend.server import get_app
+        app = get_app()
+        logger.info("FastAPI app created successfully")
+    except Exception as e:
+        logger.error(f"Error creating FastAPI app: {e}")
         sys.exit(1)
     
-    # Import questions if CSV file is provided
-    if args.import_csv:
-        success, message, count = import_questions_from_csv(args.import_csv)
-        if success:
-            logger.info(f"Successfully imported {count} questions from {args.import_csv}")
-        else:
-            logger.error(f"Failed to import questions: {message}")
-    
-    @asynccontextmanager
-    async def lifespan(app):
-        """
-        Lifecycle events for the FastAPI app
-        This runs before the application starts and after it shuts down
-        """
-        # Startup
-        logger.info("Starting MentorMe Assessment API...")
-        
-        # Setup database connection
-        logger.info("Database is ready")
-        
-        yield
-        
-        # Shutdown
-        logger.info("Shutting down MentorMe Assessment API...")
-    
-    # We import here to ensure database is set up first
-    from backend.main import app
-    app.router.lifespan_context = lifespan
-    
     # Start the server
-    logger.info(f"Starting uvicorn server on {args.host}:{args.port}")
+    logger.info(f"Starting server on {args.host}:{args.port}")
     uvicorn.run(
-        "backend.main:app",
+        "backend.server:app",
         host=args.host,
         port=args.port,
         reload=args.reload,
-        log_level="info"
+        log_level="info",
     )
 
 if __name__ == "__main__":
