@@ -440,6 +440,25 @@ export const schoolsRelations = relations(schools, ({ many }) => ({
   users: many(users),
 }));
 
+// Assessment questions table
+export const assessmentQuestions = pgTable("assessment_questions", {
+  id: text("id").primaryKey(), // Using text ID to support various formats (e.g., "build-1", "csv-123")
+  domain: text("domain").notNull(), // core, mindful, build, language, etc.
+  text: text("text").notNull(), // The question text
+  options: text("options").notNull(), // JSON string of options array
+  correctAnswer: integer("correct_answer").notNull(), // Index of correct option
+  difficulty: text("difficulty").notNull().default("beginner"), // beginner, intermediate, advanced, expert
+  explanation: text("explanation"), // Optional explanation for the answer
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertAssessmentQuestionSchema = createInsertSchema(assessmentQuestions).omit({
+  createdAt: true,
+});
+
+export type AssessmentQuestion = typeof assessmentQuestions.$inferSelect;
+export type InsertAssessmentQuestion = z.infer<typeof insertAssessmentQuestionSchema>;
+
 // Teacher welcome messages and notifications table
 export const teacherMessages = pgTable("teacher_messages", {
   id: serial("id").primaryKey(),
