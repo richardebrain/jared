@@ -57,17 +57,32 @@ def main():
         type=str, 
         help="Import questions from CSV file before starting server"
     )
+    parser.add_argument(
+        "--auto-import-sample", 
+        action="store_true",
+        help="Automatically import sample questions from data/sample_questions.csv"
+    )
     args = parser.parse_args()
     
     # Import questions if specified
-    if args.import_questions:
+    if args.import_questions or args.auto_import_sample:
         try:
             from backend.database import SessionLocal
             from backend.import_data import import_questions_from_csv
             
             db = SessionLocal()
-            count = import_questions_from_csv(args.import_questions, db)
-            logger.info(f"Imported {count} questions from {args.import_questions}")
+            
+            if args.auto_import_sample:
+                sample_file = "data/sample_questions.csv"
+                if os.path.exists(sample_file):
+                    count = import_questions_from_csv(sample_file, db)
+                    logger.info(f"Imported {count} sample questions from {sample_file}")
+                else:
+                    logger.warning(f"Sample questions file not found: {sample_file}")
+            
+            if args.import_questions:
+                count = import_questions_from_csv(args.import_questions, db)
+                logger.info(f"Imported {count} questions from {args.import_questions}")
         except Exception as e:
             logger.error(f"Error importing questions: {e}")
             sys.exit(1)
