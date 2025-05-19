@@ -1,15 +1,15 @@
 #!/bin/bash
-# Start the MentorMe Assessment API
-# This script runs the FastAPI server for the assessment system
+# Script to start the Assessment API server
+# This runs the FastAPI server on port 8088 to avoid conflicts with other services
+
+# Ensure data directory exists
+mkdir -p data
 
 # Set environment variables
-export ASSESSMENT_API_PORT=8088  # Changed to 8088 to avoid conflicts
+export ASSESSMENT_API_PORT=8088
 export ASSESSMENT_API_HOST="0.0.0.0"
-export ASSESSMENT_API_RELOAD="true"
+export DATA_DIR="data"
 
-# Install required dependencies if needed
-pip install -q fastapi uvicorn sqlalchemy
-
-# Run the backend
-echo "Starting MentorMe Assessment API on port $ASSESSMENT_API_PORT..."
+# Start the FastAPI server
+echo "Starting MentorMe Assessment API server on port $ASSESSMENT_API_PORT..."
 python run_backend.py
