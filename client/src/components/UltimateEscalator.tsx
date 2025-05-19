@@ -772,11 +772,11 @@ export function UltimateEscalator() {
       <CardContent className="p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <Tabs defaultValue="beginner" value={activeTab} onValueChange={setActiveTab} className="flex-1">
-            <TabsList className="grid grid-cols-4">
-              <TabsTrigger value="beginner">Beginner</TabsTrigger>
-              <TabsTrigger value="intermediate">Intermediate</TabsTrigger>
-              <TabsTrigger value="advanced">Advanced</TabsTrigger>
-              <TabsTrigger value="master">Master</TabsTrigger>
+            <TabsList className="grid grid-cols-4 w-full">
+              <TabsTrigger value="beginner" className="text-xs sm:text-sm px-1 sm:px-3">Beginner</TabsTrigger>
+              <TabsTrigger value="intermediate" className="text-xs sm:text-sm px-1 sm:px-3">Intermed.</TabsTrigger>
+              <TabsTrigger value="advanced" className="text-xs sm:text-sm px-1 sm:px-3">Advanced</TabsTrigger>
+              <TabsTrigger value="master" className="text-xs sm:text-sm px-1 sm:px-3">Master</TabsTrigger>
             </TabsList>
           </Tabs>
           
