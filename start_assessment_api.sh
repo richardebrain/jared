@@ -1,10 +1,19 @@
 #!/bin/bash
-# Start the MentorMe assessment API server
+# Script to start the MentorMe Assessment API in development mode
 
-# Set environment variables
-export API_ENV=production
-export API_HOST=0.0.0.0
-export API_PORT=8000
+# Stop on errors
+set -e
 
-# Run the server
+echo "Starting MentorMe Assessment API in development mode..."
+
+# Export environment variables
+export HOST="0.0.0.0"
+export PORT="8000"
+export PYTHONPATH="./"
+
+# Install required packages if not already installed
+echo "Checking and installing required packages..."
+pip install -r requirements.txt 2>/dev/null || echo "Using existing packages"
+
+# Run the API server
 python run_backend.py
