@@ -58,34 +58,58 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
 
   // Generate quiz questions based on video content
   useEffect(() => {
-    const generateQuestions = async () => {
+    const fetchQuizQuestions = async () => {
       try {
         setLoading(true);
         
-        // Get video information including duration
+        // Get video information including duration and pre-defined quiz questions
         try {
-          // Try to find the video resource in our data to get duration
+          // Fetch the video resource from our API with all details
           const response = await apiRequest(`/api/videos/${videoId}`);
-          if (response && response.duration) {
-            setVideoDuration(response.duration);
+          
+          if (response) {
+            // Set video duration
+            if (response.duration) {
+              setVideoDuration(response.duration);
+            } else {
+              setVideoDuration(5); // Default to 5 minutes
+            }
+            
+            // Use pre-defined quiz questions if available
+            if (response.quiz && response.quiz.questions && response.quiz.questions.length > 0) {
+              // Map API quiz format to our component format
+              const formattedQuestions: QuizQuestion[] = response.quiz.questions.map((q: any, index: number) => ({
+                id: `q${index + 1}`,
+                question: q.question,
+                options: q.options,
+                correctAnswer: q.options[q.correctAnswer] // Convert from index to actual answer text
+              }));
+              
+              setQuestions(formattedQuestions);
+            } else {
+              // Fallback to generated questions if no predefined quiz exists
+              const generatedQuestions: QuizQuestion[] = generateContentBasedQuestions(videoTitle, response.description, response.category, response.tags);
+              setQuestions(generatedQuestions);
+            }
           } else {
-            // Default to 5 minutes if we can't find the video duration
+            // Fallback to generated questions if API fails
             setVideoDuration(5);
+            const generatedQuestions: QuizQuestion[] = generateContentBasedQuestions(videoTitle, "", [], []);
+            setQuestions(generatedQuestions);
           }
         } catch (error) {
-          console.error('Error fetching video duration:', error);
+          console.error('Error fetching video data:', error);
           setVideoDuration(5); // Default to 5 minutes
+          const generatedQuestions: QuizQuestion[] = generateContentBasedQuestions(videoTitle, "", [], []);
+          setQuestions(generatedQuestions);
         }
         
-        // In real implementation, this would fetch from the server
-        // For now, we generate sample questions
-        const generatedQuestions: QuizQuestion[] = generateSampleQuestions(videoTitle);
+        // Always include an implementation question
         const implQuestion: ImplementationQuestion = {
           id: 'implementation',
           question: `How would you apply what you learned in "${videoTitle}" to your classroom practice?`
         };
         
-        setQuestions(generatedQuestions);
         setImplementationQuestion(implQuestion);
         setLoading(false);
       } catch (error) {
@@ -99,74 +123,175 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
       }
     };
 
-    generateQuestions();
+    fetchQuizQuestions();
   }, [videoId, videoTitle, toast]);
 
-  // Helper function to generate sample questions
-  // In a production environment, these would come from an API or database
-  const generateSampleQuestions = (title: string): QuizQuestion[] => {
-    // For demo purposes, generate generic questions based on the video title
-    const words = title.split(' ').filter(word => word.length > 3);
-    const topics = words.slice(0, Math.min(words.length, 5));
+  // Generate more content-relevant questions based on video metadata
+  const generateContentBasedQuestions = (
+    title: string, 
+    description: string = "", 
+    categories: string[] = [], 
+    tags: string[] = []
+  ): QuizQuestion[] => {
+    // Extract key topics from title, description and tags
+    const allWords = [
+      ...title.split(' ').filter(word => word.length > 3),
+      ...description.split(' ').filter(word => word.length > 3),
+      ...tags
+    ];
     
+    // Get unique topics from all sources
+    const uniqueTopics = Array.from(new Set(allWords))
+      .filter(word => !['with', 'that', 'this', 'from', 'about', 'what', 'their', 'these', 'those'].includes(word.toLowerCase()));
+    
+    // Select top topics (up to 5)
+    const topics = uniqueTopics.slice(0, Math.min(uniqueTopics.length, 5));
+    
+    // Determine educational category based on metadata
+    const hasEducationalTheory = categories.some(c => 
+      ['teaching-philosophy', 'inspiration', 'theory', 'pedagogy'].includes(c.toLowerCase()));
+    
+    const hasDevelopmental = categories.some(c => 
+      ['development', 'child-development', 'brain-development', 'cognitive'].includes(c.toLowerCase()));
+    
+    const hasClassroom = categories.some(c => 
+      ['classroom-management', 'teaching-strategies', 'activities', 'lesson-planning'].includes(c.toLowerCase()));
+    
+    const hasSEL = categories.some(c => 
+      ['sel', 'social-emotional', 'emotional-learning', 'emotions', 'relationships'].includes(c.toLowerCase()));
+      
+    const hasLanguage = categories.some(c => 
+      ['language', 'literacy', 'reading', 'writing', 'communication'].includes(c.toLowerCase()));
+      
+    // Determine video type by checking for keywords in title or description
+    const isTedTalk = title.toLowerCase().includes('ted') || 
+                      tags.some(t => t.toLowerCase().includes('ted')) ||
+                      description.toLowerCase().includes('ted talk');
+                      
+    const isActivity = categories.some(c => ['activities', 'classroom-activities'].includes(c.toLowerCase())) ||
+                       description.toLowerCase().includes('activity') ||
+                       title.toLowerCase().includes('activity');
+                      
+    // Generate relevant questions based on video content type
     return [
+      // Question 1: Main focus question - customized by category
       {
         id: 'q1',
         question: `What is the main focus of "${title}"?`,
         options: [
-          `Understanding ${topics[0] || 'concepts'} in early childhood education`,
-          `Implementing ${topics[1] || 'strategies'} in the classroom setting`,
-          `Building relationships with children through ${topics[0] || 'activities'}`,
-          `Assessing progress in ${topics[1] || 'learning'} areas`
+          isTedTalk ? 
+            `Inspiring educators to reflect on their ${topics[0] || 'teaching'} approach` :
+            isActivity ? 
+              `Demonstrating practical ${topics[0] || 'activities'} for the classroom` :
+              `Understanding ${topics[0] || 'concepts'} in early childhood education`,
+          
+          hasEducationalTheory ?
+            `Exploring educational theory related to ${topics[1] || 'learning'}` :
+            `Implementing specific ${topics[1] || 'strategies'} in the classroom`,
+          
+          hasDevelopmental ?
+            `Examining how children develop ${topics[0] || 'skills'} over time` :
+            `Building relationships with children through ${topics[0] || 'activities'}`,
+          
+          hasSEL ?
+            `Supporting children's social-emotional development` :
+            `Assessing progress in ${topics[1] || 'learning'} areas`
         ],
-        correctAnswer: `Understanding ${topics[0] || 'concepts'} in early childhood education`
+        correctAnswer: isTedTalk ? 
+          `Inspiring educators to reflect on their ${topics[0] || 'teaching'} approach` :
+          isActivity ? 
+            `Demonstrating practical ${topics[0] || 'activities'} for the classroom` :
+            `Understanding ${topics[0] || 'concepts'} in early childhood education`
       },
+      
+      // Question 2: Practical application question
       {
         id: 'q2',
         question: `Which of the following best describes a practical application of the concepts in this video?`,
         options: [
-          `Creating a learning environment that incorporates ${topics[0] || 'key concepts'}`,
-          `Discussing ${topics[1] || 'theories'} with colleagues during planning sessions`,
-          `Using worksheets to reinforce ${topics[0] || 'learning'}`,
-          `Assigning homework about ${topics[1] || 'topics'}`
+          hasClassroom ?
+            `Creating a learning environment that incorporates ${topics[0] || 'key concepts'}` :
+            `Designing activities that encourage children to explore ${topics[0] || 'concepts'}`,
+          
+          hasEducationalTheory ?
+            `Reflecting on your teaching philosophy and how it aligns with these ideas` :
+            `Discussing ${topics[1] || 'theories'} with colleagues during planning sessions`,
+          
+          hasLanguage ?
+            `Using language-rich interactions to build ${topics[0] || 'skills'}` :
+            `Creating structured worksheets to teach ${topics[0] || 'concepts'}`,
+          
+          hasSEL ?
+            `Supporting children's emotional needs during ${topics[1] || 'learning'} activities` :
+            `Creating assessment rubrics for ${topics[1] || 'learning'} outcomes`
         ],
-        correctAnswer: `Creating a learning environment that incorporates ${topics[0] || 'key concepts'}`
+        correctAnswer: hasClassroom ?
+          `Creating a learning environment that incorporates ${topics[0] || 'key concepts'}` :
+          `Designing activities that encourage children to explore ${topics[0] || 'concepts'}`
       },
+      
+      // Question 3: Best practice question
       {
         id: 'q3',
-        question: `According to best practices related to "${title}", which approach is most effective?`,
+        question: `According to principles in "${title}", which approach is most effective?`,
         options: [
-          `Child-led exploration with teacher guidance`,
+          hasSEL || hasClassroom ?
+            `Child-led exploration with teacher guidance and support` :
+            `Thoughtful integration of ${topics[0] || 'concepts'} into daily routines`,
+          
           `Teacher-directed instruction with limited free play`,
-          `Independent study with minimal interaction`,
-          `Group activities with strict guidelines`
+          
+          `Independent practice with minimal teacher interaction`,
+          
+          `Standardized activities that treat all children the same way`
         ],
-        correctAnswer: `Child-led exploration with teacher guidance`
+        correctAnswer: hasSEL || hasClassroom ?
+          `Child-led exploration with teacher guidance and support` :
+          `Thoughtful integration of ${topics[0] || 'concepts'} into daily routines`
       },
+      
+      // Question 4: Alignment with Building Chapter One philosophy
       {
         id: 'q4',
         question: `How does the content in this video align with the "Building Chapter One" philosophy?`,
         options: [
-          `It helps create formative experiences that become part of a child's foundation`,
+          hasDevelopmental ?
+            `It helps create formative experiences that shape a child's development` :
+            `It helps create formative experiences that become part of a child's foundation`,
+          
           `It focuses primarily on academic achievement rather than whole-child development`,
+          
           `It emphasizes following a strict curriculum above all else`,
-          `It prioritizes teacher convenience over child development needs`
+          
+          `It prioritizes standardized outcomes over individualized development`
         ],
-        correctAnswer: `It helps create formative experiences that become part of a child's foundation`
+        correctAnswer: hasDevelopmental ?
+          `It helps create formative experiences that shape a child's development` :
+          `It helps create formative experiences that become part of a child's foundation`
       },
+      
+      // Question 5: Key takeaway/implementation question
       {
         id: 'q5',
         question: `What is a key takeaway from "${title}" that you can implement immediately?`,
         options: [
-          `Creating more opportunities for children to engage with ${topics[0] || 'concepts'} through play`,
-          `Limiting children's exposure to ${topics[0] || 'activities'} until they're older`,
-          `Requiring all children to participate in ${topics[1] || 'activities'} regardless of interest`,
-          `Separating children by ability level for all ${topics[0] || 'learning'} activities`
+          `Creating more opportunities for children to engage with ${topics[0] || 'concepts'} through play and exploration`,
+          
+          isActivity ?
+            `Following the exact activity structure shown in the video` :
+            `Implementing a new ${topics[0] || 'strategy'} in your classroom tomorrow`,
+          
+          `Requiring all children to master ${topics[0] || 'concepts'} at the same pace`,
+          
+          `Creating a rigid schedule to ensure ${topics[0] || 'learning'} happens at specific times`
         ],
-        correctAnswer: `Creating more opportunities for children to engage with ${topics[0] || 'concepts'} through play`
+        correctAnswer: `Creating more opportunities for children to engage with ${topics[0] || 'concepts'} through play and exploration`
       }
     ];
   };
+
+  // Kept for backwards compatibility - will be removed in future update
+  const generateSampleQuestions = generateContentBasedQuestions;
 
   const handleAnswerSelect = (questionId: string, answer: string) => {
     const currentQuestion = questions.find(q => q.id === questionId);
