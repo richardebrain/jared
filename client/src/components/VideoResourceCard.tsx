@@ -205,6 +205,11 @@ Category: ${video.category.join(', ')}
   return (
     <Card className="overflow-hidden flex flex-col h-full">
       <div className="relative aspect-video bg-black">
+        {/* Points badge - shows how many points this video is worth */}
+        <div className="absolute top-2 left-2 z-10 bg-primary text-white text-xs font-bold px-2 py-1 rounded-full flex items-center shadow-md">
+          <span className="mr-1">+</span>{videoDuration >= 10 ? 8 : 5}<span className="ml-1">pts</span>
+        </div>
+        
         {videoError ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-white p-4">
             <AlertCircle className="h-12 w-12 mb-2 text-red-400" />
