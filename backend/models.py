@@ -4,282 +4,412 @@ Data models for the MentorMe assessment system
 
 import json
 from datetime import datetime
-from typing import List, Dict, Any, Optional
-from sqlalchemy import Column, Integer, String, Text, Boolean, Float, DateTime, ForeignKey, Table
-from sqlalchemy.ext.declarative import declarative_base
+from typing import Dict, List, Any, Optional
+
+from sqlalchemy import (
+    Column, Integer, String, Text, Boolean, 
+    Float, DateTime, ForeignKey, Table, func
+)
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.hybrid import hybrid_property
 
-# Create base class for declarative models
-Base = declarative_base()
+from backend.database import Base
 
-# Many-to-many relationship tables
+# Association table for question-tag relationship
 question_tags = Table(
     'question_tags',
     Base.metadata,
-    Column('question_id', Integer, ForeignKey('questions.id'), primary_key=True),
-    Column('tag', String(50), primary_key=True)
+    Column('question_id', Integer, ForeignKey('questions.id', ondelete='CASCADE')),
+    Column('tag_id', Integer, ForeignKey('tags.id', ondelete='CASCADE'))
 )
 
-
-class Domain(Base):
-    """Domain model - represents a knowledge area for assessment"""
-    __tablename__ = "domains"
+class User(Base):
+    """User model"""
+    __tablename__ = 'users'
     
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(100), unique=True, index=True, nullable=False)
-    description = Column(Text)
+    username = Column(String(50), unique=True, index=True)
+    full_name = Column(String(100))
+    email = Column(String(100), unique=True, index=True, nullable=True)
+    is_admin = Column(Boolean, default=False)
+    school_id = Column(Integer, ForeignKey('schools.id', ondelete='CASCADE'), nullable=True)
+    
+    # Relationships
+    progress = relationship("UserDomainProgress", back_populates="user", cascade="all, delete-orphan")
+    answers = relationship("UserAnswer", back_populates="user", cascade="all, delete-orphan")
+    school = relationship("School", back_populates="users")
+    
     created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary"""
+        return {
+            "id": self.id,
+            "username": self.username,
+            "full_name": self.full_name,
+            "email": self.email,
+            "is_admin": self.is_admin,
+            "school_id": self.school_id,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+class School(Base):
+    """School model"""
+    __tablename__ = 'schools'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), unique=True, index=True)
+    logo_url = Column(String(255), nullable=True)
+    subscription_active = Column(Boolean, default=False)
+    subscription_expires = Column(DateTime, nullable=True)
+    
+    # Relationships
+    users = relationship("User", back_populates="school")
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary"""
+        return {
+            "id": self.id,
+            "name": self.name,
+            "logo_url": self.logo_url,
+            "subscription_active": self.subscription_active,
+            "subscription_expires": self.subscription_expires.isoformat() if self.subscription_expires else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+class Domain(Base):
+    """Domain model for categorizing questions"""
+    __tablename__ = 'domains'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), unique=True, index=True)
+    description = Column(Text, nullable=True)
+    icon = Column(String(50), nullable=True)
     
     # Relationships
     questions = relationship("Question", back_populates="domain")
     progress = relationship("UserDomainProgress", back_populates="domain")
     
-    def __init__(self, name: str, description: Optional[str] = None):
-        self.name = name
-        self.description = description
-
-
-class Question(Base):
-    """Question model - represents an assessment question"""
-    __tablename__ = "questions"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    question_text = Column(Text, nullable=False)
-    correct_answer = Column(String(255), nullable=False)
-    q_type = Column(String(50), default="multiple_choice")
-    difficulty = Column(Integer, default=1)
-    domain_id = Column(Integer, ForeignKey("domains.id"))
-    sub_domain = Column(String(100))
-    options = Column(Text)  # JSON string of options
-    explanation = Column(Text)
-    hints = Column(Text)
-    resources = Column(Text)  # JSON string of resources
-    time_limit = Column(Integer)  # Seconds
-    points = Column(Integer, default=10)
-    is_active = Column(Boolean, default=True)
-    enhanced_content = Column(Text)  # JSON string of enhanced content
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships
-    domain = relationship("Domain", back_populates="questions")
-    answers = relationship("UserAnswer", back_populates="question")
-    tags = relationship("Tag", secondary=question_tags, backref="questions")
-    
-    def get_options(self) -> Dict[str, str]:
-        """Get options as a dictionary"""
-        if self.options:
-            return json.loads(self.options)
-        return {}
-    
-    def get_resources(self) -> List[Dict[str, str]]:
-        """Get resources as a list of dictionaries"""
-        if self.resources:
-            return json.loads(self.resources)
-        return []
-    
-    def get_enhanced_content(self) -> Dict[str, Any]:
-        """Get enhanced content as a dictionary"""
-        if self.enhanced_content:
-            return json.loads(self.enhanced_content)
-        return {}
-    
-    def is_correct(self, answer: str) -> bool:
-        """Check if the given answer is correct"""
-        if self.q_type in ["multiple_choice", "single_choice"]:
-            return answer.upper() == self.correct_answer.upper()
-        else:
-            return answer.strip().lower() == self.correct_answer.strip().lower()
-    
-    def calculate_points(self, time_taken: Optional[int] = None) -> int:
-        """
-        Calculate points based on difficulty and time taken
-        
-        Args:
-            time_taken: Time taken to answer in seconds (optional)
-            
-        Returns:
-            Points earned
-        """
-        # Base points based on difficulty
-        if not self.points:
-            base_points = self.difficulty * 5
-        else:
-            base_points = self.points
-        
-        # If no time limit or no time taken, return base points
-        if not self.time_limit or not time_taken:
-            return base_points
-        
-        # Time bonus: faster answers get more points
-        time_ratio = time_taken / self.time_limit
-        if time_ratio <= 0.5:  # Under half the time limit
-            return int(base_points * 1.2)  # 20% bonus
-        elif time_ratio <= 0.75:  # Under 3/4 of the time limit
-            return int(base_points * 1.1)  # 10% bonus
-        else:
-            return base_points  # No bonus
-    
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for API response"""
+        """Convert to dictionary"""
         return {
             "id": self.id,
-            "question": self.question_text,
-            "type": self.q_type,
-            "difficulty": self.difficulty,
-            "domain": self.domain.name if self.domain else None,
-            "sub_domain": self.sub_domain,
-            "options": self.get_options(),
-            "time_limit": self.time_limit,
-            "points": self.points,
-            "hints": self.hints,
-            "resources": self.get_resources(),
-            "enhanced_content": self.get_enhanced_content()
+            "name": self.name,
+            "description": self.description,
+            "icon": self.icon,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
         }
-
 
 class Tag(Base):
-    """Tag model - for categorizing questions"""
-    __tablename__ = "tags"
-    
-    name = Column(String(50), primary_key=True)
-    description = Column(Text)
-
-
-class UserAnswer(Base):
-    """UserAnswer model - represents a user's answer to a question"""
-    __tablename__ = "user_answers"
+    """Tag model for tagging questions"""
+    __tablename__ = 'tags'
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, index=True, nullable=False)
-    question_id = Column(Integer, ForeignKey("questions.id"))
-    answer = Column(String(255), nullable=False)
-    is_correct = Column(Boolean)
-    points_earned = Column(Integer, default=0)
-    time_taken = Column(Integer)  # Seconds
+    name = Column(String(50), unique=True, index=True)
+    
+    # Relationships through association table
+    questions = relationship("Question", secondary=question_tags, back_populates="tags")
+    
     created_at = Column(DateTime, default=datetime.utcnow)
-    assessment_session = Column(String(36), index=True)  # UUID for grouping answers in a session
-    
-    # Relationships
-    question = relationship("Question", back_populates="answers")
-    
-    def __init__(
-        self,
-        user_id: int,
-        question_id: int,
-        answer: str,
-        is_correct: bool,
-        points_earned: int = 0,
-        time_taken: Optional[int] = None,
-        assessment_session: Optional[str] = None
-    ):
-        self.user_id = user_id
-        self.question_id = question_id
-        self.answer = answer
-        self.is_correct = is_correct
-        self.points_earned = points_earned
-        self.time_taken = time_taken
-        self.assessment_session = assessment_session
-
-
-class UserDomainProgress(Base):
-    """UserDomainProgress model - tracks user progress in a specific domain"""
-    __tablename__ = "user_domain_progress"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, index=True, nullable=False)
-    domain_id = Column(Integer, ForeignKey("domains.id"))
-    current_level = Column(Integer, default=1)
-    questions_answered = Column(Integer, default=0)
-    questions_correct = Column(Integer, default=0)
-    performance_score = Column(Float, default=0.0)
-    mastered = Column(Boolean, default=False)
-    last_assessment = Column(DateTime)
-    points_earned = Column(Integer, default=0)
-    streak = Column(Integer, default=0)
-    
-    # Relationships
-    domain = relationship("Domain", back_populates="progress")
-    
-    def __init__(
-        self,
-        user_id: int,
-        domain_id: int,
-        current_level: int = 1
-    ):
-        self.user_id = user_id
-        self.domain_id = domain_id
-        self.current_level = current_level
-        self.questions_answered = 0
-        self.questions_correct = 0
-        self.performance_score = 0.0
-        self.mastered = False
-        self.points_earned = 0
-        self.streak = 0
-        self.last_assessment = datetime.utcnow()
-    
-    def calculate_performance(self) -> float:
-        """
-        Calculate performance score based on correct answers and question difficulty
-        
-        Returns:
-            Performance score as a float between 0.0 and 1.0
-        """
-        if not self.questions_answered:
-            return 0.0
-        
-        return round(self.questions_correct / self.questions_answered, 2)
     
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for API response"""
+        """Convert to dictionary"""
         return {
-            "domain": self.domain.name if self.domain else "",
-            "level": self.current_level,
-            "mastered": self.mastered,
-            "questions_answered": self.questions_answered,
-            "questions_correct": self.questions_correct,
-            "performance": self.performance_score,
-            "points_earned": self.points_earned,
-            "streak": self.streak,
-            "last_assessment": self.last_assessment.isoformat() if self.last_assessment else None
+            "id": self.id,
+            "name": self.name,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 
+class Question(Base):
+    """Question model"""
+    __tablename__ = 'questions'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    question_text = Column(Text, nullable=False)
+    domain_id = Column(Integer, ForeignKey('domains.id', ondelete='CASCADE'))
+    sub_domain = Column(String(100), nullable=True)
+    q_type = Column(String(20), default='multiple_choice')  # multiple_choice, true_false, text
+    difficulty = Column(Integer, default=1)
+    correct_answer = Column(String(10), nullable=False)
+    
+    # Options for multiple choice questions
+    _options = Column('options', Text, nullable=True)
+    
+    # Explanations and feedback
+    _explanation = Column('explanation', Text, nullable=True)
+    _hints = Column('hints', Text, nullable=True)
+    
+    # Resources for additional learning
+    _resources = Column('resources', Text, nullable=True)
+    
+    # Media URLs
+    video_url = Column(String(255), nullable=True)
+    image_url = Column(String(255), nullable=True)
+    
+    # Time limit in seconds, 0 means no limit
+    time_limit = Column(Integer, default=60)
+    
+    # Points earned for correct answer
+    points = Column(Integer, default=10)
+    
+    # Relationships
+    domain = relationship("Domain", back_populates="questions")
+    tags = relationship("Tag", secondary=question_tags, back_populates="questions")
+    answers = relationship("UserAnswer", back_populates="question")
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    @property
+    def options(self) -> Dict[str, str]:
+        """Get options as dictionary"""
+        if self._options:
+            return json.loads(self._options)
+        return {}
+    
+    @options.setter
+    def options(self, value: Dict[str, str]):
+        """Set options from dictionary"""
+        if value:
+            self._options = json.dumps(value)
+        else:
+            self._options = None
+    
+    @property
+    def explanation(self) -> str:
+        """Get explanation"""
+        return self._explanation or ""
+    
+    @explanation.setter
+    def explanation(self, value: str):
+        """Set explanation"""
+        self._explanation = value
+    
+    @property
+    def hints(self) -> List[str]:
+        """Get hints as list"""
+        if self._hints:
+            return json.loads(self._hints)
+        return []
+    
+    @hints.setter
+    def hints(self, value: List[str]):
+        """Set hints from list"""
+        if value:
+            self._hints = json.dumps(value)
+        else:
+            self._hints = None
+    
+    @property
+    def resources(self) -> List[Dict[str, str]]:
+        """Get resources as list of dictionaries"""
+        if self._resources:
+            return json.loads(self._resources)
+        return []
+    
+    @resources.setter
+    def resources(self, value: List[Dict[str, str]]):
+        """Set resources from list of dictionaries"""
+        if value:
+            self._resources = json.dumps(value)
+        else:
+            self._resources = None
+    
+    @hybrid_property
+    def points_for_difficulty(self) -> int:
+        """Calculate points based on difficulty if not explicitly set"""
+        if self.points:
+            return self.points
+        
+        # Default point calculation based on difficulty
+        if self.difficulty == 1:
+            return 10
+        elif self.difficulty == 2:
+            return 15
+        elif self.difficulty == 3:
+            return 20
+        elif self.difficulty >= 4:
+            return 25
+        else:
+            return 5
+    
+    def to_dict(self, include_answer: bool = False) -> Dict[str, Any]:
+        """
+        Convert to dictionary
+        
+        Args:
+            include_answer: Whether to include the correct answer
+        
+        Returns:
+            Dictionary representation
+        """
+        result = {
+            "id": self.id,
+            "question": self.question_text,
+            "domain_id": self.domain_id,
+            "domain": self.domain.name if self.domain else None,
+            "sub_domain": self.sub_domain,
+            "type": self.q_type,
+            "difficulty": self.difficulty,
+            "options": self.options,
+            "explanation": self.explanation,
+            "hints": self.hints,
+            "resources": self.resources,
+            "video_url": self.video_url,
+            "image_url": self.image_url,
+            "time_limit": self.time_limit,
+            "points": self.points_for_difficulty,
+            "tags": [tag.name for tag in self.tags],
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+        
+        if include_answer:
+            result["correct_answer"] = self.correct_answer
+            
+        return result
+
+class UserAnswer(Base):
+    """User answer model"""
+    __tablename__ = 'user_answers'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'))
+    question_id = Column(Integer, ForeignKey('questions.id', ondelete='CASCADE'))
+    answer = Column(String(255), nullable=False)
+    is_correct = Column(Boolean)
+    time_taken = Column(Integer, nullable=True)  # Time taken in seconds
+    points_earned = Column(Integer, default=0)
+    session_id = Column(String(50), nullable=True)  # For tracking assessment sessions
+    
+    # Relationships
+    user = relationship("User", back_populates="answers")
+    question = relationship("Question", back_populates="answers")
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    @hybrid_property
+    def accuracy_score(self) -> float:
+        """Calculate accuracy score based on correctness and time taken"""
+        base_score = 1.0 if self.is_correct else 0.0
+        
+        # If no time information, just return base score
+        if not self.time_taken or not self.question or not self.question.time_limit:
+            return base_score
+            
+        # Time factor: faster answers get slightly higher scores
+        time_limit = self.question.time_limit
+        if time_limit > 0 and self.time_taken < time_limit:
+            time_factor = 0.2 * (1 - (self.time_taken / time_limit))
+            return min(1.0, base_score + time_factor)
+            
+        return base_score
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary"""
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "question_id": self.question_id,
+            "answer": self.answer,
+            "is_correct": self.is_correct,
+            "time_taken": self.time_taken,
+            "points_earned": self.points_earned,
+            "session_id": self.session_id,
+            "accuracy_score": self.accuracy_score,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+class UserDomainProgress(Base):
+    """User progress model for tracking progress in specific domains"""
+    __tablename__ = 'user_domain_progress'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'))
+    domain_id = Column(Integer, ForeignKey('domains.id', ondelete='CASCADE'))
+    current_level = Column(Integer, default=1)
+    questions_attempted = Column(Integer, default=0)
+    questions_correct = Column(Integer, default=0)
+    streak = Column(Integer, default=0)
+    highest_streak = Column(Integer, default=0)
+    total_points = Column(Integer, default=0)
+    
+    # Relationships
+    user = relationship("User", back_populates="progress")
+    domain = relationship("Domain", back_populates="progress")
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_activity = Column(DateTime, default=datetime.utcnow)
+    
+    @hybrid_property
+    def proficiency(self) -> float:
+        """Calculate proficiency score (0.0-1.0)"""
+        if not self.questions_attempted:
+            return 0.0
+        return round(self.questions_correct / self.questions_attempted, 2)
+    
+    @hybrid_property
+    def is_active(self) -> bool:
+        """Check if user has been active in this domain recently (last 7 days)"""
+        if not self.last_activity:
+            return False
+        
+        return (datetime.utcnow() - self.last_activity).days < 7
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary"""
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "domain_id": self.domain_id,
+            "domain": self.domain.name if self.domain else None,
+            "current_level": self.current_level,
+            "questions_attempted": self.questions_attempted,
+            "questions_correct": self.questions_correct,
+            "streak": self.streak,
+            "highest_streak": self.highest_streak,
+            "total_points": self.total_points,
+            "proficiency": self.proficiency,
+            "is_active": self.is_active,
+            "last_activity": self.last_activity.isoformat() if self.last_activity else None,
+        }
 
 class AnswerFeedback:
     """
-    AnswerFeedback class - provides feedback for a user's answer
-    This is not an ORM model, just a helper class for returning feedback
+    Non-database class for delivering feedback about answers
+    This is a DTO (Data Transfer Object) only
     """
     
     def __init__(
         self,
-        question_id: int,
         is_correct: bool,
-        correct_answer: str,
         points_earned: int = 0,
-        explanation: Optional[str] = None,
-        next_question_id: Optional[int] = None,
-        feedback_message: Optional[str] = None,
-        resources: Optional[List[Dict[str, str]]] = None
+        explanation: str = "",
+        next_difficulty: Optional[int] = None,
+        resources: List[Dict[str, str]] = None,
+        message: str = ""
     ):
-        self.question_id = question_id
         self.is_correct = is_correct
-        self.correct_answer = correct_answer
         self.points_earned = points_earned
         self.explanation = explanation
-        self.next_question_id = next_question_id
-        self.feedback_message = feedback_message
+        self.next_difficulty = next_difficulty
         self.resources = resources or []
-    
+        self.message = message
+        
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for API response"""
+        """Convert to dictionary"""
         return {
-            "question_id": self.question_id,
             "is_correct": self.is_correct,
-            "correct_answer": self.correct_answer,
             "points_earned": self.points_earned,
             "explanation": self.explanation,
-            "next_question_id": self.next_question_id,
-            "feedback_message": self.feedback_message,
-            "resources": self.resources
+            "next_difficulty": self.next_difficulty,
+            "resources": self.resources,
+            "message": self.message
         }

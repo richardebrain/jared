@@ -4,15 +4,22 @@ This module provides functions to import questions from CSV files
 """
 
 import csv
-import json
 import logging
-from typing import Dict, List, Any, Optional
+import json
+from typing import Dict, Any, List, Optional, Tuple
+
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import or_
+
 from backend.models import Question, Domain, Tag
 from backend.database import get_db_context
 
 # Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 def parse_options_from_csv(row: Dict[str, Any]) -> Dict[str, str]:
@@ -34,6 +41,17 @@ def parse_options_from_csv(row: Dict[str, Any]) -> Dict[str, str]:
         options['C'] = row['option_c']
     if 'option_d' in row and row['option_d']:
         options['D'] = row['option_d']
+    
+    # Handle options in a single column format like "A:text|B:text|C:text|D:text"
+    if 'options' in row and row['options'] and not options:
+        try:
+            options_str = row['options']
+            for option_pair in options_str.split('|'):
+                key, value = option_pair.split(':', 1)
+                options[key.strip()] = value.strip()
+        except Exception as e:
+            logger.warning(f"Error parsing options column: {e}")
+    
     return options
 
 def parse_tags_from_csv(row: Dict[str, Any]) -> List[str]:
@@ -47,7 +65,10 @@ def parse_tags_from_csv(row: Dict[str, Any]) -> List[str]:
         List of tags
     """
     if 'tags' in row and row['tags']:
-        return [tag.strip() for tag in row['tags'].split(',')]
+        # Handle comma-separated tags
+        if isinstance(row['tags'], str):
+            return [tag.strip() for tag in row['tags'].split(',') if tag.strip()]
+    
     return []
 
 def parse_resources_from_csv(row: Dict[str, Any]) -> List[Dict[str, str]]:
@@ -61,15 +82,31 @@ def parse_resources_from_csv(row: Dict[str, Any]) -> List[Dict[str, str]]:
         List of resource dictionaries
     """
     resources = []
+    
+    # Handle resources in a single column format like "Title|URL, Title|URL"
     if 'resources' in row and row['resources']:
-        for resource in row['resources'].split('|'):
-            if resource and '|' in resource:
-                parts = resource.split('|')
-                if len(parts) >= 2:
-                    resources.append({
-                        'title': parts[0].strip(),
-                        'url': parts[1].strip()
-                    })
+        try:
+            resources_str = row['resources']
+            # Split by either comma or pipe
+            if '|' in resources_str:
+                # Format: "Title|URL"
+                title, url = resources_str.split('|', 1)
+                resources.append({
+                    "title": title.strip(),
+                    "url": url.strip()
+                })
+            elif ',' in resources_str:
+                # Multiple resources in format: "Title|URL, Title|URL"
+                for resource_pair in resources_str.split(','):
+                    if '|' in resource_pair:
+                        title, url = resource_pair.split('|', 1)
+                        resources.append({
+                            "title": title.strip(),
+                            "url": url.strip()
+                        })
+        except Exception as e:
+            logger.warning(f"Error parsing resources column: {e}")
+    
     return resources
 
 def parse_enhanced_content_from_csv(row: Dict[str, Any]) -> Dict[str, Any]:
@@ -84,16 +121,33 @@ def parse_enhanced_content_from_csv(row: Dict[str, Any]) -> Dict[str, Any]:
     """
     enhanced_content = {}
     
-    # Add any enhanced content fields here
-    if 'video_url' in row and row['video_url']:
-        enhanced_content['video_url'] = row['video_url']
+    # Parse hints
+    if 'hints' in row and row['hints']:
+        if isinstance(row['hints'], str):
+            if '|' in row['hints']:
+                # Multiple hints separated by pipe
+                enhanced_content['hints'] = [hint.strip() for hint in row['hints'].split('|')]
+            else:
+                # Single hint
+                enhanced_content['hints'] = [row['hints'].strip()]
     
-    if 'image_url' in row and row['image_url']:
-        enhanced_content['image_url'] = row['image_url']
+    # Parse time limit
+    if 'time_limit' in row and row['time_limit']:
+        try:
+            enhanced_content['time_limit'] = int(row['time_limit'])
+        except (ValueError, TypeError):
+            pass  # Use default time limit
+    
+    # Parse points
+    if 'points' in row and row['points']:
+        try:
+            enhanced_content['points'] = int(row['points'])
+        except (ValueError, TypeError):
+            pass  # Use default points
     
     return enhanced_content
 
-def create_question_from_csv_row(row: Dict[str, Any]) -> Question:
+def create_question_from_csv_row(row: Dict[str, Any]) -> Tuple[Question, List[str]]:
     """
     Create a question from a CSV row
     
@@ -101,29 +155,49 @@ def create_question_from_csv_row(row: Dict[str, Any]) -> Question:
         row: CSV row dictionary
         
     Returns:
-        Question object
+        Question object and list of tags
     """
-    # Parse options, tags, and resources
-    options = parse_options_from_csv(row)
+    # Create question object
+    question = Question(
+        question_text=row.get('question', ''),
+        q_type=row.get('q_type', 'multiple_choice'),
+        correct_answer=row.get('correct_answer', ''),
+        difficulty=int(row.get('difficulty', 1)),
+        sub_domain=row.get('sub_domain', '')
+    )
+    
+    # Parse options
+    question.options = parse_options_from_csv(row)
+    
+    # Parse explanation
+    if 'explanation' in row and row['explanation']:
+        question.explanation = row['explanation']
+    
+    # Parse media URLs
+    if 'video_url' in row and row['video_url']:
+        question.video_url = row['video_url']
+    
+    if 'image_url' in row and row['image_url']:
+        question.image_url = row['image_url']
+    
+    # Parse tags
     tags = parse_tags_from_csv(row)
-    resources = parse_resources_from_csv(row)
+    
+    # Parse resources
+    question.resources = parse_resources_from_csv(row)
+    
+    # Parse enhanced content
     enhanced_content = parse_enhanced_content_from_csv(row)
     
-    # Convert to Question object
-    question = Question(
-        question_text=row['question'],
-        correct_answer=row.get('correct_answer', ''),
-        q_type=row.get('q_type', 'multiple_choice'),
-        difficulty=int(row.get('difficulty', 1)),
-        sub_domain=row.get('sub_domain', ''),
-        options=json.dumps(options) if options else None,
-        explanation=row.get('explanation', ''),
-        hints=row.get('hints', ''),
-        resources=json.dumps(resources) if resources else None,
-        time_limit=int(row.get('time_limit', 60)) if row.get('time_limit') else None,
-        points=int(row.get('points', 10)) if row.get('points') else None,
-        enhanced_content=json.dumps(enhanced_content) if enhanced_content else None
-    )
+    # Apply enhanced content
+    if 'hints' in enhanced_content:
+        question.hints = enhanced_content['hints']
+    
+    if 'time_limit' in enhanced_content:
+        question.time_limit = enhanced_content['time_limit']
+    
+    if 'points' in enhanced_content:
+        question.points = enhanced_content['points']
     
     return question, tags
 
@@ -138,12 +212,21 @@ def get_or_create_domain(db: Session, domain_name: str) -> Domain:
     Returns:
         Domain object
     """
-    domain = db.query(Domain).filter(Domain.name == domain_name).first()
-    if not domain:
-        domain = Domain(name=domain_name)
-        db.add(domain)
-        db.commit()
-    return domain
+    if not db:
+        logger.error("No database session provided")
+        return None
+    
+    try:
+        domain = db.query(Domain).filter(Domain.name == domain_name).first()
+        if not domain:
+            domain = Domain(name=domain_name)
+            db.add(domain)
+            db.flush()
+        return domain
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error getting or creating domain {domain_name}: {e}")
+        return db.query(Domain).filter(Domain.name == domain_name).first()
 
 def get_or_create_tag(db: Session, tag_name: str) -> Tag:
     """
@@ -156,11 +239,25 @@ def get_or_create_tag(db: Session, tag_name: str) -> Tag:
     Returns:
         Tag object
     """
-    tag = db.query(Tag).filter(Tag.name == tag_name).first()
-    if not tag:
-        tag = Tag(name=tag_name)
-        db.add(tag)
-    return tag
+    if not db:
+        logger.error("No database session provided")
+        return None
+    
+    try:
+        tag = db.query(Tag).filter(Tag.name == tag_name).first()
+        if not tag:
+            tag = Tag(name=tag_name)
+            db.add(tag)
+            db.commit()
+        return tag
+    except IntegrityError as e:
+        db.rollback()
+        logger.warning(f"Tag {tag_name} already exists, fetching existing one: {e}")
+        return db.query(Tag).filter(Tag.name == tag_name).first()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error getting or creating tag {tag_name}: {e}")
+        return None
 
 def import_questions_from_csv(
     file_path: str, 
@@ -176,63 +273,68 @@ def import_questions_from_csv(
     Returns:
         Number of questions imported
     """
-    should_close_db = False
-    if db is None:
+    close_db = False
+    if not db:
         db = next(get_db_context())
-        should_close_db = True
-    
-    import_count = 0
-    error_count = 0
-    duplicate_count = 0
+        close_db = True
     
     try:
-        with open(file_path, 'r', encoding='utf-8') as csv_file:
-            csv_reader = csv.DictReader(csv_file)
+        with open(file_path, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            imported_count = 0
+            skipped_count = 0
+            errors_count = 0
             
-            for row in csv_reader:
+            for row in reader:
                 try:
-                    # Skip empty rows
-                    if not row.get('question'):
+                    # Skip empty rows or rows without required fields
+                    if not row.get('question') or not row.get('correct_answer'):
+                        logger.warning(f"Skipping row, missing required fields: {row}")
+                        skipped_count += 1
                         continue
                     
-                    # Create question and get tags
-                    question, tags = create_question_from_csv_row(row)
+                    # Check if question already exists
+                    existing_question = db.query(Question).filter(
+                        Question.question_text == row.get('question')
+                    ).first()
+                    
+                    if existing_question:
+                        logger.info(f"Question already exists: {row.get('question')[:30]}...")
+                        skipped_count += 1
+                        continue
                     
                     # Get or create domain
                     domain_name = row.get('domain', 'General')
                     domain = get_or_create_domain(db, domain_name)
+                    
+                    # Create question
+                    question, tags = create_question_from_csv_row(row)
                     question.domain_id = domain.id
                     
-                    # Add the question
+                    # Add question to database
                     db.add(question)
-                    try:
-                        db.flush()
-                    except IntegrityError:
-                        db.rollback()
-                        duplicate_count += 1
-                        logger.warning(f"Duplicate question: {row.get('question')[:50]}...")
-                        continue
+                    db.flush()
                     
                     # Add tags
                     for tag_name in tags:
                         tag = get_or_create_tag(db, tag_name)
-                        question.tags.append(tag)
+                        if tag:
+                            question.tags.append(tag)
                     
                     db.commit()
-                    import_count += 1
+                    imported_count += 1
+                    logger.debug(f"Imported question: {row.get('question')[:30]}...")
                     
                 except Exception as e:
                     db.rollback()
-                    error_count += 1
-                    logger.error(f"Error importing question: {e}")
-        
-        logger.info(f"Import complete. Imported {import_count} questions, skipped {duplicate_count} duplicates, encountered {error_count} errors.")
-        return import_count
-    
+                    errors_count += 1
+                    logger.error(f"Error importing question: {e}, Row: {row}")
+            
+            logger.info(f"Import complete: {imported_count} imported, {skipped_count} skipped, {errors_count} errors")
+            return imported_count
     except Exception as e:
-        logger.error(f"Error opening or reading CSV file: {e}")
+        logger.error(f"Error importing questions from {file_path}: {e}")
         return 0
-    
     finally:
-        if should_close_db:
+        if close_db:
             db.close()

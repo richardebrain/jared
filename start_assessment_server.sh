@@ -1,18 +1,27 @@
 #!/bin/bash
-# Start the MentorMe Assessment Server
-# This script runs the FastAPI server for the assessment system in production mode
+# Script to start the Assessment server as a background process
+# This ensures the server keeps running even in the background
 
-# Set environment variables
-export ASSESSMENT_API_PORT=8088  # Changed to 8088 to avoid conflicts
-export ASSESSMENT_API_HOST="0.0.0.0"
-export ASSESSMENT_API_RELOAD="false"  # Disable reload in production
+# Make sure the script is executable
+chmod +x start_assessment_api.sh
 
-# Ensure data directory exists
-mkdir -p data
-
-# Install required dependencies
-pip install -q fastapi uvicorn sqlalchemy python-multipart pydantic
-
-# Run the backend in production mode
-echo "Starting MentorMe Assessment Server on port $ASSESSMENT_API_PORT..."
-python run_backend.py
+# Check if the server is already running
+if pgrep -f "run_backend.py" > /dev/null; then
+    echo "Assessment server is already running."
+else
+    # Start the server in the background
+    echo "Starting assessment server in the background..."
+    nohup ./start_assessment_api.sh > data/assessment_server.log 2>&1 &
+    
+    # Give it a moment to start
+    sleep 2
+    
+    # Check if it started successfully
+    if pgrep -f "run_backend.py" > /dev/null; then
+        echo "Assessment server started successfully. Check data/assessment_server.log for details."
+        echo "The server is running on port 8088"
+    else
+        echo "Failed to start assessment server. Check data/assessment_server.log for errors."
+        exit 1
+    fi
+fi
