@@ -6,22 +6,20 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# Get database URL from environment, with SQLite fallback
-DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./mentorme.db")
-if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
-    # Handling Heroku's DATABASE_URL format
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+# Get the database URL from environment variable or use a default SQLite database
+DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./mentorme_assessment.db")
 
 # Create SQLAlchemy engine
 engine = create_engine(
     DATABASE_URL, 
+    # For SQLite, connect_args is needed, otherwise it can be omitted
     connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 )
 
-# Create session factory
+# Create a SessionLocal class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Create base class for declarative models
+# Create a Base class for declarative models
 Base = declarative_base()
 
 def get_db():
