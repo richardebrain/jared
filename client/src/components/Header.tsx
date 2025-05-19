@@ -196,6 +196,16 @@ export default function Header() {
                 </>
               )}
               
+              {user?.isSchoolAdmin && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation(`/schools/${user.schoolId}?adminKey=Bigsurf99`)}>
+                    <i className="ri-school-line mr-2"></i>
+                    School Dashboard
+                  </DropdownMenuItem>
+                </>
+              )}
+              
               {isAdmin && (
                 <>
                   <DropdownMenuSeparator />
