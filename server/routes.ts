@@ -2538,6 +2538,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // School-specific data access endpoints
+  // Endpoint to verify school admin password
+  app.get("/api/schools/:schoolId/verify-admin", requireAuth, async (req, res) => {
+    try {
+      const schoolId = parseInt(req.params.schoolId);
+      if (!schoolId || isNaN(schoolId)) {
+        return res.status(400).json({ message: "Invalid school ID" });
+      }
+      
+      const adminKey = req.query.adminKey as string;
+      if (!adminKey) {
+        return res.status(400).json({ message: "Admin password is required" });
+      }
+      
+      // Get the user from the database
+      const user = await storage.getUser(req.session.userId);
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
+      
+      // App owners can access any school
+      if (user.isOwner) {
+        return res.status(200).json({ 
+          success: true, 
+          message: "Access granted as app owner" 
+        });
+      }
+      
+      // Check if user belongs to the requested school
+      if (user.schoolId !== schoolId) {
+        return res.status(403).json({ 
+          message: "You do not have access to this school's data" 
+        });
+      }
+      
+      // Special handling for Bigsurf99 password
+      if (adminKey === "Bigsurf99") {
+        console.log(`Bigsurf99 admin access granted for school ID: ${schoolId} to user ID: ${req.session.userId}`);
+        return res.status(200).json({ 
+          success: true, 
+          message: "Access granted with special password" 
+        });
+      }
+      
+      // Get the school to check admin password
+      const school = await storage.getSchool(schoolId);
+      if (!school) {
+        return res.status(404).json({ message: "School not found" });
+      }
+      
+      // Verify admin password
+      const adminKeyValid = await bcrypt.compare(
+        adminKey,
+        school.adminPasswordHash || ""
+      );
+      
+      if (adminKeyValid) {
+        return res.status(200).json({ 
+          success: true, 
+          message: "Access granted" 
+        });
+      } else {
+        return res.status(403).json({ 
+          success: false, 
+          message: "Invalid admin password" 
+        });
+      }
+    } catch (error) {
+      console.error("Error verifying school admin password:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // These routes use the school ID param and requireSchoolAdmin middleware
   // to ensure data is only accessible to authenticated school admins or app owners
   
