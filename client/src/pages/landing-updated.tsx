@@ -37,7 +37,7 @@ export default function LandingPage() {
               </p>
               <div className="flex flex-col gap-2 min-[400px]:flex-row">
                 <Button className="gap-1 px-6" asChild>
-                  <Link href="/ultra-simple-registration">
+                  <Link href="/simple-business-register">
                     Register Your School
                     <ChevronRight className="h-4 w-4" />
                   </Link>
@@ -215,7 +215,7 @@ export default function LandingPage() {
                   </li>
                 </ul>
                 <Button className="w-full mt-4" asChild>
-                  <Link href="/business-signup-complete">Get Started</Link>
+                  <Link href="/simple-business-register">Get Started</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -252,7 +252,7 @@ export default function LandingPage() {
                   </li>
                 </ul>
                 <Button className="w-full mt-4" asChild>
-                  <Link href="/business-signup-complete">Get Started</Link>
+                  <Link href="/simple-business-register">Get Started</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -286,7 +286,7 @@ export default function LandingPage() {
                   </li>
                 </ul>
                 <Button className="w-full mt-4" asChild>
-                  <Link href="/business-signup-complete">Get Started</Link>
+                  <Link href="/simple-business-register">Get Started</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -308,7 +308,7 @@ export default function LandingPage() {
             </div>
             <div className="flex flex-col gap-2 min-[400px]:flex-row">
               <Button className="gap-1 px-8" size="lg" asChild>
-                <Link href="/business-signup-complete">
+                <Link href="/simple-business-register">
                   Get Started
                   <ChevronRight className="h-4 w-4" />
                 </Link>
@@ -338,7 +338,7 @@ export default function LandingPage() {
             </div>
             <div className="flex space-x-4">
               <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground">Sign In</Link>
-              <Link href="/business-signup-complete" className="text-sm text-muted-foreground hover:text-foreground">Business Sign-up</Link>
+              <Link href="/simple-business-register" className="text-sm text-muted-foreground hover:text-foreground">Business Sign-up</Link>
               <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground">Terms</Link>
               <Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground">Privacy</Link>
             </div>
