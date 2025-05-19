@@ -138,35 +138,48 @@ Category: ${video.category.join(', ')}
     setShowQuiz(false);
     
     try {
-      // Submit quiz results to the API
-      const response = await apiRequest('/api/videos/quiz/complete', {
+      // Submit quiz results directly to the endpoint we know works
+      const response = await fetch('/api/videos/quiz/complete', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        data: {
+        body: JSON.stringify({
           videoId: video.id,
           points: points > 0 ? 1 : 0, // Send 1 if points earned, 0 if not
           duration: video.duration || 5 // Pass video duration for proper point calculation
-        }
+        })
       });
       
+      // Parse the JSON response
+      const data = await response.json();
+      
       // Update local state and notify the user
-      if (response.success) {
+      if (data && (data.success || data.pointsAwarded)) {
+        const pointsAwarded = data.pointsAwarded || points;
+        const totalPoints = data.totalPoints || "updated";
+        const remaining = data.remaining !== undefined ? data.remaining : 2;
+        
         toast({
           title: "Points Earned!",
-          description: `You've earned ${points} points for completing this quiz. Your total points: ${response.totalPoints}`,
+          description: `You've earned ${pointsAwarded} points for completing this quiz. Your total points: ${totalPoints}${remaining > 0 ? `. You can earn points for ${remaining} more video(s) today.` : ""}`,
           variant: "default",
         });
         
         // Invalidate user data to refresh points display
         queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      } else if (data && data.limitReached) {
+        toast({
+          title: "Daily Limit Reached",
+          description: "You've already earned points for 2 videos today. Come back tomorrow for more!",
+          variant: "default",
+        });
       } else {
         toast({
-          title: "Something went wrong",
-          description: "We couldn't save your quiz results. Please try again.",
-          variant: "destructive",
+          title: "Quiz Completed",
+          description: "Your quiz was completed, but no points were awarded.",
+          variant: "default",
         });
       }
     } catch (error) {
