@@ -56,25 +56,27 @@ const schoolSettingsSchema = z.object({
   }).optional(),
 });
 
-export default function SchoolDashboard() {
-  // For Bob's Daycare direct admin access (using the special route)
+export default function SchoolDashboard({ forcedSchoolId, forcedAdminKey }: { forcedSchoolId?: number, forcedAdminKey?: string } = {}) {
+  // Allow for direct injection of school ID and admin key from parent component
   const params = useParams();
   
-  // If we're on the bobs-daycare-admin route, use Bob's Daycare school ID (2) directly
-  const isSpecialRoute = window.location.pathname === '/bobs-daycare-admin';
+  // Determine the school ID to use
+  // Priority: 1. Forced school ID (from props), 2. URL param, 3. Current user's school
+  const schoolId = forcedSchoolId ? forcedSchoolId.toString() : params.schoolId;
   
-  // Use school ID 2 for Bob's Daycare special route
-  const schoolId = isSpecialRoute ? "2" : params.schoolId;
+  // Set the admin key based on props or defaults
+  const storedAdminKey = localStorage.getItem('adminKey') || '';
   
-  // Make sure we have a valid admin key for the special route
+  // Make sure we have valid admin credentials for forced access
   useEffect(() => {
-    if (isSpecialRoute) {
-      localStorage.setItem('adminKey', 'Bigsurf99');
+    if (forcedSchoolId && forcedAdminKey) {
+      // Store forced credentials in localStorage
+      localStorage.setItem('adminKey', forcedAdminKey);
       localStorage.setItem('adminAccessGranted', 'true');
-      localStorage.setItem('currentSchoolId', '2'); // Ensure Bob's Daycare school ID is set
-      console.log("Set up Bob's Daycare admin dashboard - School ID: 2");
+      localStorage.setItem('currentSchoolId', forcedSchoolId.toString()); 
+      console.log(`Using forced school credentials - School ID: ${forcedSchoolId}, Admin Key: ${forcedAdminKey ? 'Provided' : 'None'}`);
     }
-  }, [isSpecialRoute]);
+  }, [forcedSchoolId, forcedAdminKey]);
   
   const [location, navigate] = useLocation();
   const { toast } = useToast();

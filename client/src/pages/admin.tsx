@@ -56,9 +56,16 @@ export default function AdminPage() {
         description: "Redirecting to your school dashboard...",
       });
       
-      // Use the special Bob's Daycare admin route for simplicity
+      // Set admin credentials and directly go to the dedicated route
+      // First, set admin access in localStorage
+      localStorage.setItem('adminKey', 'Bigsurf99');
+      localStorage.setItem('adminAccessGranted', 'true');
+      localStorage.setItem('currentSchoolId', '2'); // Bob's Daycare ID
+      
+      // Then navigate
       setTimeout(() => {
-        navigate('/bobs-daycare-admin');
+        // Navigate to the Bob's Daycare admin page
+        window.location.href = '/schools/2';
       }, 1000);
     } else {
       toast({
