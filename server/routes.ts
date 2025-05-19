@@ -675,14 +675,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all users (for leaderboard)
   app.get("/api/users", async (req, res) => {
     try {
-      const allUsers = await storage.getAllUsers();
+      // Check if user is authenticated
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      // Get the current user to determine their school
+      const currentUser = await storage.getUser(userId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      // Only get users from the same school as the current user
+      const schoolUsers = await storage.getUsersBySchoolId(currentUser.schoolId);
       
-      if (!allUsers || allUsers.length === 0) {
-        console.log("No users found in system");
+      if (!schoolUsers || schoolUsers.length === 0) {
+        console.log("No users found in school with ID:", currentUser.schoolId);
         return res.status(200).json([]);
       }
       
-      const sanitizedUsers = allUsers.map(user => {
+      const sanitizedUsers = schoolUsers.map(user => {
         // Don't return passwords in response
         const { password, ...userWithoutPassword } = user;
         return userWithoutPassword;

@@ -212,7 +212,7 @@ export default function Header() {
                 </>
               )}
               
-              {isSchoolAdmin && (
+              {isSchoolAdmin && user && (
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation(`/schools/${user.schoolId}?adminKey=Bigsurf99`)}>
