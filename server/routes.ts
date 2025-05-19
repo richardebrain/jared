@@ -1509,6 +1509,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // IMPORTANT: More specific routes must come before parameterized routes
   app.get("/api/videos/completions", requireAuth, async (req, res) => {
     try {
       const userId = req.session.userId as number;
@@ -1517,6 +1518,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching video completions:", error);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get individual video data including quiz questions
+  app.get("/api/videos/:videoId", async (req, res) => {
+    try {
+      const videoId = req.params.videoId;
+      
+      // Import the video resources data 
+      const { videoResourcesData } = await import("@shared/videoResources");
+      
+      // Find the video with the matching ID
+      const video = videoResourcesData.find(v => v.id === videoId);
+      
+      if (!video) {
+        return res.status(404).json({ message: "Video not found" });
+      }
+      
+      // Return the video data with quiz questions
+      res.status(200).json(video);
+    } catch (error) {
+      console.error("Error fetching video data:", error);
+      res.status(500).json({ message: "Error fetching video data" });
     }
   });
   
