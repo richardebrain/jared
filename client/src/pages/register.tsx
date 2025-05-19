@@ -77,6 +77,25 @@ export default function Register() {
     },
   });
 
+  // State for file upload
+  const [schoolLogo, setSchoolLogo] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  
+  // Handle logo file change
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSchoolLogo(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
   // Register mutation
   const { mutate: register, isPending } = useMutation({
     mutationFn: async (data: z.infer<typeof registerSchema>) => {
@@ -95,33 +114,50 @@ export default function Register() {
         if (data.isSchoolOwner && data.schoolName && data.adminPassword) {
           console.log("Registering as school owner");
           
-          // First, register the user
-          const userResponse = await apiRequest("/api/auth/register", {
-            method: "POST",
-            data: cleanData
+          // First create the school
+          const formData = new FormData();
+          formData.append('name', data.schoolName.trim());
+          formData.append('adminPasswordHash', data.adminPassword.trim());
+          formData.append('contactEmail', data.email.trim());
+          formData.append('contactPhone', ''); // Could be added later
+          formData.append('address', '');
+          formData.append('city', '');
+          formData.append('state', '');
+          formData.append('zipCode', '');
+          formData.append('customization', JSON.stringify({
+            primaryColor: "#1e88e5",
+            secondaryColor: "#ffca28",
+            accentColor: "#ff5722"
+          }));
+          
+          // Add logo if provided
+          if (schoolLogo) {
+            formData.append('logo', schoolLogo);
+          }
+          
+          // Create the school first
+          const schoolResponse = await fetch('/api/schools', {
+            method: 'POST',
+            body: formData
           });
           
-          // Then create the school with this user as the admin
-          await apiRequest("/api/schools", {
-            method: "POST",
-            data: {
-              name: data.schoolName.trim(),
-              adminPasswordHash: data.adminPassword.trim(),
-              contactEmail: data.email.trim(),
-              contactPhone: "", // These could be added to the form later
-              address: "",
-              city: "",
-              state: "",
-              zipCode: "",
-              customization: {
-                primaryColor: "#1e88e5",
-                secondaryColor: "#ffca28",
-                accentColor: "#ff5722"
-              }
-            }
-          });
+          if (!schoolResponse.ok) {
+            throw new Error('Failed to create school');
+          }
           
-          return userResponse;
+          const school = await schoolResponse.json();
+          
+          // Then register the user with the new school ID
+          const userRegData = {
+            ...cleanData,
+            schoolId: school.id, // Associate with the newly created school
+            isSchoolAdmin: true // Make them a school admin
+          };
+          
+          return await apiRequest("/api/auth/register", {
+            method: "POST",
+            data: userRegData
+          });
         } else {
           // Regular user registration
           console.log("Sending registration data:", { 
@@ -369,7 +405,7 @@ export default function Register() {
               
               {/* Conditional school fields */}
               {isSchoolOwner && (
-                <div className="mt-6 p-4 border rounded-md bg-gray-50 animate-fadeIn space-y-4">
+                <div className="mt-6 p-4 border rounded-md bg-gray-50 animate-fadeIn space-y-6">
                   <h3 className="font-bold text-center mb-2">School Information</h3>
                   
                   <FormField
@@ -409,6 +445,59 @@ export default function Register() {
                       </FormItem>
                     )}
                   />
+                  
+                  {/* School Logo Upload */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      School Logo <span className="text-xs text-gray-500">(optional)</span>
+                    </label>
+                    
+                    <div className="flex items-center gap-4">
+                      {/* Logo Preview */}
+                      {logoPreview ? (
+                        <div className="w-24 h-24 rounded overflow-hidden border">
+                          <img 
+                            src={logoPreview} 
+                            alt="School logo preview" 
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-24 h-24 rounded border flex items-center justify-center bg-gray-100">
+                          <span className="text-gray-400 text-xs text-center">Logo Preview</span>
+                        </div>
+                      )}
+                      
+                      <div className="flex-1">
+                        <div className="flex items-center justify-center w-full">
+                          <label 
+                            htmlFor="school-logo-upload" 
+                            className="flex flex-col items-center justify-center w-full h-20 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+                          >
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                              <svg className="w-8 h-8 mb-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                              </svg>
+                              <p className="mb-1 text-xs text-gray-500">
+                                <span className="font-semibold">Click to upload</span> or drag and drop
+                              </p>
+                              <p className="text-xs text-gray-500">SVG, PNG, or JPG (max. 2MB)</p>
+                            </div>
+                            <input 
+                              id="school-logo-upload" 
+                              type="file" 
+                              className="hidden" 
+                              accept="image/*"
+                              onChange={handleLogoChange}
+                            />
+                          </label>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Your logo will replace the Raising Arizona logo for your teachers
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
               
