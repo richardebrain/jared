@@ -3,14 +3,13 @@
  * This service handles question selection and tracking to ensure no repeats
  * and proper progress through difficulty levels in assessments.
  */
+import { 
+  AssessmentQuestion,
+  DifficultyLevel
+} from "../types";
 
-import { AssessmentQuestion, DifficultyLevel } from "../types";
-
-// Store of already answered questions per domain to prevent repeats
-const answeredQuestionsMap = new Map<string, Set<string>>();
-
-// Debug flag - set to true to enable detailed console logs
-const DEBUG = true;
+// Store for questions seen in the current session
+const answeredQuestions = new Set<string>();
 
 /**
  * Create a unique fingerprint for a question that identifies it regardless of ID
@@ -18,7 +17,6 @@ const DEBUG = true;
  * @returns A unique string fingerprint
  */
 function createQuestionFingerprint(question: AssessmentQuestion): string {
-  // Combine domain, text, and options to create a truly unique identifier
   return `${question.domain}::${question.text.trim().toLowerCase()}::${question.options.join('|')}`;
 }
 
@@ -27,30 +25,17 @@ function createQuestionFingerprint(question: AssessmentQuestion): string {
  * @param question The question that was answered
  */
 export function markQuestionAnswered(question: AssessmentQuestion): void {
-  if (!question) return;
-  
-  // Get the domain-specific set of answered questions
-  const domain = question.domain;
-  if (!answeredQuestionsMap.has(domain)) {
-    answeredQuestionsMap.set(domain, new Set());
-  }
-  
-  // Add this question's fingerprint to the set
   const fingerprint = createQuestionFingerprint(question);
-  answeredQuestionsMap.get(domain)?.add(fingerprint);
-  
-  if (DEBUG) {
-    const count = answeredQuestionsMap.get(domain)?.size || 0;
-    console.log(`✓ Marked question as answered in domain '${domain}' - Total answered: ${count}`);
-  }
+  answeredQuestions.add(fingerprint);
+  console.log(`Question marked as answered: ${fingerprint.substring(0, 60)}...`);
 }
 
 /**
  * Reset all answered questions tracking
  */
 export function resetAnsweredQuestions(): void {
-  answeredQuestionsMap.clear();
-  if (DEBUG) console.log('✓ Reset all answered questions tracking');
+  answeredQuestions.clear();
+  console.log("Answered questions tracking reset");
 }
 
 /**
@@ -59,13 +44,8 @@ export function resetAnsweredQuestions(): void {
  * @returns True if the question has been answered
  */
 export function hasQuestionBeenAnswered(question: AssessmentQuestion): boolean {
-  if (!question) return false;
-  
-  const domain = question.domain;
-  if (!answeredQuestionsMap.has(domain)) return false;
-  
   const fingerprint = createQuestionFingerprint(question);
-  return answeredQuestionsMap.get(domain)?.has(fingerprint) || false;
+  return answeredQuestions.has(fingerprint);
 }
 
 /**
@@ -80,30 +60,39 @@ export function getAvailableQuestions(
   domain: string,
   difficulty: DifficultyLevel
 ): AssessmentQuestion[] {
-  if (!allQuestions || allQuestions.length === 0) return [];
-  
-  // Find all questions for this domain and difficulty that haven't been answered
-  const availableQuestions = allQuestions.filter(question => {
-    // First check if it's the right domain and difficulty
-    if (question.domain === domain && question.difficulty === difficulty) {
-      // Then verify it hasn't been answered yet
-      return !hasQuestionBeenAnswered(question);
+  // Debug logging
+  const isHumanSection = domain === 'human';
+  if (isHumanSection) {
+    console.log(`🔍 Looking for available questions in Building a Human section (${difficulty})`);
+    console.log(`🔍 Total questions answered so far: ${answeredQuestions.size}`);
+  }
+
+  // Filter available questions
+  const available = allQuestions.filter(q => {
+    if (q.domain === domain && q.difficulty === difficulty) {
+      const fingerprint = createQuestionFingerprint(q);
+      const hasBeenAnswered = answeredQuestions.has(fingerprint);
+      
+      // Log for Building a Human section
+      if (isHumanSection) {
+        if (!hasBeenAnswered) {
+          console.log(`✅ Available: "${q.text.substring(0, 40)}..." (ID: ${q.id})`);
+        } else {
+          console.log(`❌ Already answered: "${q.text.substring(0, 40)}..." (ID: ${q.id})`);
+        }
+      }
+      
+      return !hasBeenAnswered;
     }
     return false;
   });
-  
-  if (DEBUG) {
-    console.log(`Found ${availableQuestions.length} available questions for domain '${domain}' at ${difficulty} difficulty`);
-    if (domain === 'human') {
-      // Extra logging for the Building a Human section that was causing issues
-      console.log(`Details for Building a Human questions:`);
-      availableQuestions.forEach((q, i) => {
-        console.log(`  ${i+1}. ${q.text.substring(0, 30)}...`);
-      });
-    }
+
+  // Log summary for Building a Human section
+  if (isHumanSection) {
+    console.log(`Found ${available.length} available questions for Building a Human (${difficulty})`);
   }
-  
-  return availableQuestions;
+
+  return available;
 }
 
 /**
@@ -120,23 +109,14 @@ export function getQuestionBatch(
   difficulty: DifficultyLevel,
   count: number = 5
 ): AssessmentQuestion[] {
-  // Get all available questions
+  // Get available questions
   const availableQuestions = getAvailableQuestions(allQuestions, domain, difficulty);
   
-  // If no questions are available, return an empty array
-  if (availableQuestions.length === 0) return [];
-  
-  // Shuffle the questions for randomness
+  // Shuffle questions for randomness
   const shuffled = [...availableQuestions].sort(() => Math.random() - 0.5);
   
-  // Return the requested number of questions or all available if less
-  const result = shuffled.slice(0, count);
-  
-  if (DEBUG) {
-    console.log(`Selected ${result.length} questions for domain '${domain}' at ${difficulty} difficulty`);
-  }
-  
-  return result;
+  // Return limited number of questions
+  return shuffled.slice(0, count);
 }
 
 /**
@@ -154,43 +134,48 @@ export function getQuestionsWithFallback(
   difficulty: DifficultyLevel,
   count: number = 5
 ): { questions: AssessmentQuestion[], actualDifficulty: DifficultyLevel } {
-  // First try the requested difficulty
+  // Try the requested difficulty first
   let questions = getQuestionBatch(allQuestions, domain, difficulty, count);
   
-  // If we got questions, return them with the actual difficulty used
-  if (questions.length > 0) {
-    return { questions, actualDifficulty: difficulty };
-  }
-  
-  // Otherwise try fallback difficulty levels
-  // The fallback chain goes: beginner -> intermediate -> advanced -> expert
-  // And also: expert -> advanced -> intermediate -> beginner
-  const difficultyLevels: DifficultyLevel[] = ['beginner', 'intermediate', 'advanced', 'expert'];
-  
-  // Find the current difficulty index
-  const currentIndex = difficultyLevels.indexOf(difficulty);
-  
-  // Try progressively easier difficulties first (go backward)
-  for (let i = currentIndex - 1; i >= 0; i--) {
-    const fallbackDifficulty = difficultyLevels[i];
-    questions = getQuestionBatch(allQuestions, domain, fallbackDifficulty, count);
-    if (questions.length > 0) {
-      if (DEBUG) console.log(`Found questions at fallback difficulty: ${fallbackDifficulty}`);
-      return { questions, actualDifficulty: fallbackDifficulty };
+  // If no questions available, try fallback difficulties
+  if (questions.length === 0) {
+    console.log(`No questions available for ${domain} at ${difficulty} level, trying fallbacks...`);
+    
+    // Attempt different difficulty levels in a sensible order
+    let actualDifficulty: DifficultyLevel = difficulty;
+    
+    if (difficulty === 'beginner') {
+      questions = getQuestionBatch(allQuestions, domain, 'intermediate', count);
+      if (questions.length > 0) actualDifficulty = 'intermediate';
+    } 
+    else if (difficulty === 'intermediate') {
+      // Try beginner first, then advanced
+      questions = getQuestionBatch(allQuestions, domain, 'beginner', count);
+      if (questions.length > 0) {
+        actualDifficulty = 'beginner';
+      } else {
+        questions = getQuestionBatch(allQuestions, domain, 'advanced', count);
+        if (questions.length > 0) actualDifficulty = 'advanced';
+      }
     }
-  }
-  
-  // If still no questions, try progressively harder difficulties (go forward)
-  for (let i = currentIndex + 1; i < difficultyLevels.length; i++) {
-    const fallbackDifficulty = difficultyLevels[i];
-    questions = getQuestionBatch(allQuestions, domain, fallbackDifficulty, count);
-    if (questions.length > 0) {
-      if (DEBUG) console.log(`Found questions at fallback difficulty: ${fallbackDifficulty}`);
-      return { questions, actualDifficulty: fallbackDifficulty };
+    else if (difficulty === 'advanced') {
+      // Try intermediate first, then expert
+      questions = getQuestionBatch(allQuestions, domain, 'intermediate', count);
+      if (questions.length > 0) {
+        actualDifficulty = 'intermediate';
+      } else {
+        questions = getQuestionBatch(allQuestions, domain, 'expert', count);
+        if (questions.length > 0) actualDifficulty = 'expert';
+      }
     }
+    else if (difficulty === 'expert') {
+      // Try advanced as fallback for expert
+      questions = getQuestionBatch(allQuestions, domain, 'advanced', count);
+      if (questions.length > 0) actualDifficulty = 'advanced';
+    }
+    
+    console.log(`Fallback to ${actualDifficulty} difficulty: found ${questions.length} questions`);
   }
   
-  // If we still have no questions, we've exhausted all difficulties
-  if (DEBUG) console.log(`⚠️ No questions available for domain '${domain}' at any difficulty level`);
-  return { questions: [], actualDifficulty: difficulty };
+  return { questions, actualDifficulty: difficulty };
 }

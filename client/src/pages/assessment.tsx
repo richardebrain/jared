@@ -395,13 +395,11 @@ export default function AssessmentPage() {
     }
   };
   
-  // Create a unique fingerprint for a question to reliably identify it
-  const createQuestionFingerprint = (question) => {
-    return `${question.domain}::${question.text.trim().toLowerCase()}::${question.options.join('|')}`;
-  };
-  
-  // Store of seen questions to prevent repeats within a single assessment session
-  const seenQuestions = new Set();
+  // Import the assessment question service instead of implementing it here
+  useEffect(() => {
+    // Reset question tracking when assessment starts
+    resetAnsweredQuestions();
+  }, [assessmentState]);
   
   // Function to update questions for the current domain
   const updateDomainQuestions = (domainId: string, difficulty: DifficultyLevel) => {
@@ -505,8 +503,8 @@ export default function AssessmentPage() {
     const isSimplifiedDomain = simplifiedDomains.includes(domainId);
     const questionCount = isSimplifiedDomain ? 5 : 10;
     
-    // Use our shuffled questions and limit to appropriate number
-    const limitedQuestions = shuffledQuestions.slice(0, questionCount);
+    // Use our randomized questions and limit to appropriate number
+    const limitedQuestions = randomizedQuestions.slice(0, questionCount);
     
     setDomainQuestions(limitedQuestions);
     setActiveQuestionIndex(0);
