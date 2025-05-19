@@ -673,21 +673,23 @@ export default function Dashboard() {
                   Required Training
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* First show our special cards for core modules */}
+                  {/* Core Values Card */}
                   <CoreValuesCard />
+                  
+                  {/* Chapter One Card */}
                   <ChapterOneCard />
                   
-                  {/* Then show Mindful Mornings and Health & Safety modules */}
+                  {/* Explicitly add Mindful Mornings Card to Required Section */}
+                  <MindfulMorningsCard />
+                  
+                  {/* Then show additional Health & Safety modules */}
                   {modules && Array.isArray(modules) && modules.map((module) => {
-                    // Only include Mindful Mornings and Health & Safety in this section
-                    const isMindfulMorning = module.title && 
-                      module.title.toLowerCase().includes("mindful morning");
-                    
+                    // Only include Health & Safety in this section
                     const isHealthSafety = module.title && 
                       module.title.toLowerCase().includes("health and safety");
                       
-                    // Skip other modules - only show our 3rd and 4th required trainings
-                    if (!(isMindfulMorning || isHealthSafety)) {
+                    // Skip other modules - we're already showing Mindful Mornings with its own card
+                    if (!isHealthSafety) {
                       return null;
                     }
                     
