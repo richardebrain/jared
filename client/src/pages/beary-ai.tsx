@@ -71,8 +71,12 @@ export default function BearyAIPage() {
         
         <div className="max-w-4xl mx-auto">
           <div className="flex flex-col md:flex-row items-center gap-4 mb-8">
-            <div className="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center">
-              <span role="img" aria-label="bear" className="text-4xl">🐻</span>
+            <div className="w-32 h-32 bg-amber-50 rounded-full flex items-center justify-center border-2 border-amber-200 overflow-hidden shadow-md">
+              <img
+                src="/images/beary-ai-icon.png"
+                alt="BearyAI"
+                className="w-30 h-30 object-cover"
+              />
             </div>
             
             <div>

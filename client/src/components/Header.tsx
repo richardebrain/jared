@@ -146,8 +146,12 @@ export default function Header() {
                 className="relative text-neutral-800 hover:text-primary transition flex items-center justify-center"
                 onClick={() => setLocation("/beary-ai")}
               >
-                <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center hover:bg-amber-200 transition-colors">
-                  <span role="img" aria-label="bear" className="text-sm">🐻</span>
+                <div className="w-10 h-10 bg-amber-50 rounded-full flex items-center justify-center hover:bg-amber-100 transition-colors overflow-hidden border border-amber-200">
+                  <img 
+                    src="/images/beary-ai-icon.png" 
+                    alt="BearyAI" 
+                    className="w-9 h-9 object-cover"
+                  />
                 </div>
               </button>
               <div className="absolute top-full right-0 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out">
