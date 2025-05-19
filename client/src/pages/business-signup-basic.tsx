@@ -50,34 +50,8 @@ export default function BusinessSignupBasic() {
     console.log("Starting simple business registration process");
     
     try {
-      // Step 1: Register as regular user
-      console.log("Step 1: Creating user account");
-      const userResponse = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          username: formData.username,
-          password: formData.password,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          schoolId: 1, // Default to Raising Arizona
-          isSchoolAdmin: false // Will update this after school creation
-        })
-      });
-      
-      if (!userResponse.ok) {
-        const errorData = await userResponse.json();
-        throw new Error(errorData.message || "Failed to create user account");
-      }
-      
-      const userData = await userResponse.json();
-      console.log("User created successfully:", userData.id);
-      
-      // Step 2: Create school
-      console.log("Step 2: Creating school");
+      // Create school first
+      console.log("Step 1: Creating school");
       const schoolResponse = await fetch("/api/schools/create", {
         method: "POST",
         headers: {
@@ -93,37 +67,59 @@ export default function BusinessSignupBasic() {
       if (!schoolResponse.ok) {
         const errorData = await schoolResponse.json();
         console.error("School creation error:", errorData);
-        // Continue anyway - user was created
-        toast({
-          title: "Partial success",
-          description: "Your account was created but there was an issue setting up your school. Please contact support.",
-        });
-        navigate("/dashboard");
-        return;
+        throw new Error(errorData.message || "Failed to create school");
       }
       
       const schoolData = await schoolResponse.json();
       console.log("School created successfully:", schoolData.id);
       
-      // Step 3: Update user's school
-      console.log("Step 3: Updating user's school association");
-      const updateResponse = await fetch(`/api/users/${userData.id}/update-school`, {
-        method: "PATCH",
+      // Then register user with correct school ID
+      console.log("Step 2: Creating user account with school association");
+      const userResponse = await fetch("/api/auth/register", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          schoolId: schoolData.id,
-          isSchoolAdmin: true
+          username: formData.username,
+          password: formData.password,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          schoolId: schoolData.id, // Use actual school ID
+          isSchoolAdmin: true, // Set as admin immediately
+          isSchoolOwner: true // Mark as owner
         })
       });
       
-      if (!updateResponse.ok) {
-        const errorData = await updateResponse.json();
-        console.error("User update error:", errorData);
+      if (!userResponse.ok) {
+        const errorData = await userResponse.json();
+        throw new Error(errorData.message || "Failed to create user account");
+      }
+      
+      const userData = await userResponse.json();
+      console.log("User created successfully:", userData.id);
+      
+      // Finally, log in the user
+      console.log("Step 3: Logging in the user");
+      const loginResponse = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          password: formData.password
+        })
+      });
+      
+      if (!loginResponse.ok) {
+        const errorText = await loginResponse.text();
+        console.error("Login error:", errorText);
         // Continue anyway - user and school were created
+        console.log("Continuing despite login error - account created successfully");
       } else {
-        console.log("User successfully associated with new school");
+        console.log("User successfully logged in");
       }
       
       toast({

@@ -467,9 +467,9 @@ export default function Register() {
                   <p className="text-xs text-gray-500">
                     School owners can create and manage accounts for their teachers and staff
                   </p>
-                  <p className="text-xs text-blue-600 hover:underline cursor-pointer" onClick={() => navigate("/business-signup-basic")}>
+                  <Link to="/business-signup-basic" className="text-xs text-blue-600 hover:underline cursor-pointer">
                     Having trouble? Try our simplified business signup page →
-                  </p>
+                  </Link>
                 </div>
               </div>
               
