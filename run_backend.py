@@ -3,112 +3,94 @@
 Main entry point for MentorMe Assessment API
 This script starts the FastAPI server for the assessment system
 """
+
 import argparse
 import logging
 import os
 import sys
+import importlib.util
 from pathlib import Path
-
 import uvicorn
-from fastapi import FastAPI
+from dotenv import load_dotenv
 
-from backend import __version__
-from backend.database import init_db, check_db_connection
-from backend.import_data import import_questions_from_csv, setup_initial_data
-from backend.models import Base
-
-# Configure logging
+# Setup logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)]
 )
-logger = logging.getLogger("mentorme.run")
+logger = logging.getLogger("mentorme-assessment-api")
 
+# Load environment variables from .env file if present
+load_dotenv()
 
 def setup_database_wrapper():
     """Wrapper for database setup to handle exceptions"""
     try:
-        from backend.database import get_db
-        init_db()
-        # Verify connection
-        if not check_db_connection():
-            logger.error("Could not connect to database.")
-            sys.exit(1)
-        
-        # Use get_db to get a session
-        db = next(get_db())
-        try:
-            # Set up initial data (default school, owner account, etc.)
-            setup_initial_data(db)
-        finally:
-            db.close()
-        
-        logger.info("Database setup completed successfully")
-        return True
+        # Dynamically import and initialize database
+        if importlib.util.find_spec("backend.database") is not None:
+            from backend.database import init_db, check_db_connection
+            
+            # Initialize the database
+            logger.info("Initializing database...")
+            init_db()
+            
+            # Check if database connection is working
+            if check_db_connection():
+                logger.info("Database connection successful")
+                return True
+            else:
+                logger.error("Database connection failed")
+                return False
+        else:
+            logger.error("Database module not found")
+            return False
     except Exception as e:
-        logger.error(f"Database setup failed: {e}")
+        logger.error(f"Error setting up database: {str(e)}")
         return False
-
 
 def import_sample_data():
     """Import sample questions if available"""
     try:
-        from backend.database import get_db
-        
-        # Get the path to the sample data
-        sample_data_path = Path('data/sample_questions.csv')
-        if not sample_data_path.exists():
-            logger.warning(f"Sample data file not found: {sample_data_path}")
-            return
-        
-        # Use get_db to get a session
-        db = next(get_db())
-        try:
-            # Import questions
-            result = import_questions_from_csv(db, str(sample_data_path))
-            if result["success"]:
-                logger.info(f"Imported {result['imported']} questions ({result['updated']} updated, {result['skipped']} skipped, {result['failed']} failed)")
+        sample_data_path = Path("data/sample_questions.csv")
+        if sample_data_path.exists():
+            logger.info("Sample data file found, importing...")
+            # Check if import_data module exists
+            if importlib.util.find_spec("backend.import_data") is not None:
+                from backend.import_data import import_questions_from_csv
+                count = import_questions_from_csv(str(sample_data_path))
+                logger.info(f"Imported {count} sample questions")
             else:
-                logger.error(f"Failed to import questions: {result.get('error', 'Unknown error')}")
-        finally:
-            db.close()
+                logger.warning("Import data module not found, skipping sample data import")
+        else:
+            logger.info("No sample data file found, skipping import")
     except Exception as e:
-        logger.error(f"Error importing sample data: {e}")
-
+        logger.error(f"Error importing sample data: {str(e)}")
 
 def main():
     """Main entry point"""
-    parser = argparse.ArgumentParser(description="MentorMe Assessment API Server")
-    parser.add_argument('--host', type=str, default='127.0.0.1', help='Host to bind')
-    parser.add_argument('--port', type=int, default=8000, help='Port to bind')
-    parser.add_argument('--reload', action='store_true', help='Enable auto-reload')
-    parser.add_argument('--workers', type=int, default=1, help='Number of worker processes')
-    parser.add_argument('--log-level', type=str, default='info', help='Log level')
-    
+    parser = argparse.ArgumentParser(description="Run the MentorMe Assessment API server")
+    parser.add_argument("--host", default="0.0.0.0", help="Host to bind to")
+    parser.add_argument("--port", type=int, default=8088, help="Port to bind to")
+    parser.add_argument("--reload", action="store_true", help="Enable auto-reload")
     args = parser.parse_args()
+
+    # Setup the database
+    db_setup_success = setup_database_wrapper()
+    if not db_setup_success:
+        logger.warning("Database setup incomplete. Some features might not work correctly.")
     
-    # Setup database
-    if not setup_database_wrapper():
-        logger.error("Failed to set up database. Exiting.")
-        sys.exit(1)
-    
-    # Import sample data
+    # Import sample data if needed
     import_sample_data()
     
-    # Import the app after database is set up
-    from backend.main import app
-    
-    # Run the server
-    logger.info(f"Starting MentorMe Assessment API (version {__version__}) on {args.host}:{args.port}")
+    # Start the FastAPI server
+    logger.info(f"Starting server on {args.host}:{args.port}")
     uvicorn.run(
         "backend.main:app",
         host=args.host,
         port=args.port,
-        reload=args.reload,
-        workers=args.workers,
-        log_level=args.log_level
+        reload=args.reload
     )
-
 
 if __name__ == "__main__":
     main()

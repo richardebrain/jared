@@ -1,18 +1,18 @@
 #!/bin/bash
-# Start script for the MentorMe Assessment Server
-# This script starts both the FastAPI backend and the Express frontend
+# Start the MentorMe assessment server from the Express server
 
-# Make the script executable
-chmod +x start_assessment_api.sh
+# Set permissions for the start script
+chmod +x ./start_assessment_api.sh
 
-# Start the FastAPI backend in the background
-echo "Starting MentorMe Assessment API..."
-./start_assessment_api.sh &
-BACKEND_PID=$!
+# Start the assessment API in the background
+./start_assessment_api.sh > assessment_api.log 2>&1 &
 
-# Start the Express server in the foreground
-echo "Starting MentorMe Frontend..."
-npm run dev
+# Save the process ID for potential cleanup later
+ASSESSMENT_API_PID=$!
+echo "Assessment API started with PID: $ASSESSMENT_API_PID"
+echo $ASSESSMENT_API_PID > assessment_api.pid
 
-# If the frontend stops, kill the backend
-kill $BACKEND_PID
+# Success message
+echo "MentorMe Assessment server started successfully"
+echo "API will be available at http://localhost:8088"
+echo "Logs are being written to assessment_api.log"

@@ -4,25 +4,20 @@ This module sets up and configures the FastAPI application for the assessment sy
 """
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional, Any
+from typing import List, Dict, Any, Optional
 
 from fastapi import FastAPI, Depends, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from . import __version__
 from .database import get_db
-from .models import (
-    Question, User, Answer, Domain, UserDomainProgress, 
-    School, Subscription, AnswerFeedback
-)
 from .loader import (
-    load_questions, get_distinct_domains, get_domain_stats,
-    get_random_question, get_next_assessment_question,
+    get_distinct_domains, get_domain_stats, get_next_assessment_question,
     submit_answer_and_update, generate_learning_path
 )
+from .models import UserAnswer, UserDomainProgress, User, School
 
 # Configure logging
 logging.basicConfig(
@@ -34,25 +29,26 @@ logger = logging.getLogger("mentorme.api")
 # Create FastAPI app
 app = FastAPI(
     title="MentorMe Assessment API",
-    description="API for the MentorMe adaptive assessment system",
+    description="API for the MentorMe assessment system for preschool teachers",
     version=__version__
 )
 
-# Add CORS middleware
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, restrict this to your frontend domain
+    allow_origins=["*"],  # In production, specify allowed origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Pydantic models for requests and responses
+# Pydantic models for API requests and responses
 class HealthCheck(BaseModel):
     """Health check response"""
     status: str
     version: str
     timestamp: datetime
+
 
 class DomainStats(BaseModel):
     """Domain statistics"""
@@ -60,10 +56,12 @@ class DomainStats(BaseModel):
     difficulty_distribution: Dict[int, int]
     sub_domains: Optional[List[str]] = None
 
+
 class AssessmentStart(BaseModel):
     """Assessment start request"""
     domain: str
     user_id: int
+
 
 class AnswerSubmission(BaseModel):
     """Answer submission request"""
@@ -71,6 +69,7 @@ class AnswerSubmission(BaseModel):
     answer: str
     user_id: int
     time_taken: Optional[int] = None
+
 
 class QuestionResponse(BaseModel):
     """Question response model"""
@@ -84,6 +83,7 @@ class QuestionResponse(BaseModel):
     hints: Optional[List[str]] = None
     time_limit: Optional[int] = None
 
+
 class AnswerResponse(BaseModel):
     """Answer response model"""
     is_correct: bool
@@ -95,6 +95,7 @@ class AnswerResponse(BaseModel):
     next_question: Optional[QuestionResponse] = None
     assessment_complete: bool = False
 
+
 class UserProgress(BaseModel):
     """User progress model"""
     user_id: int
@@ -104,6 +105,7 @@ class UserProgress(BaseModel):
     total_correct: int
     accuracy: float
     last_active: datetime
+
 
 class LearningPathResponse(BaseModel):
     """Learning path response model"""
@@ -116,6 +118,7 @@ class LearningPathResponse(BaseModel):
     total_points_earned: int
     recommendations: List[Dict[str, Any]]
 
+
 class LeaderboardEntry(BaseModel):
     """Leaderboard entry model"""
     user_id: int
@@ -126,28 +129,32 @@ class LeaderboardEntry(BaseModel):
     school_id: Optional[int] = None
     school_name: Optional[str] = None
 
-# API routes
+
+# API endpoints
 @app.get("/health", response_model=HealthCheck)
 async def health_check():
     """Health check endpoint"""
     return {
-        "status": "ok",
+        "status": "healthy",
         "version": __version__,
         "timestamp": datetime.utcnow()
     }
+
 
 @app.get("/domains", response_model=List[str])
 async def get_domains(db: Session = Depends(get_db)):
     """Get all available domains"""
     return get_distinct_domains(db)
 
+
 @app.get("/domains/{domain}/stats", response_model=DomainStats)
 async def domain_statistics(domain: str, db: Session = Depends(get_db)):
     """Get statistics for a domain"""
     stats = get_domain_stats(db, domain)
     if not stats:
-        raise HTTPException(status_code=404, detail="Domain not found")
+        raise HTTPException(status_code=404, detail=f"Domain '{domain}' not found")
     return stats
+
 
 @app.post("/assessments/start", response_model=QuestionResponse)
 async def start_assessment(
@@ -155,179 +162,171 @@ async def start_assessment(
     db: Session = Depends(get_db)
 ):
     """Start a new assessment in the specified domain"""
-    # Validate domain
-    domains = get_distinct_domains(db)
-    if request.domain not in domains:
-        raise HTTPException(status_code=404, detail="Domain not found")
+    # Verify user exists
+    user = db.query(User).filter(User.id == request.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User not found: {request.user_id}")
     
-    # Get first question
-    question = get_next_assessment_question(
-        db=db,
-        user_id=request.user_id,
-        domain=request.domain,
-        prev_answers=[]
-    )
-    
-    if not question:
-        raise HTTPException(status_code=404, detail="No questions available for this domain")
-    
-    # Convert to response format
-    return {
-        "id": question.id,
-        "question": question.question,
-        "domain": question.domain,
-        "sub_domain": question.sub_domain,
-        "difficulty": question.difficulty,
-        "q_type": question.q_type.value,
-        "options": question.options,
-        "hints": question.hints,
-        "time_limit": question.time_limit
-    }
+    # Check if the user's school has an active subscription
+    if not user.school_id:
+        raise HTTPException(status_code=403, detail="User is not associated with a school")
 
-@app.post("/assessments/answer", response_model=AnswerResponse)
+    school = db.query(School).filter(School.id == user.school_id).first()
+    if not school:
+        raise HTTPException(status_code=404, detail=f"School not found: {user.school_id}")
+    
+    # Allow default school (Raising Arizona) to bypass subscription check
+    if not school.is_default:
+        # Check if school has active subscription
+        has_active_subscription = db.query(School).join(
+            School.subscriptions
+        ).filter(
+            School.id == user.school_id,
+            School.subscriptions.any(is_active=True)
+        ).first()
+        
+        if not has_active_subscription:
+            raise HTTPException(
+                status_code=403, 
+                detail="Your school does not have an active subscription"
+            )
+    
+    # Get the first question
+    question = get_next_assessment_question(db, request.user_id, request.domain, [])
+    if not question:
+        raise HTTPException(
+            status_code=404, 
+            detail=f"No questions available for domain: {request.domain}"
+        )
+    
+    return question.to_dict()
+
+
+@app.post("/assessments/submit", response_model=AnswerResponse)
 async def submit_assessment_answer(
     request: AnswerSubmission,
     db: Session = Depends(get_db)
 ):
     """Submit an answer to an assessment question"""
-    # Record answer
+    # Verify user exists
+    user = db.query(User).filter(User.id == request.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User not found: {request.user_id}")
+    
+    # Submit the answer and get feedback
     feedback = submit_answer_and_update(
-        db=db,
-        user_id=request.user_id,
-        question_id=request.question_id,
-        answer=request.answer,
-        time_taken=request.time_taken
+        db, request.user_id, request.question_id, request.answer, request.time_taken
     )
     
     if not feedback:
-        raise HTTPException(status_code=404, detail="Question not found")
+        raise HTTPException(status_code=404, detail=f"Question not found: {request.question_id}")
     
-    # Get user's recent answers in this domain
-    recent_answers = (
-        db.query(Answer)
-        .join(Question)
-        .filter(
-            Answer.user_id == request.user_id,
-            Question.domain == feedback.domain
+    # If assessment not complete, get the next question
+    if not feedback.assessment_complete:
+        # Get user's previous answers for this domain
+        previous_answers = db.query(UserAnswer).join(
+            UserAnswer.question
+        ).filter(
+            UserAnswer.user_id == request.user_id,
+            UserAnswer.question.has(domain=feedback.domain)
+        ).all()
+        
+        # Convert to list of dicts
+        prev_answer_dicts = [
+            {
+                "question_id": ans.question_id, 
+                "is_correct": ans.is_correct
+            } 
+            for ans in previous_answers
+        ]
+        
+        # Get next question
+        next_question = get_next_assessment_question(
+            db, request.user_id, feedback.domain, prev_answer_dicts
         )
-        .order_by(Answer.created_at.desc())
-        .limit(15)  # We only need the last 15 answers
-        .all()
-    )
+        
+        if next_question:
+            feedback.next_question = next_question
     
-    # Convert to expected format for get_next_assessment_question
-    prev_answers = [
-        {
-            "question_id": answer.question_id,
-            "is_correct": answer.is_correct
-        } 
-        for answer in recent_answers
-    ]
-    
-    # Get next question if assessment isn't complete
-    next_question = get_next_assessment_question(
-        db=db,
-        user_id=request.user_id,
-        domain=feedback.domain,
-        prev_answers=prev_answers
-    )
-    
-    next_question_response = None
-    assessment_complete = next_question is None
-    
-    if next_question:
-        next_question_response = {
-            "id": next_question.id,
-            "question": next_question.question,
-            "domain": next_question.domain,
-            "sub_domain": next_question.sub_domain,
-            "difficulty": next_question.difficulty,
-            "q_type": next_question.q_type.value,
-            "options": next_question.options,
-            "hints": next_question.hints,
-            "time_limit": next_question.time_limit
-        }
-    
-    # Prepare response
-    response = {
-        "is_correct": feedback.is_correct,
-        "correct_answer": feedback.correct_answer,
-        "explanation": feedback.explanation,
-        "points_earned": feedback.points_earned,
-        "message": feedback.message,
-        "next_difficulty": feedback.next_difficulty,
-        "next_question": next_question_response,
-        "assessment_complete": assessment_complete
-    }
-    
-    return response
+    return feedback.to_dict()
+
 
 @app.get("/users/{user_id}/progress", response_model=UserProgress)
 async def get_user_progress(user_id: int, db: Session = Depends(get_db)):
     """Get progress for a user across all domains"""
-    # Get user
+    # Verify user exists
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail=f"User not found: {user_id}")
     
-    # Get progress records
+    # Get all progress records for this user
     progress_records = db.query(UserDomainProgress).filter(
         UserDomainProgress.user_id == user_id
     ).all()
     
-    # Get answer statistics
-    total_answers = db.query(Answer).filter(Answer.user_id == user_id).count()
-    correct_answers = db.query(Answer).filter(
-        Answer.user_id == user_id,
-        Answer.is_correct.is_(True)
+    # Get total answers and correct answers
+    total_answers = db.query(UserAnswer).filter(
+        UserAnswer.user_id == user_id
     ).count()
     
-    # Calculate accuracy
-    accuracy = 0.0
-    if total_answers > 0:
-        accuracy = (correct_answers / total_answers) * 100
+    total_correct = db.query(UserAnswer).filter(
+        UserAnswer.user_id == user_id,
+        UserAnswer.is_correct == True
+    ).count()
     
-    # Get latest activity timestamp
-    latest_activity = None
-    latest_answer = db.query(Answer).filter(
-        Answer.user_id == user_id
-    ).order_by(Answer.created_at.desc()).first()
-    
-    if latest_answer:
-        latest_activity = latest_answer.created_at
-    else:
-        latest_activity = datetime.utcnow()
-    
-    # Build domain data
-    domains_data = {}
+    # Build domains dictionary
+    domains = {}
     for progress in progress_records:
-        domains_data[progress.domain] = {
-            "current_level": progress.current_level,
-            "highest_difficulty": progress.highest_difficulty,
+        domains[progress.domain] = {
             "questions_attempted": progress.questions_attempted,
             "questions_correct": progress.questions_correct,
             "accuracy": progress.accuracy,
+            "proficiency": progress.proficiency,
+            "level": progress.current_level,
+            "highest_difficulty": progress.highest_difficulty,
             "total_points": progress.total_points,
-            "last_activity": progress.last_activity.isoformat()
+            "last_activity": progress.last_activity.isoformat() if progress.last_activity else None
         }
+    
+    # Calculate overall accuracy
+    accuracy = 0
+    if total_answers > 0:
+        accuracy = (total_correct / total_answers) * 100
+    
+    # Get last activity timestamp
+    last_active = user.updated_at
+    if progress_records:
+        latest_progress = max(progress_records, key=lambda p: p.last_activity or datetime.min)
+        if latest_progress.last_activity:
+            last_active = latest_progress.last_activity
     
     return {
         "user_id": user_id,
-        "domains": domains_data,
+        "domains": domains,
         "total_points": user.total_points,
         "total_questions_answered": total_answers,
-        "total_correct": correct_answers,
+        "total_correct": total_correct,
         "accuracy": accuracy,
-        "last_active": latest_activity
+        "last_active": last_active
     }
+
 
 @app.get("/users/{user_id}/learning-path", response_model=LearningPathResponse)
 async def get_learning_path(user_id: int, db: Session = Depends(get_db)):
     """Get a personalized learning path for a user"""
-    # Generate learning path
-    learning_path = generate_learning_path(db, user_id)
+    # Verify user exists
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User not found: {user_id}")
     
-    return learning_path.to_dict()
+    # Generate learning path
+    try:
+        learning_path = generate_learning_path(db, user_id)
+        return learning_path.to_dict()
+    except Exception as e:
+        logger.error(f"Error generating learning path: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/leaderboard", response_model=List[LeaderboardEntry])
 async def get_leaderboard(
@@ -337,45 +336,28 @@ async def get_leaderboard(
 ):
     """Get leaderboard data"""
     query = db.query(
-        User.id,
-        User.username,
-        User.total_points,
-        User.school_id,
+        User.id, User.username, User.total_points, User.level, User.school_id,
         School.name.label("school_name")
-    ).join(
-        School, User.school_id == School.id, isouter=True
-    )
+    ).join(School, User.school_id == School.id, isouter=True)
     
-    if school_id:
+    # Filter by school if specified
+    if school_id is not None:
         query = query.filter(User.school_id == school_id)
     
-    # Order by points and limit
+    # Order by points (highest first)
     users = query.order_by(User.total_points.desc()).limit(limit).all()
     
-    # Calculate ranks and levels
+    # Build response with ranks
     result = []
     for i, user in enumerate(users):
-        # Simple level calculation (adjust as needed)
-        level = 1
-        if user.total_points >= 2500:
-            level = 6  # Master Lead Teacher
-        elif user.total_points >= 1500:
-            level = 5  # Lead Teacher
-        elif user.total_points >= 800:
-            level = 4  # Associate Teacher
-        elif user.total_points >= 300:
-            level = 3  # Assistant Teacher
-        elif user.total_points >= 100:
-            level = 2  # Teacher in Training
-        
         result.append({
             "user_id": user.id,
             "username": user.username,
             "points": user.total_points,
-            "level": level,
+            "level": user.level,
             "rank": i + 1,
             "school_id": user.school_id,
-            "school_name": user.school_name
+            "school_name": user.school_name if hasattr(user, "school_name") else None
         })
     
     return result
