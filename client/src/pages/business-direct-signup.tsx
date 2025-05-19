@@ -14,6 +14,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Header from "@/components/Header";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle, Check } from "lucide-react";
 
 // Ultra simplified business signup form with direct submit
 export default function BusinessDirectSignup() {
@@ -34,37 +36,68 @@ export default function BusinessDirectSignup() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
 
+  // State for form steps
+  const [formStep, setFormStep] = useState(1);
+  const [submissionSuccess, setSubmissionSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  
+  // Validate just the current step's fields
+  const validateStep = () => {
+    if (formStep === 1) {
+      if (!schoolName || !contactEmail || !adminPassword) {
+        toast({
+          title: "Missing School Information",
+          description: "Please fill in all required school information fields.",
+          variant: "destructive",
+        });
+        return false;
+      }
+    } else if (formStep === 2) {
+      if (!username || !password || !firstName || !lastName || !email) {
+        toast({
+          title: "Missing Account Information",
+          description: "Please fill in all required account information fields.",
+          variant: "destructive",
+        });
+        return false;
+      }
+      
+      if (password !== confirmPassword) {
+        toast({
+          title: "Passwords Don't Match",
+          description: "Please make sure your passwords match.",
+          variant: "destructive",
+        });
+        return false;
+      }
+    }
+    
+    return true;
+  };
+  
+  // Move to next step if validation passes
+  const nextStep = () => {
+    if (validateStep()) {
+      setFormStep(formStep + 1);
+    }
+  };
+  
+  // Go back to previous step
+  const prevStep = () => {
+    setFormStep(formStep - 1);
+  };
+  
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate form fields
-    if (!schoolName || !contactEmail || !adminPassword) {
-      toast({
-        title: "Missing School Information",
-        description: "Please fill in all required school information fields.",
-        variant: "destructive",
-      });
+    // Final validation before submission
+    if (!validateStep()) {
       return;
     }
     
-    if (!username || !password || !firstName || !lastName || !email) {
-      toast({
-        title: "Missing Account Information",
-        description: "Please fill in all required account information fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (password !== confirmPassword) {
-      toast({
-        title: "Passwords Don't Match",
-        description: "Please make sure your passwords match.",
-        variant: "destructive",
-      });
-      return;
-    }
+    // Reset error state
+    setErrorMessage(null);
     
     // Proceed with registration
     setIsLoading(true);
@@ -87,45 +120,51 @@ export default function BusinessDirectSignup() {
         email
       };
       
-      // Use fetch directly with improved error handling
-      const response = await fetch("/api/business-signup/complete", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload)
-      });
+      // Use XMLHttpRequest for maximum reliability, as fetch sometimes has issues
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api/business-signup/complete", true);
+      xhr.setRequestHeader("Content-Type", "application/json");
       
-      if (!response.ok) {
-        let errorMessage = "Registration failed";
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorMessage;
-        } catch (err) {
-          console.error("Error parsing error response:", err);
+      xhr.onload = function() {
+        setIsLoading(false);
+        
+        if (xhr.status >= 200 && xhr.status < 300) {
+          console.log("Registration successful!");
+          setSubmissionSuccess(true);
+          
+          // Add delay before redirect to ensure the user sees the success state
+          setTimeout(() => {
+            navigate("/dashboard");
+          }, 2000);
+        } else {
+          // Handle error response
+          console.error("Registration failed with status:", xhr.status);
+          
+          let errorMsg = "Registration failed. Please try again.";
+          try {
+            const errorData = JSON.parse(xhr.responseText);
+            errorMsg = errorData.message || errorMsg;
+          } catch (parseErr) {
+            console.error("Error parsing error response:", parseErr);
+          }
+          
+          setErrorMessage(errorMsg);
+          console.error("Server error response:", errorMsg);
         }
-        throw new Error(errorMessage);
-      }
+      };
       
-      const data = await response.json();
+      xhr.onerror = function() {
+        setIsLoading(false);
+        setErrorMessage("Network error. Please check your connection and try again.");
+        console.error("Network error during registration");
+      };
       
-      // Show success message
-      toast({
-        title: "Registration Successful!",
-        description: `Welcome to MentorMe, ${firstName}! Your school "${schoolName}" has been registered.`,
-      });
-      
-      // Redirect to dashboard
-      navigate("/dashboard");
+      xhr.send(JSON.stringify(payload));
     } catch (error) {
-      console.error("Registration error:", error);
-      toast({
-        title: "Registration Failed",
-        description: error instanceof Error ? error.message : "Could not complete your registration. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
       setIsLoading(false);
+      const errorMsg = error instanceof Error ? error.message : "An unexpected error occurred";
+      setErrorMessage(errorMsg);
+      console.error("Registration error:", error);
     }
   };
 
@@ -146,177 +185,225 @@ export default function BusinessDirectSignup() {
             </CardHeader>
             
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-8">
-                <div className="space-y-6">
-                  <div className="bg-primary/5 p-4 rounded-lg border border-primary/10">
-                    <h3 className="font-medium text-lg mb-4">School Information</h3>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="schoolName" className="text-sm font-medium">
-                          School Name <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                          id="schoolName"
-                          type="text"
-                          placeholder="Enter your school name"
-                          value={schoolName}
-                          onChange={(e) => setSchoolName(e.target.value)}
-                          className="mt-1"
-                          required
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="contactEmail" className="text-sm font-medium">
-                          School Contact Email <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                          id="contactEmail"
-                          type="email"
-                          placeholder="contact@yourschool.com"
-                          value={contactEmail}
-                          onChange={(e) => setContactEmail(e.target.value)}
-                          className="mt-1"
-                          required
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="adminPassword" className="text-sm font-medium">
-                          School Admin Password <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                          id="adminPassword"
-                          type="password"
-                          placeholder="Create a secure password for school administration"
-                          value={adminPassword}
-                          onChange={(e) => setAdminPassword(e.target.value)}
-                          className="mt-1"
-                          required
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          This password is used for school-level administration and is separate from your personal account password.
-                        </p>
-                      </div>
-                    </div>
+              {submissionSuccess ? (
+                <div className="flex flex-col items-center py-8 space-y-4">
+                  <div className="bg-green-100 rounded-full p-5">
+                    <Check className="h-10 w-10 text-green-600" />
                   </div>
-                  
-                  <div className="bg-primary/5 p-4 rounded-lg border border-primary/10">
-                    <h3 className="font-medium text-lg mb-4">Account Information</h3>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="firstName" className="text-sm font-medium">
-                            First Name <span className="text-red-500">*</span>
-                          </Label>
-                          <Input
-                            id="firstName"
-                            type="text"
-                            placeholder="Your first name"
-                            value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
-                            className="mt-1"
-                            required
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="lastName" className="text-sm font-medium">
-                            Last Name <span className="text-red-500">*</span>
-                          </Label>
-                          <Input
-                            id="lastName"
-                            type="text"
-                            placeholder="Your last name"
-                            value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
-                            className="mt-1"
-                            required
-                          />
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="email" className="text-sm font-medium">
-                          Email Address <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder="you@example.com"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          className="mt-1"
-                          required
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="username" className="text-sm font-medium">
-                          Username <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                          id="username"
-                          type="text"
-                          placeholder="Choose a username"
-                          value={username}
-                          onChange={(e) => setUsername(e.target.value)}
-                          className="mt-1"
-                          required
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="password" className="text-sm font-medium">
-                          Password <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                          id="password"
-                          type="password"
-                          placeholder="Create a secure password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          className="mt-1"
-                          required
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="confirmPassword" className="text-sm font-medium">
-                          Confirm Password <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                          id="confirmPassword"
-                          type="password"
-                          placeholder="Confirm your password"
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          className="mt-1"
-                          required
-                        />
-                      </div>
-                    </div>
-                  </div>
+                  <h3 className="text-2xl font-bold text-center">Registration Successful!</h3>
+                  <p className="text-center text-muted-foreground text-lg max-w-md mx-auto">
+                    Your school has been registered and your account has been created.
+                    Redirecting you to the dashboard...
+                  </p>
                 </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-8">
+                  {errorMessage && (
+                    <Alert variant="destructive" className="mb-4">
+                      <AlertCircle className="h-4 w-4 mr-2" />
+                      <AlertTitle>Registration Error</AlertTitle>
+                      <AlertDescription>{errorMessage}</AlertDescription>
+                    </Alert>
+                  )}
                 
-                <div className="pt-4 text-center">
-                  <Button 
-                    type="submit" 
-                    size="lg" 
-                    disabled={isLoading} 
-                    className="w-full md:w-auto px-8 py-2 text-lg font-medium"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Spinner className="mr-2" />
-                        Registering...
-                      </>
-                    ) : (
-                      "Complete Registration"
-                    )}
-                  </Button>
+                  {/* Step 1: School Information */}
+                  {formStep === 1 && (
+                    <div className="space-y-6">
+                      <div className="bg-primary/5 p-4 rounded-lg border border-primary/10">
+                        <h3 className="font-medium text-lg mb-4">School Information</h3>
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="schoolName" className="text-sm font-medium">
+                              School Name <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                              id="schoolName"
+                              type="text"
+                              placeholder="Enter your school name"
+                              value={schoolName}
+                              onChange={(e) => setSchoolName(e.target.value)}
+                              className="mt-1"
+                              required
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="contactEmail" className="text-sm font-medium">
+                              School Contact Email <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                              id="contactEmail"
+                              type="email"
+                              placeholder="contact@yourschool.com"
+                              value={contactEmail}
+                              onChange={(e) => setContactEmail(e.target.value)}
+                              className="mt-1"
+                              required
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="adminPassword" className="text-sm font-medium">
+                              School Admin Password <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                              id="adminPassword"
+                              type="password"
+                              placeholder="Create a secure password for school administration"
+                              value={adminPassword}
+                              onChange={(e) => setAdminPassword(e.target.value)}
+                              className="mt-1"
+                              required
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              This password is used for school-level administration and is separate from your personal account password.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    
+                      <div className="pt-4 text-center">
+                        <Button 
+                          type="button" 
+                          size="lg" 
+                          onClick={nextStep}
+                          className="w-full md:w-auto px-8 py-2 text-lg font-medium"
+                        >
+                          Continue to Account Setup
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                   
-                  <div className="mt-4">
+                  {/* Step 2: Account Information */}
+                  {formStep === 2 && (
+                    <div className="space-y-6">
+                      <div className="bg-primary/5 p-4 rounded-lg border border-primary/10">
+                        <h3 className="font-medium text-lg mb-4">Account Information</h3>
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="firstName" className="text-sm font-medium">
+                                First Name <span className="text-red-500">*</span>
+                              </Label>
+                              <Input
+                                id="firstName"
+                                type="text"
+                                placeholder="Your first name"
+                                value={firstName}
+                                onChange={(e) => setFirstName(e.target.value)}
+                                className="mt-1"
+                                required
+                              />
+                            </div>
+                            
+                            <div>
+                              <Label htmlFor="lastName" className="text-sm font-medium">
+                                Last Name <span className="text-red-500">*</span>
+                              </Label>
+                              <Input
+                                id="lastName"
+                                type="text"
+                                placeholder="Your last name"
+                                value={lastName}
+                                onChange={(e) => setLastName(e.target.value)}
+                                className="mt-1"
+                                required
+                              />
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="email" className="text-sm font-medium">
+                              Email Address <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                              id="email"
+                              type="email"
+                              placeholder="you@example.com"
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              className="mt-1"
+                              required
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="username" className="text-sm font-medium">
+                              Username <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                              id="username"
+                              type="text"
+                              placeholder="Choose a username"
+                              value={username}
+                              onChange={(e) => setUsername(e.target.value)}
+                              className="mt-1"
+                              required
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="password" className="text-sm font-medium">
+                              Password <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                              id="password"
+                              type="password"
+                              placeholder="Create a secure password"
+                              value={password}
+                              onChange={(e) => setPassword(e.target.value)}
+                              className="mt-1"
+                              required
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="confirmPassword" className="text-sm font-medium">
+                              Confirm Password <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                              id="confirmPassword"
+                              type="password"
+                              placeholder="Confirm your password"
+                              value={confirmPassword}
+                              onChange={(e) => setConfirmPassword(e.target.value)}
+                              className="mt-1"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="pt-4 flex justify-between items-center">
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={prevStep}
+                        >
+                          Back to School Info
+                        </Button>
+                        
+                        <Button 
+                          type="submit" 
+                          size="lg" 
+                          disabled={isLoading} 
+                          className="px-8 py-2 text-lg font-medium"
+                        >
+                          {isLoading ? (
+                            <>
+                              <Spinner className="mr-2" />
+                              Registering...
+                            </>
+                          ) : (
+                            "Complete Registration"
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="mt-4 text-center">
                     <p className="text-sm text-muted-foreground">
                       Already have an account?{" "}
                       <a 
@@ -331,8 +418,8 @@ export default function BusinessDirectSignup() {
                       </a>
                     </p>
                   </div>
-                </div>
-              </form>
+                </form>
+              )}
             </CardContent>
             
             <CardFooter className="flex justify-between border-t pt-6">
