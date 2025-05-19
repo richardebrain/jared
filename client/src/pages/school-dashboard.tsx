@@ -57,10 +57,22 @@ const schoolSettingsSchema = z.object({
 });
 
 export default function SchoolDashboard() {
-  // Extract schoolId from URL params or from localStorage if using the dedicated route
+  // For Bob's Daycare direct admin access (using the special route)
   const params = useParams();
-  const storedSchoolId = localStorage.getItem('currentSchoolId');
-  const schoolId = params.schoolId || storedSchoolId;
+  
+  // If we're on the bobs-daycare-admin route, use Bob's Daycare school ID (2) directly
+  const isSpecialRoute = window.location.pathname === '/bobs-daycare-admin';
+  
+  // Use school ID 2 for Bob's Daycare special route
+  const schoolId = isSpecialRoute ? "2" : params.schoolId;
+  
+  // Make sure we have a valid admin key for the special route
+  useEffect(() => {
+    if (isSpecialRoute) {
+      localStorage.setItem('adminKey', 'Bigsurf99');
+      localStorage.setItem('adminAccessGranted', 'true');
+    }
+  }, [isSpecialRoute]);
   
   const [location, navigate] = useLocation();
   const { toast } = useToast();

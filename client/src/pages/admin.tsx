@@ -56,9 +56,9 @@ export default function AdminPage() {
         description: "Redirecting to your school dashboard...",
       });
       
-      // Short delay for the toast to be visible
+      // Use the special Bob's Daycare admin route for simplicity
       setTimeout(() => {
-        navigate('/school-admin-dashboard');
+        navigate('/bobs-daycare-admin');
       }, 1000);
     } else {
       toast({
