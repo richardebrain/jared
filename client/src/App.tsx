@@ -13,6 +13,7 @@ import BusinessSignupComplete from "@/pages/business-signup-simplified";
 import BusinessDirectSignup from "@/pages/business-direct-signup";
 import BusinessUltraSimple from "@/pages/business-ultra-simple";
 import SimpleRegistration from "@/pages/simple-registration";
+import UltraSimpleRegistration from "@/pages/ultra-simple-registration";
 import RegistrationSuccess from "@/pages/registration-success";
 import LandingPage from "@/pages/landing-updated";
 import ProgressionMap from "@/pages/progression-map";
@@ -116,6 +117,10 @@ function Router() {
       
       <Route path="/simple-registration">
         <SimpleRegistration />
+      </Route>
+      
+      <Route path="/register-school">
+        <UltraSimpleRegistration />
       </Route>
       
       <Route path="/registration-success">
