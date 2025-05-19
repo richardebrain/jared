@@ -184,14 +184,9 @@ async def health_check():
 @app.get("/api/domains", response_model=List[Dict[str, Any]])
 async def get_domains(db: Session = Depends(get_db)):
     """Get all available domains"""
-    from backend.adapter import DatabaseAdapter
-    return DatabaseAdapter.get_all_domains(db)
-            # Add sub-domains
-            sub_domains = db.query(Domain).filter(Domain.parent_id == domain.id).all()
-            domain_dict["sub_domains"] = [sub.to_dict() for sub in sub_domains]
-            result.append(domain_dict)
-        
-        return result
+    try:
+        from backend.adapter import DatabaseAdapter
+        return DatabaseAdapter.get_all_domains(db)
     except Exception as e:
         logger.error(f"Error getting domains: {str(e)}")
         raise HTTPException(status_code=500, detail="Error getting domains")
