@@ -463,9 +463,14 @@ export default function Register() {
                     I am a school owner or director
                   </label>
                 </div>
-                <p className="text-xs text-gray-500 mt-1 ml-6">
-                  School owners can create and manage accounts for their teachers and staff
-                </p>
+                <div className="flex flex-col space-y-2 mt-1 ml-6">
+                  <p className="text-xs text-gray-500">
+                    School owners can create and manage accounts for their teachers and staff
+                  </p>
+                  <p className="text-xs text-blue-600 hover:underline cursor-pointer" onClick={() => navigate("/business-signup-basic")}>
+                    Having trouble? Try our simplified business signup page →
+                  </p>
+                </div>
               </div>
               
               {/* Conditional school fields */}
