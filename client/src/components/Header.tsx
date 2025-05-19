@@ -196,23 +196,7 @@ export default function Header() {
                 </>
               )}
               
-              {user?.isSchoolAdmin && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation(`/schools/${user.schoolId}?adminKey=Bigsurf99`)}>
-                    <i className="ri-school-line mr-2"></i>
-                    School Dashboard
-                  </DropdownMenuItem>
-                </>
-              )}
-              
-              {/* Special direct access to Bob's Daycare Admin */}
-              {user?.schoolId === 2 && (
-                <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation(`/schools/2?adminKey=Bigsurf99`)}>
-                  <i className="ri-building-2-line mr-2"></i>
-                  Bob's Daycare Admin
-                </DropdownMenuItem>
-              )}
+              {/* This section removed - we're fixing the main School Dashboard button below instead */}
               
               {isAdmin && (
                 <>
@@ -231,9 +215,9 @@ export default function Header() {
               {isSchoolAdmin && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/school-dashboard")}>
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation(`/schools/${user.schoolId}?adminKey=Bigsurf99`)}>
                     <i className="ri-school-line mr-2"></i>
-                    School Dashboard
+                    School Admin
                   </DropdownMenuItem>
                 </>
               )}
