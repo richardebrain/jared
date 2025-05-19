@@ -1,555 +1,540 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'wouter';
+import { useNavigate } from 'wouter';
 import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardDescription, 
-  CardTitle,
-  CardFooter
-} from "@/components/ui/card";
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle,
+  DialogFooter,
+  DialogDescription
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, HelpCircle, Award, Check, AlertTriangle } from 'lucide-react';
-import assessmentService from '../services/assessmentService';
-import ConfettiExplosion from 'react-confetti-explosion';
+import { Loader2, ThumbsUp, Award, CheckCircle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import enhancedAssessmentService, { AssessmentQuestion, AnswerResponse, Domain } from '../services/enhancedAssessmentService';
+import confetti from 'canvas-confetti';
 
 interface EnhancedAssessmentProps {
   userId: number;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-interface Question {
-  id: number;
-  question: string;
-  domain: string;
-  sub_domain?: string;
-  difficulty: number;
-  q_type: string;
-  options: Record<string, string>;
-  hints?: string[];
-  time_limit?: number;
-}
-
-interface AssessmentResult {
-  is_correct: boolean;
-  correct_answer: string;
-  explanation?: string;
-  points_earned: number;
-  message: string;
-  next_difficulty: number;
-  next_question?: Question;
-  assessment_complete: boolean;
-}
-
-const EnhancedAssessment: React.FC<EnhancedAssessmentProps> = ({ userId }) => {
-  const [domains, setDomains] = useState<string[]>([]);
+const EnhancedAssessment: React.FC<EnhancedAssessmentProps> = ({
+  userId,
+  open,
+  onOpenChange
+}) => {
+  const [domains, setDomains] = useState<Domain[]>([]);
   const [selectedDomain, setSelectedDomain] = useState<string>('');
-  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
-  const [userAnswer, setUserAnswer] = useState<string>('');
-  const [submitting, setSubmitting] = useState<boolean>(false);
-  const [result, setResult] = useState<AssessmentResult | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [assessmentActive, setAssessmentActive] = useState<boolean>(false);
-  const [questionCount, setQuestionCount] = useState<number>(0);
-  const [correctCount, setCorrectCount] = useState<number>(0);
-  const [totalPoints, setTotalPoints] = useState<number>(0);
-  const [showHint, setShowHint] = useState<boolean>(false);
-  const [currentHintIndex, setCurrentHintIndex] = useState<number>(0);
-  const [apiHealthy, setApiHealthy] = useState<boolean>(true);
-  const [showConfetti, setShowConfetti] = useState<boolean>(false);
-  const [assessmentComplete, setAssessmentComplete] = useState<boolean>(false);
-  
-  const [, navigate] = useLocation();
+  const [isStarting, setIsStarting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isReady, setIsReady] = useState(false);
+  const [apiAvailable, setApiAvailable] = useState(true);
+  const [currentQuestion, setCurrentQuestion] = useState<AssessmentQuestion | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<string>('');
+  const [feedback, setFeedback] = useState<AnswerResponse | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [questionStartTime, setQuestionStartTime] = useState(0);
+  const [questionsAnswered, setQuestionsAnswered] = useState(0);
+  const [correctAnswers, setCorrectAnswers] = useState(0);
+  const [showResults, setShowResults] = useState(false);
+  const [currentDifficulty, setCurrentDifficulty] = useState(1);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  // Check API health when component mounts
+  // Check if assessment API is available
   useEffect(() => {
-    const checkApiHealth = async () => {
+    const checkApiStatus = async () => {
       try {
-        const health = await assessmentService.checkHealth();
-        setApiHealthy(health.status === 'healthy');
-        if (health.status !== 'healthy') {
-          setError('Assessment API is not available. Please try again later.');
-        } else {
-          loadDomains();
-        }
-      } catch (err) {
-        console.error('Error checking API health:', err);
-        setApiHealthy(false);
-        setError('Assessment API is not available. Please try again later.');
-        setLoading(false);
+        const isAvailable = await enhancedAssessmentService.checkHealth();
+        setApiAvailable(isAvailable);
+      } catch (error) {
+        console.error('Failed to connect to assessment API:', error);
+        setApiAvailable(false);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    checkApiHealth();
-  }, []);
-
-  // Load available domains
-  const loadDomains = async () => {
-    try {
-      setLoading(true);
-      const domainsData = await assessmentService.getDomains();
-      setDomains(domainsData);
-      setLoading(false);
-    } catch (err) {
-      console.error('Error loading domains:', err);
-      setError('Failed to load assessment domains. Please try again later.');
-      setLoading(false);
+    if (open) {
+      checkApiStatus();
     }
-  };
+  }, [open]);
 
-  // Start a new assessment
+  // Load domains when assessment opens
+  useEffect(() => {
+    const loadDomains = async () => {
+      if (!apiAvailable) return;
+      
+      try {
+        const domainsData = await enhancedAssessmentService.getDomains();
+        setDomains(domainsData);
+      } catch (error) {
+        console.error('Error loading domains:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load assessment domains. Please try again.",
+          variant: "destructive"
+        });
+      }
+    };
+
+    if (open && apiAvailable) {
+      loadDomains();
+    }
+  }, [open, apiAvailable, toast]);
+
+  // Reset state when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setSelectedDomain('');
+      setCurrentQuestion(null);
+      setSelectedAnswer('');
+      setFeedback(null);
+      setIsReady(false);
+      setShowResults(false);
+      setQuestionsAnswered(0);
+      setCorrectAnswers(0);
+      setCurrentDifficulty(1);
+    }
+  }, [open]);
+
+  // Start timer when question is loaded
+  useEffect(() => {
+    if (currentQuestion) {
+      setQuestionStartTime(Date.now());
+    }
+  }, [currentQuestion]);
+
   const startAssessment = async () => {
     if (!selectedDomain) {
       toast({
-        title: "Domain Required",
-        description: "Please select a domain to start the assessment.",
-        variant: "destructive",
+        title: "Please select a domain",
+        description: "Choose a topic area to begin your assessment",
+        variant: "default"
       });
       return;
     }
 
+    setIsStarting(true);
     try {
-      setLoading(true);
-      setAssessmentActive(true);
-      setQuestionCount(0);
-      setCorrectCount(0);
-      setTotalPoints(0);
-      setResult(null);
-      
-      const questionData = await assessmentService.startAssessment(selectedDomain, userId);
-      setCurrentQuestion(questionData);
-      setLoading(false);
-    } catch (err) {
-      console.error('Error starting assessment:', err);
-      setError('Failed to start assessment. Please try again later.');
-      setLoading(false);
-      setAssessmentActive(false);
+      const question = await enhancedAssessmentService.startAssessment(selectedDomain, userId);
+      setCurrentQuestion(question);
+      setIsReady(true);
+      setCurrentDifficulty(question.difficulty);
+    } catch (error) {
+      console.error('Error starting assessment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to start assessment. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsStarting(false);
     }
   };
 
-  // Submit an answer
   const submitAnswer = async () => {
-    if (!currentQuestion || !userAnswer) {
-      toast({
-        title: "Answer Required",
-        description: "Please select an answer before submitting.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    if (!currentQuestion || !selectedAnswer) return;
+    
+    setIsSubmitting(true);
+    const timeTaken = Math.floor((Date.now() - questionStartTime) / 1000);
+    
     try {
-      setSubmitting(true);
-      const resultData = await assessmentService.submitAnswer(
+      const response = await enhancedAssessmentService.submitAnswer(
         currentQuestion.id,
-        userAnswer,
-        userId
+        selectedAnswer,
+        userId,
+        timeTaken
       );
       
-      setResult(resultData);
-      setQuestionCount(prev => prev + 1);
-      if (resultData.is_correct) {
-        setCorrectCount(prev => prev + 1);
+      setFeedback(response);
+      setQuestionsAnswered(prev => prev + 1);
+      if (response.is_correct) {
+        setCorrectAnswers(prev => prev + 1);
       }
-      setTotalPoints(prev => prev + resultData.points_earned);
-      setSubmitting(false);
       
-      // If assessment is complete, show confetti
-      if (resultData.assessment_complete) {
-        setAssessmentComplete(true);
-        setShowConfetti(true);
+      if (response.assessment_complete) {
+        // Delay showing results to let user see feedback for last question
+        setTimeout(() => {
+          setShowResults(true);
+          // Trigger confetti for completion
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+        }, 2000);
+      } else if (response.next_question) {
+        // Queue up next question after feedback is shown
+        setTimeout(() => {
+          setCurrentQuestion(response.next_question);
+          setSelectedAnswer('');
+          setFeedback(null);
+          setCurrentDifficulty(response.next_difficulty);
+        }, 2500);
       }
-    } catch (err) {
-      console.error('Error submitting answer:', err);
+    } catch (error) {
+      console.error('Error submitting answer:', error);
       toast({
-        title: "Submission Error",
-        description: "Failed to submit your answer. Please try again.",
-        variant: "destructive",
+        title: "Error",
+        description: "Failed to submit answer. Please try again.",
+        variant: "destructive"
       });
-      setSubmitting(false);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // Go to next question
-  const goToNextQuestion = () => {
-    if (result && result.next_question) {
-      setCurrentQuestion(result.next_question);
-      setUserAnswer('');
-      setResult(null);
-      setShowHint(false);
-      setCurrentHintIndex(0);
-    } else {
-      // No more questions, end assessment
-      setAssessmentActive(false);
-      setCurrentQuestion(null);
+  const handleNextQuestion = () => {
+    if (feedback?.next_question) {
+      setCurrentQuestion(feedback.next_question);
+      setSelectedAnswer('');
+      setFeedback(null);
     }
   };
 
-  // Show next hint
-  const showNextHint = () => {
-    if (currentQuestion?.hints && currentQuestion.hints.length > currentHintIndex) {
-      setShowHint(true);
-      setCurrentHintIndex(prev => Math.min(prev + 1, (currentQuestion.hints?.length || 1) - 1));
-    }
-  };
-
-  // Reset assessment
-  const resetAssessment = () => {
-    setSelectedDomain('');
-    setCurrentQuestion(null);
-    setUserAnswer('');
-    setResult(null);
-    setQuestionCount(0);
-    setCorrectCount(0);
-    setTotalPoints(0);
-    setAssessmentActive(false);
-    setAssessmentComplete(false);
-  };
-
-  // Complete assessment and go to dashboard
-  const completeAssessment = () => {
+  const finishAssessment = () => {
+    onOpenChange(false);
+    // Redirect to learning path or dashboard
     toast({
       title: "Assessment Complete",
-      description: `Great job! You earned ${totalPoints} points in this assessment.`,
+      description: `You earned ${feedback?.completion_stats?.total_points || 0} points!`,
+      variant: "default"
     });
-    resetAssessment();
-    navigate('/dashboard');
   };
 
-  // Format difficulty level as text
-  const formatDifficulty = (level: number): string => {
-    switch (level) {
-      case 1: return 'Beginner';
-      case 2: return 'Intermediate';
-      case 3: return 'Advanced';
-      case 4: return 'Expert';
-      default: return `Level ${level}`;
+  // Helper function to get difficulty label
+  const getDifficultyLabel = (difficulty: number) => {
+    switch(difficulty) {
+      case 1: return "Beginner";
+      case 2: return "Basic";
+      case 3: return "Intermediate";
+      case 4: return "Advanced";
+      case 5: return "Expert";
+      default: return "Unknown";
     }
   };
 
-  // If API is not healthy, show error
-  if (!apiHealthy) {
+  // Render loading state
+  if (isLoading) {
     return (
-      <Card className="w-full max-w-4xl mx-auto shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-center text-red-500">
-            <AlertTriangle className="inline-block mr-2" />
-            Assessment System Unavailable
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-center">
-          <p className="mb-4">
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Loading Assessment</DialogTitle>
+          </DialogHeader>
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Render API unavailable message
+  if (!apiAvailable) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Assessment Unavailable</DialogTitle>
+          </DialogHeader>
+          <DialogDescription>
             The assessment system is currently unavailable. Please try again later or contact support.
-          </p>
-          <Button onClick={() => navigate('/dashboard')}>Return to Dashboard</Button>
-        </CardContent>
-      </Card>
+          </DialogDescription>
+          <div className="bg-yellow-50 p-4 rounded-md border border-yellow-200">
+            <p className="text-yellow-800">
+              To start the assessment server, run:<br />
+              <code className="bg-yellow-100 px-1 py-0.5 rounded">bash start_assessment_api.sh</code>
+            </p>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => onOpenChange(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     );
   }
 
-  // Show loading state
-  if (loading) {
+  // Render domain selection
+  if (!isReady) {
     return (
-      <div className="flex flex-col items-center justify-center h-64">
-        <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-        <p className="text-lg">Loading assessment system...</p>
-      </div>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Start Professional Assessment</DialogTitle>
+            <DialogDescription>
+              This assessment will help identify your strengths and areas for growth in early childhood education.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <h3 className="text-sm font-medium mb-2">Select a knowledge area to assess:</h3>
+            <RadioGroup value={selectedDomain} onValueChange={setSelectedDomain}>
+              {domains.map(domain => (
+                <div key={domain.id} className="flex items-center space-x-2 mb-2">
+                  <RadioGroupItem value={domain.name} id={`domain-${domain.id}`} />
+                  <Label htmlFor={`domain-${domain.id}`} className="cursor-pointer">
+                    {domain.name}
+                    {domain.description && (
+                      <span className="block text-xs text-muted-foreground">
+                        {domain.description}
+                      </span>
+                    )}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button 
+              onClick={startAssessment} 
+              disabled={isStarting || !selectedDomain}
+            >
+              {isStarting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Loading...
+                </>
+              ) : "Start Assessment"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     );
   }
 
-  // Show error message if any
-  if (error) {
+  // Render assessment completion results
+  if (showResults && feedback?.completion_stats) {
+    const stats = feedback.completion_stats;
     return (
-      <Card className="w-full max-w-4xl mx-auto shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-center text-red-500">
-            <AlertTriangle className="inline-block mr-2" />
-            Error
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-center">
-          <p className="mb-4">{error}</p>
-          <Button onClick={() => navigate('/dashboard')}>Return to Dashboard</Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Show assessment complete screen
-  if (assessmentComplete && !currentQuestion) {
-    return (
-      <Card className="w-full max-w-4xl mx-auto shadow-lg">
-        {showConfetti && <ConfettiExplosion duration={3000} particleCount={100} width={1600} />}
-        <CardHeader>
-          <CardTitle className="text-center text-2xl text-primary">
-            <Award className="inline-block mr-2" />
-            Assessment Complete!
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-center">
-          <div className="mb-6">
-            <h3 className="text-xl font-bold mb-2">Your Results:</h3>
-            <p className="text-lg mb-1">
-              <span className="font-semibold">Questions Answered:</span> {questionCount}
-            </p>
-            <p className="text-lg mb-1">
-              <span className="font-semibold">Correct Answers:</span> {correctCount}
-            </p>
-            <p className="text-lg mb-1">
-              <span className="font-semibold">Accuracy:</span> {questionCount > 0 ? Math.round((correctCount / questionCount) * 100) : 0}%
-            </p>
-            <p className="text-lg mb-1">
-              <span className="font-semibold">Points Earned:</span> {totalPoints}
-            </p>
-            <div className="mt-4">
-              <p className="text-xl font-bold mb-2">
-                {correctCount >= 7 
-                  ? "Congratulations! You've passed this assessment." 
-                  : "Keep practicing! You can try this assessment again."}
-              </p>
-              <p className="text-lg">
-                {correctCount >= 7 
-                  ? "You've demonstrated strong knowledge in this area." 
-                  : "Don't worry! Every attempt helps you improve."}
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">
+              <span className="text-2xl font-bold">Assessment Complete!</span>
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4 space-y-4">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center p-2 bg-green-100 rounded-full mb-4">
+                <Award className="h-12 w-12 text-green-600" />
+              </div>
+              <h2 className="text-xl font-bold">Congratulations!</h2>
+              <p className="text-muted-foreground">
+                You've completed the {selectedDomain} assessment
               </p>
             </div>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle>Your Results</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 pt-0">
+                <div className="flex justify-between items-center">
+                  <span>Questions Attempted:</span>
+                  <span className="font-semibold">{stats.questions_attempted}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Correct Answers:</span>
+                  <span className="font-semibold">{stats.questions_correct}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Accuracy:</span>
+                  <span className="font-semibold">{Math.round(stats.accuracy * 100)}%</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Highest Difficulty:</span>
+                  <span className="font-semibold">{getDifficultyLabel(stats.highest_difficulty)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Points Earned:</span>
+                  <span className="font-semibold text-amber-600">{stats.total_points} points</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Bear Bucks Earned:</span>
+                  <span className="font-semibold text-emerald-600">{Math.floor(stats.total_points / 50)} Bear Bucks</span>
+                </div>
+              </CardContent>
+              <CardFooter className="bg-muted/50 flex justify-center">
+                <p className="text-sm text-center">
+                  Your learning path has been updated based on these results!
+                </p>
+              </CardFooter>
+            </Card>
           </div>
-        </CardContent>
-        <CardFooter className="flex justify-center gap-4">
-          <Button variant="outline" onClick={resetAssessment}>
-            Try Another Assessment
-          </Button>
-          <Button onClick={completeAssessment}>
-            Return to Dashboard
-          </Button>
-        </CardFooter>
-      </Card>
+          
+          <DialogFooter>
+            <Button 
+              onClick={finishAssessment}
+              className="w-full"
+            >
+              Continue to Learning Path
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     );
   }
 
-  // Show domain selection if no assessment is active
-  if (!assessmentActive) {
-    return (
-      <Card className="w-full max-w-4xl mx-auto shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-center text-2xl">Enhanced Assessment</CardTitle>
-          <CardDescription className="text-center">
-            Select a domain to assess your knowledge and skills
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="domain">Select Domain</Label>
-              <Select value={selectedDomain} onValueChange={setSelectedDomain}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a knowledge domain" />
-                </SelectTrigger>
-                <SelectContent>
-                  {domains.map(domain => (
-                    <SelectItem key={domain} value={domain}>
-                      {domain}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <Button 
-            onClick={startAssessment} 
-            disabled={!selectedDomain || loading}
-            className="w-full md:w-auto"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Loading...
-              </>
-            ) : (
-              'Start Assessment'
-            )}
-          </Button>
-        </CardFooter>
-      </Card>
-    );
-  }
-
-  // Show active assessment with current question
+  // Render question
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      {/* Progress information */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex justify-between items-center mb-2">
-            <div>
-              <span className="font-medium">Domain:</span> {selectedDomain}
-            </div>
-            <div>
-              <span className="font-medium">Difficulty:</span> {currentQuestion && formatDifficulty(currentQuestion.difficulty)}
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <div className="flex items-center justify-between">
+            <DialogTitle>{selectedDomain} Assessment</DialogTitle>
+            <div className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-medium">
+              Difficulty: {getDifficultyLabel(currentDifficulty)}
             </div>
           </div>
-          <div className="flex justify-between items-center mb-2">
-            <div>
-              <span className="font-medium">Questions:</span> {questionCount}
-            </div>
-            <div>
-              <span className="font-medium">Correct:</span> {correctCount}
-            </div>
-            <div>
-              <span className="font-medium">Points:</span> {totalPoints}
-            </div>
+          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+            <span>Question {questionsAnswered + 1}</span>
+            <span>•</span>
+            <span>{correctAnswers} correct</span>
           </div>
-          <Progress value={(questionCount / 15) * 100} className="h-2" />
-        </CardContent>
-      </Card>
-
-      {/* Question card */}
-      {currentQuestion && (
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-xl">
-              {currentQuestion.question}
-            </CardTitle>
-            {currentQuestion.sub_domain && (
-              <CardDescription>
-                Topic: {currentQuestion.sub_domain}
-              </CardDescription>
-            )}
-          </CardHeader>
-          <CardContent>
+        </DialogHeader>
+        
+        {currentQuestion && (
+          <div className="py-4">
+            <h3 className="text-base font-medium mb-4">{currentQuestion.question}</h3>
+            
             {currentQuestion.q_type === 'multiple_choice' && (
-              <RadioGroup value={userAnswer} onValueChange={setUserAnswer}>
-                <div className="space-y-3">
-                  {Object.entries(currentQuestion.options).map(([key, value]) => (
-                    <div key={key} className="flex items-center space-x-2">
-                      <RadioGroupItem value={key} id={`option-${key}`} disabled={!!result} />
-                      <Label htmlFor={`option-${key}`} className="flex-grow cursor-pointer">
-                        {value}
-                      </Label>
-                    </div>
-                  ))}
+              <RadioGroup 
+                value={selectedAnswer} 
+                onValueChange={setSelectedAnswer}
+                disabled={!!feedback}
+                className="space-y-3"
+              >
+                {Object.entries(currentQuestion.options).map(([key, value]) => (
+                  <div key={key} className="flex items-start space-x-2">
+                    <RadioGroupItem value={key} id={`option-${key}`} className="mt-1" />
+                    <Label 
+                      htmlFor={`option-${key}`} 
+                      className={`cursor-pointer ${
+                        feedback && feedback.correct_answer === key ? 'text-green-600 font-medium' : ''
+                      }`}
+                    >
+                      {value}
+                      {feedback && feedback.correct_answer === key && (
+                        <CheckCircle className="inline-block ml-1 h-4 w-4 text-green-600" />
+                      )}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            )}
+            
+            {currentQuestion.q_type === 'true_false' && (
+              <RadioGroup 
+                value={selectedAnswer} 
+                onValueChange={setSelectedAnswer}
+                disabled={!!feedback}
+                className="space-y-3"
+              >
+                <div className="flex items-start space-x-2">
+                  <RadioGroupItem value="true" id="option-true" className="mt-1" />
+                  <Label 
+                    htmlFor="option-true" 
+                    className={`cursor-pointer ${
+                      feedback && feedback.correct_answer === 'true' ? 'text-green-600 font-medium' : ''
+                    }`}
+                  >
+                    True
+                    {feedback && feedback.correct_answer === 'true' && (
+                      <CheckCircle className="inline-block ml-1 h-4 w-4 text-green-600" />
+                    )}
+                  </Label>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <RadioGroupItem value="false" id="option-false" className="mt-1" />
+                  <Label 
+                    htmlFor="option-false" 
+                    className={`cursor-pointer ${
+                      feedback && feedback.correct_answer === 'false' ? 'text-green-600 font-medium' : ''
+                    }`}
+                  >
+                    False
+                    {feedback && feedback.correct_answer === 'false' && (
+                      <CheckCircle className="inline-block ml-1 h-4 w-4 text-green-600" />
+                    )}
+                  </Label>
                 </div>
               </RadioGroup>
             )}
-
-            {/* Hints */}
-            {currentQuestion.hints && currentQuestion.hints.length > 0 && (
-              <div className="mt-4">
-                <div className="flex items-center justify-between">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={showNextHint}
-                          disabled={!!result || (showHint && currentHintIndex === currentQuestion.hints.length - 1)}
-                        >
-                          <HelpCircle className="h-4 w-4 mr-1" />
-                          Need a hint?
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Click for a helpful hint. Using hints may reduce points.</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  {showHint && (
-                    <span className="text-sm text-muted-foreground">
-                      Hint {currentHintIndex + 1} of {currentQuestion.hints.length}
-                    </span>
+            
+            {feedback && (
+              <div className={`mt-4 p-4 rounded-md ${
+                feedback.is_correct ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'
+              }`}>
+                <div className="flex items-start gap-2">
+                  {feedback.is_correct ? (
+                    <ThumbsUp className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <div className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5">!</div>
                   )}
-                </div>
-                
-                {showHint && (
-                  <div className="mt-2 p-3 bg-muted rounded-md">
-                    {currentQuestion.hints[currentHintIndex]}
+                  <div>
+                    <p className={`font-medium ${feedback.is_correct ? 'text-green-800' : 'text-amber-800'}`}>
+                      {feedback.message}
+                    </p>
+                    {!feedback.is_correct && (
+                      <p className="text-sm mt-1">
+                        Correct answer: {feedback.correct_answer === 'true' ? 'True' : 
+                                        feedback.correct_answer === 'false' ? 'False' : 
+                                        currentQuestion.options[feedback.correct_answer]}
+                      </p>
+                    )}
+                    {feedback.explanation && (
+                      <p className="text-sm mt-2">{feedback.explanation}</p>
+                    )}
+                    <div className="mt-2 text-sm">
+                      <span className="font-medium">+{feedback.points_earned} points</span>
+                      {feedback.points_earned >= 50 && (
+                        <span className="ml-2 font-medium text-emerald-600">
+                          +{Math.floor(feedback.points_earned / 50)} Bear Bucks
+                        </span>
+                      )}
+                    </div>
                   </div>
-                )}
+                </div>
               </div>
             )}
-          </CardContent>
-          <CardFooter className="flex justify-end">
-            <Button 
-              onClick={submitAnswer} 
-              disabled={!userAnswer || submitting || !!result}
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                'Submit Answer'
-              )}
+          </div>
+        )}
+        
+        <DialogFooter>
+          {!feedback ? (
+            <>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>Exit</Button>
+              <Button 
+                onClick={submitAnswer} 
+                disabled={isSubmitting || !selectedAnswer}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Checking...
+                  </>
+                ) : "Submit Answer"}
+              </Button>
+            </>
+          ) : !feedback.assessment_complete ? (
+            <Button onClick={handleNextQuestion}>
+              Next Question
             </Button>
-          </CardFooter>
-        </Card>
-      )}
-
-      {/* Results card */}
-      {result && (
-        <Card className={`border-2 ${result.is_correct ? 'border-green-500' : 'border-amber-500'} shadow-lg`}>
-          <CardHeader>
-            <CardTitle className={result.is_correct ? 'text-green-600' : 'text-amber-600'}>
-              {result.is_correct ? (
-                <><Check className="inline-block mr-2" /> Correct!</>
-              ) : (
-                <><AlertTriangle className="inline-block mr-2" /> Not Quite</>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <p className="font-medium">Correct Answer: {result.correct_answer} - {currentQuestion?.options[result.correct_answer]}</p>
-                {result.explanation && (
-                  <p className="mt-2">{result.explanation}</p>
-                )}
-              </div>
-              
-              <div className="p-3 bg-muted rounded-md">
-                <p className="font-medium">{result.message}</p>
-              </div>
-              
-              <div>
-                <p className="font-medium">Points earned: {result.points_earned}</p>
-                {result.next_difficulty > (currentQuestion?.difficulty || 0) && (
-                  <p className="text-green-600">You've advanced to {formatDifficulty(result.next_difficulty)}!</p>
-                )}
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-end">
-            {result.assessment_complete ? (
-              <Button onClick={() => setAssessmentComplete(true)}>
-                Complete Assessment
-              </Button>
-            ) : (
-              <Button onClick={goToNextQuestion}>
-                Next Question
-              </Button>
-            )}
-          </CardFooter>
-        </Card>
-      )}
-    </div>
+          ) : null}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 
