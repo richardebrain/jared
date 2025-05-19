@@ -1,4 +1,15 @@
 // Types for video resources
+export interface QuizQuestion {
+  question: string;
+  options: string[];
+  correctAnswer: number | string; // Can be index number or actual answer string
+  explanation?: string;
+}
+
+export interface VideoQuiz {
+  questions: QuizQuestion[];
+}
+
 export interface VideoResource {
   id: string;
   title: string;
@@ -13,6 +24,7 @@ export interface VideoResource {
   featured: boolean;
   watched?: boolean;
   bookmarked?: boolean;
+  quiz?: VideoQuiz; // Optional quiz property
 }
 
 // Comprehensive database of high-quality early childhood education videos
