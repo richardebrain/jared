@@ -71,6 +71,8 @@ export default function SchoolDashboard() {
     if (isSpecialRoute) {
       localStorage.setItem('adminKey', 'Bigsurf99');
       localStorage.setItem('adminAccessGranted', 'true');
+      localStorage.setItem('currentSchoolId', '2'); // Ensure Bob's Daycare school ID is set
+      console.log("Set up Bob's Daycare admin dashboard - School ID: 2");
     }
   }, [isSpecialRoute]);
   
