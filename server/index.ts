@@ -8,6 +8,8 @@ import { runSchoolColumnsMigration } from "./schoolColumnsMigration";
 import { runCertificationMigration } from "./certificationMigration";
 // Import module management system
 import { ModuleManager } from "./module-management/moduleManager";
+// Import assessment API auto-starter
+import { startAssessmentApi } from "./autoStartAssessment";
 
 const app = express();
 app.use(express.json());
@@ -73,6 +75,9 @@ app.use((req, res, next) => {
       reusePort: true,
     }, () => {
       log(`serving on port ${port}`);
+      
+      // Start the assessment API automatically
+      startAssessmentApi();
       
       // Run migrations
       console.log('Running school migration...');
