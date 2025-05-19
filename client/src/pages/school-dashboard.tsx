@@ -218,9 +218,45 @@ export default function SchoolDashboard() {
   }, [schoolData, settingsForm]);
   
   // Handle submitting admin key
-  const handleAdminSubmit = (data) => {
-    setAdminKey(data.adminKey);
-    setShowAdminAuth(false);
+  const handleAdminSubmit = async (data) => {
+    try {
+      // For owner accounts, bypass admin verification
+      if (user?.isOwner) {
+        setAdminKey(data.adminKey);
+        setShowAdminAuth(false);
+        return;
+      }
+      
+      // First make a test API call to verify the password works before setting it
+      const res = await apiRequest(
+        "GET", 
+        `/api/schools/${schoolId}/verify-admin?adminKey=${encodeURIComponent(data.adminKey)}`
+      );
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        toast({
+          title: "Access Denied",
+          description: errorData.message || "Invalid admin password. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Password verified successfully
+      setAdminKey(data.adminKey);
+      setShowAdminAuth(false);
+      toast({
+        title: "Access Granted",
+        description: "Admin password verified successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An error occurred while verifying the password. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
   
   // Handle adding a new teacher
