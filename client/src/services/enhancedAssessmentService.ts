@@ -71,6 +71,7 @@ export interface Domain {
   parent_id?: number;
   is_active: boolean;
   sub_domains?: Domain[];
+  color?: string; // Added to support fallback domains
 }
 
 export interface LearningPath {
