@@ -24,7 +24,8 @@ import {
   CheckCircle,
   Building2,
   Shield,
-  Music
+  Music,
+  Play
 } from "lucide-react";
 import { MonthlyNewsletter } from "@/components/MonthlyNewsletter";
 import Leaderboard from "@/components/Leaderboard";
