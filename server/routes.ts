@@ -1320,6 +1320,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId as number;
       const { videoId, duration } = req.body;
       
+      // First check if user has already completed this specific video
+      try {
+        const existingCompletion = await storage.getVideoQuizCompletionByUserAndVideo(userId, videoId);
+        if (existingCompletion) {
+          return res.status(200).json({
+            success: true,
+            pointsAwarded: 0,
+            message: "You've already completed this video. Try watching a different one!",
+            limitReached: false,
+            alreadyCompleted: true
+          });
+        }
+      } catch (err) {
+        // If there's an error checking for existing completion, continue anyway
+        console.log("Error checking existing completion:", err);
+      }
+      
       // Check if user has already completed 2 video quizzes today
       const completionsToday = await storage.getDailyVideoCompletionsCount(userId);
       
@@ -1337,29 +1354,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const videoDuration = duration || 5; // Default to 5 minutes if not provided
       const pointsEarned = videoDuration >= 10 ? 8 : 5; // 8 points for videos 10+ minutes, 5 points for shorter videos
       
-      // Record the completion
-      const completion = await storage.createVideoQuizCompletion({
-        userId,
-        videoId,
-        pointsEarned,
-        completedAt: new Date()
-      });
-      
-      // Add points to user
-      const user = await storage.getUser(userId);
-      const updatedUser = await storage.updateUser(userId, { 
-        points: (user?.points || 0) + pointsEarned
-      });
-      
-      res.status(200).json({ 
-        success: true,
-        pointsAwarded: pointsEarned,
-        totalPoints: updatedUser.points,
-        remaining: 2 - (completionsToday + 1) // Remaining videos for today
-      });
+      try {
+        // Record the completion
+        const completion = await storage.createVideoQuizCompletion({
+          userId,
+          videoId,
+          pointsEarned,
+          completedAt: new Date()
+        });
+        
+        // Add points to user
+        const user = await storage.getUser(userId);
+        const updatedUser = await storage.updateUser(userId, { 
+          points: (user?.points || 0) + pointsEarned
+        });
+        
+        res.status(200).json({ 
+          success: true,
+          pointsAwarded: pointsEarned,
+          totalPoints: updatedUser.points,
+          remaining: 2 - (completionsToday + 1) // Remaining videos for today
+        });
+      } catch (err: any) {
+        // Check if this is a duplicate key error
+        if (err.code === '23505' && err.constraint === 'idx_video_quiz_completions_user_video') {
+          // User already completed this video
+          return res.status(200).json({
+            success: true,
+            pointsAwarded: 0,
+            message: "You've already completed this video. Try watching a different one!",
+            limitReached: false,
+            alreadyCompleted: true
+          });
+        } else {
+          // Re-throw for general error handling
+          throw err;
+        }
+      }
     } catch (error) {
       console.error("Error recording video quiz completion:", error);
-      res.status(500).json({ success: false, message: "Internal server error" });
+      res.status(200).json({ 
+        success: true,
+        pointsAwarded: 0,
+        message: "Quiz completed, but we couldn't award points. Please try a different video.",
+        error: true
+      });
     }
   });
   
