@@ -6,219 +6,124 @@ and populates the database tables for the assessment system
 
 import csv
 import json
-import logging
 import os
-from datetime import datetime
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Tuple
-
 from sqlalchemy.orm import Session
-
-from .database import get_db, engine, Base
+from .database import SessionLocal, Base, engine
 from .models import Question
-
-# Set up logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
-logger = logging.getLogger("mentorme-import")
 
 def setup_database():
     """Create database tables if they don't exist"""
     Base.metadata.create_all(bind=engine)
-    logger.info("Database tables created successfully")
 
 def clean_text(text):
     """Clean text fields from the CSV"""
-    if text is None:
+    if not text or text == 'NULL' or text.lower() == 'null' or text.strip() == '':
         return None
-    
-    # Trim whitespace
-    text = text.strip()
-    
-    # If empty string, return None
-    if text == "":
-        return None
-    
-    # Handle special cases
-    if text.lower() in ["n/a", "na", "none", "null"]:
-        return None
-    
-    return text
+    return text.strip()
 
 def import_questions_from_csv(file_path="attached_assets/ece_master_database_full_with_why.csv"):
     """Import questions from CSV file into database"""
-    # Check if the file exists
-    if not Path(file_path).exists():
-        logger.error(f"CSV file not found: {file_path}")
-        raise FileNotFoundError(f"CSV file not found: {file_path}")
-        
-    # Get database session
-    db_generator = get_db()
-    db = next(db_generator)
+    if not os.path.exists(file_path):
+        print(f"Error: File not found: {file_path}")
+        return 0
     
-    # Keep track of import stats
-    stats = {
-        "total_rows": 0,
-        "imported": 0,
-        "skipped": 0,
-        "errors": 0,
-        "domains": set()
-    }
+    db = SessionLocal()
+    count = 0
     
     try:
-        # Read the CSV file
-        with open(file_path, "r", newline="", encoding="utf-8") as csvfile:
-            reader = csv.DictReader(csvfile)
+        with open(file_path, 'r', encoding='utf-8') as f:
+            csv_reader = csv.DictReader(f)
             
-            # Process each row
-            for row_num, row in enumerate(reader, start=2):  # start=2 to account for header
-                stats["total_rows"] += 1
-                
+            for row in csv_reader:
                 try:
-                    # Extract and clean fields
-                    domain = clean_text(row.get("Domain"))
-                    sub_competency = clean_text(row.get("Sub_Competency"))
-                    difficulty_str = clean_text(row.get("Difficulty"))
-                    question_text = clean_text(row.get("Question"))
-                    option_a = clean_text(row.get("Option_A"))
-                    option_b = clean_text(row.get("Option_B"))
-                    option_c = clean_text(row.get("Option_C"))
-                    option_d = clean_text(row.get("Option_D"))
-                    answer = clean_text(row.get("Answer"))
-                    teaching_explanation = clean_text(row.get("Teaching_Explanation"))
-                    
-                    # Enhanced content fields
-                    story_why = clean_text(row.get("Story_Why"))
-                    implementation_how = clean_text(row.get("Implementation_How"))
-                    reflection_considerations = clean_text(row.get("Reflection_Considerations"))
-                    child_impact_story = clean_text(row.get("Child_Impact_Story"))
-                    science_behind_it = clean_text(row.get("Science_Behind_It"))
-                    practical_application = clean_text(row.get("Practical_Application_Strategy"))
-                    why_behind_it = clean_text(row.get("Why_Behind_It"))
-                    
-                    # Resources (parse as JSON or empty list)
-                    resources_str = clean_text(row.get("Resources"))
-                    resources = json.loads(resources_str) if resources_str else []
-                    
-                    # Skip rows with missing required fields
-                    if None in [domain, question_text, option_a, option_b, option_c, option_d, answer]:
-                        logger.warning(f"Skipping row {row_num}: Missing required fields")
-                        stats["skipped"] += 1
+                    # Skip rows with empty essential fields
+                    if not row.get('question_text') or not row.get('domain'):
                         continue
                     
-                    # Validate and convert difficulty to int
-                    try:
-                        difficulty = int(difficulty_str) if difficulty_str else 1
-                        if difficulty < 1:
-                            difficulty = 1
-                        elif difficulty > 4:
-                            difficulty = 4
-                    except (ValueError, TypeError):
-                        difficulty = 1
-                        logger.warning(f"Row {row_num}: Invalid difficulty '{difficulty_str}', defaulting to 1")
-                    
-                    # Validate and clean the answer value
-                    if answer and answer.upper() in ["A", "B", "C", "D"]:
-                        answer = answer.upper()
-                    else:
-                        logger.warning(f"Row {row_num}: Invalid answer '{answer}', defaulting to 'A'")
-                        answer = "A"
-                    
-                    # Add to domains set for statistics
-                    if domain:
-                        stats["domains"].add(domain)
-                    
-                    # Check if this question already exists in the database
-                    existing_question = db.query(Question).filter(
-                        Question.question_text == question_text,
-                        Question.domain == domain
-                    ).first()
-                    
-                    if existing_question:
-                        # Update existing question
-                        existing_question.sub_competency = sub_competency
-                        existing_question.difficulty = difficulty
-                        existing_question.option_a = option_a
-                        existing_question.option_b = option_b
-                        existing_question.option_c = option_c 
-                        existing_question.option_d = option_d
-                        existing_question.answer = answer
-                        existing_question.teaching_explanation = teaching_explanation
-                        existing_question.story_why = story_why
-                        existing_question.implementation_how = implementation_how
-                        existing_question.reflection_considerations = reflection_considerations
-                        existing_question.child_impact_story = child_impact_story
-                        existing_question.science_behind_it = science_behind_it
-                        existing_question.practical_application_strategy = practical_application
-                        existing_question.why_behind_it = why_behind_it
-                        existing_question.resources = resources
+                    # Create question object
+                    question = Question(
+                        domain=clean_text(row.get('domain', '')),
+                        sub_competency=clean_text(row.get('sub_competency', '')),
+                        difficulty=int(row.get('difficulty', 1)) if row.get('difficulty') else 1,
+                        q_type="mcq",  # Default to multiple choice
                         
-                        logger.info(f"Updated existing question (row {row_num}): {domain} - {question_text[:30]}...")
-                    else:
-                        # Create new question
-                        new_question = Question(
-                            domain=domain,
-                            sub_competency=sub_competency,
-                            difficulty=difficulty,
-                            q_type="mcq",  # Currently all questions are multiple choice
-                            question_text=question_text,
-                            option_a=option_a,
-                            option_b=option_b,
-                            option_c=option_c,
-                            option_d=option_d,
-                            answer=answer,
-                            teaching_explanation=teaching_explanation,
-                            story_why=story_why,
-                            implementation_how=implementation_how,
-                            reflection_considerations=reflection_considerations,
-                            child_impact_story=child_impact_story,
-                            science_behind_it=science_behind_it,
-                            practical_application_strategy=practical_application,
-                            why_behind_it=why_behind_it,
-                            resources=resources
-                        )
+                        question_text=clean_text(row.get('question_text', '')),
+                        option_a=clean_text(row.get('option_a', '')),
+                        option_b=clean_text(row.get('option_b', '')),
+                        option_c=clean_text(row.get('option_c', '')),
+                        option_d=clean_text(row.get('option_d', '')),
+                        answer=clean_text(row.get('answer', '')),
                         
-                        db.add(new_question)
-                        logger.info(f"Added new question (row {row_num}): {domain} - {question_text[:30]}...")
+                        teaching_explanation=clean_text(row.get('teaching_explanation', '')),
+                        story_why=clean_text(row.get('story_why', '')),
+                        implementation_how=clean_text(row.get('implementation_how', '')),
+                        reflection_considerations=clean_text(row.get('reflection_considerations', '')),
+                        child_impact_story=clean_text(row.get('child_impact_story', '')),
+                        science_behind_it=clean_text(row.get('science_behind_it', '')),
+                        practical_application_strategy=clean_text(row.get('practical_application_strategy', '')),
+                        why_behind_it=clean_text(row.get('why_behind_it', ''))
+                    )
                     
-                    # Commit changes for each question to avoid losing all on error
-                    db.commit()
-                    stats["imported"] += 1
+                    # Handle resources field (JSON array)
+                    if row.get('resources'):
+                        try:
+                            resources = json.loads(row.get('resources', '[]'))
+                            question.resources = resources
+                        except json.JSONDecodeError:
+                            # If not valid JSON, try to parse as comma-separated list
+                            resources = [r.strip() for r in row.get('resources', '').split(',') if r.strip()]
+                            question.resources = resources
                     
+                    # Add to database
+                    db.add(question)
+                    count += 1
+                    
+                    # Commit in batches to reduce memory usage
+                    if count % 100 == 0:
+                        db.commit()
+                        print(f"Imported {count} questions...")
+                
                 except Exception as e:
-                    db.rollback()
-                    stats["errors"] += 1
-                    logger.error(f"Error processing row {row_num}: {str(e)}")
-                    
-            # Log import statistics
-            logger.info(f"Import completed: {stats['imported']} imported, {stats['skipped']} skipped, {stats['errors']} errors")
-            logger.info(f"Domains imported: {', '.join(sorted(stats['domains']))}")
+                    print(f"Error processing row: {e}")
+                    print(f"Row data: {row}")
+                    continue
+            
+            # Final commit
+            db.commit()
+            print(f"Successfully imported {count} questions")
             
     except Exception as e:
-        logger.error(f"Error importing data: {str(e)}")
-        raise
+        print(f"Error importing questions: {e}")
+        db.rollback()
     finally:
         db.close()
-        
-    return stats
+    
+    return count
 
 def run_import():
     """Main function to run the import process"""
-    logger.info("Starting ECE question database import")
-    
     # Set up database tables
     setup_database()
     
-    # Import questions from CSV
+    # Import questions
+    print("Starting import of enhanced questions...")
+    count = import_questions_from_csv()
+    print(f"Import completed. {count} questions imported.")
+    
+    # Check if any domains have too few questions
+    db = SessionLocal()
     try:
-        stats = import_questions_from_csv()
-        logger.info(f"Successfully imported {stats['imported']} questions across {len(stats['domains'])} domains")
-        return True
-    except Exception as e:
-        logger.error(f"Failed to import questions: {str(e)}")
-        return False
+        domains = db.query(Question.domain).distinct().all()
+        for domain_tuple in domains:
+            domain = domain_tuple[0]
+            question_count = db.query(Question).filter(Question.domain == domain).count()
+            print(f"Domain: {domain} - {question_count} questions")
+            
+            # Alert if fewer than 20 questions
+            if question_count < 20:
+                print(f"Warning: Domain '{domain}' has only {question_count} questions")
+    finally:
+        db.close()
 
 if __name__ == "__main__":
     run_import()

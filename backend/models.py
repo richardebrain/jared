@@ -1,18 +1,20 @@
 """
 Database models for the assessment system
 """
-import json
-from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, JSON
-from sqlalchemy.orm import relationship
 
+from sqlalchemy import (
+    Column, Integer, String, Text, Boolean, ForeignKey, JSON
+)
+from sqlalchemy.orm import relationship
 from .database import Base
+
 
 class Question(Base):
     __tablename__ = "questions"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     
-    # Question categorization
+    # Core properties
     domain = Column(String, index=True)  # e.g., "Core Values", "Child Development", etc.
     sub_competency = Column(String, index=True)  # More specific category
     difficulty = Column(Integer)  # 1-4
@@ -26,7 +28,7 @@ class Question(Base):
     option_d = Column(Text)
     answer = Column(String)  # A, B, C, or D
     
-    # Extended content
+    # Enhanced content
     teaching_explanation = Column(Text)
     story_why = Column(Text, nullable=True)
     implementation_how = Column(Text, nullable=True)
@@ -38,36 +40,25 @@ class Question(Base):
     resources = Column(JSON, nullable=True)  # JSON array of resource IDs
     
     def __repr__(self):
-        return f"Question(id={self.id!r}, domain={self.domain!r}, difficulty={self.difficulty!r})"
+        return f"<Question(id={self.id}, domain='{self.domain}', difficulty={self.difficulty})>"
     
     def to_dict(self):
         """Convert the question to a dictionary for API responses"""
         return {
             "id": self.id,
-            "domain": self.domain,
-            "sub_competency": self.sub_competency,
-            "difficulty": self.difficulty,
+            "question": self.question_text,
             "q_type": self.q_type,
-            "question_text": self.question_text,
             "options": {
                 "A": self.option_a,
                 "B": self.option_b,
                 "C": self.option_c,
                 "D": self.option_d
             },
-            "answer": self.answer,
-            "teaching_explanation": self.teaching_explanation,
-            "extended_content": {
-                "story_why": self.story_why,
-                "implementation_how": self.implementation_how,
-                "reflection_considerations": self.reflection_considerations,
-                "child_impact_story": self.child_impact_story,
-                "science_behind_it": self.science_behind_it,
-                "practical_application_strategy": self.practical_application_strategy,
-                "why_behind_it": self.why_behind_it,
-                "resources": self.resources
-            }
+            "domain": self.domain,
+            "difficulty": self.difficulty,
+            "sub_competency": self.sub_competency
         }
+
 
 class Assessment(Base):
     __tablename__ = "assessments"
@@ -77,7 +68,7 @@ class Assessment(Base):
     started_at = Column(String)  # ISO timestamp
     completed_at = Column(String, nullable=True)  # ISO timestamp
     
-    # Statistics
+    # Metrics
     questions_asked = Column(Integer, default=0)
     questions_correct = Column(Integer, default=0)
     
@@ -89,7 +80,8 @@ class Assessment(Base):
     responses = relationship("Response", back_populates="assessment")
     
     def __repr__(self):
-        return f"Assessment(id={self.id!r}, user_id={self.user_id!r}, completed={self.completed_at is not None})"
+        return f"<Assessment(id={self.id}, user_id={self.user_id})>"
+
 
 class Response(Base):
     __tablename__ = "responses"
@@ -108,4 +100,4 @@ class Response(Base):
     question = relationship("Question")
     
     def __repr__(self):
-        return f"Response(id={self.id!r}, assessment_id={self.assessment_id!r}, is_correct={self.is_correct!r})"
+        return f"<Response(id={self.id}, assessment_id={self.assessment_id}, is_correct={self.is_correct})>"
