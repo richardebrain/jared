@@ -4,37 +4,33 @@ Provides SQLAlchemy integration and database setup
 """
 
 import os
+import csv
 import logging
-from typing import Tuple, Optional
-
-from sqlalchemy import create_engine, text
-from sqlalchemy.ext.declarative import declarative_base
+from typing import Tuple
+from sqlalchemy import create_engine, text, func, select, distinct
 from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.exc import SQLAlchemyError
+
+from .models import Base, Question
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("database")
 
-# Get database URL from environment or use a default SQLite database for development
-DATABASE_URL = os.environ.get(
-    "DATABASE_URL", 
-    "sqlite:///./mentorme_assessment.db"
-)
+# Get database URL from environment or use SQLite as fallback
+DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./mentorme_assessment.db")
 
-# Create SQLAlchemy engine
+# Create database engine
 if DATABASE_URL.startswith("sqlite"):
     engine = create_engine(
-        DATABASE_URL, 
-        connect_args={"check_same_thread": False}
+        DATABASE_URL, connect_args={"check_same_thread": False}
     )
 else:
+    # PostgreSQL or other database
     engine = create_engine(DATABASE_URL)
 
 # Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Create base class for declarative models
-Base = declarative_base()
 
 def get_db():
     """
@@ -57,27 +53,13 @@ def setup_database() -> Tuple[bool, str]:
         Tuple of (success, message)
     """
     try:
-        # Import models here to avoid circular imports
-        from .models import Question, UserPerformance, AssessmentResult
-        
-        # Create all tables
         Base.metadata.create_all(bind=engine)
-        
-        # Check database connection
-        with SessionLocal() as db:
-            # Execute a simple query to verify connection
-            result = db.execute(text("SELECT 1")).scalar()
-            if result != 1:
-                return False, "Database connection check failed"
-            
-            # Check if questions table has data
-            question_count = db.query(Question).count()
-            logger.info(f"Found {question_count} questions in the database")
-        
+        logger.info("Database tables created successfully")
         return True, "Database setup completed successfully"
-    except Exception as e:
-        logger.error(f"Database setup error: {str(e)}")
-        return False, f"Database setup failed: {str(e)}"
+    except SQLAlchemyError as e:
+        error_msg = f"Database setup error: {str(e)}"
+        logger.error(error_msg)
+        return False, error_msg
 
 def import_questions_from_csv(csv_file_path: str) -> Tuple[bool, str, int]:
     """
@@ -89,42 +71,35 @@ def import_questions_from_csv(csv_file_path: str) -> Tuple[bool, str, int]:
     Returns:
         Tuple of (success, message, count)
     """
-    try:
-        import csv
-        from .models import Question
+    if not os.path.exists(csv_file_path):
+        return False, f"CSV file not found: {csv_file_path}", 0
         
+    try:
+        # Import the CSV processing functionality
+        from .import_data import process_csv, transform_row
+        
+        # Process CSV file
+        rows = process_csv(csv_file_path)
+        
+        # Transform rows to question format
+        questions_data = [transform_row(row) for row in rows]
+        
+        # Import questions to database
         count = 0
-        with open(csv_file_path, 'r', encoding='utf-8') as csvfile:
-            reader = csv.DictReader(csvfile)
-            questions = []
+        with SessionLocal() as db:
+            for question_data in questions_data:
+                question = Question(**question_data)
+                db.add(question)
+                count += 1
             
-            for row in reader:
-                try:
-                    # Extract fields from CSV (customize as needed based on your CSV structure)
-                    question = Question(
-                        question=row.get('question', ''),
-                        answer=row.get('answer', ''),
-                        q_type=row.get('type', 'multiple_choice'),
-                        options=row.get('options', '{}'),
-                        domain=row.get('domain', 'General'),
-                        difficulty=int(row.get('difficulty', 1)),
-                        sub_competency=row.get('sub_competency', None),
-                        enhanced_content=row.get('enhanced_content', None)
-                    )
-                    questions.append(question)
-                    count += 1
-                except Exception as e:
-                    logger.error(f"Error parsing row: {row}, error: {str(e)}")
-            
-            # Add all questions to database
-            with SessionLocal() as db:
-                db.add_all(questions)
-                db.commit()
-            
-            return True, f"Imported {count} questions successfully", count
+            # Commit changes
+            db.commit()
+        
+        return True, f"Successfully imported {count} questions", count
     except Exception as e:
-        logger.error(f"Error importing questions: {str(e)}")
-        return False, f"Failed to import questions: {str(e)}", 0
+        error_msg = f"Error importing questions: {str(e)}"
+        logger.error(error_msg)
+        return False, error_msg, 0
 
 def get_question_stats() -> dict:
     """
@@ -133,25 +108,53 @@ def get_question_stats() -> dict:
     Returns:
         Dictionary with statistics
     """
-    try:
-        from .models import Question
-        
-        with SessionLocal() as db:
-            total_count = db.query(Question).count()
+    with SessionLocal() as db:
+        try:
+            # Get total question count
+            total_count = db.query(func.count(Question.id)).scalar()
             
-            # Get count by domain
-            domain_query = db.query(Question.domain, db.func.count(Question.id)).group_by(Question.domain).all()
-            domains = {domain: count for domain, count in domain_query}
+            # Get domain counts
+            domain_query = db.query(
+                Question.domain,
+                func.count(Question.id).label('count')
+            ).group_by(Question.domain)
             
-            # Get count by difficulty
-            difficulty_query = db.query(Question.difficulty, db.func.count(Question.id)).group_by(Question.difficulty).all()
-            difficulties = {str(difficulty): count for difficulty, count in difficulty_query}
+            domain_counts = {
+                domain: count for domain, count in domain_query
+            }
+            
+            # Get difficulty distribution
+            difficulty_query = db.query(
+                Question.difficulty,
+                func.count(Question.id).label('count')
+            ).group_by(Question.difficulty)
+            
+            difficulty_counts = {
+                difficulty: count for difficulty, count in difficulty_query
+            }
+            
+            # Get question type distribution
+            type_query = db.query(
+                Question.q_type,
+                func.count(Question.id).label('count')
+            ).group_by(Question.q_type)
+            
+            type_counts = {
+                q_type: count for q_type, count in type_query
+            }
             
             return {
-                "total_count": total_count,
-                "domains": domains,
-                "difficulties": difficulties
+                "total_questions": total_count,
+                "domains": domain_counts,
+                "difficulties": difficulty_counts,
+                "question_types": type_counts
             }
-    except Exception as e:
-        logger.error(f"Error getting question stats: {str(e)}")
-        return {"error": str(e)}
+        except SQLAlchemyError as e:
+            logger.error(f"Error getting question stats: {str(e)}")
+            return {
+                "error": str(e),
+                "total_questions": 0,
+                "domains": {},
+                "difficulties": {},
+                "question_types": {}
+            }

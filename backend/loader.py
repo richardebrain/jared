@@ -3,15 +3,15 @@ Question loader module for the assessment system
 This module provides functions to load questions from the database
 """
 
-import json
-import logging
 import random
-from typing import List, Dict, Any, Tuple, Optional, Union
+import logging
+import math
+from typing import List, Dict, Any, Optional, Tuple, Union
 
-from sqlalchemy import func, desc, or_, and_
+from sqlalchemy import func, desc, or_
 from sqlalchemy.orm import Session
 
-from .models import Question, UserPerformance, AssessmentResult
+from .models import Question, UserPerformance, UserDomainProgress, User
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -33,22 +33,23 @@ def load_questions(db: Session, domain=None, difficulty=None, exclude_ids=None, 
     """
     query = db.query(Question)
     
-    # Apply domain filter if provided
+    # Apply filters
     if domain:
         query = query.filter(Question.domain == domain)
     
-    # Apply difficulty filter if provided
     if difficulty:
         query = query.filter(Question.difficulty == difficulty)
     
-    # Exclude questions if IDs provided
     if exclude_ids:
         query = query.filter(~Question.id.in_(exclude_ids))
     
-    # Order by ID to ensure consistent results
-    query = query.order_by(func.random()).limit(limit)
+    # Order randomly
+    query = query.order_by(func.random())
     
-    return query.all()
+    # Limit results
+    questions = query.limit(limit).all()
+    
+    return questions
 
 def load_random_question(db: Session, domain=None, difficulty=None, exclude_ids=None):
     """
@@ -64,11 +65,8 @@ def load_random_question(db: Session, domain=None, difficulty=None, exclude_ids=
         Single Question object or None if no matching questions
     """
     questions = load_questions(
-        db=db,
-        domain=domain,
-        difficulty=difficulty,
-        exclude_ids=exclude_ids,
-        limit=1
+        db, domain=domain, difficulty=difficulty, 
+        exclude_ids=exclude_ids, limit=1
     )
     
     return questions[0] if questions else None
@@ -109,7 +107,11 @@ def get_question_counts_by_domain(db: Session):
     Returns:
         Dictionary with domain names as keys and counts as values
     """
-    results = db.query(Question.domain, func.count(Question.id)).group_by(Question.domain).all()
+    results = db.query(
+        Question.domain, 
+        func.count(Question.id).label('count')
+    ).group_by(Question.domain).all()
+    
     return {domain: count for domain, count in results}
 
 def get_next_difficulty_level(db: Session, domain: str, current_difficulty: int, correct: bool):
@@ -125,30 +127,25 @@ def get_next_difficulty_level(db: Session, domain: str, current_difficulty: int,
     Returns:
         Next difficulty level (int)
     """
-    # Get the distribution of questions by difficulty for this domain
-    difficulties = get_question_difficulty_distribution(db, domain)
-    
-    # If answered correctly, increase difficulty or stay at max
     if correct:
-        next_level = min(current_difficulty + 1, 5)
+        # If answered correctly, potentially increase difficulty
+        if current_difficulty < 5:  # 5 is max difficulty
+            # Check if there are questions at the next difficulty level
+            next_level = current_difficulty + 1
+            count = db.query(func.count(Question.id)).filter(
+                Question.domain == domain,
+                Question.difficulty == next_level
+            ).scalar()
+            
+            if count > 0:
+                return next_level
     else:
-        # If answered incorrectly, decrease difficulty or stay at min
-        next_level = max(current_difficulty - 1, 1)
+        # If answered incorrectly, potentially decrease difficulty
+        if current_difficulty > 1:  # 1 is min difficulty
+            return current_difficulty - 1
     
-    # Ensure there are questions at the next level
-    while next_level not in difficulties or difficulties.get(next_level, 0) == 0:
-        if correct:
-            next_level -= 1
-            if next_level < 1:
-                next_level = 1
-                break
-        else:
-            next_level += 1
-            if next_level > 5:
-                next_level = 5
-                break
-    
-    return next_level
+    # Default: stay at the same level
+    return current_difficulty
 
 def get_domain_questions_count(db: Session, domain: str):
     """
@@ -161,7 +158,9 @@ def get_domain_questions_count(db: Session, domain: str):
     Returns:
         Integer count of questions
     """
-    return db.query(func.count(Question.id)).filter(Question.domain == domain).scalar()
+    return db.query(func.count(Question.id)).filter(
+        Question.domain == domain
+    ).scalar()
 
 def get_question_difficulty_distribution(db: Session, domain: str):
     """
@@ -174,10 +173,12 @@ def get_question_difficulty_distribution(db: Session, domain: str):
     Returns:
         Dictionary with difficulty levels as keys and counts as values
     """
-    results = db.query(Question.difficulty, func.count(Question.id))\
-                .filter(Question.domain == domain)\
-                .group_by(Question.difficulty)\
-                .all()
+    results = db.query(
+        Question.difficulty, 
+        func.count(Question.id).label('count')
+    ).filter(
+        Question.domain == domain
+    ).group_by(Question.difficulty).all()
     
     return {difficulty: count for difficulty, count in results}
 
@@ -202,63 +203,45 @@ def get_random_question_with_adaptive_difficulty(
         (Question, finished) where Question is the next question or None if domain is finished,
         and finished is a boolean indicating if we've reached the max questions or proficiency
     """
-    if exclude_ids is None:
-        exclude_ids = []
-    
-    # If we've already asked the maximum number of questions, consider domain finished
-    if len(exclude_ids) >= max_questions_per_domain:
+    # Check if we've reached the maximum number of questions for this domain
+    if exclude_ids and len(exclude_ids) >= max_questions_per_domain:
         return None, True
     
-    # Calculate target difficulty based on user performance
-    # More proficient users get harder questions
-    if user_performance < 0.2:
-        target_difficulty = 1
-    elif user_performance < 0.4:
-        target_difficulty = 2
-    elif user_performance < 0.6:
-        target_difficulty = 3
-    elif user_performance < 0.8:
-        target_difficulty = 4
-    else:
-        target_difficulty = 5
+    # Calculate target difficulty based on performance
+    # Scale performance to 1-5 range for difficulty levels
+    target_difficulty = min(5, max(1, math.ceil(user_performance * 5)))
     
-    # Get the distribution of questions by difficulty for this domain
-    difficulties = get_question_difficulty_distribution(db, domain)
-    
-    # If there are no questions at the target difficulty, find the closest available difficulty
-    if target_difficulty not in difficulties or difficulties.get(target_difficulty, 0) == 0:
-        available_difficulties = sorted(difficulties.keys())
-        if not available_difficulties:
-            return None, True  # No questions available in this domain
-        
-        # Find closest available difficulty
-        target_difficulty = min(available_difficulties, key=lambda x: abs(x - target_difficulty))
-    
-    # Get a random question at the target difficulty
+    # First try to get a question at the exact target difficulty
     question = load_random_question(
-        db=db,
-        domain=domain,
-        difficulty=target_difficulty,
-        exclude_ids=exclude_ids
+        db, domain=domain, difficulty=target_difficulty, exclude_ids=exclude_ids
     )
     
-    # If no question is available at this difficulty, try any difficulty
+    # If no question found, try adjacent difficulty levels
+    if not question:
+        # Try one level below then one level above, alternating outward
+        for diff_offset in [1, -1, 2, -2, 3, -3, 4, -4]:
+            new_diff = target_difficulty + diff_offset
+            
+            # Ensure difficulty is in valid range (1-5)
+            if 1 <= new_diff <= 5:
+                question = load_random_question(
+                    db, domain=domain, difficulty=new_diff, exclude_ids=exclude_ids
+                )
+                if question:
+                    break
+    
+    # If still no question, just get any question from this domain
     if not question:
         question = load_random_question(
-            db=db,
-            domain=domain,
-            exclude_ids=exclude_ids
+            db, domain=domain, exclude_ids=exclude_ids
         )
     
-    # If still no question, we've exhausted this domain
-    if not question:
-        return None, True
+    # If we found a question, return it along with not finished status
+    if question:
+        return question, False
     
-    # Check if we should consider this domain "finished" based on user performance
-    # If user is highly proficient (0.9+) and has answered at least 5 questions, we can move on
-    finished = user_performance >= 0.9 and len(exclude_ids) >= 5
-    
-    return question, finished
+    # If no question found at all, the domain is finished or empty
+    return None, True
 
 def update_user_performance(
     db: Session, 
@@ -277,31 +260,38 @@ def update_user_performance(
         is_correct: Whether the question was answered correctly
         difficulty: The difficulty of the question
     """
-    # Find or create performance record
-    performance = db.query(UserPerformance).filter(
-        UserPerformance.user_id == user_id,
-        UserPerformance.domain == domain
+    # Find existing progress record for this user and domain
+    progress = db.query(UserDomainProgress).filter(
+        UserDomainProgress.user_id == user_id,
+        UserDomainProgress.domain == domain
     ).first()
     
-    if not performance:
-        performance = UserPerformance(
+    # Calculate points earned
+    points_earned = 0
+    if is_correct:
+        # Base points for correct answer based on difficulty
+        points_earned = difficulty * 2
+    
+    if not progress:
+        # Create new progress record if it doesn't exist
+        progress = UserDomainProgress(
             user_id=user_id,
             domain=domain,
-            proficiency=0.0,
-            questions_attempted=0,
-            questions_correct=0,
-            highest_difficulty=0,
-            last_difficulty=1
+            performance_score=1.0 if is_correct else 0.0,
+            highest_difficulty=difficulty,
+            questions_answered=1,
+            questions_correct=1 if is_correct else 0,
+            points_earned=points_earned
         )
-        db.add(performance)
+        db.add(progress)
+    else:
+        # Update existing progress
+        progress.update_progress(is_correct, difficulty, points_earned)
     
-    # Update the performance record
-    performance.update_performance(is_correct, difficulty)
-    
-    # Commit the changes
+    # Commit changes
     db.commit()
     
-    return performance.to_dict()
+    return progress
 
 def get_user_name(user_id: int, db: Session) -> str:
     """
@@ -314,8 +304,9 @@ def get_user_name(user_id: int, db: Session) -> str:
     Returns:
         User's name or "Student" if not found
     """
-    # In a real implementation, this would query the user table
-    # For now, just return a generic name
+    user = db.query(User).filter(User.id == user_id).first()
+    if user:
+        return user.get_full_name()
     return "Student"
 
 class AnswerFeedback:
@@ -367,38 +358,33 @@ def generate_answer_feedback(
     Returns:
         AnswerFeedback object
     """
-    # Check if answer is correct
-    is_correct = question.is_correct(user_answer)
-    
-    # Get the correct answer
-    correct_answer = question.answer
-    
-    # Determine next difficulty level
-    next_difficulty = get_next_difficulty_level(db, domain, current_difficulty, is_correct)
-    
-    # Update user performance
-    update_user_performance(db, user_id, domain, is_correct, current_difficulty)
-    
-    # Get user's name
+    is_correct = question.is_correct_answer(user_answer)
     user_name = get_user_name(user_id, db)
     
-    # Generate a personalized message based on correctness
+    # Get next difficulty level
+    next_difficulty = get_next_difficulty_level(
+        db, domain, current_difficulty, is_correct
+    )
+    
     if is_correct:
-        personal_message = get_positive_feedback_message(current_difficulty)
+        personal_message = get_positive_feedback_message(current_difficulty).replace(
+            "{name}", user_name
+        )
         explanation = get_positive_explanation(current_difficulty, domain)
     else:
-        personal_message = get_supportive_feedback_message(current_difficulty)
+        personal_message = get_supportive_feedback_message(current_difficulty).replace(
+            "{name}", user_name
+        )
         explanation = get_correction_explanation(current_difficulty, domain)
     
-    # Add enhanced content if available
+    # Add enhanced content explanation if available
     enhanced_content = question.get_enhanced_content()
-    if enhanced_content and "explanation" in enhanced_content:
+    if "explanation" in enhanced_content:
         explanation += "\n\n" + enhanced_content["explanation"]
     
-    # Create and return the feedback object
     return AnswerFeedback(
         correct=is_correct,
-        correct_answer=correct_answer,
+        correct_answer=question.answer,
         personal_message=personal_message,
         teaching_explanation=explanation,
         next_difficulty=next_difficulty
@@ -406,97 +392,57 @@ def generate_answer_feedback(
 
 def get_positive_feedback_message(difficulty):
     """Get a positive feedback message based on difficulty"""
-    if difficulty <= 2:
-        messages = [
-            "Good job! That's correct!",
-            "Well done! You got it right!",
-            "Correct! You're doing great!",
-            "That's right! Keep up the good work!"
-        ]
-    elif difficulty <= 4:
-        messages = [
-            "Excellent work! That was a tricky one!",
-            "Great job! That question was challenging!",
-            "Impressive! You handled that difficult question well!",
-            "Outstanding! You're mastering these concepts!"
-        ]
-    else:
-        messages = [
-            "Remarkable! That was an expert-level question!",
-            "Phenomenal! You're showing true mastery!",
-            "Exceptional! That's the kind of understanding we aim for!",
-            "Superb! You're demonstrating professional-level knowledge!"
-        ]
+    messages = [
+        "Great job, {name}! That's correct!",
+        "Well done, {name}! You got it right!",
+        "Excellent work, {name}! That's exactly right!",
+        "Outstanding, {name}! You're mastering this!",
+        "Impressive, {name}! That was a challenging question!"
+    ]
     
-    return random.choice(messages)
+    # Use harder messages for higher difficulty
+    index = min(difficulty - 1, len(messages) - 1)
+    return messages[index]
 
 def get_supportive_feedback_message(difficulty):
     """Get a supportive feedback message based on difficulty"""
-    if difficulty <= 2:
-        messages = [
-            "That's not quite right, but you're learning!",
-            "Not correct, but that's how we learn!",
-            "That's not the answer we're looking for, but keep trying!",
-            "Not quite, but don't worry - learning takes practice!"
-        ]
-    elif difficulty <= 4:
-        messages = [
-            "That's a challenging question! Let's review the correct answer.",
-            "Not quite right, but this was a tough one!",
-            "That's not correct, but these advanced concepts take time to master.",
-            "Not the right answer, but you're tackling difficult material!"
-        ]
-    else:
-        messages = [
-            "That's not correct, but even experts struggle with these concepts!",
-            "Not right, but this is expert-level material you're engaging with!",
-            "That's not the answer, but few get these advanced questions right on first try!",
-            "Not correct, but you're working at a very advanced level!"
-        ]
+    messages = [
+        "Not quite, {name}. Let's review this concept.",
+        "That's not correct, {name}, but it's a good learning opportunity.",
+        "This was tricky, {name}. Let's look at why.",
+        "This was challenging, {name}. Don't worry - practice helps!",
+        "This was very advanced, {name}. Let's break it down together."
+    ]
     
-    return random.choice(messages)
+    # Use more supportive messages for higher difficulty
+    index = min(difficulty - 1, len(messages) - 1)
+    return messages[index]
 
 def get_positive_explanation(difficulty, domain):
     """Generate a positive explanation based on difficulty and domain"""
-    base_explanations = {
-        "Child Development": "Your understanding of child development principles is strong. ",
-        "Classroom Management": "You demonstrate good knowledge of classroom management strategies. ",
-        "Curriculum Planning": "Your curriculum planning knowledge is on point. ",
-        "Family Engagement": "You show solid understanding of family engagement practices. ",
-        "Health and Safety": "Your grasp of health and safety protocols is excellent. ",
-        "Inclusive Practices": "You demonstrate strong knowledge of inclusive practices. ",
-        "Professional Development": "Your professional development knowledge is well-rounded. "
-    }
+    explanations = [
+        f"You've demonstrated a good understanding of {domain} fundamentals.",
+        f"Your understanding of {domain} concepts is developing well.",
+        f"You're showing strong knowledge in {domain}.",
+        f"You've demonstrated advanced understanding of {domain} principles.",
+        f"You're showing expert-level knowledge in {domain}."
+    ]
     
-    base = base_explanations.get(domain, "Your understanding of this topic is solid. ")
-    
-    if difficulty <= 2:
-        return base + "Continue building on these foundational concepts."
-    elif difficulty <= 4:
-        return base + "You're successfully applying more advanced concepts in this area."
-    else:
-        return base + "You're demonstrating mastery of complex concepts in this field."
+    index = min(difficulty - 1, len(explanations) - 1)
+    return explanations[index]
 
 def get_correction_explanation(difficulty, domain):
     """Generate a correction explanation based on difficulty and domain"""
-    base_explanations = {
-        "Child Development": "When thinking about child development, remember that ",
-        "Classroom Management": "For effective classroom management, consider that ",
-        "Curriculum Planning": "In curriculum planning, it's important to know that ",
-        "Family Engagement": "When working with families, remember that ",
-        "Health and Safety": "For proper health and safety practices, understand that ",
-        "Inclusive Practices": "In creating inclusive environments, consider that ",
-        "Professional Development": "For professional growth, keep in mind that "
-    }
+    explanations = [
+        f"Let's review this {domain} concept together.",
+        f"This {domain} concept can be challenging. Let's break it down.",
+        f"This is an important {domain} principle to understand.",
+        f"This is an advanced {domain} concept that takes practice.",
+        f"This {domain} concept is complex. Let's work through it step by step."
+    ]
     
-    base = base_explanations.get(domain, "Remember that ")
-    
-    if difficulty <= 2:
-        return base + "mastering these foundational concepts will help you build a strong knowledge base."
-    elif difficulty <= 4:
-        return base + "these intermediate concepts connect to the fundamentals and help you develop deeper understanding."
-    else:
-        return base + "these advanced concepts reflect the complexity of real-world educational settings and expertise."
+    index = min(difficulty - 1, len(explanations) - 1)
+    return explanations[index]
 
 class LearningPath:
     """Class to generate personalized learning path recommendations"""
@@ -531,8 +477,7 @@ class LearningPath:
             "strongest_domain": self.strongest_domain,
             "weakest_domain": self.weakest_domain,
             "user_name": self.user_name,
-            "total_points_earned": self.total_points_earned,
-            "overall_score": (self.questions_correct / self.questions_asked * 100) if self.questions_asked > 0 else 0
+            "total_points_earned": self.total_points_earned
         }
 
 class QuestionResponse:
@@ -554,14 +499,14 @@ class QuestionResponse:
         self.options = options
         self.domain = domain
         self.difficulty = difficulty
-        self.enhanced_content = enhanced_content or {}
+        self.enhanced_content = enhanced_content
     
     def to_dict(self):
         """Convert to dictionary for API response"""
         return {
             "id": self.id,
             "question": self.question,
-            "type": self.q_type,
+            "q_type": self.q_type,
             "options": self.options,
             "domain": self.domain,
             "difficulty": self.difficulty,
