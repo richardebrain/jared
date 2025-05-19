@@ -1,14 +1,16 @@
 """
-Database connection and setup for the MentorMe assessment system
+Database connection module for the MentorMe assessment system
+This module handles database initialization and connection management
 """
 import os
 import logging
 from typing import Generator
-from contextlib import contextmanager
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
+
+from .models import Base
 
 # Configure logging
 logging.basicConfig(
@@ -17,125 +19,50 @@ logging.basicConfig(
 )
 logger = logging.getLogger("mentorme.database")
 
-# Create SQLAlchemy models base
-Base = declarative_base()
+# Use SQLite for development, PostgreSQL for production
+DATABASE_URL = os.environ.get("ASSESSMENT_DATABASE_URL", "sqlite:///./mentorme_assessment.db")
 
-# Set up database URL (default to SQLite if no PostgreSQL connection provided)
-def get_database_url() -> str:
-    """Get database URL from environment or use default SQLite database"""
-    db_url = os.environ.get("DATABASE_URL")
-    
-    if db_url and db_url.startswith("postgres"):
-        logger.info("Using PostgreSQL database")
-        return db_url.replace("postgres://", "postgresql://", 1)
-    
-    logger.info("Using SQLite database")
-    # Store in the data directory
-    os.makedirs("data", exist_ok=True)
-    return "sqlite:///data/mentorme.db"
+# Create SQLAlchemy engine
+if DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(
+        DATABASE_URL, 
+        connect_args={"check_same_thread": False}
+    )
+else:
+    engine = create_engine(DATABASE_URL)
 
-# Create engine and session
-engine = create_engine(
-    get_database_url(),
-    connect_args={"check_same_thread": False} if "sqlite" in get_database_url() else {},
-    echo=False  # Set to True for debug SQL output
-)
+# Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Set SQLite pragmas for better performance if using SQLite
-@event.listens_for(engine, "connect")
-def set_sqlite_pragma(dbapi_connection, connection_record):
-    """Set SQLite pragmas for better performance"""
-    if "sqlite" in get_database_url():
-        cursor = dbapi_connection.cursor()
-        cursor.execute("PRAGMA journal_mode=WAL")
-        cursor.execute("PRAGMA synchronous=NORMAL")
-        cursor.execute("PRAGMA foreign_keys=ON")
-        cursor.close()
+
+def init_db() -> None:
+    """Initialize the database"""
+    try:
+        # Create all tables if they don't exist
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables created successfully")
+    except Exception as e:
+        logger.error(f"Error initializing database: {e}")
+        raise
+
 
 def get_db() -> Generator[Session, None, None]:
-    """
-    Get database session
-    
-    Yields:
-        SQLAlchemy session
-    """
+    """Get a database session"""
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
 
-@contextmanager
-def get_db_context() -> Generator[Session, None, None]:
-    """Context manager version of get_db"""
-    db = SessionLocal()
+
+def check_db_connection() -> bool:
+    """Check if the database connection is working"""
     try:
-        yield db
-    finally:
+        # Try to connect to the database
+        db = SessionLocal()
+        db.execute("SELECT 1")
         db.close()
-
-def setup_database():
-    """
-    Set up the database by creating all tables if they don't exist
-    """
-    from .models import (
-        Question, User, Answer, Domain, Tag,
-        UserDomainProgress, LearningPathRecommendation, School, Subscription
-    )
-    
-    logger.info("Creating database tables if they don't exist")
-    Base.metadata.create_all(bind=engine)
-    
-    # Seed initial data
-    with get_db_context() as db:
-        _seed_initial_data(db)
-    
-    logger.info("Database setup complete")
-
-def _seed_initial_data(db: Session):
-    """
-    Seed initial data into the database
-    
-    Args:
-        db: Database session
-    """
-    # Import necessary models here to avoid circular imports
-    from .models import Domain, School, Subscription
-    
-    # Create default domains if they don't exist
-    domains = [
-        {"name": "Child Development", "description": "Knowledge about how children grow and learn"},
-        {"name": "Classroom Management", "description": "Techniques for managing classroom behavior"},
-        {"name": "Curriculum Planning", "description": "Designing effective learning experiences"},
-        {"name": "Health and Safety", "description": "Keeping children safe and healthy"},
-        {"name": "Parent Engagement", "description": "Working with families for better outcomes"}
-    ]
-    
-    for domain_data in domains:
-        existing = db.query(Domain).filter(Domain.name == domain_data["name"]).first()
-        if not existing:
-            db.add(Domain(**domain_data))
-    
-    # Create default school (Raising Arizona)
-    existing_school = db.query(School).filter(School.name == "Raising Arizona").first()
-    if not existing_school:
-        raising_arizona = School(
-            name="Raising Arizona",
-            logo_url="/assets/raising-arizona-logo.jpg",
-            is_default=True,
-            contact_email="admin@raisingarizona.com"
-        )
-        db.add(raising_arizona)
-        
-        # Create default subscription for Raising Arizona
-        db.flush()  # To get the school ID
-        subscription = Subscription(
-            school_id=raising_arizona.id,
-            is_active=True,
-            plan_name="Enterprise",
-            max_users=1000
-        )
-        db.add(subscription)
-    
-    db.commit()
+        return True
+    except Exception as e:
+        logger.error(f"Database connection failed: {e}")
+        return False

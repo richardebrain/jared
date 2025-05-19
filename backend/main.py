@@ -2,30 +2,29 @@
 Main FastAPI application for MentorMe Assessment API
 This module sets up and configures the FastAPI application for the assessment system
 """
-from datetime import datetime
-from typing import Dict, List, Optional, Any, Union
-import random
 import logging
+from datetime import datetime
+from typing import Dict, List, Optional, Any
 
-from fastapi import FastAPI, HTTPException, Depends, Query
+from fastapi import FastAPI, Depends, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
+from . import __version__
 from .database import get_db
-from .models import Question, AnswerFeedback, LearningPathRecommendation
+from .models import (
+    Question, User, Answer, Domain, UserDomainProgress, 
+    School, Subscription, AnswerFeedback
+)
 from .loader import (
-    load_questions, 
-    get_distinct_domains, 
-    get_domain_stats, 
-    get_random_question,
-    get_next_assessment_question,
-    submit_answer_and_update,
-    LearningPath,
-    generate_learning_path
+    load_questions, get_distinct_domains, get_domain_stats,
+    get_random_question, get_next_assessment_question,
+    submit_answer_and_update, generate_learning_path
 )
 
-# Set up logging
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -35,21 +34,20 @@ logger = logging.getLogger("mentorme.api")
 # Create FastAPI app
 app = FastAPI(
     title="MentorMe Assessment API",
-    description="API for adaptive assessments in early childhood education",
-    version="1.0.0",
+    description="API for the MentorMe adaptive assessment system",
+    version=__version__
 )
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify actual origins
+    allow_origins=["*"],  # In production, restrict this to your frontend domain
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ----- Pydantic models -----
-
+# Pydantic models for requests and responses
 class HealthCheck(BaseModel):
     """Health check response"""
     status: str
@@ -128,71 +126,72 @@ class LeaderboardEntry(BaseModel):
     school_id: Optional[int] = None
     school_name: Optional[str] = None
 
-# ----- Routes -----
-
-@app.get("/api/v1/health", response_model=HealthCheck)
+# API routes
+@app.get("/health", response_model=HealthCheck)
 async def health_check():
     """Health check endpoint"""
-    logger.info("Health check requested")
     return {
-        "status": "healthy",
-        "version": "1.0.0",
-        "timestamp": datetime.now()
+        "status": "ok",
+        "version": __version__,
+        "timestamp": datetime.utcnow()
     }
 
-@app.get("/api/v1/domains", response_model=List[str])
+@app.get("/domains", response_model=List[str])
 async def get_domains(db: Session = Depends(get_db)):
     """Get all available domains"""
-    logger.info("Domains list requested")
-    domains = get_distinct_domains(db)
-    return domains
+    return get_distinct_domains(db)
 
-@app.get("/api/v1/domains/{domain}/stats", response_model=DomainStats)
+@app.get("/domains/{domain}/stats", response_model=DomainStats)
 async def domain_statistics(domain: str, db: Session = Depends(get_db)):
     """Get statistics for a domain"""
-    logger.info(f"Domain statistics requested for {domain}")
     stats = get_domain_stats(db, domain)
     if not stats:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Domain '{domain}' not found"
-        )
+        raise HTTPException(status_code=404, detail="Domain not found")
     return stats
 
-@app.post("/api/v1/assessments/start", response_model=QuestionResponse)
+@app.post("/assessments/start", response_model=QuestionResponse)
 async def start_assessment(
     request: AssessmentStart,
     db: Session = Depends(get_db)
 ):
     """Start a new assessment in the specified domain"""
-    logger.info(f"Assessment started for user {request.user_id} in domain {request.domain}")
+    # Validate domain
+    domains = get_distinct_domains(db)
+    if request.domain not in domains:
+        raise HTTPException(status_code=404, detail="Domain not found")
     
-    # Get initial question at level 1 difficulty
-    question = get_random_question(
+    # Get first question
+    question = get_next_assessment_question(
         db=db,
+        user_id=request.user_id,
         domain=request.domain,
-        difficulty=1
+        prev_answers=[]
     )
     
     if not question:
-        raise HTTPException(
-            status_code=404,
-            detail=f"No questions available in domain '{request.domain}'"
-        )
+        raise HTTPException(status_code=404, detail="No questions available for this domain")
     
-    return question
+    # Convert to response format
+    return {
+        "id": question.id,
+        "question": question.question,
+        "domain": question.domain,
+        "sub_domain": question.sub_domain,
+        "difficulty": question.difficulty,
+        "q_type": question.q_type.value,
+        "options": question.options,
+        "hints": question.hints,
+        "time_limit": question.time_limit
+    }
 
-@app.post("/api/v1/assessments/submit", response_model=AnswerResponse)
+@app.post("/assessments/answer", response_model=AnswerResponse)
 async def submit_assessment_answer(
     request: AnswerSubmission,
     db: Session = Depends(get_db)
 ):
     """Submit an answer to an assessment question"""
-    logger.info(
-        f"Answer submitted by user {request.user_id} for question {request.question_id}: {request.answer}"
-    )
-    
-    result = submit_answer_and_update(
+    # Record answer
+    feedback = submit_answer_and_update(
         db=db,
         user_id=request.user_id,
         question_id=request.question_id,
@@ -200,165 +199,183 @@ async def submit_assessment_answer(
         time_taken=request.time_taken
     )
     
-    if not result:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Question with ID {request.question_id} not found"
+    if not feedback:
+        raise HTTPException(status_code=404, detail="Question not found")
+    
+    # Get user's recent answers in this domain
+    recent_answers = (
+        db.query(Answer)
+        .join(Question)
+        .filter(
+            Answer.user_id == request.user_id,
+            Question.domain == feedback.domain
         )
+        .order_by(Answer.created_at.desc())
+        .limit(15)  # We only need the last 15 answers
+        .all()
+    )
     
-    # Get the current question to determine its domain
-    question = db.query(Question).filter(Question.id == request.question_id).first()
-    if not question:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Question with ID {request.question_id} not found"
-        )
+    # Convert to expected format for get_next_assessment_question
+    prev_answers = [
+        {
+            "question_id": answer.question_id,
+            "is_correct": answer.is_correct
+        } 
+        for answer in recent_answers
+    ]
     
-    # Determine if the assessment should continue or complete
-    completed_questions = db.query(AnswerFeedback).filter(
-        AnswerFeedback.user_id == request.user_id,
-        AnswerFeedback.domain == question.domain
-    ).count()
+    # Get next question if assessment isn't complete
+    next_question = get_next_assessment_question(
+        db=db,
+        user_id=request.user_id,
+        domain=feedback.domain,
+        prev_answers=prev_answers
+    )
     
-    # Check if we've reached 10 correct answers or 15 total questions
-    correct_answers = db.query(AnswerFeedback).filter(
-        AnswerFeedback.user_id == request.user_id,
-        AnswerFeedback.domain == question.domain,
-        AnswerFeedback.is_correct.is_(True)
-    ).count()
+    next_question_response = None
+    assessment_complete = next_question is None
     
-    assessment_complete = completed_questions >= 15 or correct_answers >= 10
+    if next_question:
+        next_question_response = {
+            "id": next_question.id,
+            "question": next_question.question,
+            "domain": next_question.domain,
+            "sub_domain": next_question.sub_domain,
+            "difficulty": next_question.difficulty,
+            "q_type": next_question.q_type.value,
+            "options": next_question.options,
+            "hints": next_question.hints,
+            "time_limit": next_question.time_limit
+        }
     
+    # Prepare response
     response = {
-        "is_correct": result.is_correct,
-        "correct_answer": result.correct_answer,
-        "explanation": result.explanation,
-        "points_earned": result.points_earned,
-        "message": result.message,
-        "next_difficulty": result.next_difficulty,
+        "is_correct": feedback.is_correct,
+        "correct_answer": feedback.correct_answer,
+        "explanation": feedback.explanation,
+        "points_earned": feedback.points_earned,
+        "message": feedback.message,
+        "next_difficulty": feedback.next_difficulty,
+        "next_question": next_question_response,
         "assessment_complete": assessment_complete
     }
     
-    # If assessment not complete, get next question
-    if not assessment_complete:
-        next_question = get_random_question(
-            db=db,
-            domain=question.domain,
-            difficulty=result.next_difficulty,
-            exclude_ids=[request.question_id]
-        )
-        response["next_question"] = next_question
-    
     return response
 
-@app.get("/api/v1/users/{user_id}/progress", response_model=UserProgress)
+@app.get("/users/{user_id}/progress", response_model=UserProgress)
 async def get_user_progress(user_id: int, db: Session = Depends(get_db)):
     """Get progress for a user across all domains"""
-    logger.info(f"Progress requested for user {user_id}")
+    # Get user
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
     
-    # Collect progress data from the database
-    domains_progress = {}
-    total_points = 0
-    total_answered = 0
-    total_correct = 0
+    # Get progress records
+    progress_records = db.query(UserDomainProgress).filter(
+        UserDomainProgress.user_id == user_id
+    ).all()
     
-    # Get all domains where user has answered questions
-    user_domains = db.query(AnswerFeedback.domain).filter(
-        AnswerFeedback.user_id == user_id
-    ).distinct().all()
+    # Get answer statistics
+    total_answers = db.query(Answer).filter(Answer.user_id == user_id).count()
+    correct_answers = db.query(Answer).filter(
+        Answer.user_id == user_id,
+        Answer.is_correct.is_(True)
+    ).count()
     
-    for domain_record in user_domains:
-        domain = domain_record[0]
-        domain_answers = db.query(AnswerFeedback).filter(
-            AnswerFeedback.user_id == user_id,
-            AnswerFeedback.domain == domain
-        ).all()
-        
-        domain_total = len(domain_answers)
-        domain_correct = sum(1 for a in domain_answers if a.is_correct)
-        domain_points = sum(a.points_earned for a in domain_answers)
-        domain_accuracy = domain_correct / domain_total if domain_total > 0 else 0
-        
-        # Get highest difficulty reached
-        max_difficulty = max((a.difficulty for a in domain_answers), default=1)
-        
-        # Get last activity time
-        last_activity = max((a.timestamp for a in domain_answers), default=datetime.now())
-        
-        domains_progress[domain] = {
-            "total_questions": domain_total,
-            "correct_answers": domain_correct,
-            "points_earned": domain_points,
-            "accuracy": domain_accuracy,
-            "highest_difficulty": max_difficulty,
-            "last_activity": last_activity
+    # Calculate accuracy
+    accuracy = 0.0
+    if total_answers > 0:
+        accuracy = (correct_answers / total_answers) * 100
+    
+    # Get latest activity timestamp
+    latest_activity = None
+    latest_answer = db.query(Answer).filter(
+        Answer.user_id == user_id
+    ).order_by(Answer.created_at.desc()).first()
+    
+    if latest_answer:
+        latest_activity = latest_answer.created_at
+    else:
+        latest_activity = datetime.utcnow()
+    
+    # Build domain data
+    domains_data = {}
+    for progress in progress_records:
+        domains_data[progress.domain] = {
+            "current_level": progress.current_level,
+            "highest_difficulty": progress.highest_difficulty,
+            "questions_attempted": progress.questions_attempted,
+            "questions_correct": progress.questions_correct,
+            "accuracy": progress.accuracy,
+            "total_points": progress.total_points,
+            "last_activity": progress.last_activity.isoformat()
         }
-        
-        total_points += domain_points
-        total_answered += domain_total
-        total_correct += domain_correct
-    
-    # Calculate overall accuracy
-    overall_accuracy = total_correct / total_answered if total_answered > 0 else 0
-    
-    # Get the last activity time across all domains
-    last_active = datetime.now()
-    if user_domains:
-        all_timestamps = db.query(AnswerFeedback.timestamp).filter(
-            AnswerFeedback.user_id == user_id
-        ).order_by(AnswerFeedback.timestamp.desc()).first()
-        
-        if all_timestamps:
-            last_active = all_timestamps[0]
     
     return {
         "user_id": user_id,
-        "domains": domains_progress,
-        "total_points": total_points,
-        "total_questions_answered": total_answered,
-        "total_correct": total_correct,
-        "accuracy": overall_accuracy,
-        "last_active": last_active
+        "domains": domains_data,
+        "total_points": user.total_points,
+        "total_questions_answered": total_answers,
+        "total_correct": correct_answers,
+        "accuracy": accuracy,
+        "last_active": latest_activity
     }
 
-@app.get("/api/v1/users/{user_id}/learning-path", response_model=LearningPathResponse)
+@app.get("/users/{user_id}/learning-path", response_model=LearningPathResponse)
 async def get_learning_path(user_id: int, db: Session = Depends(get_db)):
     """Get a personalized learning path for a user"""
-    logger.info(f"Learning path requested for user {user_id}")
-    
+    # Generate learning path
     learning_path = generate_learning_path(db, user_id)
+    
     return learning_path.to_dict()
 
-@app.get("/api/v1/leaderboard", response_model=List[LeaderboardEntry])
+@app.get("/leaderboard", response_model=List[LeaderboardEntry])
 async def get_leaderboard(
     school_id: Optional[int] = None,
     limit: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
     """Get leaderboard data"""
-    logger.info(f"Leaderboard requested, limit: {limit}, school_id: {school_id}")
+    query = db.query(
+        User.id,
+        User.username,
+        User.total_points,
+        User.school_id,
+        School.name.label("school_name")
+    ).join(
+        School, User.school_id == School.id, isouter=True
+    )
     
-    # This is a simplified version that returns random data
-    # In a real implementation, this would query the database
+    if school_id:
+        query = query.filter(User.school_id == school_id)
     
-    # Placeholder for demonstration
-    entries = []
-    for i in range(1, limit + 1):
-        entries.append({
-            "user_id": i,
-            "username": f"user_{i}",
-            "points": random.randint(100, 5000),
-            "level": random.randint(1, 5),
-            "rank": i,
-            "school_id": school_id if school_id else random.randint(1, 5),
-            "school_name": f"School {random.randint(1, 5)}"
+    # Order by points and limit
+    users = query.order_by(User.total_points.desc()).limit(limit).all()
+    
+    # Calculate ranks and levels
+    result = []
+    for i, user in enumerate(users):
+        # Simple level calculation (adjust as needed)
+        level = 1
+        if user.total_points >= 2500:
+            level = 6  # Master Lead Teacher
+        elif user.total_points >= 1500:
+            level = 5  # Lead Teacher
+        elif user.total_points >= 800:
+            level = 4  # Associate Teacher
+        elif user.total_points >= 300:
+            level = 3  # Assistant Teacher
+        elif user.total_points >= 100:
+            level = 2  # Teacher in Training
+        
+        result.append({
+            "user_id": user.id,
+            "username": user.username,
+            "points": user.total_points,
+            "level": level,
+            "rank": i + 1,
+            "school_id": user.school_id,
+            "school_name": user.school_name
         })
     
-    # Sort by points descending
-    entries.sort(key=lambda e: e["points"], reverse=True)
-    
-    # Update ranks
-    for i, entry in enumerate(entries):
-        entry["rank"] = i + 1
-    
-    return entries
+    return result

@@ -1,311 +1,366 @@
 """
-Data import module for the MentorMe assessment system
-This module provides functions to import questions from CSV files
+Import data module for the MentorMe assessment system
+This module handles importing questions and other data
 """
 import csv
-import logging
 import json
-from typing import Dict, List, Any, Tuple, Optional, Generator, TextIO
+import logging
+import os
+from typing import List, Dict, Any, Optional, Tuple
 
 from sqlalchemy.orm import Session
-from contextlib import contextmanager
 
-from .database import get_db_context
-from .models import Question, Domain, Tag, QuestionType
+from .models import (
+    Question, Domain, Tag, QuestionType, 
+    School, User, Subscription
+)
+from .database import get_db
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
-logger = logging.getLogger("mentorme.import")
-
-
-def parse_options_from_csv(row: Dict[str, Any]) -> Dict[str, str]:
-    """
-    Parse options from CSV row
-    
-    Args:
-        row: CSV row dictionary
-        
-    Returns:
-        Dictionary of options
-    """
-    options = {}
-    
-    # Look for option columns in format "option_a", "option_b", etc.
-    option_prefix = "option_"
-    for key, value in row.items():
-        if key.startswith(option_prefix) and value.strip():
-            option_letter = key[len(option_prefix):].upper()
-            options[option_letter] = value.strip()
-    
-    return options
-
-
-def parse_tags_from_csv(row: Dict[str, Any]) -> List[str]:
-    """
-    Parse tags from CSV row
-    
-    Args:
-        row: CSV row dictionary
-        
-    Returns:
-        List of tags
-    """
-    tags_str = row.get("tags", "")
-    if not tags_str:
-        return []
-    
-    # Split by commas and strip whitespace
-    return [tag.strip() for tag in tags_str.split(",") if tag.strip()]
-
-
-def parse_resources_from_csv(row: Dict[str, Any]) -> List[Dict[str, str]]:
-    """
-    Parse resources from CSV row
-    
-    Args:
-        row: CSV row dictionary
-        
-    Returns:
-        List of resource dictionaries
-    """
-    resources_str = row.get("resources", "")
-    if not resources_str:
-        return []
-    
-    try:
-        # Try to parse as JSON
-        return json.loads(resources_str)
-    except json.JSONDecodeError:
-        # Fallback: assume it's a comma-separated list of URLs
-        return [{"url": url.strip(), "type": "reference"} 
-                for url in resources_str.split(",") if url.strip()]
-
-
-def parse_enhanced_content_from_csv(row: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Parse enhanced content from CSV row
-    
-    Args:
-        row: CSV row dictionary
-        
-    Returns:
-        Dictionary of enhanced content
-    """
-    enhanced_content = {}
-    
-    # Parse hints
-    hints_str = row.get("hints", "")
-    if hints_str:
-        try:
-            enhanced_content["hints"] = json.loads(hints_str)
-        except json.JSONDecodeError:
-            enhanced_content["hints"] = [hint.strip() for hint in hints_str.split(";") if hint.strip()]
-    
-    # Parse time limit
-    time_limit_str = row.get("time_limit", "")
-    if time_limit_str:
-        try:
-            enhanced_content["time_limit"] = int(time_limit_str)
-        except ValueError:
-            logger.warning(f"Invalid time limit: {time_limit_str}")
-    
-    return enhanced_content
-
-
-def create_question_from_csv_row(row: Dict[str, Any]) -> Tuple[Question, List[str]]:
-    """
-    Create a question from a CSV row
-    
-    Args:
-        row: CSV row dictionary
-        
-    Returns:
-        Question object and list of tags
-    """
-    # Basic validation
-    required_fields = ["question", "domain", "type", "correct_answer"]
-    for field in required_fields:
-        if not row.get(field):
-            raise ValueError(f"Missing required field: {field}")
-    
-    # Parse question type
-    q_type_str = row["type"].strip().lower().replace(" ", "_")
-    try:
-        q_type = QuestionType(q_type_str)
-    except ValueError:
-        logger.warning(f"Invalid question type: {q_type_str}, using multiple_choice as default")
-        q_type = QuestionType.MULTIPLE_CHOICE
-    
-    # Parse difficulty
-    try:
-        difficulty = int(row.get("difficulty", "1"))
-        if difficulty < 1 or difficulty > 5:
-            logger.warning(f"Difficulty out of range (1-5): {difficulty}, clamping")
-            difficulty = max(1, min(5, difficulty))
-    except ValueError:
-        logger.warning(f"Invalid difficulty: {row.get('difficulty')}, using 1 as default")
-        difficulty = 1
-    
-    # Parse options
-    options = parse_options_from_csv(row)
-    
-    # Parse tags
-    tags = parse_tags_from_csv(row)
-    
-    # Parse resources
-    resources = parse_resources_from_csv(row)
-    
-    # Parse enhanced content
-    enhanced_content = parse_enhanced_content_from_csv(row)
-    
-    # Create question object
-    question = Question(
-        question=row["question"].strip(),
-        domain=row["domain"].strip(),
-        sub_domain=row.get("sub_domain", "").strip() or None,
-        difficulty=difficulty,
-        q_type=q_type,
-        correct_answer=row["correct_answer"].strip(),
-        explanation=row.get("explanation", "").strip() or None,
-        options=options,
-        hints=enhanced_content.get("hints", []),
-        time_limit=enhanced_content.get("time_limit"),
-        resources=resources
-    )
-    
-    return question, tags
-
-
-def get_or_create_domain(db: Session, domain_name: str) -> Domain:
-    """
-    Get or create a domain
-    
-    Args:
-        db: Database session
-        domain_name: Domain name
-        
-    Returns:
-        Domain object
-    """
-    domain = db.query(Domain).filter(Domain.name == domain_name).first()
-    
-    if not domain:
-        domain = Domain(
-            name=domain_name,
-            description=f"Domain for {domain_name} questions"
-        )
-        db.add(domain)
-        db.flush()
-    
-    return domain
-
-
-def get_or_create_tag(db: Session, tag_name: str) -> Tag:
-    """
-    Get or create a tag
-    
-    Args:
-        db: Database session
-        tag_name: Tag name
-        
-    Returns:
-        Tag object
-    """
-    tag = db.query(Tag).filter(Tag.name == tag_name).first()
-    
-    if not tag:
-        tag = Tag(name=tag_name)
-        db.add(tag)
-        db.flush()
-    
-    return tag
+logger = logging.getLogger("mentorme.import_data")
 
 
 def import_questions_from_csv(
-    file_path: str, 
-    db: Optional[Session] = None
-) -> int:
+    db: Session,
+    file_path: str,
+    update_existing: bool = False
+) -> Dict[str, Any]:
     """
     Import questions from a CSV file
     
-    Args:
-        file_path: Path to the CSV file
-        db: SQLAlchemy session (optional)
-        
-    Returns:
-        Number of questions imported
+    Returns a summary of the import operation
     """
-    logger.info(f"Importing questions from {file_path}")
-    
-    # Context manager for database session if not provided
-    @contextmanager
-    def get_session() -> Generator[Session, None, None]:
-        if db is not None:
-            yield db
-        else:
-            with get_db_context() as session:
-                yield session
-    
-    imported_count = 0
-    error_count = 0
+    if not os.path.exists(file_path):
+        logger.error(f"File not found: {file_path}")
+        return {
+            "success": False,
+            "error": "File not found",
+            "imported": 0,
+            "updated": 0,
+            "skipped": 0,
+            "failed": 0
+        }
     
     try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            reader = csv.DictReader(file)
-            
-            with get_session() as session:
-                # Process each row
-                for i, row in enumerate(reader, start=1):
+        stats = {
+            "imported": 0,
+            "updated": 0,
+            "skipped": 0,
+            "failed": 0,
+            "domains": set()
+        }
+        
+        with open(file_path, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row_num, row in enumerate(reader, start=2):  # Start at 2 to account for header row
+                try:
+                    # Check for required fields
+                    required_fields = ['question', 'domain', 'type', 'correct_answer']
+                    missing_fields = [field for field in required_fields if not row.get(field)]
+                    if missing_fields:
+                        logger.warning(
+                            f"Row {row_num} is missing required fields: {', '.join(missing_fields)}"
+                        )
+                        stats["failed"] += 1
+                        continue
+                    
+                    # Check for existing question with same text
+                    existing = db.query(Question).filter(
+                        Question.question == row['question']
+                    ).first()
+                    
+                    if existing and not update_existing:
+                        logger.info(f"Question already exists (row {row_num}), skipping")
+                        stats["skipped"] += 1
+                        continue
+                    
+                    # Process domain
+                    domain_name = row['domain'].strip()
+                    stats["domains"].add(domain_name)
+                    
+                    # Get or create domain
+                    domain = get_or_create_domain(db, domain_name)
+                    
+                    # Process question type
+                    type_map = {
+                        'multiple_choice': QuestionType.MULTIPLE_CHOICE,
+                        'true_false': QuestionType.TRUE_FALSE,
+                        'fill_blank': QuestionType.FILL_BLANK,
+                        'short_answer': QuestionType.SHORT_ANSWER,
+                        'matching': QuestionType.MATCHING
+                    }
+                    
+                    q_type_str = row['type'].lower().strip()
+                    if q_type_str not in type_map:
+                        logger.warning(
+                            f"Invalid question type in row {row_num}: {q_type_str}"
+                        )
+                        stats["failed"] += 1
+                        continue
+                    
+                    q_type = type_map[q_type_str]
+                    
+                    # Process difficulty (default to 1 if invalid)
                     try:
-                        # Create question object and get tags
-                        question, tag_names = create_question_from_csv_row(row)
+                        difficulty = int(row.get('difficulty', 1))
+                        if difficulty < 1:
+                            difficulty = 1
+                        elif difficulty > 5:
+                            difficulty = 5
+                    except (ValueError, TypeError):
+                        difficulty = 1
+                    
+                    # Process options for multiple choice
+                    options = {}
+                    if q_type == QuestionType.MULTIPLE_CHOICE:
+                        option_prefixes = ['option_a', 'option_b', 'option_c', 'option_d']
+                        for letter, prefix in zip(['A', 'B', 'C', 'D'], option_prefixes):
+                            if prefix in row and row[prefix].strip():
+                                options[letter] = row[prefix].strip()
                         
-                        # Check for duplicates
-                        existing = session.query(Question).filter(
-                            Question.question == question.question,
-                            Question.domain == question.domain
-                        ).first()
-                        
-                        if existing:
-                            logger.info(f"Skipping duplicate question at row {i}")
+                        # Check for sufficient options
+                        if len(options) < 2:
+                            logger.warning(
+                                f"Multiple choice question in row {row_num} has fewer than 2 options"
+                            )
+                            stats["failed"] += 1
                             continue
+                    
+                    # Process hints (comma-separated)
+                    hints = []
+                    if 'hints' in row and row['hints']:
+                        hints = [hint.strip() for hint in row['hints'].split(',')]
+                    
+                    # Process time limit
+                    time_limit = None
+                    if 'time_limit' in row and row['time_limit']:
+                        try:
+                            time_limit = int(row['time_limit'])
+                        except (ValueError, TypeError):
+                            time_limit = None
+                    
+                    # Process resources (JSON string)
+                    resources = []
+                    if 'resources' in row and row['resources']:
+                        try:
+                            resources = json.loads(row['resources'])
+                        except json.JSONDecodeError:
+                            logger.warning(
+                                f"Invalid resources JSON in row {row_num}: {row['resources']}"
+                            )
+                            resources = []
+                    
+                    # Process tags
+                    tag_objects = []
+                    if 'tags' in row and row['tags']:
+                        tag_names = [tag.strip() for tag in row['tags'].split(',')]
+                        tag_objects = get_or_create_tags(db, tag_names)
+                    
+                    if existing and update_existing:
+                        # Update existing question
+                        existing.domain = domain_name
+                        existing.sub_domain = row.get('sub_domain')
+                        existing.difficulty = difficulty
+                        existing.q_type = q_type
+                        existing.correct_answer = row['correct_answer']
+                        existing.explanation = row.get('explanation')
+                        existing.hints = hints
+                        existing.options = options
+                        existing.resources = resources
+                        existing.time_limit = time_limit
                         
-                        # Get or create domain and tags
-                        get_or_create_domain(session, question.domain)
+                        # Update tags
+                        existing.tags.clear()
+                        for tag in tag_objects:
+                            existing.tags.append(tag)
                         
-                        for tag_name in tag_names:
-                            tag = get_or_create_tag(session, tag_name)
+                        stats["updated"] += 1
+                    else:
+                        # Create new question
+                        question = Question(
+                            question=row['question'],
+                            domain=domain_name,
+                            sub_domain=row.get('sub_domain'),
+                            difficulty=difficulty,
+                            q_type=q_type,
+                            correct_answer=row['correct_answer'],
+                            explanation=row.get('explanation'),
+                            hints=hints,
+                            options=options,
+                            resources=resources,
+                            time_limit=time_limit
+                        )
+                        
+                        # Add tags
+                        for tag in tag_objects:
                             question.tags.append(tag)
                         
-                        # Add question to session
-                        session.add(question)
-                        session.flush()
-                        
-                        imported_count += 1
-                        
-                        # Log progress for every 100 questions
-                        if imported_count % 100 == 0:
-                            logger.info(f"Imported {imported_count} questions so far")
-                            session.commit()
-                        
-                    except Exception as e:
-                        error_count += 1
-                        logger.error(f"Error importing row {i}: {e}")
+                        db.add(question)
+                        stats["imported"] += 1
                 
-                # Commit all changes
-                session.commit()
-                
-    except Exception as e:
-        logger.error(f"Error opening or reading CSV file: {e}")
-        if db is None:
-            # Only rollback if we created the session internally
-            try:
-                session.rollback()
-            except:
-                pass
+                except Exception as e:
+                    logger.error(f"Error processing row {row_num}: {e}")
+                    stats["failed"] += 1
+                    continue
+            
+            # Commit changes
+            db.commit()
+            
+            # Convert domain set to list for return value
+            stats["domains"] = list(stats["domains"])
+            stats["success"] = True
+            
+            return stats
     
-    logger.info(f"Import complete. Successfully imported {imported_count} questions with {error_count} errors.")
-    return imported_count
+    except Exception as e:
+        logger.error(f"Error importing questions: {e}")
+        db.rollback()
+        
+        return {
+            "success": False,
+            "error": str(e),
+            "imported": 0,
+            "updated": 0,
+            "skipped": 0,
+            "failed": 0
+        }
+
+
+def get_or_create_domain(db: Session, domain_name: str) -> Domain:
+    """Get or create a domain"""
+    domain = db.query(Domain).filter(Domain.name == domain_name).first()
+    if not domain:
+        domain = Domain(name=domain_name)
+        db.add(domain)
+        db.flush()  # Flush to generate ID but don't commit yet
+    return domain
+
+
+def get_or_create_tags(db: Session, tag_names: List[str]) -> List[Tag]:
+    """Get or create multiple tags"""
+    result = []
+    for name in tag_names:
+        tag = db.query(Tag).filter(Tag.name == name).first()
+        if not tag:
+            tag = Tag(name=name)
+            db.add(tag)
+            db.flush()  # Flush to generate ID but don't commit yet
+        result.append(tag)
+    return result
+
+
+def create_default_school(db: Session) -> School:
+    """Create the default Raising Arizona school if it doesn't exist"""
+    default_school = db.query(School).filter(School.is_default == True).first()
+    if not default_school:
+        default_school = School(
+            name="Raising Arizona Preschool",
+            contact_email="info@raisingarizonapreschool.com",
+            address="123 Main St, Phoenix, AZ 85001",
+            is_active=True,
+            is_default=True
+        )
+        db.add(default_school)
+        db.commit()
+        logger.info("Created default school: Raising Arizona Preschool")
+    
+    return default_school
+
+
+def create_owner_account(db: Session, school_id: int, username: str, email: str) -> User:
+    """Create an owner account for the specified school"""
+    # Check if account already exists
+    existing_user = db.query(User).filter(User.username == username).first()
+    if existing_user:
+        logger.info(f"Owner account {username} already exists")
+        existing_user.role = "owner"  # Ensure they have owner privileges
+        db.commit()
+        return existing_user
+    
+    # Create new owner account
+    owner = User(
+        username=username,
+        email=email,
+        first_name="App",
+        last_name="Owner",
+        school_id=school_id,
+        role="owner",
+        is_active=True
+    )
+    db.add(owner)
+    db.commit()
+    logger.info(f"Created owner account: {username}")
+    
+    return owner
+
+
+def create_unlimited_subscription(db: Session, school_id: int) -> Subscription:
+    """Create an unlimited subscription for the specified school"""
+    existing_sub = db.query(Subscription).filter(
+        Subscription.school_id == school_id,
+        Subscription.is_active == True
+    ).first()
+    
+    if existing_sub:
+        logger.info(f"School {school_id} already has an active subscription")
+        return existing_sub
+    
+    subscription = Subscription(
+        school_id=school_id,
+        plan_name="Unlimited",
+        is_active=True,
+        max_users=9999,  # Unlimited users
+        features={"all_modules": True, "priority_support": True}
+    )
+    db.add(subscription)
+    db.commit()
+    logger.info(f"Created unlimited subscription for school {school_id}")
+    
+    return subscription
+
+
+def setup_initial_data(db: Session) -> Dict[str, Any]:
+    """Set up initial data for a new installation"""
+    try:
+        # Create default school
+        school = create_default_school(db)
+        
+        # Create owner account
+        owner = create_owner_account(
+            db=db,
+            school_id=school.id,
+            username="jlcookie20",
+            email="admin@raisingarizonapreschool.com"
+        )
+        
+        # Create unlimited subscription for default school
+        subscription = create_unlimited_subscription(db, school.id)
+        
+        return {
+            "success": True,
+            "school": {
+                "id": school.id,
+                "name": school.name
+            },
+            "owner": {
+                "id": owner.id,
+                "username": owner.username
+            },
+            "subscription": {
+                "id": subscription.id,
+                "plan": subscription.plan_name
+            }
+        }
+    
+    except Exception as e:
+        logger.error(f"Error setting up initial data: {e}")
+        db.rollback()
+        
+        return {
+            "success": False,
+            "error": str(e)
+        }
