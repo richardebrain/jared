@@ -1,22 +1,23 @@
 """
-FastAPI server for the MentorMe assessment API
+FastAPI server for assessment API endpoints
 """
 
-import json
 import logging
-from typing import List, Dict, Any, Optional
+import json
 from datetime import datetime
+from typing import List, Dict, Any, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 
 from .database import get_db
-from .models import Question, UserPerformance, AssessmentResult
+from .models import Question, UserPerformance, UserDomainProgress, AssessmentSession
 from .loader import (
     load_questions, 
-    get_domains, 
+    load_random_question,
+    get_domains,
     get_question_by_id,
     get_random_question_with_adaptive_difficulty,
     update_user_performance,
@@ -30,355 +31,317 @@ from .loader import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("server")
 
-# Create API router
+# Create router
 app = APIRouter(tags=["assessment"])
 
-# ---- Pydantic Models for API Request/Response ----
-
-class QuestionRequest(BaseModel):
-    domain: Optional[str] = None
-    difficulty: Optional[int] = None
-    exclude_ids: Optional[List[int]] = None
-    limit: Optional[int] = 10
-
-class AnswerRequest(BaseModel):
+# Pydantic models for request and response validation
+class AnswerSubmission(BaseModel):
     question_id: int
+    user_answer: str
     user_id: int
-    answer: str
     domain: str
-    current_difficulty: int = 1
+    current_difficulty: int
+    time_taken: Optional[int] = None
 
 class AssessmentStartRequest(BaseModel):
     user_id: int
-    domains: Optional[List[str]] = None
+    domain: Optional[str] = None
 
-class AssessmentSubmitRequest(BaseModel):
-    assessment_id: int
-    user_id: int
-    questions: Dict[int, str]  # Question ID -> Answer
+class AssessmentProgress(BaseModel):
+    questions_asked: int
+    questions_correct: int
+    domain: str
+    current_difficulty: int
+    excluded_question_ids: List[int] = Field(default_factory=list)
 
-class UserPerformanceRequest(BaseModel):
-    user_id: int
-
-# ---- API Routes ----
-
-@app.get("/questions", response_model=Dict[str, Any])
+# Endpoints
+@app.get("/questions")
 async def get_questions(
     domain: Optional[str] = None,
     difficulty: Optional[int] = None,
-    limit: Optional[int] = 10,
     exclude_ids: Optional[str] = None,
+    limit: int = 10,
     db: Session = Depends(get_db)
 ):
     """
-    Get questions based on domain and difficulty
-    
-    Args:
-        domain: Domain to filter by
-        difficulty: Difficulty level to filter by (1-5)
-        limit: Maximum number of questions to return
-        exclude_ids: Comma-separated list of question IDs to exclude
-        db: Database session
+    Get a list of questions based on filters
     """
     try:
         # Parse exclude_ids if provided
-        exclude_list = None
+        excluded = []
         if exclude_ids:
             try:
-                exclude_list = [int(id.strip()) for id in exclude_ids.split(",")]
+                excluded = [int(id) for id in exclude_ids.split(",")]
             except ValueError:
                 raise HTTPException(status_code=400, detail="Invalid exclude_ids format")
         
-        # Load questions from the database
         questions = load_questions(
             db=db,
             domain=domain,
             difficulty=difficulty,
-            exclude_ids=exclude_list,
+            exclude_ids=excluded,
             limit=limit
         )
         
-        # Convert to API response format
-        result = {
-            "questions": [q.to_dict() for q in questions],
-            "count": len(questions),
-            "domain": domain,
-            "difficulty": difficulty
+        # Return sanitized questions without answers
+        return {
+            "questions": [q.sanitize_for_api() for q in questions],
+            "count": len(questions)
         }
-        
-        return result
     except Exception as e:
         logger.error(f"Error getting questions: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to get questions: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/question/{question_id}", response_model=Dict[str, Any])
+@app.get("/questions/{question_id}")
 async def get_question(
     question_id: int,
     db: Session = Depends(get_db)
 ):
     """
     Get a specific question by ID
-    
-    Args:
-        question_id: ID of the question to retrieve
-        db: Database session
     """
     try:
         question = get_question_by_id(db, question_id)
-        
         if not question:
-            raise HTTPException(status_code=404, detail=f"Question {question_id} not found")
-        
-        return question.to_dict()
+            raise HTTPException(status_code=404, detail="Question not found")
+            
+        return question.sanitize_for_api()
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error getting question {question_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to get question: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/domains", response_model=List[str])
-async def list_domains(db: Session = Depends(get_db)):
+@app.get("/domains")
+async def get_all_domains(
+    db: Session = Depends(get_db)
+):
     """
-    Get a list of all domains in the database
-    
-    Args:
-        db: Database session
+    Get a list of all available domains
     """
     try:
-        return get_domains(db)
+        domains = get_domains(db)
+        return {"domains": domains}
     except Exception as e:
         logger.error(f"Error getting domains: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to get domains: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/answer", response_model=Dict[str, Any])
+@app.post("/submit-answer")
 async def submit_answer(
-    answer_request: AnswerRequest,
+    submission: AnswerSubmission,
     db: Session = Depends(get_db)
 ):
     """
     Submit an answer for a question and get feedback
-    
-    Args:
-        answer_request: Answer request containing question_id, user_id, answer, domain, and current_difficulty
-        db: Database session
     """
     try:
         # Get the question
-        question = get_question_by_id(db, answer_request.question_id)
-        
+        question = get_question_by_id(db, submission.question_id)
         if not question:
-            raise HTTPException(status_code=404, detail=f"Question {answer_request.question_id} not found")
+            raise HTTPException(status_code=404, detail="Question not found")
         
-        # Generate feedback for the answer
+        # Generate feedback
         feedback = generate_answer_feedback(
             db=db,
             question=question,
-            user_answer=answer_request.answer,
-            user_id=answer_request.user_id,
-            domain=answer_request.domain,
-            current_difficulty=answer_request.current_difficulty
+            user_answer=submission.user_answer,
+            user_id=submission.user_id,
+            domain=submission.domain,
+            current_difficulty=submission.current_difficulty
         )
         
-        # Return the feedback
-        return {
-            "feedback": feedback.to_dict(),
-            "question_id": answer_request.question_id,
-            "points_earned": question.calculate_points(feedback.correct),
-            "next_question": None  # Will be filled in by the client
-        }
+        # Record performance
+        performance = UserPerformance(
+            user_id=submission.user_id,
+            domain=submission.domain,
+            question_id=submission.question_id,
+            is_correct=feedback.correct,
+            difficulty=submission.current_difficulty,
+            points_earned=question.calculate_points(
+                feedback.correct, 
+                submission.time_taken
+            ),
+            time_taken=submission.time_taken
+        )
+        
+        db.add(performance)
+        
+        # Update user domain progress
+        progress = update_user_performance(
+            db=db,
+            user_id=submission.user_id,
+            domain=submission.domain,
+            is_correct=feedback.correct,
+            difficulty=submission.current_difficulty
+        )
+        
+        # Commit changes
+        db.commit()
+        
+        # Return feedback
+        return feedback.to_dict()
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error submitting answer: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to submit answer: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/assessment/start", response_model=Dict[str, Any])
+@app.post("/start-assessment")
 async def start_assessment(
     request: AssessmentStartRequest,
     db: Session = Depends(get_db)
 ):
     """
-    Start a new assessment for a user
-    
-    Args:
-        request: Assessment start request containing user_id and optional domains
-        db: Database session
+    Start a new assessment session
     """
     try:
-        # If no domains specified, use all domains
-        if not request.domains:
-            domains = get_domains(db)
-        else:
-            domains = request.domains
-        
-        # Create a new assessment result
-        assessment = AssessmentResult(
+        # Create a new assessment session
+        session = AssessmentSession(
             user_id=request.user_id,
-            domains_assessed=json.dumps(domains),
-            started_at=datetime.utcnow()
+            domain=request.domain,
+            is_completed=False,
+            questions_asked=0,
+            questions_correct=0,
+            total_points=0
         )
         
-        db.add(assessment)
+        db.add(session)
         db.commit()
-        db.refresh(assessment)
-        
-        # Get the first question for each domain
-        first_questions = {}
-        for domain in domains:
-            # Get user's existing performance for this domain, or default to 0
-            performance = db.query(UserPerformance).filter(
-                UserPerformance.user_id == request.user_id,
-                UserPerformance.domain == domain
-            ).first()
-            
-            proficiency = performance.proficiency if performance else 0.0
-            
-            # Get an adaptive difficulty question
-            question, finished = get_random_question_with_adaptive_difficulty(
-                db=db,
-                domain=domain,
-                user_performance=proficiency,
-                exclude_ids=[]
-            )
-            
-            if question:
-                first_questions[domain] = question.to_dict()
         
         return {
-            "assessment_id": assessment.id,
-            "domains": domains,
-            "first_questions": first_questions
+            "session_id": session.id,
+            "user_id": session.user_id,
+            "domain": session.domain,
+            "started_at": session.started_at.isoformat() if session.started_at else None
         }
     except Exception as e:
         logger.error(f"Error starting assessment: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to start assessment: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/assessment/next-question", response_model=Dict[str, Any])
+@app.get("/next-question")
 async def get_next_question(
     user_id: int,
     domain: str,
-    exclude_ids: str = "",
+    performance: float = 0.5,
+    exclude_ids: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
     """
-    Get the next question for a domain based on user performance
-    
-    Args:
-        user_id: User ID
-        domain: Domain to get question for
-        exclude_ids: Comma-separated list of question IDs to exclude
-        db: Database session
+    Get the next question with adaptive difficulty
     """
     try:
-        # Parse exclude_ids
-        exclude_list = []
+        # Parse exclude_ids if provided
+        excluded = []
         if exclude_ids:
             try:
-                exclude_list = [int(id.strip()) for id in exclude_ids.split(",")]
+                excluded = [int(id) for id in exclude_ids.split(",")]
             except ValueError:
                 raise HTTPException(status_code=400, detail="Invalid exclude_ids format")
         
-        # Get user's existing performance for this domain, or default to 0
-        performance = db.query(UserPerformance).filter(
-            UserPerformance.user_id == user_id,
-            UserPerformance.domain == domain
-        ).first()
-        
-        proficiency = performance.proficiency if performance else 0.0
-        
-        # Get an adaptive difficulty question
+        # Get next question with adaptive difficulty
         question, finished = get_random_question_with_adaptive_difficulty(
             db=db,
             domain=domain,
-            user_performance=proficiency,
-            exclude_ids=exclude_list
+            user_performance=performance,
+            exclude_ids=excluded
         )
         
-        if finished and not question:
+        if finished:
             return {
-                "status": "domain_complete",
-                "assessment_complete": False,
-                "message": f"Domain {domain} assessment complete"
+                "status": "complete",
+                "assessment_complete": True,
+                "message": "Assessment for this domain is complete"
             }
         
-        if question:
+        if not question:
             return {
-                "status": "question",
-                **question.to_dict()
+                "status": "error",
+                "message": "No questions available for this domain"
             }
-        else:
-            return {
-                "status": "no_questions",
-                "assessment_complete": False,
-                "message": f"No more questions available for domain {domain}"
-            }
+            
+        # Return sanitized question
+        return {
+            "status": "success",
+            **question.sanitize_for_api()
+        }
     except Exception as e:
         logger.error(f"Error getting next question: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to get next question: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/assessment/complete", response_model=Dict[str, Any])
+@app.post("/complete-assessment")
 async def complete_assessment(
-    user_id: int,
-    assessment_id: int = None,
+    session_id: int,
     db: Session = Depends(get_db)
 ):
     """
-    Complete an assessment and generate a learning path
-    
-    Args:
-        user_id: User ID
-        assessment_id: Assessment ID (optional)
-        db: Database session
+    Complete an assessment session and generate a learning path
     """
     try:
-        # If assessment_id is provided, mark it as complete
-        if assessment_id:
-            assessment = db.query(AssessmentResult).filter(
-                AssessmentResult.id == assessment_id,
-                AssessmentResult.user_id == user_id
-            ).first()
-            
-            if assessment:
-                assessment.complete_assessment()
-                db.commit()
+        # Get the session
+        session = db.query(AssessmentSession).filter(
+            AssessmentSession.id == session_id
+        ).first()
         
-        # Get user's performance across all domains
+        if not session:
+            raise HTTPException(status_code=404, detail="Assessment session not found")
+        
+        # Mark session as completed
+        session.is_completed = True
+        session.completed_at = datetime.utcnow()
+        
+        # Update session totals from performances
         performances = db.query(UserPerformance).filter(
-            UserPerformance.user_id == user_id
+            UserPerformance.user_id == session.user_id
         ).all()
         
-        if not performances:
-            return {
-                "status": "no_data",
-                "message": "No assessment data available for user"
-            }
+        questions_asked = len(performances)
+        questions_correct = sum(1 for p in performances if p.is_correct)
+        total_points = sum(p.points_earned for p in performances)
         
-        # Calculate domain scores
-        domain_scores = {p.domain: p.proficiency for p in performances}
+        session.questions_asked = questions_asked
+        session.questions_correct = questions_correct
+        session.total_points = total_points
         
         # Find strongest and weakest domains
-        strongest_domain = max(domain_scores.items(), key=lambda x: x[1])[0] if domain_scores else None
-        weakest_domain = min(domain_scores.items(), key=lambda x: x[1])[0] if domain_scores else None
+        domain_performances = db.query(UserDomainProgress).filter(
+            UserDomainProgress.user_id == session.user_id
+        ).all()
         
-        # Calculate total questions and correct answers
-        questions_asked = sum(p.questions_attempted for p in performances)
-        questions_correct = sum(p.questions_correct for p in performances)
-        total_points_earned = questions_correct * 10  # Simple points calculation
+        # Default values
+        strongest_domain = "General"
+        weakest_domain = "General"
+        domain_scores = {}
         
-        # Generate learning path
+        if domain_performances:
+            # Get scores for each domain
+            domain_scores = {
+                dp.domain: dp.performance_score for dp in domain_performances
+            }
+            
+            # Find strongest and weakest domains
+            if domain_scores:
+                strongest_domain = max(domain_scores.items(), key=lambda x: x[1])[0]
+                weakest_domain = min(domain_scores.items(), key=lambda x: x[1])[0]
+        
+        # Generate learning path recommendations
         learning_path = {
-            "to_strengthen": [{
-                "domain": domain,
-                "proficiency": score,
-                "resources": [
-                    f"Video: Master {domain} Concepts",
-                    f"Activity: {domain} Practice Exercises",
-                    f"Reflection: {domain} Self-Assessment"
-                ]
-            } for domain, score in sorted(domain_scores.items(), key=lambda x: x[1])[:3]]
+            "high_priority": [
+                f"Review key concepts in {weakest_domain}",
+                f"Complete practice exercises in {weakest_domain}"
+            ],
+            "medium_priority": [
+                f"Strengthen understanding in related domains",
+                f"Apply knowledge in practical scenarios"
+            ],
+            "future_growth": [
+                f"Explore advanced topics in {strongest_domain}",
+                f"Connect concepts across domains"
+            ]
         }
         
-        # Create learning path object
+        # Create learning path response
         path = LearningPath(
             learning_path=learning_path,
             domain_scores=domain_scores,
@@ -386,88 +349,40 @@ async def complete_assessment(
             questions_correct=questions_correct,
             strongest_domain=strongest_domain,
             weakest_domain=weakest_domain,
-            user_name=None,  # Will be filled by frontend
-            total_points_earned=total_points_earned
+            user_name=None,  # Will be filled in by function
+            total_points_earned=total_points
         )
         
+        # Commit changes
+        db.commit()
+        
         return path.to_dict()
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error completing assessment: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to complete assessment: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/performance/{user_id}", response_model=Dict[str, Any])
-async def get_user_performance(
+@app.get("/user-progress/{user_id}")
+async def get_user_progress(
     user_id: int,
     db: Session = Depends(get_db)
 ):
     """
-    Get a user's performance across all domains
-    
-    Args:
-        user_id: User ID
-        db: Database session
+    Get a user's progress across all domains
     """
     try:
-        # Get user's performance across all domains
-        performances = db.query(UserPerformance).filter(
-            UserPerformance.user_id == user_id
+        # Get all domain progress
+        progress = db.query(UserDomainProgress).filter(
+            UserDomainProgress.user_id == user_id
         ).all()
         
-        if not performances:
-            return {
-                "user_id": user_id,
-                "domains": {},
-                "average_proficiency": 0.0
-            }
-        
-        # Convert to dictionary for API response
-        domains = {p.domain: p.to_dict() for p in performances}
-        
-        # Calculate average proficiency
-        average_proficiency = sum(p.proficiency for p in performances) / len(performances)
-        
-        return {
-            "user_id": user_id,
-            "domains": domains,
-            "average_proficiency": average_proficiency
-        }
+        results = {}
+        for p in progress:
+            results[p.domain] = p.to_dict()
+            
+        return results
     except Exception as e:
-        logger.error(f"Error getting user performance: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to get user performance: {str(e)}")
-
-@app.get("/stats", response_model=Dict[str, Any])
-async def get_assessment_stats(db: Session = Depends(get_db)):
-    """
-    Get statistics about the assessment system
-    
-    Args:
-        db: Database session
-    """
-    try:
-        # Count questions by domain
-        domain_counts = db.query(Question.domain, func.count(Question.id)).group_by(Question.domain).all()
-        domain_stats = {domain: count for domain, count in domain_counts}
-        
-        # Count questions by difficulty
-        difficulty_counts = db.query(Question.difficulty, func.count(Question.id)).group_by(Question.difficulty).all()
-        difficulty_stats = {difficulty: count for difficulty, count in difficulty_counts}
-        
-        # Count total questions
-        total_questions = db.query(func.count(Question.id)).scalar()
-        
-        # Count total assessments
-        total_assessments = db.query(func.count(AssessmentResult.id)).scalar()
-        
-        # Count completed assessments
-        completed_assessments = db.query(func.count(AssessmentResult.id)).filter(AssessmentResult.completed == True).scalar()
-        
-        return {
-            "total_questions": total_questions,
-            "domain_stats": domain_stats,
-            "difficulty_stats": difficulty_stats,
-            "total_assessments": total_assessments,
-            "completed_assessments": completed_assessments
-        }
-    except Exception as e:
-        logger.error(f"Error getting assessment stats: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to get assessment stats: {str(e)}")
+        logger.error(f"Error getting user progress: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))

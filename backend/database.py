@@ -6,33 +6,26 @@ Provides SQLAlchemy integration and database setup
 import os
 import csv
 import logging
-from typing import Tuple
-from sqlalchemy import create_engine, text, func, select, distinct
+from typing import Generator, Tuple
+from sqlalchemy import create_engine, text
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.exc import SQLAlchemyError
-
-from .models import Base, Question
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("database")
 
-# Get database URL from environment or use SQLite as fallback
-DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./mentorme_assessment.db")
+# Get database URL from environment variable or use SQLite as fallback
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./mentorme.db")
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-# Create database engine
-if DATABASE_URL.startswith("sqlite"):
-    engine = create_engine(
-        DATABASE_URL, connect_args={"check_same_thread": False}
-    )
-else:
-    # PostgreSQL or other database
-    engine = create_engine(DATABASE_URL)
-
-# Create session factory
+# SQLAlchemy setup
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
-def get_db():
+def get_db() -> Generator[Session, None, None]:
     """
     Get a database session for dependency injection
     
@@ -53,13 +46,16 @@ def setup_database() -> Tuple[bool, str]:
         Tuple of (success, message)
     """
     try:
+        # Import models to ensure they are registered with SQLAlchemy
+        from .models import Question, UserPerformance, UserDomainProgress, AssessmentSession
+        
+        # Create tables
         Base.metadata.create_all(bind=engine)
-        logger.info("Database tables created successfully")
+        
         return True, "Database setup completed successfully"
-    except SQLAlchemyError as e:
-        error_msg = f"Database setup error: {str(e)}"
-        logger.error(error_msg)
-        return False, error_msg
+    except Exception as e:
+        logger.error(f"Database setup error: {str(e)}")
+        return False, f"Database setup failed: {str(e)}"
 
 def import_questions_from_csv(csv_file_path: str) -> Tuple[bool, str, int]:
     """
@@ -71,35 +67,45 @@ def import_questions_from_csv(csv_file_path: str) -> Tuple[bool, str, int]:
     Returns:
         Tuple of (success, message, count)
     """
-    if not os.path.exists(csv_file_path):
-        return False, f"CSV file not found: {csv_file_path}", 0
-        
     try:
-        # Import the CSV processing functionality
-        from .import_data import process_csv, transform_row
+        # Check if file exists
+        if not os.path.exists(csv_file_path):
+            return False, f"File not found: {csv_file_path}", 0
         
-        # Process CSV file
-        rows = process_csv(csv_file_path)
+        # Import processing function
+        from .import_data import process_csv, import_questions
         
-        # Transform rows to question format
-        questions_data = [transform_row(row) for row in rows]
+        # Process the CSV file
+        questions = process_csv(csv_file_path)
         
-        # Import questions to database
-        count = 0
-        with SessionLocal() as db:
-            for question_data in questions_data:
-                question = Question(**question_data)
-                db.add(question)
-                count += 1
+        if not questions:
+            return False, "No valid questions found in the CSV file", 0
+        
+        # Get a database session
+        db = next(get_db())
+        
+        try:
+            # Import questions
+            count, errors = import_questions(questions, db)
             
-            # Commit changes
-            db.commit()
-        
-        return True, f"Successfully imported {count} questions", count
+            if errors:
+                error_count = len(errors)
+                logger.warning(f"Imported {count} questions with {error_count} errors")
+                for error in errors[:5]:  # Log the first 5 errors at most
+                    logger.warning(f"Import error: {error}")
+                
+                if error_count > 5:
+                    logger.warning(f"... and {error_count - 5} more errors")
+                
+                return True, f"Imported {count} questions with {error_count} errors", count
+            
+            return True, f"Successfully imported {count} questions", count
+        finally:
+            db.close()
+    
     except Exception as e:
-        error_msg = f"Error importing questions: {str(e)}"
-        logger.error(error_msg)
-        return False, error_msg, 0
+        logger.error(f"Question import error: {str(e)}")
+        return False, f"Question import failed: {str(e)}", 0
 
 def get_question_stats() -> dict:
     """
@@ -108,53 +114,39 @@ def get_question_stats() -> dict:
     Returns:
         Dictionary with statistics
     """
-    with SessionLocal() as db:
-        try:
-            # Get total question count
-            total_count = db.query(func.count(Question.id)).scalar()
+    db = next(get_db())
+    try:
+        # Import Question model
+        from .models import Question
+        
+        # Get total question count
+        total_count = db.query(Question).count()
+        
+        # Get domain counts
+        domain_counts = {}
+        domain_results = db.execute(text(
+            "SELECT domain, COUNT(*) FROM questions GROUP BY domain"
+        )).fetchall()
+        
+        for domain, count in domain_results:
+            domain_counts[domain] = count
+        
+        # Get difficulty distribution
+        difficulty_counts = {}
+        difficulty_results = db.execute(text(
+            "SELECT difficulty, COUNT(*) FROM questions GROUP BY difficulty"
+        )).fetchall()
+        
+        for difficulty, count in difficulty_results:
+            difficulty_counts[str(difficulty)] = count
             
-            # Get domain counts
-            domain_query = db.query(
-                Question.domain,
-                func.count(Question.id).label('count')
-            ).group_by(Question.domain)
-            
-            domain_counts = {
-                domain: count for domain, count in domain_query
-            }
-            
-            # Get difficulty distribution
-            difficulty_query = db.query(
-                Question.difficulty,
-                func.count(Question.id).label('count')
-            ).group_by(Question.difficulty)
-            
-            difficulty_counts = {
-                difficulty: count for difficulty, count in difficulty_query
-            }
-            
-            # Get question type distribution
-            type_query = db.query(
-                Question.q_type,
-                func.count(Question.id).label('count')
-            ).group_by(Question.q_type)
-            
-            type_counts = {
-                q_type: count for q_type, count in type_query
-            }
-            
-            return {
-                "total_questions": total_count,
-                "domains": domain_counts,
-                "difficulties": difficulty_counts,
-                "question_types": type_counts
-            }
-        except SQLAlchemyError as e:
-            logger.error(f"Error getting question stats: {str(e)}")
-            return {
-                "error": str(e),
-                "total_questions": 0,
-                "domains": {},
-                "difficulties": {},
-                "question_types": {}
-            }
+        return {
+            "total_questions": total_count,
+            "domains": domain_counts,
+            "difficulty_distribution": difficulty_counts
+        }
+    except Exception as e:
+        logger.error(f"Error getting question stats: {str(e)}")
+        return {"error": str(e)}
+    finally:
+        db.close()

@@ -3,42 +3,44 @@ Main FastAPI application for the MentorMe assessment API
 """
 
 import logging
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
 
-from .server import app as router
+from .database import get_db
+from .server import app as api_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("main")
 
-# Create FastAPI application
+# Create FastAPI app
 app = FastAPI(
-    title="MentorMe Assessment API",
-    description="API for adaptive assessment and learning path generation",
+    title="MentorMe Enhanced Assessment API",
+    description="API for adaptive assessment and learning path generation for early childhood educators",
     version="1.0.0"
 )
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, this should be restricted
+    allow_origins=["*"],  # Allow all origins in development
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Allow all methods
+    allow_headers=["*"],  # Allow all headers
 )
 
-# Include router
-app.include_router(router, prefix="/api/assessment")
+# Include API routes
+app.include_router(api_router, prefix="/api/assessment")
 
 # Root endpoint
 @app.get("/")
 async def root():
     """Root endpoint for the API"""
     return {
-        "message": "Welcome to MentorMe Assessment API",
-        "docs_url": "/docs",
-        "version": "1.0.0"
+        "message": "MentorMe Enhanced Assessment API",
+        "version": "1.0.0",
+        "status": "active"
     }
 
 # Health check endpoint
@@ -47,8 +49,15 @@ async def health_check():
     """Health check endpoint"""
     return {"status": "healthy"}
 
-# Ready check endpoint
+# Readiness check endpoint
 @app.get("/ready")
 async def ready_check():
     """Readiness check endpoint"""
-    return {"status": "ready"}
+    try:
+        # Check database connection
+        db = next(get_db())
+        db.execute("SELECT 1")
+        return {"status": "ready", "database": "connected"}
+    except Exception as e:
+        logger.error(f"Database connection check failed: {str(e)}")
+        return {"status": "not ready", "database": "disconnected", "error": str(e)}

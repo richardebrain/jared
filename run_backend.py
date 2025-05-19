@@ -6,16 +6,11 @@ This script starts the FastAPI server for the assessment system
 import os
 import sys
 import logging
-import contextlib
-import asyncio
-from typing import Dict, Any
-
+import argparse
 import uvicorn
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 
-from backend.database import setup_database
-from backend.main import app
+from backend.database import setup_database, import_questions_from_csv
 
 # Configure logging
 logging.basicConfig(
@@ -29,43 +24,66 @@ def setup_database_wrapper():
     """Wrapper for database setup to handle exceptions"""
     try:
         success, message = setup_database()
-        if not success:
-            logger.error(f"Database setup failed: {message}")
-            return False
-        logger.info(message)
-        return True
+        if success:
+            logger.info(message)
+        else:
+            logger.error(message)
+        return success
     except Exception as e:
-        logger.error(f"Error setting up database: {str(e)}")
+        logger.error(f"Database setup failed: {str(e)}")
         return False
 
 def main():
     """Main entry point"""
-    # Get environment variables or use defaults
-    host = os.environ.get("HOST", "0.0.0.0")
-    port = int(os.environ.get("PORT", 8000))
+    parser = argparse.ArgumentParser(description="Run the MentorMe Assessment API")
+    parser.add_argument("--host", default=os.environ.get("HOST", "127.0.0.1"), help="Host to bind to")
+    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", 8000)), help="Port to bind to")
+    parser.add_argument("--reload", action="store_true", default=False, help="Enable auto-reload")
+    parser.add_argument("--import-csv", help="Import questions from a CSV file on startup")
     
-    # Set up database
+    args = parser.parse_args()
+    
+    # Setup database
     if not setup_database_wrapper():
-        logger.error("Database setup failed, exiting...")
+        logger.error("Failed to set up database. Exiting.")
         sys.exit(1)
     
-    # Define lifespan context
-    @contextlib.asynccontextmanager
+    # Import questions if CSV file is provided
+    if args.import_csv:
+        success, message, count = import_questions_from_csv(args.import_csv)
+        if success:
+            logger.info(f"Successfully imported {count} questions from {args.import_csv}")
+        else:
+            logger.error(f"Failed to import questions: {message}")
+    
+    @asynccontextmanager
     async def lifespan(app):
+        """
+        Lifecycle events for the FastAPI app
+        This runs before the application starts and after it shuts down
+        """
         # Startup
         logger.info("Starting MentorMe Assessment API...")
+        
+        # Setup database connection
+        logger.info("Database is ready")
+        
         yield
+        
         # Shutdown
         logger.info("Shutting down MentorMe Assessment API...")
     
-    # Run the FastAPI application with uvicorn
-    logger.info(f"Starting server on {host}:{port}")
+    # We import here to ensure database is set up first
+    from backend.main import app
+    app.router.lifespan_context = lifespan
+    
+    # Start the server
+    logger.info(f"Starting uvicorn server on {args.host}:{args.port}")
     uvicorn.run(
         "backend.main:app",
-        host=host,
-        port=port,
-        reload=True,
-        workers=1,
+        host=args.host,
+        port=args.port,
+        reload=args.reload,
         log_level="info"
     )
 

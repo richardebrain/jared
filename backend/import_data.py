@@ -7,26 +7,22 @@ It can be run directly or imported and used in other scripts.
 
 import os
 import csv
-import argparse
-import logging
 import json
+import logging
+import argparse
 from typing import List, Dict, Any, Tuple
-
-from sqlalchemy.orm import Session
-
-from .database import SessionLocal, engine
-from .models import Base, Question
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, Session
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
-)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("import_data")
 
 def create_database_tables():
     """Create all database tables"""
+    from .database import engine, Base
+    from .models import Question, UserPerformance, UserDomainProgress, AssessmentSession
+    
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created")
 
@@ -40,16 +36,34 @@ def process_csv(csv_file_path: str) -> List[Dict[str, Any]]:
     Returns:
         List of dictionaries representing CSV rows
     """
-    logger.info(f"Processing CSV file: {csv_file_path}")
+    try:
+        # Check if file exists
+        if not os.path.exists(csv_file_path):
+            logger.error(f"File not found: {csv_file_path}")
+            return []
+        
+        with open(csv_file_path, 'r', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
+            questions = []
+            
+            for idx, row in enumerate(reader, start=1):
+                try:
+                    # Transform row
+                    transformed = transform_row(row)
+                    
+                    if transformed:
+                        questions.append(transformed)
+                    else:
+                        logger.warning(f"Row {idx} was skipped (invalid format)")
+                except Exception as e:
+                    logger.error(f"Error processing row {idx}: {str(e)}")
+            
+            logger.info(f"Processed {len(questions)} valid questions from {csv_file_path}")
+            return questions
     
-    rows = []
-    with open(csv_file_path, 'r', encoding='utf-8') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            rows.append(row)
-    
-    logger.info(f"Processed {len(rows)} rows from {csv_file_path}")
-    return rows
+    except Exception as e:
+        logger.error(f"Error reading CSV file: {str(e)}")
+        return []
 
 def transform_row(row: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -61,76 +75,113 @@ def transform_row(row: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Transformed row dictionary
     """
-    # Extract base fields
-    question_text = row.get('question', '')
-    answer = row.get('answer', '')
+    # Required fields
+    required_fields = ['question', 'correct_answer']
+    for field in required_fields:
+        if field not in row or not row[field]:
+            logger.warning(f"Missing required field: {field}")
+            return None
+    
+    # Create options dictionary
+    options = {}
+    options_fields = ['option_a', 'option_b', 'option_c', 'option_d']
+    
+    for field in options_fields:
+        if field in row and row[field]:
+            key = field[-1].upper()  # Extract A, B, C, D
+            options[key] = row[field]
+    
+    # If no options provided but it's multiple choice, create them from the answer
+    if not options and row.get('question_type', '').lower() == 'multiple_choice':
+        correct = row['correct_answer']
+        options = {
+            'A': correct,
+            'B': f"Not {correct}" if len(correct) < 20 else "Incorrect option B",
+            'C': "Alternative incorrect option C",
+            'D': "Alternative incorrect option D"
+        }
     
     # Determine question type
-    q_type = row.get('type', '').lower()
-    if not q_type or q_type not in ['multiple_choice', 'true_false', 'short_answer']:
-        # Try to infer type from the data
-        if answer.lower() in ['true', 'false']:
-            q_type = 'true_false'
-        elif 'option_a' in row or 'options' in row:
-            q_type = 'multiple_choice'
-        else:
-            q_type = 'short_answer'
+    q_type = row.get('question_type', 'multiple_choice').lower()
+    if q_type not in ['multiple_choice', 'true_false', 'short_answer', 'fill_in_blank']:
+        q_type = 'multiple_choice'  # Default
     
-    # Process options for multiple choice
-    options = {}
-    if q_type == 'multiple_choice':
-        # Check if options are in a single field or multiple fields
-        if 'options' in row and row['options']:
-            try:
-                # Try to parse options as JSON
-                options = json.loads(row['options'])
-            except json.JSONDecodeError:
-                # If not valid JSON, try to split by semicolons
-                options_list = row['options'].split(';')
-                for i, opt in enumerate(options_list):
-                    key = chr(97 + i)  # 'a', 'b', 'c', etc.
-                    options[key] = opt.strip()
-        else:
-            # Check for individual option fields (option_a, option_b, etc.)
-            for key in row:
-                if key.startswith('option_') and row[key]:
-                    option_key = key.replace('option_', '')
-                    options[option_key] = row[key]
-    
-    # Get domain and difficulty
-    domain = row.get('domain', 'General')
-    
+    # Determine difficulty
     try:
         difficulty = int(row.get('difficulty', 1))
-        if difficulty < 1 or difficulty > 5:
-            difficulty = 1
+        # Ensure difficulty is between 1-5
+        difficulty = max(1, min(5, difficulty))
     except (ValueError, TypeError):
-        difficulty = 1
+        difficulty = 1  # Default difficulty
     
-    # Get or create enhanced content
+    # Determine domain/category
+    domain = row.get('domain', row.get('category', 'General')).strip()
+    if not domain:
+        domain = 'General'
+    
+    # Format tags as a list
+    tags = []
+    if 'tags' in row and row['tags']:
+        if isinstance(row['tags'], str):
+            tags = [tag.strip() for tag in row['tags'].split(',')]
+        elif isinstance(row['tags'], list):
+            tags = row['tags']
+    
+    # Create enhanced content if available
     enhanced_content = {}
-    if 'explanation' in row and row['explanation']:
-        enhanced_content['explanation'] = row['explanation']
-    if 'image_url' in row and row['image_url']:
-        enhanced_content['image_url'] = row['image_url']
-    if 'video_url' in row and row['video_url']:
-        enhanced_content['video_url'] = row['video_url']
-    if 'hint' in row and row['hint']:
-        enhanced_content['hint'] = row['hint']
+    enhanced_fields = ['image_url', 'video_url', 'audio_url', 'explanation']
     
-    # Create transformed row
-    transformed = {
-        'question': question_text,
-        'answer': answer,
+    for field in enhanced_fields:
+        if field in row and row[field]:
+            enhanced_content[field] = row[field]
+    
+    if 'resource_links' in row and row['resource_links']:
+        if isinstance(row['resource_links'], str):
+            try:
+                enhanced_content['resource_links'] = json.loads(row['resource_links'])
+            except json.JSONDecodeError:
+                # Try to parse as comma-separated list
+                enhanced_content['resource_links'] = [
+                    link.strip() for link in row['resource_links'].split(',')
+                ]
+        elif isinstance(row['resource_links'], list):
+            enhanced_content['resource_links'] = row['resource_links']
+    
+    # Base question data
+    question_data = {
+        'question': row['question'],
+        'correct_answer': row['correct_answer'],
+        'options': options,
         'q_type': q_type,
-        'options': json.dumps(options),
-        'domain': domain,
         'difficulty': difficulty,
-        'sub_competency': row.get('sub_competency', None),
-        'enhanced_content': json.dumps(enhanced_content) if enhanced_content else None
+        'domain': domain,
+        'tags': tags,
+        'enhanced_content': enhanced_content if enhanced_content else None
     }
     
-    return transformed
+    # Additional metadata if available
+    if 'sub_domain' in row and row['sub_domain']:
+        question_data['sub_domain'] = row['sub_domain']
+    
+    if 'points' in row and row['points']:
+        try:
+            question_data['points'] = int(row['points'])
+        except (ValueError, TypeError):
+            pass  # Use default points
+    
+    if 'id' in row and row['id']:
+        try:
+            question_data['id'] = int(row['id'])
+        except (ValueError, TypeError):
+            pass  # Generate new ID
+            
+    if 'time_limit' in row and row['time_limit']:
+        try:
+            question_data['time_limit'] = int(row['time_limit'])
+        except (ValueError, TypeError):
+            pass  # Use default time limit
+            
+    return question_data
 
 def import_questions(questions: List[Dict[str, Any]], db: Session) -> Tuple[int, List[str]]:
     """
@@ -143,54 +194,82 @@ def import_questions(questions: List[Dict[str, Any]], db: Session) -> Tuple[int,
     Returns:
         Tuple of (count of imported questions, list of errors)
     """
+    from .models import Question
+    
     count = 0
     errors = []
     
-    for question_data in questions:
+    for idx, q_data in enumerate(questions, start=1):
         try:
-            # Create Question object
-            question = Question(**question_data)
+            # Check if question already exists by ID
+            existing = None
+            if 'id' in q_data:
+                existing = db.query(Question).filter(Question.id == q_data['id']).first()
             
-            # Add to database
-            db.add(question)
+            if existing:
+                # Update existing question
+                for key, value in q_data.items():
+                    if key != 'id':  # Don't modify ID
+                        setattr(existing, key, value)
+                logger.info(f"Updated question ID: {existing.id}")
+            else:
+                # Create new question
+                question = Question(**q_data)
+                db.add(question)
+                logger.info(f"Added new question: {q_data['question'][:50]}...")
+            
+            # Commit periodically to avoid large transactions
+            if idx % 50 == 0:
+                db.commit()
+                logger.info(f"Committed batch of 50 questions (current: {idx})")
+            
             count += 1
+        
         except Exception as e:
-            error_msg = f"Error importing question: {str(e)}, data: {question_data}"
-            errors.append(error_msg)
-            logger.error(error_msg)
+            errors.append(f"Error importing question {idx}: {str(e)}")
+            logger.error(f"Error importing question {idx}: {str(e)}")
     
-    # Commit changes
+    # Final commit
     db.commit()
+    logger.info(f"Import completed. Imported {count} questions with {len(errors)} errors")
     
     return count, errors
 
 def main():
     """Main entry point for the script"""
-    parser = argparse.ArgumentParser(description='Import questions from CSV files')
-    parser.add_argument('csv_file', help='Path to the CSV file with questions')
-    parser.add_argument('--create-tables', action='store_true', help='Create database tables if they do not exist')
+    parser = argparse.ArgumentParser(description="Import questions from CSV files")
+    parser.add_argument("csv_file", help="Path to the CSV file containing questions")
+    parser.add_argument("--database-url", help="Optional database URL override")
     
     args = parser.parse_args()
     
-    # Create tables if requested
-    if args.create_tables:
-        create_database_tables()
+    # Set database URL if provided
+    if args.database_url:
+        os.environ["DATABASE_URL"] = args.database_url
     
-    # Process CSV file
-    questions_data = process_csv(args.csv_file)
+    # Create database tables
+    create_database_tables()
     
-    # Transform rows
-    transformed_questions = [transform_row(row) for row in questions_data]
+    # Create a database session
+    from .database import get_db
+    db = next(get_db())
     
-    # Import questions to database
-    with SessionLocal() as db:
-        count, errors = import_questions(transformed_questions, db)
+    try:
+        # Process the CSV file
+        questions = process_csv(args.csv_file)
+        
+        if questions:
+            # Import questions
+            count, errors = import_questions(questions, db)
+            
+            print(f"Successfully imported {count} questions")
+            if errors:
+                print(f"Encountered {len(errors)} errors during import")
+        else:
+            print("No valid questions found in the CSV file")
     
-    logger.info(f"Imported {count} questions successfully")
-    if errors:
-        logger.warning(f"{len(errors)} errors occurred during import")
-        for error in errors:
-            logger.warning(error)
+    finally:
+        db.close()
 
 if __name__ == "__main__":
     main()
