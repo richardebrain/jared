@@ -11,6 +11,7 @@ import { users, eduTokSnippets, eduTokUserInteractions } from "@shared/schema";
 import { registerWelcomeMessageRoutes } from "./welcomeMessageRoutes";
 import { registerModuleManagementRoutes } from "./module-management/moduleRoutes";
 import { registerQuestionImportRoutes } from "./api-routes/question-import";
+import { registerAssessmentRoutes } from "./registerAssessmentRoutes";
 import * as notebookLmPlugin from "./notebookLmPlugin";
 import multer from "multer";
 import path from "path";
@@ -89,6 +90,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register ECE question import routes
   registerQuestionImportRoutes(app);
+  
+  // Register enhanced assessment routes
+  registerAssessmentRoutes(app);
   
   // Module management will be handled separately
   
