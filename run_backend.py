@@ -8,83 +8,62 @@ import os
 import sys
 import logging
 import uvicorn
-from fastapi import FastAPI
+from backend.database import setup_database
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
 )
-logger = logging.getLogger("run_backend")
+logger = logging.getLogger(__name__)
 
-# Add directory to path to allow imports
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-# Import inside the function to avoid circular imports
 def setup_database_wrapper():
     """Wrapper for database setup to handle exceptions"""
     try:
-        from backend.database import setup_database
         setup_database()
+        logger.info("Database setup complete")
     except Exception as e:
-        logger.error(f"Error setting up database: {e}")
+        logger.error(f"Error during database setup: {e}")
         sys.exit(1)
 
 def import_sample_data():
     """Import sample questions if available"""
     try:
         from backend.import_data import import_questions_from_csv
-        
-        # Check for sample_questions.csv
-        sample_file = os.path.join("data", "sample_questions.csv")
-        if os.path.exists(sample_file):
-            logger.info(f"Found sample questions file: {sample_file}")
-            imported = import_questions_from_csv(sample_file)
-            logger.info(f"Imported {imported} sample questions")
-        
-        # Check for custom data file
-        custom_file = os.path.join("data", "ece_master_database_ready.csv")
-        if os.path.exists(custom_file):
-            logger.info(f"Found ECE questions file: {custom_file}")
-            imported = import_questions_from_csv(custom_file)
-            logger.info(f"Imported {imported} ECE questions")
-            
+        sample_data_path = os.path.join("data", "sample_questions.csv")
+        if os.path.exists(sample_data_path):
+            count = import_questions_from_csv(sample_data_path)
+            logger.info(f"Imported {count} sample questions from {sample_data_path}")
+        else:
+            logger.info(f"Sample data file not found at {sample_data_path}")
     except Exception as e:
         logger.error(f"Error importing sample data: {e}")
-        # Continue running even if sample data import fails
 
 def main():
     """Main entry point"""
-    try:
-        # Set up database
-        setup_database_wrapper()
-        
-        # Import sample data
-        import_sample_data()
-        
-        # Get port from environment or use default
-        port = int(os.environ.get("ASSESSMENT_API_PORT", 8000))
-        
-        # Get host from environment or use default
-        host = os.environ.get("ASSESSMENT_API_HOST", "0.0.0.0")
-        
-        # Configure reload based on environment
-        reload = os.environ.get("ASSESSMENT_API_RELOAD", "false").lower() == "true"
-        
-        # Import the FastAPI app
-        logger.info("Starting MentorMe Assessment API")
-        
-        # Start the server
-        uvicorn.run(
-            "backend.main:app",
-            host=host,
-            port=port,
-            reload=reload,
-            log_level="info"
-        )
-    except Exception as e:
-        logger.error(f"Error starting server: {e}")
-        sys.exit(1)
+    # Get port from environment or use default
+    port = int(os.environ.get("ASSESSMENT_API_PORT", 8088))
+    host = os.environ.get("ASSESSMENT_API_HOST", "0.0.0.0")
+    reload = os.environ.get("ASSESSMENT_API_RELOAD", "false").lower() == "true"
+    
+    # Set up database
+    setup_database_wrapper()
+    
+    # Import sample data if available
+    import_sample_data()
+    
+    # Start server
+    logger.info(f"Starting MentorMe Assessment API on {host}:{port}")
+    uvicorn.run(
+        "backend.main:app",
+        host=host,
+        port=port,
+        reload=reload,
+        log_level="info"
+    )
 
 if __name__ == "__main__":
     main()
