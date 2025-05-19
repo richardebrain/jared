@@ -2,45 +2,25 @@
 Main API module for the MentorMe Enhanced Assessment system
 This module defines the FastAPI endpoints for the assessment system
 """
-from datetime import datetime
-import json
-from typing import Dict, List, Optional, Any
-import random
 
-from fastapi import FastAPI, Depends, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+import json
+import random
+from datetime import datetime
+from typing import List, Dict, Optional, Any, Union
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
-from .database import get_db
 from .models import Question, Assessment, Response
 from .loader import (
-    load_random_question,
-    get_domains,
-    get_question_by_id,
+    load_random_question, 
     get_next_difficulty_level,
+    get_domains,
+    get_question_by_id
 )
-from .import_data import setup_database
+from .database import get_db, engine, Base
 
-# Initialize FastAPI app
-app = FastAPI(title="MentorMe Enhanced Assessment API")
-
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins in development
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Initialize database on startup
-@app.on_event("startup")
-async def startup_event():
-    """Initialize database on startup"""
-    setup_database()
-
-# Pydantic models for request/response validation
+# Data models for API requests and responses
 class AssessmentStartRequest(BaseModel):
     user_id: int
 
@@ -75,16 +55,20 @@ class LearningPathResponse(BaseModel):
     strongest_domain: str
     weakest_domain: str
 
-# API Routes
-@app.get("/")
+# Initialize database on startup
+async def startup_event():
+    """Initialize database on startup"""
+    Base.metadata.create_all(bind=engine)
+    print("Database tables created successfully")
+
+# API Endpoints
 def read_root():
     """Root endpoint"""
-    return {"message": "MentorMe Enhanced Assessment API is running"}
+    return {"message": "MentorMe Enhanced Assessment API"}
 
-@app.post("/assessments/start")
-def start_assessment(request: AssessmentStartRequest, db: Session = Depends(get_db)):
+def start_assessment(request: AssessmentStartRequest, db: Session):
     """Start a new assessment for a user"""
-    # Create a new assessment
+    # Create new assessment record
     assessment = Assessment(
         user_id=request.user_id,
         started_at=datetime.now().isoformat(),
@@ -97,184 +81,88 @@ def start_assessment(request: AssessmentStartRequest, db: Session = Depends(get_
     db.commit()
     db.refresh(assessment)
     
-    return {
-        "assessment_id": assessment.id,
-        "message": "Assessment started successfully"
-    }
+    return assessment.id
 
-@app.post("/assessments/{assessment_id}/next-question")
-def next_question(request: NextQuestionRequest, db: Session = Depends(get_db)):
+def next_question(request: NextQuestionRequest, db: Session):
     """Get the next question based on assessment history"""
-    # Verify the assessment exists
+    # Retrieve assessment
     assessment = db.query(Assessment).filter(Assessment.id == request.assessment_id).first()
     if not assessment:
-        raise HTTPException(status_code=404, detail="Assessment not found")
+        raise ValueError(f"Assessment {request.assessment_id} not found")
     
-    # Get all domains if this is the first question
-    if not request.history:
-        domains = get_domains(db)
-        # Start with Core Values
-        if "Core Values" in domains:
-            domain = "Core Values"
-            difficulty = 1
-        else:
-            domain = random.choice(domains)
-            difficulty = 1
-        
-        # Load a random question from the selected domain
-        question = load_random_question(db, domain=domain, difficulty=difficulty)
-        
-        if not question:
-            raise HTTPException(status_code=404, detail=f"No questions available for domain: {domain}")
-        
-        return format_question(question)
-    
-    # Process history to select the next domain and difficulty
-    asked_domains = set()
-    domain_correct_count = {}
-    domain_difficulty = {}
-    exclude_ids = []
+    # Get asked question IDs to exclude
+    asked_ids = []
+    domains_asked = set()
+    domain_difficulty_map = {}
     
     for item in request.history:
-        asked_domains.add(item.domain)
-        exclude_ids.append(item.question_id)
+        asked_ids.append(item.question_id)
+        domains_asked.add(item.domain)
+        domain_difficulty_map[item.domain] = item.difficulty
+    
+    # Calculate which domain to ask next
+    all_domains = get_domains(db)
+    remaining_domains = [d for d in all_domains if d not in domains_asked]
+    
+    # If there are domains we haven't asked yet, prioritize them
+    if remaining_domains:
+        next_domain = random.choice(remaining_domains)
+        next_difficulty = 1  # Start with easiest questions for new domains
+    else:
+        # Choose a random domain we've already asked
+        domain_scores = json.loads(assessment.domain_scores) if assessment.domain_scores else {}
         
-        if item.domain not in domain_correct_count:
-            domain_correct_count[item.domain] = 0
-            domain_difficulty[item.domain] = item.difficulty
+        # Sort domains by score ascending (focus on weakest domains)
+        sorted_domains = sorted(
+            domains_asked, 
+            key=lambda d: domain_scores.get(d, 0.5)
+        )
         
-        if item.correct:
-            domain_correct_count[item.domain] += 1
+        # Randomly select from the bottom half of domains (weaker areas)
+        bottom_half = sorted_domains[:max(1, len(sorted_domains) // 2)]
+        next_domain = random.choice(bottom_half)
         
-        # Update current difficulty level for this domain
-        domain_difficulty[item.domain] = get_next_difficulty_level(
-            db, item.domain, item.difficulty, item.correct
+        # Get the current difficulty for this domain
+        next_difficulty = domain_difficulty_map.get(next_domain, 1)
+    
+    # Load a question of appropriate difficulty from the chosen domain
+    question = load_random_question(
+        db, domain=next_domain, difficulty=next_difficulty, exclude_ids=asked_ids
+    )
+    
+    # If no question found with exact difficulty, try any difficulty for this domain
+    if not question:
+        question = load_random_question(
+            db, domain=next_domain, exclude_ids=asked_ids
         )
     
-    # Determine domain selection strategy
-    all_domains = get_domains(db)
-    
-    # Handle domain progression
-    last_item = request.history[-1]
-    last_domain = last_item.domain
-    
-    # Special handling for Core Values and Mindful Morning
-    if last_domain == "Core Values":
-        # After 5 Core Values questions, switch to Mindful Morning if available
-        if domain_correct_count.get("Core Values", 0) >= 5 or len([h for h in request.history if h.domain == "Core Values"]) >= 5:
-            if "Mindful Morning" in all_domains:
-                next_domain = "Mindful Morning"
-                next_difficulty = 1
-            else:
-                # If Mindful Morning not available, pick another domain
-                remaining_domains = [d for d in all_domains if d not in asked_domains or d == "Core Values"]
-                if not remaining_domains:
-                    remaining_domains = all_domains
-                next_domain = random.choice([d for d in remaining_domains if d != "Core Values"])
-                next_difficulty = 1
-        else:
-            # Continue with Core Values
-            next_domain = "Core Values"
-            next_difficulty = 1
-            
-    elif last_domain == "Mindful Morning":
-        # After 5 Mindful Morning questions, move to a new domain
-        if domain_correct_count.get("Mindful Morning", 0) >= 5 or len([h for h in request.history if h.domain == "Mindful Morning"]) >= 5:
-            remaining_domains = [d for d in all_domains if d not in asked_domains or d == "Mindful Morning"]
-            if not remaining_domains or (len(remaining_domains) == 1 and remaining_domains[0] == "Mindful Morning"):
-                remaining_domains = [d for d in all_domains if d not in ["Core Values", "Mindful Morning"]]
-                if not remaining_domains:
-                    remaining_domains = all_domains
-            next_domain = random.choice([d for d in remaining_domains if d not in ["Core Values", "Mindful Morning"]])
-            next_difficulty = 1
-        else:
-            # Continue with Mindful Morning
-            next_domain = "Mindful Morning"
-            next_difficulty = 1
-    
-    # For other domains
-    else:
-        # If reached 10 correct answers in current domain or 15 total questions, switch to a new domain
-        if domain_correct_count.get(last_domain, 0) >= 10 or len([h for h in request.history if h.domain == last_domain]) >= 15:
-            # Pick a domain that hasn't been completed yet
-            completed_domains = [d for d in domain_correct_count.keys() 
-                                if domain_correct_count[d] >= 10 or 
-                                len([h for h in request.history if h.domain == d]) >= 15]
-            
-            available_domains = [d for d in all_domains if d not in completed_domains]
-            
-            # If all domains have been completed, we're done with the assessment
-            if not available_domains:
-                return {
-                    "message": "Assessment complete",
-                    "complete": True
-                }
-            
-            next_domain = random.choice(available_domains)
-            next_difficulty = 1
-        else:
-            # Continue with current domain at appropriate difficulty
-            next_domain = last_domain
-            next_difficulty = domain_difficulty.get(last_domain, 1)
-    
-    # Load the next question
-    question = load_random_question(
-        db, domain=next_domain, difficulty=next_difficulty, exclude_ids=exclude_ids
-    )
-    
-    # If no question available at this difficulty, try other difficulties
-    if not question and next_difficulty > 1:
-        for diff in range(next_difficulty - 1, 0, -1):
-            question = load_random_question(
-                db, domain=next_domain, difficulty=diff, exclude_ids=exclude_ids
-            )
-            if question:
-                break
-    
-    # If still no question, try a different domain
+    # If still no question, try a completely random question from any domain/difficulty
     if not question:
-        other_domains = [d for d in all_domains if d != next_domain]
-        for domain in other_domains:
-            question = load_random_question(db, domain=domain, exclude_ids=exclude_ids)
-            if question:
-                break
+        question = load_random_question(
+            db, exclude_ids=asked_ids
+        )
     
-    # If no questions available at all, end the assessment
+    # If there are no more questions, return a completion signal
     if not question:
-        return {
-            "message": "No more questions available",
-            "complete": True
-        }
+        return {"status": "complete", "message": "No more questions available"}
     
+    # Format and return the question
     return format_question(question)
 
-@app.post("/assessments/{assessment_id}/submit-answer")
-def submit_answer(assessment_id: int, submission: AnswerSubmission, db: Session = Depends(get_db)):
+def submit_answer(assessment_id: int, submission: AnswerSubmission, db: Session):
     """Submit an answer for a question"""
-    # Verify the assessment exists
+    # Get assessment
     assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
     if not assessment:
-        raise HTTPException(status_code=404, detail="Assessment not found")
+        raise ValueError(f"Assessment {assessment_id} not found")
     
-    # Get the question
-    question = get_question_by_id(db, submission.question_id)
+    # Get question
+    question = db.query(Question).filter(Question.id == submission.question_id).first()
     if not question:
-        raise HTTPException(status_code=404, detail="Question not found")
+        raise ValueError(f"Question {submission.question_id} not found")
     
-    # Check if answer is correct
-    is_correct = question.answer.upper() == submission.user_answer.upper()
-    
-    # Create response record
-    response = Response(
-        assessment_id=assessment_id,
-        question_id=submission.question_id,
-        user_answer=submission.user_answer,
-        is_correct=is_correct,
-        responded_at=datetime.now().isoformat(),
-        time_taken_ms=submission.time_taken_ms
-    )
-    
-    db.add(response)
+    # Check answer
+    is_correct = submission.user_answer.upper() == question.answer.upper()
     
     # Update assessment stats
     assessment.questions_asked += 1
@@ -282,149 +170,152 @@ def submit_answer(assessment_id: int, submission: AnswerSubmission, db: Session 
         assessment.questions_correct += 1
     
     # Update domain scores
-    domain_scores = json.loads(assessment.domain_scores)
-    domain = question.domain
+    domain_scores = json.loads(assessment.domain_scores) if assessment.domain_scores else {}
+    if question.domain not in domain_scores:
+        domain_scores[question.domain] = 0
     
-    if domain not in domain_scores:
-        domain_scores[domain] = {
-            "asked": 0,
-            "correct": 0
-        }
+    # Update domain score with weighted average
+    # New questions weight more than old ones for adaptive assessment
+    old_score = domain_scores[question.domain]
+    new_value = 1.0 if is_correct else 0.0
     
-    domain_scores[domain]["asked"] = domain_scores[domain].get("asked", 0) + 1
-    if is_correct:
-        domain_scores[domain]["correct"] = domain_scores[domain].get("correct", 0) + 1
+    # Determine weight based on question difficulty
+    weight = min(0.3 * question.difficulty, 0.9)  # Higher weight for harder questions
     
+    # Update score with weighted average
+    domain_scores[question.domain] = (old_score * (1 - weight)) + (new_value * weight)
+    
+    # Store updated scores
     assessment.domain_scores = json.dumps(domain_scores)
     
+    # Create response record
+    response = Response(
+        assessment_id=assessment_id,
+        question_id=submission.question_id,
+        user_answer=submission.user_answer.upper(),
+        is_correct=is_correct,
+        responded_at=datetime.now().isoformat(),
+        time_taken_ms=submission.time_taken_ms
+    )
+    
+    # Add and commit changes
+    db.add(response)
     db.commit()
     
-    # Prepare response including extended content if available
-    extended_content = {}
+    # Calculate next difficulty level for the domain
+    next_difficulty = get_next_difficulty_level(
+        db, 
+        question.domain, 
+        question.difficulty, 
+        is_correct
+    )
     
-    if question.teaching_explanation:
-        extended_content["teaching_explanation"] = question.teaching_explanation
-    
-    if question.story_why:
-        extended_content["story_why"] = question.story_why
-        
-    if question.implementation_how:
-        extended_content["implementation_how"] = question.implementation_how
-        
-    if question.reflection_considerations:
-        extended_content["reflection_considerations"] = question.reflection_considerations
-        
-    if question.child_impact_story:
-        extended_content["child_impact_story"] = question.child_impact_story
-        
-    if question.science_behind_it:
-        extended_content["science_behind_it"] = question.science_behind_it
-        
-    if question.practical_application_strategy:
-        extended_content["practical_application_strategy"] = question.practical_application_strategy
-        
-    if question.why_behind_it:
-        extended_content["why_behind_it"] = question.why_behind_it
-        
-    if question.resources:
-        try:
-            extended_content["resources"] = json.loads(question.resources)
-        except:
-            extended_content["resources"] = []
-    
-    return {
+    # Prepare feedback with learning resources
+    feedback = {
         "is_correct": is_correct,
         "correct_answer": question.answer,
-        "explanation": question.teaching_explanation,
-        "extended_content": extended_content
+        "next_difficulty": next_difficulty,
     }
+    
+    if question.teaching_explanation:
+        feedback["explanation"] = question.teaching_explanation
+    
+    if not is_correct and question.story_why:
+        feedback["story_why"] = question.story_why
+    
+    if question.implementation_how:
+        feedback["implementation_how"] = question.implementation_how
+    
+    if question.reflection_considerations:
+        feedback["reflection"] = question.reflection_considerations
+    
+    if question.child_impact_story:
+        feedback["child_impact"] = question.child_impact_story
+    
+    if question.science_behind_it:
+        feedback["science"] = question.science_behind_it
+    
+    if question.practical_application_strategy:
+        feedback["practical_application"] = question.practical_application_strategy
+    
+    if question.why_behind_it:
+        feedback["why"] = question.why_behind_it
+    
+    if question.resources:
+        feedback["resources"] = question.resources
+    
+    return feedback
 
-@app.post("/assessments/{assessment_id}/finish")
-def finish_assessment(assessment_id: int, db: Session = Depends(get_db)):
+def finish_assessment(assessment_id: int, db: Session):
     """Finish an assessment and get personalized learning path"""
-    # Verify the assessment exists
+    # Get assessment
     assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
     if not assessment:
-        raise HTTPException(status_code=404, detail="Assessment not found")
+        raise ValueError(f"Assessment {assessment_id} not found")
     
-    # Mark as completed
+    # Mark assessment as completed
     assessment.completed_at = datetime.now().isoformat()
     
-    # Calculate final domain scores and identify strengths/weaknesses
-    domain_scores_raw = json.loads(assessment.domain_scores)
-    domain_scores = {}
-    
-    for domain, scores in domain_scores_raw.items():
-        if scores["asked"] > 0:
-            domain_scores[domain] = scores["correct"] / scores["asked"] * 100
-        else:
-            domain_scores[domain] = 0
+    # Get domain scores
+    domain_scores = json.loads(assessment.domain_scores) if assessment.domain_scores else {}
     
     # Generate learning path
-    strongest_domain = max(domain_scores.items(), key=lambda x: x[1])[0] if domain_scores else "None"
-    weakest_domain = min(domain_scores.items(), key=lambda x: x[1])[0] if domain_scores else "None"
-    
     learning_path = {}
     
-    # Add recommendations for each domain
+    # Add weakest domains (scoring < 0.7) to learning path
     for domain, score in domain_scores.items():
-        if domain == strongest_domain:
-            learning_path[domain] = [
-                "Mentor other teachers in this area",
-                "Create materials to share your expertise",
-                "Lead professional development sessions"
-            ]
-        elif domain == weakest_domain:
-            learning_path[domain] = [
-                "Focus on practical application exercises",
-                "Complete our specialized training modules",
-                "Schedule observation sessions with master teachers"
-            ]
-        elif score < 60:
-            learning_path[domain] = [
-                "Review core concepts in this area",
-                "Practice with guided exercises",
-                "Schedule time with a mentor teacher"
-            ]
-        elif score < 80:
-            learning_path[domain] = [
-                "Strengthen your skills with advanced modules",
-                "Apply concepts in classroom activities",
-                "Join our community discussion on this topic"
-            ]
-        else:
-            learning_path[domain] = [
-                "Explore specialized techniques",
-                "Develop your leadership in this area",
-                "Share your successful strategies"
-            ]
+        if score < 0.7:  # Below 70% mastery
+            # Get resource recommendations for this domain
+            learning_path[domain] = generate_domain_recommendations(db, domain)
     
-    # Store the learning path in the assessment
+    # Sort domains by score and get strongest/weakest
+    sorted_scores = sorted(domain_scores.items(), key=lambda x: x[1])
+    
+    strongest_domain = sorted_scores[-1][0] if sorted_scores else "None"
+    weakest_domain = sorted_scores[0][0] if sorted_scores else "None"
+    
+    # Store learning path
     assessment.learning_path = json.dumps(learning_path)
+    
+    # Commit changes
     db.commit()
     
-    # Return learning path and scores
-    return {
-        "learning_path": learning_path,
-        "domain_scores": domain_scores,
-        "questions_asked": assessment.questions_asked,
-        "questions_correct": assessment.questions_correct,
-        "strongest_domain": strongest_domain,
-        "weakest_domain": weakest_domain
-    }
+    # Return learning path and score summary
+    return LearningPathResponse(
+        learning_path=learning_path,
+        domain_scores=domain_scores,
+        questions_asked=assessment.questions_asked,
+        questions_correct=assessment.questions_correct,
+        strongest_domain=strongest_domain,
+        weakest_domain=weakest_domain
+    )
 
 def format_question(question: Question) -> QuestionResponse:
     """Format a question for API response"""
-    return {
-        "id": question.id,
-        "question": question.question_text,
-        "q_type": question.q_type,
-        "options": {
+    return QuestionResponse(
+        id=question.id,
+        question=question.question_text,
+        q_type=question.q_type,
+        options={
             "A": question.option_a,
             "B": question.option_b,
             "C": question.option_c,
-            "D": question.option_d
+            "D": question.option_d,
         },
-        "domain": question.domain,
-        "difficulty": question.difficulty
-    }
+        domain=question.domain,
+        difficulty=question.difficulty
+    )
+
+def generate_domain_recommendations(db: Session, domain: str) -> List[str]:
+    """Generate resource recommendations for a domain"""
+    # This is a placeholder that would be connected to your learning content system
+    # Recommendations could come from video libraries, articles, or training modules
+    
+    recommendations = [
+        f"Complete the '{domain}' foundational training module",
+        f"Watch the 5-minute expert video on '{domain}' best practices",
+        f"Read the quick-reference guide for '{domain}' in the classroom"
+    ]
+    
+    # You could get these from a database of resources
+    return recommendations

@@ -1,10 +1,11 @@
 /**
- * Assessment Service 
- * Handles API calls to the enhanced assessment backend
+ * Service for interacting with the enhanced assessment API
  */
 
-const API_BASE_URL = 'http://localhost:8000';
+// Base URL for the enhanced assessment API
+const API_BASE_URL = 'http://localhost:5050';
 
+// Types for assessment API requests and responses
 export interface AssessmentHistoryItem {
   question_id: number;
   domain: string;
@@ -12,49 +13,44 @@ export interface AssessmentHistoryItem {
   difficulty: number;
 }
 
-export interface QuestionOption {
-  [key: string]: string;
-}
-
 export interface Question {
   id: number;
   question: string;
   q_type: string;
-  options: QuestionOption;
+  options: Record<string, string>;
   domain: string;
   difficulty: number;
 }
 
-export interface AnswerResult {
+export interface AnswerFeedback {
   is_correct: boolean;
   correct_answer: string;
-  explanation: string;
-  extended_content?: {
-    teaching_explanation?: string;
-    story_why?: string;
-    implementation_how?: string;
-    reflection_considerations?: string;
-    child_impact_story?: string;
-    science_behind_it?: string;
-    practical_application_strategy?: string;
-    why_behind_it?: string;
-    resources?: string[];
-  };
+  next_difficulty: number;
+  explanation?: string;
+  story_why?: string;
+  implementation_how?: string;
+  reflection?: string;
+  child_impact?: string;
+  science?: string;
+  practical_application?: string;
+  why?: string;
+  resources?: any[];
 }
 
 export interface LearningPath {
-  learning_path: { [domain: string]: string[] };
-  domain_scores: { [domain: string]: number };
+  learning_path: Record<string, string[]>;
+  domain_scores: Record<string, number>;
   questions_asked: number;
   questions_correct: number;
   strongest_domain: string;
   weakest_domain: string;
 }
 
+// Service functions
 /**
  * Start a new assessment for a user
- * @param userId User ID to start assessment for
- * @returns Promise with assessment ID
+ * @param userId User ID
+ * @returns Assessment ID
  */
 export async function startAssessment(userId: number): Promise<number> {
   try {
@@ -79,36 +75,35 @@ export async function startAssessment(userId: number): Promise<number> {
 }
 
 /**
- * Get the next question in the assessment
+ * Get the next question in an assessment
  * @param assessmentId Assessment ID
- * @param history Previous question history
- * @returns Promise with next question or completion status
+ * @param history History of questions answered so far
+ * @returns Next question or completion message
  */
-export async function getNextQuestion(assessmentId: number, history: AssessmentHistoryItem[]): Promise<Question | { complete: true }> {
+export async function getNextQuestion(
+  assessmentId: number,
+  history: AssessmentHistoryItem[]
+): Promise<Question | { status: string; message: string }> {
   try {
-    const response = await fetch(`${API_BASE_URL}/assessments/${assessmentId}/next-question`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        assessment_id: assessmentId,
-        history,
-      }),
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/assessments/${assessmentId}/next-question`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          assessment_id: assessmentId,
+          history,
+        }),
+      }
+    );
 
     if (!response.ok) {
       throw new Error(`Failed to get next question: ${response.statusText}`);
     }
 
-    const data = await response.json();
-    
-    // Check if assessment is complete
-    if (data.complete) {
-      return { complete: true };
-    }
-    
-    return data as Question;
+    return await response.json();
   } catch (error) {
     console.error('Error getting next question:', error);
     throw error;
@@ -116,31 +111,34 @@ export async function getNextQuestion(assessmentId: number, history: AssessmentH
 }
 
 /**
- * Submit an answer for a question
+ * Submit an answer to a question
  * @param assessmentId Assessment ID
  * @param questionId Question ID
  * @param userAnswer User's answer (A, B, C, or D)
- * @param timeTakenMs Optional time taken to answer in milliseconds
- * @returns Promise with answer result
+ * @param timeTakenMs Time taken to answer in milliseconds
+ * @returns Feedback on the answer
  */
 export async function submitAnswer(
   assessmentId: number,
   questionId: number,
   userAnswer: string,
   timeTakenMs?: number
-): Promise<AnswerResult> {
+): Promise<AnswerFeedback> {
   try {
-    const response = await fetch(`${API_BASE_URL}/assessments/${assessmentId}/submit-answer`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        question_id: questionId,
-        user_answer: userAnswer,
-        time_taken_ms: timeTakenMs,
-      }),
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/assessments/${assessmentId}/submit-answer`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          question_id: questionId,
+          user_answer: userAnswer,
+          time_taken_ms: timeTakenMs,
+        }),
+      }
+    );
 
     if (!response.ok) {
       throw new Error(`Failed to submit answer: ${response.statusText}`);
@@ -156,16 +154,21 @@ export async function submitAnswer(
 /**
  * Finish an assessment and get personalized learning path
  * @param assessmentId Assessment ID
- * @returns Promise with learning path
+ * @returns Learning path and assessment results
  */
-export async function finishAssessment(assessmentId: number): Promise<LearningPath> {
+export async function finishAssessment(
+  assessmentId: number
+): Promise<LearningPath> {
   try {
-    const response = await fetch(`${API_BASE_URL}/assessments/${assessmentId}/finish`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/assessments/${assessmentId}/finish`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
     if (!response.ok) {
       throw new Error(`Failed to finish assessment: ${response.statusText}`);
@@ -175,5 +178,59 @@ export async function finishAssessment(assessmentId: number): Promise<LearningPa
   } catch (error) {
     console.error('Error finishing assessment:', error);
     throw error;
+  }
+}
+
+/**
+ * Get domains available for assessment
+ * @returns List of domains
+ */
+export async function getDomains(): Promise<string[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/domains`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to get domains: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data.domains;
+  } catch (error) {
+    console.error('Error getting domains:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get question counts by domain
+ * @returns Map of domain to question count
+ */
+export async function getQuestionCountsByDomain(): Promise<Record<string, number>> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/domains/question-counts`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to get question counts: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data.counts;
+  } catch (error) {
+    console.error('Error getting question counts:', error);
+    throw error;
+  }
+}
+
+/**
+ * Check if the enhanced assessment API is available
+ * @returns True if the API is available
+ */
+export async function checkApiAvailability(): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/health`);
+    return response.ok;
+  } catch (error) {
+    console.error('Enhanced assessment API not available:', error);
+    return false;
   }
 }
