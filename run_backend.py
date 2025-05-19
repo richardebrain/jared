@@ -6,11 +6,9 @@ This script starts the FastAPI server for the assessment system
 
 import os
 import sys
-import time
 import logging
-import subprocess
-import argparse
-from pathlib import Path
+import uvicorn
+from fastapi import FastAPI
 
 # Configure logging
 logging.basicConfig(
@@ -19,81 +17,70 @@ logging.basicConfig(
 )
 logger = logging.getLogger("run_backend")
 
+# Add directory to path to allow imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# Import inside the function to avoid circular imports
 def setup_database_wrapper():
     """Wrapper for database setup to handle exceptions"""
     try:
-        # Import here to avoid circular imports
         from backend.database import setup_database
         setup_database()
-        logger.info("Database setup complete")
-        return True
     except Exception as e:
         logger.error(f"Error setting up database: {e}")
-        return False
+        sys.exit(1)
 
 def import_sample_data():
     """Import sample questions if available"""
     try:
         from backend.import_data import import_questions_from_csv
         
-        # Check for sample data
-        sample_data_path = Path("data/sample_questions.csv")
-        if sample_data_path.exists():
-            logger.info(f"Found sample questions at {sample_data_path}, importing...")
-            count = import_questions_from_csv(str(sample_data_path))
-            logger.info(f"Successfully imported {count} sample questions")
-        else:
-            logger.warning(f"No sample questions found at {sample_data_path}")
+        # Check for sample_questions.csv
+        sample_file = os.path.join("data", "sample_questions.csv")
+        if os.path.exists(sample_file):
+            logger.info(f"Found sample questions file: {sample_file}")
+            imported = import_questions_from_csv(sample_file)
+            logger.info(f"Imported {imported} sample questions")
+        
+        # Check for custom data file
+        custom_file = os.path.join("data", "ece_master_database_ready.csv")
+        if os.path.exists(custom_file):
+            logger.info(f"Found ECE questions file: {custom_file}")
+            imported = import_questions_from_csv(custom_file)
+            logger.info(f"Imported {imported} ECE questions")
+            
     except Exception as e:
         logger.error(f"Error importing sample data: {e}")
+        # Continue running even if sample data import fails
 
 def main():
     """Main entry point"""
-    parser = argparse.ArgumentParser(description="Run the MentorMe Assessment API")
-    parser.add_argument(
-        "--port", 
-        type=int, 
-        default=8000, 
-        help="Port to run the server on (default: 8000)"
-    )
-    parser.add_argument(
-        "--host", 
-        type=str, 
-        default="0.0.0.0", 
-        help="Host to bind the server to (default: 0.0.0.0)"
-    )
-    parser.add_argument(
-        "--reload", 
-        action="store_true", 
-        help="Enable auto-reload for development"
-    )
-    parser.add_argument(
-        "--import-data", 
-        action="store_true", 
-        help="Import sample data before starting"
-    )
-    
-    args = parser.parse_args()
-    
-    # Setup database
-    if not setup_database_wrapper():
-        logger.error("Database setup failed, exiting")
-        sys.exit(1)
-    
-    # Import sample data if requested
-    if args.import_data:
-        import_sample_data()
-    
-    # Start the FastAPI server with uvicorn
     try:
-        import uvicorn
+        # Set up database
+        setup_database_wrapper()
         
-        logger.info(f"Starting MentorMe Assessment API on {args.host}:{args.port}")
+        # Import sample data
+        import_sample_data()
+        
+        # Get port from environment or use default
+        port = int(os.environ.get("ASSESSMENT_API_PORT", 8000))
+        
+        # Get host from environment or use default
+        host = os.environ.get("ASSESSMENT_API_HOST", "0.0.0.0")
+        
+        # Configure reload based on environment
+        reload = os.environ.get("ASSESSMENT_API_RELOAD", "false").lower() == "true"
+        
+        # Import the FastAPI app
+        logger.info("Starting MentorMe Assessment API")
+        
+        # Start the server
         uvicorn.run(
-            "backend.main:app", 
-            host=args.host, 
-            port=args.port,
-            reload=args.reload
+            "backend.main:app",
+            host=host,
+            port=port,
+            reload=reload,
+            log_level="info"
         )
     except Exception as e:
         logger.error(f"Error starting server: {e}")

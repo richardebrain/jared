@@ -1,9 +1,18 @@
 #!/bin/bash
-# Start the MentorMe Assessment API in development mode with auto-reload and sample data
+# Start the MentorMe Assessment Server
+# This script runs the FastAPI server for the assessment system in production mode
 
 # Set environment variables
-export PORT=8000
+export ASSESSMENT_API_PORT=8080
+export ASSESSMENT_API_HOST="0.0.0.0"
+export ASSESSMENT_API_RELOAD="false"  # Disable reload in production
 
-# Run the FastAPI application with uvicorn in development mode
-echo "Starting MentorMe Assessment API in development mode on port $PORT..."
-python3 run_backend.py --host 0.0.0.0 --port $PORT --reload --import-data
+# Ensure data directory exists
+mkdir -p data
+
+# Install required dependencies
+pip install -q fastapi uvicorn sqlalchemy python-multipart pydantic
+
+# Run the backend in production mode
+echo "Starting MentorMe Assessment Server on port $ASSESSMENT_API_PORT..."
+python run_backend.py
