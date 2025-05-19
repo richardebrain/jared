@@ -1,100 +1,127 @@
-import { useState } from 'react';
-import EnhancedAssessment from '@/components/EnhancedAssessment';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { Helmet } from 'react-helmet';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { EnhancedAssessment } from '@/components/EnhancedAssessment';
 import { LearningPathResponse } from '@/services/assessmentService';
+import { apiRequest } from '@/lib/queryClient';
 
-// Note: In a real application, we would get the user ID from context or auth state
-const TEMP_USER_ID = 5; // This would come from auth context in a real app
+const EnhancedAssessmentPage: React.FC = () => {
+  const [location, setLocation] = useLocation();
+  const { toast } = useToast();
+  const [assessmentCompleted, setAssessmentCompleted] = useState(false);
+  const [results, setResults] = useState<LearningPathResponse | null>(null);
 
-export default function EnhancedAssessmentPage() {
-  const [, setLocation] = useLocation();
-  const [started, setStarted] = useState(false);
-  const [completed, setCompleted] = useState(false);
-  const [result, setResult] = useState<LearningPathResponse | null>(null);
+  // Get authenticated user
+  const { data: user, isLoading } = useQuery({
+    queryKey: ['/api/auth/me'],
+    retry: false,
+  });
 
-  const handleStart = () => {
-    setStarted(true);
+  // Handle assessment completion
+  const handleAssessmentComplete = (results: LearningPathResponse) => {
+    setResults(results);
+    setAssessmentCompleted(true);
+    toast({
+      title: 'Assessment Completed',
+      description: 'Your personalized learning path is ready!',
+    });
   };
 
-  const handleComplete = (result: LearningPathResponse) => {
-    setCompleted(true);
-    setResult(result);
-    
-    // In a production app, we would also:
-    // 1. Award points to the user
-    // 2. Update the user's learning progress
-    // 3. Update any achievements
+  // Handle points earned from assessment
+  const handlePointsEarned = async (points: number) => {
+    try {
+      // Update user points in the system
+      await apiRequest('POST', '/api/users/add-points', { 
+        userId: user?.id, 
+        points,
+        source: 'assessment'
+      });
+      
+      toast({
+        title: 'Points Added',
+        description: `You earned ${points} points from the assessment!`,
+      });
+    } catch (error) {
+      console.error('Failed to add points:', error);
+    }
   };
 
-  const handleReturnToDashboard = () => {
+  // Go to dashboard
+  const goToDashboard = () => {
     setLocation('/dashboard');
   };
 
+  // Return to assessment if it's not completed yet
+  const returnToAssessment = () => {
+    setAssessmentCompleted(false);
+    setResults(null);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Card className="w-full max-w-md mx-auto mt-10">
+        <CardHeader>
+          <CardTitle>Authentication Required</CardTitle>
+          <CardDescription>Please log in to access the enhanced assessment.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={() => setLocation('/login')}>Go to Login</Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <div className="container mx-auto py-8 px-4 max-w-5xl">
+    <>
       <Helmet>
         <title>Enhanced Assessment | MentorMe</title>
-        <meta name="description" content="Take the enhanced adaptive assessment to discover your personalized learning journey." />
+        <meta name="description" content="Complete your early childhood education assessment to create a personalized learning path." />
       </Helmet>
 
-      {!started ? (
-        <Card className="p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-2">Enhanced Adaptive Assessment</h1>
-            <p className="text-lg text-gray-600 mb-6">
-              Discover your strengths and areas for growth with our AI-powered assessment.
-            </p>
-            <div className="flex justify-center">
-              <img 
-                src="/images/assessment-illustration.svg" 
-                alt="Assessment Illustration" 
-                className="w-52 h-52"
-              />
+      <div className="container mx-auto py-8 px-4">
+        <h1 className="text-3xl font-bold mb-6 text-center">
+          Enhanced Early Childhood Education Assessment
+        </h1>
+        
+        {assessmentCompleted && results ? (
+          <div className="space-y-8">
+            <div className="bg-primary/10 p-6 rounded-lg text-center">
+              <h2 className="text-2xl font-bold mb-2">Assessment Completed</h2>
+              <p className="mb-4">
+                You've successfully completed your assessment. Your personalized learning path is ready!
+              </p>
+              <div className="flex justify-center gap-4">
+                <Button onClick={returnToAssessment} variant="outline">
+                  View Results Again
+                </Button>
+                <Button onClick={goToDashboard}>
+                  Return to Dashboard
+                </Button>
+              </div>
             </div>
           </div>
-
-          <div className="space-y-6 mb-8">
-            <div className="border-l-4 border-primary p-4 bg-primary/5 rounded">
-              <h3 className="font-semibold mb-2">What to Expect</h3>
-              <ul className="list-disc list-inside space-y-2 text-gray-700">
-                <li>Questions adapt to your skill level</li>
-                <li>Covers key domains of early childhood education</li>
-                <li>Takes approximately 15-20 minutes to complete</li>
-                <li>Receive a personalized learning path based on your results</li>
-                <li>Earn points for completing the assessment</li>
-              </ul>
-            </div>
-            
-            <div className="border-l-4 border-amber-500 p-4 bg-amber-50 rounded">
-              <h3 className="font-semibold mb-2">Tips for Success</h3>
-              <ul className="list-disc list-inside space-y-2 text-gray-700">
-                <li>Find a quiet space without distractions</li>
-                <li>Read each question carefully</li>
-                <li>Answer thoughtfully - this helps personalize your learning path</li>
-                <li>Don't worry if questions get harder - that means you're doing well!</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="flex justify-center">
-            <Button 
-              size="lg" 
-              onClick={handleStart}
-              className="px-8 py-6 text-lg"
-            >
-              Start Assessment
-            </Button>
-          </div>
-        </Card>
-      ) : (
-        <EnhancedAssessment 
-          userId={TEMP_USER_ID} 
-          onComplete={handleComplete} 
-        />
-      )}
-    </div>
+        ) : (
+          <EnhancedAssessment 
+            userId={user.id}
+            onComplete={handleAssessmentComplete}
+            onPointsEarned={handlePointsEarned}
+          />
+        )}
+      </div>
+    </>
   );
-}
+};
+
+export default EnhancedAssessmentPage;

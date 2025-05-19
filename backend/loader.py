@@ -2,12 +2,12 @@
 Question loader module for the assessment system
 This module provides functions to load questions from the database
 """
-
-import random
-from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
-from .models import Question, Assessment, Response
+from sqlalchemy import func, and_, or_
+import random
+from typing import List, Optional
 
+from .models import Question
 
 def load_questions(db: Session, domain=None, difficulty=None, exclude_ids=None, limit=10):
     """
@@ -35,17 +35,9 @@ def load_questions(db: Session, domain=None, difficulty=None, exclude_ids=None, 
     if exclude_ids:
         query = query.filter(~Question.id.in_(exclude_ids))
     
-    # Get random questions up to the limit
-    questions_count = query.count()
-    
-    if questions_count <= limit:
-        # If we have fewer questions than the limit, return all of them
-        return query.all()
-    else:
-        # Otherwise, return a random selection
-        random_ids = random.sample(range(1, questions_count + 1), limit)
-        return query.filter(Question.id.in_(random_ids)).all()
-
+    # Limit and return
+    questions = query.limit(limit).all()
+    return questions
 
 def load_random_question(db: Session, domain=None, difficulty=None, exclude_ids=None):
     """
@@ -72,16 +64,17 @@ def load_random_question(db: Session, domain=None, difficulty=None, exclude_ids=
     if exclude_ids:
         query = query.filter(~Question.id.in_(exclude_ids))
     
-    # Count total matching questions
+    # Get count of matching questions
     count = query.count()
     
     if count == 0:
         return None
     
-    # Get a random question
-    random_offset = random.randint(0, count - 1)
-    return query.offset(random_offset).first()
-
+    # Pick a random question
+    offset = random.randint(0, count - 1)
+    question = query.offset(offset).first()
+    
+    return question
 
 def get_domains(db: Session):
     """
@@ -94,8 +87,7 @@ def get_domains(db: Session):
         List of domain strings
     """
     domains = db.query(Question.domain).distinct().all()
-    return [domain[0] for domain in domains]
-
+    return [d[0] for d in domains]
 
 def get_question_by_id(db: Session, question_id):
     """
@@ -110,7 +102,6 @@ def get_question_by_id(db: Session, question_id):
     """
     return db.query(Question).filter(Question.id == question_id).first()
 
-
 def get_question_counts_by_domain(db: Session):
     """
     Get the count of questions for each domain
@@ -121,9 +112,8 @@ def get_question_counts_by_domain(db: Session):
     Returns:
         Dictionary with domain names as keys and counts as values
     """
-    counts = db.query(Question.domain, func.count(Question.id)).group_by(Question.domain).all()
-    return {domain: count for domain, count in counts}
-
+    results = db.query(Question.domain, func.count(Question.id)).group_by(Question.domain).all()
+    return {domain: count for domain, count in results}
 
 def get_next_difficulty_level(db: Session, domain: str, current_difficulty: int, correct: bool):
     """
@@ -138,20 +128,31 @@ def get_next_difficulty_level(db: Session, domain: str, current_difficulty: int,
     Returns:
         Next difficulty level (int)
     """
-    # Special case for Core Values and Mindful Morning
+    # Core Values and Mindful Morning domains don't use difficulty progression
     if domain in ["Core Values", "Mindful Morning"]:
-        return current_difficulty  # Don't increase difficulty for these domains
+        return 1
     
-    # Get the max difficulty level for this domain
-    max_difficulty = db.query(func.max(Question.difficulty)).filter(Question.domain == domain).scalar() or 4
-    
-    # If answer was correct, increase difficulty (unless at max)
+    # If answer was correct, maybe increase difficulty
     if correct:
-        return min(current_difficulty + 1, max_difficulty)
-    else:
-        # If answer was wrong, stay at current level or decrease
-        return max(current_difficulty - 1, 1)
-
+        # Only increase if not already at max
+        if current_difficulty < 4:
+            # Check if there are questions available at the next level
+            next_level = current_difficulty + 1
+            count = db.query(Question).filter(
+                Question.domain == domain,
+                Question.difficulty == next_level
+            ).count()
+            
+            # If there are questions at the next level, increase difficulty
+            if count > 0:
+                return next_level
+    
+    # If answer was wrong, maybe decrease difficulty
+    elif current_difficulty > 1:
+        return current_difficulty - 1
+    
+    # Default: keep current difficulty
+    return current_difficulty
 
 def get_domain_questions_count(db: Session, domain: str):
     """
@@ -164,4 +165,4 @@ def get_domain_questions_count(db: Session, domain: str):
     Returns:
         Integer count of questions
     """
-    return db.query(Question).filter(Question.domain == domain).count()
+    return db.query(func.count(Question.id)).filter(Question.domain == domain).scalar()
