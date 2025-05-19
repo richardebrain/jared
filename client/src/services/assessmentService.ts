@@ -1,211 +1,155 @@
-/**
- * Service for communicating with the enhanced assessment API
- */
+import axios from 'axios';
 
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? '/api/enhanced-assessment' 
-  : 'http://localhost:8000/api';
+// Use this base URL that points to our Python FastAPI backend
+const ASSESSMENT_API_BASE_URL = 'http://localhost:8088/api/v1';
 
-interface Question {
-  id: number;
-  question: string;
-  q_type: string;
-  options: Record<string, string>;
-  domain: string;
-  difficulty: number;
-  enhanced_content?: {
-    why_correct?: string;
-    practical_application?: string;
-    classroom_examples?: string;
-    citations?: string;
-    resources?: string[];
-    sub_competency?: string;
-  };
-}
+class AssessmentService {
+  private axiosInstance;
 
-interface AssessmentHistoryItem {
-  question_id: number;
-  domain: string;
-  correct: boolean;
-  difficulty: number;
-}
-
-interface AnswerFeedback {
-  correct: boolean;
-  correct_answer: string;
-  personal_message: string;
-  teaching_explanation: string;
-}
-
-interface LearningPath {
-  learning_path: Record<string, string[]>;
-  domain_scores: Record<string, number>;
-  questions_asked: number;
-  questions_correct: number;
-  strongest_domain: string;
-  weakest_domain: string;
-  user_name?: string;
-  total_points_earned: number;
-}
-
-/**
- * Start a new assessment for a user
- * @param userId The ID of the user taking the assessment
- * @returns The assessment ID
- */
-async function startAssessment(userId: number): Promise<number> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/assessment/start`, {
-      method: 'POST',
+  constructor() {
+    this.axiosInstance = axios.create({
+      baseURL: ASSESSMENT_API_BASE_URL,
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ user_id: userId }),
+      withCredentials: true, // Enable cookies for session-based auth
     });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error ${response.status}: ${await response.text()}`);
-    }
-
-    const data = await response.json();
-    return data.assessment_id;
-  } catch (error) {
-    console.error('Error starting assessment:', error);
-    throw error;
   }
-}
 
-/**
- * Get the next question in an assessment
- * @param assessmentId The ID of the assessment
- * @param history The history of questions asked so far
- * @returns The next question or an object indicating the assessment is complete
- */
-async function getNextQuestion(assessmentId: number, history: AssessmentHistoryItem[]): Promise<Question | { assessment_complete: boolean }> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/assessment/${assessmentId}/next-question`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        assessment_id: assessmentId,
-        history,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error ${response.status}: ${await response.text()}`);
+  /**
+   * Check if the assessment API is healthy
+   * @returns Health status object
+   */
+  async checkHealth() {
+    try {
+      const response = await this.axiosInstance.get('/health');
+      return response.data;
+    } catch (error) {
+      console.error('Error checking API health:', error);
+      return { status: 'unhealthy', error: error.message };
     }
-
-    const data = await response.json();
-    
-    // If assessment is complete, return that info
-    if (data.assessment_complete) {
-      return { assessment_complete: true };
-    }
-    
-    // Otherwise return the question
-    return data as Question;
-  } catch (error) {
-    console.error('Error getting next question:', error);
-    throw error;
   }
-}
 
-/**
- * Submit an answer to a question
- * @param assessmentId The ID of the assessment
- * @param questionId The ID of the question
- * @param userAnswer The user's answer
- * @param timeTakenMs The time taken to answer in milliseconds
- * @returns Feedback on the answer
- */
-async function submitAnswer(
-  assessmentId: number,
-  questionId: number,
-  userAnswer: string,
-  timeTakenMs?: number
-): Promise<AnswerFeedback> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/assessment/${assessmentId}/submit`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+  /**
+   * Get a list of available assessment domains
+   * @returns Array of domain names
+   */
+  async getDomains() {
+    try {
+      const response = await this.axiosInstance.get('/domains');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching domains:', error);
+      throw new Error('Failed to fetch assessment domains');
+    }
+  }
+
+  /**
+   * Get statistics for a specific domain
+   * @param domain Domain name
+   * @returns Domain statistics
+   */
+  async getDomainStats(domain: string) {
+    try {
+      const response = await this.axiosInstance.get(`/domains/${encodeURIComponent(domain)}/stats`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching stats for domain ${domain}:`, error);
+      throw new Error(`Failed to fetch statistics for domain: ${domain}`);
+    }
+  }
+
+  /**
+   * Start a new assessment in the specified domain
+   * @param domain Domain name
+   * @param userId User ID
+   * @returns First question for the assessment
+   */
+  async startAssessment(domain: string, userId: number) {
+    try {
+      const response = await this.axiosInstance.post('/assessments/start', {
+        domain,
+        user_id: userId,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error starting assessment:', error);
+      throw new Error('Failed to start assessment');
+    }
+  }
+
+  /**
+   * Submit an answer to a question
+   * @param questionId Question ID
+   * @param answer User's answer
+   * @param userId User ID
+   * @param timeTaken Time taken to answer in seconds (optional)
+   * @returns Assessment result with feedback and next question
+   */
+  async submitAnswer(questionId: number, answer: string, userId: number, timeTaken?: number) {
+    try {
+      const response = await this.axiosInstance.post('/assessments/submit', {
         question_id: questionId,
-        user_answer: userAnswer,
-        time_taken_ms: timeTakenMs,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error ${response.status}: ${await response.text()}`);
+        answer,
+        user_id: userId,
+        time_taken: timeTaken,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error submitting answer:', error);
+      throw new Error('Failed to submit answer');
     }
-
-    const data = await response.json();
-    return data as AnswerFeedback;
-  } catch (error) {
-    console.error('Error submitting answer:', error);
-    throw error;
   }
-}
 
-/**
- * Finish an assessment and get the learning path
- * @param assessmentId The ID of the assessment
- * @returns The learning path recommendations
- */
-async function finishAssessment(assessmentId: number): Promise<LearningPath> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/assessment/${assessmentId}/finish`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error ${response.status}: ${await response.text()}`);
+  /**
+   * Get a learning path for a user
+   * @param userId User ID
+   * @returns Personalized learning path
+   */
+  async getLearningPath(userId: number) {
+    try {
+      const response = await this.axiosInstance.get(`/users/${userId}/learning-path`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching learning path:', error);
+      throw new Error('Failed to generate learning path');
     }
+  }
 
-    const data = await response.json();
-    return data as LearningPath;
-  } catch (error) {
-    console.error('Error finishing assessment:', error);
-    throw error;
+  /**
+   * Get user progress across all domains
+   * @param userId User ID
+   * @returns User progress data
+   */
+  async getUserProgress(userId: number) {
+    try {
+      const response = await this.axiosInstance.get(`/users/${userId}/progress`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user progress:', error);
+      throw new Error('Failed to fetch progress data');
+    }
+  }
+
+  /**
+   * Get leaderboard data
+   * @param schoolId School ID (optional)
+   * @param limit Maximum number of users to return
+   * @returns Leaderboard data
+   */
+  async getLeaderboard(schoolId?: number, limit: number = 10) {
+    try {
+      let url = `/leaderboard?limit=${limit}`;
+      if (schoolId) {
+        url += `&school_id=${schoolId}`;
+      }
+      const response = await this.axiosInstance.get(url);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error);
+      throw new Error('Failed to fetch leaderboard data');
+    }
   }
 }
 
-/**
- * Check if the enhanced assessment API is available
- * @returns Whether the API is available
- */
-async function isEnhancedAssessmentAvailable(): Promise<boolean> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/health`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    return response.ok;
-  } catch (error) {
-    console.error('Enhanced assessment API not available:', error);
-    return false;
-  }
-}
-
-export {
-  startAssessment,
-  getNextQuestion,
-  submitAnswer,
-  finishAssessment,
-  isEnhancedAssessmentAvailable,
-  type Question,
-  type AssessmentHistoryItem,
-  type AnswerFeedback,
-  type LearningPath,
-};
+export default new AssessmentService();

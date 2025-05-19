@@ -12,6 +12,7 @@ import LandingPage from "@/pages/landing";
 import ProgressionMap from "@/pages/progression-map";
 import Assessment from "@/pages/assessment";
 import AssessmentResults from "@/pages/assessment-results";
+import EnhancedAssessmentPage from "@/pages/enhanced-assessment";
 import LearningModulePage from "@/pages/learning-module";
 import MicroModulePage from "@/pages/micro-module";
 import LearningStylePage from "@/pages/learning-style";
@@ -209,6 +210,10 @@ function Router() {
       
       <Route path="/test-assessment-graph">
         {isAuthenticated ? <TestAssessmentGraph /> : <Login />}
+      </Route>
+      
+      <Route path="/enhanced-assessment">
+        {isAuthenticated ? <EnhancedAssessmentPage /> : <Login />}
       </Route>
       
       <Route path="/schools/:schoolId">

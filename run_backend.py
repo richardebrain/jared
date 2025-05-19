@@ -8,8 +8,8 @@ import os
 import sys
 import logging
 import uvicorn
-from backend.database import setup_database
-from backend.import_data import import_questions_from_csv
+import argparse
+from pathlib import Path
 
 # Configure logging
 logging.basicConfig(
@@ -21,49 +21,63 @@ logger = logging.getLogger(__name__)
 def setup_database_wrapper():
     """Wrapper for database setup to handle exceptions"""
     try:
-        logger.info("Setting up database...")
-        success = setup_database()
-        if success:
-            logger.info("Database setup complete")
-        else:
-            logger.error("Database setup failed")
-            sys.exit(1)
+        from backend.database import setup_database
+        setup_database()
     except Exception as e:
         logger.error(f"Error setting up database: {e}")
-        sys.exit(1)
+        logger.warning("Continuing anyway, the API might still work with existing database")
 
 def import_sample_data():
     """Import sample questions if available"""
-    sample_data_path = os.path.join('data', 'sample_questions.csv')
-    if os.path.exists(sample_data_path):
-        try:
-            logger.info(f"Importing sample questions from {sample_data_path}")
-            count = import_questions_from_csv(sample_data_path)
-            logger.info(f"Imported {count} sample questions")
-        except Exception as e:
-            logger.error(f"Error importing sample data: {e}")
-    else:
-        logger.info("No sample data found at data/sample_questions.csv")
+    try:
+        from backend.import_data import import_questions_from_csv
+        
+        # Import sample data if available
+        sample_data_path = Path("data/sample_questions.csv")
+        if sample_data_path.exists():
+            logger.info(f"Found sample data at {sample_data_path}, importing...")
+            imported_count = import_questions_from_csv(str(sample_data_path))
+            logger.info(f"Imported {imported_count} sample questions")
+        else:
+            logger.info("No sample data found at data/sample_questions.csv")
+    except Exception as e:
+        logger.error(f"Error importing sample data: {e}")
 
 def main():
     """Main entry point"""
-    # Set up the database
-    setup_database_wrapper()
+    parser = argparse.ArgumentParser(description="MentorMe Assessment API Server")
+    parser.add_argument("--host", default="0.0.0.0", help="Host to bind to")
+    parser.add_argument("--port", type=int, default=8088, help="Port to bind to")
+    parser.add_argument("--reload", action="store_true", help="Enable auto-reload")
+    parser.add_argument(
+        "--import-sample-data", action="store_true", 
+        help="Import sample questions from data/sample_questions.csv"
+    )
+    parser.add_argument(
+        "--setup-db", action="store_true", 
+        help="Setup database schema and initial data"
+    )
     
-    # Import sample data if available
-    import_sample_data()
+    args = parser.parse_args()
     
-    # Start FastAPI server
-    port = int(os.environ.get('ASSESSMENT_API_PORT', 8088))
-    host = os.environ.get('ASSESSMENT_API_HOST', '0.0.0.0')
+    # Add the current directory to the Python path
+    sys.path.insert(0, os.path.abspath("."))
     
-    logger.info(f"Starting MentorMe Assessment API on {host}:{port}")
+    # Setup database if requested
+    if args.setup_db:
+        setup_database_wrapper()
+    
+    # Import sample data if requested
+    if args.import_sample_data:
+        import_sample_data()
+    
+    # Start the server
+    logger.info(f"Starting MentorMe Assessment API on {args.host}:{args.port}")
     uvicorn.run(
         "backend.main:app",
-        host=host,
-        port=port,
-        reload=False,
-        workers=1,
+        host=args.host,
+        port=args.port,
+        reload=args.reload,
         log_level="info"
     )
 
