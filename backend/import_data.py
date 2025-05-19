@@ -4,18 +4,18 @@ This script reads the CSV file containing the enhanced questions data
 and populates the database tables for the assessment system
 """
 
+import os
 import csv
 import json
-import os
-from datetime import datetime
-from typing import Dict, List, Optional, Any, Tuple
 import logging
-from contextlib import contextmanager
+from typing import Dict, List, Tuple, Optional
+from datetime import datetime
 
+import pandas as pd
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from .database import setup_database, get_db_context
+from .database import get_db_context, setup_database
 from .models import Question
 
 # Configure logging
@@ -27,132 +27,234 @@ logger = logging.getLogger("import_data")
 
 def setup_database():
     """Create database tables if they don't exist"""
-    from .database import setup_database as db_setup
-    db_setup()
-    logger.info("Database tables created or verified")
+    try:
+        from .database import setup_database as db_setup
+        db_setup()
+        logger.info("Database tables created or verified")
+    except SQLAlchemyError as e:
+        logger.error(f"Database setup error: {e}")
+        return False, str(e)
+    return True, "Database setup successful"
 
 def clean_text(text):
     """Clean text fields from the CSV"""
-    if not text:
+    if not text or pd.isna(text):
         return None
-    
-    # Remove extra whitespace and quotes
-    text = text.strip()
-    if text.startswith('"') and text.endswith('"'):
-        text = text[1:-1]
-    
-    # Return None for empty strings or placeholder values
-    if text in ["", "N/A", "None", "null"]:
-        return None
-    
-    return text
+    # Strip whitespace and normalize line breaks
+    return text.strip().replace('\\n', '\n')
 
 def import_questions_from_csv(file_path="attached_assets/ece_master_database_full_with_why.csv"):
     """Import questions from CSV file into database"""
     if not os.path.exists(file_path):
-        logger.error(f"CSV file not found: {file_path}")
         return False, f"CSV file not found: {file_path}"
     
-    success_count = 0
-    error_count = 0
-    
-    with get_db_context() as db:
-        try:
-            with open(file_path, 'r', encoding='utf-8') as csvfile:
-                reader = csv.DictReader(csvfile)
-                
-                for row_idx, row in enumerate(reader, start=1):
-                    try:
-                        # Create options dictionary
-                        options = {}
-                        for opt in ['A', 'B', 'C', 'D']:
-                            option_key = f'option_{opt.lower()}'
-                            if option_key in row and row[option_key]:
-                                options[opt] = clean_text(row[option_key])
-                        
-                        # Process resources as a list
-                        resources = []
-                        if 'resources' in row and row['resources']:
-                            resources_text = clean_text(row['resources'])
-                            if resources_text:
-                                # Try to parse as JSON if it looks like a list
-                                if resources_text.startswith('[') and resources_text.endswith(']'):
-                                    try:
-                                        resources = json.loads(resources_text)
-                                    except json.JSONDecodeError:
-                                        # Split by commas if JSON parsing fails
-                                        resources = [r.strip() for r in resources_text.split(',')]
-                                else:
-                                    # Split by commas
-                                    resources = [r.strip() for r in resources_text.split(',')]
-                        
-                        # Create question object
-                        question = Question()
-                        question.question = clean_text(row.get('question', ''))
-                        question.domain = clean_text(row.get('domain', 'General'))
-                        question.difficulty = int(clean_text(row.get('difficulty', '1')) or 1)
-                        question.q_type = clean_text(row.get('q_type', 'multiple_choice')) or 'multiple_choice'
-                        question.options = options
-                        question.correct_answer = clean_text(row.get('correct_answer', ''))
-                        question.sub_competency = clean_text(row.get('sub_competency'))
-                        question.competency = clean_text(row.get('competency'))
-                        question.class_dimension = clean_text(row.get('class_dimension'))
-                        question.practical_application_strategy = clean_text(row.get('practical_application_strategy'))
-                        question.why_behind_it = clean_text(row.get('why_behind_it'))
-                        question.classroom_examples = clean_text(row.get('classroom_examples'))
-                        question.citations = clean_text(row.get('citations'))
-                        question.resources = resources
-                        question.created_at = datetime.utcnow()
-                        question.updated_at = datetime.utcnow().isoformat()
-                        
-                        # Validate required fields
-                        if not question.question:
-                            raise ValueError("Question text is required")
-                        
-                        if not question.correct_answer:
-                            raise ValueError("Correct answer is required")
-                        
-                        # Save to database
-                        db.add(question)
-                        success_count += 1
-                        
-                        # Log progress every 100 records
-                        if success_count % 100 == 0:
-                            logger.info(f"Imported {success_count} questions so far...")
-                        
-                    except Exception as e:
-                        error_count += 1
-                        logger.error(f"Error importing row {row_idx}: {str(e)}")
+    try:
+        # Read the CSV file using pandas for better handling of messy data
+        df = pd.read_csv(file_path, encoding='utf-8')
+        
+        # Rename columns to match our schema and handle inconsistent naming
+        column_mapping = {
+            'Question': 'question_text',
+            'Type': 'type',
+            'Options': 'options',
+            'Correct Answer': 'correct_answer',
+            'Domain': 'domain',
+            'Difficulty': 'difficulty',
+            'Sub-Competency': 'sub_competency',
+            'Why Correct': 'why_correct',
+            'Practical Application': 'practical_application',
+            'Classroom Examples': 'classroom_examples',
+            'Citations': 'citations',
+            'Resources': 'resources'
+        }
+        
+        # Try different possible column names
+        for old_name, new_name in column_mapping.items():
+            possible_names = [
+                old_name, 
+                old_name.lower(), 
+                old_name.replace(' ', '_'),
+                old_name.replace(' ', '_').lower(),
+                old_name.replace('-', ''),
+                old_name.replace('-', '_'),
+                new_name
+            ]
+            for name in possible_names:
+                if name in df.columns:
+                    df = df.rename(columns={name: new_name})
+                    break
+        
+        # Ensure required columns exist
+        required_cols = ['question_text', 'correct_answer', 'domain']
+        for col in required_cols:
+            if col not in df.columns:
+                return False, f"Required column {col} not found in CSV"
+        
+        # Process the data
+        with get_db_context() as db:
+            questions_added = 0
+            questions_updated = 0
+            questions_failed = 0
+            
+            # Get existing question texts to avoid duplicates
+            existing_questions = db.query(Question.question_text).all()
+            existing_question_texts = {q.question_text for q in existing_questions}
+            
+            # Process each row in the dataframe
+            for _, row in df.iterrows():
+                try:
+                    # Clean and prepare the data
+                    question_text = clean_text(row.get('question_text'))
+                    if not question_text:
+                        questions_failed += 1
                         continue
+                    
+                    # Check if question already exists
+                    if question_text in existing_question_texts:
+                        # Update existing question
+                        existing_q = db.query(Question).filter(Question.question_text == question_text).first()
+                        if existing_q:
+                            # Update non-null fields
+                            for field in column_mapping.values():
+                                if field in row and not pd.isna(row.get(field)) and field != 'question_text':
+                                    value = clean_text(row.get(field))
+                                    # Convert options to JSON if it's a string
+                                    if field == 'options' and value and not value.startswith('{'):
+                                        options_dict = {}
+                                        try:
+                                            # Parse option format like "A: Option text, B: Option text"
+                                            parts = value.split(',')
+                                            for part in parts:
+                                                if ':' in part:
+                                                    key, val = part.split(':', 1)
+                                                    options_dict[key.strip()] = val.strip()
+                                            value = json.dumps(options_dict)
+                                        except Exception as e:
+                                            logger.warning(f"Failed to parse options for question: {question_text}, error: {e}")
+                                    
+                                    # Convert resources to JSON if it's a string
+                                    if field == 'resources' and value and not value.startswith('['):
+                                        try:
+                                            resources_list = [r.strip() for r in value.split(',')]
+                                            value = json.dumps(resources_list)
+                                        except Exception as e:
+                                            logger.warning(f"Failed to parse resources for question: {question_text}, error: {e}")
+                                    
+                                    # Convert difficulty to integer if it's a string
+                                    if field == 'difficulty' and value:
+                                        try:
+                                            value = int(value)
+                                        except (ValueError, TypeError):
+                                            # Default to difficulty 1 if conversion fails
+                                            value = 1
+                                    
+                                    # Set the attribute
+                                    setattr(existing_q, field, value)
+                            
+                            questions_updated += 1
+                        else:
+                            # This shouldn't happen, but log it if it does
+                            logger.warning(f"Question text found in existing set but query returned None: {question_text}")
+                            questions_failed += 1
+                            continue
+                    else:
+                        # Create new question
+                        question_data = {}
+                        for field in column_mapping.values():
+                            if field in row:
+                                value = clean_text(row.get(field))
+                                
+                                # Handle special fields
+                                if field == 'options' and value and not value.startswith('{'):
+                                    options_dict = {}
+                                    try:
+                                        # Parse option format like "A: Option text, B: Option text"
+                                        parts = value.split(',')
+                                        for part in parts:
+                                            if ':' in part:
+                                                key, val = part.split(':', 1)
+                                                options_dict[key.strip()] = val.strip()
+                                        value = json.dumps(options_dict)
+                                    except Exception as e:
+                                        logger.warning(f"Failed to parse options for new question: {question_text}, error: {e}")
+                                
+                                # Convert resources to JSON if it's a string
+                                if field == 'resources' and value and not value.startswith('['):
+                                    try:
+                                        resources_list = [r.strip() for r in value.split(',')]
+                                        value = json.dumps(resources_list)
+                                    except Exception as e:
+                                        logger.warning(f"Failed to parse resources for new question: {question_text}, error: {e}")
+                                
+                                # Convert difficulty to integer if it's a string
+                                if field == 'difficulty' and value:
+                                    try:
+                                        value = int(value)
+                                    except (ValueError, TypeError):
+                                        # Default to difficulty 1 if conversion fails
+                                        value = 1
+                                
+                                question_data[field] = value
+                        
+                        # Ensure required fields are present
+                        if not question_data.get('question_text') or not question_data.get('correct_answer') or not question_data.get('domain'):
+                            logger.warning(f"Skipping row due to missing required field: {row}")
+                            questions_failed += 1
+                            continue
+                        
+                        # Default fields if not present
+                        if 'type' not in question_data or not question_data['type']:
+                            question_data['type'] = 'multiple_choice'
+                        
+                        if 'difficulty' not in question_data or not question_data['difficulty']:
+                            question_data['difficulty'] = 1
+                        
+                        # Create and add new question
+                        new_question = Question(**question_data)
+                        db.add(new_question)
+                        questions_added += 1
+                        
+                        # Add to existing questions set to prevent duplicates
+                        existing_question_texts.add(question_text)
                 
-                # Commit at the end
-                db.commit()
+                except Exception as e:
+                    logger.error(f"Error processing row: {e}")
+                    questions_failed += 1
             
-            logger.info(f"Import completed. Successful: {success_count}, Failed: {error_count}")
-            return True, f"Import completed. Successful: {success_count}, Failed: {error_count}"
+            # Commit changes
+            db.commit()
             
-        except Exception as e:
-            db.rollback()
-            error_msg = f"Error during import: {str(e)}"
-            logger.error(error_msg)
-            return False, error_msg
+            return True, f"Import completed: {questions_added} questions added, {questions_updated} updated, {questions_failed} failed"
+    
+    except Exception as e:
+        logger.error(f"Import error: {e}")
+        return False, f"Import failed: {str(e)}"
 
 def run_import():
     """Main function to run the import process"""
-    logger.info("Starting import process...")
+    logger.info("Starting import process")
     
-    # Setup the database
-    setup_database()
+    # Set up the database first
+    success, message = setup_database()
+    if not success:
+        return success, message
     
-    # Import questions
-    success, message = import_questions_from_csv()
+    # Import questions from CSV
+    file_path = "attached_assets/ece_master_database_full_with_why.csv"
+    if not os.path.exists(file_path):
+        # Try alternate file
+        file_path = "attached_assets/ece_master_database_ready.csv"
+        if not os.path.exists(file_path):
+            return False, "Question database CSV files not found"
     
-    if success:
-        logger.info("Import completed successfully")
-    else:
-        logger.error(f"Import failed: {message}")
+    logger.info(f"Importing questions from {file_path}")
+    success, message = import_questions_from_csv(file_path)
     
+    logger.info(f"Import process complete: {message}")
     return success, message
 
 if __name__ == "__main__":
-    run_import()
+    success, message = run_import()
+    print(f"Import result: {message}")
+    if not success:
+        exit(1)

@@ -3,10 +3,11 @@ Main entry point for MentorMe Assessment API
 This script starts the FastAPI server for the assessment system
 """
 
-import argparse
+import os
 import uvicorn
 import logging
-from backend import server
+from dotenv import load_dotenv
+
 from backend.database import setup_database
 
 # Configure logging
@@ -19,58 +20,35 @@ logger = logging.getLogger("run_backend")
 def setup_database():
     """Create database tables if they don't exist"""
     try:
-        setup_database()
+        from backend.database import setup_database as db_setup
+        db_setup()
         logger.info("Database tables created or verified")
+        return True
     except Exception as e:
-        logger.error(f"Error setting up database: {str(e)}")
-        raise
+        logger.error(f"Database setup error: {e}")
+        return False
 
 def main():
     """Main entry point"""
-    parser = argparse.ArgumentParser(description="MentorMe Enhanced Assessment API server")
-    parser.add_argument(
-        "--host", 
-        type=str,
-        default="127.0.0.1",
-        help="Host address (default: 127.0.0.1)"
-    )
-    parser.add_argument(
-        "--port", 
-        type=int,
-        default=8000,
-        help="Port number (default: 8000)"
-    )
-    parser.add_argument(
-        "--reload",
-        action="store_true",
-        help="Enable auto-reload for development"
-    )
-    parser.add_argument(
-        "--import-data",
-        action="store_true",
-        help="Import questions data from CSV on startup"
-    )
+    # Load environment variables
+    load_dotenv()
     
-    args = parser.parse_args()
+    # Set up the database tables
+    if not setup_database():
+        logger.error("Failed to set up database tables. Exiting.")
+        return
     
-    # Setup database
-    setup_database()
+    # Get port from environment or use default
+    port = int(os.environ.get("PORT", 8000))
     
-    # Import data if requested
-    if args.import_data:
-        from backend.import_data import run_import
-        success, message = run_import()
-        logger.info(f"Data import: {message}")
-    
-    # Start FastAPI server
-    logger.info(f"Starting server on {args.host}:{args.port}")
-    
+    # Start the server
+    logger.info(f"Starting MentorMe Assessment API server on port {port}")
     uvicorn.run(
         "backend.server:app",
-        host=args.host,
-        port=args.port,
-        reload=args.reload,
-        access_log=True
+        host="0.0.0.0",
+        port=port,
+        reload=True if os.environ.get("DEVELOPMENT") else False,
+        log_level="info"
     )
 
 if __name__ == "__main__":
