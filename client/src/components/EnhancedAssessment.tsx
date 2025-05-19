@@ -1,407 +1,417 @@
-/**
- * EnhancedAssessment Component
- * This component renders the enhanced assessment experience using the FastAPI backend
- */
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { toast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Spinner } from '@/components/ui/spinner';
+import { useNavigate } from 'react-router-dom';
+import confetti from 'canvas-confetti';
+
 import {
   startAssessment,
   getNextQuestion,
   submitAnswer,
   finishAssessment,
-  AssessmentQuestion,
-  AnswerResult,
   AssessmentHistoryItem,
-  LearningPath
+  QuestionResponse,
+  AnswerResult,
+  LearningPathResponse
 } from '../services/assessmentService';
 
-// Sound effects for correct and incorrect answers
-import correctSoundSrc from '../assets/sounds/correct-answer.mp3';
-import incorrectSoundSrc from '../assets/sounds/incorrect-answer.mp3';
+// Sound effects for feedback
+const CORRECT_SOUND = new Audio('/sounds/correct.mp3');
+const INCORRECT_SOUND = new Audio('/sounds/incorrect.mp3');
+const COMPLETE_SOUND = new Audio('/sounds/complete.mp3');
 
-// Define component props
-interface EnhancedAssessmentProps {
+export interface EnhancedAssessmentProps {
   userId: number;
-  onCompleted?: (results: LearningPath) => void;
+  onComplete?: (result: LearningPathResponse) => void;
 }
 
-// Main component
-const EnhancedAssessment: React.FC<EnhancedAssessmentProps> = ({ userId, onCompleted }) => {
-  // State variables
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+const EnhancedAssessment: React.FC<EnhancedAssessmentProps> = ({ userId, onComplete }) => {
+  // Assessment state
   const [assessmentId, setAssessmentId] = useState<number | null>(null);
-  const [currentQuestion, setCurrentQuestion] = useState<AssessmentQuestion | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [currentQuestion, setCurrentQuestion] = useState<QuestionResponse | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [answerResult, setAnswerResult] = useState<AnswerResult | null>(null);
   const [history, setHistory] = useState<AssessmentHistoryItem[]>([]);
-  const [showingResult, setShowingResult] = useState(false);
-  const [assessmentComplete, setAssessmentComplete] = useState(false);
-  const [learningPath, setLearningPath] = useState<LearningPath | null>(null);
-  const [startTime, setStartTime] = useState<number | null>(null);
-  const [loadingNextQuestion, setLoadingNextQuestion] = useState(false);
-  
-  // Sound effect references
-  const correctSound = new Audio(correctSoundSrc);
-  const incorrectSound = new Audio(incorrectSoundSrc);
-  
+  const [showingFeedback, setShowingFeedback] = useState<boolean>(false);
+  const [assessmentComplete, setAssessmentComplete] = useState<boolean>(false);
+  const [learningPath, setLearningPath] = useState<LearningPathResponse | null>(null);
+  const [startTime, setStartTime] = useState<number>(0);
+  const [questionsAnswered, setQuestionsAnswered] = useState<number>(0);
+  const [questionsCorrect, setQuestionsCorrect] = useState<number>(0);
+
   const navigate = useNavigate();
 
-  // Start assessment on component mount
+  // Initialize assessment
   useEffect(() => {
     const initAssessment = async () => {
       try {
-        setIsLoading(true);
-        setError(null);
-        
-        // Start a new assessment
-        const newAssessmentId = await startAssessment(userId);
-        setAssessmentId(newAssessmentId);
-        
-        // Get the first question
-        await loadNextQuestion(newAssessmentId, []);
-      } catch (err) {
-        console.error('Error initializing assessment:', err);
-        setError('Failed to start assessment. Please try again.');
+        setLoading(true);
+        const id = await startAssessment(userId);
+        setAssessmentId(id);
+        console.log('Question tracking reset for new assessment');
+
+        // Get first question
+        const firstQuestion = await getNextQuestion(id, []);
+        setCurrentQuestion(firstQuestion);
+      } catch (error) {
+        console.error('Error initializing assessment:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to start assessment. Please try again.',
+          variant: 'destructive',
+        });
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
-    
-    initAssessment();
+
+    if (userId) {
+      initAssessment();
+    }
   }, [userId]);
 
-  // Function to load the next question
-  const loadNextQuestion = async (id: number, questionHistory: AssessmentHistoryItem[]) => {
+  // Load next question when submitting an answer
+  const loadNextQuestion = async () => {
+    if (!assessmentId) return;
+
     try {
-      setLoadingNextQuestion(true);
-      setSelectedAnswer(null);
+      setLoading(true);
       setAnswerResult(null);
-      setShowingResult(false);
+      setSelectedAnswer(null);
+      setShowingFeedback(false);
+
+      const nextQuestion = await getNextQuestion(assessmentId, history);
       
-      const question = await getNextQuestion(id, questionHistory);
-      
-      // If no question is returned, the assessment is complete
-      if (!question) {
-        setAssessmentComplete(true);
-        const results = await finishAssessment(id);
-        setLearningPath(results);
-        if (onCompleted) {
-          onCompleted(results);
-        }
+      if (!nextQuestion) {
+        // No more questions - complete assessment
+        completeAssessment();
         return;
       }
-      
-      setCurrentQuestion(question);
+
+      setCurrentQuestion(nextQuestion);
       setStartTime(Date.now());
-    } catch (err) {
-      console.error('Error loading next question:', err);
-      setError('Failed to load the next question. Please try again.');
+    } catch (error) {
+      console.error('Error loading next question:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load next question. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
-      setLoadingNextQuestion(false);
+      setLoading(false);
     }
   };
 
-  // Function to handle answer submission
-  const handleAnswerSubmit = async () => {
-    if (!assessmentId || !currentQuestion || !selectedAnswer) return;
-    
+  // Submit an answer
+  const handleAnswerSubmit = async (answer: string) => {
+    if (!assessmentId || !currentQuestion || showingFeedback) return;
+
     try {
-      setIsLoading(true);
+      setSelectedAnswer(answer);
+      const timeTaken = Date.now() - startTime;
       
-      // Calculate time taken to answer
-      const timeTakenMs = startTime ? Date.now() - startTime : undefined;
-      
-      // Submit the answer
-      const result = await submitAnswer(assessmentId, {
-        question_id: currentQuestion.id,
-        user_answer: selectedAnswer,
-        time_taken_ms: timeTakenMs
-      });
+      const result = await submitAnswer(
+        assessmentId,
+        currentQuestion.id,
+        answer,
+        timeTaken
+      );
+
+      setAnswerResult(result);
+      setShowingFeedback(true);
       
       // Play sound based on result
       if (result.is_correct) {
-        correctSound.play();
+        CORRECT_SOUND.play();
+        setQuestionsCorrect(prev => prev + 1);
       } else {
-        incorrectSound.play();
+        INCORRECT_SOUND.play();
       }
+
+      setQuestionsAnswered(prev => prev + 1);
       
-      setAnswerResult(result);
-      setShowingResult(true);
-      
-      // Update history
+      // Add to history
       const historyItem: AssessmentHistoryItem = {
         question_id: currentQuestion.id,
         domain: currentQuestion.domain,
         correct: result.is_correct,
-        difficulty: currentQuestion.difficulty
+        difficulty: currentQuestion.difficulty,
       };
       
-      const updatedHistory = [...history, historyItem];
-      setHistory(updatedHistory);
-    } catch (err) {
-      console.error('Error submitting answer:', err);
-      setError('Failed to submit your answer. Please try again.');
-    } finally {
-      setIsLoading(false);
+      setHistory(prev => [...prev, historyItem]);
+    } catch (error) {
+      console.error('Error submitting answer:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to submit answer. Please try again.',
+        variant: 'destructive',
+      });
     }
   };
 
-  // Function to proceed to the next question
-  const handleNextQuestion = () => {
+  // Complete the assessment
+  const completeAssessment = async () => {
     if (!assessmentId) return;
-    loadNextQuestion(assessmentId, history);
-  };
 
-  // Function to finish the assessment early
-  const handleFinishEarly = async () => {
-    if (!assessmentId) return;
-    
     try {
-      setIsLoading(true);
-      const results = await finishAssessment(assessmentId);
-      setLearningPath(results);
+      setLoading(true);
+      const result = await finishAssessment(assessmentId);
+      setLearningPath(result);
       setAssessmentComplete(true);
-      if (onCompleted) {
-        onCompleted(results);
+      
+      // Play completion sound and trigger confetti
+      COMPLETE_SOUND.play();
+      launchConfetti();
+      
+      // Call onComplete callback if provided
+      if (onComplete) {
+        onComplete(result);
       }
-    } catch (err) {
-      console.error('Error finishing assessment:', err);
-      setError('Failed to finish assessment. Please try again.');
+    } catch (error) {
+      console.error('Error completing assessment:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to complete assessment. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
-  
-  // Function to view assessment results
-  const handleViewResults = () => {
-    navigate('/assessment-results', { state: { learningPath } });
+
+  // Launch confetti animation
+  const launchConfetti = () => {
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
   };
 
-  // Render loading state
-  if (isLoading && !currentQuestion) {
-    return (
-      <div className="flex flex-col items-center justify-center p-6 min-h-[50vh]">
-        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="mt-4 text-lg">Loading assessment...</p>
-      </div>
-    );
-  }
+  // Render question
+  const renderQuestion = () => {
+    if (!currentQuestion) return null;
 
-  // Render error state
-  if (error) {
     return (
-      <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
-        <h2 className="text-xl font-semibold text-red-700 mb-2">Error</h2>
-        <p className="text-red-600">{error}</p>
-        <button 
-          onClick={() => window.location.reload()} 
-          className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-        >
-          Try Again
-        </button>
-      </div>
-    );
-  }
-
-  // Render assessment complete state
-  if (assessmentComplete) {
-    return (
-      <div className="p-6 bg-gradient-to-br from-green-50 to-blue-50 rounded-lg border border-green-200">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-bold text-center mb-6 text-green-700">
-            Assessment Complete! 🎉
-          </h2>
-          
-          {learningPath && (
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <div className="mb-6">
-                <h3 className="text-xl font-semibold mb-2">Your Performance</h3>
-                <p className="mb-1">
-                  <span className="font-medium">Questions answered:</span> {learningPath.questions_asked}
-                </p>
-                <p className="mb-1">
-                  <span className="font-medium">Correct answers:</span> {learningPath.questions_correct}
-                </p>
-                <p className="mb-1">
-                  <span className="font-medium">Score:</span> {Math.round((learningPath.questions_correct / Math.max(1, learningPath.questions_asked)) * 100)}%
-                </p>
-              </div>
-              
-              <div className="mb-6">
-                <h3 className="text-xl font-semibold mb-2">Your Strengths</h3>
-                <p className="mb-1">
-                  <span className="font-medium">Strongest domain:</span> {learningPath.strongest_domain}
-                </p>
-                <div className="h-2 bg-gray-200 rounded-full mt-2 mb-4">
-                  <div 
-                    className="h-full bg-green-500 rounded-full" 
-                    style={{ width: `${learningPath.domain_scores[learningPath.strongest_domain] * 100}%` }}
-                  ></div>
-                </div>
-              </div>
-              
-              <div className="mb-6">
-                <h3 className="text-xl font-semibold mb-2">Areas for Growth</h3>
-                <p className="mb-1">
-                  <span className="font-medium">Area to focus on:</span> {learningPath.weakest_domain}
-                </p>
-                <div className="h-2 bg-gray-200 rounded-full mt-2 mb-4">
-                  <div 
-                    className="h-full bg-yellow-500 rounded-full" 
-                    style={{ width: `${learningPath.domain_scores[learningPath.weakest_domain] * 100}%` }}
-                  ></div>
-                </div>
-              </div>
-              
-              <div className="mb-6">
-                <h3 className="text-xl font-semibold mb-2">Recommended Training</h3>
-                <ul className="list-disc list-inside space-y-1">
-                  {learningPath.learning_path.recommended_modules?.map((module, index) => (
-                    <li key={index} className="text-blue-600">{module}</li>
-                  ))}
-                </ul>
-              </div>
-              
-              <div className="flex justify-center mt-8">
-                <button
-                  onClick={handleViewResults}
-                  className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  View Detailed Results
-                </button>
-              </div>
-            </div>
-          )}
-          
-          <div className="mt-6 text-center">
-            <Link 
-              to="/dashboard" 
-              className="text-blue-600 hover:text-blue-800 transition-colors"
-            >
-              Return to Dashboard
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Render current question
-  return (
-    <div className="p-4 md:p-6 bg-white rounded-lg shadow">
-      {currentQuestion && (
-        <div>
-          <div className="mb-6">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-sm font-medium text-gray-500">
-                Domain: {currentQuestion.domain}
-              </span>
-              <span className="text-sm font-medium px-2 py-1 bg-blue-100 text-blue-800 rounded">
-                Difficulty: {currentQuestion.difficulty}/4
-              </span>
-            </div>
-            
-            <h2 className="text-xl font-bold mb-6">{currentQuestion.question}</h2>
-            
-            <div className="space-y-3">
-              {Object.entries(currentQuestion.options).map(([key, value]) => (
-                <div 
-                  key={key}
-                  onClick={() => !showingResult && setSelectedAnswer(key)}
-                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                    selectedAnswer === key 
-                      ? 'border-blue-500 bg-blue-50' 
-                      : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
-                  } ${
-                    showingResult && answerResult 
-                      ? answerResult.correct_answer === key
-                        ? 'border-green-500 bg-green-50'
-                        : selectedAnswer === key && selectedAnswer !== answerResult.correct_answer
-                          ? 'border-red-500 bg-red-50'
-                          : ''
-                      : ''
+      <div className="space-y-6">
+        <div className="py-4">
+          <h3 className="text-lg font-medium mb-2">Domain: {currentQuestion.domain}</h3>
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-sm text-gray-500">Difficulty:</span>
+            <div className="flex">
+              {[1, 2, 3, 4].map((level) => (
+                <div
+                  key={level}
+                  className={`w-5 h-2 mx-0.5 rounded-sm ${
+                    level <= currentQuestion.difficulty
+                      ? 'bg-primary'
+                      : 'bg-gray-200'
                   }`}
-                >
-                  <div className="flex items-start">
-                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-200 text-gray-700 mr-3">
-                      {key}
-                    </span>
-                    <p>{value}</p>
-                  </div>
-                </div>
+                />
               ))}
             </div>
           </div>
+          <p className="text-xl font-semibold mb-6">{currentQuestion.question}</p>
           
-          {showingResult && answerResult && (
-            <div className={`p-4 rounded-lg mt-6 ${
-              answerResult.is_correct ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
-            }`}>
-              <h3 className={`text-lg font-semibold mb-2 ${
-                answerResult.is_correct ? 'text-green-700' : 'text-red-700'
-              }`}>
-                {answerResult.is_correct 
-                  ? 'Correct! Great job!' 
-                  : `Incorrect. The correct answer is ${answerResult.correct_answer}.`
-                }
-              </h3>
-              <p className="mb-4">{answerResult.explanation}</p>
-              
-              {answerResult.extended_content && (
-                <div className="mt-4">
-                  <h4 className="font-medium mb-2">Learn More:</h4>
-                  {answerResult.extended_content.science_behind_it && (
-                    <div className="mb-3">
-                      <h5 className="font-medium text-blue-700">The Science Behind It:</h5>
-                      <p>{answerResult.extended_content.science_behind_it}</p>
-                    </div>
-                  )}
-                  {answerResult.extended_content.practical_application && (
-                    <div className="mb-3">
-                      <h5 className="font-medium text-green-700">Practical Application:</h5>
-                      <p>{answerResult.extended_content.practical_application}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-          
-          <div className="mt-6 flex justify-between">
-            <button
-              onClick={handleFinishEarly}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-              disabled={showingResult || loadingNextQuestion}
-            >
-              Finish Early
-            </button>
-            
-            {!showingResult ? (
+          <div className="space-y-3">
+            {Object.entries(currentQuestion.options).map(([key, value]) => (
               <button
-                onClick={handleAnswerSubmit}
-                disabled={!selectedAnswer || loadingNextQuestion}
-                className={`px-6 py-2 rounded-lg font-medium ${
-                  selectedAnswer && !loadingNextQuestion
-                    ? 'bg-blue-600 text-white hover:bg-blue-700'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                } transition-colors`}
-              >
-                Submit Answer
-              </button>
-            ) : (
-              <button
-                onClick={handleNextQuestion}
-                disabled={loadingNextQuestion}
-                className={`px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors ${
-                  loadingNextQuestion ? 'opacity-70 cursor-wait' : ''
+                key={key}
+                className={`w-full p-4 text-left rounded-lg border transition-colors ${
+                  selectedAnswer === key
+                    ? showingFeedback
+                      ? answerResult?.correct_answer === key
+                        ? 'bg-green-100 border-green-500'
+                        : answerResult?.is_correct === false && selectedAnswer === key
+                        ? 'bg-red-100 border-red-500'
+                        : 'bg-blue-100 border-blue-500'
+                      : 'bg-blue-100 border-blue-500'
+                    : 'bg-white hover:bg-gray-50 border-gray-200'
                 }`}
+                onClick={() => handleAnswerSubmit(key)}
+                disabled={showingFeedback}
               >
-                {loadingNextQuestion ? 'Loading...' : 'Next Question'}
+                <span className="font-medium mr-2">{key}.</span> {value}
               </button>
-            )}
+            ))}
           </div>
         </div>
+
+        {showingFeedback && answerResult && (
+          <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
+            <div className={`p-3 rounded-lg mb-4 ${
+              answerResult.is_correct ? 'bg-green-100' : 'bg-red-100'
+            }`}>
+              <h4 className="font-medium mb-1">
+                {answerResult.is_correct
+                  ? 'Correct! Great job!'
+                  : `Incorrect. The correct answer is ${answerResult.correct_answer}.`}
+              </h4>
+            </div>
+            
+            <div className="mb-4">
+              <h4 className="font-medium mb-1">Explanation:</h4>
+              <p>{answerResult.explanation}</p>
+            </div>
+            
+            {answerResult.extended_content && (
+              <div className="border-t pt-3 mt-3">
+                <h4 className="font-medium mb-1">Additional Information:</h4>
+                {answerResult.extended_content.story_why && (
+                  <div className="mb-2">
+                    <h5 className="text-sm font-medium">Why This Matters:</h5>
+                    <p className="text-sm">{answerResult.extended_content.story_why}</p>
+                  </div>
+                )}
+                {answerResult.extended_content.implementation_how && (
+                  <div className="mb-2">
+                    <h5 className="text-sm font-medium">How to Implement:</h5>
+                    <p className="text-sm">{answerResult.extended_content.implementation_how}</p>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            <Button 
+              className="mt-4 w-full" 
+              onClick={loadNextQuestion}
+            >
+              Next Question
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Render assessment completion
+  const renderCompletion = () => {
+    if (!learningPath) return null;
+
+    return (
+      <div className="space-y-6">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold mb-2">Assessment Complete!</h2>
+          <p className="text-lg">
+            You answered {learningPath.questions_correct} out of {learningPath.questions_asked} questions correctly.
+          </p>
+          <div className="mt-4 flex justify-center">
+            <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center">
+              <span className="text-2xl font-bold">
+                {Math.round((learningPath.questions_correct / learningPath.questions_asked) * 100)}%
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-xl font-semibold mb-3">Your Strengths & Areas for Growth</h3>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card className="p-4 border-green-200 bg-green-50">
+              <h4 className="font-medium mb-2">Strongest Area: {learningPath.strongest_domain}</h4>
+              <p className="text-sm">
+                You demonstrated strong understanding in this domain. Consider mentoring others!
+              </p>
+            </Card>
+            <Card className="p-4 border-amber-200 bg-amber-50">
+              <h4 className="font-medium mb-2">Growth Area: {learningPath.weakest_domain}</h4>
+              <p className="text-sm">
+                Focus your learning journey on this area to improve your overall expertise.
+              </p>
+            </Card>
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-xl font-semibold mb-3">Your Personalized Learning Path</h3>
+          <div className="space-y-4">
+            {Object.entries(learningPath.domain_scores).map(([domain, score]) => (
+              <div key={domain} className="border rounded-lg p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="font-medium">{domain}</h4>
+                  <span className="text-sm font-medium">{Math.round(score * 100)}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div
+                    className="bg-primary h-2.5 rounded-full"
+                    style={{ width: `${Math.round(score * 100)}%` }}
+                  ></div>
+                </div>
+                {learningPath.learning_path[domain] && (
+                  <div className="mt-3">
+                    <h5 className="text-sm font-medium mb-1">Recommended Resources:</h5>
+                    <ul className="list-disc pl-5 text-sm">
+                      {learningPath.learning_path[domain].map((item, index) => (
+                        <li key={index}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex gap-4 justify-center mt-6">
+          <Button 
+            onClick={() => navigate('/dashboard')} 
+            variant="outline"
+          >
+            Return to Dashboard
+          </Button>
+          <Button 
+            onClick={() => navigate('/learning-path')}
+          >
+            View Full Learning Path
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  // Main render
+  if (loading && !currentQuestion && !assessmentComplete) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Spinner size="lg" />
+        <span className="ml-3">Loading assessment...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-3xl mx-auto">
+      {!assessmentComplete ? (
+        <div>
+          <div className="mb-6 flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold">Adaptive Assessment</h2>
+              <p className="text-gray-600">
+                Questions: {questionsAnswered} | Correct: {questionsCorrect}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-gray-600">Progress</p>
+              <div className="w-32 bg-gray-200 rounded-full h-2.5">
+                <div
+                  className="bg-primary h-2.5 rounded-full"
+                  style={{ width: `${Math.min((questionsAnswered / 30) * 100, 100)}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+          
+          <Card className="p-6">
+            {renderQuestion()}
+          </Card>
+        </div>
+      ) : (
+        <Card className="p-8">
+          {renderCompletion()}
+        </Card>
       )}
     </div>
   );
