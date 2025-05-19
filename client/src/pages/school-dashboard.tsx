@@ -58,11 +58,18 @@ const schoolSettingsSchema = z.object({
 
 export default function SchoolDashboard() {
   const { schoolId } = useParams();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const [adminKey, setAdminKey] = useState("");
-  const [showAdminAuth, setShowAdminAuth] = useState(true);
+  
+  // Extract admin key from URL if present
+  const extractAdminKey = () => {
+    const searchParams = new URLSearchParams(window.location.search);
+    return searchParams.get('adminKey') || "";
+  };
+  
+  const [adminKey, setAdminKey] = useState(extractAdminKey());
+  const [showAdminAuth, setShowAdminAuth] = useState(!extractAdminKey());
   const [addTeacherOpen, setAddTeacherOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   
