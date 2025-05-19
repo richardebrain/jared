@@ -88,11 +88,15 @@ router.post('/start',
     try {
       const { domain, user_id, sub_domain, difficulty } = req.body;
       
+      console.log('Starting assessment with params:', { domain, user_id, sub_domain, difficulty });
+      // Updated endpoint to match what's in backend/main.py
       const response = await axios.post(`${ASSESSMENT_API_URL}/assessment/start`, {
         domain,
         user_id,
         sub_domain,
         difficulty
+      }, {
+        timeout: 10000 // Add timeout to prevent hanging requests
       });
       
       return res.json(response.data);
