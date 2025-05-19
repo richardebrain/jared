@@ -187,9 +187,9 @@ Just ask me anything related to teaching preschool!`
       <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50 pb-3 flex flex-row items-center justify-between">
         <div className="flex items-center">
           <img 
-            src="/images/beary-ai-icon.png" 
+            src="https://em-content.zobj.net/source/microsoft-teams/363/teddy-bear_1f9f8.png" 
             alt="Bear Assistant" 
-            className="w-8 h-8 mr-2 rounded-full object-cover"
+            className="w-6 h-6 mr-2"
           />
           <CardTitle className="text-lg">BearyAI Assistant</CardTitle>
         </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
@@ -244,134 +244,39 @@ export default function BusinessSignupPage() {
       formData.append("adminPassword", adminPassword);
       formData.append("planType", planType);
       
-      // Simple basic registration without logo first for better reliability
-      console.log("Starting registration process...");
+      // Append logo if available
+      if (schoolLogo) {
+        formData.append("schoolLogo", schoolLogo);
+      }
+      
+      // Use fetch directly for FormData
+      const response = await fetch("/api/schools/register", {
+        method: "POST",
+        body: formData,
+        // Don't set Content-Type header, browser will set it with boundary
+      });
+      
+      let errorMessage = "Failed to register school";
       
       try {
-        // Step 1: Try a simple registration first without the logo
-        // This helps identify if the issue is in the base registration or the file upload
-        console.log("Registering school basic information...");
-        const basicRegistrationResponse = await fetch("/api/schools/register", {
-          method: "POST",
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            schoolName,
-            address: address || "",
-            city: city || "",
-            state: state || "",
-            zipCode: zipCode || "",
-            contactEmail,
-            contactPhone: contactPhone || "",
-            adminPassword,
-            planType,
-          }),
-        });
+        const data = await response.json();
         
-        // Check response and handle parsing errors
-        let registrationData;
-        try {
-          registrationData = await basicRegistrationResponse.json();
-          console.log("Registration response received:", registrationData);
-        } catch (parseError) {
-          console.error("Failed to parse registration response:", parseError);
-          registrationData = { success: false, message: "Failed to parse server response" };
-        }
-        
-        if (!basicRegistrationResponse.ok) {
-          const errorMessage = registrationData.message || "Failed to register school";
-          console.error("Registration error:", errorMessage);
+        if (!response.ok) {
+          errorMessage = data.message || errorMessage;
           throw new Error(errorMessage);
         }
         
-        // Success! Logo upload is a secondary concern
         toast({
           title: "Registration Successful",
-          description: schoolLogo 
-            ? "Your school has been registered! Uploading logo..." 
-            : "Your school has been registered successfully!",
+          description: "Your school has been registered successfully!",
           variant: "default"
         });
         
-        // If we have a logo, try to upload it separately - this way logo failures won't prevent registration
-        if (schoolLogo) {
-          try {
-            console.log("Uploading school logo separately...");
-            const logoFormData = new FormData();
-            logoFormData.append("schoolLogo", schoolLogo);
-            // Make sure we're using the correct property from the response
-            const schoolId = registrationData.school?.id || registrationData.schoolId;
-            
-            if (!schoolId) {
-              console.error("Missing school ID in registration response:", registrationData);
-              toast({
-                title: "Logo Upload Skipped",
-                description: "Your school was registered successfully, but we couldn't upload your logo due to missing school ID.",
-                variant: "warning"
-              });
-            } else {
-              logoFormData.append("schoolId", schoolId.toString());
-              
-              console.log(`Uploading logo for school ID: ${schoolId}`);
-              
-              // Use a dedicated upload endpoint with improved error handling
-              const logoResponse = await fetch("/api/schools/upload-logo", {
-                method: "POST",
-                body: logoFormData,
-              })
-              .catch(error => {
-                console.error("Network error during logo upload:", error);
-                throw new Error("Network error during logo upload. Please try again.");
-              });
-              
-              // Try to parse the response carefully to prevent freezing
-              let logoData;
-              try {
-                logoData = await logoResponse.json();
-                console.log("Logo upload response:", logoData);
-              } catch (parseError) {
-                console.error("Failed to parse logo upload response:", parseError);
-                logoData = { success: false, message: "Failed to process logo upload response" };
-              }
-              
-              if (!logoResponse.ok) {
-                console.warn("Logo upload unsuccessful but registration succeeded:", 
-                  logoData?.message || "Unknown error");
-                toast({
-                  title: "Logo Upload Issue",
-                  description: "Your school was registered successfully, but there was an issue uploading your logo. You can add it later from settings.",
-                  variant: "warning"
-                });
-              } else {
-                console.log("Logo uploaded successfully:", logoData);
-                // Display success message for both registration and logo
-                toast({
-                  title: "Registration Complete",
-                  description: "Your school was registered and your logo was uploaded successfully!",
-                  variant: "default"
-                });
-              }
-            }
-          } catch (logoError) {
-            console.error("Error during logo upload:", logoError);
-            // Don't fail the whole registration for logo issues
-            toast({
-              title: "Logo Upload Failed",
-              description: "Your school was registered, but we encountered an error uploading your logo. You can add it later from settings.",
-              variant: "warning"
-            });
-            
-            // Add a small delay before redirecting to ensure error messages are seen
-            await new Promise(resolve => setTimeout(resolve, 1500));
-          }
-        }
-        
-        // Redirect to login page
+        // Redirect to login page instead of directly to dashboard
         navigate("/login");
-      } catch (registrationError) {
-        console.error("Error during registration:", registrationError);
-        throw registrationError;
+      } catch (parseError) {
+        // Handle JSON parse errors
+        throw new Error(errorMessage);
       }
     } catch (error: any) {
       console.error("Registration error:", error);

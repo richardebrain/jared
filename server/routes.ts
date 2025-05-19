@@ -40,58 +40,25 @@ declare global {
 }
 
 // Configure multer storage for file uploads
-const uploadsDir = path.join(process.cwd(), 'uploads');
-console.log("Uploads directory path:", uploadsDir);
-
-// Ensure the uploads directory exists
-try {
-  if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-    console.log("Created uploads directory");
-  }
-  
-  // Ensure school-logos subdirectory exists
-  const schoolLogosDir = path.join(uploadsDir, 'school-logos');
-  if (!fs.existsSync(schoolLogosDir)) {
-    fs.mkdirSync(schoolLogosDir, { recursive: true });
-    console.log("Created school-logos directory");
-  }
-  
-  // Set proper permissions
-  fs.chmodSync(uploadsDir, 0o755);
-  fs.chmodSync(schoolLogosDir, 0o755);
-  console.log("Set directory permissions");
-} catch (dirError) {
-  console.error("Error setting up upload directories:", dirError);
+const uploadsDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
 // Configure multer for school logo uploads
 const logoStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    try {
-      const schoolLogosDir = path.join(uploadsDir, 'school-logos');
-      // Double-check directory exists at time of upload
-      if (!fs.existsSync(schoolLogosDir)) {
-        fs.mkdirSync(schoolLogosDir, { recursive: true });
-      }
-      cb(null, schoolLogosDir);
-    } catch (err) {
-      console.error("Error setting upload destination:", err);
-      cb(err, "");
+    const schoolLogosDir = path.join(uploadsDir, 'school-logos');
+    if (!fs.existsSync(schoolLogosDir)) {
+      fs.mkdirSync(schoolLogosDir, { recursive: true });
     }
+    cb(null, schoolLogosDir);
   },
   filename: (req, file, cb) => {
-    try {
-      // Create a unique filename with timestamp and original extension
-      const uniqueSuffix = Date.now() + '-' + crypto.randomBytes(8).toString('hex');
-      const ext = path.extname(file.originalname);
-      const filename = `school-logo-${uniqueSuffix}${ext}`;
-      console.log("Generated filename for upload:", filename);
-      cb(null, filename);
-    } catch (err) {
-      console.error("Error generating filename:", err);
-      cb(err, "");
-    }
+    // Create a unique filename with timestamp and original extension
+    const uniqueSuffix = Date.now() + '-' + crypto.randomBytes(8).toString('hex');
+    const ext = path.extname(file.originalname);
+    cb(null, `school-logo-${uniqueSuffix}${ext}`);
   }
 });
 
@@ -102,21 +69,12 @@ const logoUpload = multer({
     fileSize: 2 * 1024 * 1024, // 2MB limit
   },
   fileFilter: (req, file, cb) => {
-    try {
-      // Accept only image files with more permissive validation
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/svg+xml'];
-      if (allowedTypes.includes(file.mimetype)) {
-        cb(null, true);
-      } else {
-        console.log(`Rejected file of type: ${file.mimetype}`);
-        // Instead of throwing an error, just reject the file
-        cb(null, false);
-      }
-    } catch (err) {
-      console.error("Error in file filter:", err);
-      // Accept the file anyway in case of errors to avoid crashing
-      cb(null, true);
+    // Accept only image files
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.mimetype)) {
+      return cb(new Error('Only JPEG, PNG, and SVG files are allowed'));
     }
+    cb(null, true);
   }
 });
 
@@ -675,27 +633,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all users (for leaderboard)
   app.get("/api/users", async (req, res) => {
     try {
-      // Check if user is authenticated
-      const userId = req.session?.userId;
-      if (!userId) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-
-      // Get the current user to determine their school
-      const currentUser = await storage.getUser(userId);
-      if (!currentUser) {
-        return res.status(401).json({ message: "User not found" });
-      }
-
-      // Only get users from the same school as the current user
-      const schoolUsers = await storage.getUsersBySchoolId(currentUser.schoolId);
+      const allUsers = await storage.getAllUsers();
       
-      if (!schoolUsers || schoolUsers.length === 0) {
-        console.log("No users found in school with ID:", currentUser.schoolId);
+      if (!allUsers || allUsers.length === 0) {
+        console.log("No users found in system");
         return res.status(200).json([]);
       }
       
-      const sanitizedUsers = schoolUsers.map(user => {
+      const sanitizedUsers = allUsers.map(user => {
         // Don't return passwords in response
         const { password, ...userWithoutPassword } = user;
         return userWithoutPassword;
@@ -895,20 +840,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Special handling for school ID 2 (Bob's Daycare) - always allow access with Bigsurf99
-      if (schoolId === 2 && req.query.adminKey === "Bigsurf99") {
-        console.log("Special Bigsurf99 admin access granted for Bob's Daycare to user ID:", req.session.userId);
-        return next();
-      }
-      
       // Check if admin password was provided in query
       if (req.query.adminKey) {
-        // General handling for Bigsurf99 password
-        if (req.query.adminKey === "Bigsurf99") {
-          console.log("Special Bigsurf99 admin access granted for school ID:", schoolId);
-          return next();
-        }
-        
         // Get the school to check admin password
         const school = await storage.getSchool(schoolId);
         if (!school) {
@@ -918,7 +851,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Verify admin password
         const adminKeyValid = await bcrypt.compare(
           req.query.adminKey as string, 
-          school.adminPasswordHash || "" // Handle null hash
+          school.adminPasswordHash
         );
         
         if (adminKeyValid) {
@@ -2557,78 +2490,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // School-specific data access endpoints
-  // Endpoint to verify school admin password
-  app.get("/api/schools/:schoolId/verify-admin", requireAuth, async (req, res) => {
-    try {
-      const schoolId = parseInt(req.params.schoolId);
-      if (!schoolId || isNaN(schoolId)) {
-        return res.status(400).json({ message: "Invalid school ID" });
-      }
-      
-      const adminKey = req.query.adminKey as string;
-      if (!adminKey) {
-        return res.status(400).json({ message: "Admin password is required" });
-      }
-      
-      // Get the user from the database
-      const user = await storage.getUser(req.session.userId);
-      if (!user) {
-        return res.status(401).json({ message: "User not found" });
-      }
-      
-      // App owners can access any school
-      if (user.isOwner) {
-        return res.status(200).json({ 
-          success: true, 
-          message: "Access granted as app owner" 
-        });
-      }
-      
-      // Check if user belongs to the requested school
-      if (user.schoolId !== schoolId) {
-        return res.status(403).json({ 
-          message: "You do not have access to this school's data" 
-        });
-      }
-      
-      // Special handling for Bigsurf99 password
-      if (adminKey === "Bigsurf99") {
-        console.log(`Bigsurf99 admin access granted for school ID: ${schoolId} to user ID: ${req.session.userId}`);
-        return res.status(200).json({ 
-          success: true, 
-          message: "Access granted with special password" 
-        });
-      }
-      
-      // Get the school to check admin password
-      const school = await storage.getSchool(schoolId);
-      if (!school) {
-        return res.status(404).json({ message: "School not found" });
-      }
-      
-      // Verify admin password
-      const adminKeyValid = await bcrypt.compare(
-        adminKey,
-        school.adminPasswordHash || ""
-      );
-      
-      if (adminKeyValid) {
-        return res.status(200).json({ 
-          success: true, 
-          message: "Access granted" 
-        });
-      } else {
-        return res.status(403).json({ 
-          success: false, 
-          message: "Invalid admin password" 
-        });
-      }
-    } catch (error) {
-      console.error("Error verifying school admin password:", error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-
   // These routes use the school ID param and requireSchoolAdmin middleware
   // to ensure data is only accessible to authenticated school admins or app owners
   
@@ -2929,23 +2790,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // School Management Routes
-  app.post("/api/schools/register", async (req, res) => {
+  app.post("/api/schools/register", logoUpload.single('schoolLogo'), async (req, res) => {
     try {
-      // First, handle the file upload with error handling
-      await new Promise((resolve, reject) => {
-        logoUpload.single('schoolLogo')(req, res, (err) => {
-          if (err) {
-            console.error("File upload error:", err);
-            // Don't reject - we'll continue without the logo
-            resolve(null);
-          } else {
-            resolve(null);
-          }
-        });
-      });
-      
-      console.log("School registration request body:", req.body);
-      
       // Extract form data - ensure all fields are strings if present
       const { 
         schoolName, 
@@ -2977,16 +2823,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if school with this name already exists
-      try {
-        const existingSchool = await storage.getSchoolByName(schoolName);
-        if (existingSchool) {
-          return res.status(409).json({ 
-            message: "School name already exists", 
-            details: "A school with this name is already registered" 
-          });
-        }
-      } catch (lookupError) {
-        console.error("Error checking for existing school:", lookupError);
+      const existingSchool = await storage.getSchoolByName(schoolName);
+      if (existingSchool) {
+        return res.status(409).json({ 
+          message: "School name already exists", 
+          details: "A school with this name is already registered" 
+        });
       }
       
       // Process logo file if uploaded
@@ -3009,56 +2851,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         subscriptionExpiresAt: new Date(Date.now() + (planType === 'annual' ? 365 : 30) * 24 * 60 * 60 * 1000)
       };
       
-      console.log("Creating school with data:", {
+      // Create the school record
+      const newSchool = await storage.createSchool({
         name: schoolName,
+        address: address || null,
+        city: city || null,
+        state: state || null,
+        zipCode: zipCode || null,
         contactEmail,
+        contactPhone: contactPhone || null,
         logoUrl,
-        subscriptionType: subscriptionDetails.subscriptionType
+        subscriptionActive: subscriptionDetails.subscriptionActive,
+        subscriptionType: subscriptionDetails.subscriptionType,
+        subscriptionExpiresAt: subscriptionDetails.subscriptionExpiresAt,
+        adminPasswordHash: hashedPassword,
+        isFreeAccess: false,
+        teacherCount: 0,
+        createdAt: new Date()
       });
       
-      // Create the school record
-      try {
-        // Create the school with all the necessary data
-        const schoolData = {
-          name: schoolName,
-          address: address || null,
-          city: city || null,
-          state: state || null,
-          zipCode: zipCode || null,
-          contactEmail,
-          contactPhone: contactPhone || null,
-          logoUrl,
-          subscriptionActive: subscriptionDetails.subscriptionActive,
-          subscriptionType: subscriptionDetails.subscriptionType,
-          subscriptionExpiresAt: subscriptionDetails.subscriptionExpiresAt,
-          adminPasswordHash: hashedPassword,
-          isFreeAccess: false
-        };
-        
-        console.log("About to create school with data:", {
-          name: schoolData.name,
-          contactEmail: schoolData.contactEmail,
-          logoUrl: schoolData.logoUrl
-        });
-        
-        const newSchool = await storage.createSchool(schoolData);
-        
-        console.log(`School registered successfully: ${schoolName} (ID: ${newSchool.id})`);
-        
-        // Return success response with school details (except password)
-        const { adminPasswordHash: _, ...schoolWithoutPassword } = newSchool;
+      console.log(`School registered successfully: ${schoolName} (ID: ${newSchool.id})`);
       
-        res.status(201).json({
-          message: "School registered successfully",
-          school: schoolWithoutPassword
-        });
-      } catch (createError) {
-        console.error("Error creating school:", createError);
-        return res.status(500).json({
-          message: "Failed to create school", 
-          details: createError.message || "Database error occurred"
-        });
-      }
+      // Return success response with school details (except password)
+      const { adminPasswordHash, ...schoolWithoutPassword } = newSchool;
+      
+      res.status(201).json({
+        message: "School registered successfully",
+        school: schoolWithoutPassword
+      });
     } catch (error) {
       console.error("School registration error:", error);
       res.status(500).json({ 
@@ -3068,627 +2888,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Simple endpoint for creating schools with JSON data only
-  app.post("/api/schools/create", async (req, res) => {
-    try {
-      const { 
-        name, 
-        adminPasswordHash, 
-        contactEmail, 
-        contactPhone, 
-        address, 
-        city, 
-        state, 
-        zipCode, 
-        customization 
-      } = req.body;
-      
-      if (!name || !contactEmail) {
-        return res.status(400).json({ message: "School name and contact email are required" });
-      }
-      
-      // Hash admin password
-      const saltRounds = 10;
-      const hashedPassword = await bcrypt.hash(adminPasswordHash, saltRounds);
-      
-      // Create school
-      const newSchool = await storage.createSchool({
-        name,
-        address: address || "",
-        city: city || "",
-        state: state || "",
-        zipCode: zipCode || "",
-        contactEmail,
-        contactPhone: contactPhone || "",
-        adminPasswordHash: hashedPassword,
-        createdAt: new Date(),
-        isSubscriptionActive: true, // Default to active for now
-        isFreeAccess: false,        // Non-Raising Arizona schools aren't free by default
-        subscriptionType: "trial",  // Start with trial
-        subscriptionStartedAt: new Date(),
-        subscriptionExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-        teacherCount: 0,
-        customization: customization || {
-          primaryColor: "#1e88e5", // Default blue
-          secondaryColor: "#ffca28", // Default amber
-          accentColor: "#ff5722" // Default deep orange
-        },
-        logoUrl: null
-      });
-      
-      console.log(`School created successfully: ${name} (ID: ${newSchool.id})`);
-      
-      // Return created school
-      res.json(newSchool);
-    } catch (error) {
-      console.error("Error creating school:", error);
-      res.status(500).json({ 
-        message: "Failed to create school", 
-        details: error.message 
-      });
-    }
-  });
-  
-  // Simplified business registration endpoint
-  app.post("/api/register-business-simplified", async (req, res) => {
-    console.log("Starting simplified business registration process");
-    try {
-      const { 
-        // School information
-        schoolName, 
-        adminPassword,
-        contactEmail,
-        
-        // User information
-        username,
-        password,
-        firstName,
-        lastName,
-        email
-      } = req.body;
-      
-      console.log("Simplified registration request received:", {
-        schoolName: schoolName ? 'provided' : 'missing',
-        adminPassword: adminPassword ? 'provided' : 'missing',
-        contactEmail: contactEmail ? 'provided' : 'missing',
-        username: username ? 'provided' : 'missing',
-        password: password ? 'provided' : 'missing',
-        firstName: firstName ? 'provided' : 'missing',
-        lastName: lastName ? 'provided' : 'missing',
-        email: email ? 'provided' : 'missing'
-      });
-      
-      // Validate required fields
-      if (!schoolName || !adminPassword || !username || !password || !firstName || !lastName || !email) {
-        console.log("Missing required fields in simplified registration");
-        return res.status(400).json({ message: 'All required fields must be provided' });
-      }
-      
-      // Validate password length
-      if (password.length < 6) {
-        return res.status(400).json({ message: 'Password must be at least 6 characters long' });
-      }
-      
-      // Hash passwords
-      const adminPasswordHash = await bcrypt.hash(adminPassword, 10);
-      const userPasswordHash = await bcrypt.hash(password, 10);
-      
-      // 1. Create the school
-      console.log("Creating school:", schoolName);
-      const newSchool = await storage.createSchool({
-        name: schoolName,
-        contactEmail,
-        subscriptionActive: true, // Set to active by default
-        contactPhone: null,
-        adminPasswordHash,
-        customization: {
-          primaryColor: "#f97316", // Default orange color
-          secondaryColor: "#fef3c7", // Light amber
-          logoUrl: null
-        }
-      });
-      
-      console.log("School created successfully with ID:", newSchool.id);
-      
-      // 2. Create user with owner privileges
-      console.log("Creating user:", username);
-      const newUser = await storage.createUser({
-        username,
-        password: userPasswordHash,
-        firstName,
-        lastName,
-        email,
-        language: "English",
-        nativeLanguage: "English",
-        timeZone: "UTC",
-        schoolId: newSchool.id,
-        isOwner: true,
-        isSchoolAdmin: true,  // School owners are also school admins by default
-        points: 0,
-        streak: 0,
-        level: 1,
-        bearBucks: 0,
-        lifetimePoints: 0
-      });
-      
-      console.log("User created successfully with ID:", newUser.id);
-      
-      // 3. Create session for the new user
-      req.session.userId = newUser.id;
-      req.session.loginTime = new Date().toISOString();
-      
-      // Force session save to ensure it's properly saved
-      await new Promise<void>((resolve, reject) => {
-        req.session.save((err) => {
-          if (err) {
-            console.error("Error saving session:", err);
-            reject(err);
-          } else {
-            console.log("Session saved successfully with userId:", newUser.id);
-            resolve();
-          }
-        });
-      });
-      
-      // Return success
-      res.status(200).json({
-        message: "School and user created successfully",
-        school: newSchool,
-        user: { id: newUser.id, username: newUser.username, email: newUser.email }
-      });
-    } catch (error) {
-      console.error("Failed to register business:", error);
-      
-      if (error.code === '23505' && error.constraint === 'users_username_unique') {
-        return res.status(400).json({ message: 'Username already exists' });
-      }
-      if (error.code === '23505' && error.constraint === 'schools_name_unique') {
-        return res.status(400).json({ message: 'School name already exists' });
-      }
-      
-      res.status(500).json({ 
-        message: "Failed to register business", 
-        details: error instanceof Error ? error.message : "An unexpected error occurred" 
-      });
-    }
-  });
-  
-  // All-in-one endpoint for school and owner registration
-  app.post("/api/business-signup/complete", async (req, res) => {
-    console.log("Starting all-in-one business signup process");
-    try {
-      // Handle both URL-encoded form data and JSON requests
-      const { 
-        // School information
-        schoolName, 
-        adminPassword,
-        contactEmail,
-        
-        // User information
-        username,
-        password,
-        confirmPassword, // Only used for validation in form submissions
-        firstName,
-        lastName,
-        email
-      } = req.body;
-      
-      console.log("Request body received:", {
-        schoolName: schoolName ? 'provided' : 'missing',
-        adminPassword: adminPassword ? 'provided' : 'missing',
-        contactEmail: contactEmail ? 'provided' : 'missing',
-        username: username ? 'provided' : 'missing',
-        password: password ? 'provided' : 'missing',
-        confirmPassword: confirmPassword ? 'provided' : 'missing',
-        firstName: firstName ? 'provided' : 'missing',
-        lastName: lastName ? 'provided' : 'missing',
-        email: email ? 'provided' : 'missing'
-      });
-      
-      const isFormSubmission = req.headers['content-type']?.includes('application/x-www-form-urlencoded');
-      console.log("Is form submission:", isFormSubmission);
-      
-      // Check if school information is missing
-      if (!schoolName || !adminPassword || !contactEmail) {
-        console.log("Missing school information");
-        if (isFormSubmission) {
-          return res.redirect('/simple-registration?error=missing-school-info');
-        } else {
-          return res.status(400).json({ 
-            message: "Missing required school information",
-            details: "School name, admin password, and contact email are required"
-          });
-        }
-      }
-      
-      // Check if user information is missing
-      if (!username || !password || !firstName || !lastName || !email) {
-        console.log("Missing user information");
-        if (isFormSubmission) {
-          return res.redirect('/simple-registration?error=missing-owner-info');
-        } else {
-          return res.status(400).json({ 
-            message: "Missing required owner information",
-            details: "Username, password, first name, last name, and email are required"
-          });
-        }
-      }
-      
-      // For form submissions, check if passwords match
-      if (isFormSubmission && confirmPassword && password !== confirmPassword) {
-        console.log("Passwords don't match");
-        return res.redirect('/simple-registration?error=passwords-mismatch');
-      }
-      
-      // Check if username is already taken
-      const existingUser = await storage.getUserByUsername(username);
-      if (existingUser) {
-        console.log(`Username already taken: ${username}`);
-        if (isFormSubmission) {
-          return res.redirect('/simple-registration?error=username-taken');
-        } else {
-          return res.status(409).json({
-            message: "Username already taken",
-            details: "Please choose a different username"
-          });
-        }
-      }
-      
-      // Check if school with same name already exists
-      const existingSchool = await storage.getSchoolByName(schoolName);
-      if (existingSchool) {
-        console.log(`School already exists: ${schoolName}`);
-        if (isFormSubmission) {
-          return res.redirect('/simple-registration?error=school-exists');
-        } else {
-          return res.status(409).json({
-            message: "School already exists",
-            details: "A school with this name is already registered"
-          });
-        }
-      }
-      
-      console.log("Step 1: Creating school");
-      
-      // Create school first
-      const saltRounds = 10;
-      const hashedAdminPassword = await bcrypt.hash(adminPassword, saltRounds);
-      
-      const schoolData = {
-        name: schoolName,
-        address: "",
-        city: "", 
-        state: "",
-        zipCode: "",
-        contactEmail,
-        contactPhone: "",
-        adminPasswordHash: hashedAdminPassword,
-        createdAt: new Date(),
-        isSubscriptionActive: true,
-        isFreeAccess: false,
-        subscriptionType: "trial",
-        subscriptionStartedAt: new Date(),
-        subscriptionExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        teacherCount: 0,
-        customization: {
-          primaryColor: "#1e88e5",
-          secondaryColor: "#ffca28",
-          accentColor: "#ff5722"
-        },
-        logoUrl: null
-      };
-      
-      const newSchool = await storage.createSchool(schoolData);
-      console.log(`School created successfully: ${schoolName} (ID: ${newSchool.id})`);
-      
-      // Now create the user with the school association
-      console.log("Step 2: Creating owner user account");
-      
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
-      
-      const userData = {
-        username,
-        password: hashedPassword,
-        firstName,
-        lastName,
-        email,
-        language: "English",
-        nativeLanguage: "English",
-        timeZone: "UTC-05:00",
-        schoolId: newSchool.id,
-        isSchoolAdmin: true,
-        isSchoolOwner: true,
-        isOwner: true, // Mark as owner in general sense as well
-        points: 50, // Start with some points
-        streak: 0,
-        level: 1
-      };
-      
-      const newUser = await storage.createUser(userData);
-      console.log(`User created successfully: ${username} (ID: ${newUser.id})`);
-      
-      // Handle different types of requests
-      if (isFormSubmission) {
-        // For form submissions, redirect to success page with school name
-        console.log("Form submission completed - redirecting to success page");
-        const encodedName = encodeURIComponent(schoolName);
-        return res.redirect(`/registration-success?name=${encodedName}`);
-      }
-      
-      // For API requests, return JSON response and create session
-      console.log("Step 3: Automatically logging in the user");
-      
-      // Start a session for the user
-      req.session.userId = newUser.id;
-      req.session.loginTime = new Date().toISOString();
-      
-      // Wait for session to be saved
-      await new Promise<void>((resolve, reject) => {
-        req.session.save((err) => {
-          if (err) {
-            console.error("Error saving session:", err);
-            reject(err);
-          } else {
-            console.log("Session saved successfully with userId:", newUser.id);
-            resolve();
-          }
-        });
-      });
-      
-      // Omit password from response
-      const { password: _, ...userWithoutPassword } = newUser;
-      
-      // Return success with both school and user data
-      res.status(201).json({
-        message: "Business registration successful!",
-        school: newSchool,
-        user: userWithoutPassword
-      });
-    } catch (error) {
-      console.error("All-in-one business registration error:", error);
-      
-      // Check if it's a form submission
-      const isFormSubmission = req.headers['content-type']?.includes('application/x-www-form-urlencoded');
-      
-      if (isFormSubmission) {
-        return res.redirect('/simple-registration?error=server-error');
-      }
-      
-      res.status(500).json({
-        message: "Failed to complete business registration",
-        details: error instanceof Error ? error.message : "An unexpected error occurred"
-      });
-    }
-  });
-  
-  // Simplified endpoint for uploading school logos
-  app.post("/api/schools/logo", logoUpload.single('logo'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No logo file uploaded" });
-      }
-      
-      const schoolId = parseInt(req.body.schoolId);
-      if (!schoolId || isNaN(schoolId)) {
-        return res.status(400).json({ message: "Valid school ID is required" });
-      }
-      
-      // Get the current school
-      const school = await storage.getSchool(schoolId);
-      if (!school) {
-        return res.status(404).json({ message: "School not found" });
-      }
-      
-      // Update the school's logo URL
-      const logoUrl = `/uploads/${req.file.filename}`;
-      await storage.updateSchool(schoolId, { logoUrl });
-      
-      console.log(`Logo uploaded successfully for school ID ${schoolId}: ${logoUrl}`);
-      
-      res.json({ 
-        message: "Logo uploaded successfully",
-        logoUrl
-      });
-    } catch (error) {
-      console.error("Error uploading school logo:", error);
-      res.status(500).json({ 
-        message: "Failed to upload logo", 
-        details: error.message 
-      });
-    }
-  });
-  
-  // Dedicated endpoint for school logo uploads
-  app.post("/api/schools/upload-logo", logoUpload.single('schoolLogo'), async (req, res) => {
-    try {
-      console.log("Processing school logo upload with body:", req.body, "and file:", 
-        req.file ? {
-          filename: req.file.filename,
-          size: req.file.size,
-          mimetype: req.file.mimetype
-        } : "No file received");
-      
-      // Get schoolId from the form data - the client passes this
-      const schoolId = parseInt(req.body.schoolId);
-      
-      if (!schoolId || isNaN(schoolId)) {
-        console.error("Invalid or missing school ID:", req.body.schoolId);
-        return res.status(400).json({ 
-          success: false, 
-          message: "Valid school ID is required" 
-        });
-      }
-      
-      // Check if file was uploaded
-      if (!req.file) {
-        console.error("No file received in upload request");
-        return res.status(400).json({ 
-          success: false, 
-          message: "No logo file uploaded" 
-        });
-      }
-      
-      const logoPath = `/uploads/school-logos/${req.file.filename}`;
-      console.log(`Logo uploaded successfully for school ID ${schoolId}: ${logoPath}`);
-      
-      // Update the school's logo path 
-      const updatedSchool = await storage.updateSchoolLogo(schoolId, logoPath);
-      
-      if (!updatedSchool) {
-        console.error(`School not found with ID ${schoolId}`);
-        return res.status(404).json({ 
-          success: false, 
-          message: "School not found" 
-        });
-      }
-      
-      console.log("School logo updated successfully in database");
-      
-      // Return success response with updated school info
-      res.status(200).json({ 
-        success: true, 
-        message: "School logo updated successfully",
-        school: updatedSchool,
-        logoUrl: logoPath
-      });
-    } catch (error) {
-      console.error("Error processing logo upload:", error);
-      res.status(500).json({ 
-        success: false, 
-        message: "Failed to update school with logo", 
-        details: error instanceof Error ? error.message : "Unknown error"
-      });
-    }
-  });
-  
-  // All-in-one endpoint for business signup with school and owner creation in a single transaction
-  app.post("/api/business-signup/complete", async (req, res) => {
-    try {
-      console.log("Beginning all-in-one business signup process");
-      
-      // Extract data from request
-      const { 
-        // School data
-        schoolName,
-        adminPassword,
-        contactEmail,
-        
-        // User (owner) data
-        username,
-        password,
-        firstName,
-        lastName,
-        email
-      } = req.body;
-      
-      // Validate required data
-      if (!schoolName || !adminPassword || !contactEmail) {
-        return res.status(400).json({ message: "School name, admin password, and contact email are required" });
-      }
-      
-      if (!username || !password || !firstName || !lastName || !email) {
-        return res.status(400).json({ message: "Username, password, first name, last name, and email are required" });
-      }
-      
-      // Check if school with same name already exists
-      const existingSchool = await storage.getSchoolByName(schoolName);
-      if (existingSchool) {
-        return res.status(409).json({ message: "A school with this name already exists" });
-      }
-      
-      // Check if user with same username or email already exists
-      const existingUser = await storage.getUserByUsername(username);
-      if (existingUser) {
-        return res.status(409).json({ message: "A user with this username already exists" });
-      }
-      
-      const existingEmail = await storage.getUserByEmail(email);
-      if (existingEmail) {
-        return res.status(409).json({ message: "A user with this email already exists" });
-      }
-      
-      // Hash passwords
-      const saltRounds = 10;
-      const adminPasswordHash = await bcrypt.hash(adminPassword, saltRounds);
-      const userPasswordHash = await bcrypt.hash(password, saltRounds);
-      
-      // Create school first
-      console.log("Creating school:", schoolName);
-      const newSchool = await storage.createSchool({
-        name: schoolName,
-        contactEmail,
-        adminPasswordHash,
-        createdAt: new Date(),
-        isSubscriptionActive: false, // Set to false by default, app owner will activate manually
-        customization: {
-          primaryColor: "#f97316", // Default orange color
-          secondaryColor: "#fef3c7", // Light amber
-          logoUrl: null
-        }
-      });
-      
-      console.log("School created successfully with ID:", newSchool.id);
-      
-      // Create user with owner privileges
-      console.log("Creating user:", username);
-      const newUser = await storage.createUser({
-        username,
-        password: userPasswordHash,
-        firstName,
-        lastName,
-        email,
-        language: "English",
-        nativeLanguage: "English",
-        timeZone: "UTC",
-        schoolId: newSchool.id,
-        isOwner: true,
-        isSchoolAdmin: true,  // School owners are also school admins by default
-        points: 0,
-        streak: 0,
-        level: 1,
-        bearBucks: 0,
-        lifetimePoints: 0
-      });
-      
-      console.log("User created successfully with ID:", newUser.id);
-      
-      // Create session for the new user
-      // @ts-ignore - session is attached by express-session
-      req.session.userId = newUser.id;
-      // @ts-ignore - session is attached by express-session
-      req.session.loginTime = new Date().toISOString();
-      // @ts-ignore - session is attached by express-session
-      req.session.registeredAt = new Date().toISOString();
-      
-      // Force session save to ensure it's properly saved
-      req.session.save(err => {
-        if (err) {
-          console.error('Session save error during business registration:', err);
-        } else {
-          console.log('Session saved successfully for business owner:', newUser.id);
-        }
-      });
-      
-      // Return success with both created entities (but remove sensitive data)
-      const { password: _, ...userWithoutPassword } = newUser;
-      
-      // Update the last active timestamp
-      await storage.updateUserLastActive(newUser.id);
-      
-      res.status(201).json({
-        message: "Business registration completed successfully",
-        school: newSchool,
-        user: userWithoutPassword
-      });
-    } catch (error) {
-      console.error("Error in business signup:", error);
-      res.status(500).json({ 
-        message: "Business registration failed", 
-        details: error instanceof Error ? error.message : "An unexpected error occurred"
-      });
-    }
-  });
-  
   // EduTok Feed API - Get TikTok-style short video feed
   app.get("/api/edutok/feed", requireAuth, async (req, res) => {
     try {

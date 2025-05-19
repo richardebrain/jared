@@ -7,16 +7,8 @@ import Dashboard from "@/pages/dashboard";
 import EnhancedDashboard from "@/pages/dashboard-enhanced";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
-import BusinessSignup from "@/pages/business-signup-simple";
-import BusinessSignupBasic from "@/pages/business-signup-basic";
-import BusinessSignupComplete from "@/pages/business-signup-simplified";
-import BusinessDirectSignup from "@/pages/business-direct-signup";
-import BusinessUltraSimple from "@/pages/business-ultra-simple";
-import SimpleRegistration from "@/pages/simple-registration";
-import UltraSimpleRegistration from "@/pages/ultra-simple-registration";
-import SimpleBusinessRegister from "@/pages/simple-business-register";
-import RegistrationSuccess from "@/pages/registration-success";
-import LandingPage from "@/pages/landing-updated";
+import BusinessSignup from "@/pages/business-signup";
+import LandingPage from "@/pages/landing";
 import ProgressionMap from "@/pages/progression-map";
 import Assessment from "@/pages/assessment";
 import AssessmentResults from "@/pages/assessment-results";
@@ -47,7 +39,6 @@ import CasinoPage from "@/pages/casino";
 import TransitionTimer from "@/pages/transition-timer";
 import TestAssessmentGraph from "@/pages/test-assessment-graph";
 import SchoolDashboard from "@/pages/school-dashboard";
-import BobsAdmin from "./pages/bobs-admin";
 import ProfilePage from "@/pages/profile";
 import AppOwnerDashboard from "@/pages/app-owner-dashboard";
 import EduTokPage from "@/pages/edutok";
@@ -67,13 +58,7 @@ function Router() {
   
   // We'll handle admin check in the platform integration component instead
   
-  // Only show loading spinner for protected routes, not for public routes like registration
-  const isPublicRoute = window.location.pathname.includes('registration') || 
-                        window.location.pathname.includes('login') || 
-                        window.location.pathname.includes('business-signup') || 
-                        window.location.pathname === '/';
-  
-  if (isLoading && !isPublicRoute) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -95,42 +80,6 @@ function Router() {
 
       <Route path="/business-signup">
         <BusinessSignup />
-      </Route>
-      
-      <Route path="/business-signup-basic">
-        <BusinessSignupBasic />
-      </Route>
-      
-      <Route path="/business-signup-complete">
-        <BusinessSignupComplete />
-      </Route>
-      
-      <Route path="/business-register">
-        <BusinessSignupComplete />
-      </Route>
-      
-      <Route path="/business-direct-signup">
-        <BusinessDirectSignup />
-      </Route>
-      
-      <Route path="/business-ultra-simple">
-        <BusinessUltraSimple />
-      </Route>
-      
-      <Route path="/simple-business-register">
-        <SimpleBusinessRegister />
-      </Route>
-      
-      <Route path="/simple-registration">
-        <SimpleRegistration />
-      </Route>
-      
-      <Route path="/register-school">
-        <UltraSimpleRegistration />
-      </Route>
-      
-      <Route path="/registration-success">
-        <RegistrationSuccess />
       </Route>
       
       {/* Protected routes - redirect to login when not authenticated */}
@@ -264,18 +213,6 @@ function Router() {
       
       <Route path="/schools/:schoolId">
         {isAuthenticated ? <SchoolDashboard /> : <Login />}
-      </Route>
-      
-      {/* Bob's Daycare Dashboard - Direct Access Route with explicit forced parameters */}
-      <Route path="/bobs-daycare-admin">
-        {isAuthenticated ? (
-          <div className="h-full w-full">
-            <SchoolDashboard 
-              forcedSchoolId={2} 
-              forcedAdminKey="Bigsurf99" 
-            />
-          </div>
-        ) : <Login />}
       </Route>
       
       <Route path="/profile">

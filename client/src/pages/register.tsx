@@ -43,20 +43,12 @@ const registerSchema = z.object({
   language: z.string().default("English"),
   nativeLanguage: z.string().default("English"),
   timeZone: z.string().default("UTC-05:00"), // Default to Eastern Time
-  
-  // School registration fields (optional)
-  isSchoolOwner: z.boolean().default(false),
-  schoolName: z.string().optional(),
-  adminPassword: z.string().optional(),
 });
 
 export default function Register() {
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
 
-  // State for showing/hiding school owner fields
-  const [isSchoolOwner, setIsSchoolOwner] = useState(false);
-  
   // Create form with simplified fields
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
@@ -70,32 +62,9 @@ export default function Register() {
       language: "English",
       nativeLanguage: "English",
       timeZone: "UTC-05:00",
-      // School registration fields
-      isSchoolOwner: false,
-      schoolName: "",
-      adminPassword: "",
     },
   });
 
-  // State for file upload
-  const [schoolLogo, setSchoolLogo] = useState<File | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  
-  // Handle logo file change
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setSchoolLogo(file);
-      
-      // Create preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setLogoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-  
   // Register mutation
   const { mutate: register, isPending } = useMutation({
     mutationFn: async (data: z.infer<typeof registerSchema>) => {
@@ -110,108 +79,15 @@ export default function Register() {
           email: data.email.trim(),
         };
         
-        console.log("Registration step 1: Creating regular user account");
-        
-        // SIMPLIFIED: Always register as a normal user first 
-        // WITHOUT any business owner fields - this avoids the freezing issue
-        const simpleRegData = {
-          username: cleanData.username,
-          password: cleanData.password,
-          firstName: cleanData.firstName,
-          lastName: cleanData.lastName,
-          email: cleanData.email,
-          language: cleanData.language || "English",
-          nativeLanguage: cleanData.nativeLanguage || "English",
-          timeZone: cleanData.timeZone || "UTC-05:00",
-          schoolId: 1, // Always start with Raising Arizona
-          isSchoolAdmin: false // We'll update this later if needed
-        };
-        
-        console.log("Sending basic registration data first");
-        
-        // Register ONLY the user first - no school creation
-        const userResponse = await apiRequest("/api/auth/register", {
-          method: "POST",
-          data: simpleRegData
+        console.log("Sending registration data:", { 
+          ...cleanData, 
+          password: "***" // Don't log actual password
         });
         
-        console.log("User account created successfully:", userResponse.id);
-        
-        // If this is a school owner, we'll handle that separately after the user is created
-        if (data.isSchoolOwner && data.schoolName && data.adminPassword) {
-          console.log("Registration step 2: Creating school for owner");
-          
-          // Complete this part asynchronously - don't wait for it to complete
-          // This ensures we return the user data even if the school creation fails
-          setTimeout(async () => {
-            try {
-              // Create the school
-              const schoolData = {
-                name: data.schoolName.trim(),
-                adminPasswordHash: data.adminPassword.trim(),
-                contactEmail: data.email.trim(),
-                contactPhone: '',
-                address: '',
-                city: '',
-                state: '',
-                zipCode: '',
-                customization: {
-                  primaryColor: "#1e88e5",
-                  secondaryColor: "#ffca28",
-                  accentColor: "#ff5722"
-                }
-              };
-              
-              console.log("Creating school:", schoolData.name);
-              
-              // Create school
-              const schoolResponse = await apiRequest("/api/schools/create", {
-                method: "POST", 
-                data: schoolData
-              });
-              
-              console.log("School created successfully:", schoolResponse);
-              
-              // Update the user's school ID
-              if (schoolResponse && schoolResponse.id) {
-                console.log("Updating user school ID to:", schoolResponse.id);
-                
-                await apiRequest(`/api/users/${userResponse.id}/update-school`, {
-                  method: "PATCH",
-                  data: {
-                    schoolId: schoolResponse.id,
-                    isSchoolAdmin: true
-                  }
-                });
-                
-                console.log("User updated with new school ID");
-                
-                // Upload logo if we have one
-                if (schoolLogo) {
-                  console.log("Uploading school logo");
-                  const formData = new FormData();
-                  formData.append('logo', schoolLogo);
-                  formData.append('schoolId', schoolResponse.id.toString());
-                  
-                  await fetch('/api/schools/logo', {
-                    method: 'POST',
-                    body: formData
-                  });
-                  
-                  console.log("Logo uploaded successfully");
-                }
-                
-                // Clear recovery data as everything worked
-                localStorage.removeItem("recoveryFormData");
-              }
-            } catch (schoolError) {
-              console.error("Error in async school creation:", schoolError);
-              // No throw - this runs after the user is already created
-            }
-          }, 100); // Small delay to ensure user registration completes first
-        }
-        
-        return userResponse;
+        return await apiRequest("/api/auth/register", {
+          method: "POST",
+          data: cleanData
+        });
       } catch (error) {
         console.error("Registration error:", error);
         throw error;
@@ -258,31 +134,8 @@ export default function Register() {
   });
 
   // Form submission handler
-  async function onSubmit(values: z.infer<typeof registerSchema>) {
-    try {
-      // Add detailed logging to track where freezing occurs
-      console.log("Starting registration process...");
-      
-      // Save form data temporarily for debugging
-      if (values.isSchoolOwner) {
-        console.log("Registering as school owner");
-        // Save recovery data in case of page freeze
-        const recoveryData = {
-          ...values,
-          password: "[REDACTED]",
-          adminPassword: values.adminPassword ? "[REDACTED]" : undefined,
-          timestamp: new Date().toISOString()
-        };
-        localStorage.setItem("recoveryFormData", JSON.stringify(recoveryData));
-      }
-      
-      console.log("Submitting registration...");
-      await register(values);
-      console.log("Registration successful!");
-    } catch (error) {
-      console.error("Registration submission error:", error);
-      // Try to recover data later if needed
-    }
+  function onSubmit(values: z.infer<typeof registerSchema>) {
+    register(values);
   }
 
   // No need to manually set defaults anymore as we're using default values
@@ -443,135 +296,7 @@ export default function Register() {
               
               {/* Language and timezone fields removed for simplicity */}
               
-              {/* School owner checkbox */}
-              <div className="mt-8 border-t pt-6">
-                <div className="flex items-center space-x-2">
-                  <input 
-                    type="checkbox" 
-                    id="isSchoolOwner"
-                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                    checked={isSchoolOwner}
-                    onChange={(e) => {
-                      setIsSchoolOwner(e.target.checked);
-                      form.setValue('isSchoolOwner', e.target.checked);
-                    }}
-                  />
-                  <label 
-                    htmlFor="isSchoolOwner" 
-                    className="text-sm font-medium"
-                  >
-                    I am a school owner or director
-                  </label>
-                </div>
-                <div className="flex flex-col space-y-2 mt-1 ml-6">
-                  <p className="text-xs text-gray-500">
-                    School owners can create and manage accounts for their teachers and staff
-                  </p>
-                  <Link to="/business-signup-basic" className="text-xs text-blue-600 hover:underline cursor-pointer">
-                    Having trouble? Try our simplified business signup page →
-                  </Link>
-                </div>
-              </div>
-              
-              {/* Conditional school fields */}
-              {isSchoolOwner && (
-                <div className="mt-6 p-4 border rounded-md bg-gray-50 animate-fadeIn space-y-6">
-                  <h3 className="font-bold text-center mb-2">School Information</h3>
-                  
-                  <FormField
-                    control={form.control}
-                    name="schoolName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>School Name</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Enter your school or center name" 
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="adminPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Admin Password</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="password"
-                            placeholder="Create an admin password" 
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                        <p className="text-xs text-gray-500 mt-1">
-                          You'll need this password to access admin features
-                        </p>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  {/* School Logo Upload */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">
-                      School Logo <span className="text-xs text-gray-500">(optional)</span>
-                    </label>
-                    
-                    <div className="flex items-center gap-4">
-                      {/* Logo Preview */}
-                      {logoPreview ? (
-                        <div className="w-24 h-24 rounded overflow-hidden border">
-                          <img 
-                            src={logoPreview} 
-                            alt="School logo preview" 
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-24 h-24 rounded border flex items-center justify-center bg-gray-100">
-                          <span className="text-gray-400 text-xs text-center">Logo Preview</span>
-                        </div>
-                      )}
-                      
-                      <div className="flex-1">
-                        <div className="flex items-center justify-center w-full">
-                          <label 
-                            htmlFor="school-logo-upload" 
-                            className="flex flex-col items-center justify-center w-full h-20 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
-                          >
-                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                              <svg className="w-8 h-8 mb-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                              </svg>
-                              <p className="mb-1 text-xs text-gray-500">
-                                <span className="font-semibold">Click to upload</span> or drag and drop
-                              </p>
-                              <p className="text-xs text-gray-500">SVG, PNG, or JPG (max. 2MB)</p>
-                            </div>
-                            <input 
-                              id="school-logo-upload" 
-                              type="file" 
-                              className="hidden" 
-                              accept="image/*"
-                              onChange={handleLogoChange}
-                            />
-                          </label>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Your logo will replace the Raising Arizona logo for your teachers
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 hover-pop hover-glow mt-6" disabled={isPending}>
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 hover-pop hover-glow" disabled={isPending}>
                 {isPending ? (
                   <div className="flex items-center justify-center">
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>

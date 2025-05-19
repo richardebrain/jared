@@ -25,7 +25,6 @@ export interface IStorage {
   getAllSchools(): Promise<School[]>;
   createSchool(school: InsertSchool): Promise<School>;
   updateSchool(id: number, schoolData: Partial<InsertSchool>): Promise<School>;
-  updateSchoolLogo(id: number, logoPath: string): Promise<School | undefined>;
   
   // User operations
   getUser(id: number): Promise<User | undefined>;
@@ -694,43 +693,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(schools.id, id))
       .returning();
     return updatedSchool;
-  }
-  
-  async updateSchoolLogo(id: number, logoPath: string): Promise<School | undefined> {
-    try {
-      // Find the school first to get current customization
-      const [existingSchool] = await db
-        .select()
-        .from(schools)
-        .where(eq(schools.id, id));
-      
-      if (!existingSchool) {
-        console.log(`School with ID ${id} not found for logo update`);
-        return undefined;
-      }
-      
-      // Create updated customization object with new logo path
-      const currentCustomization = existingSchool.customization || {};
-      const updatedCustomization = {
-        ...currentCustomization,
-        logoPath
-      };
-      
-      // Update only the customization field
-      const [updatedSchool] = await db
-        .update(schools)
-        .set({
-          customization: updatedCustomization
-        })
-        .where(eq(schools.id, id))
-        .returning();
-      
-      console.log(`Successfully updated logo for school ${id} to ${logoPath}`);
-      return updatedSchool;
-    } catch (error) {
-      console.error(`Error updating logo for school ${id}:`, error);
-      return undefined;
-    }
   }
   
   // User operations with school support

@@ -7,14 +7,13 @@ import { MeetingScheduler } from "@/components/MeetingScheduler";
 import LessonPlanMaker from "@/components/LessonPlanMaker";
 import ParentResponseGenerator, { ParentScenario } from "@/components/ParentResponseGenerator";
 import TransitionTimerTool from "@/components/TransitionTimerTool";
-import { TeacherMusicLibrary } from "@/components/TeacherMusicLibrary";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   MessageSquare, BookOpen, Video, CalendarDays, ClipboardCheck, 
   GraduationCap, Lightbulb, Stars, BadgeHelp, PencilRuler, Timer,
-  Smartphone, Music
+  Smartphone
 } from "lucide-react";
 
 // Example scenarios for parent communication
@@ -59,65 +58,27 @@ const ToolCard: React.FC<ToolCardProps> = ({ icon, title, description, onClick, 
   return (
     <Card 
       className={`cursor-pointer transition-all hover:shadow-md hover:scale-[1.02] ${
-        selected ? 'border-primary/60 border-2 shadow-md' : 'border border-indigo-100'
-      } overflow-hidden rounded-2xl`}
+        selected ? 'border-primary ring-2 ring-primary/20' : ''
+      }`}
       onClick={onClick}
     >
-      {/* Simple cute top border */}
-      <div className={`h-1.5 w-full ${
-        selected 
-          ? 'bg-gradient-to-r from-indigo-200 via-primary/40 to-indigo-200' 
-          : 'bg-gradient-to-r from-indigo-50 via-purple-50 to-indigo-50'
-      }`}></div>
-      
-      <CardContent className="p-5 flex flex-col items-center text-center gap-3 relative bg-gradient-to-b from-white to-indigo-50/20">
-        {/* Simple decorative dots */}
-        <div className="absolute top-2 left-2 w-1.5 h-1.5 rounded-full bg-indigo-200 opacity-80"></div>
-        <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-purple-200 opacity-80"></div>
-        
-        {/* Icon container */}
-        <div className={`p-3.5 transition-all rounded-xl ${
-          selected 
-            ? 'bg-gradient-to-br from-indigo-100 to-purple-100 text-primary shadow-sm' 
-            : 'bg-gradient-to-br from-indigo-50 to-purple-50 text-primary/80'
-        }`}>
+      <CardContent className="p-6 flex flex-col items-center text-center gap-3">
+        <div className="rounded-full bg-primary/10 p-3 text-primary">
           {icon}
         </div>
-        
-        {/* Title */}
-        <h3 className={`font-semibold text-base ${selected ? 'text-primary' : 'text-gray-700'}`}>
-          {title}
-        </h3>
-        
-        {/* Description */}
-        <p className="text-sm text-muted-foreground max-w-[200px] mx-auto">{description}</p>
-        
-        {/* Selected indicator */}
-        {selected && (
-          <div className="bg-primary/10 text-primary text-xs font-medium py-1 px-2.5 rounded-full mt-1">
-            Selected
-          </div>
-        )}
+        <h3 className="font-semibold text-lg">{title}</h3>
+        <p className="text-sm text-muted-foreground">{description}</p>
       </CardContent>
     </Card>
   );
 };
 
 export default function ToolsPage() {
-  const [activeTab, setActiveTab] = useState("music-library");
+  const [activeTab, setActiveTab] = useState("parent-responses");
   const [viewMode, setViewMode] = useState<"cards" | "tabs">("cards");
 
   // Tools definitions
   const tools = [
-    {
-      id: "music-library",
-      title: "Teacher Music Library",
-      description: "Access music for classroom use and development",
-      icon: <Music className="h-6 w-6" />,
-      component: (
-        <TeacherMusicLibrary />
-      )
-    },
     {
       id: "parent-responses",
       title: "Parent Response Generator",
@@ -272,75 +233,36 @@ export default function ToolsPage() {
         ) : (
           // Tab view (original layout)
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-8 h-auto p-2 bg-indigo-50 rounded-xl gap-1.5">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-8 h-auto p-1">
               {tools.map(tool => (
                 <TabsTrigger 
                   key={tool.id}
                   value={tool.id} 
-                  className="flex flex-col md:flex-row items-center py-2 md:py-1.5 px-2 md:px-3 gap-1.5 md:gap-2 text-xs md:text-sm 
-                    rounded-xl relative overflow-hidden group transition-all 
-                    data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                  className="flex flex-col md:flex-row items-center py-2 md:py-1 px-1 md:px-2 gap-1 md:gap-2 text-xs md:text-sm"
                 >
-                  {/* Simple colored line for active tab */}
-                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-transparent">
-                    {tool.id === activeTab && <div className="h-full w-full bg-primary/40"></div>}
-                  </div>
-                  
-                  {/* Icon container */}
-                  <div className={`p-1.5 rounded-lg transition-all ${
-                    tool.id === activeTab 
-                      ? 'bg-indigo-100 text-primary' 
-                      : 'bg-white/80 text-gray-600'
-                  }`}>
+                  <div className="text-primary">
                     {tool.icon}
                   </div>
-                  
-                  {/* Tool name */}
-                  <span className={`text-center md:text-left font-medium 
-                    ${tool.id === activeTab ? 'text-primary' : 'text-gray-700'}`}>
-                    {tool.title.split(' ')[0]}
-                  </span>
-                  
-                  {/* Decorative dots */}
-                  {tool.id === activeTab && (
-                    <>
-                      <div className="absolute top-1 right-1 w-1 h-1 rounded-full bg-purple-200"></div>
-                      <div className="absolute bottom-1 left-1 w-1 h-1 rounded-full bg-indigo-200"></div>
-                    </>
-                  )}
+                  <span className="text-center md:text-left">{tool.title.split(' ')[0]}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
             
             {tools.map(tool => (
               <TabsContent key={tool.id} value={tool.id} className="space-y-4">
-                <Card className="rounded-xl overflow-hidden border-2 border-indigo-100">
-                  {/* Decorative header bar */}
-                  <div className="h-1.5 w-full bg-gradient-to-r from-purple-500 via-pink-400 to-cyan-400"></div>
-                  
-                  <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50">
-                    <CardTitle className="flex items-center gap-2.5">
-                      {/* Cute animated icon */}
-                      <div className="text-primary p-2.5 bg-white rounded-full shadow-sm transform -rotate-3 transition-all hover:rotate-0">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <div className="text-primary">
                         {tool.icon}
                       </div>
-                      
-                      {/* Title with gradient text */}
-                      <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                        {tool.title}
-                      </span>
+                      {tool.title}
                     </CardTitle>
-                    
-                    <CardDescription className="text-indigo-700/70 mt-0.5">
+                    <CardDescription>
                       {tool.description}
                     </CardDescription>
                   </CardHeader>
-                  
-                  <CardContent className="p-6 pt-8 relative">
-                    {/* Corner decorations */}
-                    <div className="absolute top-2 left-2 w-1.5 h-1.5 rounded-full bg-amber-300"></div>
-                    <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-pink-300"></div>
-                    
+                  <CardContent>
                     {tool.component}
                   </CardContent>
                 </Card>

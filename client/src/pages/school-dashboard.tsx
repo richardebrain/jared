@@ -56,42 +56,13 @@ const schoolSettingsSchema = z.object({
   }).optional(),
 });
 
-export default function SchoolDashboard({ forcedSchoolId, forcedAdminKey }: { forcedSchoolId?: number, forcedAdminKey?: string } = {}) {
-  // Allow for direct injection of school ID and admin key from parent component
-  const params = useParams();
-  
-  // Determine the school ID to use
-  // Priority: 1. Forced school ID (from props), 2. URL param, 3. Current user's school
-  const schoolId = forcedSchoolId ? forcedSchoolId.toString() : params.schoolId;
-  
-  // Set the admin key based on props or defaults
-  const storedAdminKey = localStorage.getItem('adminKey') || '';
-  
-  // Make sure we have valid admin credentials for forced access
-  useEffect(() => {
-    if (forcedSchoolId && forcedAdminKey) {
-      // Store forced credentials in localStorage
-      localStorage.setItem('adminKey', forcedAdminKey);
-      localStorage.setItem('adminAccessGranted', 'true');
-      localStorage.setItem('currentSchoolId', forcedSchoolId.toString()); 
-      console.log(`Using forced school credentials - School ID: ${forcedSchoolId}, Admin Key: ${forcedAdminKey ? 'Provided' : 'None'}`);
-    }
-  }, [forcedSchoolId, forcedAdminKey]);
-  
-  const [location, navigate] = useLocation();
+export default function SchoolDashboard() {
+  const { schoolId } = useParams();
+  const [, navigate] = useLocation();
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  
-  // Check if admin access was granted via localStorage
-  const checkAdminAccess = () => {
-    const isGranted = localStorage.getItem('adminAccessGranted') === 'true';
-    const storedKey = localStorage.getItem('adminKey') || '';
-    return { isGranted, adminKey: isGranted ? storedKey : '' };
-  };
-  
-  const { isGranted, adminKey: initialAdminKey } = checkAdminAccess();
-  const [adminKey, setAdminKey] = useState(initialAdminKey);
-  const [showAdminAuth, setShowAdminAuth] = useState(!isGranted);
+  const [adminKey, setAdminKey] = useState("");
+  const [showAdminAuth, setShowAdminAuth] = useState(true);
   const [addTeacherOpen, setAddTeacherOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   
@@ -247,45 +218,9 @@ export default function SchoolDashboard({ forcedSchoolId, forcedAdminKey }: { fo
   }, [schoolData, settingsForm]);
   
   // Handle submitting admin key
-  const handleAdminSubmit = async (data) => {
-    try {
-      // For owner accounts, bypass admin verification
-      if (user?.isOwner) {
-        setAdminKey(data.adminKey);
-        setShowAdminAuth(false);
-        return;
-      }
-      
-      // First make a test API call to verify the password works before setting it
-      const res = await apiRequest(
-        "GET", 
-        `/api/schools/${schoolId}/verify-admin?adminKey=${encodeURIComponent(data.adminKey)}`
-      );
-      
-      if (!res.ok) {
-        const errorData = await res.json();
-        toast({
-          title: "Access Denied",
-          description: errorData.message || "Invalid admin password. Please try again.",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      // Password verified successfully
-      setAdminKey(data.adminKey);
-      setShowAdminAuth(false);
-      toast({
-        title: "Access Granted",
-        description: "Admin password verified successfully.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "An error occurred while verifying the password. Please try again.",
-        variant: "destructive"
-      });
-    }
+  const handleAdminSubmit = (data) => {
+    setAdminKey(data.adminKey);
+    setShowAdminAuth(false);
   };
   
   // Handle adding a new teacher

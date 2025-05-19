@@ -18,9 +18,8 @@ export default function AdminPage() {
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   
-  // Admin passwords
+  // Admin password
   const ADMIN_PASSWORD = 'BIGSURF55';
-  const SCHOOL_ADMIN_PASSWORD = 'Bigsurf99';
 
   // User must be logged in to access admin page
   React.useEffect(() => {
@@ -35,38 +34,12 @@ export default function AdminPage() {
   }, [user, isLoading, navigate, toast]);
 
   const verifyPassword = () => {
-    // Check both admin password and school admin password
     if (password === ADMIN_PASSWORD) {
       setIsAuthenticated(true);
       toast({
         title: "Access Granted",
         description: "Welcome to the admin dashboard.",
       });
-    } else if (password === SCHOOL_ADMIN_PASSWORD) {
-      // If it's Bigsurf99, redirect to the dedicated school admin dashboard route
-      localStorage.setItem('adminAccessGranted', 'true');
-      localStorage.setItem('adminKey', 'Bigsurf99');
-      
-      // Store the school ID in localStorage for the dashboard to use
-      const schoolId = user?.schoolId || 2; // Default to school ID 2 if not found
-      localStorage.setItem('currentSchoolId', schoolId.toString());
-      
-      toast({
-        title: "School Admin Access Granted",
-        description: "Redirecting to your school dashboard...",
-      });
-      
-      // Set admin credentials and directly go to the dedicated route
-      // First, set admin access in localStorage
-      localStorage.setItem('adminKey', 'Bigsurf99');
-      localStorage.setItem('adminAccessGranted', 'true');
-      localStorage.setItem('currentSchoolId', '2'); // Bob's Daycare ID
-      
-      // Then navigate
-      setTimeout(() => {
-        // Navigate to the special Bob's Daycare admin page route
-        window.location.href = '/bobs-daycare-admin';
-      }, 1000);
     } else {
       toast({
         title: "Access Denied",
