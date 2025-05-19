@@ -130,12 +130,15 @@ export class ModuleManager {
     }
     
     // Fix any modules with isVisible set to null by setting them to true (visible)
-    const updatedCount = await db.update(learningModules)
-      .set({ isVisible: true })
-      .where(eq(learningModules.isVisible, null));
-    
-    if (updatedCount) {
-      console.log(`Updated visibility for ${updatedCount} modules`);
+    try {
+      await db.execute(
+        sql`UPDATE learning_modules 
+            SET is_visible = TRUE 
+            WHERE is_visible IS NULL`
+      );
+      console.log("Updated visibility for modules with null visibility");
+    } catch (error) {
+      console.error("Error updating module visibility:", error);
     }
   }
 }
