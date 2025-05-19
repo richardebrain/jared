@@ -87,6 +87,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register welcome message routes - for teacher notifications and shout-outs
   registerWelcomeMessageRoutes(app);
   
+  // Register ECE question import routes
+  registerQuestionImportRoutes(app);
+  
+  // Module management will be handled separately
+  
   // Serve static files from the uploads directory
   app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
   

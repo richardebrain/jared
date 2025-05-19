@@ -10,9 +10,9 @@ import { eq } from "drizzle-orm";
  * This adds the necessary API endpoints for managing learning modules
  * and ensuring they're not lost or accidentally removed.
  */
-export function registerModuleManagementRoutes(app: Express, requireAdmin: any) {
+export function registerModuleManagementRoutes(app: Express) {
   // Get all modules with visibility status for admin panel
-  app.get("/api/modules/management", requireAdmin, async (req: Request, res: Response) => {
+  app.get("/api/modules/management", adminMiddleware, async (req: Request, res: Response) => {
     try {
       const allModules = await ModuleManager.getAllModulesWithVisibility();
       res.json(allModules);
@@ -34,7 +34,7 @@ export function registerModuleManagementRoutes(app: Express, requireAdmin: any) 
   });
 
   // Update module visibility
-  app.patch("/api/modules/:id/visibility", requireAdmin, async (req: Request, res: Response) => {
+  app.patch("/api/modules/:id/visibility", adminMiddleware, async (req: Request, res: Response) => {
     try {
       const moduleId = parseInt(req.params.id);
       const { visible } = req.body;
@@ -62,7 +62,7 @@ export function registerModuleManagementRoutes(app: Express, requireAdmin: any) 
   });
 
   // Run system verification and restore missing modules
-  app.get("/api/modules/verify", requireAdmin, async (req: Request, res: Response) => {
+  app.get("/api/modules/verify", adminMiddleware, async (req: Request, res: Response) => {
     try {
       const result = await ModuleManager.verifyAndRestoreEssentialModules();
       res.json(result);
