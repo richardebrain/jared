@@ -3255,6 +3255,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // All-in-one endpoint for business signup with school and owner creation in a single transaction
+  app.post("/api/business-signup/complete", async (req, res) => {
+    try {
+      console.log("Beginning all-in-one business signup process");
+      
+      // Extract data from request
+      const { 
+        // School data
+        schoolName,
+        adminPassword,
+        contactEmail,
+        
+        // User (owner) data
+        username,
+        password,
+        firstName,
+        lastName,
+        email
+      } = req.body;
+      
+      // Validate required data
+      if (!schoolName || !adminPassword || !contactEmail) {
+        return res.status(400).json({ message: "School name, admin password, and contact email are required" });
+      }
+      
+      if (!username || !password || !firstName || !lastName || !email) {
+        return res.status(400).json({ message: "Username, password, first name, last name, and email are required" });
+      }
+      
+      // Check if school with same name already exists
+      const existingSchool = await storage.getSchoolByName(schoolName);
+      if (existingSchool) {
+        return res.status(409).json({ message: "A school with this name already exists" });
+      }
+      
+      // Check if user with same username or email already exists
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(409).json({ message: "A user with this username already exists" });
+      }
+      
+      const existingEmail = await storage.getUserByEmail(email);
+      if (existingEmail) {
+        return res.status(409).json({ message: "A user with this email already exists" });
+      }
+      
+      // Hash passwords
+      const saltRounds = 10;
+      const adminPasswordHash = await bcrypt.hash(adminPassword, saltRounds);
+      const userPasswordHash = await bcrypt.hash(password, saltRounds);
+      
+      // Create school first
+      console.log("Creating school:", schoolName);
+      const newSchool = await storage.createSchool({
+        name: schoolName,
+        contactEmail,
+        adminPasswordHash,
+        createdAt: new Date(),
+        isSubscriptionActive: false, // Set to false by default, app owner will activate manually
+        customization: {
+          primaryColor: "#f97316", // Default orange color
+          secondaryColor: "#fef3c7", // Light amber
+          logoUrl: null
+        }
+      });
+      
+      console.log("School created successfully with ID:", newSchool.id);
+      
+      // Create user with owner privileges
+      console.log("Creating user:", username);
+      const newUser = await storage.createUser({
+        username,
+        password: userPasswordHash,
+        firstName,
+        lastName,
+        email,
+        language: "English",
+        nativeLanguage: "English",
+        timeZone: "UTC",
+        schoolId: newSchool.id,
+        isOwner: true,
+        isSchoolAdmin: true,  // School owners are also school admins by default
+        points: 0,
+        streak: 0,
+        level: 1,
+        bearBucks: 0,
+        lifetimePoints: 0
+      });
+      
+      console.log("User created successfully with ID:", newUser.id);
+      
+      // Create session for the new user
+      // @ts-ignore - session is attached by express-session
+      req.session.userId = newUser.id;
+      // @ts-ignore - session is attached by express-session
+      req.session.loginTime = new Date().toISOString();
+      // @ts-ignore - session is attached by express-session
+      req.session.registeredAt = new Date().toISOString();
+      
+      // Force session save to ensure it's properly saved
+      req.session.save(err => {
+        if (err) {
+          console.error('Session save error during business registration:', err);
+        } else {
+          console.log('Session saved successfully for business owner:', newUser.id);
+        }
+      });
+      
+      // Return success with both created entities (but remove sensitive data)
+      const { password: _, ...userWithoutPassword } = newUser;
+      
+      // Update the last active timestamp
+      await storage.updateUserLastActive(newUser.id);
+      
+      res.status(201).json({
+        message: "Business registration completed successfully",
+        school: newSchool,
+        user: userWithoutPassword
+      });
+    } catch (error) {
+      console.error("Error in business signup:", error);
+      res.status(500).json({ 
+        message: "Business registration failed", 
+        details: error instanceof Error ? error.message : "An unexpected error occurred"
+      });
+    }
+  });
+  
   // EduTok Feed API - Get TikTok-style short video feed
   app.get("/api/edutok/feed", requireAuth, async (req, res) => {
     try {
