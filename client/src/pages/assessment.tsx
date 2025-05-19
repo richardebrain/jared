@@ -395,11 +395,17 @@ export default function AssessmentPage() {
     }
   };
   
-  // Import the assessment question service instead of implementing it here
+  // Create a Set to track seen questions and prevent duplicates
+  // We'll define this at component level so it persists between renders
+  const [seenQuestionIds] = useState(() => new Set<string>());
+  
+  // Reset tracking when assessment starts
   useEffect(() => {
-    // Reset question tracking when assessment starts
-    resetAnsweredQuestions();
-  }, [assessmentState]);
+    if (assessmentState === 'initial') {
+      seenQuestionIds.clear();
+      console.log("Question tracking reset for new assessment");
+    }
+  }, [assessmentState, seenQuestionIds]);
   
   // Function to update questions for the current domain
   const updateDomainQuestions = (domainId: string, difficulty: DifficultyLevel) => {
@@ -419,14 +425,14 @@ export default function AssessmentPage() {
     const eligibleQuestions = assessmentQuestions.filter(q => {
       // First, check if it matches our domain and difficulty
       if (q.domain === domainId && q.difficulty === difficulty) {
-        // Create a unique fingerprint for this question
-        const fingerprint = createQuestionFingerprint(q);
+        // Create a unique fingerprint for this question to identify it regardless of ID
+        const fingerprint = `${q.domain}::${q.text.trim().toLowerCase()}::${q.options.join('|')}`;
         
         // Check if we've already answered this question by ID
         const answeredById = Object.keys(answers).includes(q.id);
         
         // Check if we've seen this exact question text before (by fingerprint)
-        const seenBefore = seenQuestions.has(fingerprint);
+        const seenBefore = seenQuestionIds.has(fingerprint);
         
         // Only include questions we haven't answered or seen
         const isAvailable = !answeredById && !seenBefore;
@@ -461,8 +467,8 @@ export default function AssessmentPage() {
     
     // Mark all selected questions as "seen" to prevent duplicates
     randomizedQuestions.forEach(q => {
-      const fingerprint = createQuestionFingerprint(q);
-      seenQuestions.add(fingerprint);
+      const fingerprint = `${q.domain}::${q.text.trim().toLowerCase()}::${q.options.join('|')}`;
+      seenQuestionIds.add(fingerprint);
     });
     
     // If no questions are available, try a different difficulty level
@@ -595,6 +601,16 @@ export default function AssessmentPage() {
       ...prev,
       [activeQuestion.id]: selectedAnswer
     }));
+    
+    // CRITICAL FIX: Mark this question as seen to prevent it from showing up again
+    // This is especially important for the Building a Human section
+    const fingerprint = `${activeQuestion.domain}::${activeQuestion.text.trim().toLowerCase()}::${activeQuestion.options.join('|')}`;
+    seenQuestionIds.add(fingerprint);
+    
+    // Log for Building a Human section
+    if (activeQuestion.domain === 'human') {
+      console.log(`✅ Answered and marked as seen: "${activeQuestion.text.substring(0, 40)}..."`);
+    }
     
     // Set correctness state
     setIsCorrect(correct);
