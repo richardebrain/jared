@@ -57,7 +57,11 @@ const schoolSettingsSchema = z.object({
 });
 
 export default function SchoolDashboard() {
-  const { schoolId } = useParams();
+  // Extract schoolId from URL params or from localStorage if using the dedicated route
+  const params = useParams();
+  const storedSchoolId = localStorage.getItem('currentSchoolId');
+  const schoolId = params.schoolId || storedSchoolId;
+  
   const [location, navigate] = useLocation();
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();

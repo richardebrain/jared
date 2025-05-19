@@ -265,6 +265,11 @@ function Router() {
         {isAuthenticated ? <SchoolDashboard /> : <Login />}
       </Route>
       
+      {/* Add a dedicated route for direct school dashboard access with admin privileges */}
+      <Route path="/school-admin-dashboard">
+        {isAuthenticated ? <SchoolDashboard /> : <Login />}
+      </Route>
+      
       <Route path="/profile">
         {isAuthenticated ? <ProfilePage /> : <Login />}
       </Route>
