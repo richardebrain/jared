@@ -882,9 +882,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Special handling for school ID 2 (Bob's Daycare) - always allow access with Bigsurf99
+      if (schoolId === 2 && req.query.adminKey === "Bigsurf99") {
+        console.log("Special Bigsurf99 admin access granted for Bob's Daycare to user ID:", req.session.userId);
+        return next();
+      }
+      
       // Check if admin password was provided in query
       if (req.query.adminKey) {
-        // Special handling for Bigsurf99 password used in Bob's Daycare
+        // General handling for Bigsurf99 password
         if (req.query.adminKey === "Bigsurf99") {
           console.log("Special Bigsurf99 admin access granted for school ID:", schoolId);
           return next();
@@ -899,7 +905,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Verify admin password
         const adminKeyValid = await bcrypt.compare(
           req.query.adminKey as string, 
-          school.adminPasswordHash
+          school.adminPasswordHash || "" // Handle null hash
         );
         
         if (adminKeyValid) {
