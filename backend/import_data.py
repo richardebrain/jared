@@ -7,188 +7,152 @@ and populates the database tables for the assessment system
 import csv
 import json
 import os
-import re
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
+from typing import Dict, List, Optional, Any, Tuple
+import logging
+from contextlib import contextmanager
 
-from .database import engine, Base, SessionLocal
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
+
+from .database import setup_database, get_db_context
 from .models import Question
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger("import_data")
 
 def setup_database():
     """Create database tables if they don't exist"""
-    Base.metadata.create_all(bind=engine)
+    from .database import setup_database as db_setup
+    db_setup()
+    logger.info("Database tables created or verified")
 
 def clean_text(text):
     """Clean text fields from the CSV"""
-    if not text or text.lower() in ['null', 'none', 'nan', '']:
+    if not text:
         return None
     
-    # Remove extra whitespace and normalize line breaks
-    text = re.sub(r'\s+', ' ', text.strip())
+    # Remove extra whitespace and quotes
+    text = text.strip()
+    if text.startswith('"') and text.endswith('"'):
+        text = text[1:-1]
+    
+    # Return None for empty strings or placeholder values
+    if text in ["", "N/A", "None", "null"]:
+        return None
     
     return text
 
 def import_questions_from_csv(file_path="attached_assets/ece_master_database_full_with_why.csv"):
     """Import questions from CSV file into database"""
     if not os.path.exists(file_path):
-        print(f"Error: File not found at {file_path}")
-        return False
+        logger.error(f"CSV file not found: {file_path}")
+        return False, f"CSV file not found: {file_path}"
     
-    db = SessionLocal()
+    success_count = 0
+    error_count = 0
     
-    try:
-        # Count existing questions to avoid duplicates
-        existing_count = db.query(Question).count()
-        if existing_count > 0:
-            print(f"Database already contains {existing_count} questions.")
-            user_input = input("Do you want to proceed and potentially add duplicates? (y/n): ")
-            if user_input.lower() != 'y':
-                print("Import cancelled by user.")
-                return False
-        
-        # Read and import questions
-        questions_added = 0
-        questions_updated = 0
-        questions_skipped = 0
-        
-        with open(file_path, 'r', encoding='utf-8') as csvfile:
-            reader = csv.DictReader(csvfile)
-            
-            for row in reader:
-                # Check if this is a valid question row
-                if not row.get('question_text') or not row.get('answer'):
-                    questions_skipped += 1
-                    continue
+    with get_db_context() as db:
+        try:
+            with open(file_path, 'r', encoding='utf-8') as csvfile:
+                reader = csv.DictReader(csvfile)
                 
-                # Check if question already exists
-                question_text = clean_text(row.get('question_text'))
-                existing_question = db.query(Question).filter(
-                    Question.question_text == question_text
-                ).first()
+                for row_idx, row in enumerate(reader, start=1):
+                    try:
+                        # Create options dictionary
+                        options = {}
+                        for opt in ['A', 'B', 'C', 'D']:
+                            option_key = f'option_{opt.lower()}'
+                            if option_key in row and row[option_key]:
+                                options[opt] = clean_text(row[option_key])
+                        
+                        # Process resources as a list
+                        resources = []
+                        if 'resources' in row and row['resources']:
+                            resources_text = clean_text(row['resources'])
+                            if resources_text:
+                                # Try to parse as JSON if it looks like a list
+                                if resources_text.startswith('[') and resources_text.endswith(']'):
+                                    try:
+                                        resources = json.loads(resources_text)
+                                    except json.JSONDecodeError:
+                                        # Split by commas if JSON parsing fails
+                                        resources = [r.strip() for r in resources_text.split(',')]
+                                else:
+                                    # Split by commas
+                                    resources = [r.strip() for r in resources_text.split(',')]
+                        
+                        # Create question object
+                        question = Question()
+                        question.question = clean_text(row.get('question', ''))
+                        question.domain = clean_text(row.get('domain', 'General'))
+                        question.difficulty = int(clean_text(row.get('difficulty', '1')) or 1)
+                        question.q_type = clean_text(row.get('q_type', 'multiple_choice')) or 'multiple_choice'
+                        question.options = options
+                        question.correct_answer = clean_text(row.get('correct_answer', ''))
+                        question.sub_competency = clean_text(row.get('sub_competency'))
+                        question.competency = clean_text(row.get('competency'))
+                        question.class_dimension = clean_text(row.get('class_dimension'))
+                        question.practical_application_strategy = clean_text(row.get('practical_application_strategy'))
+                        question.why_behind_it = clean_text(row.get('why_behind_it'))
+                        question.classroom_examples = clean_text(row.get('classroom_examples'))
+                        question.citations = clean_text(row.get('citations'))
+                        question.resources = resources
+                        question.created_at = datetime.utcnow()
+                        question.updated_at = datetime.utcnow().isoformat()
+                        
+                        # Validate required fields
+                        if not question.question:
+                            raise ValueError("Question text is required")
+                        
+                        if not question.correct_answer:
+                            raise ValueError("Correct answer is required")
+                        
+                        # Save to database
+                        db.add(question)
+                        success_count += 1
+                        
+                        # Log progress every 100 records
+                        if success_count % 100 == 0:
+                            logger.info(f"Imported {success_count} questions so far...")
+                        
+                    except Exception as e:
+                        error_count += 1
+                        logger.error(f"Error importing row {row_idx}: {str(e)}")
+                        continue
                 
-                if existing_question:
-                    # Update existing question
-                    existing_question.domain = clean_text(row.get('domain'))
-                    existing_question.sub_competency = clean_text(row.get('sub_competency'))
-                    existing_question.difficulty = int(row.get('difficulty', 1)) if row.get('difficulty') else 1
-                    existing_question.q_type = clean_text(row.get('q_type')) or 'mcq'
-                    
-                    # Options
-                    existing_question.option_a = clean_text(row.get('option_a'))
-                    existing_question.option_b = clean_text(row.get('option_b'))
-                    existing_question.option_c = clean_text(row.get('option_c'))
-                    existing_question.option_d = clean_text(row.get('option_d'))
-                    existing_question.answer = clean_text(row.get('answer'))
-                    
-                    # Enhanced content
-                    existing_question.teaching_explanation = clean_text(row.get('teaching_explanation'))
-                    existing_question.story_why = clean_text(row.get('story_why'))
-                    existing_question.implementation_how = clean_text(row.get('implementation_how'))
-                    existing_question.reflection_considerations = clean_text(row.get('reflection_considerations'))
-                    existing_question.child_impact_story = clean_text(row.get('child_impact_story'))
-                    existing_question.science_behind_it = clean_text(row.get('science_behind_it'))
-                    existing_question.practical_application_strategy = clean_text(row.get('practical_application_strategy'))
-                    existing_question.why_behind_it = clean_text(row.get('why_behind_it'))
-                    
-                    # Resources (if in JSON format)
-                    resources = row.get('resources')
-                    if resources:
-                        try:
-                            existing_question.resources = json.loads(resources)
-                        except json.JSONDecodeError:
-                            # If not JSON, try to parse as comma-separated list
-                            existing_question.resources = [r.strip() for r in resources.split(',') if r.strip()]
-                    
-                    existing_question.updated_at = datetime.utcnow().isoformat()
-                    questions_updated += 1
-                else:
-                    # Create a new question
-                    new_question = Question(
-                        question_text=question_text,
-                        domain=clean_text(row.get('domain')),
-                        sub_competency=clean_text(row.get('sub_competency')),
-                        difficulty=int(row.get('difficulty', 1)) if row.get('difficulty') else 1,
-                        q_type=clean_text(row.get('q_type')) or 'mcq',
-                        
-                        # Options
-                        option_a=clean_text(row.get('option_a')),
-                        option_b=clean_text(row.get('option_b')),
-                        option_c=clean_text(row.get('option_c')),
-                        option_d=clean_text(row.get('option_d')),
-                        answer=clean_text(row.get('answer')),
-                        
-                        # Enhanced content
-                        teaching_explanation=clean_text(row.get('teaching_explanation')),
-                        story_why=clean_text(row.get('story_why')),
-                        implementation_how=clean_text(row.get('implementation_how')),
-                        reflection_considerations=clean_text(row.get('reflection_considerations')),
-                        child_impact_story=clean_text(row.get('child_impact_story')),
-                        science_behind_it=clean_text(row.get('science_behind_it')),
-                        practical_application_strategy=clean_text(row.get('practical_application_strategy')),
-                        why_behind_it=clean_text(row.get('why_behind_it')),
-                        
-                        # Metadata
-                        created_at=datetime.utcnow().isoformat(),
-                        updated_at=datetime.utcnow().isoformat(),
-                    )
-                    
-                    # Resources (if in JSON format)
-                    resources = row.get('resources')
-                    if resources:
-                        try:
-                            new_question.resources = json.loads(resources)
-                        except json.JSONDecodeError:
-                            # If not JSON, try to parse as comma-separated list
-                            new_question.resources = [r.strip() for r in resources.split(',') if r.strip()]
-                    
-                    db.add(new_question)
-                    questions_added += 1
-                
-                # Commit in batches to avoid memory issues
-                if (questions_added + questions_updated) % 100 == 0:
-                    db.commit()
-                    print(f"Progress: {questions_added} added, {questions_updated} updated, {questions_skipped} skipped")
+                # Commit at the end
+                db.commit()
             
-            # Final commit
-            db.commit()
+            logger.info(f"Import completed. Successful: {success_count}, Failed: {error_count}")
+            return True, f"Import completed. Successful: {success_count}, Failed: {error_count}"
             
-        print(f"Import complete: {questions_added} questions added, {questions_updated} updated, {questions_skipped} skipped")
-        return True
-    
-    except SQLAlchemyError as e:
-        db.rollback()
-        print(f"Database error: {str(e)}")
-        return False
-    except Exception as e:
-        db.rollback()
-        print(f"Error importing questions: {str(e)}")
-        return False
-    finally:
-        db.close()
+        except Exception as e:
+            db.rollback()
+            error_msg = f"Error during import: {str(e)}"
+            logger.error(error_msg)
+            return False, error_msg
 
 def run_import():
     """Main function to run the import process"""
-    print("Setting up database...")
+    logger.info("Starting import process...")
+    
+    # Setup the database
     setup_database()
     
-    # Default file path
-    default_file = "attached_assets/ece_master_database_full_with_why.csv"
-    
-    # Check if file exists
-    if os.path.exists(default_file):
-        file_path = default_file
-    else:
-        file_path = input("Enter the path to the CSV file containing questions: ")
-    
     # Import questions
-    print(f"Importing questions from {file_path}...")
-    success = import_questions_from_csv(file_path)
+    success, message = import_questions_from_csv()
     
     if success:
-        print("Questions imported successfully")
+        logger.info("Import completed successfully")
     else:
-        print("Question import failed")
+        logger.error(f"Import failed: {message}")
+    
+    return success, message
 
 if __name__ == "__main__":
     run_import()

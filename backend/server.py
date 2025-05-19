@@ -1,93 +1,112 @@
 """
-FastAPI server module for the MentorMe Enhanced Assessment system
-This module defines the FastAPI application and CORS configuration
+FastAPI server module for the MentorMe Assessment API
+This module creates and configures the FastAPI application
 """
 
-from fastapi import FastAPI, Depends, HTTPException
+import os
+import logging
+from typing import Dict, List, Any, Optional
+
+from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from typing import List, Dict, Optional
 
 from .database import get_db, setup_database
-from . import main, loader
-from .models import Question
+from . import main as api
 
-# Initialize FastAPI app
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger("server")
+
+# Create FastAPI app
 app = FastAPI(
     title="MentorMe Enhanced Assessment API",
-    description="API for the MentorMe assessment system that provides adaptive learning assessments for ECE educators",
-    version="1.0.0",
+    description="API for the MentorMe Enhanced Assessment system",
+    version="1.0.0"
 )
 
-# Add CORS middleware to allow cross-origin requests
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific origins
+    allow_origins=["*"],  # In production, restrict this to your domain
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Register startup event
 @app.on_event("startup")
-async def startup():
-    """Initialize database on startup"""
-    setup_database()
-    
+async def startup_event():
+    """Initialize the database on startup"""
+    await api.startup_event()
+    logger.info("API server started")
+
+# Root endpoint
 @app.get("/")
-async def read_root():
-    """API root endpoint with basic information"""
-    return {
-        "message": "MentorMe Enhanced Assessment API",
-        "version": "1.0.0",
-        "docs": "/docs",
-    }
+def read_root():
+    """Root endpoint that returns API info"""
+    return api.read_root()
 
-@app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    return {"status": "healthy"}
-
-@app.post("/api/assessments/start")
-async def api_start_assessment(request: main.AssessmentStartRequest, db: Session = Depends(get_db)):
+# Assessment endpoints
+@app.post("/api/assessment/start")
+def start_assessment(request: api.AssessmentStartRequest, db: Session = Depends(get_db)):
     """Start a new assessment for a user"""
-    return main.start_assessment(request, db)
+    return api.start_assessment(request, db)
 
-@app.post("/api/assessments/{assessment_id}/next-question")
-async def api_next_question(assessment_id: int, request: main.NextQuestionRequest, db: Session = Depends(get_db)):
-    """Get the next question in an assessment"""
-    # Make sure assessment ID in path matches request body
-    if assessment_id != request.assessment_id:
-        raise HTTPException(status_code=400, detail="Assessment ID mismatch")
-    
-    return main.next_question(request, db)
+@app.post("/api/assessment/{assessment_id}/next-question")
+def next_question(assessment_id: int, request: api.NextQuestionRequest, db: Session = Depends(get_db)):
+    """Get the next question for an assessment"""
+    # Update the request object with the assessment ID from the path
+    request.assessment_id = assessment_id
+    return api.next_question(request, db)
 
-@app.post("/api/assessments/{assessment_id}/submit-answer")
-async def api_submit_answer(assessment_id: int, submission: main.AnswerSubmission, db: Session = Depends(get_db)):
+@app.post("/api/assessment/{assessment_id}/submit-answer")
+def submit_answer(assessment_id: int, submission: api.AnswerSubmission, db: Session = Depends(get_db)):
     """Submit an answer for a question"""
-    return main.submit_answer(assessment_id, submission, db)
+    return api.submit_answer(assessment_id, submission, db)
 
-@app.post("/api/assessments/{assessment_id}/finish")
-async def api_finish_assessment(assessment_id: int, db: Session = Depends(get_db)):
-    """Finish an assessment and get results"""
-    return main.finish_assessment(assessment_id, db)
+@app.post("/api/assessment/{assessment_id}/finish")
+def finish_assessment(assessment_id: int, db: Session = Depends(get_db)):
+    """Finish an assessment and get personalized learning path"""
+    return api.finish_assessment(assessment_id, db)
 
-@app.get("/api/domains")
-async def get_domains(db: Session = Depends(get_db)):
-    """Get a list of all assessment domains"""
-    domains = loader.get_domains(db)
+# Question management endpoints (admin only)
+@app.get("/api/admin/questions/domains")
+def get_domains(db: Session = Depends(get_db)):
+    """Get all available question domains"""
+    domains = api.loader.get_domains(db)
     return {"domains": domains}
 
-@app.get("/api/domain-question-counts")
-async def get_domain_question_counts(db: Session = Depends(get_db)):
-    """Get the count of questions for each domain"""
-    counts = loader.get_question_counts_by_domain(db)
-    return {"domain_counts": counts}
+@app.get("/api/admin/questions/counts")
+def get_question_counts(db: Session = Depends(get_db)):
+    """Get counts of questions by domain"""
+    counts = api.loader.get_question_counts_by_domain(db)
+    return {"counts": counts}
 
-@app.get("/api/questions/{question_id}")
-async def get_question(question_id: int, db: Session = Depends(get_db)):
-    """Get a specific question by ID"""
-    question = loader.get_question_by_id(db, question_id)
-    if not question:
-        raise HTTPException(status_code=404, detail="Question not found")
-    
-    return main.format_question(question)
+@app.get("/api/admin/questions")
+def get_questions(
+    domain: Optional[str] = None,
+    difficulty: Optional[int] = None,
+    limit: int = 50,
+    db: Session = Depends(get_db)
+):
+    """Get questions for admin review"""
+    questions = api.loader.load_questions(db, domain, difficulty, None, limit)
+    return {"questions": [q.to_dict() for q in questions]}
+
+# Data import endpoints (admin only)
+@app.post("/api/admin/import")
+def import_data(db: Session = Depends(get_db)):
+    """Import data from CSV file"""
+    from .import_data import run_import
+    success, message = run_import()
+    return {"success": success, "message": message}
+
+# Health check endpoint
+@app.get("/api/health")
+def health_check():
+    """Health check endpoint"""
+    return {"status": "ok", "version": "1.0.0"}
