@@ -405,11 +405,24 @@ export default function AssessmentPage() {
     const answeredQuestionIds = Object.keys(answers);
     
     // Filter questions for the current domain and difficulty level that haven't been answered
-    const questions = assessmentQuestions.filter(
-      q => q.domain === domainId && 
-           q.difficulty === difficulty &&
-           !answeredQuestionIds.includes(q.id)
-    );
+    // Use a Set to track questions we've already included to avoid duplicates
+    const seen = new Set();
+    const questions = assessmentQuestions.filter(q => {
+      // Only include questions for this domain and difficulty that haven't been answered
+      if (q.domain === domainId && 
+          q.difficulty === difficulty &&
+          !answeredQuestionIds.includes(q.id)) {
+        
+        // Check if we've already seen this question text
+        // This ensures we don't include duplicate questions even if they have the same ID
+        const questionKey = q.text.trim();
+        if (!seen.has(questionKey)) {
+          seen.add(questionKey);
+          return true;
+        }
+      }
+      return false;
+    });
     
     // If no questions are available, try a different difficulty level
     if (questions.length === 0) {
