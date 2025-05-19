@@ -10,6 +10,7 @@ import { eq, sql } from "drizzle-orm";
 import { users, eduTokSnippets, eduTokUserInteractions } from "@shared/schema";
 import { registerWelcomeMessageRoutes } from "./welcomeMessageRoutes";
 import { registerModuleManagementRoutes } from "./module-management/moduleRoutes";
+import { registerQuestionImportRoutes } from "./api-routes/question-import";
 import * as notebookLmPlugin from "./notebookLmPlugin";
 import multer from "multer";
 import path from "path";
