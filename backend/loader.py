@@ -10,11 +10,68 @@ from typing import List, Tuple, Dict, Any, Optional
 from sqlalchemy import func, desc, and_, or_
 from sqlalchemy.orm import Session
 
-from .models import Question, UserPerformance, UserDomainProgress, AnswerFeedback, User
+from .models import Question, UserPerformance, UserDomainProgress, AnswerFeedback, User, QuestionResponse
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("loader")
+
+class LearningPath:
+    """Class to generate personalized learning path recommendations"""
+    def __init__(
+        self,
+        learning_path: Dict[str, List[str]],
+        domain_scores: Dict[str, float],
+        questions_asked: int,
+        questions_correct: int,
+        strongest_domain: str,
+        weakest_domain: str,
+        user_name: str = None,
+        total_points_earned: int = 10
+    ):
+        self.learning_path = learning_path
+        self.domain_scores = domain_scores
+        self.questions_asked = questions_asked
+        self.questions_correct = questions_correct
+        self.strongest_domain = strongest_domain
+        self.weakest_domain = weakest_domain
+        self.user_name = user_name or "Student"
+        self.total_points_earned = total_points_earned
+        
+        # Calculate accuracy percentage
+        if questions_asked > 0:
+            self.accuracy = (questions_correct / questions_asked) * 100
+        else:
+            self.accuracy = 0
+    
+    def to_dict(self):
+        """Convert to dictionary for API response"""
+        return {
+            'learning_path': self.learning_path,
+            'domain_scores': self.domain_scores,
+            'assessment_results': {
+                'questions_asked': self.questions_asked,
+                'questions_correct': self.questions_correct,
+                'accuracy': round(self.accuracy, 1),
+                'strongest_domain': self.strongest_domain,
+                'weakest_domain': self.weakest_domain,
+                'points_earned': self.total_points_earned
+            },
+            'celebration_message': self._generate_celebration_message()
+        }
+    
+    def _generate_celebration_message(self) -> str:
+        """Generate a personalized celebration message"""
+        
+        # Base message format with user's name
+        if self.accuracy >= 90:
+            return f"Outstanding work, {self.user_name}! You've earned {self.total_points_earned} points and demonstrated exceptional understanding across all domains. Your expertise in {self.strongest_domain} is particularly impressive!"
+        elif self.accuracy >= 75:
+            return f"Great job, {self.user_name}! You've earned {self.total_points_earned} points and shown strong knowledge in {self.strongest_domain}. Keep practicing {self.weakest_domain} to become even more skilled!"
+        elif self.accuracy >= 60:
+            return f"Good effort, {self.user_name}! You've earned {self.total_points_earned} points and are making solid progress. Focus on strengthening your knowledge in {self.weakest_domain} for even better results next time!"
+        else:
+            return f"Thank you for completing this assessment, {self.user_name}! You've earned {self.total_points_earned} points. We recommend focusing on {self.weakest_domain} to build your confidence and knowledge!"
 
 def load_questions(db: Session, domain=None, difficulty=None, exclude_ids=None, limit=10):
     """
