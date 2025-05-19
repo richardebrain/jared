@@ -114,6 +114,13 @@ app.use((req, res, next) => {
         .then(() => {
           console.log('Certification tracking migration completed successfully');
           
+          // Run the video quiz completions table migration
+          console.log('Creating video quiz completions table if needed...');
+          return createVideoQuizCompletionsTable();
+        })
+        .then(() => {
+          console.log('Video quiz completions table created successfully');
+          
           // Then seed the database with initial data
           console.log('Seeding database...');
           return seedDatabase()
