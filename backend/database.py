@@ -5,37 +5,56 @@ Database connection module for the FastAPI backend
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
+from contextlib import contextmanager
 
-# Get database URL from environment or use SQLite as fallback
-DATABASE_URL = os.environ.get("DATABASE_URL")
-
-if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
-    # Heroku provides DATABASE_URL in postgres:// format which SQLAlchemy no longer supports
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-
-# Use PostgreSQL in production or SQLite in development
-if DATABASE_URL:
-    # Use PostgreSQL database
-    engine = create_engine(DATABASE_URL)
+# Determine database URL based on environment
+if os.environ.get("DATABASE_URL"):
+    # Use PostgreSQL from environment variable
+    DATABASE_URL = os.environ.get("DATABASE_URL")
+    # Support Heroku-style PostgreSQL URLs
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 else:
-    # Use SQLite for development and testing
-    SQLITE_DATABASE_URL = "sqlite:///./assessment_data.db"
-    engine = create_engine(
-        SQLITE_DATABASE_URL, connect_args={"check_same_thread": False}
-    )
-    print("WARNING: Using SQLite database. For production, set DATABASE_URL environment variable.")
+    # Default to SQLite for local development
+    DATABASE_URL = "sqlite:///./assessment.db"
 
-# Create a session factory
+# Create SQLAlchemy engine
+engine = create_engine(
+    DATABASE_URL, 
+    # Enable for debugging SQL queries
+    # echo=True,
+    # For SQLite, enable foreign key constraints
+    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+)
+
+# Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Create a base class for models
+# Create base class for declarative models
 Base = declarative_base()
+
+def setup_database():
+    """Create database tables if they don't exist"""
+    Base.metadata.create_all(bind=engine)
 
 def get_db():
     """Provide a database session for a request"""
     db = SessionLocal()
     try:
         yield db
+    finally:
+        db.close()
+
+@contextmanager
+def get_db_context():
+    """Context manager for database sessions"""
+    db = SessionLocal()
+    try:
+        yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()
