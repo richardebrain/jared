@@ -6,6 +6,8 @@ import { seedDatabase } from "./seedDb";
 import { runSchoolMigration } from "./runMigration";
 import { runSchoolColumnsMigration } from "./schoolColumnsMigration";
 import { runCertificationMigration } from "./certificationMigration";
+// Import module management system
+import { ModuleManager } from "./module-management/moduleManager";
 
 const app = express();
 app.use(express.json());
@@ -108,7 +110,12 @@ app.use((req, res, next) => {
           
           // Then seed the database with initial data
           console.log('Seeding database...');
-          return seedDatabase();
+          return seedDatabase()
+            .then(() => {
+              // Run module system verification to ensure essential modules don't disappear
+              console.log('Verifying essential training modules...');
+              return ModuleManager.runStartupVerification();
+            });
         })
         .catch(err => {
           console.error("Error during migration or seeding:", err);

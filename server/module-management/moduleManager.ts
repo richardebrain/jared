@@ -1,6 +1,6 @@
 import { db } from "../db";
-import { learningModules, type LearningModule, type InsertLearningModule } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { LearningModule, learningModules } from "@shared/schema";
+import { eq, sql } from "drizzle-orm";
 import { createRaisingArizonaCoreModule } from "../createCoreModule";
 import { createChapterOneModule } from "../createChapterOneModule";
 import { createMindfulMorningsModule } from "../createMindfulMorningsModule";
@@ -19,76 +19,50 @@ export class ModuleManager {
    * and restores any missing modules from their original definitions.
    */
   static async verifyAndRestoreEssentialModules(): Promise<{
-    success: boolean;
-    fixed: number;
-    modules: string[];
+    restored: LearningModule[];
+    alreadyExisting: LearningModule[];
   }> {
-    try {
-      console.log("Verifying essential training modules...");
-      
-      const fixedModules: string[] = [];
-      let fixCount = 0;
-      
-      // Check for Core Values module
-      const coreValuesModule = await db.query.learningModules.findFirst({
-        where: (modules, { eq }) => eq(modules.title, "Raising Arizona's CORE")
+    const restored: LearningModule[] = [];
+    const alreadyExisting: LearningModule[] = [];
+
+    // List of essential module titles
+    const essentialModules = [
+      "Raising Arizona's CORE",
+      "Chapter 1: Building a Human",
+      "Mindful Morning"
+    ];
+
+    // Check each essential module
+    for (const moduleTitle of essentialModules) {
+      const module = await db.query.learningModules.findFirst({
+        where: (modules, { eq }) => eq(modules.title, moduleTitle)
       });
-      
-      if (!coreValuesModule) {
-        console.log("Core Values module missing - restoring...");
-        const restored = await createRaisingArizonaCoreModule();
-        if (restored) {
-          fixedModules.push("Raising Arizona's CORE");
-          fixCount++;
-          console.log("Core Values module restored with ID:", restored.id);
+
+      if (!module) {
+        console.log(`Restoring missing essential module: ${moduleTitle}`);
+        
+        // Restore the specific module
+        let restoredModule: LearningModule | null = null;
+        
+        if (moduleTitle === "Raising Arizona's CORE") {
+          restoredModule = await createRaisingArizonaCoreModule();
+        } else if (moduleTitle === "Chapter 1: Building a Human") {
+          restoredModule = await createChapterOneModule();
+        } else if (moduleTitle === "Mindful Morning") {
+          restoredModule = await createMindfulMorningsModule();
         }
-      }
-      
-      // Check for Chapter One module
-      const chapterOneModule = await db.query.learningModules.findFirst({
-        where: (modules, { eq }) => eq(modules.title, "Chapter 1: Building a Human")
-      });
-      
-      if (!chapterOneModule) {
-        console.log("Chapter One module missing - restoring...");
-        const restored = await createChapterOneModule();
-        if (restored) {
-          fixedModules.push("Chapter 1: Building a Human");
-          fixCount++;
-          console.log("Chapter One module restored with ID:", restored.id);
+        
+        if (restoredModule) {
+          restored.push(restoredModule);
         }
+      } else {
+        alreadyExisting.push(module);
       }
-      
-      // Check for Mindful Mornings module
-      const mindfulMorningsModule = await db.query.learningModules.findFirst({
-        where: (modules, { eq }) => eq(modules.title, "Mindful Morning")
-      });
-      
-      if (!mindfulMorningsModule) {
-        console.log("Mindful Mornings module missing - restoring...");
-        const restored = await createMindfulMorningsModule();
-        if (restored) {
-          fixedModules.push("Mindful Morning");
-          fixCount++;
-          console.log("Mindful Mornings module restored with ID:", restored.id);
-        }
-      }
-      
-      return {
-        success: true,
-        fixed: fixCount,
-        modules: fixedModules
-      };
-    } catch (error) {
-      console.error("Error in verifyAndRestoreEssentialModules:", error);
-      return {
-        success: false,
-        fixed: 0,
-        modules: []
-      };
     }
+
+    return { restored, alreadyExisting };
   }
-  
+
   /**
    * Update module visibility on dashboard
    * 
@@ -96,54 +70,49 @@ export class ModuleManager {
    * on the dashboard without deleting them from the database.
    */
   static async updateModuleVisibility(
-    moduleId: number, 
-    visible: boolean
-  ): Promise<boolean> {
-    try {
-      await db.update(learningModules)
-        .set({ featured: visible })
-        .where(eq(learningModules.id, moduleId));
-      
-      return true;
-    } catch (error) {
-      console.error("Error updating module visibility:", error);
-      return false;
-    }
+    moduleId: number,
+    isVisible: boolean
+  ): Promise<LearningModule | null> {
+    // Use SQL directly to avoid schema mismatch issue
+    await db.execute(
+      sql`UPDATE learning_modules 
+          SET is_visible = ${isVisible}, 
+              updated_at = ${new Date()} 
+          WHERE id = ${moduleId}`
+    );
+    
+    return await db.query.learningModules.findFirst({
+      where: (modules, { eq }) => eq(modules.id, moduleId)
+    });
   }
-  
+
   /**
    * Get all modules with visibility status
    * 
    * Returns all modules with their visibility settings for the admin panel
    */
   static async getAllModulesWithVisibility(): Promise<LearningModule[]> {
-    try {
-      const allModules = await db.select().from(learningModules);
-      return allModules;
-    } catch (error) {
-      console.error("Error getting modules with visibility:", error);
-      return [];
-    }
+    return await db.query.learningModules.findMany({
+      orderBy: (modules, { desc }) => [desc(modules.createdAt)]
+    });
   }
-  
+
   /**
    * Get visible modules for dashboard
    * 
    * Returns only modules that should be shown on the dashboard
    */
   static async getVisibleModules(): Promise<LearningModule[]> {
-    try {
-      const visibleModules = await db.select()
-        .from(learningModules)
-        .where(eq(learningModules.featured, true));
-      
-      return visibleModules;
-    } catch (error) {
-      console.error("Error getting visible modules:", error);
-      return [];
-    }
+    // Use direct SQL query to avoid schema mismatch
+    const modules = await db.execute(
+      sql`SELECT * FROM learning_modules 
+          WHERE is_visible = TRUE 
+          ORDER BY created_at DESC`
+    );
+    
+    return modules.rows as LearningModule[];
   }
-  
+
   /**
    * Run verification during server startup
    * 
@@ -151,17 +120,22 @@ export class ModuleManager {
    * all essential modules are present
    */
   static async runStartupVerification(): Promise<void> {
-    try {
-      console.log("Running module system verification at startup...");
-      const result = await this.verifyAndRestoreEssentialModules();
-      
-      if (result.fixed > 0) {
-        console.log(`Restored ${result.fixed} missing modules: ${result.modules.join(", ")}`);
-      } else {
-        console.log("All essential modules are present and accounted for.");
-      }
-    } catch (error) {
-      console.error("Error during startup verification:", error);
+    console.log("Running module system verification...");
+    const { restored, alreadyExisting } = await this.verifyAndRestoreEssentialModules();
+    
+    if (restored.length > 0) {
+      console.log(`Restored ${restored.length} missing modules: ${restored.map(m => m.title).join(", ")}`);
+    } else {
+      console.log(`All essential modules are present (${alreadyExisting.length} modules)`);
+    }
+    
+    // Fix any modules with isVisible set to null by setting them to true (visible)
+    const updatedCount = await db.update(learningModules)
+      .set({ isVisible: true })
+      .where(eq(learningModules.isVisible, null));
+    
+    if (updatedCount) {
+      console.log(`Updated visibility for ${updatedCount} modules`);
     }
   }
 }

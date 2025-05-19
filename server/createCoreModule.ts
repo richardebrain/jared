@@ -104,7 +104,38 @@ export async function createRaisingArizonaCoreModule() {
             each child's growth, development, and well-being. This commitment drives us to continue learning, 
             improving our practices, and advocating for the best interests of children and families.
           </p>
-          <div class="p-4 bg-white rounded shadow-sm">
+          
+          <div class="my-6 p-5 bg-white rounded-lg shadow-md border-l-4 border-purple-500">
+            <h3 class="text-xl font-semibold mb-3 text-purple-800">"Ms. Elena's Whispered Promise"</h3>
+            <p class="italic text-sm mb-4">A story that demonstrates our lasting commitment to children</p>
+            
+            <p class="mb-3">Tiny footsteps echoed in the cubby‐lined hallway as four-year-old Jaylen shuffled toward the block corner. The morning's tears still glistened on his cheeks—each collapse of his wobbly tower a fresh reminder that he didn't belong. His chest tightened until Ms. Elena, the kind-eyed teacher with the softest voice in the world, knelt beside him.</p>
+            
+            <p class="mb-3">She laid a gentle hand on his shoulder and whispered, "Each block you place makes you stronger—and you're already strong, Jaylen." Her words floated around him like a summer breeze, and in that moment, his heart unclenched. He took a deep breath, picked up a new block, and placed it with trembling pride.</p>
+            
+            <p class="font-semibold mb-2">Years Passed</p>
+            <ul class="list-disc pl-6 mb-3">
+              <li>At six, Jaylen struggled with reading—and each time his eyes filled with doubt, he heard Ms. Elena's whisper, urging him on.</li>
+              <li>At eight, he wrestled with loneliness on the playground—and again, her voice reminded him of his own resilience.</li>
+              <li>At ten, when his family moved and he faced a brand-new school, he carried her words like a secret shield in his pocket.</li>
+            </ul>
+            
+            <p class="font-semibold mb-2">The Turning Point</p>
+            <p class="mb-3">On her final day before retirement, Ms. Elena stood in front of the preschool class, her usual spark dimmed by tears she tried to hide. News had come that she was very ill, and today's tear-stained smocks and trembling hugs felt like the end of something sacred.</p>
+            
+            <p class="mb-3">When the students brought her gifts of handmade cards and painted rocks, Jaylen paused outside the door—now a tall teenager with careful eyes. In his hands was something else: a simple wooden block, painted gold, on which he'd written two words in his neatest script:</p>
+            
+            <p class="mb-3 font-semibold text-center">"Already Strong."</p>
+            
+            <p class="mb-3">He placed it in her hand. "You taught me how," he said, voice thick. "And I never forgot."</p>
+            
+            <p class="font-semibold mb-2">The Finale</p>
+            <p class="mb-3">Ms. Elena's tears flowed freely as she held the block close to her heart. The classroom fell silent, every child sensing the magic in that moment. She leaned forward, her voice a fragile whisper but just as powerful: "You have been my greatest lesson, Jaylen. You are already strong."</p>
+            
+            <p class="mb-3">Years from now, Jaylen—now a teacher himself—would keep that golden block on his desk. And on hard days, when a child's tears threatened to wash away their confidence, he'd repeat Ms. Elena's promise, offering it like a lifeline. Because in those two simple words, he carried forward the most caring gift a teacher can give: the belief that a child is already strong, and always worthy of unwavering faith.</p>
+          </div>
+          
+          <div class="p-4 bg-white rounded shadow-sm mt-4">
             <h3 class="font-bold text-lg">Demonstrations of Commitment:</h3>
             <ul class="list-disc pl-6 mt-2">
               <li>Pursuing ongoing professional development</li>
@@ -124,7 +155,28 @@ export async function createRaisingArizonaCoreModule() {
             Our compassionate, responsive relationships with children create the foundation for all learning 
             and development.
           </p>
-          <div class="p-4 bg-white rounded shadow-sm">
+          
+          <div class="my-6 p-5 bg-white rounded-lg shadow-md border-l-4 border-amber-500">
+            <h3 class="text-xl font-semibold mb-3 text-amber-800">"Miss Rosa's Unbroken Circle"</h3>
+            <p class="italic text-sm mb-4">A story that embodies our commitment to caring</p>
+            
+            <p class="mb-3">From the very first morning, Lila clung to the classroom door, eyes wide with worry. Her home was always shifting—new houses, new faces—but here, every sunrise brought Miss Rosa's familiar smile. Each day, Miss Rosa knelt beside Lila, gently brushing a stray curl from her forehead. "You're safe here, Lila," she whispered, "and I'm not going anywhere."</p>
+            
+            <p class="mb-3">Miss Rosa wasn't just a teacher—she was a steady presence in each child's life. She learned the exact way Mason folded his favorite blanket at nap time, and she hummed Sophia's favorite tune whenever tears welled up. At snack time, she remembered who loved grapes and who preferred carrots. These small details wove a deep web of trust: the children knew she saw them, truly saw them.</p>
+            
+            <p class="font-semibold mb-2">The Turning Point:</p>
+            <p class="mb-3">One rainy Tuesday, the classroom buzzed with nervous energy. It was craft day, and every child came with scissors, glue sticks, and construction paper. Lila's hands trembled as she approached the art table—today was "Family Collage," and she had no picture of "family" to share. Her heart pounded; she backed away, tears brimming.</p>
+            
+            <p class="mb-3">Miss Rosa noticed instantly. Without hesitation, she slipped from her desk, gathered Lila into a soft embrace, and said, "Let's make your collage of people who love you." She led Lila to a basket filled with photos Miss Rosa had secretly collected over weeks—snapshots of Lila laughing with classmates, planting seeds in the school garden, and playing dress-up at the dramatic play corner.</p>
+            
+            <p class="mb-3">As Lila's eyes widened, understanding bloomed. Miss Rosa knelt beside her, whispering, "Love isn't just a photo—it's the laughter you share, the hands that hold yours, the moments we build together." With gentle guidance, they arranged images of classroom friends, a caregiver from drop-off, and even Miss Rosa herself, beaming as she read to the whole class.</p>
+            
+            <p class="mb-3">When the collage was complete, Lila held it close, her tears turning to a bright smile. In that moment, the other children gathered round, offering glue and glitter with shy hands. The room glowed not just with colored paper, but with the warmth of belonging.</p>
+            
+            <p class="mb-3">Weeks later, when a new family moved in and Lila once again felt unmoored, she carried her collage in her backpack like a shield. At the first tear of uncertainty, she pulled it out—her circle of love, unbroken. Because Miss Rosa had done more than teach letters or numbers: she had taught Lila that consistency is an unspoken promise to see every child's worth, hold them in every storm, and help them build a world of their own making.</p>
+          </div>
+          
+          <div class="p-4 bg-white rounded shadow-sm mt-4">
             <h3 class="font-bold text-lg">Ways We Show We Care:</h3>
             <ul class="list-disc pl-6 mt-2">
               <li>Greeting each child warmly by name every day</li>
