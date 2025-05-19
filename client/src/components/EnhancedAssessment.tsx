@@ -243,30 +243,9 @@ const EnhancedAssessment: React.FC<EnhancedAssessmentProps> = ({
     );
   }
 
-  // Render API unavailable message
-  if (!apiAvailable) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Assessment Unavailable</DialogTitle>
-          </DialogHeader>
-          <DialogDescription>
-            The assessment system is currently unavailable. Please try again later or contact support.
-          </DialogDescription>
-          <div className="bg-yellow-50 p-4 rounded-md border border-yellow-200">
-            <p className="text-yellow-800">
-              To start the assessment server, run:<br />
-              <code className="bg-yellow-100 px-1 py-0.5 rounded">bash start_assessment_api.sh</code>
-            </p>
-          </div>
-          <DialogFooter>
-            <Button onClick={() => onOpenChange(false)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  // We no longer need to show "Assessment Unavailable" message
+  // Because we use fallback data from the server-side adapter instead
+  // This ensures users always get a consistent experience even if the Python backend is down
 
   // Render domain selection
   if (!isReady) {
