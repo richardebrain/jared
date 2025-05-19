@@ -1419,38 +1419,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId as number;
       const videoId = req.params.videoId; // Using videoId as string (YouTube ID)
       
+      // First check if user has already completed this specific video in the last month
+      try {
+        const recentCompletion = await storage.getRecentVideoQuizCompletion(userId, videoId);
+        if (recentCompletion) {
+          // Calculate when they can complete it again
+          const completedDate = new Date(recentCompletion.completedAt);
+          const nextAvailable = new Date(completedDate);
+          nextAvailable.setMonth(nextAvailable.getMonth() + 1);
+          
+          // Format the date for display
+          const nextAvailableFormatted = nextAvailable.toLocaleDateString('en-US', {
+            month: 'long', 
+            day: 'numeric'
+          });
+          
+          return res.status(200).json({
+            success: true,
+            pointsAwarded: 0,
+            message: `You've already completed this video. You can earn points for it again after ${nextAvailableFormatted}.`,
+            limitReached: false,
+            alreadyCompleted: true,
+            nextAvailable: nextAvailable
+          });
+        }
+      } catch (err) {
+        // If there's an error checking for existing completion, continue anyway
+        console.log("Error checking existing completion:", err);
+      }
+      
       // Check if user has already completed 2 video quizzes today
       const completionsToday = await storage.getDailyVideoCompletionsCount(userId);
       
       if (completionsToday >= 2) {
-        return res.status(400).json({ 
+        return res.status(200).json({ 
+          success: true,
+          pointsAwarded: 0,
+          limitReached: true,
           message: "You can only earn points for 2 videos per day",
           remaining: 0
         });
       }
       
       // Determine points based on video duration
-      // For simplicity, we're using a fixed value based on video length
-      // In a real implementation, you'd look up the video's duration from your data
       const videoDuration = req.body.duration || 5; // Default to 5 minutes if not provided
       const pointsEarned = videoDuration >= 10 ? 8 : 5; // 8 points for videos 10+ minutes, 5 points for shorter videos
       
-      // Record the completion
-      const completion = await storage.createVideoQuizCompletion({
-        userId,
-        videoId,
-        pointsEarned,
-        completedAt: new Date()
-      });
-      
-      // Add points to user (respecting daily cap)
-      await storage.addUserPoints(userId, pointsEarned);
-      
-      res.status(201).json({ 
-        success: true, 
-        completion,
-        remaining: 2 - (completionsToday + 1) // Remaining videos for today
-      });
+      try {
+        // Record the completion
+        const completion = await storage.createVideoQuizCompletion({
+          userId,
+          videoId,
+          pointsEarned,
+          completedAt: new Date()
+        });
+        
+        // Add points to user (respecting daily cap)
+        await storage.addUserPoints(userId, pointsEarned);
+        
+        // Get updated user
+        const user = await storage.getUser(userId);
+        
+        res.status(200).json({ 
+          success: true, 
+          completion,
+          pointsAwarded: pointsEarned,
+          totalPoints: user?.points || 0,
+          remaining: 2 - (completionsToday + 1) // Remaining videos for today
+        });
+      } catch (err: any) {
+        // Check if this is a duplicate key error
+        if (err.code === '23505' && err.constraint === 'idx_video_quiz_completions_user_video') {
+          // User already completed this video
+          return res.status(200).json({
+            success: true,
+            pointsAwarded: 0,
+            message: "You've already completed this video. Try watching a different one!",
+            limitReached: false,
+            alreadyCompleted: true
+          });
+        } else {
+          // Re-throw for general error handling
+          throw err;
+        }
+      }
     } catch (error) {
       console.error("Error recording video quiz completion:", error);
       res.status(500).json({ message: "Internal server error" });
