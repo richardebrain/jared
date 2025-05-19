@@ -50,7 +50,13 @@ const EnhancedAssessment: React.FC<EnhancedAssessmentProps> = ({
   // Check if assessment API is available
   useEffect(() => {
     const checkApiStatus = async () => {
+      setIsLoading(true);
       try {
+        // Load domains even if API check fails
+        const domainsData = await enhancedAssessmentService.getDomains();
+        setDomains(domainsData);
+        
+        // Then check API health
         const isAvailable = await enhancedAssessmentService.checkHealth();
         setApiAvailable(isAvailable);
       } catch (error) {

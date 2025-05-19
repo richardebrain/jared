@@ -56,24 +56,27 @@ router.get('/domains', async (_req, res) => {
     console.error('Failed to fetch domains from assessment API:', error.message);
     // Return a fallback set of domains if the service is unavailable
     // This allows the UI to still function
-    return res.json([
+    return res.status(200).json([
       {
         "id": 1,
         "name": "Child Development",
         "description": "Understanding how children grow and develop",
-        "color": "#4CAF50"
+        "color": "#4CAF50",
+        "is_active": true
       },
       {
         "id": 2,
         "name": "Classroom Management",
         "description": "Strategies for effective classroom organization and management",
-        "color": "#2196F3"
+        "color": "#2196F3",
+        "is_active": true
       },
       {
         "id": 3,
         "name": "Curriculum & Planning",
         "description": "Developing engaging learning experiences",
-        "color": "#FF9800"
+        "color": "#FF9800",
+        "is_active": true
       }
     ]);
   }

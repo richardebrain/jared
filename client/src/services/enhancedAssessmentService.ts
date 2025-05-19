@@ -3,6 +3,34 @@ import axios from 'axios';
 // Base URL for the enhanced assessment API adapter
 const BASE_URL = '/api/assessment';
 
+// Fallback domains to use when API is unavailable
+const FALLBACK_DOMAINS: Domain[] = [
+  {
+    id: 1,
+    name: "Child Development",
+    description: "Understanding how children grow and develop",
+    color: "#4CAF50",
+    is_active: true,
+    sub_domains: []
+  },
+  {
+    id: 2,
+    name: "Classroom Management",
+    description: "Strategies for effective classroom organization and management",
+    color: "#2196F3",
+    is_active: true,
+    sub_domains: []
+  },
+  {
+    id: 3,
+    name: "Curriculum & Planning",
+    description: "Developing engaging learning experiences",
+    color: "#FF9800",
+    is_active: true,
+    sub_domains: []
+  }
+];
+
 // Types
 export interface AssessmentQuestion {
   id: number;
@@ -80,6 +108,7 @@ export interface LearningPath {
 class EnhancedAssessmentService {
   /**
    * Get all available assessment domains
+   * Returns fallback domains if API is not available
    */
   async getDomains(): Promise<Domain[]> {
     try {
@@ -87,7 +116,9 @@ class EnhancedAssessmentService {
       return response.data;
     } catch (error) {
       console.error('Error fetching domains:', error);
-      throw error;
+      // Return fallback domains instead of throwing error
+      // This prevents the UI from breaking when backend is down
+      return FALLBACK_DOMAINS;
     }
   }
 
