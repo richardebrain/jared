@@ -1,126 +1,157 @@
-import React, { useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { useQuery } from '@tanstack/react-query';
-import { useLocation } from 'wouter';
+import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { EnhancedAssessment } from '@/components/EnhancedAssessment';
-import { LearningPathResponse } from '@/services/assessmentService';
-import { apiRequest } from '@/lib/queryClient';
+import EnhancedAssessment from '@/components/EnhancedAssessment';
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLocation, useNavigate } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
+import { LearningPath } from '../services/assessmentService';
 
 const EnhancedAssessmentPage: React.FC = () => {
-  const [location, setLocation] = useLocation();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [assessmentCompleted, setAssessmentCompleted] = useState(false);
-  const [results, setResults] = useState<LearningPathResponse | null>(null);
-
-  // Get authenticated user
-  const { data: user, isLoading } = useQuery({
+  const [learningPath, setLearningPath] = useState<LearningPath | null>(null);
+  
+  // Get current user
+  const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['/api/auth/me'],
-    retry: false,
   });
-
+  
   // Handle assessment completion
-  const handleAssessmentComplete = (results: LearningPathResponse) => {
-    setResults(results);
+  const handleComplete = (results: LearningPath) => {
     setAssessmentCompleted(true);
+    setLearningPath(results);
+    
+    // Update user points (would normally be handled by backend)
     toast({
-      title: 'Assessment Completed',
-      description: 'Your personalized learning path is ready!',
+      title: "Points Awarded!",
+      description: "You've earned 10 points for completing the assessment.",
     });
   };
-
-  // Handle points earned from assessment
-  const handlePointsEarned = async (points: number) => {
-    try {
-      // Update user points in the system
-      await apiRequest('POST', '/api/users/add-points', { 
-        userId: user?.id, 
-        points,
-        source: 'assessment'
-      });
-      
-      toast({
-        title: 'Points Added',
-        description: `You earned ${points} points from the assessment!`,
-      });
-    } catch (error) {
-      console.error('Failed to add points:', error);
-    }
-  };
-
-  // Go to dashboard
-  const goToDashboard = () => {
-    setLocation('/dashboard');
-  };
-
-  // Return to assessment if it's not completed yet
-  const returnToAssessment = () => {
-    setAssessmentCompleted(false);
-    setResults(null);
-  };
-
-  if (isLoading) {
+  
+  // Render introduction screen with instructions
+  const renderIntro = () => {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <Card className="w-full max-w-md mx-auto mt-10">
+      <Card className="w-full max-w-3xl mx-auto">
         <CardHeader>
-          <CardTitle>Authentication Required</CardTitle>
-          <CardDescription>Please log in to access the enhanced assessment.</CardDescription>
+          <CardTitle className="text-center text-2xl">Enhanced Teacher Assessment</CardTitle>
+          <CardDescription className="text-center">
+            Test your knowledge of early childhood education concepts and receive personalized learning recommendations
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Button onClick={() => setLocation('/login')}>Go to Login</Button>
+        <CardContent className="space-y-4">
+          <div className="border rounded-lg p-4 bg-primary/5">
+            <h3 className="font-semibold mb-2">How It Works:</h3>
+            <ul className="list-disc list-inside space-y-2">
+              <li>You'll be presented with multiple-choice questions covering various ECE domains</li>
+              <li>Questions adapt to your skill level, becoming more challenging as you demonstrate mastery</li>
+              <li>Special sections like Core Values and Mindful Morning have a fixed set of questions</li>
+              <li>The assessment takes approximately 15-20 minutes to complete</li>
+              <li>Your results will generate a personalized learning path</li>
+            </ul>
+          </div>
+          
+          <div className="border rounded-lg p-4 bg-green-50">
+            <h3 className="font-semibold mb-2 text-green-700">Benefits:</h3>
+            <ul className="list-disc list-inside space-y-2">
+              <li>Identify your strengths and areas for growth</li>
+              <li>Receive tailored learning recommendations</li>
+              <li>Earn 10 points upon completion</li>
+              <li>Track your professional development progress</li>
+            </ul>
+          </div>
         </CardContent>
+        <CardFooter className="flex justify-center">
+          <Button 
+            size="lg" 
+            className="px-8"
+            onClick={() => setAssessmentCompleted(false)}
+          >
+            Start Assessment
+          </Button>
+        </CardFooter>
       </Card>
     );
-  }
-
-  return (
-    <>
-      <Helmet>
-        <title>Enhanced Assessment | MentorMe</title>
-        <meta name="description" content="Complete your early childhood education assessment to create a personalized learning path." />
-      </Helmet>
-
-      <div className="container mx-auto py-8 px-4">
-        <h1 className="text-3xl font-bold mb-6 text-center">
-          Enhanced Early Childhood Education Assessment
-        </h1>
-        
-        {assessmentCompleted && results ? (
-          <div className="space-y-8">
-            <div className="bg-primary/10 p-6 rounded-lg text-center">
-              <h2 className="text-2xl font-bold mb-2">Assessment Completed</h2>
+  };
+  
+  // Render the page content
+  const renderContent = () => {
+    if (userLoading) {
+      return (
+        <div className="flex justify-center items-center h-[80vh]">
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+        </div>
+      );
+    }
+    
+    if (!user || !user.id) {
+      return (
+        <Card className="w-full max-w-3xl mx-auto">
+          <CardHeader>
+            <CardTitle className="text-center">Authentication Required</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p>Please log in to access the assessment.</p>
+          </CardContent>
+          <CardFooter className="flex justify-center">
+            <Button onClick={() => setLocation('/login')}>
+              Log In
+            </Button>
+          </CardFooter>
+        </Card>
+      );
+    }
+    
+    if (assessmentCompleted && learningPath) {
+      return (
+        <Card className="w-full max-w-3xl mx-auto">
+          <CardHeader>
+            <CardTitle className="text-center">Assessment Completed!</CardTitle>
+            <CardDescription className="text-center">
+              You've successfully completed the enhanced assessment.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center">
               <p className="mb-4">
-                You've successfully completed your assessment. Your personalized learning path is ready!
+                Your personalized learning path has been created based on your results.
               </p>
-              <div className="flex justify-center gap-4">
-                <Button onClick={returnToAssessment} variant="outline">
-                  View Results Again
-                </Button>
-                <Button onClick={goToDashboard}>
-                  Return to Dashboard
-                </Button>
+              <div className="border rounded-lg p-4 bg-green-50 mb-4">
+                <h3 className="font-semibold">Your Results:</h3>
+                <p>Correct Answers: {learningPath.questions_correct} / {learningPath.questions_asked}</p>
+                <p>Strongest Domain: {learningPath.strongest_domain}</p>
+                <p>Area for Growth: {learningPath.weakest_domain}</p>
               </div>
             </div>
-          </div>
-        ) : (
-          <EnhancedAssessment 
-            userId={user.id}
-            onComplete={handleAssessmentComplete}
-            onPointsEarned={handlePointsEarned}
-          />
-        )}
-      </div>
-    </>
+          </CardContent>
+          <CardFooter className="flex justify-center gap-4 flex-wrap">
+            <Button 
+              variant="outline" 
+              onClick={() => setAssessmentCompleted(false)}
+            >
+              Take Assessment Again
+            </Button>
+            <Button onClick={() => setLocation('/dashboard')}>
+              Return to Dashboard
+            </Button>
+          </CardFooter>
+        </Card>
+      );
+    }
+    
+    return <EnhancedAssessment userId={user.id} onComplete={handleComplete} />;
+  };
+  
+  return (
+    <div className="container mx-auto py-6">
+      <Helmet>
+        <title>Enhanced Assessment | MentorMe Teacher Training</title>
+        <meta name="description" content="Take our enhanced assessment to identify your strengths and areas for growth in early childhood education." />
+      </Helmet>
+      {renderContent()}
+    </div>
   );
 };
 

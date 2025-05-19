@@ -1,52 +1,9 @@
 /**
- * Enhanced Assessment Service
- * Provides API methods to interact with the Python FastAPI assessment backend
+ * Assessment Service 
+ * Handles API calls to the enhanced assessment backend
  */
-import axios from 'axios';
 
-// Define the base URL for the FastAPI server
-// In production, this would be a deployed URL
 const API_BASE_URL = 'http://localhost:8000';
-
-// API endpoints
-const ENDPOINTS = {
-  START: '/api/assessment/start',
-  NEXT_QUESTION: (id: number) => `/api/assessment/${id}/next-question`,
-  SUBMIT_ANSWER: (id: number) => `/api/assessment/${id}/submit-answer`,
-  FINISH: (id: number) => `/api/assessment/${id}/finish`,
-};
-
-// Define types for API requests and responses
-export interface AssessmentStartRequest {
-  user_id: number;
-}
-
-export interface AssessmentStartResponse {
-  assessment_id: number;
-  message: string;
-}
-
-export interface AssessmentQuestion {
-  id: number;
-  question: string;
-  q_type: string;
-  options: Record<string, string>;
-  domain: string;
-  difficulty: number;
-}
-
-export interface AnswerSubmission {
-  question_id: number;
-  user_answer: string; // A, B, C, or D
-  time_taken_ms?: number;
-}
-
-export interface AnswerResult {
-  is_correct: boolean;
-  correct_answer: string;
-  explanation: string;
-  extended_content?: Record<string, any>;
-}
 
 export interface AssessmentHistoryItem {
   question_id: number;
@@ -55,14 +12,39 @@ export interface AssessmentHistoryItem {
   difficulty: number;
 }
 
-export interface NextQuestionRequest {
-  assessment_id: number;
-  history: AssessmentHistoryItem[];
+export interface QuestionOption {
+  [key: string]: string;
 }
 
-export interface LearningPathResponse {
-  learning_path: Record<string, string[]>;
-  domain_scores: Record<string, number>;
+export interface Question {
+  id: number;
+  question: string;
+  q_type: string;
+  options: QuestionOption;
+  domain: string;
+  difficulty: number;
+}
+
+export interface AnswerResult {
+  is_correct: boolean;
+  correct_answer: string;
+  explanation: string;
+  extended_content?: {
+    teaching_explanation?: string;
+    story_why?: string;
+    implementation_how?: string;
+    reflection_considerations?: string;
+    child_impact_story?: string;
+    science_behind_it?: string;
+    practical_application_strategy?: string;
+    why_behind_it?: string;
+    resources?: string[];
+  };
+}
+
+export interface LearningPath {
+  learning_path: { [domain: string]: string[] };
+  domain_scores: { [domain: string]: number };
   questions_asked: number;
   questions_correct: number;
   strongest_domain: string;
@@ -70,79 +52,128 @@ export interface LearningPathResponse {
 }
 
 /**
- * Starts a new assessment for the user
- * @param userId User ID to start the assessment for
- * @returns The assessment ID and a success message
+ * Start a new assessment for a user
+ * @param userId User ID to start assessment for
+ * @returns Promise with assessment ID
  */
-export const startAssessment = async (userId: number): Promise<AssessmentStartResponse> => {
+export async function startAssessment(userId: number): Promise<number> {
   try {
-    const response = await axios.post(`${API_BASE_URL}${ENDPOINTS.START}`, { user_id: userId });
-    return response.data;
+    const response = await fetch(`${API_BASE_URL}/assessments/start`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ user_id: userId }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to start assessment: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.assessment_id;
   } catch (error) {
     console.error('Error starting assessment:', error);
     throw error;
   }
-};
+}
 
 /**
- * Gets the next question for the assessment
- * @param assessmentId ID of the current assessment
- * @param history History of questions and answers so far
- * @returns The next question or null if the assessment is complete
+ * Get the next question in the assessment
+ * @param assessmentId Assessment ID
+ * @param history Previous question history
+ * @returns Promise with next question or completion status
  */
-export const getNextQuestion = async (
-  assessmentId: number,
-  history: AssessmentHistoryItem[]
-): Promise<AssessmentQuestion | null> => {
+export async function getNextQuestion(assessmentId: number, history: AssessmentHistoryItem[]): Promise<Question | { complete: true }> {
   try {
-    const response = await axios.post(
-      `${API_BASE_URL}${ENDPOINTS.NEXT_QUESTION(assessmentId)}`,
-      { assessment_id: assessmentId, history }
-    );
-    return response.data;
+    const response = await fetch(`${API_BASE_URL}/assessments/${assessmentId}/next-question`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        assessment_id: assessmentId,
+        history,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get next question: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    // Check if assessment is complete
+    if (data.complete) {
+      return { complete: true };
+    }
+    
+    return data as Question;
   } catch (error) {
     console.error('Error getting next question:', error);
     throw error;
   }
-};
+}
 
 /**
- * Submits an answer for the current question
- * @param assessmentId ID of the current assessment
- * @param submission The answer submission data
- * @returns The result of the submission with feedback
+ * Submit an answer for a question
+ * @param assessmentId Assessment ID
+ * @param questionId Question ID
+ * @param userAnswer User's answer (A, B, C, or D)
+ * @param timeTakenMs Optional time taken to answer in milliseconds
+ * @returns Promise with answer result
  */
-export const submitAnswer = async (
+export async function submitAnswer(
   assessmentId: number,
-  submission: AnswerSubmission
-): Promise<AnswerResult> => {
+  questionId: number,
+  userAnswer: string,
+  timeTakenMs?: number
+): Promise<AnswerResult> {
   try {
-    const response = await axios.post(
-      `${API_BASE_URL}${ENDPOINTS.SUBMIT_ANSWER(assessmentId)}`,
-      submission
-    );
-    return response.data;
+    const response = await fetch(`${API_BASE_URL}/assessments/${assessmentId}/submit-answer`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        question_id: questionId,
+        user_answer: userAnswer,
+        time_taken_ms: timeTakenMs,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to submit answer: ${response.statusText}`);
+    }
+
+    return await response.json();
   } catch (error) {
     console.error('Error submitting answer:', error);
     throw error;
   }
-};
+}
 
 /**
- * Completes the assessment and gets the learning path
- * @param assessmentId ID of the current assessment
- * @returns The learning path and assessment results
+ * Finish an assessment and get personalized learning path
+ * @param assessmentId Assessment ID
+ * @returns Promise with learning path
  */
-export const finishAssessment = async (
-  assessmentId: number
-): Promise<LearningPathResponse> => {
+export async function finishAssessment(assessmentId: number): Promise<LearningPath> {
   try {
-    const response = await axios.post(
-      `${API_BASE_URL}${ENDPOINTS.FINISH(assessmentId)}`
-    );
-    return response.data;
+    const response = await fetch(`${API_BASE_URL}/assessments/${assessmentId}/finish`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to finish assessment: ${response.statusText}`);
+    }
+
+    return await response.json();
   } catch (error) {
     console.error('Error finishing assessment:', error);
     throw error;
   }
-};
+}
