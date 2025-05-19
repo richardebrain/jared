@@ -439,7 +439,7 @@ export default function ModuleView({ moduleId, user, onBack, module: providedMod
                 // For Chapter 1, navigate directly to the chapter-one page where the quiz is implemented
                 window.location.href = '/chapter-one';
               }}
-              size="lg"
+              size="default"
             >
               <Play className="mr-2 h-4 w-4" />
               {currentProgress > 0 && currentProgress < 100 ? "Continue Chapter 1" :
@@ -449,7 +449,7 @@ export default function ModuleView({ moduleId, user, onBack, module: providedMod
             <Button 
               className="w-full"
               onClick={handleStartLesson}
-              size="lg"
+              size="default"
             >
               <Play className="mr-2 h-4 w-4" />
               {currentProgress > 0 && currentProgress < 100 ? "Continue Lesson" : 
