@@ -1320,16 +1320,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId as number;
       const { videoId, duration } = req.body;
       
-      // First check if user has already completed this specific video
+      // First check if user has already completed this specific video in the last month
       try {
-        const existingCompletion = await storage.getVideoQuizCompletionByUserAndVideo(userId, videoId);
-        if (existingCompletion) {
+        const recentCompletion = await storage.getRecentVideoQuizCompletion(userId, videoId);
+        if (recentCompletion) {
+          // Calculate when they can complete it again
+          const completedDate = new Date(recentCompletion.completedAt);
+          const nextAvailable = new Date(completedDate);
+          nextAvailable.setMonth(nextAvailable.getMonth() + 1);
+          
+          // Format the date for display
+          const nextAvailableFormatted = nextAvailable.toLocaleDateString('en-US', {
+            month: 'long', 
+            day: 'numeric'
+          });
+          
           return res.status(200).json({
             success: true,
             pointsAwarded: 0,
-            message: "You've already completed this video. Try watching a different one!",
+            message: `You've already completed this video. You can earn points for it again after ${nextAvailableFormatted}.`,
             limitReached: false,
-            alreadyCompleted: true
+            alreadyCompleted: true,
+            nextAvailable: nextAvailable
           });
         }
       } catch (err) {

@@ -1505,6 +1505,27 @@ export class DatabaseStorage implements IStorage {
       .from(videoQuizCompletions)
       .where(eq(videoQuizCompletions.userId, userId));
   }
+  
+  // Check if user has completed this video in the last month
+  async getRecentVideoQuizCompletion(userId: number, videoId: string): Promise<VideoQuizCompletion | undefined> {
+    // Calculate date one month ago
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    
+    // Get completions from the last month only
+    const [completion] = await db
+      .select()
+      .from(videoQuizCompletions)
+      .where(
+        and(
+          eq(videoQuizCompletions.userId, userId),
+          eq(videoQuizCompletions.videoId, videoId),
+          sql`${videoQuizCompletions.completedAt} >= ${oneMonthAgo}`
+        )
+      );
+      
+    return completion;
+  }
 
   async createVideoQuizCompletion(completion: InsertVideoQuizCompletion): Promise<VideoQuizCompletion> {
     const [result] = await db
