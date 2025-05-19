@@ -285,8 +285,13 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
       // In a real implementation, this would be an API call to save results
       // Now we're using the actual API endpoint with proper data
       
+      // Make API request to record quiz completion and award points
       const response = await apiRequest('/api/videos/quiz/complete', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         data: {
           videoId: videoId,
           points: allCorrect ? 1 : 0, // Send 1 if all correct, 0 if any wrong - will be calculated properly on server
