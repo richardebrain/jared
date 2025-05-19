@@ -3036,6 +3036,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/business-signup/complete", async (req, res) => {
     console.log("Starting all-in-one business signup process");
     try {
+      // Handle both URL-encoded form data and JSON requests
       const { 
         // School information
         schoolName, 
@@ -3045,17 +3046,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // User information
         username,
         password,
+        confirmPassword, // Only used for validation in form submissions
         firstName,
         lastName,
         email
       } = req.body;
       
-      // Validate required fields
-      if (!schoolName || !adminPassword || !contactEmail || !username || !password || !firstName || !lastName || !email) {
-        return res.status(400).json({ 
-          message: "Missing required fields",
-          details: "All fields are required to complete registration"
-        });
+      console.log("Request body received:", {
+        schoolName: schoolName ? 'provided' : 'missing',
+        adminPassword: adminPassword ? 'provided' : 'missing',
+        contactEmail: contactEmail ? 'provided' : 'missing',
+        username: username ? 'provided' : 'missing',
+        password: password ? 'provided' : 'missing',
+        confirmPassword: confirmPassword ? 'provided' : 'missing',
+        firstName: firstName ? 'provided' : 'missing',
+        lastName: lastName ? 'provided' : 'missing',
+        email: email ? 'provided' : 'missing'
+      });
+      
+      const isFormSubmission = req.headers['content-type']?.includes('application/x-www-form-urlencoded');
+      console.log("Is form submission:", isFormSubmission);
+      
+      // Check if school information is missing
+      if (!schoolName || !adminPassword || !contactEmail) {
+        console.log("Missing school information");
+        if (isFormSubmission) {
+          return res.redirect('/simple-registration?error=missing-school-info');
+        } else {
+          return res.status(400).json({ 
+            message: "Missing required school information",
+            details: "School name, admin password, and contact email are required"
+          });
+        }
+      }
+      
+      // Check if user information is missing
+      if (!username || !password || !firstName || !lastName || !email) {
+        console.log("Missing user information");
+        if (isFormSubmission) {
+          return res.redirect('/simple-registration?error=missing-owner-info');
+        } else {
+          return res.status(400).json({ 
+            message: "Missing required owner information",
+            details: "Username, password, first name, last name, and email are required"
+          });
+        }
+      }
+      
+      // For form submissions, check if passwords match
+      if (isFormSubmission && confirmPassword && password !== confirmPassword) {
+        console.log("Passwords don't match");
+        return res.redirect('/simple-registration?error=passwords-mismatch');
+      }
+      
+      // Check if username is already taken
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        console.log(`Username already taken: ${username}`);
+        if (isFormSubmission) {
+          return res.redirect('/simple-registration?error=username-taken');
+        } else {
+          return res.status(409).json({
+            message: "Username already taken",
+            details: "Please choose a different username"
+          });
+        }
+      }
+      
+      // Check if school with same name already exists
+      const existingSchool = await storage.getSchoolByName(schoolName);
+      if (existingSchool) {
+        console.log(`School already exists: ${schoolName}`);
+        if (isFormSubmission) {
+          return res.redirect('/simple-registration?error=school-exists');
+        } else {
+          return res.status(409).json({
+            message: "School already exists",
+            details: "A school with this name is already registered"
+          });
+        }
       }
       
       console.log("Step 1: Creating school");
@@ -3117,13 +3186,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const newUser = await storage.createUser(userData);
       console.log(`User created successfully: ${username} (ID: ${newUser.id})`);
       
-      // Check if it's a form submission 
-      const isFormSubmission = req.headers['content-type']?.includes('application/x-www-form-urlencoded');
-      
+      // Handle different types of requests
       if (isFormSubmission) {
-        // Redirect to success page for form submissions
-        return res.redirect('/registration-success');
+        // For form submissions, redirect to success page with school name
+        console.log("Form submission completed - redirecting to success page");
+        const encodedName = encodeURIComponent(schoolName);
+        return res.redirect(`/registration-success?name=${encodedName}`);
       }
+      
+      // For API requests, return JSON response and create session
       console.log("Step 3: Automatically logging in the user");
       
       // Start a session for the user
@@ -3154,9 +3225,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("All-in-one business registration error:", error);
+      
+      // Check if it's a form submission
+      const isFormSubmission = req.headers['content-type']?.includes('application/x-www-form-urlencoded');
+      
+      if (isFormSubmission) {
+        return res.redirect('/simple-registration?error=server-error');
+      }
+      
       res.status(500).json({
         message: "Failed to complete business registration",
-        details: error.message || "An unexpected error occurred"
+        details: error instanceof Error ? error.message : "An unexpected error occurred"
       });
     }
   });
