@@ -1,1 +1,1 @@
-# Make the backend directory a Python package
+# This file marks the directory as a Python package
