@@ -728,12 +728,34 @@ export default function Dashboard() {
                             <div className="badge bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">
                               25 Points
                             </div>
-                            {module.id === 34 ? (
+                            {/* Custom routing for each required module */}
+                            {module.title && module.title.toLowerCase().includes("core") && 
+                              module.title.toLowerCase().includes("raising arizona") ? (
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                className="whitespace-nowrap" 
+                                onClick={() => window.location.href = '/core-values'}
+                              >
+                                <Play className="h-3 w-3 mr-1" />
+                                Start Training
+                              </Button>
+                            ) : module.title && module.title.toLowerCase().includes("chapter 1") ? (
                               <Button 
                                 size="sm" 
                                 variant="outline"
                                 className="whitespace-nowrap" 
                                 onClick={() => window.location.href = '/chapter-one'}
+                              >
+                                <Play className="h-3 w-3 mr-1" />
+                                Start Training
+                              </Button>
+                            ) : module.title && module.title.toLowerCase().includes("mindful morning") ? (
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                className="whitespace-nowrap" 
+                                onClick={() => window.location.href = '/mindful-mornings'}
                               >
                                 <Play className="h-3 w-3 mr-1" />
                                 Start Training
