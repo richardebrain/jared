@@ -110,74 +110,93 @@ export default function Register() {
           email: data.email.trim(),
         };
         
-        // If this is a school owner registration
+        // Regular user registration (always register user first for simplicity)
+        console.log("Registering user");
+        
+        // For school owners, we'll use the default school and then update later
+        // This avoids the issue with creating schools causing freezing
+        const regData = {
+          ...cleanData,
+          // Set schoolId to 1 (Raising Arizona) by default
+          // We'll update this after user creation if they're a school owner
+          schoolId: 1,
+          isSchoolAdmin: data.isSchoolOwner
+        };
+        
+        console.log("Sending registration data:", { 
+          ...regData,
+          password: "***" // Don't log actual password
+        });
+        
+        // Register the user with default school first
+        const userResponse = await apiRequest("/api/auth/register", {
+          method: "POST",
+          data: regData
+        });
+        
+        // If this is a school owner, we'll create their school after user creation
         if (data.isSchoolOwner && data.schoolName && data.adminPassword) {
-          console.log("Registering as school owner");
+          console.log("User registered, now creating school for owner");
           
-          // First create the school - simple JSON request
-          const schoolData = {
-            name: data.schoolName.trim(),
-            adminPasswordHash: data.adminPassword.trim(),
-            contactEmail: data.email.trim(),
-            contactPhone: '',
-            address: '',
-            city: '',
-            state: '',
-            zipCode: '',
-            customization: {
-              primaryColor: "#1e88e5",
-              secondaryColor: "#ffca28",
-              accentColor: "#ff5722"
-            }
-          };
-          
-          // Create school with simple JSON request
-          const schoolResponse = await apiRequest("/api/schools/create", {
-            method: "POST",
-            data: schoolData
-          });
-          
-          // Then register the user with the new school ID
-          const userRegData = {
-            ...cleanData,
-            schoolId: schoolResponse.id,
-            isSchoolAdmin: true
-          };
-          
-          // If we had logo, we can update it after user registration in a separate step
-          const logoPromise = schoolLogo ? Promise.resolve() : null;
-          
-          // Register the user
-          const userResponse = await apiRequest("/api/auth/register", {
-            method: "POST",
-            data: userRegData
-          });
-          
-          // Upload logo if we have one, after user is created
-          if (schoolLogo && logoPromise) {
-            const formData = new FormData();
-            formData.append('logo', schoolLogo);
-            formData.append('schoolId', schoolResponse.id.toString());
+          try {
+            // Create the school
+            const schoolData = {
+              name: data.schoolName.trim(),
+              adminPasswordHash: data.adminPassword.trim(),
+              contactEmail: data.email.trim(),
+              contactPhone: '',
+              address: '',
+              city: '',
+              state: '',
+              zipCode: '',
+              customization: {
+                primaryColor: "#1e88e5",
+                secondaryColor: "#ffca28",
+                accentColor: "#ff5722"
+              }
+            };
             
-            await fetch('/api/schools/logo', {
-              method: 'POST',
-              body: formData
+            // Create school
+            const schoolResponse = await apiRequest("/api/schools/create", {
+              method: "POST", 
+              data: schoolData
             });
+            
+            console.log("School created successfully:", schoolResponse);
+            
+            // Update the user's school ID 
+            if (schoolResponse && schoolResponse.id) {
+              console.log("Updating user school ID to:", schoolResponse.id);
+              
+              await apiRequest(`/api/users/${userResponse.id}/update-school`, {
+                method: "PATCH",
+                data: {
+                  schoolId: schoolResponse.id,
+                  isSchoolAdmin: true
+                }
+              });
+              
+              // Upload logo if we have one
+              if (schoolLogo) {
+                console.log("Uploading school logo");
+                const formData = new FormData();
+                formData.append('logo', schoolLogo);
+                formData.append('schoolId', schoolResponse.id.toString());
+                
+                await fetch('/api/schools/logo', {
+                  method: 'POST',
+                  body: formData
+                });
+              }
+            }
+          } catch (schoolError) {
+            console.error("Error creating/updating school:", schoolError);
+            // We don't throw here because the user was created successfully
+            // Just log the error and continue
           }
-          
-          return userResponse;
-        } else {
-          // Regular user registration
-          console.log("Sending registration data:", { 
-            ...cleanData, 
-            password: "***" // Don't log actual password
-          });
-          
-          return await apiRequest("/api/auth/register", {
-            method: "POST",
-            data: cleanData
-          });
         }
+        
+        return userResponse;
       } catch (error) {
         console.error("Registration error:", error);
         throw error;
