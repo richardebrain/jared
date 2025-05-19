@@ -395,52 +395,53 @@ export default function AssessmentPage() {
     }
   };
   
+  // Create a unique fingerprint for a question to reliably identify it
+  const createQuestionFingerprint = (question) => {
+    return `${question.domain}::${question.text.trim().toLowerCase()}::${question.options.join('|')}`;
+  };
+  
+  // Store of seen questions to prevent repeats within a single assessment session
+  const seenQuestions = new Set();
+  
   // Function to update questions for the current domain
   const updateDomainQuestions = (domainId: string, difficulty: DifficultyLevel) => {
     // Update current difficulty state
     setCurrentDifficulty(difficulty);
     setDifficultyValue([getValueFromDifficulty(difficulty)]);
     
-    // Extra logging for the Building a Human section that was getting stuck
+    // Flag to add special debugging for Building a Human section
     const isHumanSection = domainId === 'human';
-    if (isHumanSection) {
-      console.log(`🔍 DEBUGGING Building a Human section - difficulty: ${difficulty}`);
-    }
-    
-    // Create a stable collection of answered question "fingerprints"
-    // This helps us reliably detect which questions we've already seen
-    const answeredFingerprints = new Set();
-    
-    // For each answer we've given, find that question and add its fingerprint to our set
-    Object.keys(answers).forEach(answeredId => {
-      const answeredQuestion = assessmentQuestions.find(q => q.id === answeredId);
-      if (answeredQuestion) {
-        // Create a fingerprint using both text and options to uniquely identify each question
-        const fingerprint = `${answeredQuestion.domain}_${answeredQuestion.text.trim().toLowerCase()}_${answeredQuestion.options.join('_')}`;
-        answeredFingerprints.add(fingerprint);
-        
-        // Log for the Building a Human section
-        if (isHumanSection && answeredQuestion.domain === 'human') {
-          console.log(`✓ Already answered: ${answeredQuestion.text.substring(0, 30)}...`);
-        }
-      }
-    });
     
     if (isHumanSection) {
-      console.log(`Total answered questions across all domains: ${answeredFingerprints.size}`);
+      console.log(`🔎 DEBUG: Updating Building a Human questions - difficulty: ${difficulty}`);
+      console.log(`🔎 DEBUG: Number of answers so far: ${Object.keys(answers).length}`);
     }
     
-    // Find all questions that match our domain and difficulty and haven't been answered yet
-    const availableQuestions = assessmentQuestions.filter(q => {
-      // First, check if it's the right domain and difficulty
+    // Find all available questions that match our criteria
+    const eligibleQuestions = assessmentQuestions.filter(q => {
+      // First, check if it matches our domain and difficulty
       if (q.domain === domainId && q.difficulty === difficulty) {
-        // Create a fingerprint to check if we've answered this question
-        const fingerprint = `${q.domain}_${q.text.trim().toLowerCase()}_${q.options.join('_')}`;
-        const isAvailable = !answeredFingerprints.has(fingerprint);
+        // Create a unique fingerprint for this question
+        const fingerprint = createQuestionFingerprint(q);
         
-        // Log for the Building a Human section
-        if (isHumanSection && isAvailable) {
-          console.log(`📋 Available question: ${q.text.substring(0, 30)}...`);
+        // Check if we've already answered this question by ID
+        const answeredById = Object.keys(answers).includes(q.id);
+        
+        // Check if we've seen this exact question text before (by fingerprint)
+        const seenBefore = seenQuestions.has(fingerprint);
+        
+        // Only include questions we haven't answered or seen
+        const isAvailable = !answeredById && !seenBefore;
+        
+        // Extra logging for Building a Human section
+        if (isHumanSection) {
+          if (isAvailable) {
+            console.log(`✅ Available: "${q.text.substring(0, 40)}..." (ID: ${q.id})`);
+          } else if (answeredById) {
+            console.log(`❌ Already answered: "${q.text.substring(0, 40)}..." (ID: ${q.id})`);
+          } else if (seenBefore) {
+            console.log(`❌ Already seen: "${q.text.substring(0, 40)}..." (ID: ${q.id})`);
+          }
         }
         
         return isAvailable;
@@ -448,20 +449,26 @@ export default function AssessmentPage() {
       return false;
     });
     
-    // Log detailed info about available questions
+    // Add extra randomization to prevent predictable ordering
+    const randomizedQuestions = [...eligibleQuestions].sort(() => Math.random() - 0.5);
+    
+    // Log summary for Building a Human section
     if (isHumanSection) {
-      console.log(`Found ${availableQuestions.length} available questions for Building a Human (${difficulty})`);
-      if (availableQuestions.length === 0) {
-        // This indicates we've exhausted all questions for this domain and difficulty
-        console.log(`⚠️ No more questions available for Building a Human (${difficulty}). Will try another difficulty.`);
+      console.log(`Found ${randomizedQuestions.length} available questions for Building a Human (${difficulty})`);
+      
+      if (randomizedQuestions.length === 0) {
+        console.log(`⚠️ No questions available for Building a Human (${difficulty}). Will try another difficulty.`);
       }
     }
     
-    // Randomize the questions to prevent predictable order
-    const shuffledQuestions = [...availableQuestions].sort(() => Math.random() - 0.5);
+    // Mark all selected questions as "seen" to prevent duplicates
+    randomizedQuestions.forEach(q => {
+      const fingerprint = createQuestionFingerprint(q);
+      seenQuestions.add(fingerprint);
+    });
     
     // If no questions are available, try a different difficulty level
-    if (shuffledQuestions.length === 0) {
+    if (randomizedQuestions.length === 0) {
       if (difficulty === 'beginner') {
         // Try intermediate if beginner has no questions
         updateDomainQuestions(domainId, 'intermediate');
@@ -779,12 +786,11 @@ export default function AssessmentPage() {
   // Submit assessment results to server
   const queryClient = useQueryClient();
   const submitAssessmentMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest('POST', '/api/submit-assessment', {
+    mutationFn: () => 
+      apiRequest('POST', '/api/submit-assessment', {
         answers,
         domains: domains.map(d => d.id)
-      });
-    },
+      }),
     onSuccess: (data) => {
       // Refetch assessment results
       queryClient.invalidateQueries({ queryKey: ["/api/assessment-results"] });
