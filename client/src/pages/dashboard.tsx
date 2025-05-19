@@ -672,57 +672,87 @@ export default function Dashboard() {
                   <Shield className="h-5 w-5 mr-2 text-indigo-600" />
                   Required Training
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Map all required modules from the database */}
-                  {modules && Array.isArray(modules) && modules.map((module) => {
-                    // Check for required training modules
-                    const isRaisingArizonasCore = module.title && 
-                      module.title.toLowerCase().includes("core") && 
-                      module.title.toLowerCase().includes("raising arizona");
+                
+                {/* Simplified compact modules list with clear point values */}
+                <div className="bg-white rounded-lg shadow-sm p-4">
+                  <div className="grid grid-cols-1 gap-3">
+                    {modules && Array.isArray(modules) && modules.map((module) => {
+                      // Check for required training modules
+                      const isRaisingArizonasCore = module.title && 
+                        module.title.toLowerCase().includes("core") && 
+                        module.title.toLowerCase().includes("raising arizona");
+                        
+                      const isChapterOne = module.title && 
+                        module.title.toLowerCase().includes("chapter 1") && 
+                        module.title.toLowerCase().includes("building a human");
+                        
+                      const isMindfulMornings = module.title && 
+                        module.title.toLowerCase().includes("mindful morning");
+                        
+                      const isHealthSafety = module.title && 
+                        module.title.toLowerCase().includes("health and safety");
                       
-                    const isChapterOne = module.title && 
-                      module.title.toLowerCase().includes("chapter 1") && 
-                      module.title.toLowerCase().includes("building a human");
+                      // Only include required modules in this section
+                      const isRequiredModule = isRaisingArizonasCore || isChapterOne || 
+                        isMindfulMornings || isHealthSafety;
+                        
+                      if (!isRequiredModule) {
+                        return null;
+                      }
                       
-                    const isMindfulMornings = module.title && 
-                      module.title.toLowerCase().includes("mindful morning");
-                      
-                    const isHealthSafety = module.title && 
-                      module.title.toLowerCase().includes("health and safety");
-                    
-                    // Only include required modules in this section
-                    const isRequiredModule = isRaisingArizonasCore || isChapterOne || 
-                      isMindfulMornings || isHealthSafety;
-                      
-                    if (!isRequiredModule) {
-                      return null;
-                    }
-                    
-                    // Get progress for this module
-                    const moduleProgress = Array.isArray(userProgress) 
-                      ? userProgress.find(p => p.moduleId === module.id)
-                      : null;
-                      
-                    return (
-                      <div key={`required-${module.id}`} className="transform scale-90 origin-top-left">
-                        <ModuleView 
-                          module={module} 
-                          progress={moduleProgress?.progress || 0} 
-                          completed={moduleProgress?.completed || false}
-                          showCategory
-                        />
-                      </div>
-                    );
-                  })}
-                  
-                  {/* Fallback cards in case modules aren't properly loaded yet */}
-                  {modules && (!Array.isArray(modules) || modules.length === 0) && (
-                    <>
-                      <CoreValuesCard />
-                      <ChapterOneCard />
-                      <MindfulMorningsCard />
-                    </>
-                  )}
+                      // Get progress for this module
+                      const moduleProgress = Array.isArray(userProgress) 
+                        ? userProgress.find(p => p.moduleId === module.id)
+                        : null;
+                        
+                      return (
+                        <div key={`required-${module.id}`} className="border rounded-md p-4 flex justify-between items-center">
+                          <div className="flex-1">
+                            <h3 className="font-bold text-md">{module.title}</h3>
+                            <div className="text-sm text-gray-500">{module.category}</div>
+                            <div className="flex items-center mt-1">
+                              <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-primary rounded-full" 
+                                  style={{ width: `${moduleProgress?.progress || 0}%` }}
+                                />
+                              </div>
+                              <span className="ml-2 text-xs text-gray-500">
+                                {moduleProgress?.progress || 0}%
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 ml-4">
+                            <div className="badge bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">
+                              25 Points
+                            </div>
+                            {module.id === 34 ? (
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                className="whitespace-nowrap" 
+                                onClick={() => window.location.href = '/chapter-one'}
+                              >
+                                <Play className="h-3 w-3 mr-1" />
+                                Start Training
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="whitespace-nowrap"
+                                onClick={() => window.location.href = `/module/${module.id}`}
+                              >
+                                <Play className="h-3 w-3 mr-1" />
+                                Start Training
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
               
