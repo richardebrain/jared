@@ -1,145 +1,71 @@
 """
-Server module for the MentorMe Enhanced Assessment API
-This module sets up the FastAPI server with all routes
+FastAPI server for the MentorMe Enhanced Assessment system
+This module sets up and configures the FastAPI server
 """
 
+import os
 import logging
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
+import uvicorn
 
-from .database import get_db, setup_database
-from .models import Question, Assessment, QuestionResponse as QuestionResponseModel
-from .import_data import run_import
-from . import main
+from .main import app as assessment_app
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("server")
 
-# Create FastAPI app
+# Create main FastAPI app
 app = FastAPI(
     title="MentorMe Enhanced Assessment API",
-    description="API for the MentorMe Assessment System",
+    description="API for delivering personalized learning assessments to early childhood educators",
     version="1.0.0"
 )
 
-# Add CORS middleware for frontend access
+# Add CORS middleware to allow cross-origin requests
+# In production, specify exact origins instead of allowing all
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for development
+    allow_origins=["*"],  # For development; restrict in production
     allow_credentials=True,
-    allow_methods=["*"],  # Allow all methods
-    allow_headers=["*"],  # Allow all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-@app.on_event("startup")
-async def startup_event():
-    """Initialize database on startup"""
-    logger.info("Starting up MentorMe Assessment API")
-    
-    # Setup database
-    success, message = setup_database()
-    if not success:
-        logger.error(f"Database setup failed: {message}")
-        # We'll continue anyway, as database might already exist
-    
-    # Optionally, run data import if database is empty
-    # This is useful for first-time setup
-    db = next(get_db())
-    question_count = db.query(Question).count()
-    
-    if question_count == 0:
-        logger.info("No questions found in database. Running import...")
-        import_success, import_result = run_import()
-        if import_success:
-            logger.info(f"Import completed successfully: {import_result}")
-        else:
-            logger.warning(f"Import failed: {import_result}")
+# Include the assessment API routes
+app.mount("/assessment", assessment_app)
 
+# Root endpoint for health checks
 @app.get("/")
-def read_root():
-    """Root endpoint"""
-    return main.read_root()
-
-@app.post("/assessments/start")
-def start_assessment(request: main.AssessmentStartRequest, db: Session = Depends(get_db)):
-    """Start a new assessment for a user"""
-    return main.start_assessment(request, db)
-
-@app.post("/assessments/{assessment_id}/next-question")
-def next_question(request: main.NextQuestionRequest, db: Session = Depends(get_db)):
-    """Get the next question for an assessment"""
-    return main.next_question(request, db)
-
-@app.post("/assessments/{assessment_id}/submit-answer")
-def submit_answer(
-    assessment_id: int, 
-    submission: main.AnswerSubmission, 
-    db: Session = Depends(get_db)
-):
-    """Submit an answer for a question"""
-    return main.submit_answer(assessment_id, submission, db)
-
-@app.post("/assessments/{assessment_id}/finish")
-def finish_assessment(assessment_id: int, db: Session = Depends(get_db)):
-    """Finish an assessment and get personalized learning path"""
-    return main.finish_assessment(assessment_id, db)
-
-@app.get("/questions/{question_id}")
-def get_question(question_id: int, db: Session = Depends(get_db)):
-    """Get a specific question by ID"""
-    question = db.query(Question).filter(Question.id == question_id).first()
-    
-    if not question:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Question ID {question_id} not found"
-        )
-    
-    return main.format_question(question)
-
-@app.get("/domains")
-def get_domains(db: Session = Depends(get_db)):
-    """Get all available domains"""
-    from .loader import get_domains
-    domains = get_domains(db)
-    return {"domains": domains}
-
-@app.get("/status")
-def get_status(db: Session = Depends(get_db)):
-    """Get API status and database statistics"""
-    question_count = db.query(Question).count()
-    domains = db.query(Question.domain).distinct().count()
-    assessments = db.query(Assessment).count()
-    responses = db.query(QuestionResponseModel).count()
-    
+async def root():
+    """Root endpoint for API health check"""
     return {
-        "status": "healthy",
-        "database": {
-            "questions": question_count,
-            "domains": domains,
-            "assessments": assessments,
-            "responses": responses
-        },
-        "version": "1.0.0"
+        "status": "online",
+        "message": "MentorMe Enhanced Assessment API is running",
+        "version": "1.0.0",
+        "documentation": "/docs"
     }
 
-@app.post("/import")
-def import_questions(db: Session = Depends(get_db)):
-    """Import questions from CSV file"""
-    import_success, import_result = run_import()
+# Health check endpoint
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy"}
+
+def start_server():
+    """Start the FastAPI server"""
+    host = os.getenv("API_HOST", "0.0.0.0")
+    port = int(os.getenv("API_PORT", "8000"))
     
-    if not import_success:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Import failed: {import_result}"
-        )
+    logger.info(f"Starting MentorMe Assessment API server on {host}:{port}")
     
-    return {
-        "success": True,
-        "result": import_result
-    }
+    # Start uvicorn server
+    uvicorn.run(
+        "backend.server:app", 
+        host=host, 
+        port=port, 
+        reload=os.getenv("API_ENV", "development") == "development"
+    )
+
+if __name__ == "__main__":
+    start_server()

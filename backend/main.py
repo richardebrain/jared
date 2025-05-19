@@ -3,34 +3,50 @@ Main API module for the MentorMe Enhanced Assessment system
 This module defines the FastAPI endpoints for the assessment system
 """
 
-import json
 import logging
 import random
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Any, Optional
 from datetime import datetime
 
-from fastapi import Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from .database import get_db, setup_database
-from .models import Question, Assessment, QuestionResponse, UserPerformance
+from .models import Question, Assessment, QuestionResponse as QuestionResponseModel
 from .loader import (
-    load_random_question_with_adaptive_difficulty,
-    get_domains,
+    load_random_question, 
+    get_domains, 
     get_question_by_id,
-    get_next_difficulty_level,
-    update_user_performance,
+    generate_answer_feedback,
+    get_random_question_with_adaptive_difficulty,
+    DOMAIN_ORDER,
+    LearningPath,
+    QuestionResponse as QuestionResponseClass
 )
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger("main")
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("api")
 
-# Define Pydantic models for API
+# Create FastAPI app
+app = FastAPI(
+    title="MentorMe Enhanced Assessment API",
+    description="API for the MentorMe assessment system",
+    version="1.0.0"
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, limit this to specific origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Pydantic models for request/response validation
 class AssessmentStartRequest(BaseModel):
     user_id: int
 
@@ -53,6 +69,7 @@ class AnswerFeedback(BaseModel):
     correct_answer: str
     personal_message: str
     teaching_explanation: str
+    next_difficulty: Optional[int] = None
 
 class AssessmentHistoryItem(BaseModel):
     question_id: int
@@ -64,383 +81,227 @@ class NextQuestionRequest(BaseModel):
     assessment_id: int
     history: List[AssessmentHistoryItem]
 
-class LearningPathResponse(BaseModel):
-    learning_path: Dict[str, List[str]]
-    domain_scores: Dict[str, float]
-    questions_asked: int
-    questions_correct: int
-    strongest_domain: str
-    weakest_domain: str
-    user_name: Optional[str] = None
-    total_points_earned: int = 10  # Default points for completing assessment
-
-# Domain sequence for a well-structured assessment
-DOMAIN_SEQUENCE = [
-    "Classroom Management",
-    "Child Development",
-    "Curriculum Planning",
-    "Health and Safety",
-    "Family Engagement",
-    "Observation and Assessment",
-    "Professionalism",
-    "Inclusion and Diversity",
-    "Language and Literacy",
-    "Social-Emotional Development",
-    "Core Values",
-    "Mindful Morning",
-    "Building a Human",
-]
-
-# Personalized messages for correct answers
-CORRECT_ANSWER_MESSAGES = [
-    "Excellent! You're really showing your expertise.",
-    "Great job! Your knowledge is impressive.",
-    "Correct! You clearly understand this concept well.",
-    "Perfect! That's exactly right.",
-    "You got it! Your understanding is spot on.",
-    "That's right! Wonderful teaching knowledge.",
-    "Absolutely correct! Well done.",
-    "You nailed it! Excellent understanding.",
-    "Correct! You know your stuff.",
-    "That's it! You've got a solid grasp on this topic."
-]
-
-# Teaching explanations to supplement answers
-TEACHING_EXPLANATIONS = {
-    "Classroom Management": [
-        "Effective classroom management creates a positive environment where children can learn and grow.",
-        "Setting clear expectations helps children understand boundaries and feel secure.",
-        "Consistent routines help children predict what comes next, reducing anxiety and behavior issues.",
-        "Building relationships with each child is the foundation of effective classroom management.",
-        "Positive guidance strategies focus on teaching rather than punishing."
-    ],
-    "Child Development": [
-        "Understanding developmental milestones helps us create appropriate expectations and activities.",
-        "Children develop at different rates, but generally follow predictable patterns.",
-        "Brain development in early childhood is rapid and influenced by experiences and relationships.",
-        "Play is essential for healthy development across all domains.",
-        "Development occurs across physical, cognitive, social, emotional, and language domains simultaneously."
-    ],
-    "Core Values": [
-        "Being consistent helps children feel secure and understand expectations.",
-        "Being prepared shows respect for children's learning time and reduces behavior issues.",
-        "Being committed means following through and being reliable for children and families.",
-        "Being caring creates the emotional foundation that supports all learning.",
-        "Being positive models optimism and resilience for children."
-    ],
-    "Mindful Morning": [
-        "Starting the day mindfully sets a positive tone for learning and interactions.",
-        "Morning routines that include mindfulness help children transition into the school day.",
-        "Mindful breathing techniques help children learn to self-regulate.",
-        "Greeting each child individually builds relationships and helps children feel valued.",
-        "Mindfulness practices support children's emotional development and focus."
-    ],
-    "Building a Human": [
-        "Early experiences shape brain architecture in lasting ways.",
-        "Responsive interactions with caring adults build healthy brain connections.",
-        "Toxic stress can disrupt healthy development when not buffered by supportive relationships.",
-        "Serving and return interactions are essential for building neural connections.",
-        "Executive function skills begin developing in early childhood through relationships and experiences."
-    ]
-}
-
+@app.on_event("startup")
 async def startup_event():
     """Initialize database on startup"""
-    setup_database()
-    logger.info("Database initialized")
+    success, message = setup_database()
+    if not success:
+        logger.error(f"Database setup failed: {message}")
+        # We continue anyway - tables might already exist
 
+@app.get("/")
 def read_root():
     """Root endpoint"""
-    return {
-        "message": "Welcome to the MentorMe Enhanced Assessment API",
-        "version": "1.0.0",
-        "status": "healthy"
-    }
+    return {"message": "MentorMe Enhanced Assessment API", "version": "1.0.0"}
 
-def start_assessment(request: AssessmentStartRequest, db: Session):
+@app.post("/assessment/start", response_model=Dict[str, Any])
+def start_assessment(request: AssessmentStartRequest, db: Session = Depends(get_db)):
     """Start a new assessment for a user"""
-    # Create a new assessment record
+    # Create a new assessment
     assessment = Assessment(
         user_id=request.user_id,
         start_time=datetime.now(),
-        completed=False,
-        questions_asked=0,
-        questions_correct=0,
-        points_earned=0
+        completed=False
     )
-    
     db.add(assessment)
     db.commit()
     db.refresh(assessment)
     
-    logger.info(f"Started assessment ID {assessment.id} for user {request.user_id}")
+    # Get first question (always start with the first domain)
+    first_domain = DOMAIN_ORDER[0] if DOMAIN_ORDER else get_domains(db)[0]
+    question = load_random_question(db, domain=first_domain, difficulty=1)
     
-    return {"assessment_id": assessment.id}
+    if not question:
+        raise HTTPException(status_code=404, detail="No questions found in the database")
+    
+    return {
+        "assessment_id": assessment.id,
+        "question": format_question(question),
+        "domain_order": DOMAIN_ORDER,
+        "current_domain": first_domain
+    }
 
-def next_question(request: NextQuestionRequest, db: Session):
+@app.post("/assessment/{assessment_id}/next", response_model=Dict[str, Any])
+def next_question(request: NextQuestionRequest, db: Session = Depends(get_db)):
     """Get the next question based on assessment history"""
     assessment_id = request.assessment_id
     history = request.history
     
-    # Get the assessment record
+    # Get assessment
     assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
-    
     if not assessment:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Assessment ID {assessment_id} not found"
-        )
+        raise HTTPException(status_code=404, detail="Assessment not found")
     
+    # Check if assessment is already completed
     if assessment.completed:
-        return {"assessment_complete": True}
+        return {"assessment_complete": True, "status": "completed"}
     
-    # Calculate current domain and performance
-    domain_performance = {}
+    # Determine current domain and user performance
+    current_domain = None
     domain_questions = {}
+    domain_correct = {}
     
-    # Get all domains asked so far and calculate domain-specific performance
     for item in history:
         domain = item.domain
-        if domain not in domain_performance:
-            domain_performance[domain] = {"correct": 0, "total": 0}
-            domain_questions[domain] = []
-            
-        domain_performance[domain]["total"] += 1
+        if domain not in domain_questions:
+            domain_questions[domain] = 0
+            domain_correct[domain] = 0
+        
+        domain_questions[domain] += 1
         if item.correct:
-            domain_performance[domain]["correct"] += 1
-            
-        domain_questions[domain].append(item.question_id)
-    
-    # Calculate performance scores for each domain
-    for domain in domain_performance:
-        total = domain_performance[domain]["total"]
-        correct = domain_performance[domain]["correct"]
-        domain_performance[domain]["score"] = correct / total if total > 0 else 0
-    
-    # Determine the next domain to ask about
-    if not history:
-        # Start with the first domain if no history
-        next_domain = DOMAIN_SEQUENCE[0]
-    else:
-        # Get the most recent domain
-        last_domain = history[-1].domain
+            domain_correct[domain] += 1
         
-        # If we've asked enough questions in this domain or reached proficiency, move to the next domain
-        domain_finished = False
-        
-        if last_domain in domain_questions:
-            # Check if we've asked maximum questions for this domain
-            question_count = len(domain_questions[last_domain])
-            domain_score = domain_performance[last_domain]["score"] if last_domain in domain_performance else 0
-            
-            # Special case for Core Values and Mindful Morning - only ask 5 questions
-            if last_domain in ["Core Values", "Mindful Morning"] and question_count >= 5:
-                domain_finished = True
-            # For other domains, ask up to 10 questions or until proficiency (90% correct)
-            elif question_count >= 10 or (question_count >= 5 and domain_score >= 0.9):
-                domain_finished = True
-        
-        if domain_finished:
-            # Move to the next domain
-            next_domain = get_next_domain(last_domain)
-            
-            # If we've gone through all domains, assessment is complete
-            if not next_domain:
-                # Update assessment as completed
-                assessment.completed = True
-                assessment.end_time = datetime.now()
-                db.commit()
-                
-                logger.info(f"Assessment ID {assessment_id} is complete")
-                return {"assessment_complete": True}
-        else:
-            # Continue with the same domain
-            next_domain = last_domain
+        current_domain = domain  # Will end up being the last domain in history
     
-    # Get the user's performance in this domain
-    user_performance = 0.5  # Default starting performance
-    if next_domain in domain_performance:
-        user_performance = domain_performance[next_domain]["score"]
+    # If no history, start with first domain
+    if not current_domain:
+        current_domain = DOMAIN_ORDER[0] if DOMAIN_ORDER else get_domains(db)[0]
     
-    # Get question IDs already asked in this domain
-    exclude_ids = domain_questions.get(next_domain, [])
+    # Calculate user performance for the current domain
+    user_performance = 0.0
+    questions_in_current_domain = domain_questions.get(current_domain, 0)
+    correct_in_current_domain = domain_correct.get(current_domain, 0)
     
-    # Get a random question with adaptive difficulty
-    question, domain_finished = load_random_question_with_adaptive_difficulty(
+    if questions_in_current_domain > 0:
+        user_performance = correct_in_current_domain / questions_in_current_domain
+    
+    # Get a list of question IDs already seen
+    exclude_ids = [item.question_id for item in history]
+    
+    # Get next question with adaptive difficulty
+    question, domain_finished = get_random_question_with_adaptive_difficulty(
         db=db,
-        domain=next_domain,
+        domain=current_domain,
         user_performance=user_performance,
-        exclude_ids=exclude_ids
+        exclude_ids=exclude_ids,
+        max_questions_per_domain=15  # Maximum 15 questions per domain
     )
     
-    # If no questions available in this domain or domain is finished, try the next domain
-    if domain_finished or not question:
-        next_domain = get_next_domain(next_domain)
-        if not next_domain:
-            # Update assessment as completed
+    # If domain is finished, move to the next domain
+    if domain_finished:
+        next_domain = get_next_domain(current_domain)
+        if next_domain:
+            question = load_random_question(db, domain=next_domain, difficulty=1)
+            current_domain = next_domain
+        else:
+            # All domains completed, finish assessment
             assessment.completed = True
             assessment.end_time = datetime.now()
             db.commit()
-            
-            logger.info(f"Assessment ID {assessment_id} is complete (no more questions)")
-            return {"assessment_complete": True}
-        
-        # Try getting a question from the next domain
-        exclude_ids = domain_questions.get(next_domain, [])
-        question, _ = load_random_question_with_adaptive_difficulty(
-            db=db,
-            domain=next_domain,
-            user_performance=0.5,  # Start with default performance for new domain
-            exclude_ids=exclude_ids
-        )
+            return {"assessment_complete": True, "status": "completed"}
     
-    # If still no question, assessment is complete
     if not question:
-        assessment.completed = True
-        assessment.end_time = datetime.now()
-        db.commit()
-        
-        logger.info(f"Assessment ID {assessment_id} is complete (no questions found)")
-        return {"assessment_complete": True}
+        # Fallback if no question found
+        next_domain = get_next_domain(current_domain)
+        if next_domain:
+            question = load_random_question(db, domain=next_domain, difficulty=1)
+            current_domain = next_domain
+        else:
+            # All domains completed, finish assessment
+            assessment.completed = True
+            assessment.end_time = datetime.now()
+            db.commit()
+            return {"assessment_complete": True, "status": "completed"}
     
-    # Update assessment record
-    assessment.questions_asked += 1
-    db.commit()
+    if not question:
+        raise HTTPException(status_code=404, detail="No more questions available")
     
-    # Format the question for API response
-    return format_question(question)
+    return {
+        "question": format_question(question),
+        "domain": current_domain,
+        "progress": {
+            "current_domain": current_domain,
+            "questions_asked": len(history),
+            "domains_seen": list(domain_questions.keys()),
+            "domain_performance": {
+                domain: (correct / domain_questions[domain]) * 100 
+                for domain, correct in domain_correct.items()
+            }
+        }
+    }
 
-def submit_answer(assessment_id: int, submission: AnswerSubmission, db: Session):
+@app.post("/assessment/{assessment_id}/answer", response_model=AnswerFeedback)
+def submit_answer(assessment_id: int, submission: AnswerSubmission, db: Session = Depends(get_db)):
     """Submit an answer for a question"""
-    # Get the assessment
+    # Get assessment
     assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
-    
     if not assessment:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Assessment ID {assessment_id} not found"
-        )
+        raise HTTPException(status_code=404, detail="Assessment not found")
     
-    # Get the question
+    # Get question
     question = get_question_by_id(db, submission.question_id)
-    
     if not question:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Question ID {submission.question_id} not found"
-        )
+        raise HTTPException(status_code=404, detail="Question not found")
     
-    # Check if the answer is correct
-    is_correct = question.answer.lower() == submission.user_answer.lower()
-    
-    # Create a response record
-    response = QuestionResponse(
+    # Create response record
+    is_correct = submission.user_answer.strip().lower() == question.answer.strip().lower()
+    response = QuestionResponseModel(
         assessment_id=assessment_id,
-        question_id=question.id,
+        question_id=submission.question_id,
         user_answer=submission.user_answer,
         is_correct=is_correct,
         time_taken_ms=submission.time_taken_ms,
-        difficulty=question.difficulty
+        difficulty=question.difficulty,
+        answered_at=datetime.now()
     )
-    
     db.add(response)
     
-    # Update assessment metrics
+    # Update assessment stats
+    assessment.questions_asked += 1
     if is_correct:
         assessment.questions_correct += 1
     
     db.commit()
-    db.refresh(response)
     
-    # Update user performance
-    update_user_performance(
+    # Generate feedback
+    feedback = generate_answer_feedback(
         db=db,
+        question=question,
+        user_answer=submission.user_answer,
         user_id=assessment.user_id,
         domain=question.domain,
-        is_correct=is_correct,
-        difficulty=question.difficulty
+        current_difficulty=question.difficulty
     )
     
-    # Get personalized message
-    if is_correct:
-        personal_message = random.choice(CORRECT_ANSWER_MESSAGES)
-        # Try to get a name to make it more personal
-        user_name = get_user_name(assessment.user_id, db)
-        if user_name:
-            personal_message = f"{user_name}, {personal_message.lower()}"
-    else:
-        personal_message = "That's not quite right. Let's learn more about this concept."
-    
-    # Get teaching explanation
-    teaching_explanation = ""
-    domain_explanations = TEACHING_EXPLANATIONS.get(question.domain, [])
-    if domain_explanations:
-        teaching_explanation = random.choice(domain_explanations)
-    else:
-        teaching_explanation = "Understanding this concept will help you better support children's learning and development."
-    
-    # Try to get enhanced explanation from the question
-    enhanced_content = question.get_enhanced_content()
-    if enhanced_content and "why_correct" in enhanced_content:
-        teaching_explanation = enhanced_content["why_correct"]
-    
-    # Get options for multiple choice questions
-    options = question.get_options()
-    correct_answer_text = question.answer
-    
-    # If it's a multiple choice question, show the text of the answer, not just the key
-    if options and question.answer in options:
-        correct_answer_text = options[question.answer]
-    
-    # Return feedback
     return AnswerFeedback(
-        correct=is_correct,
-        correct_answer=correct_answer_text,
-        personal_message=personal_message,
-        teaching_explanation=teaching_explanation
+        correct=feedback.correct,
+        correct_answer=feedback.correct_answer,
+        personal_message=feedback.personal_message,
+        teaching_explanation=feedback.teaching_explanation,
+        next_difficulty=feedback.next_difficulty
     )
 
-def finish_assessment(assessment_id: int, db: Session):
+@app.post("/assessment/{assessment_id}/finish", response_model=Dict[str, Any])
+def finish_assessment(assessment_id: int, db: Session = Depends(get_db)):
     """Finish an assessment and get personalized learning path"""
-    # Get the assessment
+    # Get assessment
     assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
-    
     if not assessment:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Assessment ID {assessment_id} not found"
-        )
+        raise HTTPException(status_code=404, detail="Assessment not found")
     
-    # Mark assessment as completed if not already
-    if not assessment.completed:
-        assessment.completed = True
-        assessment.end_time = datetime.now()
-        
-        # Award points for completing the assessment (10 points)
-        assessment.points_earned = 10
-        
-        db.commit()
+    # Mark as completed
+    assessment.completed = True
+    assessment.end_time = datetime.now()
+    
+    # Award points (10 points for completing an assessment)
+    assessment.points_earned = 10
+    
+    db.commit()
     
     # Get domain scores
     domain_scores = assessment.get_domain_scores(db)
     
-    # Generate learning path recommendations
+    # Generate learning path
     learning_path = {}
-    for domain in domain_scores:
-        # Generate recommendations for domains with score below 80%
-        if domain_scores[domain] < 80:
-            learning_path[domain] = generate_domain_recommendations(db, domain)
+    for domain, score in domain_scores.items():
+        recommendations = generate_domain_recommendations(db, domain)
+        learning_path[domain] = recommendations
     
-    # If learning path is empty, add recommendations for the weakest domain
-    if not learning_path:
-        weakest_domain = assessment.get_weakest_domain(db)
-        if weakest_domain != "None":
-            learning_path[weakest_domain] = generate_domain_recommendations(db, weakest_domain)
-    
-    # Get the user's name for personalization
+    # Get user name if available
     user_name = get_user_name(assessment.user_id, db)
     
-    return LearningPathResponse(
+    # Create response
+    result = LearningPath(
         learning_path=learning_path,
         domain_scores=domain_scores,
         questions_asked=assessment.questions_asked,
@@ -450,10 +311,12 @@ def finish_assessment(assessment_id: int, db: Session):
         user_name=user_name,
         total_points_earned=assessment.points_earned
     )
+    
+    return result.to_dict()
 
 def format_question(question: Question) -> QuestionResponse:
     """Format a question for API response"""
-    return QuestionResponse(
+    formatted = QuestionResponseClass(
         id=question.id,
         question=question.question,
         q_type=question.q_type,
@@ -462,75 +325,72 @@ def format_question(question: Question) -> QuestionResponse:
         difficulty=question.difficulty,
         enhanced_content=question.get_enhanced_content()
     )
+    return formatted.to_dict()
 
 def get_next_domain(current_domain: str) -> Optional[str]:
     """Get the next domain in the assessment sequence"""
+    if not DOMAIN_ORDER:
+        return None
+        
     try:
-        current_index = DOMAIN_SEQUENCE.index(current_domain)
-        if current_index < len(DOMAIN_SEQUENCE) - 1:
-            return DOMAIN_SEQUENCE[current_index + 1]
+        current_index = DOMAIN_ORDER.index(current_domain)
+        if current_index < len(DOMAIN_ORDER) - 1:
+            return DOMAIN_ORDER[current_index + 1]
+        return None  # No more domains
     except ValueError:
-        # If domain not in sequence, start from the beginning
-        return DOMAIN_SEQUENCE[0]
-    
-    # If we've reached the end of the sequence
-    return None
+        # Domain not in order, return first domain
+        return DOMAIN_ORDER[0]
 
 def generate_domain_recommendations(db: Session, domain: str) -> List[str]:
     """Generate resource recommendations for a domain"""
-    domain_recommendations = {
-        "Classroom Management": [
-            "Video: Creating a Positive Learning Environment",
-            "Article: Effective Transitions for Young Children",
-            "Workshop: Setting Up Learning Centers",
-            "Resource: Visual Schedule Templates",
-            "Training: Positive Guidance Strategies"
-        ],
+    # These would typically come from a database of learning resources
+    # For now, we'll return some placeholder recommendations
+    recommendations = {
         "Child Development": [
-            "Video: Brain Development in Early Childhood",
-            "Article: Understanding Developmental Milestones",
-            "Workshop: Supporting Physical Development",
-            "Resource: Cognitive Development Activities",
-            "Training: Social-Emotional Development"
+            "Video: Understanding Child Development Milestones",
+            "Article: Brain Development in Early Childhood",
+            "Workshop: Developmentally Appropriate Practice"
         ],
-        "Core Values": [
-            "Video: The Importance of Consistency in Early Childhood",
-            "Article: Being Prepared for Success",
-            "Workshop: Commitment to Quality Care",
-            "Resource: Creating a Caring Classroom Community",
-            "Training: Positive Mindset in Teaching"
+        "Classroom Management": [
+            "Video: Positive Discipline Techniques",
+            "Article: Creating an Effective Learning Environment",
+            "Workshop: Managing Challenging Behaviors"
         ],
-        "Mindful Morning": [
-            "Video: Starting the Day with Mindfulness",
-            "Article: Morning Routines that Support Self-Regulation",
-            "Workshop: Mindful Breathing for Young Children",
-            "Resource: Morning Meeting Ideas",
-            "Training: Mindfulness Practices for Educators"
+        "Curriculum Planning": [
+            "Video: Designing Engaging Activities",
+            "Article: Emergent Curriculum Approaches",
+            "Workshop: Integrating STEAM in Early Childhood"
         ],
-        "Building a Human": [
-            "Video: How Early Experiences Shape Brain Architecture",
-            "Article: Serve and Return Interactions",
-            "Workshop: Supporting Executive Function Development",
-            "Resource: Understanding Toxic Stress",
-            "Training: Building Resilience in Young Children"
+        "Family Engagement": [
+            "Video: Building Strong Family Partnerships",
+            "Article: Effective Family Communication Strategies",
+            "Workshop: Cultural Competence in Family Partnerships"
+        ],
+        "Health & Safety": [
+            "Video: Creating Safe Learning Environments",
+            "Article: Promoting Physical Health in Young Children",
+            "Workshop: Responding to Health Emergencies"
+        ],
+        "Observation & Assessment": [
+            "Video: Documentation Methods in Early Childhood",
+            "Article: Understanding Authentic Assessment",
+            "Workshop: Using Observations to Inform Teaching"
+        ],
+        "Professionalism": [
+            "Video: Ethical Practices in Early Childhood Education",
+            "Article: Continuous Professional Development",
+            "Workshop: Advocacy in Early Childhood Education"
         ]
     }
     
-    # Return domain-specific recommendations or generic ones
-    if domain in domain_recommendations:
-        return domain_recommendations[domain]
-    
-    # Generic recommendations
-    return [
-        f"Video: Best Practices in {domain}",
-        f"Article: Recent Research in {domain}",
-        f"Workshop: Practical Approaches to {domain}",
-        f"Resource: {domain} Activity Guide",
-        f"Training: Advanced Skills in {domain}"
-    ]
+    return recommendations.get(domain, [
+        "Video: Early Childhood Education Fundamentals",
+        "Article: Best Practices in Teaching Young Children",
+        "Workshop: Child-Centered Learning Approaches"
+    ])
 
 def get_user_name(user_id: int, db: Session) -> Optional[str]:
     """Get the user's first name for personalized messages"""
-    # This is a placeholder - in a real implementation, you would query the user table
-    # For now, we'll return None since we don't have access to the user table
-    return None
+    # In a real implementation, this would query the user database
+    # For now, we'll return a placeholder name
+    return "Teacher"
