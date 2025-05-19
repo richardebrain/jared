@@ -3032,6 +3032,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Simplified business registration endpoint
+  app.post("/api/register-business-simplified", async (req, res) => {
+    console.log("Starting simplified business registration process");
+    try {
+      const { 
+        // School information
+        schoolName, 
+        adminPassword,
+        contactEmail,
+        
+        // User information
+        username,
+        password,
+        firstName,
+        lastName,
+        email
+      } = req.body;
+      
+      console.log("Simplified registration request received:", {
+        schoolName: schoolName ? 'provided' : 'missing',
+        adminPassword: adminPassword ? 'provided' : 'missing',
+        contactEmail: contactEmail ? 'provided' : 'missing',
+        username: username ? 'provided' : 'missing',
+        password: password ? 'provided' : 'missing',
+        firstName: firstName ? 'provided' : 'missing',
+        lastName: lastName ? 'provided' : 'missing',
+        email: email ? 'provided' : 'missing'
+      });
+      
+      // Validate required fields
+      if (!schoolName || !adminPassword || !username || !password || !firstName || !lastName || !email) {
+        console.log("Missing required fields in simplified registration");
+        return res.status(400).json({ message: 'All required fields must be provided' });
+      }
+      
+      // Validate password length
+      if (password.length < 6) {
+        return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+      }
+      
+      // Hash passwords
+      const adminPasswordHash = await bcrypt.hash(adminPassword, 10);
+      const userPasswordHash = await bcrypt.hash(password, 10);
+      
+      // 1. Create the school
+      console.log("Creating school:", schoolName);
+      const newSchool = await storage.createSchool({
+        name: schoolName,
+        contactEmail,
+        subscriptionActive: true, // Set to active by default
+        contactPhone: null,
+        adminPasswordHash,
+        customization: {
+          primaryColor: "#f97316", // Default orange color
+          secondaryColor: "#fef3c7", // Light amber
+          logoUrl: null
+        }
+      });
+      
+      console.log("School created successfully with ID:", newSchool.id);
+      
+      // 2. Create user with owner privileges
+      console.log("Creating user:", username);
+      const newUser = await storage.createUser({
+        username,
+        password: userPasswordHash,
+        firstName,
+        lastName,
+        email,
+        language: "English",
+        nativeLanguage: "English",
+        timeZone: "UTC",
+        schoolId: newSchool.id,
+        isOwner: true,
+        isSchoolAdmin: true,  // School owners are also school admins by default
+        points: 0,
+        streak: 0,
+        level: 1,
+        bearBucks: 0,
+        lifetimePoints: 0
+      });
+      
+      console.log("User created successfully with ID:", newUser.id);
+      
+      // 3. Create session for the new user
+      req.session.userId = newUser.id;
+      req.session.loginTime = new Date().toISOString();
+      
+      // Force session save to ensure it's properly saved
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) {
+            console.error("Error saving session:", err);
+            reject(err);
+          } else {
+            console.log("Session saved successfully with userId:", newUser.id);
+            resolve();
+          }
+        });
+      });
+      
+      // Return success
+      res.status(200).json({
+        message: "School and user created successfully",
+        school: newSchool,
+        user: { id: newUser.id, username: newUser.username, email: newUser.email }
+      });
+    } catch (error) {
+      console.error("Failed to register business:", error);
+      
+      if (error.code === '23505' && error.constraint === 'users_username_unique') {
+        return res.status(400).json({ message: 'Username already exists' });
+      }
+      if (error.code === '23505' && error.constraint === 'schools_name_unique') {
+        return res.status(400).json({ message: 'School name already exists' });
+      }
+      
+      res.status(500).json({ 
+        message: "Failed to register business", 
+        details: error instanceof Error ? error.message : "An unexpected error occurred" 
+      });
+    }
+  });
+  
   // All-in-one endpoint for school and owner registration
   app.post("/api/business-signup/complete", async (req, res) => {
     console.log("Starting all-in-one business signup process");

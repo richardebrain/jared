@@ -14,6 +14,7 @@ import BusinessDirectSignup from "@/pages/business-direct-signup";
 import BusinessUltraSimple from "@/pages/business-ultra-simple";
 import SimpleRegistration from "@/pages/simple-registration";
 import UltraSimpleRegistration from "@/pages/ultra-simple-registration";
+import SimpleBusinessRegister from "@/pages/simple-business-register";
 import RegistrationSuccess from "@/pages/registration-success";
 import LandingPage from "@/pages/landing-updated";
 import ProgressionMap from "@/pages/progression-map";
@@ -113,6 +114,10 @@ function Router() {
       
       <Route path="/business-ultra-simple">
         <BusinessUltraSimple />
+      </Route>
+      
+      <Route path="/simple-business-register">
+        <SimpleBusinessRegister />
       </Route>
       
       <Route path="/simple-registration">
