@@ -260,5 +260,8 @@ async function main() {
   }
 }
 
-// Run the import
-main().catch(console.error);
+// Export the functions to be used by the API endpoint
+export { importQuestionsFromCSV, updateAssessmentQuestionsJson };
+
+// Default export function for API usage
+export default main;
