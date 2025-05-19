@@ -9,6 +9,9 @@ import { Award, Heart, Star, CheckCircle, BookOpen, Youtube, Play } from "lucide
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+// Import video asset directly
+import promotionalVideo from "@assets/Raising Arizona Preschool .mp4";
+import logoImage from "@assets/raising-arizona-logo.jpg";
 
 export default function CoreValuesPage() {
   const { user } = useAuth();
@@ -62,17 +65,14 @@ export default function CoreValuesPage() {
             </p>
             
             <div className="aspect-video relative overflow-hidden rounded-lg bg-gray-100 mt-6">
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center p-8 bg-blue-50 rounded-lg border border-blue-100 w-full">
-                  <Youtube className="h-12 w-12 text-blue-500 mx-auto mb-3" />
-                  <h3 className="text-lg font-bold mb-2">Raising Arizona Preschool Promotional Video</h3>
-                  <p className="text-gray-600 mb-4">Watch this video to understand our school's mission and approach.</p>
-                  <Button variant="outline" className="mx-auto">
-                    <Play className="h-4 w-4 mr-2" />
-                    Watch Video
-                  </Button>
-                </div>
-              </div>
+              <video 
+                className="w-full h-full"
+                controls
+                src={promotionalVideo}
+                poster={logoImage}
+              >
+                Your browser does not support the video tag.
+              </video>
             </div>
           </div>
         </div>
