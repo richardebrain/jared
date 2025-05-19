@@ -43,12 +43,20 @@ const registerSchema = z.object({
   language: z.string().default("English"),
   nativeLanguage: z.string().default("English"),
   timeZone: z.string().default("UTC-05:00"), // Default to Eastern Time
+  
+  // School registration fields (optional)
+  isSchoolOwner: z.boolean().default(false),
+  schoolName: z.string().optional(),
+  adminPassword: z.string().optional(),
 });
 
 export default function Register() {
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
 
+  // State for showing/hiding school owner fields
+  const [isSchoolOwner, setIsSchoolOwner] = useState(false);
+  
   // Create form with simplified fields
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
@@ -62,6 +70,10 @@ export default function Register() {
       language: "English",
       nativeLanguage: "English",
       timeZone: "UTC-05:00",
+      // School registration fields
+      isSchoolOwner: false,
+      schoolName: "",
+      adminPassword: "",
     },
   });
 
@@ -79,15 +91,49 @@ export default function Register() {
           email: data.email.trim(),
         };
         
-        console.log("Sending registration data:", { 
-          ...cleanData, 
-          password: "***" // Don't log actual password
-        });
-        
-        return await apiRequest("/api/auth/register", {
-          method: "POST",
-          data: cleanData
-        });
+        // If this is a school owner registration, we need to create a school and make this user an admin
+        if (data.isSchoolOwner && data.schoolName && data.adminPassword) {
+          console.log("Registering as school owner");
+          
+          // First, register the user
+          const userResponse = await apiRequest("/api/auth/register", {
+            method: "POST",
+            data: cleanData
+          });
+          
+          // Then create the school with this user as the admin
+          await apiRequest("/api/schools", {
+            method: "POST",
+            data: {
+              name: data.schoolName.trim(),
+              adminPasswordHash: data.adminPassword.trim(),
+              contactEmail: data.email.trim(),
+              contactPhone: "", // These could be added to the form later
+              address: "",
+              city: "",
+              state: "",
+              zipCode: "",
+              customization: {
+                primaryColor: "#1e88e5",
+                secondaryColor: "#ffca28",
+                accentColor: "#ff5722"
+              }
+            }
+          });
+          
+          return userResponse;
+        } else {
+          // Regular user registration
+          console.log("Sending registration data:", { 
+            ...cleanData, 
+            password: "***" // Don't log actual password
+          });
+          
+          return await apiRequest("/api/auth/register", {
+            method: "POST",
+            data: cleanData
+          });
+        }
       } catch (error) {
         console.error("Registration error:", error);
         throw error;
@@ -296,7 +342,77 @@ export default function Register() {
               
               {/* Language and timezone fields removed for simplicity */}
               
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 hover-pop hover-glow" disabled={isPending}>
+              {/* School owner checkbox */}
+              <div className="mt-8 border-t pt-6">
+                <div className="flex items-center space-x-2">
+                  <input 
+                    type="checkbox" 
+                    id="isSchoolOwner"
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    checked={isSchoolOwner}
+                    onChange={(e) => {
+                      setIsSchoolOwner(e.target.checked);
+                      form.setValue('isSchoolOwner', e.target.checked);
+                    }}
+                  />
+                  <label 
+                    htmlFor="isSchoolOwner" 
+                    className="text-sm font-medium"
+                  >
+                    I am a school owner or director
+                  </label>
+                </div>
+                <p className="text-xs text-gray-500 mt-1 ml-6">
+                  School owners can create and manage accounts for their teachers and staff
+                </p>
+              </div>
+              
+              {/* Conditional school fields */}
+              {isSchoolOwner && (
+                <div className="mt-6 p-4 border rounded-md bg-gray-50 animate-fadeIn space-y-4">
+                  <h3 className="font-bold text-center mb-2">School Information</h3>
+                  
+                  <FormField
+                    control={form.control}
+                    name="schoolName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>School Name</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Enter your school or center name" 
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="adminPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Admin Password</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="password"
+                            placeholder="Create an admin password" 
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                        <p className="text-xs text-gray-500 mt-1">
+                          You'll need this password to access admin features
+                        </p>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
+              
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 hover-pop hover-glow mt-6" disabled={isPending}>
                 {isPending ? (
                   <div className="flex items-center justify-center">
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
