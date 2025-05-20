@@ -173,12 +173,27 @@ export function SpinWheel({ onClose }: SpinWheelProps) {
     // Enable spinning if the user is logged in and has points
     // Users earn points by completing activities
     const hasCompletedActivities = user && user.points > 0;
+    
+    // Debug logging
+    console.log("SpinWheel eligibility check:", { 
+      userId: user?.id,
+      userPoints: user?.points,
+      hasCompletedActivities 
+    });
+    
     setSpinEnabled(hasCompletedActivities);
     
     // Set daily spins based on activity completion
     // Each activity completion should allow for 1 spin (up to a max of 3)
     const pointsEarned = user?.points || 0;
     const activitiesCompleted = Math.min(3, Math.floor(pointsEarned / 2));
+    
+    console.log("Spin daily limit calculation:", {
+      pointsEarned,
+      activitiesCompleted,
+      dailySpinsAllowed: activitiesCompleted
+    });
+    
     setDailySpinsLeft(activitiesCompleted);
   };
 
