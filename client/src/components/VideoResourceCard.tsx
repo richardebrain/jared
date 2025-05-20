@@ -147,7 +147,7 @@ Category: ${video.category.join(', ')}
         },
         body: JSON.stringify({
           videoId: video.id,
-          points: points > 0 ? 1 : 0, // Send 1 if points earned, 0 if not
+          points: 5, // Always send 5 points for video quizzes
           duration: video.duration || 5 // Pass video duration for proper point calculation
         })
       });

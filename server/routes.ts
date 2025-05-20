@@ -1461,9 +1461,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Determine points based on video duration
-      const videoDuration = req.body.duration || 5; // Default to 5 minutes if not provided
-      const pointsEarned = videoDuration >= 10 ? 8 : 5; // 8 points for videos 10+ minutes, 5 points for shorter videos
+      // Fixed points value for all videos
+      const pointsEarned = 5; // Always award 5 points per video quiz regardless of duration
       
       try {
         // Record the completion

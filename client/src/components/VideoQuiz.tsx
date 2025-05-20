@@ -115,10 +115,8 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
 
   // Handle completing the quiz
   const handleFinishQuiz = async () => {
-    // Calculate points based on correct answers and implementation
-    const implementationPoints = implementationAnswer.length >= 50 ? 2 : 0;
-    const quizPoints = Math.round((correctAnswers / questions.length) * 8); // Max 8 points from quiz
-    const totalPoints = quizPoints + implementationPoints;
+    // Fixed points value - 5 points per video
+    const totalPoints = 5; // Fixed value regardless of quiz performance
     
     setEarnedPoints(totalPoints);
     setQuizCompleted(true);
