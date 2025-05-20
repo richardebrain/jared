@@ -1528,18 +1528,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createVideoQuizCompletion(completion: InsertVideoQuizCompletion): Promise<VideoQuizCompletion> {
+    // First check if the daily limit has been reached - don't add points if it has
+    const completionsToday = await this.getDailyVideoCompletionsCount(completion.userId);
+    
+    // Create a copy of the completion object that we can modify if needed
+    let completionToInsert = {...completion};
+    
+    // If user has already watched 2 videos today, set points to 0
+    if (completionsToday >= 2) {
+      console.log(`User ${completion.userId} has already reached the daily limit of 2 videos.`);
+      completionToInsert.pointsEarned = 0; // Set points to 0 but still record the completion
+    }
+    
+    // Insert the completion record
     const [result] = await db
       .insert(videoQuizCompletions)
-      .values(completion)
+      .values(completionToInsert)
       .returning();
     
-    // Also update the user's points
-    if (completion.pointsEarned) {
+    // Only update points if we're actually awarding points (limit not reached)
+    if (completionToInsert.pointsEarned && completionToInsert.pointsEarned > 0) {
       const user = await this.getUser(completion.userId);
       if (user && user.points !== null) {
         await db
           .update(users)
-          .set({ points: user.points + completion.pointsEarned })
+          .set({ points: user.points + completionToInsert.pointsEarned })
           .where(eq(users.id, completion.userId));
       }
     }

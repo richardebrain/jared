@@ -1364,28 +1364,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Determine points based on video duration
       const videoDuration = duration || 5; // Default to 5 minutes if not provided
-      const pointsEarned = videoDuration >= 10 ? 8 : 5; // 8 points for videos 10+ minutes, 5 points for shorter videos
+      const potentialPoints = videoDuration >= 10 ? 8 : 5; // 8 points for videos 10+ minutes, 5 points for shorter videos
       
       try {
-        // Record the completion
+        // Record the completion - the storage layer will handle setting points to 0 if daily limit reached
         const completion = await storage.createVideoQuizCompletion({
           userId,
           videoId,
-          pointsEarned,
+          pointsEarned: potentialPoints,
           completedAt: new Date()
         });
         
-        // Add points to user
+        // Get updated user after points added (if any)
         const user = await storage.getUser(userId);
-        const updatedUser = await storage.updateUser(userId, { 
-          points: (user?.points || 0) + pointsEarned
-        });
+        
+        // Check if points were actually awarded by comparing completion record
+        const pointsAwarded = completion.pointsEarned || 0;
+        const isLimitReached = completionsToday >= 2;
         
         res.status(200).json({ 
           success: true,
-          pointsAwarded: pointsEarned,
-          totalPoints: updatedUser.points,
-          remaining: 2 - (completionsToday + 1) // Remaining videos for today
+          pointsAwarded: pointsAwarded,
+          totalPoints: user?.points || 0,
+          remaining: Math.max(0, 2 - (completionsToday + 1)), // Remaining videos for today
+          limitReached: isLimitReached,
+          message: isLimitReached ? "You've reached your daily limit of 2 videos." : undefined
         });
       } catch (err: any) {
         // Check if this is a duplicate key error
@@ -1465,30 +1468,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pointsRequested = req.body.points || 0;
       
       // Use the points from the request, falling back to duration-based calculation
-      const pointsEarned = pointsRequested > 0 ? pointsRequested : 
-                           (videoDuration >= 10 ? 8 : 5); // 8 points for longer videos
+      const potentialPoints = pointsRequested > 0 ? pointsRequested : 
+                            (videoDuration >= 10 ? 8 : 5); // 8 points for longer videos
       
       try {
-        // Record the completion
+        // Record the completion - our updated storage layer will handle setting points to 0 if limit reached
         const completion = await storage.createVideoQuizCompletion({
           userId,
           videoId,
-          pointsEarned,
+          pointsEarned: potentialPoints,
           completedAt: new Date()
         });
         
-        // Add points to user (respecting daily cap)
-        await storage.addUserPoints(userId, pointsEarned);
-        
-        // Get updated user
+        // Get updated user - points were already added in createVideoQuizCompletion if appropriate
         const user = await storage.getUser(userId);
         
+        // Check if points were actually awarded by looking at the completion record
+        const pointsAwarded = completion.pointsEarned || 0;
+        const isLimitReached = completionsToday >= 2;
+        
         res.status(200).json({ 
-          success: true, 
-          completion,
-          pointsAwarded: pointsEarned,
+          success: true,
+          pointsAwarded: pointsAwarded,
           totalPoints: user?.points || 0,
-          remaining: 2 - (completionsToday + 1) // Remaining videos for today
+          remaining: Math.max(0, 2 - (completionsToday + 1)), // Remaining videos for today
+          limitReached: isLimitReached,
+          message: isLimitReached ? "You've reached your daily limit of 2 videos." : undefined
         });
       } catch (err: any) {
         // Check if this is a duplicate key error
