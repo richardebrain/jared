@@ -714,6 +714,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/modules/:id", requireAuth, requirePaidAccess, async (req, res) => {
     try {
+      // Special case: Skip this handler for management route
+      if (req.params.id === 'management') {
+        return next();
+      }
+      
+      // Special case: Skip this handler for visible route
+      if (req.params.id === 'visible') {
+        return next();
+      }
+      
       // Validate the module ID parameter
       if (!req.params.id || req.params.id === 'undefined') {
         console.error(`Invalid module ID requested: ${req.params.id}`);
