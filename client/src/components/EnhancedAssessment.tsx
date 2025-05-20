@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'wouter';
 import { 
   Dialog, 
@@ -18,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import enhancedAssessmentService, { AssessmentQuestion, AnswerResponse, Domain } from '../services/enhancedAssessmentService';
 import confetti from 'canvas-confetti';
 import { useQuery } from '@tanstack/react-query';
-import { useSound } from '@/hooks/use-sound';
+// Using direct audio refs instead of the useSound hook
 import AssessmentFeedback from '@/components/AssessmentFeedback';
 
 interface EnhancedAssessmentProps {
@@ -208,16 +208,25 @@ const EnhancedAssessment: React.FC<EnhancedAssessmentProps> = ({
       if (response.is_correct) {
         setCorrectAnswers(prev => prev + 1);
         // Play correct answer sound
-        correctSound.play();
+        if (correctAudioRef.current) {
+          correctAudioRef.current.currentTime = 0;
+          correctAudioRef.current.play().catch(err => console.warn('Failed to play sound:', err));
+        }
       } else {
         // Play incorrect answer sound
-        incorrectSound.play();
+        if (incorrectAudioRef.current) {
+          incorrectAudioRef.current.currentTime = 0;
+          incorrectAudioRef.current.play().catch(err => console.warn('Failed to play sound:', err));
+        }
       }
       
       // Check if assessment is complete
       if (response.assessment_complete) {
         // Play completion sound
-        completionSound.play();
+        if (completionAudioRef.current) {
+          completionAudioRef.current.currentTime = 0;
+          completionAudioRef.current.play().catch(err => console.warn('Failed to play sound:', err));
+        }
         
         // Delay showing results to let user see feedback for last question
         setTimeout(() => {
@@ -240,7 +249,10 @@ const EnhancedAssessment: React.FC<EnhancedAssessmentProps> = ({
           // If difficulty increased, play level up sound and show special message
           if (difficultyHasIncreased) {
             // Play level up sound
-            levelUpSound.play();
+            if (levelUpAudioRef.current) {
+              levelUpAudioRef.current.currentTime = 0;
+              levelUpAudioRef.current.play().catch(err => console.warn('Failed to play level up sound:', err));
+            }
             
             // Show special toast with personalized message
             const firstName = currentUser?.firstName || "Teacher";
