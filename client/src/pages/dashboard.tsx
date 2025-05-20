@@ -509,10 +509,8 @@ export default function Dashboard() {
                 
                 <CardContent className="px-6 py-4">
                   <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-                    <a
-                      href="https://forms.gle/W8vgp6UTt2PXpCE67"
-                      target="_blank"
-                      rel="noopener noreferrer" 
+                    <div
+                      onClick={() => window.open('https://docs.google.com/forms/d/e/1FAIpQLSfuKxxqApOXCZmQh5hO9V5-_4bWHgTsA-mxEtCmXHmQCscCdw/viewform', '_blank')}
                       className="group relative overflow-hidden bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl border-2 border-blue-400 transform transition duration-200 ease-in-out hover:scale-105 cursor-pointer"
                     >
                       {/* Corner decorations */}
