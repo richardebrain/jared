@@ -15,6 +15,7 @@ import AssessmentResults from "@/pages/assessment-results";
 import EnhancedAssessmentPage from "@/pages/enhanced-assessment";
 import SimpleAssessmentPage from "@/pages/simple-assessment";
 import AIAssessmentPage from "@/pages/ai-assessment";
+import SimpleAIAssessmentPage from "@/pages/simple-ai-assessment";
 import LearningModulePage from "@/pages/learning-module";
 import MicroModulePage from "@/pages/micro-module";
 import LearningStylePage from "@/pages/learning-style";
@@ -233,6 +234,10 @@ function Router() {
       
       <Route path="/ai-assessment">
         {isAuthenticated ? <AIAssessmentPage /> : <Login />}
+      </Route>
+      
+      <Route path="/simple-ai-assessment">
+        {isAuthenticated ? <SimpleAIAssessmentPage /> : <Login />}
       </Route>
       
       <Route path="/schools/:schoolId">

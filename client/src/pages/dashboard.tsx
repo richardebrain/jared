@@ -699,33 +699,64 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
               
-              {/* AI Assessment Card */}
-              <Card className="overflow-hidden bg-white shadow-md hover:shadow-lg transition-shadow mt-8">
-                <CardHeader className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-4">
-                  <CardTitle className="text-xl font-bold text-white mb-0 flex items-center">
-                    <Brain className="h-5 w-5 mr-2 inline-block" />
-                    AI-Powered Assessment
-                  </CardTitle>
-                  <CardDescription className="text-white font-medium opacity-90 m-0">
-                    Our newest assessment system with database-powered questions
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-4">
-                  <p className="text-gray-700 mb-4">
-                    Experience our most advanced assessment technology that adapts to your knowledge level.
-                    Get personalized feedback and detailed explanations on questions from our database.
-                  </p>
-                  <div className="flex justify-end">
-                    <Button 
-                      className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white"
-                      onClick={() => window.location.href = "/ai-assessment"}
-                    >
-                      Try AI Assessment
-                      <Star className="h-4 w-4 ml-1" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Assessment Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+                {/* Simple AI Assessment Card */}
+                <Card className="overflow-hidden bg-white shadow-md hover:shadow-lg transition-shadow">
+                  <CardHeader className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white p-4">
+                    <CardTitle className="text-xl font-bold text-white mb-0 flex items-center">
+                      <Brain className="h-5 w-5 mr-2 inline-block" />
+                      Simple AI Assessment
+                    </CardTitle>
+                    <CardDescription className="text-white font-medium opacity-90 m-0">
+                      Quick knowledge assessment with instant feedback
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <p className="text-gray-700 mb-4">
+                      Test your ECE knowledge with our simplified assessment tool. Get immediate feedback 
+                      and explanations on each question to enhance your understanding.
+                    </p>
+                    <div className="flex justify-end">
+                      <Button 
+                        className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white"
+                        onClick={() => window.location.href = "/simple-ai-assessment"}
+                      >
+                        Start Assessment
+                        <ArrowRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Original AI Assessment Card */}
+                <Card className="overflow-hidden bg-white shadow-md hover:shadow-lg transition-shadow">
+                  <CardHeader className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-4">
+                    <CardTitle className="text-xl font-bold text-white mb-0 flex items-center">
+                      <Brain className="h-5 w-5 mr-2 inline-block" />
+                      AI-Powered Assessment
+                    </CardTitle>
+                    <CardDescription className="text-white font-medium opacity-90 m-0">
+                      Advanced assessment with adaptive questions
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <p className="text-gray-700 mb-4">
+                      Experience our most advanced assessment technology that adapts to your knowledge level.
+                      Get personalized feedback and detailed explanations.
+                    </p>
+                    <div className="flex justify-end">
+                      <Button 
+                        className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white"
+                        onClick={() => window.location.href = "/ai-assessment"}
+                      >
+                        Try AI Assessment
+                        <Star className="h-4 w-4 ml-1" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
               
               {/* Personalized Learning Path */}
               <div className="space-y-4 mt-8">
