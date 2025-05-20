@@ -57,13 +57,15 @@ export default function CasinoPage() {
     queryKey: ["/api/progress"],
   });
   
-  // Check for special access using username or user ID directly
+  // Check for special access for admin
   const isJLCookie = user?.username === 'jlcookie20';
-  const isLaura = user?.id === 5; // Special override for Laura
   
-  // Special access for jlcookie20 and Laura
-  // Override restrictions for privileged users or check if completed activities
-  const hasCompletedActivity = isJLCookie || isLaura || progress.some((p: any) => p.completed);
+  // User can access games if they've completed activities OR earned at least 1 point
+  // This ensures users who earned points through any method can play games
+  const hasCompletedActivity = 
+    isJLCookie || 
+    (user && user.points && user.points > 0) || 
+    (progress && Array.isArray(progress) && progress.some((p: any) => p.completed));
   
   // Function to reset games for jlcookie20
   const resetBonusGames = () => {
@@ -93,12 +95,11 @@ export default function CasinoPage() {
   // Check if user has already played a game today (limit of one game per login)
   // Users with special access (jlcookie20) bypass this restriction
   useEffect(() => {
-    // Special access for jlcookie20 and Laura - always allow access to games
-    if (user?.username === 'jlcookie20' || user?.id === 5) {
+    // Special access for jlcookie20 - always allow access to games
+    if (user?.username === 'jlcookie20') {
       setDailyGameUsed(false);
       // Clear any existing restriction
       localStorage.removeItem('lastGamePlayedDate');
-      console.log("EMERGENCY GAME FIX: Special access granted to", user?.username);
       return;
     }
     
