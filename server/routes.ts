@@ -90,6 +90,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register credential management routes
   app.use("/api/credentials", credentialRoutes);
   
+  // Register personalized mini-lessons routes
+  app.use("/api", personalizedModuleRoutes);
+  
   const httpServer = createServer(app);
   
   // Set up credential expiration check to run daily
