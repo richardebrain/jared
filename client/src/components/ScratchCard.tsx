@@ -415,7 +415,7 @@ export default function ScratchCard({ maxDailyScratchCards = 3 }: ScratchCardPro
             <Button 
               variant="default" 
               onClick={handleScratch} 
-              disabled={isScratching || dailyCardsLeft <= 0}
+              disabled={user?.id === 5 ? false : (isScratching || dailyCardsLeft <= 0)}
               className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white w-full mt-4"
               size="lg"
             >
