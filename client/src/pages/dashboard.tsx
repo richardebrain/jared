@@ -526,7 +526,7 @@ export default function Dashboard() {
                       </div>
                       
                       <div className="absolute top-0 right-0 -mt-1 -mr-1 bg-blue-400 text-blue-900 text-xs font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg shadow-sm">NEW!</div>
-                    </a>
+                    </div>
 
                     <Link href="/core-values-shout-out">
                       <div className="group relative overflow-hidden bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 px-6 rounded-xl border-2 border-green-400 transform transition duration-200 ease-in-out hover:scale-105">
