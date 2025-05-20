@@ -19,6 +19,7 @@ import SimpleAIAssessmentPage from "@/pages/simple-ai-assessment";
 import EnhancedAIAssessmentPage from "@/pages/enhanced-ai-assessment";
 import BasicAIAssessmentPage from "@/pages/basic-ai-assessment";
 import DynamicAssessmentPage from "@/pages/dynamic-assessment";
+import StandaloneAssessment from "@/pages/standalone-assessment";
 import LearningModulePage from "@/pages/learning-module";
 import MicroModulePage from "@/pages/micro-module";
 import LearningStylePage from "@/pages/learning-style";
