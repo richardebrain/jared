@@ -59,6 +59,16 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
     playCompletionSound,
     playCelebrationSound
   } = useSoundEffects();
+  
+  // Update isMobile state when window is resized
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Generate quiz questions based on video content
   useEffect(() => {
@@ -66,35 +76,60 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
       try {
         setLoading(true);
         
-        // Check video title to determine type for specialized questions
+        // Check video title and ID to determine type for specialized questions
         let videoType = "generic";
         let videoDuration = 5; // Default duration in minutes
+        
+        // Log the video we're creating a quiz for
+        console.log("Creating quiz for video:", videoTitle, "ID:", videoId);
         
         // Check for yoga/mindfulness videos
         if (videoTitle.toLowerCase().includes("yoga") || 
             videoTitle.toLowerCase().includes("cosmic") || 
             videoTitle.toLowerCase().includes("mindful") ||
-            videoId === "video-003") {
+            videoTitle.toLowerCase().includes("zen") ||
+            videoTitle.toLowerCase().includes("meditation") ||
+            videoTitle.toLowerCase().includes("breath") ||
+            videoId === "video-003" ||
+            videoId === "video-005" ||
+            videoId === "video-086" ||
+            videoId === "video-088") {
           videoType = "mindfulness";
-          videoDuration = 23; // For Cosmic Kids videos
+          videoDuration = 15; // For kids yoga/mindfulness videos
           console.log("Detected mindfulness/yoga video:", videoTitle);
         }
         // Check for emotional/social learning videos
         else if (videoTitle.toLowerCase().includes("emotion") || 
                  videoTitle.toLowerCase().includes("feeling") ||
                  videoTitle.toLowerCase().includes("social") ||
-                 videoId === "video-008") {
+                 videoTitle.toLowerCase().includes("sesame street") ||
+                 videoTitle.toLowerCase().includes("sel") ||
+                 videoId === "video-008" ||
+                 videoId === "video-051") {
           videoType = "socialEmotional";
           console.log("Detected social-emotional video:", videoTitle);
         }
         // Check for TED talks
         else if (videoTitle.toLowerCase().includes("ted") ||
-                 videoTitle.toLowerCase().includes("sir ken") ||
-                 videoTitle.toLowerCase().includes("rita pierson")) {
+                 videoTitle.toLowerCase().includes("sir ken robinson") ||
+                 videoTitle.toLowerCase().includes("rita pierson") ||
+                 videoTitle.toLowerCase().includes("brené") ||
+                 videoTitle.toLowerCase().includes("carol dweck") ||
+                 videoId === "video-021" ||
+                 videoId === "video-031" ||
+                 videoId === "video-034" ||
+                 videoId === "video-076" ||
+                 videoId === "video-077" ||
+                 videoId === "video-078" ||
+                 videoId === "video-102" ||
+                 videoId === "video-103" ||
+                 videoId === "video-104" ||
+                 videoId === "video-105") {
           videoType = "tedTalk";
           console.log("Detected TED talk video:", videoTitle);
         }
         
+        console.log("Quiz video type:", videoType);
         setVideoDuration(videoDuration);
         
         // Generate type-specific questions
@@ -652,11 +687,11 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-background/80 z-50">
-      <div className="bg-card rounded-xl p-6 w-full max-w-3xl mx-auto shadow-lg">
+    <div className="fixed inset-0 flex items-center justify-center bg-background/80 z-50 p-2 sm:p-0 overflow-y-auto">
+      <div className="bg-card rounded-xl p-3 sm:p-6 w-full max-w-3xl mx-auto shadow-lg my-4 max-h-[95vh] overflow-y-auto">
         {/* Quiz Header */}
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Video Quiz</h2>
+        <div className="flex justify-between items-center mb-3 sm:mb-4 sticky top-0 bg-card pt-1 z-10">
+          <h2 className="text-lg sm:text-xl font-bold">Video Quiz</h2>
           <button
             onClick={onClose}
             className="p-1 hover:bg-accent rounded-full"
@@ -667,43 +702,43 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
         </div>
         
         {/* Progress Bar */}
-        <div className="mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium">
+        <div className="mb-4 sm:mb-6 px-1">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
+            <span className="text-sm font-medium mb-1 sm:mb-0">
               {showImplementation 
                 ? "Final Question" 
                 : `Question ${currentQuestionIndex + 1} of ${questions.length}`}
             </span>
-            <Badge variant="outline" className="flex items-center">
-              <Video className="h-3 w-3 mr-1" />
-              <span className="text-xs">{videoTitle}</span>
+            <Badge variant="outline" className="flex items-center self-start sm:self-auto">
+              <Video className="h-3 w-3 mr-1 flex-shrink-0" />
+              <span className="text-xs truncate max-w-[200px]">{videoTitle}</span>
             </Badge>
           </div>
           <Progress value={progress} className="h-2" />
         </div>
         
         {/* Question Display */}
-        <Card className="p-6 mb-6">
+        <Card className="p-3 sm:p-6 mb-4 sm:mb-6">
           {!showImplementation ? (
             <>
               {/* Multiple Choice Questions */}
-              <h3 className="text-lg font-semibold mb-4">
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">
                 {questions[currentQuestionIndex]?.question}
               </h3>
               
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {questions[currentQuestionIndex]?.options.map((option, index) => (
                   <div
                     key={index}
-                    className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                    className={`p-2 sm:p-3 rounded-lg border cursor-pointer transition-all ${
                       selectedAnswer === option
                         ? 'border-primary bg-primary/10 dark:bg-primary/20'
                         : 'border-border hover:border-primary/50 hover:bg-accent'
                     }`}
                     onClick={() => handleSelectAnswer(option)}
                   >
-                    <div className="flex items-center space-x-3">
-                      <div className={`flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center ${
+                    <div className="flex items-start sm:items-center">
+                      <div className={`flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center mt-0.5 mr-2 sm:mr-3 ${
                         selectedAnswer === option 
                           ? 'border-primary bg-primary text-primary-foreground' 
                           : 'border-muted-foreground'
@@ -712,7 +747,7 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
                           <Check className="h-3 w-3" />
                         )}
                       </div>
-                      <span className={selectedAnswer === option ? 'font-medium' : ''}>{option}</span>
+                      <span className={`${selectedAnswer === option ? 'font-medium' : ''} text-sm sm:text-base`}>{option}</span>
                     </div>
                   </div>
                 ))}
@@ -721,12 +756,12 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
           ) : (
             <>
               {/* Implementation Question */}
-              <h3 className="text-lg font-semibold mb-4">
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">
                 {implementationQuestion?.question}
               </h3>
               <Textarea
                 placeholder="Share at least one specific way you could apply this video's content in your classroom (minimum 50 characters)..."
-                className="min-h-[120px]"
+                className="min-h-[100px] sm:min-h-[120px] text-sm sm:text-base"
                 value={implementationAnswer}
                 onChange={(e) => setImplementationAnswer(e.target.value)}
               />
@@ -742,21 +777,25 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
         </Card>
         
         {/* Navigation */}
-        <div className="flex justify-between">
+        <div className="flex justify-between sticky bottom-0 bg-card pb-1 z-10">
           <Button 
             variant="outline"
             onClick={onClose}
+            size={isMobile ? "sm" : "default"}
+            className="text-xs sm:text-sm"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             Cancel
           </Button>
           
           <Button 
             onClick={handleNextQuestion} 
             disabled={!selectedAnswer && !showImplementation}
+            size={isMobile ? "sm" : "default"}
+            className="text-xs sm:text-sm"
           >
             {showImplementation ? 'Complete Quiz' : 'Next Question'}
-            <ChevronRight className="h-4 w-4 ml-2" />
+            <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1 sm:ml-2" />
           </Button>
         </div>
       </div>
