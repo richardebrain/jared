@@ -11,14 +11,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Video, Link2, BookOpen, ArrowLeft } from 'lucide-react';
 
-export default function AdminPage() {
+export default function AdminPage({ skipPasswordCheck = false }) {
   const { user, isLoading } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    // Check if already authenticated from sessionStorage
-    return sessionStorage.getItem('adminAuthenticated') === 'true';
+    // Check if already authenticated from sessionStorage or if skipPasswordCheck is true
+    return sessionStorage.getItem('adminAuthenticated') === 'true' || skipPasswordCheck;
   });
   
   // Admin password

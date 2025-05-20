@@ -205,6 +205,10 @@ function Router() {
         {isAuthenticated ? <AdminPage /> : <Login />}
       </Route>
       
+      <Route path="/admin-dashboard">
+        {isAuthenticated ? <AdminPage skipPasswordCheck={true} /> : <Login />}
+      </Route>
+      
       <Route path="/admin/modules">
         {isAuthenticated ? <AdminModulesPage /> : <Login />}
       </Route>
