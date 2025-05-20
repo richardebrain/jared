@@ -227,9 +227,34 @@ router.post('/answer',
       // Add logging to help debug
       console.log('Submitting answer to assessment backend:', req.body);
       
-      const response = await axios.post(`${ASSESSMENT_API_URL}/assessments/answer`, req.body, {
-        timeout: 10000 // Add timeout to prevent hanging requests
-      });
+      // Try multiple endpoint paths to ensure compatibility
+      let response;
+      
+      try {
+        // First try with "assessments" prefix
+        console.log('First attempt - submitting to /assessments/answer endpoint');
+        response = await axios.post(`${ASSESSMENT_API_URL}/assessments/answer`, req.body, {
+          timeout: 10000
+        });
+      } catch (firstError) {
+        console.log('First answer endpoint failed, trying alternative...');
+        
+        try {
+          // Second try with no prefix
+          console.log('Second attempt - submitting to /answer endpoint');
+          response = await axios.post(`${ASSESSMENT_API_URL}/answer`, req.body, {
+            timeout: 10000
+          });
+        } catch (secondError) {
+          console.log('Second answer endpoint failed, trying third alternative...');
+          
+          // Third try with "assessment" singular prefix
+          console.log('Third attempt - submitting to /assessment/answer endpoint');
+          response = await axios.post(`${ASSESSMENT_API_URL}/assessment/answer`, req.body, {
+            timeout: 10000
+          });
+        }
+      }
       
       // Log successful response
       console.log('Assessment answer response received');
