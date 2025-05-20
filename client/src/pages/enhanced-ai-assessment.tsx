@@ -3,8 +3,9 @@ import EnhancedAIAssessment from '@/components/EnhancedAIAssessment';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'wouter';
+// Import useQuery for user info (instead of useAuth)
+import { useQuery } from "@tanstack/react-query";
+import { useLocation } from 'wouter';
 
 const assessmentIntroText = `
   This enhanced assessment adapts to your knowledge level. As you answer correctly, 

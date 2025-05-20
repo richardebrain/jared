@@ -320,7 +320,7 @@ export const EnhancedAIAssessment: React.FC<EnhancedAIAssessmentProps> = ({
             <p className="mt-2 font-semibold">
               {isCorrect 
                 ? `+${currentQuestion.pointValue} points!` 
-                : 'Keep learning - you'll get it next time!'}
+                : "Keep learning - you will get it next time!"}
             </p>
           </div>
         )}
