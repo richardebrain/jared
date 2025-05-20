@@ -10,6 +10,7 @@ import { eq, sql } from "drizzle-orm";
 import { users, eduTokSnippets, eduTokUserInteractions } from "@shared/schema";
 import { registerWelcomeMessageRoutes } from "./welcomeMessageRoutes";
 import { registerModuleManagementRoutes } from "./module-management/moduleRoutes";
+import { registerModuleRoutes } from "./registerModuleRoutes";
 import { registerQuestionImportRoutes } from "./api-routes/question-import";
 import { registerAssessmentRoutes } from "./registerAssessmentRoutes";
 import * as notebookLmPlugin from "./notebookLmPlugin";
@@ -3400,6 +3401,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error recording view:", error);
       res.status(500).json({ error: "Failed to record view" });
+    }
+  });
+  
+  // Module Management API - Get all modules with visibility status
+  app.get("/api/modules/management", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const allModules = await db.query.learningModules.findMany({
+        orderBy: (modules, { desc }) => [desc(modules.createdAt)]
+      });
+      res.json(allModules);
+    } catch (error) {
+      console.error("Error getting modules with visibility:", error);
+      res.status(500).json({ message: "Failed to retrieve modules" });
+    }
+  });
+
+  // Module Management API - Get only visible modules
+  app.get("/api/modules/visible", requireAuth, async (req, res) => {
+    try {
+      const visibleModules = await db.execute(
+        sql`SELECT * FROM learning_modules 
+            WHERE is_visible = TRUE 
+            ORDER BY created_at DESC`
+      );
+      res.json(visibleModules.rows);
+    } catch (error) {
+      console.error("Error getting visible modules:", error);
+      res.status(500).json({ message: "Failed to retrieve visible modules" });
+    }
+  });
+
+  // Module Management API - Update module visibility
+  app.patch("/api/modules/:id/visibility", requireAuth, requireAdminAuth, async (req, res) => {
+    try {
+      const moduleId = parseInt(req.params.id);
+      const { visible } = req.body;
+
+      if (isNaN(moduleId)) {
+        return res.status(400).json({ message: "Invalid module ID" });
+      }
+
+      if (typeof visible !== 'boolean') {
+        return res.status(400).json({ message: "Visibility must be a boolean" });
+      }
+
+      // Update module visibility
+      await db.execute(
+        sql`UPDATE learning_modules 
+            SET is_visible = ${visible}, 
+                updated_at = ${new Date()} 
+            WHERE id = ${moduleId}`
+      );
+      
+      // Get the updated module
+      const updatedModule = await db.query.learningModules.findFirst({
+        where: (modules, { eq }) => eq(modules.id, moduleId)
+      });
+
+      if (updatedModule) {
+        res.json({ 
+          success: true, 
+          message: `Module visibility set to ${visible}`,
+          module: updatedModule
+        });
+      } else {
+        res.status(404).json({ message: "Module not found or update failed" });
+      }
+    } catch (error) {
+      console.error("Error updating module visibility:", error);
+      res.status(500).json({ message: "Failed to update module visibility" });
     }
   });
 
