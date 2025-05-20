@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Video, Link2, BookOpen } from 'lucide-react';
+import { Video, Link2, BookOpen, ArrowLeft } from 'lucide-react';
 
 export default function AdminPage() {
   const { user, isLoading } = useAuth();

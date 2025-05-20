@@ -108,7 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     saveUninitialized: true, // Ensures new sessions are saved
     rolling: true, // Reset expiration with each request
     cookie: { 
-      secure: process.env.NODE_ENV === 'production', // Allow HTTP in development
+      secure: false, // Allow HTTP in all environments to prevent logout issues
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       sameSite: "lax" as "lax", // Type assertion to fix TypeScript error
