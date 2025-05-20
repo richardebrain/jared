@@ -232,14 +232,16 @@ class EnhancedAssessmentService {
     questionId: number,
     answer: string,
     userId: number,
-    timeTaken?: number
+    timeTaken?: number,
+    questionCount: number = 0
   ): Promise<AnswerResponse> {
     try {
       const response = await axios.post(`${BASE_URL}/answer`, {
         question_id: questionId,
         answer,
         user_id: userId,
-        time_taken: timeTaken
+        time_taken: timeTaken,
+        questionCount // Pass question count to track assessment progress
       }, { timeout: 8000 });
       return response.data;
     } catch (error) {

@@ -454,9 +454,11 @@ router.post('/answer',
         domain: req.body.domain || "Child Development",
         difficulty: 1,
         message: isCorrect ? "Excellent work!" : "Keep learning!",
-        assessment_complete: shouldComplete && isCorrect,
-        next_question: shouldComplete && isCorrect ? null : nextQuestion,
-        completion_stats: shouldComplete && isCorrect ? {
+        assessment_complete: shouldComplete,
+        next_question: shouldComplete ? null : nextQuestion,
+        // Include questionCount in response so frontend can track progress
+        questionCount: questionCount,
+        completion_stats: shouldComplete ? {
           questions_attempted: 5,
           questions_correct: 4,
           accuracy: 80,

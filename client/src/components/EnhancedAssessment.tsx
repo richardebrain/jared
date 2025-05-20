@@ -194,11 +194,13 @@ const EnhancedAssessment: React.FC<EnhancedAssessmentProps> = ({
     const timeTaken = Math.floor((Date.now() - questionStartTime) / 1000);
     
     try {
+      // Pass the current questions answered count to track progress
       const response = await enhancedAssessmentService.submitAnswer(
         currentQuestion.id,
         selectedAnswer,
         userId,
-        timeTaken
+        timeTaken,
+        questionsAnswered // Pass current count to server
       );
       
       setFeedback(response);
