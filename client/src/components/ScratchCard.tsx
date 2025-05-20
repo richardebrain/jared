@@ -155,9 +155,20 @@ export default function ScratchCard({ maxDailyScratchCards = 3 }: ScratchCardPro
           // Each activity completion should allow for 1 scratch card (up to the max)
           const pointsEarned = user.points || 0;
           const activitiesCompleted = Math.min(maxDailyScratchCards, Math.floor(pointsEarned / 2));
+          
+          // Debug logging
+          console.log("ScratchCard eligibility check:", {
+            userId: user.id,
+            username: user.username,
+            userPoints: pointsEarned,
+            activitiesCompleted,
+            dailyCardsAllowed: activitiesCompleted
+          });
+          
           setDailyCardsLeft(activitiesCompleted);
         } else {
           // No activities completed, no scratch cards available
+          console.log("ScratchCard eligibility: User has no points");
           setDailyCardsLeft(0);
         }
 

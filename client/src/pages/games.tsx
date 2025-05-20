@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Link } from 'wouter';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
   Tabs, 
   TabsContent, 
@@ -27,6 +27,15 @@ import { Sparkles, Gift, Package, Star, CircleHelp } from 'lucide-react';
 export default function GamesPage() {
   const { user, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("play");
+  const queryClient = useQueryClient();
+  
+  // Force a refresh of user data when the page loads
+  useEffect(() => {
+    // This ensures we get fresh user data when the games page loads
+    queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/games/history"] });
+    console.log("Games page - Current user data:", user);
+  }, []);
   
   // Get user progress
   const { data: userProgress } = useQuery({ 
