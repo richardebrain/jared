@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ECE Knowledge Check</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.5;
+      color: #333;
+    }
+    h1 {
+      color: #2563eb;
+      text-align: center;
+    }
+    .progress {
+      width: 100%;
+      height: 10px;
+      background-color: #e5e7eb;
+      margin: 20px 0;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background-color: #2563eb;
+      transition: width 0.3s;
+    }
+    .question {
+      margin-bottom: 25px;
+      padding: 20px;
+      border-radius: 8px;
+      background-color: #f3f4f6;
+    }
+    .question h3 {
+      margin-top: 0;
+    }
+    .option {
+      display: block;
+      margin: 10px 0;
+      padding: 12px 15px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background-color: white;
+    }
+    .option:hover {
+      border-color: #93c5fd;
+      background-color: #f0f9ff;
+    }
+    .selected {
+      border-color: #2563eb;
+      background-color: #dbeafe;
+    }
+    .correct {
+      border-color: #34d399;
+      background-color: #d1fae5;
+    }
+    .incorrect {
+      border-color: #f87171;
+      background-color: #fee2e2;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: block;
+      margin: 15px 0;
+    }
+    button:hover {
+      background-color: #1d4ed8;
+    }
+    button:disabled {
+      background-color: #9ca3af;
+      cursor: not-allowed;
+    }
+    .feedback {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 6px;
+      display: none;
+    }
+    .correct-feedback {
+      background-color: #d1fae5;
+      border: 1px solid #34d399;
+    }
+    .incorrect-feedback {
+      background-color: #fee2e2;
+      border: 1px solid #f87171;
+    }
+    .results {
+      text-align: center;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Early Childhood Education Knowledge Check</h1>
+  
+  <div id="quiz-container">
+    <div class="progress">
+      <div id="progress-bar" class="progress-bar" style="width: 0%;"></div>
+    </div>
+    
+    <div id="score-display">Question: <span id="current-question">1</span>/<span id="total-questions">5</span></div>
+    
+    <div id="question-container" class="question"></div>
+    
+    <div id="feedback" class="feedback"></div>
+    
+    <button id="next-btn" style="display:none;">Next Question</button>
+    <button id="submit-btn" disabled>Submit Answer</button>
+  </div>
+  
+  <div id="results" class="results">
+    <h2>Assessment Complete!</h2>
+    <p>Your score: <span id="final-score">0</span> out of 5</p>
+    <div id="result-message"></div>
+    <button id="restart-btn">Try Again</button>
+  </div>
+
+  <script>
+    // Simple assessment without any complex dependencies
+    const questions = [
+      {
+        text: "Which of these practices best promotes positive relationships in an early childhood classroom?",
+        options: [
+          "Using a behavior chart with color-coded warnings",
+          "Greeting each child by name at the door",
+          "Removing children who misbehave from activities",
+          "Using rewards for good behavior"
+        ],
+        correctIndex: 1,
+        explanation: "Building positive relationships with each child starts with personal recognition. Greeting children by name acknowledges their individual importance and helps them feel welcomed and valued."
+      },
+      {
+        text: "What is a developmentally appropriate way to help toddlers develop language skills?",
+        options: [
+          "Structured daily vocabulary lessons",
+          "Workbooks with letter tracing exercises",
+          "Conversational turn-taking during play and routines",
+          "Flashcards with common words"
+        ],
+        correctIndex: 2,
+        explanation: "Young children learn language best through natural conversations in meaningful contexts. Turn-taking conversations during everyday activities provide authentic opportunities to use language."
+      },
+      {
+        text: "When a three-year-old has difficulty sharing toys, which response is most appropriate?",
+        options: [
+          "Remove the toy until they can share properly",
+          "Tell them they need to share with friends",
+          "Model and narrate sharing: "I'll use it for two minutes, then you can have a turn"",
+          "Give each child identical toys to prevent conflicts"
+        ],
+        correctIndex: 2,
+        explanation: "Young children are still developing the concept of sharing. Modeling, narrating the process, and scaffolding turn-taking helps them understand the concrete steps involved."
+      },
+      {
+        text: "Which classroom design element best supports executive function development?",
+        options: [
+          "A quiet, minimally decorated environment",
+          "Clearly defined areas with visual boundaries",
+          "Open floor plan with flexible seating",
+          "Multiple stimulating visual displays"
+        ],
+        correctIndex: 1,
+        explanation: "Clear visual boundaries help children understand classroom expectations, making self-regulation easier. Well-defined spaces support children in making choices and following routines independently."
+      },
+      {
+        text: "According to the CLASS assessment tool, which teacher behavior most effectively supports children's concept development?",
+        options: [
+          "Providing step-by-step instructions for activities",
+          "Using advanced vocabulary during explanations",
+          "Asking children to recall facts from previous lessons",
+          "Asking open-ended questions that encourage analysis and reasoning"
+        ],
+        correctIndex: 3,
+        explanation: "Open-ended questions prompt children to think deeply, make connections between ideas, and develop their own understanding rather than simply recalling facts or following directions."
+      }
+    ];
+
+    // Variables
+    let currentQuestionIndex = 0;
+    let selectedOptionIndex = null;
+    let score = 0;
+    let questionOptions = [];
+
+    // DOM Elements
+    const questionContainer = document.getElementById('question-container');
+    const progressBar = document.getElementById('progress-bar');
+    const currentQuestionDisplay = document.getElementById('current-question');
+    const totalQuestionsDisplay = document.getElementById('total-questions');
+    const feedbackContainer = document.getElementById('feedback');
+    const submitBtn = document.getElementById('submit-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const resultsContainer = document.getElementById('results');
+    const quizContainer = document.getElementById('quiz-container');
+    const finalScoreDisplay = document.getElementById('final-score');
+    const resultMessage = document.getElementById('result-message');
+    const restartBtn = document.getElementById('restart-btn');
+
+    // Initialize quiz
+    function initQuiz() {
+      currentQuestionIndex = 0;
+      score = 0;
+      selectedOptionIndex = null;
+      
+      totalQuestionsDisplay.textContent = questions.length;
+      
+      // Reset display
+      quizContainer.style.display = 'block';
+      resultsContainer.style.display = 'none';
+      
+      loadQuestion();
+    }
+
+    // Load current question
+    function loadQuestion() {
+      const question = questions[currentQuestionIndex];
+      selectedOptionIndex = null;
+      
+      // Update progress indicators
+      currentQuestionDisplay.textContent = currentQuestionIndex + 1;
+      progressBar.style.width = `${((currentQuestionIndex) / questions.length) * 100}%`;
+      
+      // Build question HTML
+      let questionHTML = `
+        <h3>${question.text}</h3>
+        <div class="options">
+      `;
+      
+      question.options.forEach((option, index) => {
+        questionHTML += `<div class="option" data-index="${index}">${option}</div>`;
+      });
+      
+      questionHTML += `</div>`;
+      
+      // Set question HTML
+      questionContainer.innerHTML = questionHTML;
+      
+      // Add event listeners to options
+      questionOptions = document.querySelectorAll('.option');
+      questionOptions.forEach(option => {
+        option.addEventListener('click', () => selectOption(option));
+      });
+      
+      // Reset buttons and feedback
+      submitBtn.disabled = true;
+      submitBtn.style.display = 'block';
+      nextBtn.style.display = 'none';
+      feedbackContainer.style.display = 'none';
+    }
+
+    // Select an option
+    function selectOption(optionElement) {
+      // Remove selected class from all options
+      questionOptions.forEach(option => {
+        option.classList.remove('selected');
+      });
+      
+      // Add selected class to clicked option
+      optionElement.classList.add('selected');
+      
+      // Store selected index
+      selectedOptionIndex = parseInt(optionElement.dataset.index);
+      
+      // Enable submit button
+      submitBtn.disabled = false;
+    }
+
+    // Submit answer
+    function submitAnswer() {
+      const question = questions[currentQuestionIndex];
+      const isCorrect = selectedOptionIndex === question.correctIndex;
+      
+      // Update score
+      if (isCorrect) {
+        score++;
+      }
+      
+      // Show visual feedback
+      questionOptions.forEach((option, index) => {
+        if (index === question.correctIndex) {
+          option.classList.add('correct');
+        } else if (index === selectedOptionIndex && !isCorrect) {
+          option.classList.add('incorrect');
+        }
+      });
+      
+      // Show text feedback
+      feedbackContainer.textContent = isCorrect 
+        ? `Correct! ${question.explanation}` 
+        : `Incorrect. The correct answer is: "${question.options[question.correctIndex]}". ${question.explanation}`;
+      
+      feedbackContainer.className = `feedback ${isCorrect ? 'correct-feedback' : 'incorrect-feedback'}`;
+      feedbackContainer.style.display = 'block';
+      
+      // Update buttons
+      submitBtn.style.display = 'none';
+      
+      if (currentQuestionIndex < questions.length - 1) {
+        nextBtn.style.display = 'block';
+      } else {
+        // Last question, show results
+        progressBar.style.width = '100%';
+        nextBtn.textContent = 'See Results';
+        nextBtn.style.display = 'block';
+      }
+    }
+
+    // Move to next question or show results
+    function nextQuestion() {
+      if (currentQuestionIndex < questions.length - 1) {
+        currentQuestionIndex++;
+        loadQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    // Show results
+    function showResults() {
+      quizContainer.style.display = 'none';
+      resultsContainer.style.display = 'block';
+      finalScoreDisplay.textContent = score;
+      
+      let message = '';
+      const percentage = (score / questions.length) * 100;
+      
+      if (percentage === 100) {
+        message = '<p>Excellent! You have a strong understanding of early childhood education principles!</p>';
+      } else if (percentage >= 80) {
+        message = '<p>Great job! You have a solid foundation in early childhood education concepts.</p>';
+      } else if (percentage >= 60) {
+        message = '<p>Good effort! You understand many key early childhood education concepts.</p>';
+      } else {
+        message = '<p>Thank you for completing the assessment. Continue learning about early childhood education to strengthen your knowledge.</p>';
+      }
+      
+      resultMessage.innerHTML = message;
+    }
+
+    // Event listeners
+    submitBtn.addEventListener('click', submitAnswer);
+    nextBtn.addEventListener('click', nextQuestion);
+    restartBtn.addEventListener('click', initQuiz);
+
+    // Start the quiz
+    initQuiz();
+  </script>
+</body>
+</html>
