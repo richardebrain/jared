@@ -417,8 +417,30 @@ router.post('/answer',
         if (question_id === 2003) correctAnswer = "a";
       }
       
-      // Determine if assessment should complete (after enough questions)
-      const shouldComplete = Math.random() > 0.7; // 30% chance to complete after each correct answer
+      // Fix assessment progression - only complete after answering at least 5 questions
+      // This ensures users get a proper multi-question assessment experience
+      // We'll keep track of questions using IDs stored in the user session
+      const minQuestionsRequired = 5;
+      
+      // Get question count from the session or localStorage
+      const sessionKey = `assessment_questions_${user_id}`;
+      let questionCount = 0;
+      
+      try {
+        // Try to retrieve previous question count from request
+        if (req.body.questionCount) {
+          questionCount = parseInt(req.body.questionCount);
+        }
+      } catch (err) {
+        console.log('No previous question count found, starting fresh');
+      }
+      
+      // Increment question count
+      questionCount++;
+      console.log(`User ${user_id} has answered ${questionCount} questions in this assessment`);
+      
+      // Only complete assessment after reaching minimum number of questions
+      const shouldComplete = questionCount >= minQuestionsRequired;
       
       // Return comprehensive answer response with next question
       return res.status(200).json({

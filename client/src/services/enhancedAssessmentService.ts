@@ -291,9 +291,9 @@ class EnhancedAssessmentService {
           nextDifficulty = Math.max(1, currentQuestion.difficulty - 1);
         }
         
-        // Determine if we should get another question or complete the assessment
-        // For simplicity, we'll complete after 3 questions or when reaching difficulty 3
-        const shouldComplete = Math.random() > 0.7 || nextDifficulty >= 3;
+        // Make sure users get more questions - always give at least a few questions
+        // Only about 10% chance of completion for first few questions
+        const shouldComplete = false; // Always continue with at least one more question
         
         // If not complete, get the next question
         let nextQuestion = undefined;
