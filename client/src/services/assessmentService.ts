@@ -67,10 +67,12 @@ class AssessmentService {
    */
   async startAssessment(domain: string, userId: number) {
     try {
-      const response = await this.axiosInstance.post('/assessments/start', {
+      console.log('Starting assessment for domain:', domain);
+      const response = await this.axiosInstance.post('/assessment/start', {
         domain,
         user_id: userId,
       });
+      console.log('Assessment started successfully:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error starting assessment:', error);
@@ -88,12 +90,14 @@ class AssessmentService {
    */
   async submitAnswer(questionId: number, answer: string, userId: number, timeTaken?: number) {
     try {
-      const response = await this.axiosInstance.post('/assessments/submit', {
+      console.log('Submitting answer:', { questionId, answer, userId, timeTaken });
+      const response = await this.axiosInstance.post('/assessment/answer', {
         question_id: questionId,
         answer,
         user_id: userId,
         time_taken: timeTaken,
       });
+      console.log('Answer submitted successfully:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error submitting answer:', error);

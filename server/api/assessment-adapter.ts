@@ -21,7 +21,7 @@ const router = Router();
 router.get('/health', async (_req, res) => {
   try {
     console.log('Checking assessment API health status...');
-    const response = await axios.get(`${ASSESSMENT_API_URL}/health`, { timeout: 5000 });
+    const response = await axios.get(`${ASSESSMENT_API_URL}/health`, { timeout: 8000 });
     console.log('Assessment API health check successful');
     return res.json({
       status: 'available',
@@ -128,33 +128,36 @@ router.post('/start',
       const { domain, user_id, sub_domain, difficulty } = req.body;
       
       console.log('Starting assessment with params:', { domain, user_id, sub_domain, difficulty });
-      // Updated endpoint to match what's in backend/main.py
-      const response = await axios.post(`${ASSESSMENT_API_URL}/assessments/start`, {
+      const apiUrl = `${ASSESSMENT_API_URL}/assessments/start`;
+      console.log('Making request to API URL:', apiUrl);
+      
+      const response = await axios.post(apiUrl, {
         domain,
         user_id,
         sub_domain,
         difficulty
       }, {
-        timeout: 10000 // Add timeout to prevent hanging requests
+        timeout: 15000 // Increased timeout to prevent hanging requests
       });
       
+      console.log('Assessment API response:', response.data);
       return res.json(response.data);
     } catch (dbError) {
       console.error('Failed to start assessment:', dbError);
       // Return fallback first question when assessment service is unavailable
       return res.status(200).json({
         id: 1001,
-        question: `What is a key benefit of using open-ended questions in the ${domain} domain?`,
-        domain: domain,
-        sub_domain: sub_domain || "general",
-        difficulty: difficulty || 1,
-        options: [
-          "They save time in the classroom",
-          "They encourage critical thinking and deeper discussion",
-          "They are easier for children to understand",
-          "They result in fewer wrong answers"
-        ],
-        correct_answer: "They encourage critical thinking and deeper discussion",
+        question: `What is a key benefit of using open-ended questions in the ${req.body.domain} domain?`,
+        domain: req.body.domain,
+        sub_domain: req.body.sub_domain || "general",
+        difficulty: req.body.difficulty || 1,
+        options: {
+          "a": "They save time in the classroom",
+          "b": "They encourage critical thinking and deeper discussion",
+          "c": "They are easier for children to understand",
+          "d": "They result in fewer wrong answers"
+        },
+        correct_answer: "b",
         explanation: "Open-ended questions promote higher-order thinking skills and allow children to express their thoughts more fully.",
         time_limit: 60,
         points_value: 10
