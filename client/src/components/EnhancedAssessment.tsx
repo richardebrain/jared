@@ -57,11 +57,37 @@ const EnhancedAssessment: React.FC<EnhancedAssessmentProps> = ({
     enabled: open
   });
   
-  // Set up sound effects
-  const correctSound = useSound('/sounds/correct.mp3', { volume: 0.6 });
-  const incorrectSound = useSound('/sounds/incorrect.mp3', { volume: 0.5 });
-  const levelUpSound = useSound('/sounds/level-up.mp3', { volume: 0.7 });
-  const completionSound = useSound('/sounds/completion.mp3', { volume: 0.7 });
+  // Set up audio references for sound effects
+  const correctAudioRef = useRef<HTMLAudioElement | null>(null);
+  const incorrectAudioRef = useRef<HTMLAudioElement | null>(null);
+  const levelUpAudioRef = useRef<HTMLAudioElement | null>(null);
+  const completionAudioRef = useRef<HTMLAudioElement | null>(null);
+  
+  // Initialize audio elements
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      correctAudioRef.current = new Audio('/sounds/correct.mp3');
+      incorrectAudioRef.current = new Audio('/sounds/incorrect.mp3');
+      levelUpAudioRef.current = new Audio('/sounds/level-up.mp3');
+      completionAudioRef.current = new Audio('/sounds/completion.mp3');
+      
+      // Set volume levels
+      if (correctAudioRef.current) correctAudioRef.current.volume = 0.6;
+      if (incorrectAudioRef.current) incorrectAudioRef.current.volume = 0.5;
+      if (levelUpAudioRef.current) levelUpAudioRef.current.volume = 0.7;
+      if (completionAudioRef.current) completionAudioRef.current.volume = 0.7;
+    }
+    
+    // Clean up audio resources
+    return () => {
+      [correctAudioRef, incorrectAudioRef, levelUpAudioRef, completionAudioRef].forEach(ref => {
+        if (ref.current) {
+          ref.current.pause();
+          ref.current.src = '';
+        }
+      });
+    };
+  }, []);
 
   // Check if assessment API is available
   useEffect(() => {
