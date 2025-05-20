@@ -135,7 +135,17 @@ export default function Register() {
 
   // Form submission handler
   function onSubmit(values: z.infer<typeof registerSchema>) {
-    register(values);
+    // Trim values at submission time rather than during typing
+    // This allows password managers to work correctly
+    const trimmedValues = {
+      ...values,
+      username: values.username.trim(),
+      password: values.password.trim(),
+      firstName: values.firstName.trim(),
+      lastName: values.lastName.trim(),
+      email: values.email.trim()
+    };
+    register(trimmedValues);
   }
 
   // No need to manually set defaults anymore as we're using default values
@@ -237,10 +247,8 @@ export default function Register() {
                     <FormControl>
                       <Input 
                         placeholder="Choose a username" 
-                        {...field} 
-                        onChange={(e) => {
-                          field.onChange(e.target.value.trim());
-                        }}
+                        {...field}
+                        // Allow the field to work with password managers
                       />
                     </FormControl>
                     <FormMessage />
@@ -278,9 +286,7 @@ export default function Register() {
                         type="password" 
                         placeholder="Create a password" 
                         {...field}
-                        onChange={(e) => {
-                          field.onChange(e.target.value.trim());
-                        }}
+                        // Allow the field to work with password managers
                       />
                     </FormControl>
                     <FormMessage />
