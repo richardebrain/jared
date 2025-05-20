@@ -47,8 +47,21 @@ const EnhancedAssessment: React.FC<EnhancedAssessmentProps> = ({
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [currentDifficulty, setCurrentDifficulty] = useState(1);
+  const [difficultyIncreased, setDifficultyIncreased] = useState(false);
   const { toast } = useToast();
   const [, navigate] = useLocation();
+  
+  // Get user data for personalization
+  const { data: currentUser } = useQuery({
+    queryKey: ['/api/auth/me'],
+    enabled: open
+  });
+  
+  // Set up sound effects
+  const correctSound = useSound('/sounds/correct.mp3', { volume: 0.6 });
+  const incorrectSound = useSound('/sounds/incorrect.mp3', { volume: 0.5 });
+  const levelUpSound = useSound('/sounds/level-up.mp3', { volume: 0.7 });
+  const completionSound = useSound('/sounds/completion.mp3', { volume: 0.7 });
 
   // Check if assessment API is available
   useEffect(() => {
@@ -164,28 +177,75 @@ const EnhancedAssessment: React.FC<EnhancedAssessmentProps> = ({
       
       setFeedback(response);
       setQuestionsAnswered(prev => prev + 1);
+      
+      // Check if answer is correct
       if (response.is_correct) {
         setCorrectAnswers(prev => prev + 1);
+        // Play correct answer sound
+        correctSound.play();
+      } else {
+        // Play incorrect answer sound
+        incorrectSound.play();
       }
       
+      // Check if assessment is complete
       if (response.assessment_complete) {
+        // Play completion sound
+        completionSound.play();
+        
         // Delay showing results to let user see feedback for last question
         setTimeout(() => {
           setShowResults(true);
           // Trigger confetti for completion
           confetti({
-            particleCount: 100,
+            particleCount: 150,
             spread: 70,
             origin: { y: 0.6 }
           });
         }, 2000);
       } else if (response.next_question) {
+        // Check if difficulty has increased
+        const newDifficulty = response.next_question.difficulty || 1;
+        const difficultyHasIncreased = newDifficulty > currentDifficulty;
+        setDifficultyIncreased(difficultyHasIncreased);
+        
         // Queue up next question after feedback is shown
         setTimeout(() => {
+          // If difficulty increased, play level up sound and show special message
+          if (difficultyHasIncreased) {
+            // Play level up sound
+            levelUpSound.play();
+            
+            // Show special toast with personalized message
+            const firstName = currentUser?.firstName || "Teacher";
+            const compliments = [
+              `Amazing work, ${firstName}! You're moving up to more challenging questions!`,
+              `Wow, ${firstName}! Your knowledge is impressive - let's try something harder!`,
+              `You're on fire, ${firstName}! Time to level up your challenges!`,
+              `Fantastic job, ${firstName}! Your expertise deserves tougher questions!`,
+              `Incredible answers, ${firstName}! Let's step up the difficulty!`
+            ];
+            
+            // Show toast with fun message
+            toast({
+              title: "Difficulty Increased!",
+              description: compliments[Math.floor(Math.random() * compliments.length)],
+              variant: "default"
+            });
+            
+            // Visual celebration for difficulty increase
+            confetti({
+              particleCount: 30,
+              spread: 60,
+              origin: { y: 0.7 }
+            });
+          }
+          
+          // Set up next question
           setCurrentQuestion(response.next_question);
           setSelectedAnswer('');
           setFeedback(null);
-          setCurrentDifficulty(response.next_difficulty);
+          setCurrentDifficulty(newDifficulty);
         }, 2500);
       }
     } catch (error) {
@@ -492,40 +552,11 @@ const EnhancedAssessment: React.FC<EnhancedAssessmentProps> = ({
             )}
             
             {feedback && (
-              <div className={`mt-4 p-4 rounded-md ${
-                feedback.is_correct ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'
-              }`}>
-                <div className="flex items-start gap-2">
-                  {feedback.is_correct ? (
-                    <ThumbsUp className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  ) : (
-                    <div className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5">!</div>
-                  )}
-                  <div>
-                    <p className={`font-medium ${feedback.is_correct ? 'text-green-800' : 'text-amber-800'}`}>
-                      {feedback.message}
-                    </p>
-                    {!feedback.is_correct && (
-                      <p className="text-sm mt-1">
-                        Correct answer: {feedback.correct_answer === 'true' ? 'True' : 
-                                        feedback.correct_answer === 'false' ? 'False' : 
-                                        currentQuestion.options[feedback.correct_answer]}
-                      </p>
-                    )}
-                    {feedback.explanation && (
-                      <p className="text-sm mt-2">{feedback.explanation}</p>
-                    )}
-                    <div className="mt-2 text-sm">
-                      <span className="font-medium">+{feedback.points_earned} points</span>
-                      {feedback.points_earned >= 50 && (
-                        <span className="ml-2 font-medium text-emerald-600">
-                          +{Math.floor(feedback.points_earned / 50)} Bear Bucks
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <AssessmentFeedback 
+                feedback={feedback} 
+                onContinue={handleNextQuestion}
+                userName={currentUser?.firstName}
+              />
             )}
           </div>
         )}
