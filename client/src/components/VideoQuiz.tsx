@@ -585,23 +585,23 @@ function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
         id: `lit-${videoHash % 1000}-4`,
         question: "What role does storytelling play in early literacy development?",
         options: [
-          'It has minimal educational value',
-          'It helps children understand narrative structure and comprehension',
-          'It should be replaced with direct letter instruction',
-          'It only matters for children who already know how to read'
+          "It has minimal educational value",
+          "It helps children understand narrative structure and comprehension",
+          "It should be replaced with direct letter instruction",
+          "It only matters for children who already know how to read"
         ],
-        correctAnswer: 'It helps children understand narrative structure and comprehension'
+        correctAnswer: "It helps children understand narrative structure and comprehension"
       },
       {
         id: `lit-${videoHash % 1000}-5`,
-        question: 'How can the classroom environment support emergent writing?',
+        question: "How can the classroom environment support emergent writing?",
         options: [
-          'By providing only pencils and lined paper',
-          'By discouraging drawing as it delays writing development',
-          'By offering varied writing tools and meaningful purposes for writing',
-          'By focusing exclusively on correct letter formation'
+          "By providing only pencils and lined paper",
+          "By discouraging drawing as it delays writing development",
+          "By offering varied writing tools and meaningful purposes for writing",
+          "By focusing exclusively on correct letter formation"
         ],
-        correctAnswer: 'By offering varied writing tools and meaningful purposes for writing'
+        correctAnswer: "By offering varied writing tools and meaningful purposes for writing"
       }
     ],
     leadership: [
