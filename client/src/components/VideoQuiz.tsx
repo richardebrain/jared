@@ -739,13 +739,13 @@ function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
           'They provide a secure foundation for exploration and learning',
           'They should be minimized to focus on academics'
         ],
-        correctAnswer: 'They provide a secure foundation for exploration and learning'
+        correctAnswer: "They provide a secure foundation for exploration and learning"
       },
       {
         id: `gen-${videoHash % 1000}-3`,
-        question: 'What role does family engagement play in early childhood education?',
+        question: "What role does family engagement play in early childhood education?",
         options: [
-          'It interferes with professional teaching',
+          "It interferes with professional teaching",
           "It's essential for children's development and learning",
           "It's unnecessary until elementary school",
           "It should be limited to fundraising activities"
@@ -754,18 +754,18 @@ function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
       },
       {
         id: `gen-${videoHash % 1000}-4`,
-        question: 'How can teachers create an inclusive classroom environment?',
+        question: "How can teachers create an inclusive classroom environment?",
         options: [
-          'By treating all children exactly the same way',
-          'By recognizing and adapting to diverse needs and backgrounds',
-          'By separating children based on ability levels',
-          'By focusing primarily on children who need the most help'
+          "By treating all children exactly the same way",
+          "By recognizing and adapting to diverse needs and backgrounds",
+          "By separating children based on ability levels",
+          "By focusing primarily on children who need the most help"
         ],
-        correctAnswer: 'By recognizing and adapting to diverse needs and backgrounds'
+        correctAnswer: "By recognizing and adapting to diverse needs and backgrounds"
       },
       {
         id: `gen-${videoHash % 1000}-5`,
-        question: 'What role should reflection play in teaching practice?',
+        question: "What role should reflection play in teaching practice?",
         options: [
           "It's unnecessary once a teacher has several years of experience",
           "It should be done only when problems arise",
