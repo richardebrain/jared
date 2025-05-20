@@ -727,6 +727,11 @@ export default function Dashboard() {
                     <PersonalizedMiniLessons userId={user.id} />
                   )}
                 </div>
+                
+                {/* Recent Shout-Outs Section */}
+                <div className="mb-6">
+                  <RecentShoutOuts limit={5} />
+                </div>
               </div>
               
               {/* Modules For Your Growth */}

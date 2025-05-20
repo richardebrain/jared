@@ -159,10 +159,24 @@ const PersonalizedMiniLessons: React.FC<PersonalizedMiniLessonsProps> = ({ userI
       <div className="text-center p-8 border border-gray-200 rounded-lg bg-gray-50">
         <Book className="h-12 w-12 mx-auto mb-4 text-gray-400" />
         <h3 className="text-lg font-semibold mb-2">No Personalized Mini-Lessons Yet</h3>
-        <p className="text-neutral-600 max-w-md mx-auto">
-          Complete more assessments to receive personalized mini-lessons based on your results.
-          These tailored lessons will help you improve in specific areas.
-        </p>
+        <div className="text-neutral-600 max-w-md mx-auto space-y-3">
+          <p>
+            <strong>You need to complete assessments first!</strong> Personalized mini-lessons are generated 
+            based on your assessment results, specifically focusing on questions you missed.
+          </p>
+          <p>
+            Each mini-lesson will include teaching explanations, scientific background, and practical 
+            applications to help you improve in specific areas.
+          </p>
+          <Button 
+            variant="outline" 
+            className="mt-3"
+            onClick={() => window.location.href = '/assessments'}
+          >
+            <CheckCircle className="mr-2 h-4 w-4" />
+            Take an Assessment
+          </Button>
+        </div>
       </div>
     );
   }
