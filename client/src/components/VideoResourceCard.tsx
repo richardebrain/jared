@@ -156,8 +156,19 @@ Category: ${video.category.join(', ')}
       const data = await response.json();
       
       // Update local state and notify the user
-      if (data && (data.success || data.pointsAwarded)) {
-        const pointsAwarded = data.pointsAwarded || points;
+      if (data && data.limitReached) {
+        // Daily limit reached - display appropriate message
+        toast({
+          title: "Daily Limit Reached",
+          description: "You've already earned points for 2 videos today. Come back tomorrow for more!",
+          variant: "default",
+        });
+        
+        // Update local state to show 0 points earned
+        setPointsEarned(0);
+      } else if (data && data.pointsAwarded && data.pointsAwarded > 0) {
+        // Points were successfully awarded
+        const pointsAwarded = data.pointsAwarded;
         const totalPoints = data.totalPoints || "updated";
         const remaining = data.remaining !== undefined ? data.remaining : 2;
         
@@ -169,18 +180,19 @@ Category: ${video.category.join(', ')}
         
         // Invalidate user data to refresh points display
         queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-      } else if (data && data.limitReached) {
-        toast({
-          title: "Daily Limit Reached",
-          description: "You've already earned points for 2 videos today. Come back tomorrow for more!",
-          variant: "default",
-        });
+        
+        // Set points earned for display
+        setPointsEarned(pointsAwarded);
       } else {
+        // Quiz completed but no points awarded
         toast({
           title: "Quiz Completed",
           description: "Your quiz was completed, but no points were awarded.",
           variant: "default",
         });
+        
+        // Update local state to show 0 points earned
+        setPointsEarned(0);
       }
     } catch (error) {
       console.error('Failed to save quiz results:', error);
