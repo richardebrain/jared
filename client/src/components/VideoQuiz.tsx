@@ -697,25 +697,25 @@ function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
       },
       {
         id: `ped-${videoHash % 1000}-4`,
-        question: 'What approach best supports children with diverse learning needs?',
+        question: "What approach best supports children with diverse learning needs?",
         options: [
-          'Treating all children exactly the same',
-          'Differentiating instruction based on individual strengths and needs',
-          'Separating children by ability level for all activities',
-          'Using the same assessment methods for all children'
+          "Treating all children exactly the same",
+          "Differentiating instruction based on individual strengths and needs",
+          "Separating children by ability level for all activities",
+          "Using the same assessment methods for all children"
         ],
-        correctAnswer: 'Differentiating instruction based on individual strengths and needs'
+        correctAnswer: "Differentiating instruction based on individual strengths and needs"
       },
       {
         id: `ped-${videoHash % 1000}-5`,
-        question: 'What is the importance of culturally responsive teaching?',
+        question: "What is the importance of culturally responsive teaching?",
         options: [
           "It's unnecessary in early childhood settings",
           "It only applies to classrooms with diverse populations",
           "It helps children develop positive identities and respects diverse experiences",
           "It should focus only on celebrations and holidays"
         ],
-        correctAnswer: 'It helps children develop positive identities and respects diverse experiences'
+        correctAnswer: "It helps children develop positive identities and respects diverse experiences"
       }
     ],
     general: [
