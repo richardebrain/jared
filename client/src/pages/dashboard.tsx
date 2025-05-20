@@ -700,22 +700,22 @@ export default function Dashboard() {
               </Card>
               
               {/* Assessment Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
                 {/* Simple AI Assessment Card */}
                 <Card className="overflow-hidden bg-white shadow-md hover:shadow-lg transition-shadow">
                   <CardHeader className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white p-4">
                     <CardTitle className="text-xl font-bold text-white mb-0 flex items-center">
                       <Brain className="h-5 w-5 mr-2 inline-block" />
-                      Simple AI Assessment
+                      Quick Assessment
                     </CardTitle>
                     <CardDescription className="text-white font-medium opacity-90 m-0">
-                      Quick knowledge assessment with instant feedback
+                      5-minute knowledge check
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-4">
                     <p className="text-gray-700 mb-4">
                       Test your ECE knowledge with our simplified assessment tool. Get immediate feedback 
-                      and explanations on each question to enhance your understanding.
+                      and explanations on each question.
                     </p>
                     <div className="flex justify-end">
                       <Button 
@@ -737,21 +737,52 @@ export default function Dashboard() {
                       AI-Powered Assessment
                     </CardTitle>
                     <CardDescription className="text-white font-medium opacity-90 m-0">
-                      Advanced assessment with adaptive questions
+                      Adaptive question difficulty
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-4">
                     <p className="text-gray-700 mb-4">
-                      Experience our most advanced assessment technology that adapts to your knowledge level.
-                      Get personalized feedback and detailed explanations.
+                      Experience our advanced assessment technology that adapts to your knowledge level.
+                      Get personalized feedback and explanations.
                     </p>
                     <div className="flex justify-end">
                       <Button 
                         className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white"
                         onClick={() => window.location.href = "/ai-assessment"}
                       >
-                        Try AI Assessment
+                        Try Assessment
                         <Star className="h-4 w-4 ml-1" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {/* Enhanced AI Assessment Card */}
+                <Card className="overflow-hidden bg-white shadow-md hover:shadow-lg transition-shadow border-2 border-amber-300">
+                  <div className="absolute -top-3 right-4 bg-amber-500 text-white text-xs px-2 py-1 rounded-md font-bold z-10">
+                    NEW
+                  </div>
+                  <CardHeader className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-4">
+                    <CardTitle className="text-xl font-bold text-white mb-0 flex items-center">
+                      <Brain className="h-5 w-5 mr-2 inline-block" />
+                      Master ECE Assessment
+                    </CardTitle>
+                    <CardDescription className="text-white font-medium opacity-90 m-0">
+                      From our master question database
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <p className="text-gray-700 mb-4">
+                      Our most comprehensive assessment draws real questions from our master ECE database.
+                      Includes detailed analytics and strength/weakness analysis.
+                    </p>
+                    <div className="flex justify-end">
+                      <Button 
+                        className="bg-gradient-to-r from-amber-500 to-orange-500 text-white"
+                        onClick={() => window.location.href = "/enhanced-ai-assessment"}
+                      >
+                        Take Master Assessment
+                        <Award className="h-4 w-4 ml-1" />
                       </Button>
                     </div>
                   </CardContent>
