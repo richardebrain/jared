@@ -146,7 +146,7 @@ const AdminModulesPage = () => {
         <Button 
           variant="ghost" 
           className="mr-2 p-0 h-auto"
-          onClick={() => navigate('/admin')}
+          onClick={() => navigate('/admin-dashboard')}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
@@ -160,7 +160,7 @@ const AdminModulesPage = () => {
         <Button 
           variant="outline" 
           className="flex items-center gap-2"
-          onClick={() => navigate('/admin')}
+          onClick={() => navigate('/admin-dashboard')}
         >
           <ArrowLeft className="h-4 w-4" />
           Return to Admin Dashboard
