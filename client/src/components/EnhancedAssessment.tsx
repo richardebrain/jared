@@ -13,10 +13,11 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ThumbsUp, Award, CheckCircle } from "lucide-react";
+import { Loader2, ThumbsUp, Award, CheckCircle, Star, Sparkles, Lightbulb } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import enhancedAssessmentService, { AssessmentQuestion, AnswerResponse, Domain } from '../services/enhancedAssessmentService';
 import confetti from 'canvas-confetti';
+import { useQuery } from '@tanstack/react-query';
 
 interface EnhancedAssessmentProps {
   userId: number;
