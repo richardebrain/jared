@@ -19,7 +19,10 @@ export class PersonalizationService {
     try {
       // Get the user's most recent assessment results
       const userAssessments = await db.query.assessments.findMany({
-        where: eq(assessments.userId, userId),
+        where: and(
+          eq(assessments.userId, userId),
+          eq(assessments.completed, true) // Only use completed assessments
+        ),
         orderBy: [desc(assessments.createdAt)],
         limit: 3 // Get the 3 most recent assessments
       });
