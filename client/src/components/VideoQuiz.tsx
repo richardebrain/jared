@@ -574,16 +574,16 @@ function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
         id: `lit-${videoHash % 1000}-3`,
         question: "What's the relationship between oral language development and reading success?",
         options: [
-          'They are unrelated skills',
-          'Strong oral language skills provide a foundation for reading',
-          'Oral language interferes with reading development',
-          'Reading should be taught before oral language is developed'
+          "They are unrelated skills",
+          "Strong oral language skills provide a foundation for reading",
+          "Oral language interferes with reading development",
+          "Reading should be taught before oral language is developed"
         ],
-        correctAnswer: 'Strong oral language skills provide a foundation for reading'
+        correctAnswer: "Strong oral language skills provide a foundation for reading"
       },
       {
         id: `lit-${videoHash % 1000}-4`,
-        question: 'What role does storytelling play in early literacy development?',
+        question: "What role does storytelling play in early literacy development?",
         options: [
           'It has minimal educational value',
           'It helps children understand narrative structure and comprehension',
