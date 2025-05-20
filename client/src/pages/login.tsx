@@ -146,7 +146,13 @@ export default function Login() {
 
   // Form submission handler
   function onSubmit(values: z.infer<typeof loginSchema>) {
-    login(values);
+    // Trim values at submission time rather than during typing
+    // This allows password managers to work correctly
+    const trimmedValues = {
+      username: values.username.trim(),
+      password: values.password.trim()
+    };
+    login(trimmedValues);
   }
 
   return (
@@ -179,10 +185,8 @@ export default function Login() {
                       <Input 
                         placeholder="Enter your username" 
                         {...field} 
-                        onChange={(e) => {
-                          // Trim whitespace when user types
-                          field.onChange(e.target.value.trim());
-                        }}
+                        // Allow the field to receive values from password managers
+                        // We'll trim on submission instead of while typing
                       />
                     </FormControl>
                     <FormMessage />
@@ -203,11 +207,9 @@ export default function Login() {
                       <Input 
                         type="password" 
                         placeholder="Enter your password" 
-                        {...field} 
-                        onChange={(e) => {
-                          // Trim whitespace when user types
-                          field.onChange(e.target.value.trim());
-                        }}
+                        {...field}
+                        // Allow the field to receive values from password managers
+                        // We'll trim on submission instead of while typing
                       />
                     </FormControl>
                     <FormMessage />
