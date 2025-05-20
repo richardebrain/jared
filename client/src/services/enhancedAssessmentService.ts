@@ -129,24 +129,86 @@ class EnhancedAssessmentService {
   async startAssessment(domain: string, userId: number, difficulty?: number): Promise<AssessmentQuestion> {
     try {
       console.log('Starting assessment with params:', { domain, user_id: userId, difficulty });
+      
       // First try with the updated endpoint path
       try {
         const response = await axios.post(`${BASE_URL}/start`, {
           domain,
           user_id: userId,
-          difficulty
+          difficulty: 1 // Always start with difficulty level 1
         }, { timeout: 12000 });
+        
         console.log('Assessment started successfully, question received');
-        return response.data;
+        
+        // Process response data to ensure it's in the correct format
+        const questionData = response.data;
+        
+        // Standard format check and conversion
+        if (questionData && questionData.question) {
+          // Ensure options is in object format if it's an array
+          if (Array.isArray(questionData.options)) {
+            const optionsObject = {};
+            questionData.options.forEach((option, index) => {
+              const key = String.fromCharCode(97 + index); // 'a', 'b', 'c', etc.
+              optionsObject[key] = option;
+            });
+            questionData.options = optionsObject;
+          }
+          
+          // Ensure difficulty is a number
+          if (typeof questionData.difficulty !== 'number') {
+            questionData.difficulty = 1;
+          }
+          
+          // Ensure q_type is set
+          if (!questionData.q_type) {
+            questionData.q_type = 'multiple_choice';
+          }
+          
+          return questionData;
+        }
+        
+        throw new Error('Invalid question format received from API');
+        
       } catch (initialError) {
         console.log('First attempt failed, trying alternative endpoint...');
         // If first attempt fails, try the alternative endpoint
-        const alternativeResponse = await axios.post('/api/assessment/start', {
-          domain,
-          user_id: userId,
-          difficulty
-        }, { timeout: 12000 });
-        return alternativeResponse.data;
+        try {
+          const alternativeResponse = await axios.post('/api/assessment/start', {
+            domain,
+            user_id: userId,
+            difficulty: 1 // Always start with difficulty level 1
+          }, { timeout: 12000 });
+          
+          // Process response data
+          const questionData = alternativeResponse.data;
+          
+          // Apply the same format checks and conversions
+          if (questionData && questionData.question) {
+            if (Array.isArray(questionData.options)) {
+              const optionsObject = {};
+              questionData.options.forEach((option, index) => {
+                const key = String.fromCharCode(97 + index);
+                optionsObject[key] = option;
+              });
+              questionData.options = optionsObject;
+            }
+            
+            if (typeof questionData.difficulty !== 'number') {
+              questionData.difficulty = 1;
+            }
+            
+            if (!questionData.q_type) {
+              questionData.q_type = 'multiple_choice';
+            }
+            
+            return questionData;
+          }
+          
+          throw new Error('Invalid question format received from alternative API');
+        } catch (alternativeError) {
+          throw alternativeError;
+        }
       }
     } catch (error) {
       console.error('Error starting assessment (all attempts failed):', error);
@@ -159,7 +221,7 @@ class EnhancedAssessmentService {
         id: 999,
         question: "What are the key developmental milestones for a 4-year-old child?",
         domain: domain,
-        difficulty: difficulty || 1,
+        difficulty: 1, // Always start with difficulty level 1
         q_type: "multiple_choice",
         options: {
           "a": "Using complete sentences and following 2-3 step instructions",
