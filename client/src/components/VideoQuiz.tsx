@@ -50,7 +50,7 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
   const [showFinalFeedback, setShowFinalFeedback] = useState(false);
   const [allCorrect, setAllCorrect] = useState(false);
   const { toast } = useToast();
-  const { playCorrect, playIncorrect, playComplete } = useSoundEffects();
+  const { playCorrectSound, playIncorrectSound, playCompletionSound } = useSoundEffects();
   const confettiCanvasRef = useRef<HTMLCanvasElement>(null);
 
   // Calculate progress percentage
@@ -98,10 +98,10 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
     
     // Play sound effect based on correctness
     if (isCorrect) {
-      playCorrect();
+      playCorrectSound();
       setCorrectAnswers(prev => prev + 1);
     } else {
-      playIncorrect();
+      playIncorrectSound();
     }
     
     // Move to next question or show final feedback
@@ -125,7 +125,7 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
     setAllCorrect(correctAnswers === questions.length);
     
     // Play completion sound
-    playComplete();
+    playCompletionSound();
     
     // Trigger confetti if all answers are correct
     if (correctAnswers === questions.length) {
