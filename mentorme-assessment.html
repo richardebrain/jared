@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MentorMe ECE Assessment</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    .gradient-blue {
+      background: linear-gradient(to right, #3b82f6, #6366f1);
+    }
+    .gradient-green {
+      background: linear-gradient(to right, #22c55e, #10b981);
+    }
+    .gradient-orange {
+      background: linear-gradient(to right, #f97316, #f59e0b);
+    }
+    .option:hover {
+      border-color: #3b82f6;
+    }
+    .correct {
+      background-color: rgba(34, 197, 94, 0.1);
+      border-color: #22c55e;
+    }
+    .incorrect {
+      background-color: rgba(239, 68, 68, 0.1);
+      border-color: #ef4444;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <div class="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+    <!-- Introduction Screen -->
+    <div id="intro-screen" class="bg-white rounded-xl shadow-md overflow-hidden">
+      <div class="gradient-blue text-white px-6 py-4">
+        <h1 class="text-2xl font-bold">MentorMe ECE Assessment</h1>
+        <p class="opacity-90">Test your early childhood education knowledge</p>
+      </div>
+      <div class="p-6">
+        <div class="prose max-w-none">
+          <p class="text-lg font-medium mb-4">Welcome, Teacher!</p>
+          
+          <p class="mb-4">
+            This assessment will evaluate your knowledge across multiple ECE domains
+            including child development, classroom management, and teaching practices.
+          </p>
+          
+          <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
+            <h3 class="text-blue-800 font-medium mb-2">How It Works</h3>
+            <p class="text-blue-700">
+              This assessment includes:<br>
+              • Questions of varying difficulty levels<br>
+              • Immediate feedback with explanations<br>
+              • Domain-specific performance analysis<br>
+              • Points rewards that track your progress
+            </p>
+          </div>
+          
+          <div class="bg-amber-50 p-4 rounded-lg border border-amber-100 mb-6">
+            <h3 class="text-amber-800 font-medium mb-2">Important Note</h3>
+            <p class="text-amber-700">
+              You can exit the assessment at any time, but your progress won't be saved.
+              Make sure you have 10-15 minutes available to complete the assessment.
+            </p>
+          </div>
+        </div>
+        
+        <div class="flex justify-center mt-8">
+          <button
+            id="start-btn"
+            class="gradient-blue text-white px-6 py-3 rounded-lg font-medium text-lg hover:opacity-90 transition-opacity"
+          >
+            Begin Assessment
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Assessment Screen -->
+    <div id="assessment-screen" class="hidden bg-white rounded-xl shadow-md overflow-hidden">
+      <div class="gradient-blue text-white px-6 py-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold">ECE Assessment</h1>
+        <span id="question-counter" class="bg-white/20 px-3 py-1 rounded-full text-sm"></span>
+      </div>
+      <div class="p-6">
+        <!-- Progress Bar -->
+        <div class="mb-6">
+          <div class="h-2 bg-gray-200 rounded-full">
+            <div id="progress-bar" class="h-2 gradient-blue rounded-full" style="width: 0%"></div>
+          </div>
+          <div class="flex justify-between mt-1 text-sm text-gray-500">
+            <span id="progress-text"></span>
+            <span id="points-earned">0 points earned</span>
+          </div>
+        </div>
+        
+        <!-- Question -->
+        <div class="mb-6">
+          <div class="flex items-center mb-2">
+            <span id="domain-badge" class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mr-2"></span>
+            <span id="points-badge" class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded"></span>
+          </div>
+          <h3 id="question-text" class="text-xl font-semibold mb-4"></h3>
+          
+          <!-- Options -->
+          <div id="options-container" class="space-y-3 mb-6"></div>
+          
+          <!-- Submit/Next Buttons -->
+          <div class="mt-6 flex justify-end">
+            <button 
+              id="submit-btn" 
+              class="gradient-blue text-white px-4 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled
+            >
+              Submit Answer
+            </button>
+            <button
+              id="next-btn"
+              class="hidden gradient-green text-white px-4 py-2 rounded-lg font-medium"
+            >
+              Next Question
+            </button>
+          </div>
+        </div>
+        
+        <!-- Feedback -->
+        <div id="feedback-container" class="hidden p-4 rounded-lg border"></div>
+        
+        <!-- Encouragement Message -->
+        <div id="encouragement" class="hidden mt-6 text-center text-blue-700 font-medium"></div>
+      </div>
+    </div>
+    
+    <!-- Results Screen -->
+    <div id="results-screen" class="hidden bg-white rounded-xl shadow-md overflow-hidden">
+      <div class="gradient-green text-white px-6 py-4">
+        <h1 class="text-2xl font-bold">Assessment Completed!</h1>
+        <p class="opacity-90">Great job on completing the assessment</p>
+      </div>
+      <div class="p-6">
+        <div class="text-center mb-8">
+          <h2 id="final-score" class="text-3xl font-bold mb-2"></h2>
+          <p id="final-points" class="text-lg text-slate-600"></p>
+          <p id="final-time" class="text-slate-500 mt-1"></p>
+        </div>
+        
+        <div class="bg-blue-50 p-4 rounded-lg mb-6">
+          <h3 class="text-blue-800 font-medium mb-2">Assessment Summary</h3>
+          <div class="grid grid-cols-2 gap-4 text-center">
+            <div>
+              <p class="text-slate-600">Questions Answered</p>
+              <p id="total-questions" class="text-xl font-bold"></p>
+            </div>
+            <div>
+              <p class="text-slate-600">Correct Answers</p>
+              <p id="correct-answers" class="text-xl font-bold text-green-600"></p>
+            </div>
+            <div>
+              <p class="text-slate-600">Highest Difficulty</p>
+              <p id="highest-difficulty" class="text-xl font-bold"></p>
+            </div>
+            <div>
+              <p class="text-slate-600">Accuracy</p>
+              <p id="accuracy" class="text-xl font-bold"></p>
+            </div>
+          </div>
+        </div>
+        
+        <h3 class="text-xl font-bold mb-4">Domain Analysis</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <div class="bg-white rounded-lg shadow-sm border p-4">
+            <h4 class="text-green-600 font-bold mb-1">Strengths</h4>
+            <p class="text-sm text-slate-500 mb-3">Domains where you excel</p>
+            <div id="strengths-container" class="space-y-2"></div>
+          </div>
+          
+          <div class="bg-white rounded-lg shadow-sm border p-4">
+            <h4 class="text-amber-600 font-bold mb-1">Growth Areas</h4>
+            <p class="text-sm text-slate-500 mb-3">Domains to focus on improving</p>
+            <div id="weaknesses-container" class="space-y-2"></div>
+          </div>
+        </div>
+        
+        <div class="flex justify-center mt-8">
+          <button 
+            id="restart-btn" 
+            class="gradient-blue text-white px-6 py-3 rounded-lg font-medium text-lg hover:opacity-90 transition-opacity"
+          >
+            Take Another Assessment
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Question data
+    const questions = [
+      {
+        id: 1,
+        question: "Which of the following is a key principle of developmentally appropriate practice?",
+        options: [
+          "Focusing on academic skills only",
+          "Treating all children the same way",
+          "Acknowledging children's individual development",
+          "Prioritizing teacher-directed activities"
+        ],
+        correctAnswer: "Acknowledging children's individual development",
+        explanation: "Developmentally appropriate practice recognizes each child's unique development trajectory and adapts teaching approaches accordingly.",
+        domain: "Child Development",
+        difficulty: 1,
+        pointValue: 5
+      },
+      {
+        id: 2,
+        question: "What is an effective way to promote language development in preschoolers?",
+        options: [
+          "Correcting grammatical errors immediately",
+          "Engaging in back-and-forth conversations",
+          "Using simplified vocabulary only",
+          "Limiting conversation to instruction time"
+        ],
+        correctAnswer: "Engaging in back-and-forth conversations",
+        explanation: "Back-and-forth conversations (serve and return interactions) build language skills and neural connections.",
+        domain: "Language Development",
+        difficulty: 1,
+        pointValue: 5
+      },
+      {
+        id: 3,
+        question: "Which strategy best supports social-emotional learning in toddlers?",
+        options: [
+          "Removing emotional challenges",
+          "Focusing only on academic readiness",
+          "Naming and validating feelings",
+          "Implementing strict behavioral controls"
+        ],
+        correctAnswer: "Naming and validating feelings",
+        explanation: "Helping toddlers identify and name their emotions supports emotional regulation development.",
+        domain: "Social-Emotional Development",
+        difficulty: 1,
+        pointValue: 5
+      },
+      {
+        id: 4,
+        question: "What is the main purpose of the CLASS assessment tool in early childhood settings?",
+        options: [
+          "To evaluate physical facilities only",
+          "To assess teacher-child interactions",
+          "To measure children's academic achievement",
+          "To ensure compliance with licensing requirements"
+        ],
+        correctAnswer: "To assess teacher-child interactions",
+        explanation: "The Classroom Assessment Scoring System (CLASS) measures the quality of teacher-child interactions.",
+        domain: "Assessment",
+        difficulty: 2,
+        pointValue: 10
+      },
+      {
+        id: 5,
+        question: "Which approach best represents authentic assessment in early childhood?",
+        options: [
+          "Weekly standardized tests",
+          "Observation during natural play",
+          "Workbooks completed at home",
+          "Comparing children to age norms only"
+        ],
+        correctAnswer: "Observation during natural play",
+        explanation: "Authentic assessment gathers information about children's abilities during regular activities and play.",
+        domain: "Assessment",
+        difficulty: 2,
+        pointValue: 10
+      },
+      {
+        id: 6,
+        question: "According to Vygotsky's Zone of Proximal Development, when should teachers provide scaffolding?",
+        options: [
+          "Only when children ask for help",
+          "For tasks children can already do independently",
+          "For tasks slightly beyond current ability",
+          "Only during formal instruction"
+        ],
+        correctAnswer: "For tasks slightly beyond current ability",
+        explanation: "Scaffolding is most effective in the zone between what a child can do independently and what they cannot do yet.",
+        domain: "Child Development",
+        difficulty: 2,
+        pointValue: 10
+      },
+      {
+        id: 7,
+        question: "What is the key difference between Piaget's and Vygotsky's theories of cognitive development?",
+        options: [
+          "Piaget emphasized social interaction; Vygotsky emphasized biological maturation",
+          "Piaget emphasized stages; Vygotsky emphasized cultural context and social learning",
+          "Piaget studied infants; Vygotsky studied only school-age children",
+          "Piaget focused on language; Vygotsky ignored language development"
+        ],
+        correctAnswer: "Piaget emphasized stages; Vygotsky emphasized cultural context and social learning",
+        explanation: "Piaget's theory focuses on universal cognitive stages, while Vygotsky emphasized the role of culture and social interaction in learning.",
+        domain: "Child Development",
+        difficulty: 3,
+        pointValue: 15
+      },
+      {
+        id: 8,
+        question: "Which best describes the concept of executive function in early childhood?",
+        options: [
+          "The ability to follow multi-step instructions perfectly",
+          "Mental processes including working memory, self-control and flexible thinking",
+          "Leadership skills demonstrated among peer groups",
+          "Early literacy and numeracy foundations"
+        ],
+        correctAnswer: "Mental processes including working memory, self-control and flexible thinking",
+        explanation: "Executive function involves cognitive processes that help children manage thoughts, actions, and emotions.",
+        domain: "Cognitive Development",
+        difficulty: 3,
+        pointValue: 15
+      },
+      {
+        id: 9,
+        question: "What is the significance of secure attachment in infant development?",
+        options: [
+          "It ensures academic success in kindergarten",
+          "It prevents all behavioral problems",
+          "It forms the foundation for healthy social-emotional development",
+          "It guarantees advanced language acquisition"
+        ],
+        correctAnswer: "It forms the foundation for healthy social-emotional development",
+        explanation: "Secure attachment provides a safe base that supports exploration and healthy relationship development.",
+        domain: "Social-Emotional Development",
+        difficulty: 3,
+        pointValue: 15
+      },
+      {
+        id: 10,
+        question: "What is the primary purpose of the ECERS-R assessment tool?",
+        options: [
+          "To evaluate child development outcomes",
+          "To assess overall program environment quality",
+          "To measure teacher qualifications",
+          "To determine curriculum effectiveness"
+        ],
+        correctAnswer: "To assess overall program environment quality",
+        explanation: "The Early Childhood Environment Rating Scale-Revised (ECERS-R) evaluates the quality of the overall early childhood program environment.",
+        domain: "Program Quality",
+        difficulty: 3,
+        pointValue: 15
+      }
+    ];
+
+    // Shuffle questions
+    function shuffleArray(array) {
+      const shuffled = [...array];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    }
+
+    // Shuffled questions
+    const shuffledQuestions = shuffleArray(questions);
+
+    // State
+    let currentQuestionIndex = 0;
+    let answeredQuestions = 0;
+    let correctAnswers = 0;
+    let pointsEarned = 0;
+    let selectedAnswer = null;
+    let isAnswerSubmitted = false;
+    let startTime = null;
+    let currentDifficulty = 1;
+    let domainResults = {};
+
+    // DOM Elements
+    const introScreen = document.getElementById('intro-screen');
+    const assessmentScreen = document.getElementById('assessment-screen');
+    const resultsScreen = document.getElementById('results-screen');
+    const startBtn = document.getElementById('start-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const restartBtn = document.getElementById('restart-btn');
+    const questionCounter = document.getElementById('question-counter');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const pointsEarnedText = document.getElementById('points-earned');
+    const domainBadge = document.getElementById('domain-badge');
+    const pointsBadge = document.getElementById('points-badge');
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const feedbackContainer = document.getElementById('feedback-container');
+    const encouragement = document.getElementById('encouragement');
+
+    // Results elements
+    const finalScore = document.getElementById('final-score');
+    const finalPoints = document.getElementById('final-points');
+    const finalTime = document.getElementById('final-time');
+    const totalQuestions = document.getElementById('total-questions');
+    const correctAnswersText = document.getElementById('correct-answers');
+    const highestDifficulty = document.getElementById('highest-difficulty');
+    const accuracyText = document.getElementById('accuracy');
+    const strengthsContainer = document.getElementById('strengths-container');
+    const weaknessesContainer = document.getElementById('weaknesses-container');
+
+    // Start assessment
+    startBtn.addEventListener('click', () => {
+      introScreen.classList.add('hidden');
+      assessmentScreen.classList.remove('hidden');
+      startTime = new Date();
+      loadQuestion(currentQuestionIndex);
+    });
+
+    // Submit answer
+    submitBtn.addEventListener('click', () => {
+      if (selectedAnswer === null || isAnswerSubmitted) return;
+      
+      const currentQuestion = shuffledQuestions[currentQuestionIndex];
+      const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+      
+      // Update state
+      isAnswerSubmitted = true;
+      answeredQuestions++;
+      
+      // Update domain results
+      const domain = currentQuestion.domain;
+      if (!domainResults[domain]) {
+        domainResults[domain] = { correct: 0, total: 0 };
+      }
+      domainResults[domain].total++;
+      
+      if (isCorrect) {
+        correctAnswers++;
+        pointsEarned += currentQuestion.pointValue;
+        domainResults[domain].correct++;
+        
+        // Show confetti for correct answers
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+      }
+      
+      // Update UI
+      submitBtn.classList.add('hidden');
+      nextBtn.classList.remove('hidden');
+      
+      // Show feedback
+      const optionElements = document.querySelectorAll('.option');
+      optionElements.forEach((option, index) => {
+        if (option.textContent === currentQuestion.correctAnswer) {
+          option.classList.add('correct');
+        } else if (option.textContent === selectedAnswer && !isCorrect) {
+          option.classList.add('incorrect');
+        }
+      });
+      
+      // Show feedback text
+      feedbackContainer.classList.remove('hidden');
+      if (isCorrect) {
+        feedbackContainer.classList.add('bg-green-50', 'border-green-200');
+        feedbackContainer.classList.remove('bg-amber-50', 'border-amber-200');
+        feedbackContainer.innerHTML = `
+          <p class="font-semibold mb-2">Correct! Great job!</p>
+          <p class="text-gray-700">${currentQuestion.explanation}</p>
+          <p class="mt-2 font-semibold">+${currentQuestion.pointValue} points!</p>
+        `;
+      } else {
+        feedbackContainer.classList.add('bg-amber-50', 'border-amber-200');
+        feedbackContainer.classList.remove('bg-green-50', 'border-green-200');
+        feedbackContainer.innerHTML = `
+          <p class="font-semibold mb-2">Incorrect. The correct answer is: ${currentQuestion.correctAnswer}</p>
+          <p class="text-gray-700">${currentQuestion.explanation}</p>
+          <p class="mt-2 font-semibold">Keep learning - you will get it next time!</p>
+        `;
+      }
+      
+      // Show encouragement
+      encouragement.classList.remove('hidden');
+      if (correctAnswers === answeredQuestions) {
+        encouragement.textContent = "You're doing amazing! Keep it up!";
+      } else {
+        encouragement.textContent = "You're making good progress! Keep going!";
+      }
+      
+      // Update progress
+      updateProgress();
+    });
+
+    // Next question
+    nextBtn.addEventListener('click', () => {
+      if (currentQuestionIndex < shuffledQuestions.length - 1) {
+        currentQuestionIndex++;
+        selectedAnswer = null;
+        isAnswerSubmitted = false;
+        
+        // Reset UI
+        feedbackContainer.classList.add('hidden');
+        nextBtn.classList.add('hidden');
+        submitBtn.classList.remove('hidden');
+        submitBtn.disabled = true;
+        
+        // Load next question
+        loadQuestion(currentQuestionIndex);
+      } else {
+        // Show results
+        completeAssessment();
+      }
+    });
+
+    // Restart assessment
+    restartBtn.addEventListener('click', () => {
+      // Reset state
+      currentQuestionIndex = 0;
+      answeredQuestions = 0;
+      correctAnswers = 0;
+      pointsEarned = 0;
+      selectedAnswer = null;
+      isAnswerSubmitted = false;
+      startTime = new Date();
+      currentDifficulty = 1;
+      domainResults = {};
+      
+      // Reset UI
+      resultsScreen.classList.add('hidden');
+      assessmentScreen.classList.remove('hidden');
+      
+      // Load first question
+      loadQuestion(currentQuestionIndex);
+    });
+
+    // Load question
+    function loadQuestion(index) {
+      const question = shuffledQuestions[index];
+      
+      // Update question text and badges
+      questionText.textContent = question.question;
+      domainBadge.textContent = question.domain;
+      pointsBadge.textContent = `${question.pointValue} points`;
+      
+      // Update question counter
+      questionCounter.textContent = `Question ${index + 1}/${shuffledQuestions.length}`;
+      
+      // Create options
+      optionsContainer.innerHTML = '';
+      question.options.forEach((option, i) => {
+        const optionElement = document.createElement('div');
+        optionElement.className = 'option flex items-center space-x-2 p-3 rounded-lg border-2 border-gray-200 cursor-pointer hover:bg-gray-50';
+        optionElement.innerHTML = `
+          <div class="w-5 h-5 rounded-full border-2 border-gray-400 flex-shrink-0"></div>
+          <span class="flex-1">${option}</span>
+        `;
+        
+        optionElement.addEventListener('click', () => {
+          if (isAnswerSubmitted) return;
+          
+          // Update selection
+          selectedAnswer = option;
+          submitBtn.disabled = false;
+          
+          // Update UI
+          const allOptions = document.querySelectorAll('.option');
+          allOptions.forEach(opt => {
+            opt.querySelector('div').className = 'w-5 h-5 rounded-full border-2 border-gray-400 flex-shrink-0';
+          });
+          
+          optionElement.querySelector('div').className = 'w-5 h-5 rounded-full border-2 border-blue-500 bg-blue-500 flex-shrink-0';
+        });
+        
+        optionsContainer.appendChild(optionElement);
+      });
+      
+      // Update progress
+      updateProgress();
+    }
+
+    // Update progress
+    function updateProgress() {
+      const progress = (answeredQuestions / shuffledQuestions.length) * 100;
+      progressBar.style.width = `${progress}%`;
+      progressText.textContent = `${answeredQuestions} of ${shuffledQuestions.length} questions`;
+      pointsEarnedText.textContent = `${pointsEarned} points earned`;
+    }
+
+    // Complete assessment
+    function completeAssessment() {
+      const endTime = new Date();
+      const timeTaken = Math.floor((endTime - startTime) / 1000);
+      const minutes = Math.floor(timeTaken / 60);
+      const seconds = timeTaken % 60;
+      
+      // Calculate domain strengths and weaknesses
+      const domainPerformance = {};
+      Object.entries(domainResults).forEach(([domain, stats]) => {
+        domainPerformance[domain] = stats.total > 0 ? (stats.correct / stats.total) * 100 : 0;
+      });
+      
+      // Sort domains by performance
+      const sortedDomains = Object.entries(domainPerformance)
+        .sort(([, percentA], [, percentB]) => percentB - percentA);
+      
+      // Get top and bottom domains
+      const domainStrengths = {};
+      const domainWeaknesses = {};
+      
+      // Add top domains to strengths
+      sortedDomains.slice(0, Math.ceil(sortedDomains.length / 2)).forEach(([domain, percent]) => {
+        domainStrengths[domain] = percent;
+      });
+      
+      // Add bottom domains to weaknesses
+      sortedDomains.slice(Math.floor(sortedDomains.length / 2)).forEach(([domain, percent]) => {
+        domainWeaknesses[domain] = percent;
+      });
+      
+      // Update results UI
+      const score = Math.round((correctAnswers / shuffledQuestions.length) * 100);
+      finalScore.textContent = `Your Score: ${score}%`;
+      finalPoints.innerHTML = `You earned <span class="font-bold text-green-600">${pointsEarned} points</span>`;
+      finalTime.textContent = `Time taken: ${minutes} minutes ${seconds} seconds`;
+      totalQuestions.textContent = shuffledQuestions.length;
+      correctAnswersText.textContent = correctAnswers;
+      highestDifficulty.textContent = `${currentDifficulty}/3`;
+      accuracyText.textContent = `${Math.round((correctAnswers / shuffledQuestions.length) * 100)}%`;
+      
+      // Show strengths
+      strengthsContainer.innerHTML = '';
+      if (Object.keys(domainStrengths).length > 0) {
+        Object.entries(domainStrengths).forEach(([domain, percentage]) => {
+          const strengthElement = document.createElement('div');
+          strengthElement.className = 'flex justify-between';
+          strengthElement.innerHTML = `
+            <span class="font-medium">${domain}</span>
+            <span class="text-green-600 font-bold">${Math.round(percentage)}%</span>
+          `;
+          strengthsContainer.appendChild(strengthElement);
+        });
+      } else {
+        strengthsContainer.innerHTML = '<p class="text-slate-500 italic">Keep practicing to discover your strengths</p>';
+      }
+      
+      // Show weaknesses
+      weaknessesContainer.innerHTML = '';
+      if (Object.keys(domainWeaknesses).length > 0) {
+        Object.entries(domainWeaknesses).forEach(([domain, percentage]) => {
+          const weaknessElement = document.createElement('div');
+          weaknessElement.className = 'flex justify-between';
+          weaknessElement.innerHTML = `
+            <span class="font-medium">${domain}</span>
+            <span class="text-amber-600 font-bold">${Math.round(percentage)}%</span>
+          `;
+          weaknessesContainer.appendChild(weaknessElement);
+        });
+      } else {
+        weaknessesContainer.innerHTML = '<p class="text-slate-500 italic">Great work! Focus on maintaining your knowledge</p>';
+      }
+      
+      // Show celebration confetti
+      confetti({
+        particleCount: 200,
+        spread: 160,
+        origin: { y: 0.6 },
+        colors: ['#f59e0b', '#10b981', '#3b82f6']
+      });
+      
+      // Switch to results screen
+      assessmentScreen.classList.add('hidden');
+      resultsScreen.classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>

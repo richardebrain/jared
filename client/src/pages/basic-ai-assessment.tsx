@@ -1,33 +1,31 @@
 import React, { useState } from 'react';
-import EnhancedAIAssessment from '@/components/EnhancedAIAssessment';
+import BasicAIAssessment from '@/components/BasicAIAssessment';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-// Import useQuery for user info (instead of useAuth)
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from 'wouter';
 
 const assessmentIntroText = `
-  This enhanced assessment adapts to your knowledge level. As you answer correctly, 
-  the questions will increase in difficulty. Your performance will determine your strengths
-  and areas for growth across different early childhood education domains.
+  This assessment will test your knowledge of early childhood education principles.
   
   The assessment includes:
-  • 3 difficulty levels with progressively challenging questions
-  • 10 questions per level (up to 30 total questions)
+  • Questions of varying difficulty levels
   • Immediate feedback with explanations
-  • Domain-specific performance analytics
+  • Domain-specific performance analysis
   • Points rewards that contribute to your overall teacher level
   
   Ready to test your early childhood education knowledge?
 `;
 
-const EnhancedAIAssessmentPage: React.FC = () => {
+const BasicAIAssessmentPage: React.FC = () => {
   const [started, setStarted] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [assessmentResults, setAssessmentResults] = useState<any>(null);
   const { toast } = useToast();
   const [, navigate] = useLocation();
+  
+  // Get user data
   const { data: user } = useQuery({
     queryKey: ["/api/auth/me"],
     retry: false,
@@ -47,8 +45,15 @@ const EnhancedAIAssessmentPage: React.FC = () => {
       description: `You earned ${results.pointsEarned} points and achieved a score of ${results.score}%`,
     });
     
-    // Update user points in the database (would require API call in a real implementation)
-    // This is just simulated for now
+    // Save results to localStorage
+    const storedResults = JSON.parse(localStorage.getItem('assessmentResults') || '[]');
+    storedResults.push({
+      ...results,
+      timestamp: new Date().toISOString()
+    });
+    localStorage.setItem('assessmentResults', JSON.stringify(storedResults));
+    
+    // Log points earned
     console.log('Points earned:', results.pointsEarned);
   };
 
@@ -113,7 +118,7 @@ const EnhancedAIAssessmentPage: React.FC = () => {
       <div className="container mx-auto py-8 px-4">
         <Card className="max-w-3xl mx-auto">
           <CardHeader className="text-center bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-t-lg">
-            <CardTitle className="text-2xl">Enhanced AI Assessment</CardTitle>
+            <CardTitle className="text-2xl">ECE Knowledge Assessment</CardTitle>
             <CardDescription className="text-white/90">
               Test your early childhood education knowledge
             </CardDescription>
@@ -136,7 +141,7 @@ const EnhancedAIAssessmentPage: React.FC = () => {
                 <h3 className="text-amber-800 font-medium mb-2">Important Note</h3>
                 <p className="text-amber-700">
                   You can exit the assessment at any time, but your progress won't be saved.
-                  Make sure you have 15-30 minutes available to complete the assessment.
+                  Make sure you have 10-15 minutes available to complete the assessment.
                 </p>
               </div>
             </div>
@@ -163,7 +168,7 @@ const EnhancedAIAssessmentPage: React.FC = () => {
           <CardHeader className="text-center bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-t-lg">
             <CardTitle className="text-2xl">Assessment Completed!</CardTitle>
             <CardDescription className="text-white/90">
-              Great job on completing the enhanced assessment
+              Great job on completing the assessment
             </CardDescription>
           </CardHeader>
           <CardContent className="p-6">
@@ -219,7 +224,7 @@ const EnhancedAIAssessmentPage: React.FC = () => {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <EnhancedAIAssessment 
+      <BasicAIAssessment 
         teacherId={user?.id || 1}
         teacherName={user?.firstName || 'Teacher'}
         onComplete={handleAssessmentComplete}
@@ -228,4 +233,4 @@ const EnhancedAIAssessmentPage: React.FC = () => {
   );
 };
 
-export default EnhancedAIAssessmentPage;
+export default BasicAIAssessmentPage;

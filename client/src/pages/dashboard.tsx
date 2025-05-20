@@ -787,6 +787,37 @@ export default function Dashboard() {
                     </div>
                   </CardContent>
                 </Card>
+                
+                {/* Basic ECE Assessment Card */}
+                <Card className="overflow-hidden bg-white shadow-md hover:shadow-lg transition-shadow border-2 border-blue-300">
+                  <div className="absolute -top-3 right-4 bg-blue-500 text-white text-xs px-2 py-1 rounded-md font-bold z-10">
+                    RELIABLE
+                  </div>
+                  <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white p-4">
+                    <CardTitle className="text-xl font-bold text-white mb-0 flex items-center">
+                      <Lightbulb className="h-5 w-5 mr-2 inline-block" />
+                      Basic ECE Assessment
+                    </CardTitle>
+                    <CardDescription className="text-white font-medium opacity-90 m-0">
+                      Test your knowledge quickly
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <p className="text-gray-700 mb-4">
+                      Take this reliable assessment to test your early childhood education knowledge.
+                      Includes instant feedback and domain-specific performance analysis.
+                    </p>
+                    <div className="flex justify-end">
+                      <Button 
+                        className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white"
+                        onClick={() => window.location.href = "/basic-ai-assessment"}
+                      >
+                        Take Assessment
+                        <CheckCircle className="h-4 w-4 ml-1" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
               
               {/* Personalized Learning Path */}
