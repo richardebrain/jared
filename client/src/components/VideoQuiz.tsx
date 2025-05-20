@@ -315,24 +315,70 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
   );
 }
 
+// Simple hash function for strings
+function stringToHash(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash);
+}
+
 // Function to generate context-based questions
 function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
-  const isMindfulness = videoTitle.toLowerCase().includes('mindful') || 
-                       videoTitle.toLowerCase().includes('yoga') || 
-                       videoTitle.toLowerCase().includes('meditation');
+  // First, generate a video hash ID to ensure consistent yet unique questions per video
+  const videoHash = stringToHash(videoTitle);
   
-  const isSocialEmotional = videoTitle.toLowerCase().includes('emotion') || 
-                           videoTitle.toLowerCase().includes('social') ||
-                           videoTitle.toLowerCase().includes('feeling') ||
-                           videoTitle.toLowerCase().includes('trauma');
+  // Define different question sets based on video content
+  const categories = {
+    mindfulness: videoTitle.toLowerCase().includes('mindful') || 
+                videoTitle.toLowerCase().includes('yoga') || 
+                videoTitle.toLowerCase().includes('meditation') ||
+                videoTitle.toLowerCase().includes('breath'),
+    
+    socialEmotional: videoTitle.toLowerCase().includes('emotion') || 
+                    videoTitle.toLowerCase().includes('social') ||
+                    videoTitle.toLowerCase().includes('feeling') ||
+                    videoTitle.toLowerCase().includes('trauma'),
+    
+    development: videoTitle.toLowerCase().includes('develop') || 
+                videoTitle.toLowerCase().includes('growth') ||
+                videoTitle.toLowerCase().includes('brain') ||
+                videoTitle.toLowerCase().includes('science'),
+    
+    literacy: videoTitle.toLowerCase().includes('phonics') || 
+              videoTitle.toLowerCase().includes('read') ||
+              videoTitle.toLowerCase().includes('literacy') ||
+              videoTitle.toLowerCase().includes('language'),
+    
+    leadership: videoTitle.toLowerCase().includes('lead') || 
+                videoTitle.toLowerCase().includes('champion') ||
+                videoTitle.toLowerCase().includes('school') ||
+                videoTitle.toLowerCase().includes('classroom'),
+    
+    pedagogy: videoTitle.toLowerCase().includes('teach') || 
+              videoTitle.toLowerCase().includes('learn') ||
+              videoTitle.toLowerCase().includes('education') ||
+              videoTitle.toLowerCase().includes('pedagogy') ||
+              videoTitle.toLowerCase().includes('UDL')
+  };
   
-  const isTedTalk = videoTitle.toLowerCase().includes('ted') ||
-                    videoTitle.toLowerCase().includes('talk');
+  // Find which category this video belongs to
+  let primaryCategory = 'general';
+  for (const [category, matches] of Object.entries(categories)) {
+    if (matches) {
+      primaryCategory = category;
+      break;
+    }
+  }
   
-  if (isMindfulness) {
-    return [
+  // Create distinct question sets with options
+  const questionSets = {
+    mindfulness: [
       {
-        id: 'mind-1',
+        id: `mind-${videoHash % 1000}-1`,
         question: 'What is the primary benefit of mindfulness practices for young children?',
         options: [
           'Improving academic skills exclusively',
@@ -343,7 +389,7 @@ function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
         correctAnswer: 'Enhancing self-regulation and emotional awareness'
       },
       {
-        id: 'mind-2',
+        id: `mind-${videoHash % 1000}-2`,
         question: 'How can mindfulness be integrated into daily classroom routines?',
         options: [
           'Only during designated yoga sessions',
