@@ -697,6 +697,34 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
               
+              {/* Simple Assessment Card */}
+              <Card className="overflow-hidden bg-white shadow-md hover:shadow-lg transition-shadow mt-8">
+                <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4">
+                  <CardTitle className="text-xl font-bold text-white mb-0 flex items-center">
+                    <Book className="h-5 w-5 mr-2 inline-block" />
+                    Knowledge Assessment Center
+                  </CardTitle>
+                  <CardDescription className="text-white font-medium opacity-90 m-0">
+                    Test your understanding with our improved assessment system
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <p className="text-gray-700 mb-4">
+                    Challenge yourself with questions across different domains of early childhood education. 
+                    Earn points and track your progress with our new gamified assessment experience.
+                  </p>
+                  <div className="flex justify-end">
+                    <Button 
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white"
+                      onClick={() => setLocation('/simple-assessment')}
+                    >
+                      Start Assessment
+                      <ArrowRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+              
               {/* Personalized Learning Path */}
               <div className="space-y-4 mt-8">
                 <h2 className="text-xl font-bold text-gray-800 flex items-center">
