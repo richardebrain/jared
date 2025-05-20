@@ -44,7 +44,7 @@ def setup_database_wrapper():
 def import_sample_data():
     """Import sample questions if available"""
     try:
-        # Check for sample data
+        # Check for sample data (CSV format)
         sample_data_path = "data/sample_questions.csv"
         
         if Path(sample_data_path).is_file():
@@ -56,7 +56,19 @@ def import_sample_data():
                 count = load_questions_from_csv(db, sample_data_path)
                 logger.info(f"Imported {count} sample questions from {sample_data_path}")
         else:
-            logger.info(f"No sample data found at {sample_data_path}")
+            logger.info(f"No sample CSV data found at {sample_data_path}")
+        
+        # Check for JSON question files
+        data_dir = Path("data")
+        if data_dir.exists() and data_dir.is_dir():
+            # Import all JSON question files
+            try:
+                from backend.import_json_questions import import_all_json_questions
+                
+                count = import_all_json_questions()
+                logger.info(f"Imported {count} questions from JSON files in data directory")
+            except Exception as e:
+                logger.error(f"Error importing JSON questions: {str(e)}")
     except Exception as e:
         logger.error(f"Error importing sample data: {str(e)}")
 

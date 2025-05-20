@@ -1,0 +1,3602 @@
+[
+  {
+    "question": "Level 1: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 1?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 1,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 5,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.934854"
+  },
+  {
+    "question": "Level 1: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 1?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 1,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 5,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.934947"
+  },
+  {
+    "question": "Level 1: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 1?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 1,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 5,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.935015"
+  },
+  {
+    "question": "Level 1: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 1?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 1,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 5,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.935081"
+  },
+  {
+    "question": "Level 1: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 1?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 1,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 5,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.935145"
+  },
+  {
+    "question": "Level 1: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 1?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 1,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 5,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.935215"
+  },
+  {
+    "question": "Level 1: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 1?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 1,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 5,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.935303"
+  },
+  {
+    "question": "Level 1: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 1?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 1,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 5,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.935388"
+  },
+  {
+    "question": "Level 1: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 1?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 1,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 5,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.935471"
+  },
+  {
+    "question": "Level 1: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 1?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 1,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 5,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.935549"
+  },
+  {
+    "question": "Level 1: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 1?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 1,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 5,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.935604"
+  },
+  {
+    "question": "Level 1: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 1?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 1,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 5,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.935655"
+  },
+  {
+    "question": "Level 1: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 1?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 1,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 5,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.935710"
+  },
+  {
+    "question": "Level 1: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 1?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 1,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 5,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.935805"
+  },
+  {
+    "question": "Level 1: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 1?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 1,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 5,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.935888"
+  },
+  {
+    "question": "Level 1: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 1?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 1,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 5,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.935952"
+  },
+  {
+    "question": "Level 1: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 1?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 1,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 5,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.936013"
+  },
+  {
+    "question": "Level 1: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 1?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 1,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 5,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.936079"
+  },
+  {
+    "question": "Level 1: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 1?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 1,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 5,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.936141"
+  },
+  {
+    "question": "Level 1: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 1?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 1,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 5,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.936193"
+  },
+  {
+    "question": "Level 2: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 2?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 2,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 10,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.936256"
+  },
+  {
+    "question": "Level 2: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 2?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 2,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 10,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.936324"
+  },
+  {
+    "question": "Level 2: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 2?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 2,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 10,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.936402"
+  },
+  {
+    "question": "Level 2: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 2?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 2,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 10,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.936475"
+  },
+  {
+    "question": "Level 2: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 2?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 2,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 10,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.936541"
+  },
+  {
+    "question": "Level 2: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 2?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 2,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 10,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.936596"
+  },
+  {
+    "question": "Level 2: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 2?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 2,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 10,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.936674"
+  },
+  {
+    "question": "Level 2: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 2?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 2,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 10,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.936748"
+  },
+  {
+    "question": "Level 2: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 2?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 2,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 10,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.936840"
+  },
+  {
+    "question": "Level 2: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 2?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 2,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 10,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.936909"
+  },
+  {
+    "question": "Level 2: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 2?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 2,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 10,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.936974"
+  },
+  {
+    "question": "Level 2: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 2?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 2,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 10,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.937064"
+  },
+  {
+    "question": "Level 2: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 2?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 2,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 10,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.937161"
+  },
+  {
+    "question": "Level 2: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 2?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 2,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 10,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.937246"
+  },
+  {
+    "question": "Level 2: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 2?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 2,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 10,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.937321"
+  },
+  {
+    "question": "Level 2: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 2?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 2,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 10,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.937400"
+  },
+  {
+    "question": "Level 2: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 2?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 2,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 10,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.937479"
+  },
+  {
+    "question": "Level 2: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 2?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 2,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 10,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.937557"
+  },
+  {
+    "question": "Level 2: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 2?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 2,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 10,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.937637"
+  },
+  {
+    "question": "Level 2: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 2?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 2,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 10,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.937718"
+  },
+  {
+    "question": "Level 3: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 3?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 3,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 15,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.937813"
+  },
+  {
+    "question": "Level 3: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 3?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 3,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 15,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.937900"
+  },
+  {
+    "question": "Level 3: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 3?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 3,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 15,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.937987"
+  },
+  {
+    "question": "Level 3: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 3?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 3,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 15,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.938080"
+  },
+  {
+    "question": "Level 3: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 3?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 3,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 15,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.938163"
+  },
+  {
+    "question": "Level 3: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 3?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 3,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 15,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.938242"
+  },
+  {
+    "question": "Level 3: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 3?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 3,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 15,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.938327"
+  },
+  {
+    "question": "Level 3: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 3?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 3,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 15,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.938414"
+  },
+  {
+    "question": "Level 3: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 3?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 3,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 15,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.938503"
+  },
+  {
+    "question": "Level 3: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 3?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 3,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 15,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.938590"
+  },
+  {
+    "question": "Level 3: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 3?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 3,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 15,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.938679"
+  },
+  {
+    "question": "Level 3: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 3?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 3,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 15,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.938785"
+  },
+  {
+    "question": "Level 3: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 3?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 3,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 15,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.938892"
+  },
+  {
+    "question": "Level 3: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 3?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 3,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 15,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.938983"
+  },
+  {
+    "question": "Level 3: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 3?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 3,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 15,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.939072"
+  },
+  {
+    "question": "Level 3: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 3?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 3,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 15,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.939165"
+  },
+  {
+    "question": "Level 3: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 3?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 3,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 15,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.939252"
+  },
+  {
+    "question": "Level 3: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 3?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 3,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 15,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.939341"
+  },
+  {
+    "question": "Level 3: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 3?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 3,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 15,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.939429"
+  },
+  {
+    "question": "Level 3: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 3?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 3,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 15,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.939515"
+  },
+  {
+    "question": "Level 4: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 4?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 4,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 20,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.939604"
+  },
+  {
+    "question": "Level 4: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 4?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 4,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 20,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.939711"
+  },
+  {
+    "question": "Level 4: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 4?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 4,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 20,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.939828"
+  },
+  {
+    "question": "Level 4: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 4?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 4,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 20,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.939929"
+  },
+  {
+    "question": "Level 4: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 4?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 4,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 20,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.940017"
+  },
+  {
+    "question": "Level 4: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 4?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 4,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 20,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.940105"
+  },
+  {
+    "question": "Level 4: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 4?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 4,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 20,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.940192"
+  },
+  {
+    "question": "Level 4: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 4?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 4,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 20,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.940283"
+  },
+  {
+    "question": "Level 4: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 4?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 4,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 20,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.940372"
+  },
+  {
+    "question": "Level 4: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 4?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 4,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 20,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.940461"
+  },
+  {
+    "question": "Level 4: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 4?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 4,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 20,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.940548"
+  },
+  {
+    "question": "Level 4: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 4?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 4,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 20,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.940638"
+  },
+  {
+    "question": "Level 4: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 4?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 4,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 20,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.940735"
+  },
+  {
+    "question": "Level 4: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 4?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 4,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 20,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.940860"
+  },
+  {
+    "question": "Level 4: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 4?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 4,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 20,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.940960"
+  },
+  {
+    "question": "Level 4: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 4?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 4,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 20,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.941048"
+  },
+  {
+    "question": "Level 4: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 4?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 4,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 20,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.941139"
+  },
+  {
+    "question": "Level 4: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 4?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 4,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 20,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.941232"
+  },
+  {
+    "question": "Level 4: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 4?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 4,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 20,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.941322"
+  },
+  {
+    "question": "Level 4: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 4?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 4,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 20,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.941408"
+  },
+  {
+    "question": "Level 5: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 5?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 5,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 25,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.941513"
+  },
+  {
+    "question": "Level 5: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 5?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 5,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 25,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.941604"
+  },
+  {
+    "question": "Level 5: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 5?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 5,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 25,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.942030"
+  },
+  {
+    "question": "Level 5: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 5?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 5,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 25,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.942129"
+  },
+  {
+    "question": "Level 5: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 5?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 5,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 25,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.942215"
+  },
+  {
+    "question": "Level 5: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 5?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 5,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 25,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.942296"
+  },
+  {
+    "question": "Level 5: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 5?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 5,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 25,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.942379"
+  },
+  {
+    "question": "Level 5: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 5?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 5,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 25,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.942460"
+  },
+  {
+    "question": "Level 5: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 5?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 5,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 25,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.942542"
+  },
+  {
+    "question": "Level 5: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 5?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 5,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 25,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.942624"
+  },
+  {
+    "question": "Level 5: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 5?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 5,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 25,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.942700"
+  },
+  {
+    "question": "Level 5: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 5?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 5,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 25,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.942796"
+  },
+  {
+    "question": "Level 5: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 5?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 5,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 25,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.942886"
+  },
+  {
+    "question": "Level 5: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 5?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 5,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 25,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.942967"
+  },
+  {
+    "question": "Level 5: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 5?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 5,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 25,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.943044"
+  },
+  {
+    "question": "Level 5: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 5?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 5,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 25,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.943139"
+  },
+  {
+    "question": "Level 5: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 5?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 5,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 25,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.943221"
+  },
+  {
+    "question": "Level 5: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 5?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 5,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 25,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.943314"
+  },
+  {
+    "question": "Level 5: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 5?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 5,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 25,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.943392"
+  },
+  {
+    "question": "Level 5: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 5?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 5,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 25,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.943470"
+  },
+  {
+    "question": "Level 6: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 6?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 6,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 30,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.943546"
+  },
+  {
+    "question": "Level 6: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 6?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 6,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 30,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.943633"
+  },
+  {
+    "question": "Level 6: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 6?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 6,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 30,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.943717"
+  },
+  {
+    "question": "Level 6: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 6?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 6,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 30,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.943813"
+  },
+  {
+    "question": "Level 6: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 6?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 6,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 30,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.943898"
+  },
+  {
+    "question": "Level 6: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 6?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 6,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 30,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.943978"
+  },
+  {
+    "question": "Level 6: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 6?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 6,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 30,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.944053"
+  },
+  {
+    "question": "Level 6: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 6?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 6,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 30,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.944133"
+  },
+  {
+    "question": "Level 6: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 6?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 6,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 30,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.944211"
+  },
+  {
+    "question": "Level 6: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 6?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 6,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 30,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.944287"
+  },
+  {
+    "question": "Level 6: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 6?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 6,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 30,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.944363"
+  },
+  {
+    "question": "Level 6: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 6?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 6,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 30,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.944439"
+  },
+  {
+    "question": "Level 6: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 6?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 6,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 30,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.944522"
+  },
+  {
+    "question": "Level 6: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 6?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 6,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 30,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.944599"
+  },
+  {
+    "question": "Level 6: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 6?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 6,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 30,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.944675"
+  },
+  {
+    "question": "Level 6: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 6?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 6,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 30,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.944751"
+  },
+  {
+    "question": "Level 6: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 6?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 6,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 30,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.944855"
+  },
+  {
+    "question": "Level 6: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 6?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 6,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 30,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.944936"
+  },
+  {
+    "question": "Level 6: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 6?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 6,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 30,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.945015"
+  },
+  {
+    "question": "Level 6: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 6?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 6,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 30,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.945091"
+  },
+  {
+    "question": "Level 7: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 7?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 7,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 35,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.945175"
+  },
+  {
+    "question": "Level 7: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 7?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 7,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 35,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.945254"
+  },
+  {
+    "question": "Level 7: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 7?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 7,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 35,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.945336"
+  },
+  {
+    "question": "Level 7: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 7?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 7,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 35,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.945411"
+  },
+  {
+    "question": "Level 7: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 7?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 7,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 35,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.945489"
+  },
+  {
+    "question": "Level 7: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 7?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 7,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 35,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.945565"
+  },
+  {
+    "question": "Level 7: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 7?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 7,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 35,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.945643"
+  },
+  {
+    "question": "Level 7: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 7?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 7,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 35,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.945719"
+  },
+  {
+    "question": "Level 7: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 7?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 7,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 35,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.945856"
+  },
+  {
+    "question": "Level 7: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 7?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 7,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 35,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.946146"
+  },
+  {
+    "question": "Level 7: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 7?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 7,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 35,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.946276"
+  },
+  {
+    "question": "Level 7: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 7?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 7,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 35,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.946417"
+  },
+  {
+    "question": "Level 7: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 7?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 7,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 35,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.946549"
+  },
+  {
+    "question": "Level 7: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 7?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 7,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 35,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.946699"
+  },
+  {
+    "question": "Level 7: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 7?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 7,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 35,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.946849"
+  },
+  {
+    "question": "Level 7: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 7?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 7,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 35,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.946940"
+  },
+  {
+    "question": "Level 7: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 7?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 7,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 35,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.947037"
+  },
+  {
+    "question": "Level 7: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 7?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 7,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 35,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.947134"
+  },
+  {
+    "question": "Level 7: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 7?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 7,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 35,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.947218"
+  },
+  {
+    "question": "Level 7: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 7?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 7,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 35,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.947299"
+  },
+  {
+    "question": "Level 8: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 8?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 8,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 40,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.947379"
+  },
+  {
+    "question": "Level 8: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 8?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 8,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 40,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.947455"
+  },
+  {
+    "question": "Level 8: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 8?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 8,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 40,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.947541"
+  },
+  {
+    "question": "Level 8: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 8?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 8,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 40,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.947621"
+  },
+  {
+    "question": "Level 8: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 8?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 8,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 40,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.947700"
+  },
+  {
+    "question": "Level 8: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 8?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 8,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 40,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.947819"
+  },
+  {
+    "question": "Level 8: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 8?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 8,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 40,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.948292"
+  },
+  {
+    "question": "Level 8: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 8?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 8,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 40,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.948387"
+  },
+  {
+    "question": "Level 8: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 8?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 8,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 40,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.948474"
+  },
+  {
+    "question": "Level 8: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 8?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 8,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 40,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.948560"
+  },
+  {
+    "question": "Level 8: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 8?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 8,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 40,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.948648"
+  },
+  {
+    "question": "Level 8: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 8?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 8,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 40,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.948728"
+  },
+  {
+    "question": "Level 8: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 8?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 8,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 40,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.948833"
+  },
+  {
+    "question": "Level 8: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 8?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 8,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 40,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.948914"
+  },
+  {
+    "question": "Level 8: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 8?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 8,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 40,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.948998"
+  },
+  {
+    "question": "Level 8: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 8?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 8,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 40,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.949095"
+  },
+  {
+    "question": "Level 8: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 8?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 8,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 40,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.949232"
+  },
+  {
+    "question": "Level 8: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 8?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 8,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 40,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.949321"
+  },
+  {
+    "question": "Level 8: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 8?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 8,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 40,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.949401"
+  },
+  {
+    "question": "Level 8: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 8?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 8,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 40,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.949478"
+  },
+  {
+    "question": "Level 9: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 9?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 9,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 45,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.949556"
+  },
+  {
+    "question": "Level 9: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 9?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 9,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 45,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.949633"
+  },
+  {
+    "question": "Level 9: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 9?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 9,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 45,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.950484"
+  },
+  {
+    "question": "Level 9: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 9?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 9,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 45,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.950945"
+  },
+  {
+    "question": "Level 9: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 9?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 9,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 45,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.951067"
+  },
+  {
+    "question": "Level 9: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 9?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 9,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 45,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.951179"
+  },
+  {
+    "question": "Level 9: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 9?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 9,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 45,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.951368"
+  },
+  {
+    "question": "Level 9: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 9?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 9,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 45,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.951473"
+  },
+  {
+    "question": "Level 9: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 9?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 9,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 45,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.951560"
+  },
+  {
+    "question": "Level 9: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 9?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 9,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 45,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.951640"
+  },
+  {
+    "question": "Level 9: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 9?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 9,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 45,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.951713"
+  },
+  {
+    "question": "Level 9: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 9?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 9,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 45,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.951813"
+  },
+  {
+    "question": "Level 9: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 9?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 9,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 45,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.951926"
+  },
+  {
+    "question": "Level 9: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 9?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 9,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 45,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.952002"
+  },
+  {
+    "question": "Level 9: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 9?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 9,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 45,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.952072"
+  },
+  {
+    "question": "Level 9: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 9?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 9,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 45,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.952150"
+  },
+  {
+    "question": "Level 9: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 9?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 9,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 45,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.952222"
+  },
+  {
+    "question": "Level 9: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 9?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 9,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 45,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.952290"
+  },
+  {
+    "question": "Level 9: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 9?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 9,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 45,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.952379"
+  },
+  {
+    "question": "Level 9: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 9?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 9,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 45,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.952456"
+  },
+  {
+    "question": "Level 10: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 10?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 10,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 50,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.952531"
+  },
+  {
+    "question": "Level 10: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 10?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 10,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 50,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.952607"
+  },
+  {
+    "question": "Level 10: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 10?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 10,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 50,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.952688"
+  },
+  {
+    "question": "Level 10: In the domain of Health, Safety & Nutrition, which practice best aligns with established ECE standards at difficulty level 10?",
+    "domain": "Health, Safety & Nutrition",
+    "sub_domain": "",
+    "difficulty": 10,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 50,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.952782"
+  },
+  {
+    "question": "Level 10: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 10?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 10,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 50,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.952865"
+  },
+  {
+    "question": "Level 10: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 10?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 10,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 50,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.952944"
+  },
+  {
+    "question": "Level 10: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 10?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 10,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ITERS-R Indicator 3",
+    "points_value": 50,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.953020"
+  },
+  {
+    "question": "Level 10: In the domain of Child Development & Learning, which practice best aligns with established ECE standards at difficulty level 10?",
+    "domain": "Child Development & Learning",
+    "sub_domain": "",
+    "difficulty": 10,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 50,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.953095"
+  },
+  {
+    "question": "Level 10: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 10?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 10,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 50,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.953177"
+  },
+  {
+    "question": "Level 10: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 10?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 10,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 50,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.953254"
+  },
+  {
+    "question": "Level 10: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 10?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 10,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 50,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.953327"
+  },
+  {
+    "question": "Level 10: In the domain of Curriculum & Learning Environment, which practice best aligns with established ECE standards at difficulty level 10?",
+    "domain": "Curriculum & Learning Environment",
+    "sub_domain": "",
+    "difficulty": 10,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 50,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.953401"
+  },
+  {
+    "question": "Level 10: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 10?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 10,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 50,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.953479"
+  },
+  {
+    "question": "Level 10: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 10?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 10,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 50,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.953550"
+  },
+  {
+    "question": "Level 10: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 10?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 10,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with ECERS-R Item 5",
+    "points_value": 50,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.953623"
+  },
+  {
+    "question": "Level 10: In the domain of Family & Community Partnerships, which practice best aligns with established ECE standards at difficulty level 10?",
+    "domain": "Family & Community Partnerships",
+    "sub_domain": "",
+    "difficulty": 10,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 50,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.953697"
+  },
+  {
+    "question": "Level 10: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 10?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 10,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 50,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.953786"
+  },
+  {
+    "question": "Level 10: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 10?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 10,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with CLASS Emotional Support Domain",
+    "points_value": 50,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.953865"
+  },
+  {
+    "question": "Level 10: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 10?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 10,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with NAC Standard 2.1",
+    "points_value": 50,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.953948"
+  },
+  {
+    "question": "Level 10: In the domain of Program Management & Professionalism, which practice best aligns with established ECE standards at difficulty level 10?",
+    "domain": "Program Management & Professionalism",
+    "sub_domain": "",
+    "difficulty": 10,
+    "q_type": "multiple_choice",
+    "options": {
+      "A": "Strongly aligns with standards",
+      "B": "Partially aligns with standards",
+      "C": "Minimally aligns with standards",
+      "D": "Contradicts best practices"
+    },
+    "correct_answer": "A",
+    "explanation": "This aligns with Arizona Early Learning Standard 4.A",
+    "points_value": 50,
+    "time_limit": 60,
+    "created_at": "2025-05-20T05:21:24.954026"
+  }
+]
