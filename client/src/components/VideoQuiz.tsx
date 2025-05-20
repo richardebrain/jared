@@ -572,7 +572,7 @@ function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
       },
       {
         id: `lit-${videoHash % 1000}-3`,
-        question: 'What's the relationship between oral language development and reading success?',
+        question: "What's the relationship between oral language development and reading success?",
         options: [
           'They are unrelated skills',
           'Strong oral language skills provide a foundation for reading',
@@ -721,23 +721,23 @@ function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
     general: [
       {
         id: `gen-${videoHash % 1000}-1`,
-        question: 'What is a key principle of developmentally appropriate practice?',
+        question: "What is a key principle of developmentally appropriate practice?",
         options: [
-          'All children should learn the same things in the same way',
-          'Teaching should be responsive to each child's age, experience, and needs',
-          'Academic learning is the only goal of early education',
-          'Children should be pushed to learn advanced concepts as early as possible'
+          "All children should learn the same things in the same way",
+          "Teaching should be responsive to each child's age, experience, and needs",
+          "Academic learning is the only goal of early education",
+          "Children should be pushed to learn advanced concepts as early as possible"
         ],
-        correctAnswer: 'Teaching should be responsive to each child's age, experience, and needs'
+        correctAnswer: "Teaching should be responsive to each child's age, experience, and needs"
       },
       {
         id: `gen-${videoHash % 1000}-2`,
-        question: 'How do positive teacher-child relationships impact learning?',
+        question: "How do positive teacher-child relationships impact learning?",
         options: [
-          'They have no impact on learning outcomes',
-          'They create dependency and limit independence',
-          'They provide a secure foundation for exploration and learning',
-          'They should be minimized to focus on academics'
+          "They have no impact on learning outcomes",
+          "They create dependency and limit independence",
+          "They provide a secure foundation for exploration and learning",
+          "They should be minimized to focus on academics"
         ],
         correctAnswer: "They provide a secure foundation for exploration and learning"
       },
