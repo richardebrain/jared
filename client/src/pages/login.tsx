@@ -231,28 +231,6 @@ export default function Login() {
             </form>
           </Form>
           
-          <div className="my-6 flex items-center">
-            <div className="flex-grow h-px bg-gray-300"></div>
-            <span className="px-3 text-sm text-gray-500">OR</span>
-            <div className="flex-grow h-px bg-gray-300"></div>
-          </div>
-          
-          <GoogleAuthButton 
-            mode="signin"
-            onSuccess={() => {
-              // Redirect will happen automatically from the server
-              console.log("Google authentication successful");
-            }}
-            onError={(error) => {
-              console.error("Google auth error:", error);
-              toast({
-                title: "Authentication failed",
-                description: "Please try logging in with username/password instead.",
-                variant: "destructive",
-              });
-            }}
-          />
-          
           <div className="mt-3 p-3 bg-amber-50 rounded-md border border-amber-100">
             <p className="text-sm text-amber-800">
               <span className="font-semibold block mb-1">Note:</span>

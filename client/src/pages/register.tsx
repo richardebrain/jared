@@ -168,33 +168,11 @@ export default function Register() {
         <div className="bg-white p-8 rounded-lg shadow-md">
           <h2 className="text-2xl font-heading font-bold mb-6 text-center">Sign Up</h2>
           
-          {/* Direct email signup is the preferred method */}
+          {/* Direct email signup */}
           <div className="mb-6">
-            <GoogleAuthButton 
-              mode="signup"
-              onSuccess={() => {
-                console.log("Google signup successful");
-                // Redirect will happen from server
-              }}
-              onError={(error) => {
-                console.error("Google signup error:", error);
-                toast({
-                  title: "Signup failed",
-                  description: "Google authentication failed. Please try again or use the form below.",
-                  variant: "destructive",
-                });
-              }}
-            />
-            
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-primary font-bold">
-                  Or create account with email
-                </span>
-              </div>
+            <div className="text-center mb-4">
+              <h3 className="text-xl font-bold text-primary">Create Account</h3>
+              <p className="text-sm text-gray-600">Sign up with your email to get started</p>
             </div>
           </div>
           
