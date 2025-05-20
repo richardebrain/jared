@@ -316,12 +316,13 @@ Category: ${video.category.join(', ')}
                   <span className="text-xs">{pointsEarned} pts</span>
                 </div>
               ) : isWatched || videoCompleted ? (
-                <Dialog>
+                <Dialog open={showQuiz} onOpenChange={setShowQuiz}>
                   <DialogTrigger asChild>
                     <Button 
                       size="sm"
                       variant="outline"
                       className="flex items-center gap-1"
+                      onClick={() => setShowQuiz(true)}
                     >
                       <CheckCircle2 className="h-3 w-3 text-green-500" />
                       <span>Quiz</span>
