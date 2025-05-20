@@ -225,8 +225,9 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
               onClick={() => handleFinishQuiz()} 
               disabled={implementationAnswer.length < 50}
               size="sm"
+              title={implementationAnswer.length < 50 ? "Please enter at least 50 characters" : "Complete the quiz"}
             >
-              Complete Quiz
+              {implementationAnswer.length < 50 ? `${50-implementationAnswer.length} more chars needed` : "Complete Quiz"}
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </DialogFooter>
