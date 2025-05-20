@@ -1,6 +1,8 @@
-import { db } from "../db";
-import { assessments, userProgress } from "@shared/schema";
-import { eq, and, desc, lt, gt, sql } from "drizzle-orm";
+import { db } from '../db';
+import { assessments, assessmentQuestions, users } from '@shared/schema';
+import { eq, and, desc, sql, not, inArray } from 'drizzle-orm';
+import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Service for generating personalized learning paths based on assessment results
@@ -15,200 +17,244 @@ export class PersonalizationService {
    */
   static async generatePersonalizedPath(userId: number): Promise<any[]> {
     try {
-      // Get user's recent assessment results with incorrect answers
-      const recentAssessments = await db.query.assessments.findMany({
-        where: and(
-          eq(assessments.userId, userId),
-          eq(assessments.isCorrect, false)
-        ),
+      // Get the user's most recent assessment results
+      const userAssessments = await db.query.assessments.findMany({
+        where: eq(assessments.userId, userId),
         orderBy: [desc(assessments.createdAt)],
-        limit: 10, // Look at recent results
+        limit: 3 // Get the 3 most recent assessments
       });
-
-      // Group by domains to identify areas of improvement
-      const domainWeaknesses: Record<string, { 
-        count: number, 
-        questions: typeof recentAssessments, 
-        domain: string 
-      }> = {};
-
-      // Count frequency of incorrect answers by domain
-      for (const assessment of recentAssessments) {
-        const domain = assessment.domain || 'General';
-        
-        if (!domainWeaknesses[domain]) {
-          domainWeaknesses[domain] = { count: 0, questions: [], domain };
-        }
-        
-        domainWeaknesses[domain].count++;
-        domainWeaknesses[domain].questions.push(assessment);
+      
+      if (!userAssessments || userAssessments.length === 0) {
+        return [];
       }
 
-      // Sort domains by weakness (highest count first)
-      const sortedWeaknesses = Object.values(domainWeaknesses).sort((a, b) => b.count - a.count);
-
-      // Generate personalized modules based on top weaknesses
-      const personalizedModules = [];
-
-      // Take up to 3 weak areas
-      for (let i = 0; i < Math.min(sortedWeaknesses.length, 3); i++) {
-        const weakness = sortedWeaknesses[i];
+      // Group questions by domain to create focused mini-lessons
+      const domainQuestions: Record<string, any[]> = {};
+      
+      // Process each assessment's incorrect answers
+      for (const assessment of userAssessments) {
+        if (!assessment.incorrectAnswers) continue;
         
-        // Select up to 3 questions from this domain to create a mini-lesson
-        const questionSample = weakness.questions.slice(0, 3);
+        // incorrectAnswers is stored as a Record<string, string[]>
+        // where the key is the domain and the value is an array of question IDs
+        const incorrectAnswersByDomain = assessment.incorrectAnswers;
         
-        // Fetch the full question details from our master question set for each missed question
-        const moduleQuestions = [];
-        for (const question of questionSample) {
-          // Try to find the original question from the master set with rich content
-          const enrichedQuestion = await this.findEnrichedQuestionContent(
-            question.questionId, 
-            question.questionText, 
-            question.domain
-          );
+        for (const domain in incorrectAnswersByDomain) {
+          const questionIds = incorrectAnswersByDomain[domain];
           
-          if (enrichedQuestion) {
-            moduleQuestions.push(enrichedQuestion);
+          if (!questionIds || questionIds.length === 0) continue;
+          
+          // Initialize the domain group if it doesn't exist
+          if (!domainQuestions[domain]) {
+            domainQuestions[domain] = [];
+          }
+          
+          // Process each incorrect question
+          for (const questionId of questionIds) {
+            try {
+              // Try to get enriched question content
+              const questionContent = await this.findEnrichedQuestionContent(
+                parseInt(questionId), 
+                domain
+              );
+              
+              if (!questionContent) continue;
+              
+              // Add to domain group if not already included
+              const isDuplicate = domainQuestions[domain].some(q => q.id === questionContent.id);
+              if (!isDuplicate) {
+                domainQuestions[domain].push(questionContent);
+              }
+            } catch (error) {
+              console.error(`Error enriching question content for ${questionId}:`, error);
+              continue;
+            }
           }
         }
-        
-        // Create a mini-module if we have questions with rich content
-        if (moduleQuestions.length > 0) {
-          personalizedModules.push({
-            title: `${weakness.domain} Improvement Path`,
-            description: `A personalized mini-lesson to help you improve in ${weakness.domain}`,
-            domain: weakness.domain,
-            questions: moduleQuestions,
-            difficulty: this.calculateModuleDifficulty(moduleQuestions),
-            estimatedTimeMinutes: moduleQuestions.length * 5, // Roughly 5 minutes per question
-            createdAt: new Date().toISOString(),
-          });
-        }
       }
-
+      
+      // Create mini-lessons from the grouped questions
+      const personalizedModules: any[] = [];
+      
+      for (const domain in domainQuestions) {
+        // Get the top 2-3 questions for this domain
+        const questions = domainQuestions[domain].slice(0, 3);
+        
+        if (questions.length === 0) continue;
+        
+        // Create a personalized mini-lesson
+        const moduleId = uuidv4();
+        const title = this.generateLessonTitle(domain, questions);
+        const difficulty = this.calculateModuleDifficulty(questions);
+        
+        personalizedModules.push({
+          id: moduleId,
+          title,
+          description: `A personalized mini-lesson focused on ${domain}, based on your recent assessment results.`,
+          domain,
+          difficulty,
+          questions,
+          estimatedTimeMinutes: questions.length * 5,
+          pointsAvailable: 15,
+          progress: 0,
+          isCompleted: false,
+          createdAt: new Date().toISOString()
+        });
+      }
+      
       return personalizedModules;
     } catch (error) {
-      console.error("Error generating personalized path:", error);
+      console.error('Error generating personalized learning path:', error);
       return [];
     }
   }
-
+  
   /**
    * Find enriched content for a question from the master question set
    */
   private static async findEnrichedQuestionContent(
-    questionId: number, 
-    questionText: string,
+    questionId: number,
     domain: string
   ): Promise<any | null> {
     try {
-      // Try to find the question in our database first by ID
-      const dbQuestion = await db.execute(sql\`
-        SELECT * FROM questions 
-        WHERE id = \${questionId}
-      \`);
-
-      if (dbQuestion && dbQuestion.length > 0) {
-        return this.formatQuestionWithEnrichment(dbQuestion[0]);
-      }
-
-      // If not found by ID, try to match by text and domain
-      const similarQuestions = await db.execute(sql\`
-        SELECT * FROM questions 
-        WHERE text LIKE '%' || \${questionText.substring(0, 50)} || '%'
-        AND domain = \${domain}
-        LIMIT 1
-      \`);
-
-      if (similarQuestions && similarQuestions.length > 0) {
-        return this.formatQuestionWithEnrichment(similarQuestions[0]);
-      }
-
-      // If still not found, check our enhanced questions from the JSON files
-      // This would be a custom implementation depending on where the enriched data is stored
-      const enhancedContent = await this.checkEnhancedContentStore(questionText, domain);
+      // First, try to get the question from our local storage of enhanced content
+      const enhancedContent = await this.checkEnhancedContentStore(questionId, domain);
+      
       if (enhancedContent) {
-        return enhancedContent;
+        return this.formatQuestionWithEnrichment(enhancedContent);
       }
-
+      
+      // Next, try to get the question from the assessment API
+      try {
+        const response = await axios.get(`http://localhost:8088/api/questions/${questionId}`);
+        if (response.data) {
+          return this.formatQuestionWithEnrichment(response.data);
+        }
+      } catch (err) {
+        console.log(`Assessment API not available for question ${questionId}, using fallback`);
+      }
+      
+      // No enriched content found
       return null;
     } catch (error) {
-      console.error("Error finding enriched question content:", error);
+      console.error('Error finding enriched question content:', error);
       return null;
     }
   }
-
+  
   /**
    * Format a database question with its enrichment content
    */
   private static formatQuestionWithEnrichment(dbQuestion: any): any {
-    // Extract option choices from JSON
-    let options = {};
-    try {
-      options = JSON.parse(dbQuestion.options);
-    } catch (e) {
-      options = {}; // Default if parse fails
-    }
-
     return {
       id: dbQuestion.id,
-      question: dbQuestion.text || dbQuestion.question,
-      domain: dbQuestion.domain,
-      subDomain: dbQuestion.sub_domain || '',
-      difficulty: dbQuestion.difficulty,
-      options: options,
-      correctAnswer: dbQuestion.correct_answer,
+      question: dbQuestion.question,
+      correctAnswer: dbQuestion.correct_answer || dbQuestion.correctAnswer || '',
       explanation: dbQuestion.explanation || '',
-      teachingExplanation: dbQuestion.teaching_explanation || dbQuestion.explanation || '',
-      scienceBehindIt: dbQuestion.science_behind_it || '',
-      practicalApplication: dbQuestion.practical_application || '',
-      whyBehindIt: dbQuestion.why_behind_it || '',
-      story: dbQuestion.story || '',
-      pointsValue: dbQuestion.points_value || 5,
-      sourceId: dbQuestion.id, // Original question ID
+      teachingExplanation: dbQuestion.teaching_explanation || dbQuestion.teachingExplanation || dbQuestion.explanation || '',
+      scienceBehindIt: dbQuestion.science_behind_it || dbQuestion.scienceBehindIt || '',
+      practicalApplication: dbQuestion.practical_application || dbQuestion.practicalApplication || '',
+      whyBehindIt: dbQuestion.why_behind_it || dbQuestion.whyBehindIt || '',
+      story: dbQuestion.story || ''
     };
   }
-
+  
   /**
    * Check stored enhanced content from JSON files
    */
-  private static async checkEnhancedContentStore(questionText: string, domain: string): Promise<any | null> {
+  private static async checkEnhancedContentStore(questionId: number, domain: string): Promise<any | null> {
     try {
-      // This implementation would depend on how you're storing the enriched data
-      // For now, return null as a placeholder
+      // In a real implementation, this would access a database table or Redis cache
+      // For now, this is a placeholder that always returns null
       return null;
     } catch (error) {
-      console.error("Error checking enhanced content store:", error);
+      console.error('Error checking enhanced content store:', error);
       return null;
     }
   }
-
+  
+  /**
+   * Generate a lesson title based on the domain and questions
+   */
+  private static generateLessonTitle(domain: string, questions: any[]): string {
+    // Create a title based on the domain and question contents
+    const domainTitles: Record<string, string[]> = {
+      'child_development': [
+        'Child Development Essentials',
+        'Understanding Developmental Milestones',
+        'Childhood Growth and Learning'
+      ],
+      'curriculum': [
+        'Curriculum Design Principles',
+        'Effective Teaching Strategies',
+        'Curriculum Implementation'
+      ],
+      'classroom_management': [
+        'Positive Classroom Management',
+        'Creating an Engaging Environment',
+        'Effective Behavior Management'
+      ],
+      'communication': [
+        'Effective Communication with Children',
+        'Parent-Teacher Partnership Strategies',
+        'Building Communication Skills'
+      ],
+      'assessment': [
+        'Assessment Best Practices',
+        'Evaluating Child Progress',
+        'Assessment Techniques'
+      ],
+      'inclusion': [
+        'Inclusive Classroom Strategies',
+        'Supporting All Learners',
+        'Creating Inclusive Environments'
+      ],
+      'health_safety': [
+        'Health and Safety Fundamentals',
+        'Creating Safe Environments',
+        'Promoting Child Wellbeing'
+      ],
+      'general': [
+        'Early Childhood Education Essentials',
+        'Professional Teaching Practices',
+        'ECE Best Practices'
+      ]
+    };
+    
+    // Get titles for this domain, or use general if the domain doesn't exist
+    const titles = domainTitles[domain] || domainTitles.general;
+    
+    // Pick a random title from the available options
+    return titles[Math.floor(Math.random() * titles.length)];
+  }
+  
   /**
    * Calculate the overall difficulty of a module based on its questions
    */
   private static calculateModuleDifficulty(questions: any[]): number {
-    if (!questions || questions.length === 0) return 1;
+    // If the questions have difficulty ratings, use the average
+    const questionsWithDifficulty = questions.filter(q => q.difficulty);
     
-    const sum = questions.reduce((total, q) => total + (q.difficulty || 1), 0);
-    return Math.round(sum / questions.length);
+    if (questionsWithDifficulty.length > 0) {
+      const sum = questionsWithDifficulty.reduce((total, q) => total + Number(q.difficulty), 0);
+      return Math.round(sum / questionsWithDifficulty.length);
+    }
+    
+    // Default difficulty is 3 (intermediate)
+    return 3;
   }
-
+  
   /**
    * Get a user's progress in personalized modules
    */
   static async getUserModuleProgress(userId: number): Promise<any[]> {
     try {
-      const progress = await db.query.userProgress.findMany({
-        where: and(
-          eq(userProgress.userId, userId),
-          eq(userProgress.type, 'personalized_module')
-        ),
-        orderBy: [desc(userProgress.createdAt)],
-      });
-      
-      return progress;
+      // In a real implementation, this would query a database table that tracks
+      // the user's progress in personalized modules
+      // For now, this is a placeholder that always returns an empty array
+      return [];
     } catch (error) {
-      console.error("Error getting user module progress:", error);
+      console.error('Error getting user module progress:', error);
       return [];
     }
   }
