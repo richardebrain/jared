@@ -511,8 +511,7 @@ export default function Dashboard() {
                   <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
                     <div 
                       onClick={() => {
-                        const assessmentUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfuKxxqApOXCZmQh5hO9V5-_4bWHgTsA-mxEtCmXHmQCscCdw/viewform';
-                        window.open(assessmentUrl, '_blank');
+                        window.open('/assessment-portal.html', '_blank');
                       }}
                       className="group relative overflow-hidden bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl border-2 border-blue-400 transform transition duration-200 ease-in-out hover:scale-105 cursor-pointer"
                     >

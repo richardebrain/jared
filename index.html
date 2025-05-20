@@ -3,76 +3,69 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MentorMe ECE Assessment Portal</title>
+  <title>MentorMe Assessment Portal</title>
   <style>
     body {
       font-family: Arial, sans-serif;
+      background-color: #f5f8ff;
       margin: 0;
       padding: 0;
-      background-color: #f5f8ff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
       color: #333;
-      line-height: 1.6;
     }
     
     .container {
-      max-width: 1000px;
-      margin: 40px auto;
-      padding: 0;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+      width: 90%;
+      max-width: 800px;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
       overflow: hidden;
+      margin: 20px;
     }
     
     header {
       background: linear-gradient(135deg, #3b82f6, #6366f1);
       color: white;
-      padding: 30px;
+      padding: 25px;
       text-align: center;
     }
     
     h1 {
-      margin: 0 0 10px 0;
-      font-size: 32px;
-    }
-    
-    header p {
       margin: 0;
-      opacity: 0.9;
-      font-size: 18px;
+      font-size: 24px;
     }
     
     .content {
-      padding: 40px;
-    }
-    
-    p {
-      margin-bottom: 20px;
-      font-size: 16px;
+      padding: 25px;
     }
     
     .assessment-options {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 30px;
-      margin: 40px 0;
+      gap: 20px;
+      margin: 25px 0;
     }
     
-    @media (min-width: 768px) {
+    @media (min-width: 640px) {
       .assessment-options {
         grid-template-columns: 1fr 1fr;
       }
     }
     
     .assessment-card {
-      border-radius: 10px;
-      padding: 30px;
-      transition: transform 0.3s, box-shadow 0.3s;
+      border-radius: 8px;
+      padding: 20px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
     }
     
     .assessment-card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
     }
     
     .basic {
@@ -85,13 +78,6 @@
       border: 1px solid #d1fae5;
     }
     
-    h2 {
-      margin-top: 0;
-      display: flex;
-      align-items: center;
-      font-size: 24px;
-    }
-    
     .basic h2 {
       color: #1e40af;
     }
@@ -100,222 +86,93 @@
       color: #065f46;
     }
     
+    h2 {
+      margin-top: 0;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+    }
+    
     .emoji {
-      margin-right: 12px;
-      font-size: 28px;
+      margin-right: 10px;
+      font-size: 24px;
     }
     
-    ul {
-      margin-bottom: 25px;
-      padding-left: 25px;
-    }
-    
-    li {
-      margin-bottom: 8px;
+    p {
+      margin-bottom: 15px;
     }
     
     .button {
       display: inline-block;
-      padding: 14px 25px;
-      text-decoration: none;
-      color: white;
-      font-weight: bold;
-      border-radius: 8px;
-      text-align: center;
-      transition: all 0.3s;
-      font-size: 16px;
-    }
-    
-    .button-basic {
+      padding: 10px 18px;
       background: linear-gradient(135deg, #3b82f6, #6366f1);
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+      margin-top: 10px;
+      transition: all 0.2s;
     }
     
-    .button-basic:hover {
-      background: linear-gradient(135deg, #2563eb, #4f46e5);
+    .button:hover {
       transform: translateY(-2px);
-      box-shadow: 0 5px 10px rgba(59, 130, 246, 0.3);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
     
-    .button-comprehensive {
+    .comprehensive .button {
       background: linear-gradient(135deg, #10b981, #059669);
     }
     
-    .button-comprehensive:hover {
-      background: linear-gradient(135deg, #059669, #047857);
-      transform: translateY(-2px);
-      box-shadow: 0 5px 10px rgba(16, 185, 129, 0.3);
-    }
-    
-    .benefits {
-      background-color: #f9fafb;
-      padding: 25px;
-      border-radius: 10px;
-      margin: 40px 0;
-    }
-    
-    .benefits h3 {
-      margin-top: 0;
-      color: #4b5563;
-      font-size: 20px;
-    }
-    
-    .benefits ul {
-      list-style-type: none;
-      padding: 0;
-    }
-    
-    .benefits li {
-      padding-left: 30px;
-      position: relative;
-      margin-bottom: 12px;
-    }
-    
-    .benefits li:before {
-      content: "✓";
-      color: #3b82f6;
-      position: absolute;
-      left: 0;
-      font-weight: bold;
-    }
-    
-    .teacher-levels {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 20px;
-      margin: 30px 0;
-    }
-    
-    @media (min-width: 768px) {
-      .teacher-levels {
-        grid-template-columns: 1fr 1fr 1fr;
-      }
-    }
-    
-    .level-card {
-      background-color: #f9fafb;
-      border-radius: 8px;
-      padding: 20px;
+    .footer {
       text-align: center;
-      border: 1px solid #e5e7eb;
-    }
-    
-    .level-icon {
-      font-size: 32px;
-      margin-bottom: 15px;
-    }
-    
-    .level-title {
-      font-weight: bold;
-      margin-bottom: 10px;
-      color: #4b5563;
-    }
-    
-    .level-points {
-      font-size: 14px;
-      color: #6b7280;
-    }
-    
-    footer {
-      text-align: center;
-      padding: 30px;
+      padding: 15px;
       color: #6b7280;
       font-size: 14px;
       border-top: 1px solid #e5e7eb;
-    }
-    
-    .logo {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    
-    .logo-text {
-      font-size: 24px;
-      font-weight: bold;
-      color: #3b82f6;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <div class="logo">
-        <div class="logo-text">MentorMe</div>
-      </div>
-      <h1>Early Childhood Education Assessment Portal</h1>
-      <p>Professional Development for Preschool Teachers</p>
+      <h1>MentorMe Assessment Portal</h1>
     </header>
     
     <div class="content">
-      <p>
-        Welcome to the MentorMe Assessment Portal. Choose an assessment that matches your professional development needs and current skill level. These assessments will help you identify your strengths and areas for growth as an early childhood educator.
-      </p>
+      <p>Welcome to the MentorMe ECE Assessment Portal. Choose the assessment that best fits your needs:</p>
       
       <div class="assessment-options">
-        <div class="assessment-card basic">
+        <div class="assessment-card basic" onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLSfuKxxqApOXCZmQh5hO9V5-_4bWHgTsA-mxEtCmXHmQCscCdw/viewform', '_blank')">
           <h2><span class="emoji">🧠</span> Basic Assessment</h2>
-          <p>A foundational assessment covering essential early childhood education concepts and developmentally appropriate practices.</p>
+          <p>A foundational assessment for early childhood educators covering essential concepts.</p>
           <ul>
             <li>15 multiple-choice questions</li>
             <li>Child development fundamentals</li>
-            <li>Teaching methodology basics</li>
             <li>Approximately 10-15 minutes</li>
           </ul>
-          <a href="https://docs.google.com/forms/d/e/1FAIpQLSfuKxxqApOXCZmQh5hO9V5-_4bWHgTsA-mxEtCmXHmQCscCdw/viewform" target="_blank" class="button button-basic">Start Basic Assessment</a>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSfuKxxqApOXCZmQh5hO9V5-_4bWHgTsA-mxEtCmXHmQCscCdw/viewform" target="_blank" class="button">Start Basic Assessment</a>
         </div>
         
-        <div class="assessment-card comprehensive">
+        <div class="assessment-card comprehensive" onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLSdP7lDMU9AEVg_GOPe1mFm4BKr-N7Ro-ZJv5kEljkfv8NrXkA/viewform', '_blank')">
           <h2><span class="emoji">🏆</span> Comprehensive Assessment</h2>
-          <p>An in-depth assessment covering advanced early childhood education topics, teaching methodologies, and developmental psychology.</p>
+          <p>An in-depth assessment covering advanced topics and teaching strategies.</p>
           <ul>
             <li>25 multiple-choice questions</li>
             <li>Advanced scenarios and challenges</li>
-            <li>Special needs and inclusive education</li>
             <li>Approximately 20-25 minutes</li>
           </ul>
-          <a href="https://docs.google.com/forms/d/e/1FAIpQLSdP7lDMU9AEVg_GOPe1mFm4BKr-N7Ro-ZJv5kEljkfv8NrXkA/viewform" target="_blank" class="button button-comprehensive">Start Comprehensive Assessment</a>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSdP7lDMU9AEVg_GOPe1mFm4BKr-N7Ro-ZJv5kEljkfv8NrXkA/viewform" target="_blank" class="button">Start Comprehensive Assessment</a>
         </div>
       </div>
       
-      <div class="benefits">
-        <h3>Benefits of Completing Assessments</h3>
-        <ul>
-          <li>Earn points toward your professional development journey</li>
-          <li>Identify areas where you can enhance your teaching skills</li>
-          <li>Track your progress over time with personalized insights</li>
-          <li>Advance to higher teacher levels and unlock new opportunities</li>
-          <li>Collect Bear Bucks that can be redeemed for rewards (50 points = 1 Bear Buck)</li>
-        </ul>
-      </div>
-      
-      <h3>Teacher Progression Levels</h3>
-      <p>Complete assessments to earn points and advance through these teacher levels:</p>
-      
-      <div class="teacher-levels">
-        <div class="level-card">
-          <div class="level-icon">👶</div>
-          <div class="level-title">Teacher in Training</div>
-          <div class="level-points">0-299 points</div>
-        </div>
-        <div class="level-card">
-          <div class="level-icon">👩‍🏫</div>
-          <div class="level-title">Lead Teacher</div>
-          <div class="level-points">300-1,999 points</div>
-        </div>
-        <div class="level-card">
-          <div class="level-icon">🎓</div>
-          <div class="level-title">Mentor Teacher</div>
-          <div class="level-points">2,000+ points</div>
-        </div>
-      </div>
-      
-      <p style="text-align: center; font-style: italic; margin-top: 30px;">
-        Your growth as an early childhood educator matters. Take the next step in your professional development journey today.
+      <p style="text-align: center; font-style: italic;">
+        Complete an assessment to earn points and advance your professional development.
       </p>
     </div>
     
-    <footer>
-      <div>© 2025 MentorMe - Professional Development for Early Childhood Educators</div>
-    </footer>
+    <div class="footer">
+      © 2025 MentorMe - Professional Development for Early Childhood Educators
+    </div>
   </div>
 </body>
 </html>
