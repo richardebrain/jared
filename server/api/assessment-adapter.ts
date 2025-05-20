@@ -187,7 +187,7 @@ router.post('/answer',
       // Add logging to help debug
       console.log('Submitting answer to assessment backend:', req.body);
       
-      const response = await axios.post(`${ASSESSMENT_API_URL}/assessment/answer`, req.body, {
+      const response = await axios.post(`${ASSESSMENT_API_URL}/assessments/answer`, req.body, {
         timeout: 10000 // Add timeout to prevent hanging requests
       });
       
