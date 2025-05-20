@@ -374,7 +374,7 @@ function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
     }
   }
   
-  // Create distinct question sets with options
+  // Create distinct question sets with options - unique for each video based on hash
   const questionSets = {
     mindfulness: [
       {
@@ -400,20 +400,239 @@ function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
         correctAnswer: 'Through breathing exercises, body awareness, and attention activities'
       },
       {
-        id: 'mind-3',
-        question: 'What physical space considerations are important for mindfulness activities?',
+        id: `mind-${videoHash % 1000}-3`,
+        question: 'What impact can consistent mindfulness practice have on classroom behavior?',
         options: [
-          'Rooms must be completely silent and dark',
-          'Comfortable, quiet spaces with minimal distractions',
-          'Only outdoors is suitable for mindfulness',
-          'Bright lights and stimulating decorations are essential'
+          'No impact on behavior management',
+          'It typically makes children more hyperactive',
+          'Reduced stress and improved emotional regulation',
+          'Increased dependency on teacher guidance'
         ],
-        correctAnswer: 'Comfortable, quiet spaces with minimal distractions'
+        correctAnswer: 'Reduced stress and improved emotional regulation'
       }
-    ];
-  } else if (isSocialEmotional) {
-    return [
+    ],
+    socialEmotional: [
       {
+        id: `socemo-${videoHash % 1000}-1`,
+        question: 'Which strategy best supports children in identifying their emotions?',
+        options: [
+          'Telling children how they should feel',
+          'Using emotion vocabulary and providing mirrors for facial expressions',
+          'Discouraging emotional expression in the classroom',
+          'Limiting emotional vocabulary to "happy" and "sad" only'
+        ],
+        correctAnswer: 'Using emotion vocabulary and providing mirrors for facial expressions'
+      },
+      {
+        id: `socemo-${videoHash % 1000}-2`,
+        question: 'How can teachers help children develop empathy?',
+        options: [
+          'By emphasizing competition between children',
+          'By modeling empathetic responses and perspective-taking',
+          'By discouraging emotional discussions',
+          'By treating empathy as an innate trait that cannot be taught'
+        ],
+        correctAnswer: 'By modeling empathetic responses and perspective-taking'
+      },
+      {
+        id: `socemo-${videoHash % 1000}-3`,
+        question: 'What is a key component of social-emotional learning in early childhood?',
+        options: [
+          'Academic achievement exclusively',
+          'Self-regulation and relationship skills',
+          'Athletic performance',
+          'Advanced mathematics'
+        ],
+        correctAnswer: 'Self-regulation and relationship skills'
+      }
+    ],
+    development: [
+      {
+        id: `dev-${videoHash % 1000}-1`,
+        question: 'How does brain development in early childhood affect learning?',
+        options: [
+          'It has no significant impact until adolescence',
+          'Early experiences create neural pathways that form lifelong foundations',
+          'Brain development only affects physical coordination',
+          'Early childhood is too early for meaningful brain development'
+        ],
+        correctAnswer: 'Early experiences create neural pathways that form lifelong foundations'
+      },
+      {
+        id: `dev-${videoHash % 1000}-2`,
+        question: 'What is a developmentally appropriate practice for preschoolers?',
+        options: [
+          'Workbooks and formal academic instruction for extended periods',
+          'Eliminating all physical movement during learning',
+          'Play-based learning with hands-on exploration',
+          'Teaching advanced academic concepts beyond their cognitive stage'
+        ],
+        correctAnswer: 'Play-based learning with hands-on exploration'
+      },
+      {
+        id: `dev-${videoHash % 1000}-3`,
+        question: 'What role does responsive caregiving play in child development?',
+        options: [
+          'It's unnecessary as children develop independently',
+          'It creates dependency and should be minimized',
+          'It builds secure attachment and social-emotional health',
+          'It only matters for physical development'
+        ],
+        correctAnswer: 'It builds secure attachment and social-emotional health'
+      }
+    ],
+    literacy: [
+      {
+        id: `lit-${videoHash % 1000}-1`,
+        question: 'What is an effective strategy for supporting early literacy?',
+        options: [
+          'Focusing exclusively on letter recognition worksheets',
+          'Creating a language-rich environment with books, songs, and conversation',
+          'Discouraging drawing and scribbling',
+          'Starting formal reading instruction at age 3'
+        ],
+        correctAnswer: 'Creating a language-rich environment with books, songs, and conversation'
+      },
+      {
+        id: `lit-${videoHash % 1000}-2`,
+        question: 'How can teachers support phonological awareness?',
+        options: [
+          'Through flash cards only',
+          'By discouraging rhyming games',
+          'Through games with rhymes, syllable counting, and sound play',
+          'By teaching formal grammar rules'
+        ],
+        correctAnswer: 'Through games with rhymes, syllable counting, and sound play'
+      },
+      {
+        id: `lit-${videoHash % 1000}-3`,
+        question: 'What's the relationship between oral language development and reading success?',
+        options: [
+          'They are unrelated skills',
+          'Strong oral language skills provide a foundation for reading',
+          'Oral language interferes with reading development',
+          'Reading should be taught before oral language is developed'
+        ],
+        correctAnswer: 'Strong oral language skills provide a foundation for reading'
+      }
+    ],
+    leadership: [
+      {
+        id: `lead-${videoHash % 1000}-1`,
+        question: 'What quality is most important for effective educational leadership?',
+        options: [
+          'Focusing exclusively on test scores',
+          'Maintaining strict hierarchies with staff',
+          'Creating a positive school culture with shared vision',
+          'Minimizing parent involvement'
+        ],
+        correctAnswer: 'Creating a positive school culture with shared vision'
+      },
+      {
+        id: `lead-${videoHash % 1000}-2`,
+        question: 'How can classroom teachers demonstrate leadership?',
+        options: [
+          'By maintaining rigid control',
+          'By modeling reflective practice and collaboration',
+          'By working in isolation',
+          'By focusing exclusively on academic content'
+        ],
+        correctAnswer: 'By modeling reflective practice and collaboration'
+      },
+      {
+        id: `lead-${videoHash % 1000}-3`,
+        question: 'What is the impact of effective leadership on student outcomes?',
+        options: [
+          'Leadership has minimal impact on students',
+          'Leadership only affects staff morale',
+          'Effective leadership creates conditions that support learning and development',
+          'Leadership only matters for budget management'
+        ],
+        correctAnswer: 'Effective leadership creates conditions that support learning and development'
+      }
+    ],
+    pedagogy: [
+      {
+        id: `ped-${videoHash % 1000}-1`,
+        question: 'What is the key principle of Universal Design for Learning (UDL)?',
+        options: [
+          'Teaching all children in exactly the same way',
+          'Providing multiple means of engagement, representation, and action/expression',
+          'Focusing only on high-achieving students',
+          'Standardizing all curriculum materials'
+        ],
+        correctAnswer: 'Providing multiple means of engagement, representation, and action/expression'
+      },
+      {
+        id: `ped-${videoHash % 1000}-2`,
+        question: 'How does play-based learning benefit children's development?',
+        options: [
+          'It has no educational value',
+          'It only develops physical skills',
+          'It integrates cognitive, social, emotional, and physical development',
+          'It should be replaced with direct instruction'
+        ],
+        correctAnswer: 'It integrates cognitive, social, emotional, and physical development'
+      },
+      {
+        id: `ped-${videoHash % 1000}-3`,
+        question: 'What is the role of assessment in early childhood education?',
+        options: [
+          'To rank and sort children by ability',
+          'To inform teaching practices and support individual development',
+          'To compare children to each other',
+          'To determine which children should be held back'
+        ],
+        correctAnswer: 'To inform teaching practices and support individual development'
+      }
+    ],
+    general: [
+      {
+        id: `gen-${videoHash % 1000}-1`,
+        question: 'What is a key principle of developmentally appropriate practice?',
+        options: [
+          'All children should learn the same things in the same way',
+          'Teaching should be responsive to each child's age, experience, and needs',
+          'Academic learning is the only goal of early education',
+          'Children should be pushed to learn advanced concepts as early as possible'
+        ],
+        correctAnswer: 'Teaching should be responsive to each child's age, experience, and needs'
+      },
+      {
+        id: `gen-${videoHash % 1000}-2`,
+        question: 'How do positive teacher-child relationships impact learning?',
+        options: [
+          'They have no impact on learning outcomes',
+          'They create dependency and limit independence',
+          'They provide a secure foundation for exploration and learning',
+          'They should be minimized to focus on academics'
+        ],
+        correctAnswer: 'They provide a secure foundation for exploration and learning'
+      },
+      {
+        id: `gen-${videoHash % 1000}-3`,
+        question: 'What role does family engagement play in early childhood education?',
+        options: [
+          'It interferes with professional teaching',
+          'It's essential for children's development and learning',
+          'It's unnecessary until elementary school',
+          'It should be limited to fundraising activities'
+        ],
+        correctAnswer: 'It's essential for children's development and learning'
+      }
+    ]
+  };
+  
+  // Select questions from appropriate category based on the video's content
+  // Only pick 2-3 questions to keep quiz short but meaningful
+  const selectedQuestions = questionSets[primaryCategory as keyof typeof questionSets] || questionSets.general;
+  
+  // Use the video hash to ensure consistent selection for the same video
+  // But different videos will have different questions
+  const startIndex = videoHash % (selectedQuestions.length - 2);
+  
+  // Return 3 questions for the quiz
+  return selectedQuestions.slice(startIndex, startIndex + 3);
         id: 'social-1',
         question: 'Which of the following is a key component of social-emotional learning (SEL)?',
         options: [
