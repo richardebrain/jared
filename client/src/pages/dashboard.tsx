@@ -697,29 +697,29 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
               
-              {/* Simple Assessment Card */}
+              {/* AI Assessment Card */}
               <Card className="overflow-hidden bg-white shadow-md hover:shadow-lg transition-shadow mt-8">
-                <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4">
+                <CardHeader className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-4">
                   <CardTitle className="text-xl font-bold text-white mb-0 flex items-center">
-                    <Book className="h-5 w-5 mr-2 inline-block" />
-                    Knowledge Assessment Center
+                    <BrainCircuit className="h-5 w-5 mr-2 inline-block" />
+                    AI-Powered Assessment
                   </CardTitle>
                   <CardDescription className="text-white font-medium opacity-90 m-0">
-                    Test your understanding with our improved assessment system
+                    Our newest assessment system with database-powered questions
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-4">
                   <p className="text-gray-700 mb-4">
-                    Challenge yourself with questions across different domains of early childhood education. 
-                    Earn points and track your progress with our new gamified assessment experience.
+                    Experience our most advanced assessment technology that adapts to your knowledge level.
+                    Get personalized feedback and detailed explanations on questions from our database.
                   </p>
                   <div className="flex justify-end">
-                    <Link href="/simple-assessment">
+                    <Link href="/ai-assessment">
                       <Button 
-                        className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white"
+                        className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white"
                       >
-                        Start Assessment
-                        <ArrowRight className="h-4 w-4 ml-1" />
+                        Try AI Assessment
+                        <Sparkles className="h-4 w-4 ml-1" />
                       </Button>
                     </Link>
                   </div>
