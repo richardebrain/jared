@@ -128,17 +128,57 @@ router.post('/start',
       const { domain, user_id, sub_domain, difficulty } = req.body;
       
       console.log('Starting assessment with params:', { domain, user_id, sub_domain, difficulty });
-      const apiUrl = `${ASSESSMENT_API_URL}/assessments/start`;
-      console.log('Making request to API URL:', apiUrl);
       
-      const response = await axios.post(apiUrl, {
-        domain,
-        user_id,
-        sub_domain,
-        difficulty
-      }, {
-        timeout: 15000 // Increased timeout to prevent hanging requests
-      });
+      // Try multiple possible endpoint paths to ensure compatibility
+      let response;
+      let apiUrl;
+      
+      try {
+        // First try the path with "assessments" prefix
+        apiUrl = `${ASSESSMENT_API_URL}/assessments/start`;
+        console.log('First attempt - Making request to API URL:', apiUrl);
+        
+        response = await axios.post(apiUrl, {
+          domain,
+          user_id,
+          sub_domain,
+          difficulty
+        }, {
+          timeout: 10000
+        });
+      } catch (firstError) {
+        console.log('First endpoint attempt failed, trying alternative endpoint...');
+        
+        // Second try with simpler path
+        try {
+          apiUrl = `${ASSESSMENT_API_URL}/start`;
+          console.log('Second attempt - Making request to API URL:', apiUrl);
+          
+          response = await axios.post(apiUrl, {
+            domain,
+            user_id,
+            sub_domain,
+            difficulty
+          }, {
+            timeout: 10000
+          });
+        } catch (secondError) {
+          console.log('Second endpoint attempt failed, trying third alternative endpoint...');
+          
+          // Third try with "assessment" (singular) prefix
+          apiUrl = `${ASSESSMENT_API_URL}/assessment/start`;
+          console.log('Third attempt - Making request to API URL:', apiUrl);
+          
+          response = await axios.post(apiUrl, {
+            domain,
+            user_id,
+            sub_domain,
+            difficulty
+          }, {
+            timeout: 10000
+          });
+        }
+      }
       
       console.log('Assessment API response:', response.data);
       return res.json(response.data);
