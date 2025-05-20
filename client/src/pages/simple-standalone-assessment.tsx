@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 export default function SimpleStandaloneAssessment() {
   // Redirect to the standalone HTML file
   const openStandaloneAssessment = () => {
-    window.open('/simple-assessment.html', '_blank');
+    window.open('/dynamic-ece-assessment.html', '_blank');
   };
   
   return (
