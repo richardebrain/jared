@@ -176,6 +176,7 @@ class School(Base):
     
     # Relationships
     users = relationship("User", back_populates="school")
+    subscriptions = relationship("Subscription", back_populates="school")
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for API response"""
