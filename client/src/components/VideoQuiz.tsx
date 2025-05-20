@@ -686,102 +686,174 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
     );
   }
 
-  // For extreme mobile optimization
+  // Mobile version - using hard-coded values and minimal layout
   if (isMobile) {
     return (
-      <div className="fixed top-0 left-0 right-0 bottom-0 bg-background/80 z-50" style={{ height: '100vh', width: '100vw', position: 'fixed' }}>
-        <div className="absolute top-0 left-0 right-0 bottom-0 border bg-white flex flex-col" style={{ height: '100vh' }}>
-          {/* Minimal Header */}
-          <div className="flex justify-between p-1 border-b bg-primary">
-            <span className="text-[9px] font-medium text-white">Video Quiz</span>
-            <button onClick={onClose} aria-label="Close" className="text-white">
-              <X className="h-2 w-2" />
-            </button>
-          </div>
-          
-          {/* Ultra-Minimal Progress */}
-          <div className="py-0.5 px-1 text-[7px] flex justify-between">
-            <span>{showImplementation ? "Final" : `Q${currentQuestionIndex + 1}/${questions.length}`}</span>
-            <span className="truncate max-w-[100px]">{videoTitle}</span>
-          </div>
-          <Progress value={progress} className="h-0.5" />
-          
-          {/* Question Area */}
-          <div className="flex-1 overflow-auto p-1">
-            {!showImplementation ? (
-              <>
-                <p className="text-[9px] mb-1 leading-tight">
-                  {questions[currentQuestionIndex]?.question}
-                </p>
-                
-                <div className="space-y-0.5">
-                  {questions[currentQuestionIndex]?.options.map((option, index) => (
-                    <div
-                      key={index}
-                      className={`border p-0.5 rounded-sm cursor-pointer text-[8px] ${
-                        selectedAnswer === option
-                          ? 'border-primary bg-primary/10'
-                          : 'border-gray-200'
-                      }`}
-                      onClick={() => handleSelectAnswer(option)}
-                    >
-                      <div className="flex">
-                        <div className={`w-2 h-2 rounded-full border flex-shrink-0 flex items-center justify-center mr-0.5 ${
-                          selectedAnswer === option 
-                            ? 'border-primary bg-primary' 
-                            : 'border-gray-300'
-                        }`}>
-                          {selectedAnswer === option && <div className="w-1 h-1 bg-white rounded-full" />}
-                        </div>
-                        <span className="leading-tight">{option}</span>
-                      </div>
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'white',
+        zIndex: 9999,
+        display: 'flex',
+        flexDirection: 'column',
+        paddingTop: '2px',
+        paddingBottom: '2px'
+      }}>
+        {/* Super minimal header */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '2px 5px',
+          backgroundColor: '#3b82f6',
+          color: 'white',
+        }}>
+          <span style={{ fontSize: '10px', fontWeight: 'bold' }}>Video Quiz</span>
+          <button onClick={onClose} style={{ color: 'white', padding: '1px' }}>X</button>
+        </div>
+
+        {/* Progress info */}
+        <div style={{ 
+          padding: '2px 5px',
+          fontSize: '7px',
+          display: 'flex',
+          justifyContent: 'space-between'
+        }}>
+          <span>{showImplementation ? "Final Question" : `Question ${currentQuestionIndex + 1} of ${questions.length}`}</span>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '50%' }}>
+            {videoTitle}
+          </span>
+        </div>
+
+        {/* Progress bar */}
+        <div style={{ 
+          height: '3px',
+          backgroundColor: '#e5e7eb',
+          marginBottom: '5px',
+          padding: 0
+        }}>
+          <div 
+            style={{ 
+              height: '100%', 
+              backgroundColor: '#3b82f6',
+              width: `${progress}%` 
+            }} 
+          />
+        </div>
+
+        {/* Question and options */}
+        <div style={{ 
+          flex: 1,
+          overflow: 'auto',
+          padding: '5px',
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+          {!showImplementation ? (
+            <>
+              <p style={{ fontSize: '10px', marginBottom: '8px', fontWeight: 'bold' }}>
+                {questions[currentQuestionIndex]?.question}
+              </p>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                {questions[currentQuestionIndex]?.options.map((option, index) => (
+                  <div
+                    key={index}
+                    onClick={() => handleSelectAnswer(option)}
+                    style={{
+                      border: `1px solid ${selectedAnswer === option ? '#3b82f6' : '#d1d5db'}`,
+                      padding: '3px',
+                      borderRadius: '3px',
+                      backgroundColor: selectedAnswer === option ? '#eff6ff' : 'white',
+                      cursor: 'pointer',
+                      fontSize: '9px',
+                      display: 'flex',
+                      alignItems: 'flex-start'
+                    }}
+                  >
+                    <div style={{
+                      width: '10px',
+                      height: '10px',
+                      borderRadius: '50%',
+                      border: `1px solid ${selectedAnswer === option ? '#3b82f6' : '#d1d5db'}`,
+                      backgroundColor: selectedAnswer === option ? '#3b82f6' : 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: '4px',
+                      flexShrink: 0
+                    }}>
+                      {selectedAnswer === option && (
+                        <div style={{ width: '4px', height: '4px', backgroundColor: 'white', borderRadius: '50%' }} />
+                      )}
                     </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <>
-                <p className="text-[9px] mb-1 leading-tight">
-                  {implementationQuestion?.question}
-                </p>
-                <textarea
-                  placeholder="How would you use this? (50 char min)"
-                  className="w-full border text-[8px] p-0.5 h-16 resize-none"
-                  value={implementationAnswer}
-                  onChange={(e) => setImplementationAnswer(e.target.value)}
-                />
-                <div className="text-right">
-                  <span className={`text-[6px] ${
-                    implementationAnswer.length < 50 ? 'text-red-500' : 'text-gray-500'
-                  }`}>
-                    {implementationAnswer.length}/50
-                  </span>
-                </div>
-              </>
-            )}
-          </div>
+                    <span>{option}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <p style={{ fontSize: '10px', marginBottom: '8px', fontWeight: 'bold' }}>
+                {implementationQuestion?.question}
+              </p>
+              <textarea
+                placeholder="How would you use this? (50 char min)"
+                value={implementationAnswer}
+                onChange={(e) => setImplementationAnswer(e.target.value)}
+                style={{
+                  width: '100%',
+                  height: '80px',
+                  border: '1px solid #d1d5db',
+                  padding: '3px',
+                  fontSize: '9px',
+                  resize: 'none'
+                }}
+              />
+              <div style={{ textAlign: 'right', fontSize: '7px', color: implementationAnswer.length < 50 ? 'red' : 'gray' }}>
+                {implementationAnswer.length}/50 characters
+              </div>
+            </>
+          )}
+        </div>
+        
+        {/* Footer buttons */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          padding: '5px',
+          borderTop: '1px solid #e5e7eb'
+        }}>
+          <button 
+            onClick={onClose}
+            style={{
+              padding: '3px 8px',
+              fontSize: '8px',
+              border: '1px solid #d1d5db',
+              borderRadius: '3px',
+              backgroundColor: 'white'
+            }}
+          >
+            Cancel
+          </button>
           
-          {/* Navigation */}
-          <div className="flex justify-between p-1 border-t mt-auto">
-            <button 
-              onClick={onClose}
-              className="border rounded-sm text-[7px] px-1 h-4 flex items-center"
-            >
-              Cancel
-            </button>
-            
-            <button 
-              onClick={handleNextQuestion} 
-              disabled={!selectedAnswer && !showImplementation}
-              className={`rounded-sm text-[7px] px-1 h-4 flex items-center ${
-                (!selectedAnswer && !showImplementation) 
-                  ? 'bg-gray-200 text-gray-400' 
-                  : 'bg-blue-500 text-white'
-              }`}
-            >
-              {showImplementation ? 'Complete' : 'Next'}
-            </button>
-          </div>
+          <button 
+            onClick={handleNextQuestion} 
+            disabled={!selectedAnswer && !showImplementation}
+            style={{
+              padding: '3px 8px',
+              fontSize: '8px',
+              borderRadius: '3px',
+              backgroundColor: (!selectedAnswer && !showImplementation) ? '#e5e7eb' : '#3b82f6',
+              color: (!selectedAnswer && !showImplementation) ? '#9ca3af' : 'white',
+              border: 'none'
+            }}
+          >
+            {showImplementation ? 'Complete Quiz' : 'Next Question'}
+          </button>
         </div>
       </div>
     );
