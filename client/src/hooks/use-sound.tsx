@@ -7,36 +7,43 @@ export function useSound(url: string, { volume = 1 } = {}) {
   const audio = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // Create audio element on component mount
+    // Create audio element
     audio.current = new Audio(url);
-    audio.current.volume = volume;
-
-    // Clean up on unmount
+    
+    // Set volume
+    if (audio.current) {
+      audio.current.volume = volume;
+    }
+    
+    // Cleanup on unmount
     return () => {
       if (audio.current) {
         audio.current.pause();
+        audio.current.src = '';
         audio.current = null;
       }
     };
   }, [url, volume]);
 
+  // Play function
   const play = () => {
     if (audio.current) {
-      // Reset audio to beginning and play
+      // Reset to beginning if already playing
       audio.current.currentTime = 0;
-      audio.current.play().catch(error => {
-        console.error('Error playing sound:', error);
+      return audio.current.play().catch(error => {
+        console.warn(`Failed to play sound: ${error.message}`);
       });
+    }
+    return Promise.reject(new Error('Audio not initialized'));
+  };
+
+  // Stop function
+  const stop = () => {
+    if (audio.current) {
+      audio.current.pause();
+      audio.current.currentTime = 0;
     }
   };
 
-  return [play];
+  return { play, stop };
 }
-
-// Create preset sounds
-const correctAnswerSound = () => useSound('/sounds/correct.mp3', { volume: 0.5 });
-const incorrectAnswerSound = () => useSound('/sounds/incorrect.mp3', { volume: 0.5 });
-const levelUpSound = () => useSound('/sounds/level-up.mp3', { volume: 0.7 });
-const completionSound = () => useSound('/sounds/completion.mp3', { volume: 0.8 });
-
-export { correctAnswerSound, incorrectAnswerSound, levelUpSound, completionSound };

@@ -18,6 +18,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import enhancedAssessmentService, { AssessmentQuestion, AnswerResponse, Domain } from '../services/enhancedAssessmentService';
 import confetti from 'canvas-confetti';
 import { useQuery } from '@tanstack/react-query';
+import { useSound } from '@/hooks/use-sound';
+import AssessmentFeedback from '@/components/AssessmentFeedback';
 
 interface EnhancedAssessmentProps {
   userId: number;
