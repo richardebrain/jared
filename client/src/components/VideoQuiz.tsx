@@ -675,25 +675,25 @@ function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
       },
       {
         id: `ped-${videoHash % 1000}-2`,
-        question: 'How does play-based learning benefit children's development?',
+        question: "How does play-based learning benefit children's development?",
         options: [
-          'It has no educational value',
-          'It only develops physical skills',
-          'It integrates cognitive, social, emotional, and physical development',
-          'It should be replaced with direct instruction'
+          "It has no educational value",
+          "It only develops physical skills",
+          "It integrates cognitive, social, emotional, and physical development",
+          "It should be replaced with direct instruction"
         ],
-        correctAnswer: 'It integrates cognitive, social, emotional, and physical development'
+        correctAnswer: "It integrates cognitive, social, emotional, and physical development"
       },
       {
         id: `ped-${videoHash % 1000}-3`,
-        question: 'What is the role of assessment in early childhood education?',
+        question: "What is the role of assessment in early childhood education?",
         options: [
-          'To rank and sort children by ability',
-          'To inform teaching practices and support individual development',
-          'To compare children to each other',
-          'To determine which children should be held back'
+          "To rank and sort children by ability",
+          "To inform teaching practices and support individual development",
+          "To compare children to each other",
+          "To determine which children should be held back"
         ],
-        correctAnswer: 'To inform teaching practices and support individual development'
+        correctAnswer: "To inform teaching practices and support individual development"
       },
       {
         id: `ped-${videoHash % 1000}-4`,
