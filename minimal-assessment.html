@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Minimal ECE Assessment</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      max-width: 800px; 
+      margin: 0 auto; 
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .question {
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    .option {
+      padding: 10px;
+      margin: 5px 0;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .option:hover {
+      background-color: #f5f5f5;
+    }
+    .selected {
+      background-color: #e6f7ff;
+      border-color: #1890ff;
+    }
+    .correct {
+      background-color: #f6ffed;
+      border-color: #b7eb8f;
+    }
+    .incorrect {
+      background-color: #fff2f0;
+      border-color: #ffccc7;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #1890ff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .result {
+      font-weight: bold;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .header {
+      background-color: #1890ff;
+      color: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>ECE Knowledge Assessment</h1>
+    <p>Test your early childhood education knowledge with this simple assessment</p>
+  </div>
+
+  <div id="quiz-container">
+    <div id="question-container" class="question">
+      <!-- Question will be inserted here -->
+    </div>
+    
+    <button id="check-btn" disabled>Check Answer</button>
+    <button id="next-btn" style="display:none">Next Question</button>
+    
+    <div id="score-container">
+      <p>Score: <span id="score">0</span> out of 5</p>
+    </div>
+  </div>
+  
+  <div id="final-results" style="display:none">
+    <h2>Assessment Complete!</h2>
+    <p>Your final score is: <span id="final-score">0</span> out of 5</p>
+    <p id="feedback"></p>
+    <button id="restart-btn">Take Again</button>
+  </div>
+
+  <script>
+    // Questions
+    const questions = [
+      {
+        text: "Which of the following is a key principle of developmentally appropriate practice?",
+        options: [
+          "Focusing on academic skills only",
+          "Treating all children the same way",
+          "Acknowledging children's individual development",
+          "Prioritizing teacher-directed activities"
+        ],
+        correctIndex: 2,
+        explanation: "Developmentally appropriate practice recognizes each child's unique development trajectory and adapts teaching approaches accordingly."
+      },
+      {
+        text: "What is an effective way to promote language development in preschoolers?",
+        options: [
+          "Correcting grammatical errors immediately",
+          "Engaging in back-and-forth conversations",
+          "Using simplified vocabulary only",
+          "Limiting conversation to instruction time"
+        ],
+        correctIndex: 1,
+        explanation: "Back-and-forth conversations (serve and return interactions) build language skills and neural connections."
+      },
+      {
+        text: "Which strategy best supports social-emotional learning in toddlers?",
+        options: [
+          "Removing emotional challenges",
+          "Focusing only on academic readiness",
+          "Naming and validating feelings",
+          "Implementing strict behavioral controls"
+        ],
+        correctIndex: 2,
+        explanation: "Helping toddlers identify and name their emotions supports emotional regulation development."
+      },
+      {
+        text: "During circle time, a child has trouble sitting still. What might be the best initial response?",
+        options: [
+          "Tell them to sit still or they'll lose their turn",
+          "Provide a fidget tool or movement cushion",
+          "Remove them from circle time",
+          "Ignore the behavior completely"
+        ],
+        correctIndex: 1,
+        explanation: "Children have different sensory and movement needs. Providing appropriate accommodations helps them participate successfully."
+      },
+      {
+        text: "What is the main purpose of the CLASS assessment tool in early childhood settings?",
+        options: [
+          "To evaluate physical facilities only",
+          "To assess teacher-child interactions",
+          "To measure children's academic achievement",
+          "To ensure compliance with licensing requirements"
+        ],
+        correctIndex: 1,
+        explanation: "CLASS (Classroom Assessment Scoring System) measures the quality of teacher-child interactions across emotional support, classroom organization, and instructional support domains."
+      }
+    ];
+
+    // Variables
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let selectedOptionIndex = null;
+    let optionElements = [];
+
+    // DOM Elements
+    const questionContainer = document.getElementById('question-container');
+    const checkBtn = document.getElementById('check-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const scoreDisplay = document.getElementById('score');
+    const quizContainer = document.getElementById('quiz-container');
+    const finalResults = document.getElementById('final-results');
+    const finalScoreDisplay = document.getElementById('final-score');
+    const feedbackDisplay = document.getElementById('feedback');
+    const restartBtn = document.getElementById('restart-btn');
+
+    // Initialize Quiz
+    function initQuiz() {
+      currentQuestionIndex = 0;
+      score = 0;
+      loadQuestion();
+      updateScore();
+      quizContainer.style.display = 'block';
+      finalResults.style.display = 'none';
+    }
+
+    // Load Question
+    function loadQuestion() {
+      selectedOptionIndex = null;
+      
+      const question = questions[currentQuestionIndex];
+      
+      // Create question header
+      let html = `<h3>${question.text}</h3><div class="options-container">`;
+      
+      // Create options
+      question.options.forEach((option, index) => {
+        html += `<div class="option" data-index="${index}">${option}</div>`;
+      });
+      
+      html += '</div><div class="result" style="display:none"></div>';
+      
+      // Set question HTML
+      questionContainer.innerHTML = html;
+      
+      // Add event listeners to options
+      optionElements = document.querySelectorAll('.option');
+      optionElements.forEach(option => {
+        option.addEventListener('click', () => {
+          selectOption(parseInt(option.dataset.index));
+        });
+      });
+      
+      // Reset buttons
+      checkBtn.disabled = true;
+      checkBtn.style.display = 'inline-block';
+      nextBtn.style.display = 'none';
+    }
+
+    // Select Option
+    function selectOption(index) {
+      selectedOptionIndex = index;
+      
+      // Update visual selection
+      optionElements.forEach(option => {
+        option.classList.remove('selected');
+      });
+      
+      optionElements[index].classList.add('selected');
+      checkBtn.disabled = false;
+    }
+
+    // Check Answer
+    function checkAnswer() {
+      const question = questions[currentQuestionIndex];
+      const resultDisplay = document.querySelector('.result');
+      
+      const isCorrect = selectedOptionIndex === question.correctIndex;
+      
+      if (isCorrect) {
+        score++;
+        updateScore();
+        optionElements[selectedOptionIndex].classList.add('correct');
+        resultDisplay.textContent = `Correct! ${question.explanation}`;
+        resultDisplay.style.backgroundColor = '#f6ffed';
+        resultDisplay.style.borderColor = '#b7eb8f';
+      } else {
+        optionElements[selectedOptionIndex].classList.add('incorrect');
+        optionElements[question.correctIndex].classList.add('correct');
+        resultDisplay.textContent = `Incorrect. The correct answer is: "${question.options[question.correctIndex]}". ${question.explanation}`;
+        resultDisplay.style.backgroundColor = '#fff2f0';
+        resultDisplay.style.borderColor = '#ffccc7';
+      }
+      
+      resultDisplay.style.display = 'block';
+      checkBtn.style.display = 'none';
+      
+      if (currentQuestionIndex < questions.length - 1) {
+        nextBtn.style.display = 'inline-block';
+      } else {
+        showFinalResults();
+      }
+    }
+
+    // Next Question
+    function nextQuestion() {
+      currentQuestionIndex++;
+      
+      if (currentQuestionIndex < questions.length) {
+        loadQuestion();
+      } else {
+        showFinalResults();
+      }
+    }
+
+    // Update Score Display
+    function updateScore() {
+      scoreDisplay.textContent = score;
+    }
+
+    // Show Final Results
+    function showFinalResults() {
+      quizContainer.style.display = 'none';
+      finalResults.style.display = 'block';
+      finalScoreDisplay.textContent = score;
+      
+      // Generate feedback based on score
+      let feedback;
+      if (score === 5) {
+        feedback = "Excellent! You have a strong understanding of early childhood education principles!";
+      } else if (score >= 3) {
+        feedback = "Good job! You have a solid foundation in early childhood education concepts.";
+      } else {
+        feedback = "Thanks for taking the assessment. Continue learning about early childhood education concepts to improve your knowledge.";
+      }
+      
+      feedbackDisplay.textContent = feedback;
+    }
+
+    // Event Listeners
+    checkBtn.addEventListener('click', checkAnswer);
+    nextBtn.addEventListener('click', nextQuestion);
+    restartBtn.addEventListener('click', initQuiz);
+
+    // Start Quiz
+    initQuiz();
+  </script>
+</body>
+</html>
