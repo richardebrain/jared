@@ -156,6 +156,17 @@ const AdminModulesPage = () => {
         </div>
       </div>
       
+      <div className="flex justify-between items-center mb-6">
+        <Button 
+          variant="outline" 
+          className="flex items-center gap-2"
+          onClick={() => navigate('/admin')}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Return to Admin Dashboard
+        </Button>
+      </div>
+
       <Card className="mb-6">
         <CardHeader>
           <CardTitle>Module Visibility Controls</CardTitle>

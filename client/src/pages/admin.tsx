@@ -106,7 +106,17 @@ export default function AdminPage() {
 
   return (
     <div className="container py-10">
-      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        <Button 
+          variant="outline" 
+          className="flex items-center gap-2"
+          onClick={() => navigate('/dashboard')}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Return to Teacher Dashboard
+        </Button>
+      </div>
       
       <Tabs defaultValue="management">
         <TabsList className="mb-6">
