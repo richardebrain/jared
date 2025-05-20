@@ -252,7 +252,7 @@ function Router() {
       </Route>
       
       <Route path="/dynamic-assessment">
-        {isAuthenticated ? <DynamicAssessmentPage /> : <Login />}
+        <DynamicAssessmentPage />
       </Route>
       
       <Route path="/schools/:schoolId">

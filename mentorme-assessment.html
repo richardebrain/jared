@@ -195,8 +195,8 @@
   </div>
 
   <script>
-    // Question data
-    const questions = [
+    // Question data by difficulty level
+    const level1Questions = [
       {
         id: 1,
         question: "Which of the following is a key principle of developmentally appropriate practice?",
@@ -243,6 +243,39 @@
         pointValue: 5
       },
       {
+        id: 11,
+        question: "During circle time, you notice a child has trouble sitting still. What might be the best initial response?",
+        options: [
+          "Tell them to sit still or they'll lose their turn",
+          "Provide a fidget tool or movement cushion to help them regulate",
+          "Remove them from circle time until they can behave",
+          "Ignore the behavior as they'll eventually learn to sit still"
+        ],
+        correctAnswer: "Provide a fidget tool or movement cushion to help them regulate",
+        explanation: "Children have different sensory and movement needs. Providing appropriate accommodations helps them participate successfully in group activities.",
+        domain: "Classroom Management",
+        difficulty: 1,
+        pointValue: 5
+      },
+      {
+        id: 12,
+        question: "What is the most appropriate way to display children's artwork in a preschool classroom?",
+        options: [
+          "Only display the best pieces that meet teacher standards",
+          "Post all artwork at children's eye level with their permission",
+          "Have teachers correct mistakes before displaying work",
+          "Only display artwork of children who follow directions well"
+        ],
+        correctAnswer: "Post all artwork at children's eye level with their permission",
+        explanation: "Displaying artwork at children's eye level shows respect for their perspective, while getting permission honors their agency and ownership of their creations.",
+        domain: "Learning Environment",
+        difficulty: 1,
+        pointValue: 5
+      }
+    ];
+
+    const level2Questions = [
+      {
         id: 4,
         question: "What is the main purpose of the CLASS assessment tool in early childhood settings?",
         options: [
@@ -287,6 +320,39 @@
         difficulty: 2,
         pointValue: 10
       },
+      {
+        id: 13,
+        question: "When using 'serve and return' interactions with infants and toddlers, what are you primarily supporting?",
+        options: [
+          "Table manners for meal times",
+          "Their need for constant entertainment",
+          "Brain architecture and secure attachments",
+          "Future athletic abilities"
+        ],
+        correctAnswer: "Brain architecture and secure attachments",
+        explanation: "Serve and return interactions, where adults respond appropriately to a child's communication attempts, strengthen neural connections and build secure relationships that are foundational for development.",
+        domain: "Brain Development",
+        difficulty: 2,
+        pointValue: 10
+      },
+      {
+        id: 14,
+        question: "A child in your class frequently bites others when frustrated. Which approach is most developmentally appropriate?",
+        options: [
+          "Time-out until they apologize",
+          "Bite them back so they understand how it feels",
+          "Closely observe triggers, provide teethers/alternatives, and teach communication skills",
+          "Tell their parents to handle it at home"
+        ],
+        correctAnswer: "Closely observe triggers, provide teethers/alternatives, and teach communication skills",
+        explanation: "Biting is often a communication strategy for children who lack verbal skills. The appropriate response involves understanding triggers, providing sensory alternatives, and teaching more effective communication methods.",
+        domain: "Guidance and Behavior",
+        difficulty: 2,
+        pointValue: 10
+      }
+    ];
+
+    const level3Questions = [
       {
         id: 7,
         question: "What is the key difference between Piaget's and Vygotsky's theories of cognitive development?",
@@ -346,8 +412,26 @@
         domain: "Program Quality",
         difficulty: 3,
         pointValue: 15
+      },
+      {
+        id: 15,
+        question: "According to research on adverse childhood experiences (ACEs), which statement is most accurate?",
+        options: [
+          "Children are naturally resilient and will outgrow trauma with time",
+          "ACEs cannot be counteracted once they have occurred",
+          "Supportive adult relationships can buffer against the effects of toxic stress",
+          "ACEs only affect emotional development, not physical health"
+        ],
+        correctAnswer: "Supportive adult relationships can buffer against the effects of toxic stress",
+        explanation: "Research shows that while ACEs can have significant impacts, consistent supportive relationships with caring adults can provide significant protection against toxic stress and promote resilience.",
+        domain: "Trauma and Resilience",
+        difficulty: 3,
+        pointValue: 15
       }
     ];
+
+    // Combine all questions into a single array
+    const allQuestions = [...level1Questions, ...level2Questions, ...level3Questions];
 
     // Shuffle questions
     function shuffleArray(array) {
@@ -359,8 +443,22 @@
       return shuffled;
     }
 
-    // Shuffled questions
-    const shuffledQuestions = shuffleArray(questions);
+    // Get questions for current difficulty level
+    function getQuestionsForDifficulty(difficulty) {
+      switch(difficulty) {
+        case 1:
+          return shuffleArray(level1Questions).slice(0, 5);
+        case 2:
+          return shuffleArray(level2Questions).slice(0, 5);
+        case 3:
+          return shuffleArray(level3Questions).slice(0, 5);
+        default:
+          return shuffleArray(level1Questions).slice(0, 5);
+      }
+    }
+    
+    // Initial questions (starting with difficulty level 1)
+    let currentQuestions = getQuestionsForDifficulty(1);
 
     // State
     let currentQuestionIndex = 0;
