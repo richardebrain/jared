@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MentorMe ECE Assessment</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background-color: #f5f7fa;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    
+    header {
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    
+    .content {
+      padding: 30px;
+    }
+    
+    p {
+      margin-bottom: 20px;
+    }
+    
+    .btn {
+      display: inline-block;
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      color: white;
+      padding: 12px 25px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: bold;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    .benefits {
+      margin-top: 30px;
+      background-color: #f0f7ff;
+      padding: 20px;
+      border-radius: 5px;
+    }
+    
+    .benefits h3 {
+      color: #2563eb;
+      margin-bottom: 15px;
+    }
+    
+    ul {
+      list-style-type: none;
+    }
+    
+    li {
+      margin-bottom: 10px;
+      padding-left: 25px;
+      position: relative;
+    }
+    
+    li:before {
+      content: "✓";
+      color: #2563eb;
+      position: absolute;
+      left: 0;
+    }
+    
+    .text-center {
+      text-align: center;
+    }
+    
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+      font-size: 14px;
+    }
+    
+    .return-link {
+      color: #3b82f6;
+      text-decoration: none;
+    }
+    
+    .return-link:hover {
+      text-decoration: underline;
+    }
+    
+    .assessment-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin: 30px 0;
+    }
+    
+    @media (min-width: 640px) {
+      .assessment-buttons {
+        flex-direction: row;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>MentorMe ECE Assessment</h1>
+      <p>Professional Development for Early Childhood Educators</p>
+    </header>
+    
+    <div class="content">
+      <p>
+        Welcome to the MentorMe Assessment Portal. Our assessments help you identify your strengths 
+        and areas for growth as an early childhood educator. Choose from the assessment options below:
+      </p>
+      
+      <div class="assessment-buttons">
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSfuKxxqApOXCZmQh5hO9V5-_4bWHgTsA-mxEtCmXHmQCscCdw/viewform" target="_blank" class="btn">
+          Basic ECE Assessment (15 questions)
+        </a>
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSdP7lDMU9AEVg_GOPe1mFm4BKr-N7Ro-ZJv5kEljkfv8NrXkA/viewform" target="_blank" class="btn">
+          Comprehensive Assessment (25 questions)
+        </a>
+      </div>
+      
+      <div class="benefits">
+        <h3>Assessment Benefits</h3>
+        <ul>
+          <li>Earn points toward your professional development</li>
+          <li>Identify your strengths and areas for growth</li>
+          <li>Track your progress over time</li>
+          <li>Advance to higher teacher levels</li>
+          <li>Collect Bear Bucks to redeem for rewards</li>
+        </ul>
+      </div>
+      
+      <p class="text-center">
+        <em>Completing assessments is an important part of your professional growth journey.</em>
+      </p>
+    </div>
+    
+    <footer>
+      <p>© 2025 MentorMe - Professional Development Platform</p>
+      <p><a href="/" class="return-link">Return to Dashboard</a></p>
+    </footer>
+  </div>
+</body>
+</html>

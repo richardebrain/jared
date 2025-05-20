@@ -3,84 +3,85 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ECE Knowledge Assessment - Redirecting</title>
+  <title>MentorMe Assessment Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-      background-color: #f0f4f8;
-      color: #333;
-      text-align: center;
-      padding: 20px;
+      font-family: 'Arial', sans-serif;
+      background-color: #f8fafc;
     }
-    .container {
-      max-width: 600px;
-      background-color: white;
-      padding: 40px;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    .header-gradient {
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
     }
-    h1 {
-      color: #2563eb;
-      margin-bottom: 20px;
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+      transition: all 0.3s ease;
     }
-    p {
-      font-size: 18px;
-      line-height: 1.6;
-      margin-bottom: 30px;
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
     }
-    .logo {
-      margin-bottom: 30px;
-      font-size: 40px;
-    }
-    .btn {
-      display: inline-block;
-      background-color: #2563eb;
-      color: white;
-      font-weight: bold;
-      text-decoration: none;
-      padding: 12px 24px;
-      border-radius: 6px;
-      transition: background-color 0.3s;
-    }
-    .btn:hover {
-      background-color: #1d4ed8;
-    }
-    .spinner {
-      border: 4px solid rgba(0, 0, 0, 0.1);
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      border-left-color: #2563eb;
-      animation: spin 1s linear infinite;
-      margin: 20px auto;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    .card {
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
     }
   </style>
 </head>
-<body>
-  <div class="container">
-    <div class="logo">🧠</div>
-    <h1>ECE Knowledge Assessment</h1>
-    <p>You are being redirected to our secure assessment platform...</p>
-    <div class="spinner"></div>
-    <p>If you are not automatically redirected in 5 seconds, please click the button below:</p>
-    <a href="https://forms.gle/W8vgp6UTt2PXpCE67" class="btn" target="_blank">Start Assessment</a>
+<body class="min-h-screen py-12">
+  <div class="container mx-auto px-4 max-w-5xl">
+    <div class="card bg-white rounded-xl overflow-hidden mb-12">
+      <div class="header-gradient py-6 px-8">
+        <h1 class="text-3xl font-bold text-white">MentorMe Assessment</h1>
+        <p class="text-blue-100 mt-1">Test your early childhood education knowledge</p>
+      </div>
+      
+      <div class="p-8">
+        <p class="text-gray-700 mb-6">
+          Welcome to the MentorMe Assessment Portal. Our assessments have been moved to a more reliable platform to provide 
+          you with the best experience. Click the button below to access your assessment.
+        </p>
+        
+        <div class="mt-8 flex justify-center">
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSfuKxxqApOXCZmQh5hO9V5-_4bWHgTsA-mxEtCmXHmQCscCdw/viewform" 
+             target="_blank" 
+             class="btn-primary text-white font-medium py-4 px-8 rounded-lg inline-block text-center text-lg">
+            Start Assessment Now
+          </a>
+        </div>
+        
+        <div class="mt-12 bg-blue-50 p-6 rounded-lg">
+          <h3 class="text-xl font-bold text-blue-700 mb-4">Assessment Benefits</h3>
+          <ul class="space-y-2">
+            <li class="flex items-center"><span class="text-blue-500 mr-2">✓</span> Earn points toward your professional development</li>
+            <li class="flex items-center"><span class="text-blue-500 mr-2">✓</span> Identify your strengths and areas for growth</li>
+            <li class="flex items-center"><span class="text-blue-500 mr-2">✓</span> Track your progress over time</li>
+            <li class="flex items-center"><span class="text-blue-500 mr-2">✓</span> Advance to higher teacher levels</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <div class="text-center text-gray-500 text-sm">
+      <p>© 2025 MentorMe - Professional Development for Early Childhood Educators</p>
+      <p class="mt-1"><a href="/" class="text-blue-500 hover:underline">Return to Dashboard</a></p>
+    </div>
   </div>
 
   <script>
-    // Redirect after a short delay
-    setTimeout(function() {
-      window.location.href = "https://forms.gle/W8vgp6UTt2PXpCE67";
-    }, 5000);
+    // Simple script to track that the user visited this page
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log("Assessment page loaded successfully");
+      
+      // If you need to communicate back to the main app that the user attempted the assessment
+      // This could be expanded later to integrate with your points system
+      const startButton = document.querySelector('.btn-primary');
+      startButton.addEventListener('click', function() {
+        // This is where you could add code to record that the user started an assessment
+        console.log("User started assessment");
+        
+        // For now, just open the Google Form
+        window.open('https://docs.google.com/forms/d/e/1FAIpQLSfuKxxqApOXCZmQh5hO9V5-_4bWHgTsA-mxEtCmXHmQCscCdw/viewform', '_blank');
+      });
+    });
   </script>
 </body>
 </html>
