@@ -107,6 +107,7 @@ export const learningModules = pgTable("learning_modules", {
       explanation?: string;
     }[]
   }>(),
+  isVisible: boolean("is_visible").default(true), // controls visibility on dashboard
   createdAt: timestamp("created_at").defaultNow(),
 });
 

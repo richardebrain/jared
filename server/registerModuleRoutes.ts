@@ -29,8 +29,8 @@ export function registerModuleRoutes(app: Express): void {
     }
   }); */
 
-  // Update module visibility
-  app.patch("/api/modules/:id/visibility", async (req, res) => {
+  // This route has been moved to routes.ts to avoid conflicts
+  /* app.patch("/api/modules/:id/visibility", async (req, res) => {
     try {
       const moduleId = parseInt(req.params.id);
       const { visible } = req.body;
@@ -59,7 +59,7 @@ export function registerModuleRoutes(app: Express): void {
       console.error("Error updating module visibility:", error);
       res.status(500).json({ message: "Failed to update module visibility" });
     }
-  });
+  }); */
 
   // Run system verification and restore missing modules
   app.get("/api/modules/verify", async (req, res) => {
