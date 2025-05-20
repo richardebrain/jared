@@ -361,6 +361,15 @@ export default function ProfilePage() {
         {/* Right Column - Stats & Achievements */}
         <div>
           <div className="space-y-6">
+            {/* Certification Tracker */}
+            <CertificationTracker
+              userId={profileUser.id}
+              fingerprintExpiration={profileUser.fingerprintExpiration}
+              cprExpiration={profileUser.cprExpiration}
+              firstAidExpiration={profileUser.firstAidExpiration}
+              foodHandlerExpiration={profileUser.foodHandlerExpiration}
+            />
+            
             <Card>
               <CardHeader className="bg-amber-50">
                 <CardTitle className="flex items-center">
