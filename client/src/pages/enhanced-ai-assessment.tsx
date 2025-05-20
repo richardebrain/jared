@@ -1,221 +1,211 @@
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import EnhancedAIAssessment from '@/components/EnhancedAIAssessment';
-import { Link, useLocation } from 'wouter';
-import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, Brain, Trophy, Award, Star } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'wouter';
 
-export default function EnhancedAIAssessmentPage() {
-  const [, setLocation] = useLocation();
-  const [isStarted, setIsStarted] = useState(false);
-  const [completedAssessment, setCompletedAssessment] = useState(false);
-  const [assessmentResults, setAssessmentResults] = useState<{ 
-    score: number; 
-    totalPoints: number;
-    domainAnalysis: any;
-  } | null>(null);
+const assessmentIntroText = `
+  This enhanced assessment adapts to your knowledge level. As you answer correctly, 
+  the questions will increase in difficulty. Your performance will determine your strengths
+  and areas for growth across different early childhood education domains.
+  
+  The assessment includes:
+  • 3 difficulty levels with progressively challenging questions
+  • 10 questions per level (up to 30 total questions)
+  • Immediate feedback with explanations
+  • Domain-specific performance analytics
+  • Points rewards that contribute to your overall teacher level
+  
+  Ready to test your early childhood education knowledge?
+`;
+
+const EnhancedAIAssessmentPage: React.FC = () => {
+  const [started, setStarted] = useState(false);
+  const [completed, setCompleted] = useState(false);
+  const [assessmentResults, setAssessmentResults] = useState<any>(null);
   const { toast } = useToast();
-  
-  // Get user data
-  const { data: user } = useQuery({
-    queryKey: ["/api/auth/me"],
-    retry: false,
-  });
-  
-  // Get previous performance for adaptive mode
-  const { data: userProgress } = useQuery({
-    queryKey: ["/api/user/assessment-progress"],
-    enabled: !!user,
-  });
-  
-  // Calculate previous performance if available
-  const getPreviousPerformance = () => {
-    if (!userProgress || !Array.isArray(userProgress) || userProgress.length === 0) {
-      return 0.5; // Default to 50% for new users
-    }
-    
-    // Calculate average of last 3 assessments, if available
-    const recentAssessments = userProgress.slice(0, 3);
-    const avgScore = recentAssessments.reduce((sum, assessment) => {
-      return sum + (assessment.score / assessment.totalPoints);
-    }, 0) / recentAssessments.length;
-    
-    return avgScore;
-  };
-  
-  const handleComplete = (score: number, totalPoints: number, domainAnalysis: any) => {
-    setCompletedAssessment(true);
-    setAssessmentResults({ score, totalPoints, domainAnalysis });
-    
-    // Save to user's profile through API
-    if (user?.id) {
-      saveAssessmentResults(user.id, score, totalPoints, domainAnalysis);
-    }
-  };
-  
-  const saveAssessmentResults = async (userId: number, score: number, totalPoints: number, domainAnalysis: any) => {
-    try {
-      // Just log the results since we're keeping them locally
-      console.log("Assessment results:", { userId, score, totalPoints, domainAnalysis });
-      
-      // Show success toast
-      toast({
-        title: "Assessment completed!",
-        description: `You earned ${score} points! Great job!`,
-        variant: "default",
-      });
-      
-      // Normally we would save to API here
-      // await fetch('/api/assessment/save-results', {...})
-    } catch (error) {
-      console.error("Error saving assessment results:", error);
-    }
-  };
-  
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
   const handleStartAssessment = () => {
-    setIsStarted(true);
+    setStarted(true);
   };
-  
-  const handleRestartAssessment = () => {
-    setIsStarted(true);
-    setCompletedAssessment(false);
-    setAssessmentResults(null);
+
+  const handleAssessmentComplete = (results: any) => {
+    setAssessmentResults(results);
+    setCompleted(true);
+    
+    // Show completion notification
+    toast({
+      title: "Assessment Completed!",
+      description: `You earned ${results.pointsEarned} points and achieved a score of ${results.score}%`,
+    });
+    
+    // Update user points in the database (would require API call in a real implementation)
+    // This is just simulated for now
+    console.log('Points earned:', results.pointsEarned);
   };
-  
-  if (!isStarted) {
+
+  const handleReturnToDashboard = () => {
+    navigate('/dashboard');
+  };
+
+  const renderDomainAnalysis = () => {
+    if (!assessmentResults) return null;
+    
+    const { domainStrengths, domainWeaknesses } = assessmentResults;
+    
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-green-600">Strengths</CardTitle>
+            <CardDescription>Domains where you excel</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {Object.keys(domainStrengths).length > 0 ? (
+              <ul className="space-y-2">
+                {Object.entries(domainStrengths).map(([domain, percentage]: [string, any]) => (
+                  <li key={domain} className="flex justify-between">
+                    <span className="font-medium">{domain}</span>
+                    <span className="text-green-600 font-bold">{Math.round(percentage)}%</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-slate-500 italic">Keep practicing to discover your strengths</p>
+            )}
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-amber-600">Growth Areas</CardTitle>
+            <CardDescription>Domains to focus on improving</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {Object.keys(domainWeaknesses).length > 0 ? (
+              <ul className="space-y-2">
+                {Object.entries(domainWeaknesses).map(([domain, percentage]: [string, any]) => (
+                  <li key={domain} className="flex justify-between">
+                    <span className="font-medium">{domain}</span>
+                    <span className="text-amber-600 font-bold">{Math.round(percentage)}%</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-slate-500 italic">Great work! Focus on maintaining your knowledge</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
+  if (!started) {
     return (
       <div className="container mx-auto py-8 px-4">
-        <div className="mb-4">
-          <Button variant="ghost" onClick={() => setLocation('/dashboard')} className="flex items-center">
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Dashboard
-          </Button>
-        </div>
-        
-        <Card className="max-w-4xl mx-auto">
-          <CardHeader className="text-center bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
-            <CardTitle className="text-3xl font-bold mb-2 flex items-center justify-center">
-              <Brain className="h-6 w-6 mr-2" />
-              Enhanced AI Assessment
-            </CardTitle>
-            <CardDescription className="text-gray-100 text-lg">
-              Test your early childhood education knowledge with our adaptive assessment system
+        <Card className="max-w-3xl mx-auto">
+          <CardHeader className="text-center bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-t-lg">
+            <CardTitle className="text-2xl">Enhanced AI Assessment</CardTitle>
+            <CardDescription className="text-white/90">
+              Test your early childhood education knowledge
             </CardDescription>
           </CardHeader>
-          
-          <CardContent className="p-8">
-            <Tabs defaultValue="about" className="mb-8">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="about">About</TabsTrigger>
-                <TabsTrigger value="benefits">Benefits</TabsTrigger>
-                <TabsTrigger value="features">Features</TabsTrigger>
-              </TabsList>
+          <CardContent className="p-6">
+            <div className="prose prose-slate max-w-none">
+              <p className="text-lg font-medium mb-4">Welcome, {user?.firstName || 'Teacher'}!</p>
               
-              <TabsContent value="about" className="py-4">
-                <h3 className="text-xl font-semibold mb-3">What is the Enhanced AI Assessment?</h3>
-                <p className="text-gray-700 mb-4">
-                  This assessment draws from our comprehensive database of early childhood education questions 
-                  to evaluate your professional knowledge. The system adapts to your performance, 
-                  providing a personalized learning experience that identifies your strengths and areas for growth.
+              <p className="mb-4">
+                This assessment will evaluate your knowledge across multiple ECE domains
+                including child development, classroom management, and teaching practices.
+              </p>
+              
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
+                <h3 className="text-blue-800 font-medium mb-2">How It Works</h3>
+                <p className="text-blue-700 whitespace-pre-line">{assessmentIntroText}</p>
+              </div>
+              
+              <div className="bg-amber-50 p-4 rounded-lg border border-amber-100 mb-6">
+                <h3 className="text-amber-800 font-medium mb-2">Important Note</h3>
+                <p className="text-amber-700">
+                  You can exit the assessment at any time, but your progress won't be saved.
+                  Make sure you have 15-30 minutes available to complete the assessment.
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                  <div className="flex items-start">
-                    <div className="bg-purple-100 p-2 rounded-full mr-3">
-                      <Brain className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold mb-1">Adaptive Difficulty</h4>
-                      <p className="text-sm text-gray-600">Questions adjust based on your performance</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start">
-                    <div className="bg-blue-100 p-2 rounded-full mr-3">
-                      <Trophy className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold mb-1">Point System</h4>
-                      <p className="text-sm text-gray-600">Earn points based on question difficulty</p>
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="benefits" className="py-4">
-                <h3 className="text-xl font-semibold mb-3">Why Take This Assessment?</h3>
-                <div className="space-y-4">
-                  <div className="flex items-start">
-                    <Award className="h-5 w-5 text-amber-500 mr-2 mt-0.5" />
-                    <div>
-                      <h4 className="font-semibold">Identify Knowledge Gaps</h4>
-                      <p className="text-gray-700">Discover specific areas where you can improve your ECE knowledge.</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start">
-                    <Award className="h-5 w-5 text-amber-500 mr-2 mt-0.5" />
-                    <div>
-                      <h4 className="font-semibold">Track Your Progress</h4>
-                      <p className="text-gray-700">See how your knowledge improves over time with detailed analytics.</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start">
-                    <Award className="h-5 w-5 text-amber-500 mr-2 mt-0.5" />
-                    <div>
-                      <h4 className="font-semibold">Learn As You Go</h4>
-                      <p className="text-gray-700">Each question includes detailed explanations and scientific background information.</p>
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="features" className="py-4">
-                <h3 className="text-xl font-semibold mb-3">Key Features</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="font-semibold flex items-center">
-                      <Star className="h-4 w-4 text-yellow-500 mr-2" />
-                      Domain Analysis
-                    </h4>
-                    <p className="text-sm text-gray-600">Visualize your performance across different ECE domains.</p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="font-semibold flex items-center">
-                      <Star className="h-4 w-4 text-yellow-500 mr-2" />
-                      Personalized Feedback
-                    </h4>
-                    <p className="text-sm text-gray-600">Get tailored recommendations based on your responses.</p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="font-semibold flex items-center">
-                      <Star className="h-4 w-4 text-yellow-500 mr-2" />
-                      Scientific Background
-                    </h4>
-                    <p className="text-sm text-gray-600">Understand the research behind early childhood education principles.</p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="font-semibold flex items-center">
-                      <Star className="h-4 w-4 text-yellow-500 mr-2" />
-                      Practical Applications
-                    </h4>
-                    <p className="text-sm text-gray-600">Learn how to apply concepts in your classroom.</p>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
+              </div>
+            </div>
             
-            <div className="flex flex-col items-center justify-center space-y-4 mt-8">
+            <div className="flex justify-center mt-8">
               <Button 
                 size="lg" 
                 onClick={handleStartAssessment}
-                className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-8 py-6 text-lg"
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
               >
-                Start Assessment
+                Begin Assessment
               </Button>
-              <p className="text-sm text-gray-500">
-                This assessment has 10 questions and takes approximately 15 minutes to complete.
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (completed && assessmentResults) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <Card className="max-w-3xl mx-auto">
+          <CardHeader className="text-center bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-t-lg">
+            <CardTitle className="text-2xl">Assessment Completed!</CardTitle>
+            <CardDescription className="text-white/90">
+              Great job on completing the enhanced assessment
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold mb-2">Your Score: {assessmentResults.score}%</h2>
+              <p className="text-lg text-slate-600">
+                You earned <span className="font-bold text-green-600">{assessmentResults.pointsEarned} points</span>
               </p>
+              <p className="text-slate-500 mt-1">
+                Time taken: {Math.floor(assessmentResults.timeTaken / 60)} minutes {assessmentResults.timeTaken % 60} seconds
+              </p>
+            </div>
+            
+            <div className="bg-blue-50 p-4 rounded-lg mb-6">
+              <h3 className="text-blue-800 font-medium mb-2">Assessment Summary</h3>
+              <div className="grid grid-cols-2 gap-4 text-center">
+                <div>
+                  <p className="text-slate-600">Questions Answered</p>
+                  <p className="text-xl font-bold">{assessmentResults.totalQuestions}</p>
+                </div>
+                <div>
+                  <p className="text-slate-600">Correct Answers</p>
+                  <p className="text-xl font-bold text-green-600">{assessmentResults.correctAnswers}</p>
+                </div>
+                <div>
+                  <p className="text-slate-600">Highest Difficulty</p>
+                  <p className="text-xl font-bold">{assessmentResults.difficulty}/3</p>
+                </div>
+                <div>
+                  <p className="text-slate-600">Accuracy</p>
+                  <p className="text-xl font-bold">{Math.round((assessmentResults.correctAnswers / assessmentResults.totalQuestions) * 100)}%</p>
+                </div>
+              </div>
+            </div>
+            
+            <h3 className="text-xl font-bold mb-4">Domain Analysis</h3>
+            {renderDomainAnalysis()}
+            
+            <div className="flex justify-center mt-8">
+              <Button 
+                size="lg" 
+                onClick={handleReturnToDashboard}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+              >
+                Return to Dashboard
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -225,27 +215,13 @@ export default function EnhancedAIAssessmentPage() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      {!completedAssessment && (
-        <div className="mb-4">
-          <Button 
-            variant="ghost" 
-            onClick={() => setIsStarted(false)} 
-            className="flex items-center"
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Description
-          </Button>
-        </div>
-      )}
-      
       <EnhancedAIAssessment 
-        onComplete={handleComplete}
-        onCancel={() => setLocation('/dashboard')}
-        maxQuestions={10}
-        adaptiveMode={true}
-        previousPerformance={getPreviousPerformance()}
-        userName={user?.firstName || ''}
+        teacherId={user?.id || 1}
+        teacherName={user?.firstName || 'Teacher'}
+        onComplete={handleAssessmentComplete}
       />
     </div>
   );
-}
+};
+
+export default EnhancedAIAssessmentPage;
