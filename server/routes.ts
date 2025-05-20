@@ -1797,7 +1797,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Special access for jlcookie20 user (bypass daily limit)
-      const isSpecialUser = user.username === 'jlcookie20';
+      // Special users and Laura (user ID 5) bypass game limitations
+      const isSpecialUser = user.username === 'jlcookie20' || user.id === 5;
       
       // Only check if the user has already played if they're not a special user
       if (!isSpecialUser) {
