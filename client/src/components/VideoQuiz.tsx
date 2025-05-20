@@ -686,68 +686,174 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
     );
   }
 
+  // For extreme mobile optimization
+  if (isMobile) {
+    return (
+      <div className="fixed inset-0 bg-background/80 z-50 overflow-y-auto">
+        <div className="bg-card p-1.5 w-full h-full flex flex-col">
+          {/* Minimal Header */}
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-semibold">Video Quiz</span>
+            <button onClick={onClose} className="p-0.5" aria-label="Close">
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+          
+          {/* Minimal Progress */}
+          <div className="mb-1 mt-0.5">
+            <div className="flex justify-between text-[8px]">
+              <span>{showImplementation ? "Final" : `Q${currentQuestionIndex + 1}/${questions.length}`}</span>
+              <span className="truncate max-w-32">{videoTitle}</span>
+            </div>
+            <Progress value={progress} className="h-0.5 mt-0.5" />
+          </div>
+          
+          {/* Compact Question */}
+          <div className="border rounded p-1 mb-1 flex-1 overflow-y-auto">
+            {!showImplementation ? (
+              <>
+                <p className="text-[10px] font-medium mb-1.5 leading-tight">
+                  {questions[currentQuestionIndex]?.question}
+                </p>
+                
+                <div className="space-y-1">
+                  {questions[currentQuestionIndex]?.options.map((option, index) => (
+                    <div
+                      key={index}
+                      className={`p-1 rounded border cursor-pointer text-[9px] ${
+                        selectedAnswer === option
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border'
+                      }`}
+                      onClick={() => handleSelectAnswer(option)}
+                    >
+                      <div className="flex items-start">
+                        <div className={`w-2.5 h-2.5 rounded-full border flex-shrink-0 flex items-center justify-center mr-0.5 ${
+                          selectedAnswer === option 
+                            ? 'border-primary bg-primary text-primary-foreground' 
+                            : 'border-muted-foreground'
+                        }`}>
+                          {selectedAnswer === option && <Check className="h-1 w-1" />}
+                        </div>
+                        <span className="leading-tight">{option}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-[10px] font-medium mb-1 leading-tight">
+                  {implementationQuestion?.question}
+                </p>
+                <Textarea
+                  placeholder="How would you apply this in your classroom? (50 char min)"
+                  className="min-h-[60px] text-[9px]"
+                  value={implementationAnswer}
+                  onChange={(e) => setImplementationAnswer(e.target.value)}
+                />
+                <div className="flex justify-end mt-0.5">
+                  <span className={`text-[7px] ${
+                    implementationAnswer.length < 50 ? 'text-destructive' : 'text-muted-foreground'
+                  }`}>
+                    {implementationAnswer.length}/50
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+          
+          {/* Navigation */}
+          <div className="flex justify-between mt-auto">
+            <button 
+              onClick={onClose}
+              className="border rounded text-[8px] px-1 py-0.5 h-5 flex items-center"
+            >
+              <ArrowLeft className="h-1.5 w-1.5 mr-0.5" />
+              Cancel
+            </button>
+            
+            <button 
+              onClick={handleNextQuestion} 
+              disabled={!selectedAnswer && !showImplementation}
+              className={`rounded text-[8px] px-1 py-0.5 h-5 flex items-center ${
+                (!selectedAnswer && !showImplementation) 
+                  ? 'bg-muted text-muted-foreground' 
+                  : 'bg-primary text-primary-foreground'
+              }`}
+            >
+              {showImplementation ? 'Complete' : 'Next'}
+              <ChevronRight className="h-1.5 w-1.5 ml-0.5" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Regular desktop version
   return (
-    <div className="fixed inset-0 bg-background/80 z-50 overflow-y-auto flex flex-col">
-      <div className="bg-card rounded-xl p-2 sm:p-6 w-full max-w-3xl mx-auto shadow-lg my-auto overflow-y-visible">
+    <div className="fixed inset-0 bg-background/80 z-50 overflow-y-auto flex items-center justify-center">
+      <div className="bg-card rounded-xl p-6 w-full max-w-3xl mx-auto shadow-lg my-4">
         {/* Quiz Header */}
-        <div className="flex justify-between items-center mb-2 sm:mb-4 bg-card">
-          <h2 className="text-base sm:text-xl font-bold">Video Quiz</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">Video Quiz</h2>
           <button
             onClick={onClose}
             className="p-1 hover:bg-accent rounded-full"
             aria-label="Close quiz"
           >
-            <X className="h-4 w-4 sm:h-5 sm:w-5" />
+            <X className="h-5 w-5" />
           </button>
         </div>
         
         {/* Progress Bar */}
-        <div className="mb-2 sm:mb-6 px-0.5">
-          <div className="flex items-center justify-between mb-1 sm:mb-2">
-            <span className="text-[10px] sm:text-sm font-medium">
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium">
               {showImplementation 
                 ? "Final Question" 
                 : `Question ${currentQuestionIndex + 1} of ${questions.length}`}
             </span>
-            <Badge variant="outline" className="flex items-center text-[10px] sm:text-xs py-0 px-1 sm:px-2 h-4 sm:h-auto">
-              <Video className="h-2 w-2 sm:h-3 sm:w-3 mr-0.5 sm:mr-1 flex-shrink-0" />
-              <span className="truncate max-w-[120px] sm:max-w-[200px]">{videoTitle}</span>
+            <Badge variant="outline" className="flex items-center">
+              <Video className="h-3 w-3 mr-1" />
+              <span className="truncate max-w-[300px]">{videoTitle}</span>
             </Badge>
           </div>
-          <Progress value={progress} className="h-1 sm:h-2" />
+          <Progress value={progress} className="h-2" />
         </div>
         
         {/* Question Display */}
-        <Card className="p-1.5 sm:p-6 mb-2 sm:mb-6 border-[1px]">
+        <Card className="p-6 mb-6">
           {!showImplementation ? (
             <>
               {/* Multiple Choice Questions */}
-              <h3 className="text-[11px] sm:text-lg font-semibold mb-1.5 sm:mb-4 leading-tight sm:leading-normal">
+              <h3 className="text-lg font-semibold mb-4">
                 {questions[currentQuestionIndex]?.question}
               </h3>
               
-              <div className="space-y-1 sm:space-y-3">
+              <div className="space-y-3">
                 {questions[currentQuestionIndex]?.options.map((option, index) => (
                   <div
                     key={index}
-                    className={`p-1 sm:p-3 rounded-lg border cursor-pointer transition-all text-[10px] sm:text-base ${
+                    className={`p-3 rounded-lg border cursor-pointer transition-all ${
                       selectedAnswer === option
                         ? 'border-primary bg-primary/10 dark:bg-primary/20'
                         : 'border-border hover:border-primary/50 hover:bg-accent'
                     }`}
                     onClick={() => handleSelectAnswer(option)}
                   >
-                    <div className="flex items-start">
-                      <div className={`flex-shrink-0 w-3 h-3 sm:w-5 sm:h-5 rounded-full border flex items-center justify-center mt-[1px] mr-1 sm:mr-3 ${
+                    <div className="flex items-center">
+                      <div className={`flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center mr-3 ${
                         selectedAnswer === option 
                           ? 'border-primary bg-primary text-primary-foreground' 
                           : 'border-muted-foreground'
                       }`}>
                         {selectedAnswer === option && (
-                          <Check className="h-1.5 w-1.5 sm:h-3 sm:w-3" />
+                          <Check className="h-3 w-3" />
                         )}
                       </div>
-                      <span className={`${selectedAnswer === option ? 'font-medium' : ''} leading-tight`}>{option}</span>
+                      <span className={selectedAnswer === option ? 'font-medium' : ''}>{option}</span>
                     </div>
                   </div>
                 ))}
@@ -756,17 +862,17 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
           ) : (
             <>
               {/* Implementation Question */}
-              <h3 className="text-[11px] sm:text-lg font-semibold mb-1.5 sm:mb-4 leading-tight sm:leading-normal">
+              <h3 className="text-lg font-semibold mb-4">
                 {implementationQuestion?.question}
               </h3>
               <Textarea
-                placeholder="Share how you could apply this in your classroom (50 char min)..."
-                className="min-h-[60px] sm:min-h-[120px] text-[10px] sm:text-base"
+                placeholder="Share at least one specific way you could apply this video's content in your classroom (minimum 50 characters)..."
+                className="min-h-[120px]"
                 value={implementationAnswer}
                 onChange={(e) => setImplementationAnswer(e.target.value)}
               />
-              <div className="flex justify-end mt-0.5 sm:mt-2">
-                <span className={`text-[8px] sm:text-xs ${
+              <div className="flex justify-end mt-2">
+                <span className={`text-xs ${
                   implementationAnswer.length < 50 ? 'text-destructive' : 'text-muted-foreground'
                 }`}>
                   {implementationAnswer.length}/50 characters minimum
@@ -777,25 +883,21 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
         </Card>
         
         {/* Navigation */}
-        <div className="flex justify-between bg-card mb-1">
+        <div className="flex justify-between">
           <Button 
             variant="outline"
             onClick={onClose}
-            size="sm"
-            className="text-[8px] sm:text-sm px-1.5 py-1 sm:px-3 sm:py-2 h-6 sm:h-9"
           >
-            <ArrowLeft className="h-2 w-2 sm:h-4 sm:w-4 mr-0.5 sm:mr-2" />
+            <ArrowLeft className="h-4 w-4 mr-2" />
             Cancel
           </Button>
           
           <Button 
             onClick={handleNextQuestion} 
             disabled={!selectedAnswer && !showImplementation}
-            size="sm"
-            className="text-[8px] sm:text-sm px-1.5 py-1 sm:px-3 sm:py-2 h-6 sm:h-9"
           >
             {showImplementation ? 'Complete Quiz' : 'Next Question'}
-            <ChevronRight className="h-2 w-2 sm:h-4 sm:w-4 ml-0.5 sm:ml-2" />
+            <ChevronRight className="h-4 w-4 ml-2" />
           </Button>
         </div>
       </div>
