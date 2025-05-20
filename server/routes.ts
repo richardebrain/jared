@@ -712,7 +712,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/modules/:id", requireAuth, requirePaidAccess, async (req, res) => {
+  app.get("/api/modules/:id", requireAuth, requirePaidAccess, async (req, res, next) => {
     try {
       // Special case: Skip this handler for management route
       if (req.params.id === 'management') {
@@ -3414,12 +3414,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Module Management API - Get all modules with visibility status
+  // Module Management API - Get all modules with visibility status for admin panel
   app.get("/api/modules/management", requireAuth, requireAdmin, async (req, res) => {
     try {
+      console.log("Fetching all modules with visibility status for admin panel");
       const allModules = await db.query.learningModules.findMany({
         orderBy: (modules, { desc }) => [desc(modules.createdAt)]
       });
+      console.log(`Retrieved ${allModules.length} modules for admin panel`);
       res.json(allModules);
     } catch (error) {
       console.error("Error getting modules with visibility:", error);

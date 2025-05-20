@@ -7,8 +7,8 @@ import { ModuleManager } from "./module-management/moduleManager";
  * frontend with the backend for controlling learning module visibility
  */
 export function registerModuleRoutes(app: Express): void {
-  // Get all modules with visibility status for admin panel
-  app.get("/api/modules/management", async (req, res) => {
+  // This route has been moved to routes.ts to avoid conflicts
+  /* app.get("/api/modules/management", async (req, res) => {
     try {
       const allModules = await ModuleManager.getAllModulesWithVisibility();
       res.json(allModules);
@@ -16,10 +16,10 @@ export function registerModuleRoutes(app: Express): void {
       console.error("Error getting modules with visibility:", error);
       res.status(500).json({ message: "Failed to retrieve modules" });
     }
-  });
+  }); */
 
-  // Get only visible modules for dashboard
-  app.get("/api/modules/visible", async (req, res) => {
+  // This route has been moved to routes.ts to avoid conflicts
+  /* app.get("/api/modules/visible", async (req, res) => {
     try {
       const visibleModules = await ModuleManager.getVisibleModules();
       res.json(visibleModules);
@@ -27,7 +27,7 @@ export function registerModuleRoutes(app: Express): void {
       console.error("Error getting visible modules:", error);
       res.status(500).json({ message: "Failed to retrieve visible modules" });
     }
-  });
+  }); */
 
   // Update module visibility
   app.patch("/api/modules/:id/visibility", async (req, res) => {
