@@ -18,6 +18,7 @@ import AIAssessmentPage from "@/pages/ai-assessment";
 import SimpleAIAssessmentPage from "@/pages/simple-ai-assessment";
 import EnhancedAIAssessmentPage from "@/pages/enhanced-ai-assessment";
 import BasicAIAssessmentPage from "@/pages/basic-ai-assessment";
+import DynamicAssessmentPage from "@/pages/dynamic-assessment";
 import LearningModulePage from "@/pages/learning-module";
 import MicroModulePage from "@/pages/micro-module";
 import LearningStylePage from "@/pages/learning-style";
@@ -248,6 +249,10 @@ function Router() {
       
       <Route path="/basic-ai-assessment">
         {isAuthenticated ? <BasicAIAssessmentPage /> : <Login />}
+      </Route>
+      
+      <Route path="/dynamic-assessment">
+        {isAuthenticated ? <DynamicAssessmentPage /> : <Login />}
       </Route>
       
       <Route path="/schools/:schoolId">
