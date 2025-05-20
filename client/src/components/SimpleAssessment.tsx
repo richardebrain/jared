@@ -5,11 +5,10 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Trophy, Star, Lightbulb, ThumbsUp } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
 import confetti from 'canvas-confetti';
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 
 interface Question {
   id: number;
@@ -281,9 +280,8 @@ const encouragementMessages = [
 ];
 
 const SimpleAssessment: React.FC = () => {
-  const { user } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
   
   const [selectedDomain, setSelectedDomain] = useState<number | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
@@ -382,8 +380,6 @@ const SimpleAssessment: React.FC = () => {
   
   // Save results to server
   const saveResults = async () => {
-    if (!user) return;
-    
     try {
       // Calculate accuracy
       const accuracy = correctAnswers > 0 ? (correctAnswers / questionsAnswered) * 100 : 0;
@@ -391,9 +387,9 @@ const SimpleAssessment: React.FC = () => {
       // Points to add (minimum 5 points for participating)
       const pointsToAdd = Math.max(5, totalPoints);
       
-      // Save assessment results
+      // Save assessment results in the user session
+      // (The server will get the user ID from the session)
       await axios.post('/api/assessments', {
-        userId: user.id,
         domain: domainData?.name || 'General Knowledge',
         questionsAnswered,
         correctAnswers,
@@ -404,7 +400,6 @@ const SimpleAssessment: React.FC = () => {
       
       // Update user points
       await axios.post('/api/users/points', {
-        userId: user.id,
         points: pointsToAdd,
         source: 'assessment',
         description: `Completed ${domainData?.name} assessment`
@@ -431,7 +426,7 @@ const SimpleAssessment: React.FC = () => {
   const handleContinue = () => {
     if (isComplete) {
       // Return to dashboard
-      navigate('/dashboard');
+      setLocation('/dashboard');
     } else {
       // Go to next question
       selectRandomQuestion();
