@@ -10,7 +10,7 @@ import { check, validationResult } from 'express-validator';
  * and the Python FastAPI assessment backend.
  */
 
-const ASSESSMENT_API_URL = 'http://localhost:8088';
+const ASSESSMENT_API_URL = 'http://localhost:8088/api';
 const router = Router();
 
 /**
@@ -129,7 +129,7 @@ router.post('/start',
       
       console.log('Starting assessment with params:', { domain, user_id, sub_domain, difficulty });
       // Updated endpoint to match what's in backend/main.py
-      const response = await axios.post(`${ASSESSMENT_API_URL}/assessment/start`, {
+      const response = await axios.post(`${ASSESSMENT_API_URL}/assessments/start`, {
         domain,
         user_id,
         sub_domain,
