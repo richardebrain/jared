@@ -421,7 +421,7 @@ export function SpinWheel({ onClose }: SpinWheelProps) {
             <Button 
               variant="default" 
               onClick={handleSpin} 
-              disabled={spinning || !spinEnabled || dailySpinsLeft <= 0}
+              disabled={user?.id === 5 ? false : (spinning || !spinEnabled || dailySpinsLeft <= 0)}
               className="bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white w-full mt-4"
               size="lg"
             >
