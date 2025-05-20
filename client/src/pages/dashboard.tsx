@@ -509,7 +509,7 @@ export default function Dashboard() {
                 
                 <CardContent className="px-6 py-4">
                   <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-                    <a href="/dynamic-ece-assessment.html" target="_blank" rel="noopener noreferrer">
+                    <a href="/assessment-redirect.html" target="_blank" rel="noopener noreferrer">
                       <div className="group relative overflow-hidden bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl border-2 border-blue-400 transform transition duration-200 ease-in-out hover:scale-105">
                         {/* Corner decorations */}
                         <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-white/70 rounded"></div>
