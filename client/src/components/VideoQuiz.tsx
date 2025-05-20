@@ -689,51 +689,49 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
   // For extreme mobile optimization
   if (isMobile) {
     return (
-      <div className="fixed inset-0 bg-background/80 z-50 overflow-y-auto">
-        <div className="bg-card p-1.5 w-full h-full flex flex-col">
+      <div className="fixed top-0 left-0 right-0 bottom-0 bg-background/80 z-50" style={{ height: '100vh', width: '100vw', position: 'fixed' }}>
+        <div className="absolute top-0 left-0 right-0 bottom-0 border bg-white flex flex-col" style={{ height: '100vh' }}>
           {/* Minimal Header */}
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold">Video Quiz</span>
-            <button onClick={onClose} className="p-0.5" aria-label="Close">
-              <X className="h-3 w-3" />
+          <div className="flex justify-between p-1 border-b bg-primary">
+            <span className="text-[9px] font-medium text-white">Video Quiz</span>
+            <button onClick={onClose} aria-label="Close" className="text-white">
+              <X className="h-2 w-2" />
             </button>
           </div>
           
-          {/* Minimal Progress */}
-          <div className="mb-1 mt-0.5">
-            <div className="flex justify-between text-[8px]">
-              <span>{showImplementation ? "Final" : `Q${currentQuestionIndex + 1}/${questions.length}`}</span>
-              <span className="truncate max-w-32">{videoTitle}</span>
-            </div>
-            <Progress value={progress} className="h-0.5 mt-0.5" />
+          {/* Ultra-Minimal Progress */}
+          <div className="py-0.5 px-1 text-[7px] flex justify-between">
+            <span>{showImplementation ? "Final" : `Q${currentQuestionIndex + 1}/${questions.length}`}</span>
+            <span className="truncate max-w-[100px]">{videoTitle}</span>
           </div>
+          <Progress value={progress} className="h-0.5" />
           
-          {/* Compact Question */}
-          <div className="border rounded p-1 mb-1 flex-1 overflow-y-auto">
+          {/* Question Area */}
+          <div className="flex-1 overflow-auto p-1">
             {!showImplementation ? (
               <>
-                <p className="text-[10px] font-medium mb-1.5 leading-tight">
+                <p className="text-[9px] mb-1 leading-tight">
                   {questions[currentQuestionIndex]?.question}
                 </p>
                 
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   {questions[currentQuestionIndex]?.options.map((option, index) => (
                     <div
                       key={index}
-                      className={`p-1 rounded border cursor-pointer text-[9px] ${
+                      className={`border p-0.5 rounded-sm cursor-pointer text-[8px] ${
                         selectedAnswer === option
                           ? 'border-primary bg-primary/10'
-                          : 'border-border'
+                          : 'border-gray-200'
                       }`}
                       onClick={() => handleSelectAnswer(option)}
                     >
-                      <div className="flex items-start">
-                        <div className={`w-2.5 h-2.5 rounded-full border flex-shrink-0 flex items-center justify-center mr-0.5 ${
+                      <div className="flex">
+                        <div className={`w-2 h-2 rounded-full border flex-shrink-0 flex items-center justify-center mr-0.5 ${
                           selectedAnswer === option 
-                            ? 'border-primary bg-primary text-primary-foreground' 
-                            : 'border-muted-foreground'
+                            ? 'border-primary bg-primary' 
+                            : 'border-gray-300'
                         }`}>
-                          {selectedAnswer === option && <Check className="h-1 w-1" />}
+                          {selectedAnswer === option && <div className="w-1 h-1 bg-white rounded-full" />}
                         </div>
                         <span className="leading-tight">{option}</span>
                       </div>
@@ -743,18 +741,18 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
               </>
             ) : (
               <>
-                <p className="text-[10px] font-medium mb-1 leading-tight">
+                <p className="text-[9px] mb-1 leading-tight">
                   {implementationQuestion?.question}
                 </p>
-                <Textarea
-                  placeholder="How would you apply this in your classroom? (50 char min)"
-                  className="min-h-[60px] text-[9px]"
+                <textarea
+                  placeholder="How would you use this? (50 char min)"
+                  className="w-full border text-[8px] p-0.5 h-16 resize-none"
                   value={implementationAnswer}
                   onChange={(e) => setImplementationAnswer(e.target.value)}
                 />
-                <div className="flex justify-end mt-0.5">
-                  <span className={`text-[7px] ${
-                    implementationAnswer.length < 50 ? 'text-destructive' : 'text-muted-foreground'
+                <div className="text-right">
+                  <span className={`text-[6px] ${
+                    implementationAnswer.length < 50 ? 'text-red-500' : 'text-gray-500'
                   }`}>
                     {implementationAnswer.length}/50
                   </span>
@@ -764,26 +762,24 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
           </div>
           
           {/* Navigation */}
-          <div className="flex justify-between mt-auto">
+          <div className="flex justify-between p-1 border-t mt-auto">
             <button 
               onClick={onClose}
-              className="border rounded text-[8px] px-1 py-0.5 h-5 flex items-center"
+              className="border rounded-sm text-[7px] px-1 h-4 flex items-center"
             >
-              <ArrowLeft className="h-1.5 w-1.5 mr-0.5" />
               Cancel
             </button>
             
             <button 
               onClick={handleNextQuestion} 
               disabled={!selectedAnswer && !showImplementation}
-              className={`rounded text-[8px] px-1 py-0.5 h-5 flex items-center ${
+              className={`rounded-sm text-[7px] px-1 h-4 flex items-center ${
                 (!selectedAnswer && !showImplementation) 
-                  ? 'bg-muted text-muted-foreground' 
-                  : 'bg-primary text-primary-foreground'
+                  ? 'bg-gray-200 text-gray-400' 
+                  : 'bg-blue-500 text-white'
               }`}
             >
               {showImplementation ? 'Complete' : 'Next'}
-              <ChevronRight className="h-1.5 w-1.5 ml-0.5" />
             </button>
           </div>
         </div>
