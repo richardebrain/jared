@@ -10,6 +10,8 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import confetti from 'canvas-confetti';
 import useSoundEffects from '@/hooks/use-sound-effects';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 // Define interfaces for quiz questions
 export interface QuizQuestion {
