@@ -714,13 +714,14 @@ export default function Dashboard() {
                     Earn points and track your progress with our new gamified assessment experience.
                   </p>
                   <div className="flex justify-end">
-                    <Button 
-                      className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white"
-                      onClick={() => setLocation('/simple-assessment')}
-                    >
-                      Start Assessment
-                      <ArrowRight className="h-4 w-4 ml-1" />
-                    </Button>
+                    <Link href="/simple-assessment">
+                      <Button 
+                        className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white"
+                      >
+                        Start Assessment
+                        <ArrowRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>
