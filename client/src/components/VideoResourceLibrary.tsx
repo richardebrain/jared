@@ -74,11 +74,14 @@ export function VideoResourceLibrary({
         const response = await fetch('/api/videos/completions');
         if (response.ok) {
           const data = await response.json();
+          
           // Calculate how many videos can still earn points today (max 2)
+          // Only count completions that have points awarded - those are the ones that count against daily limit
           const completedToday = data.filter((completion: any) => {
             const completedDate = new Date(completion.completedAt);
             const today = new Date();
-            return completedDate.toDateString() === today.toDateString();
+            // Only count if it was completed today AND has points awarded
+            return completedDate.toDateString() === today.toDateString() && completion.pointsEarned > 0;
           }).length;
           
           setVideosRemaining(Math.max(0, 2 - completedToday));
