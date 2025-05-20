@@ -150,24 +150,30 @@ export default function ScratchCard({ maxDailyScratchCards = 3 }: ScratchCardPro
           return;
         }
         
-        // Check if user has completed activities by checking their points
+        // Check if user has earned enough points
         if (user && user.points) {
-          // Each activity completion should allow for 1 scratch card (up to the max)
+          // Lower threshold to 5 points to unlock scratch cards (consistent with SpinWheel)
           const pointsEarned = user.points || 0;
-          const activitiesCompleted = Math.min(maxDailyScratchCards, Math.floor(pointsEarned / 2));
+          const hasEnoughPoints = pointsEarned >= 5;
+          
+          // Each 5 points earns 1 scratch card (up to the max)
+          const cardsEarned = Math.floor(pointsEarned / 5);
+          const availableCards = Math.min(maxDailyScratchCards, cardsEarned);
           
           // Debug logging
           console.log("ScratchCard eligibility check:", {
             userId: user.id,
             username: user.username,
             userPoints: pointsEarned,
-            activitiesCompleted,
-            dailyCardsAllowed: activitiesCompleted
+            requiredPoints: 5,
+            hasEnoughPoints,
+            cardsEarned,
+            availableCards
           });
           
-          setDailyCardsLeft(activitiesCompleted);
+          setDailyCardsLeft(hasEnoughPoints ? availableCards : 0);
         } else {
-          // No activities completed, no scratch cards available
+          // No points earned, no scratch cards available
           console.log("ScratchCard eligibility: User has no points");
           setDailyCardsLeft(0);
         }

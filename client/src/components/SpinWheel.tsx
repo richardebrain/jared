@@ -170,31 +170,34 @@ export function SpinWheel({ onClose }: SpinWheelProps) {
   }, [user]);
 
   const checkSpinEligibility = () => {
-    // Enable spinning if the user is logged in and has points
-    // Users earn points by completing activities
-    const hasCompletedActivities = user && user.points > 0;
+    // Enable spinning if the user is logged in and has earned at least 5 points
+    const pointsEarned = user?.points || 0;
+    const hasEnoughPoints = pointsEarned >= 5;
     
     // Debug logging
     console.log("SpinWheel eligibility check:", { 
       userId: user?.id,
-      userPoints: user?.points,
-      hasCompletedActivities 
+      username: user?.username,
+      userPoints: pointsEarned,
+      requiredPoints: 5,
+      hasEnoughPoints,
+      isEnabled: hasEnoughPoints
     });
     
-    setSpinEnabled(hasCompletedActivities);
+    // Enable the game if user has enough points
+    setSpinEnabled(hasEnoughPoints);
     
-    // Set daily spins based on activity completion
-    // Each activity completion should allow for 1 spin (up to a max of 3)
-    const pointsEarned = user?.points || 0;
-    const activitiesCompleted = Math.min(3, Math.floor(pointsEarned / 2));
+    // Set daily spins based on points (1 spin per 5 points, up to max)
+    const spinsEarned = Math.floor(pointsEarned / 5);
+    const availableSpins = Math.min(3, spinsEarned);
     
     console.log("Spin daily limit calculation:", {
       pointsEarned,
-      activitiesCompleted,
-      dailySpinsAllowed: activitiesCompleted
+      spinsEarned,
+      availableSpins
     });
     
-    setDailySpinsLeft(activitiesCompleted);
+    setDailySpinsLeft(availableSpins);
   };
 
   const getRandomPrize = (): Prize => {
