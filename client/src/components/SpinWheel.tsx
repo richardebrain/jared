@@ -170,13 +170,16 @@ export function SpinWheel({ onClose }: SpinWheelProps) {
   }, [user]);
 
   const checkSpinEligibility = () => {
-    // In a real implementation, this would check the user's history
-    // For now, we'll just enable spinning if the user is logged in
-    setSpinEnabled(!!user);
+    // Enable spinning if the user is logged in and has points
+    // Users earn points by completing activities
+    const hasCompletedActivities = user && user.points > 0;
+    setSpinEnabled(hasCompletedActivities);
     
-    // Simulate daily spins count (in real app, this would come from the database)
-    // 3 spins per day is a common pattern in games
-    setDailySpinsLeft(3);
+    // Set daily spins based on activity completion
+    // Each activity completion should allow for 1 spin (up to a max of 3)
+    const pointsEarned = user?.points || 0;
+    const activitiesCompleted = Math.min(3, Math.floor(pointsEarned / 2));
+    setDailySpinsLeft(activitiesCompleted);
   };
 
   const getRandomPrize = (): Prize => {

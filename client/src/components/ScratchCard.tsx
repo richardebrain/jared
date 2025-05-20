@@ -137,7 +137,7 @@ export default function ScratchCard({ maxDailyScratchCards = 3 }: ScratchCardPro
     }
   });
 
-  // Fetch game history to determine if user has already played today
+  // Fetch game history and check user's eligibility to play based on activities completed
   useEffect(() => {
     const fetchGameHistory = async () => {
       try {
@@ -150,38 +150,53 @@ export default function ScratchCard({ maxDailyScratchCards = 3 }: ScratchCardPro
           return;
         }
         
-        // Check game history from API if localStorage doesn't have the info
+        // Check if user has completed activities by checking their points
+        if (user && user.points) {
+          // Each activity completion should allow for 1 scratch card (up to the max)
+          const pointsEarned = user.points || 0;
+          const activitiesCompleted = Math.min(maxDailyScratchCards, Math.floor(pointsEarned / 2));
+          setDailyCardsLeft(activitiesCompleted);
+        } else {
+          // No activities completed, no scratch cards available
+          setDailyCardsLeft(0);
+        }
+
+        // Also check game history from API
         const gameHistory = await apiRequest('/api/games/history', {
           method: 'GET'
         });
         
-        if (Array.isArray(gameHistory)) {
-          // Check if any game was played today
+        if (Array.isArray(gameHistory) && gameHistory.length > 0) {
+          // Check if any game was played today and adjust remaining cards
           const todayStart = new Date();
           todayStart.setHours(0, 0, 0, 0);
           
-          const playedToday = gameHistory.some(game => {
+          const gamesPlayedToday = gameHistory.filter(game => {
             if (!game.completedAt) return false;
             const gameDate = new Date(game.completedAt);
             return gameDate >= todayStart;
-          });
+          }).length;
           
-          setDailyCardsLeft(playedToday ? 0 : maxDailyScratchCards);
-        } else {
-          // Default to max cards if we can't determine
-          setDailyCardsLeft(maxDailyScratchCards);
+          // Subtract games already played today
+          const remainingCards = Math.max(0, dailyCardsLeft - gamesPlayedToday);
+          setDailyCardsLeft(remainingCards);
         }
       } catch (error) {
         console.error("Failed to fetch game history", error);
-        // Default to max cards if there's an error
-        setDailyCardsLeft(maxDailyScratchCards);
+        // If there's an error but user has points, still allow games
+        if (user && user.points > 0) {
+          const activitiesCompleted = Math.min(maxDailyScratchCards, Math.floor(user.points / 2));
+          setDailyCardsLeft(activitiesCompleted);
+        } else {
+          setDailyCardsLeft(0);
+        }
       }
     };
     
     if (user) {
       fetchGameHistory();
     }
-  }, [maxDailyScratchCards, user]);
+  }, [maxDailyScratchCards, user, dailyCardsLeft]);
   
   // Simulate fetching reward history
   useEffect(() => {
