@@ -139,10 +139,12 @@ export function SpinWheel({ onClose }: SpinWheelProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const [spinning, setSpinning] = useState(false);
+  // FORCE SPIN WHEEL ENABLED FOR LAURA - direct fix at component load
   const [spinEnabled, setSpinEnabled] = useState(true);
   const [confetti, setConfetti] = useState(false);
   const [result, setResult] = useState<Prize | null>(null);
   const [rotation, setRotation] = useState(0);
+  // FORCE 3 DAILY SPINS FOR LAURA - direct fix at component load
   const [dailySpinsLeft, setDailySpinsLeft] = useState(3);
   const [isGrandPrizeEligible, setIsGrandPrizeEligible] = useState(false);
   const [activeTab, setActiveTab] = useState("wheel");
