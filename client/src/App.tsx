@@ -43,6 +43,7 @@ import SchoolDashboard from "@/pages/school-dashboard";
 import ProfilePage from "@/pages/profile";
 import AppOwnerDashboard from "@/pages/app-owner-dashboard";
 import EduTokPage from "@/pages/edutok";
+import AdminModulesPage from "@/pages/admin-modules";
 
 function Router() {
   // Use React Query directly to check authenticated state
@@ -202,6 +203,10 @@ function Router() {
       
       <Route path="/admin">
         {isAuthenticated ? <AdminPage /> : <Login />}
+      </Route>
+      
+      <Route path="/admin/modules">
+        {isAuthenticated ? <AdminModulesPage /> : <Login />}
       </Route>
       
       <Route path="/transition-timer">
