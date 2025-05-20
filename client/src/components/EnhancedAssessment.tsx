@@ -262,10 +262,10 @@ const EnhancedAssessment: React.FC<EnhancedAssessmentProps> = ({
           <div className="py-4">
             <h3 className="text-sm font-medium mb-2">Select a knowledge area to assess:</h3>
             <RadioGroup value={selectedDomain} onValueChange={setSelectedDomain}>
-              {domains.map(domain => (
-                <div key={domain.id} className="flex items-center space-x-2 mb-2">
-                  <RadioGroupItem value={domain.name} id={`domain-${domain.id}`} />
-                  <Label htmlFor={`domain-${domain.id}`} className="cursor-pointer">
+              {Array.isArray(domains) ? domains.map(domain => (
+                <div key={domain.id || domain.name} className="flex items-center space-x-2 mb-2">
+                  <RadioGroupItem value={domain.name} id={`domain-${domain.id || domain.name}`} />
+                  <Label htmlFor={`domain-${domain.id || domain.name}`} className="cursor-pointer">
                     {domain.name}
                     {domain.description && (
                       <span className="block text-xs text-muted-foreground">
@@ -274,7 +274,38 @@ const EnhancedAssessment: React.FC<EnhancedAssessmentProps> = ({
                     )}
                   </Label>
                 </div>
-              ))}
+              )) : (
+                // Fallback domains if API response is not an array
+                <>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <RadioGroupItem value="Child Development" id="domain-1" />
+                    <Label htmlFor="domain-1" className="cursor-pointer">
+                      Child Development
+                      <span className="block text-xs text-muted-foreground">
+                        Understanding how children grow and develop
+                      </span>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <RadioGroupItem value="Classroom Management" id="domain-2" />
+                    <Label htmlFor="domain-2" className="cursor-pointer">
+                      Classroom Management
+                      <span className="block text-xs text-muted-foreground">
+                        Strategies for effective classroom organization
+                      </span>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <RadioGroupItem value="Curriculum Planning" id="domain-3" />
+                    <Label htmlFor="domain-3" className="cursor-pointer">
+                      Curriculum Planning
+                      <span className="block text-xs text-muted-foreground">
+                        Creating engaging learning experiences
+                      </span>
+                    </Label>
+                  </div>
+                </>
+              )}
             </RadioGroup>
           </div>
           
