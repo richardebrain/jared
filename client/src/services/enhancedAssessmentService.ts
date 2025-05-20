@@ -251,7 +251,7 @@ class EnhancedAssessmentService {
       if (!isAvailable) {
         // Find the correct fallback question based on the ID
         // First flatten all our fallback questions into one array
-        const allFallbackQuestions = Object.values(this.getFallbackQuestionsByDomain()).flat();
+        const allFallbackQuestions = Object.values(this.getFallbackQuestions("", 0));
         
         // Find the question that was being answered
         const currentQuestion = allFallbackQuestions.find(q => q.id === questionId);
@@ -480,9 +480,9 @@ class EnhancedAssessmentService {
    * Get fallback questions for a specific domain and difficulty
    * This is used when the assessment API is not available
    */
-  getFallbackQuestions(domain: string, difficulty: number): AssessmentQuestion[] {
+  getFallbackQuestionsByDomain(): Record<string, AssessmentQuestion[]> {
     // Define a collection of fallback questions by domain
-    const fallbackQuestionsByDomain: Record<string, AssessmentQuestion[]> = {
+    return {
       "Child Development": [
         {
           id: 1001,
@@ -643,9 +643,17 @@ class EnhancedAssessmentService {
         }
       ]
     };
+  }
+  
+  /**
+   * Get fallback questions for a specific domain and difficulty
+   * This is used when the assessment API is not available
+   */
+  getFallbackQuestions(domain: string, difficulty: number): AssessmentQuestion[] {
+    const fallbackQuestionsByDomain = this.getFallbackQuestionsByDomain();
     
     // If domain exists in our collection, filter by difficulty
-    if (fallbackQuestionsByDomain[domain]) {
+    if (domain && fallbackQuestionsByDomain[domain]) {
       const domainQuestions = fallbackQuestionsByDomain[domain];
       
       // Filter by difficulty if specified
