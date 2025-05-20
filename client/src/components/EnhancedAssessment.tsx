@@ -298,11 +298,43 @@ const EnhancedAssessment: React.FC<EnhancedAssessmentProps> = ({
     }
   };
 
-  const handleNextQuestion = () => {
+  const handleNextQuestion = async () => {
     if (feedback?.next_question) {
+      // If we have a next question in the feedback, use it
       setCurrentQuestion(feedback.next_question);
       setSelectedAnswer('');
       setFeedback(null);
+    } else {
+      // Otherwise, try to fetch a new question from the server
+      try {
+        const newQuestion = await enhancedAssessmentService.startAssessment(
+          selectedDomain,
+          userId,
+          currentDifficulty
+        );
+        
+        if (newQuestion) {
+          setCurrentQuestion(newQuestion);
+          setSelectedAnswer('');
+          setFeedback(null);
+          setQuestionStartTime(Date.now());
+        } else {
+          // No more questions available
+          toast({
+            title: "Assessment Complete",
+            description: "There are no more questions available for this assessment.",
+            variant: "default",
+          });
+          setShowResults(true);
+        }
+      } catch (error) {
+        console.error("Failed to fetch next question:", error);
+        toast({
+          title: "Error Loading Question",
+          description: "There was a problem loading the next question. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 

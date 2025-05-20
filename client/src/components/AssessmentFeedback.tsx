@@ -77,12 +77,7 @@ const AssessmentFeedback: React.FC<AssessmentFeedbackProps> = ({
                 </div>
               )}
               
-              <div className="flex items-center gap-2 text-primary">
-                <Star className="h-4 w-4" />
-                <span>
-                  <strong>Points earned:</strong> {feedback.points_earned}
-                </span>
-              </div>
+              {/* Removed points earned display as requested */}
             </div>
             
             <Button 
