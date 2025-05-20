@@ -201,9 +201,7 @@ export default function Register() {
                         <Input 
                           placeholder="Enter your first name" 
                           {...field}
-                          onChange={(e) => {
-                            field.onChange(e.target.value.trim());
-                          }}
+                          // Allow the field to work with password managers
                         />
                       </FormControl>
                       <FormMessage />
@@ -221,9 +219,7 @@ export default function Register() {
                         <Input 
                           placeholder="Enter your last name" 
                           {...field}
-                          onChange={(e) => {
-                            field.onChange(e.target.value.trim());
-                          }}
+                          // Allow the field to work with password managers
                         />
                       </FormControl>
                       <FormMessage />
@@ -263,9 +259,7 @@ export default function Register() {
                         type="email" 
                         placeholder="Enter your email" 
                         {...field}
-                        onChange={(e) => {
-                          field.onChange(e.target.value.trim());
-                        }}
+                        // Allow the field to work with password managers
                       />
                     </FormControl>
                     <FormMessage />

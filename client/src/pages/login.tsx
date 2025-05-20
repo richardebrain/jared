@@ -54,7 +54,8 @@ export default function Login() {
       console.log("Attempting login with:", { username: data.username, password: "***" });
       
       try {
-        // Trim inputs for consistency
+        // We now handle trimming at form submission, so these values should already be trimmed
+        // But let's be safe and trim here too to maintain consistent behavior
         const cleanData = {
           username: data.username.trim(),
           password: data.password.trim()
