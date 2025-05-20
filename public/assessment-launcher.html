@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MentorMe Assessment Launcher</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f0f4f8;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: white;
+      border-radius: 10px;
+      padding: 30px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #3949ab;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .intro {
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+    .assessment-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    .assessment-card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      transition: all 0.3s ease;
+    }
+    .assessment-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .basic {
+      border-left: 5px solid #4caf50;
+    }
+    .comprehensive {
+      border-left: 5px solid #ff9800;
+    }
+    .assessment-card h2 {
+      margin-top: 0;
+      color: #2c3e50;
+    }
+    .button {
+      display: inline-block;
+      background: linear-gradient(to right, #3949ab, #5c6bc0);
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+    .button:hover {
+      background: linear-gradient(to right, #283593, #3949ab);
+      transform: translateY(-2px);
+    }
+    .questions-count {
+      display: inline-block;
+      background-color: #e3f2fd;
+      color: #1976d2;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 14px;
+      margin-left: 10px;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      color: #777;
+      font-size: 14px;
+    }
+    @media (max-width: 600px) {
+      .assessment-options {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>MentorMe ECE Assessment Portal</h1>
+    
+    <div class="intro">
+      <p>Welcome to the MentorMe Early Childhood Education Assessment Portal. Our assessments are designed to evaluate your knowledge and provide personalized feedback to help you grow as an educator.</p>
+      <p>Choose the assessment that best suits your needs:</p>
+    </div>
+    
+    <div class="assessment-options">
+      <div class="assessment-card basic">
+        <h2>Basic Assessment <span class="questions-count">15 Questions</span></h2>
+        <p>A straightforward assessment covering fundamental concepts in early childhood education. Perfect for beginners or a quick knowledge check.</p>
+        <p>Estimated time: 10-15 minutes</p>
+        <a href="basic-assessment.html" class="button" target="_blank">Start Basic Assessment</a>
+      </div>
+      
+      <div class="assessment-card comprehensive">
+        <h2>Comprehensive Assessment <span class="questions-count">25 Questions</span></h2>
+        <p>An in-depth assessment covering advanced concepts across multiple domains of early childhood education.</p>
+        <p>Estimated time: 20-30 minutes</p>
+        <a href="comprehensive-assessment.html" class="button" target="_blank">Start Comprehensive Assessment</a>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p>© 2025 MentorMe Professional Development Platform. All assessments are designed based on ITERS/ECERS standards and CLASS assessment frameworks.</p>
+    </div>
+  </div>
+</body>
+</html>
