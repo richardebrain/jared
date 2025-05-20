@@ -16,7 +16,10 @@ export default function AdminPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [password, setPassword] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    // Check if already authenticated from sessionStorage
+    return sessionStorage.getItem('adminAuthenticated') === 'true';
+  });
   
   // Admin password
   const ADMIN_PASSWORD = 'BIGSURF55';
@@ -36,6 +39,8 @@ export default function AdminPage() {
   const verifyPassword = () => {
     if (password === ADMIN_PASSWORD) {
       setIsAuthenticated(true);
+      // Store authentication state in session storage
+      sessionStorage.setItem('adminAuthenticated', 'true');
       toast({
         title: "Access Granted",
         description: "Welcome to the admin dashboard.",
