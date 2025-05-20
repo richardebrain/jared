@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MentorMe Quick Assessment</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f7fa;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      background: linear-gradient(to right, #3b82f6, #6366f1);
+      color: white;
+      padding: 20px;
+      border-radius: 8px 8px 0 0;
+    }
+    .content {
+      background: white;
+      border-radius: 0 0 8px 8px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .question {
+      margin-bottom: 20px;
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .option {
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .option:hover {
+      border-color: #3b82f6;
+      background-color: #f0f7ff;
+    }
+    .selected {
+      border-color: #3b82f6;
+      background-color: #f0f7ff;
+    }
+    .correct {
+      border-color: #10b981;
+      background-color: #ecfdf5;
+    }
+    .incorrect {
+      border-color: #ef4444;
+      background-color: #fef2f2;
+    }
+    .button {
+      background: linear-gradient(to right, #3b82f6, #6366f1);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 20px;
+    }
+    .button:hover {
+      opacity: 0.9;
+    }
+    .button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .feedback {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      display: none;
+    }
+    .correct-feedback {
+      background-color: #ecfdf5;
+      border: 1px solid #10b981;
+      color: #047857;
+    }
+    .incorrect-feedback {
+      background-color: #fef2f2;
+      border: 1px solid #ef4444;
+      color: #b91c1c;
+    }
+    .progress {
+      height: 8px;
+      background-color: #e5e7eb;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(to right, #3b82f6, #6366f1);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .points {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #6b7280;
+    }
+    #results {
+      display: none;
+      text-align: center;
+    }
+    .score {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #3b82f6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>MentorMe ECE Assessment</h1>
+      <p>Test your early childhood education knowledge</p>
+    </div>
+    
+    <div class="content">
+      <div id="assessment">
+        <div class="progress">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        
+        <div class="points">
+          <span id="question-number">Question 1 of 5</span>
+          <span id="points-earned">0 points earned</span>
+        </div>
+        
+        <div id="question" class="question">
+          <h2 id="question-text">Which of the following is a key principle of developmentally appropriate practice?</h2>
+          
+          <div id="options" class="options">
+            <div class="option" data-index="0">Focusing on academic skills only</div>
+            <div class="option" data-index="1">Treating all children the same way</div>
+            <div class="option" data-index="2">Acknowledging children's individual development</div>
+            <div class="option" data-index="3">Prioritizing teacher-directed activities</div>
+          </div>
+        </div>
+        
+        <div id="feedback" class="feedback"></div>
+        
+        <button id="submit-btn" class="button" disabled>Submit Answer</button>
+        <button id="next-btn" class="button" style="display: none;">Next Question</button>
+      </div>
+      
+      <div id="results">
+        <h2>Assessment Complete!</h2>
+        <div class="score">You scored: <span id="final-score">0</span> points</div>
+        <p id="assessment-feedback"></p>
+        <button id="restart-btn" class="button">Take Assessment Again</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Assessment questions
+    const questions = [
+      {
+        question: "Which of the following is a key principle of developmentally appropriate practice?",
+        options: [
+          "Focusing on academic skills only",
+          "Treating all children the same way",
+          "Acknowledging children's individual development",
+          "Prioritizing teacher-directed activities"
+        ],
+        correctAnswer: 2,
+        explanation: "Developmentally appropriate practice recognizes that each child develops at their own pace and has individual needs.",
+        pointValue: 5
+      },
+      {
+        question: "What is an effective way to promote language development in preschoolers?",
+        options: [
+          "Correcting grammatical errors immediately",
+          "Engaging in back-and-forth conversations",
+          "Using simplified vocabulary only",
+          "Limiting conversation to instruction time"
+        ],
+        correctAnswer: 1,
+        explanation: "Back-and-forth conversations (serve and return interactions) build language skills and neural connections.",
+        pointValue: 5
+      },
+      {
+        question: "Which strategy best supports social-emotional learning in toddlers?",
+        options: [
+          "Removing emotional challenges",
+          "Focusing only on academic readiness",
+          "Naming and validating feelings",
+          "Implementing strict behavioral controls"
+        ],
+        correctAnswer: 2,
+        explanation: "Helping toddlers identify and name their emotions supports emotional regulation development.",
+        pointValue: 5
+      },
+      {
+        question: "What is the main purpose of the CLASS assessment tool in early childhood settings?",
+        options: [
+          "To evaluate physical facilities only",
+          "To assess teacher-child interactions",
+          "To measure children's academic achievement",
+          "To ensure compliance with licensing requirements"
+        ],
+        correctAnswer: 1,
+        explanation: "CLASS (Classroom Assessment Scoring System) measures the quality of teacher-child interactions across emotional support, classroom organization, and instructional support domains.",
+        pointValue: 10
+      },
+      {
+        question: "Which practice best aligns with the principles of anti-bias education?",
+        options: [
+          "Avoiding discussions about differences",
+          "Using a color-blind approach",
+          "Creating a diverse environment with books showing various cultures",
+          "Focusing exclusively on cultural celebrations"
+        ],
+        correctAnswer: 2,
+        explanation: "Anti-bias education actively addresses diversity through materials, discussions, and activities that represent various cultures, abilities, and family structures.",
+        pointValue: 10
+      }
+    ];
+
+    // DOM elements
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options');
+    const feedbackContainer = document.getElementById('feedback');
+    const submitBtn = document.getElementById('submit-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const questionNumber = document.getElementById('question-number');
+    const pointsEarned = document.getElementById('points-earned');
+    const progressBar = document.getElementById('progress-bar');
+    const assessmentSection = document.getElementById('assessment');
+    const resultsSection = document.getElementById('results');
+    const finalScore = document.getElementById('final-score');
+    const assessmentFeedback = document.getElementById('assessment-feedback');
+    const restartBtn = document.getElementById('restart-btn');
+
+    // Assessment state
+    let currentQuestionIndex = 0;
+    let totalPoints = 0;
+    let selectedOptionIndex = null;
+    
+    // Initialize assessment
+    function initAssessment() {
+      currentQuestionIndex = 0;
+      totalPoints = 0;
+      loadQuestion();
+      updateProgress();
+      assessmentSection.style.display = 'block';
+      resultsSection.style.display = 'none';
+      pointsEarned.textContent = '0 points earned';
+    }
+    
+    // Load current question
+    function loadQuestion() {
+      const currentQuestion = questions[currentQuestionIndex];
+      questionText.textContent = currentQuestion.question;
+      
+      // Clear options
+      optionsContainer.innerHTML = '';
+      
+      // Add options
+      currentQuestion.options.forEach((option, index) => {
+        const optionElement = document.createElement('div');
+        optionElement.className = 'option';
+        optionElement.textContent = option;
+        optionElement.dataset.index = index;
+        optionElement.addEventListener('click', () => selectOption(index));
+        optionsContainer.appendChild(optionElement);
+      });
+      
+      // Reset state
+      selectedOptionIndex = null;
+      submitBtn.disabled = true;
+      submitBtn.style.display = 'block';
+      nextBtn.style.display = 'none';
+      feedbackContainer.style.display = 'none';
+      
+      // Update question number
+      questionNumber.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+    }
+    
+    // Select an option
+    function selectOption(index) {
+      selectedOptionIndex = index;
+      
+      // Update UI
+      const options = document.querySelectorAll('.option');
+      options.forEach(option => {
+        option.classList.remove('selected');
+      });
+      
+      options[index].classList.add('selected');
+      submitBtn.disabled = false;
+    }
+    
+    // Submit answer
+    function submitAnswer() {
+      const currentQuestion = questions[currentQuestionIndex];
+      const isCorrect = selectedOptionIndex === currentQuestion.correctAnswer;
+      
+      // Update points
+      if (isCorrect) {
+        totalPoints += currentQuestion.pointValue;
+      }
+      
+      // Update UI
+      const options = document.querySelectorAll('.option');
+      
+      if (isCorrect) {
+        options[selectedOptionIndex].classList.add('correct');
+        feedbackContainer.className = 'feedback correct-feedback';
+        feedbackContainer.innerHTML = `
+          <strong>Correct!</strong> ${currentQuestion.explanation}
+          <p>You earned ${currentQuestion.pointValue} points!</p>
+        `;
+      } else {
+        options[selectedOptionIndex].classList.add('incorrect');
+        options[currentQuestion.correctAnswer].classList.add('correct');
+        feedbackContainer.className = 'feedback incorrect-feedback';
+        feedbackContainer.innerHTML = `
+          <strong>Incorrect.</strong> The correct answer is: ${currentQuestion.options[currentQuestion.correctAnswer]}
+          <p>${currentQuestion.explanation}</p>
+        `;
+      }
+      
+      feedbackContainer.style.display = 'block';
+      submitBtn.style.display = 'none';
+      nextBtn.style.display = 'block';
+      
+      // Update points display
+      pointsEarned.textContent = `${totalPoints} points earned`;
+    }
+    
+    // Move to next question
+    function nextQuestion() {
+      currentQuestionIndex++;
+      
+      if (currentQuestionIndex < questions.length) {
+        loadQuestion();
+        updateProgress();
+      } else {
+        showResults();
+      }
+    }
+    
+    // Show final results
+    function showResults() {
+      assessmentSection.style.display = 'none';
+      resultsSection.style.display = 'block';
+      
+      finalScore.textContent = totalPoints;
+      
+      // Generate feedback based on score
+      const maxPossibleScore = questions.reduce((total, q) => total + q.pointValue, 0);
+      const percentage = (totalPoints / maxPossibleScore) * 100;
+      
+      let feedback;
+      if (percentage >= 80) {
+        feedback = "Excellent work! You have a strong understanding of early childhood education principles.";
+      } else if (percentage >= 60) {
+        feedback = "Good job! You have a solid foundation in early childhood education with some areas to strengthen.";
+      } else {
+        feedback = "You've taken an important first step in learning about early childhood education. Keep exploring these concepts to build your knowledge.";
+      }
+      
+      assessmentFeedback.textContent = feedback;
+    }
+    
+    // Update progress bar
+    function updateProgress() {
+      const progress = ((currentQuestionIndex) / questions.length) * 100;
+      progressBar.style.width = `${progress}%`;
+    }
+    
+    // Event listeners
+    submitBtn.addEventListener('click', submitAnswer);
+    nextBtn.addEventListener('click', nextQuestion);
+    restartBtn.addEventListener('click', initAssessment);
+    
+    // Start assessment
+    initAssessment();
+  </script>
+</body>
+</html>
