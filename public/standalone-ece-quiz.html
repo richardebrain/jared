@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ECE Knowledge Quiz</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.5;
+      color: #333;
+      background-color: #f3f4f6;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(to right, #3b82f6, #6366f1);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    .content {
+      padding: 20px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.8rem;
+    }
+    .progress-bar {
+      height: 8px;
+      background-color: #e5e7eb;
+      border-radius: 4px;
+      margin: 15px 0;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(to right, #3b82f6, #6366f1);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .question-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 20px;
+    }
+    .question {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .option {
+      padding: 15px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .option:hover {
+      background-color: #f9fafb;
+      border-color: #3b82f6;
+    }
+    .option.selected {
+      background-color: #eff6ff;
+      border-color: #3b82f6;
+    }
+    .option.correct {
+      background-color: #ecfdf5;
+      border-color: #10b981;
+    }
+    .option.incorrect {
+      background-color: #fef2f2;
+      border-color: #ef4444;
+    }
+    .feedback {
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .feedback.correct {
+      background-color: #ecfdf5;
+      border: 1px solid #10b981;
+      color: #065f46;
+    }
+    .feedback.incorrect {
+      background-color: #fef2f2;
+      border: 1px solid #ef4444;
+      color: #991b1b;
+    }
+    .button {
+      background: linear-gradient(to right, #3b82f6, #6366f1);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-block;
+      transition: opacity 0.2s;
+    }
+    .button:hover {
+      opacity: 0.9;
+    }
+    .button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .results {
+      text-align: center;
+      display: none;
+    }
+    .score {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #3b82f6;
+      margin: 20px 0;
+    }
+    .points-animation {
+      position: fixed;
+      color: green;
+      font-weight: bold;
+      font-size: 24px;
+      animation: float-up 1.5s ease-out forwards;
+      z-index: 100;
+    }
+    @keyframes float-up {
+      0% { transform: translateY(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-100px); opacity: 0; }
+    }
+    .level-info {
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-radius: 8px;
+      padding: 10px 15px;
+      margin-bottom: 15px;
+      font-size: 0.9rem;
+      color: #0369a1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Early Childhood Education Assessment</h1>
+      <p>Test your professional knowledge with this adaptive assessment</p>
+    </div>
+    
+    <div class="content">
+      <!-- Quiz section -->
+      <div id="quiz-section">
+        <div class="level-info" id="level-info">
+          Level 1 - Foundational Knowledge (5 points per question)
+        </div>
+        
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        
+        <div class="question-info">
+          <span id="question-counter">Question 1 of 10</span>
+          <span id="points-counter">0 points</span>
+        </div>
+        
+        <div class="question" id="question-text"></div>
+        
+        <div class="options" id="options-container"></div>
+        
+        <div class="feedback" id="feedback"></div>
+        
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button id="submit-btn" class="button" disabled>Submit Answer</button>
+          <button id="next-btn" class="button" style="display: none;">Next Question</button>
+        </div>
+      </div>
+      
+      <!-- Results section -->
+      <div id="results-section" class="results">
+        <h2>Assessment Complete!</h2>
+        <div class="score">You scored: <span id="final-score">0</span> points</div>
+        <p id="final-feedback"></p>
+        <div id="domain-analysis"></div>
+        <button id="restart-btn" class="button">Take Assessment Again</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Questions by difficulty level
+    const questionsData = {
+      level1: [
+        {
+          question: "Which of the following is a key principle of developmentally appropriate practice?",
+          options: [
+            "Focusing only on academic skills",
+            "Treating all children the same way",
+            "Acknowledging children's individual development",
+            "Prioritizing teacher-directed activities"
+          ],
+          correctAnswer: 2,
+          explanation: "Developmentally appropriate practice recognizes each child's unique development trajectory and adapts teaching approaches accordingly.",
+          domain: "Child Development",
+          points: 5
+        },
+        {
+          question: "What is an effective way to promote language development in preschoolers?",
+          options: [
+            "Correcting grammatical errors immediately",
+            "Engaging in back-and-forth conversations",
+            "Using simplified vocabulary only",
+            "Limiting conversation to instruction time"
+          ],
+          correctAnswer: 1,
+          explanation: "Back-and-forth conversations (serve and return interactions) build language skills and neural connections.",
+          domain: "Language Development",
+          points: 5
+        },
+        {
+          question: "Which strategy best supports social-emotional learning in toddlers?",
+          options: [
+            "Removing emotional challenges",
+            "Focusing only on academic readiness",
+            "Naming and validating feelings",
+            "Implementing strict behavioral controls"
+          ],
+          correctAnswer: 2,
+          explanation: "Helping toddlers identify and name their emotions supports emotional regulation development.",
+          domain: "Social-Emotional Development",
+          points: 5
+        },
+        {
+          question: "During circle time, you notice a child has trouble sitting still. What might be the best initial response?",
+          options: [
+            "Tell them to sit still or they'll lose their turn",
+            "Provide a fidget tool or movement cushion to help them regulate",
+            "Remove them from circle time until they can behave",
+            "Ignore the behavior as they'll eventually learn to sit still"
+          ],
+          correctAnswer: 1,
+          explanation: "Children have different sensory and movement needs. Providing appropriate accommodations helps them participate successfully in group activities.",
+          domain: "Classroom Management",
+          points: 5
+        }
+      ],
+      level2: [
+        {
+          question: "What is the main purpose of the CLASS assessment tool in early childhood settings?",
+          options: [
+            "To evaluate physical facilities only",
+            "To assess teacher-child interactions",
+            "To measure children's academic achievement",
+            "To ensure compliance with licensing requirements"
+          ],
+          correctAnswer: 1,
+          explanation: "CLASS (Classroom Assessment Scoring System) measures the quality of teacher-child interactions across emotional support, classroom organization, and instructional support domains.",
+          domain: "Assessment",
+          points: 10
+        },
+        {
+          question: "Which practice best aligns with the principles of anti-bias education?",
+          options: [
+            "Avoiding discussions about differences",
+            "Using a color-blind approach",
+            "Creating a diverse environment with books showing various cultures",
+            "Focusing exclusively on cultural celebrations"
+          ],
+          correctAnswer: 2,
+          explanation: "Anti-bias education actively addresses diversity through materials, discussions, and activities that represent various cultures, abilities, and family structures.",
+          domain: "Diversity and Inclusion",
+          points: 10
+        },
+        {
+          question: "When designing inclusive environments for children with diverse abilities, what approach is most effective?",
+          options: [
+            "Creating separate activities for children with special needs",
+            "Focusing primarily on accommodations for physical disabilities",
+            "Using Universal Design for Learning principles",
+            "Emphasizing the same expectations for all children"
+          ],
+          correctAnswer: 2,
+          explanation: "Universal Design for Learning (UDL) involves creating environments and experiences that work for all children by offering multiple means of engagement, representation, and action/expression.",
+          domain: "Inclusive Practices",
+          points: 10
+        },
+        {
+          question: "Which statement best describes executive function skills in young children?",
+          options: [
+            "Skills that develop naturally without adult intervention",
+            "Skills primarily focused on academic achievement",
+            "Working memory, inhibitory control, and cognitive flexibility",
+            "Skills that only develop after age five"
+          ],
+          correctAnswer: 2,
+          explanation: "Executive function skills include working memory, inhibitory control (self-regulation), and cognitive flexibility, which are crucial for learning and development.",
+          domain: "Cognitive Development",
+          points: 10
+        }
+      ],
+      level3: [
+        {
+          question: "In the context of the Reggio Emilia approach, what is meant by the 'hundred languages of children'?",
+          options: [
+            "Children should learn multiple spoken languages",
+            "Children express themselves through many symbolic languages beyond speech",
+            "Curriculum should include exactly one hundred learning activities",
+            "Teachers should provide explicit instruction in many subject areas"
+          ],
+          correctAnswer: 1,
+          explanation: "The 'hundred languages' refers to the many ways children express, explore, and understand, including drawing, movement, sculpture, dramatic play, and other symbolic representations.",
+          domain: "Educational Approaches",
+          points: 15
+        },
+        {
+          question: "According to Vygotsky's sociocultural theory, what role do adults play in children's development?",
+          options: [
+            "They should allow children to develop naturally with minimal intervention",
+            "They facilitate learning through scaffolding within the Zone of Proximal Development",
+            "They directly teach skills through repetition and reinforcement",
+            "They primarily serve as evaluators of developmental progress"
+          ],
+          correctAnswer: 1,
+          explanation: "Vygotsky emphasized that learning occurs through social interactions, with adults scaffolding within the Zone of Proximal Development (the gap between what a child can do independently and what they can do with support).",
+          domain: "Developmental Theory",
+          points: 15
+        },
+        {
+          question: "Which approach to early childhood assessment most effectively captures authentic learning?",
+          options: [
+            "Standardized testing administered at regular intervals",
+            "Documentation of children's work and teacher observations over time",
+            "Weekly quizzes on academic content",
+            "Comparison of children's abilities against normative benchmarks"
+          ],
+          correctAnswer: 1,
+          explanation: "Documentation of children's work, conversations, and teacher observations over time provides authentic assessment of learning in context, rather than isolated test performance.",
+          domain: "Assessment",
+          points: 15
+        },
+        {
+          question: "When implementing trauma-informed care in early childhood settings, which approach is most effective?",
+          options: [
+            "Maintaining strict routines with consequences for all behavioral issues",
+            "Focusing primarily on academics to help children overcome trauma",
+            "Creating predictable environments with emotional support and regulation strategies",
+            "Avoiding topics that might trigger trauma responses"
+          ],
+          correctAnswer: 2,
+          explanation: "Trauma-informed care includes creating predictable, safe environments, building relationships, teaching emotional regulation strategies, and understanding behaviors as communication of needs.",
+          domain: "Social-Emotional Development",
+          points: 15
+        }
+      ]
+    };
+
+    // DOM Elements
+    const progressFill = document.getElementById('progress-fill');
+    const questionCounter = document.getElementById('question-counter');
+    const pointsCounter = document.getElementById('points-counter');
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const feedbackElement = document.getElementById('feedback');
+    const submitBtn = document.getElementById('submit-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const levelInfo = document.getElementById('level-info');
+    
+    // Results elements
+    const quizSection = document.getElementById('quiz-section');
+    const resultsSection = document.getElementById('results-section');
+    const finalScore = document.getElementById('final-score');
+    const finalFeedback = document.getElementById('final-feedback');
+    const domainAnalysis = document.getElementById('domain-analysis');
+    const restartBtn = document.getElementById('restart-btn');
+
+    // Quiz state
+    let currentQuestion = 0;
+    let totalQuestions = 10;
+    let currentLevel = 1;
+    let points = 0;
+    let selectedOption = null;
+    let questions = [];
+    let correctInARow = 0;
+    let incorrectInARow = 0;
+    let domainScores = {};
+
+    // Initialize quiz
+    function initQuiz() {
+      // Reset state
+      currentQuestion = 0;
+      points = 0;
+      currentLevel = 1;
+      correctInARow = 0;
+      incorrectInARow = 0;
+      domainScores = {};
+      
+      // Generate questions
+      generateQuestions();
+      
+      // Show quiz, hide results
+      quizSection.style.display = 'block';
+      resultsSection.style.display = 'none';
+      
+      // Load first question
+      loadQuestion();
+      updateProgress();
+    }
+
+    // Generate questions for the quiz
+    function generateQuestions() {
+      questions = [];
+      
+      // Start with level 1 questions
+      const level1Qs = [...questionsData.level1];
+      const level2Qs = [...questionsData.level2];
+      const level3Qs = [...questionsData.level3];
+      
+      // Shuffle all question arrays
+      shuffle(level1Qs);
+      shuffle(level2Qs);
+      shuffle(level3Qs);
+      
+      // Take 4 questions from each level to ensure a good mix
+      questions.push(...level1Qs.slice(0, 4));
+      questions.push(...level2Qs.slice(0, 3));
+      questions.push(...level3Qs.slice(0, 3));
+      
+      // Shuffle final question set to randomize order
+      shuffle(questions);
+      
+      // Set total questions
+      totalQuestions = questions.length;
+    }
+
+    // Shuffle array (Fisher-Yates algorithm)
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    // Load current question
+    function loadQuestion() {
+      const question = questions[currentQuestion];
+      
+      // Update level display based on points value
+      if (question.points === 5) {
+        currentLevel = 1;
+        levelInfo.textContent = "Level 1 - Foundational Knowledge (5 points per question)";
+        levelInfo.style.backgroundColor = '#f0f9ff';
+        levelInfo.style.borderColor = '#bae6fd';
+        levelInfo.style.color = '#0369a1';
+      } else if (question.points === 10) {
+        currentLevel = 2;
+        levelInfo.textContent = "Level 2 - Intermediate Knowledge (10 points per question)";
+        levelInfo.style.backgroundColor = '#f0f7ff';
+        levelInfo.style.borderColor = '#93c5fd';
+        levelInfo.style.color = '#1e40af';
+      } else {
+        currentLevel = 3;
+        levelInfo.textContent = "Level 3 - Advanced Knowledge (15 points per question)";
+        levelInfo.style.backgroundColor = '#f5f3ff';
+        levelInfo.style.borderColor = '#c4b5fd';
+        levelInfo.style.color = '#5b21b6';
+      }
+      
+      // Set question text
+      questionText.textContent = question.question;
+      
+      // Clear options container
+      optionsContainer.innerHTML = '';
+      
+      // Add options
+      question.options.forEach((option, index) => {
+        const optionElement = document.createElement('div');
+        optionElement.classList.add('option');
+        optionElement.textContent = option;
+        optionElement.dataset.index = index;
+        
+        optionElement.addEventListener('click', () => {
+          selectOption(index);
+        });
+        
+        optionsContainer.appendChild(optionElement);
+      });
+      
+      // Reset state for new question
+      selectedOption = null;
+      submitBtn.disabled = true;
+      submitBtn.style.display = 'block';
+      nextBtn.style.display = 'none';
+      feedbackElement.style.display = 'none';
+      
+      // Update question counter
+      questionCounter.textContent = `Question ${currentQuestion + 1} of ${totalQuestions}`;
+    }
+
+    // Select an option
+    function selectOption(index) {
+      selectedOption = index;
+      
+      // Update UI
+      const options = document.querySelectorAll('.option');
+      options.forEach(option => {
+        option.classList.remove('selected');
+      });
+      
+      options[index].classList.add('selected');
+      submitBtn.disabled = false;
+    }
+
+    // Submit answer
+    function submitAnswer() {
+      const question = questions[currentQuestion];
+      const isCorrect = selectedOption === question.correctAnswer;
+      
+      // Track domain performance
+      if (!domainScores[question.domain]) {
+        domainScores[question.domain] = {
+          correct: 0,
+          total: 0,
+          points: 0
+        };
+      }
+      
+      domainScores[question.domain].total++;
+      
+      if (isCorrect) {
+        points += question.points;
+        domainScores[question.domain].correct++;
+        domainScores[question.domain].points += question.points;
+        correctInARow++;
+        incorrectInARow = 0;
+        
+        // Show points animation
+        showPointsAnimation(question.points);
+      } else {
+        incorrectInARow++;
+        correctInARow = 0;
+      }
+      
+      // Update UI
+      const options = document.querySelectorAll('.option');
+      
+      if (isCorrect) {
+        options[selectedOption].classList.add('correct');
+        feedbackElement.classList.add('correct');
+        feedbackElement.classList.remove('incorrect');
+        feedbackElement.innerHTML = `
+          <strong>Correct!</strong> ${question.explanation}
+          <p>You earned ${question.points} points!</p>
+        `;
+      } else {
+        options[selectedOption].classList.add('incorrect');
+        options[question.correctAnswer].classList.add('correct');
+        feedbackElement.classList.add('incorrect');
+        feedbackElement.classList.remove('correct');
+        feedbackElement.innerHTML = `
+          <strong>Incorrect.</strong> The correct answer is: ${question.options[question.correctAnswer]}
+          <p>${question.explanation}</p>
+        `;
+      }
+      
+      feedbackElement.style.display = 'block';
+      submitBtn.style.display = 'none';
+      nextBtn.style.display = 'block';
+      
+      // Update points display
+      pointsCounter.textContent = `${points} points`;
+    }
+
+    // Show points animation
+    function showPointsAnimation(pointValue) {
+      const animation = document.createElement('div');
+      animation.classList.add('points-animation');
+      animation.textContent = `+${pointValue}`;
+      
+      // Position near the question
+      const rect = questionText.getBoundingClientRect();
+      animation.style.left = `${rect.right - 50}px`;
+      animation.style.top = `${rect.top}px`;
+      
+      document.body.appendChild(animation);
+      
+      // Remove after animation completes
+      setTimeout(() => {
+        document.body.removeChild(animation);
+      }, 1500);
+    }
+
+    // Move to next question
+    function nextQuestion() {
+      currentQuestion++;
+      
+      // Adjust difficulty based on performance
+      if (currentQuestion < totalQuestions) {
+        // Adaptive difficulty - modify upcoming questions if possible
+        if (correctInARow >= 2 && currentQuestion + 1 < totalQuestions) {
+          // Try to increase difficulty of next question
+          for (let i = currentQuestion + 1; i < totalQuestions; i++) {
+            if (questions[i].points < 15) {
+              let nextLevel;
+              
+              if (questions[i].points === 5) nextLevel = 'level2';
+              else nextLevel = 'level3';
+              
+              // Find a replacement question from higher level
+              const possibleReplacements = questionsData[nextLevel].filter(q => 
+                !questions.some(existingQ => existingQ.question === q.question)
+              );
+              
+              if (possibleReplacements.length > 0) {
+                // Replace with a higher difficulty question
+                const randomIndex = Math.floor(Math.random() * possibleReplacements.length);
+                questions[i] = possibleReplacements[randomIndex];
+                break;
+              }
+            }
+          }
+          
+          correctInARow = 0;
+        } else if (incorrectInARow >= 2 && currentQuestion + 1 < totalQuestions) {
+          // Try to decrease difficulty of next question
+          for (let i = currentQuestion + 1; i < totalQuestions; i++) {
+            if (questions[i].points > 5) {
+              let nextLevel;
+              
+              if (questions[i].points === 15) nextLevel = 'level2';
+              else nextLevel = 'level1';
+              
+              // Find a replacement question from lower level
+              const possibleReplacements = questionsData[nextLevel].filter(q => 
+                !questions.some(existingQ => existingQ.question === q.question)
+              );
+              
+              if (possibleReplacements.length > 0) {
+                // Replace with a lower difficulty question
+                const randomIndex = Math.floor(Math.random() * possibleReplacements.length);
+                questions[i] = possibleReplacements[randomIndex];
+                break;
+              }
+            }
+          }
+          
+          incorrectInARow = 0;
+        }
+        
+        loadQuestion();
+        updateProgress();
+      } else {
+        showResults();
+      }
+    }
+
+    // Update progress bar
+    function updateProgress() {
+      const progress = ((currentQuestion) / totalQuestions) * 100;
+      progressFill.style.width = `${progress}%`;
+    }
+
+    // Show quiz results
+    function showResults() {
+      quizSection.style.display = 'none';
+      resultsSection.style.display = 'block';
+      
+      // Set final score
+      finalScore.textContent = points;
+      
+      // Calculate accuracy
+      let totalCorrect = 0;
+      let totalQuestionsTaken = 0;
+      
+      Object.values(domainScores).forEach(domain => {
+        totalCorrect += domain.correct;
+        totalQuestionsTaken += domain.total;
+      });
+      
+      const accuracy = totalCorrect / totalQuestionsTaken * 100;
+      
+      // Generate feedback based on score
+      let feedback;
+      if (points >= 100) {
+        feedback = `Excellent work! You scored ${points} points with ${accuracy.toFixed(0)}% accuracy. You have a strong understanding of early childhood education principles.`;
+      } else if (points >= 70) {
+        feedback = `Good job! You scored ${points} points with ${accuracy.toFixed(0)}% accuracy. You have a solid foundation in early childhood education with some areas to strengthen.`;
+      } else {
+        feedback = `You've taken an important first step and scored ${points} points with ${accuracy.toFixed(0)}% accuracy. Keep exploring these concepts to build your knowledge.`;
+      }
+      
+      finalFeedback.textContent = feedback;
+      
+      // Generate domain analysis
+      domainAnalysis.innerHTML = '<h3>Domain Analysis</h3>';
+      
+      // Sort domains by performance (percentage correct)
+      const sortedDomains = Object.entries(domainScores)
+        .map(([domain, stats]) => ({ 
+          domain, 
+          percentage: (stats.correct / stats.total) * 100,
+          points: stats.points,
+          correct: stats.correct,
+          total: stats.total
+        }))
+        .sort((a, b) => b.percentage - a.percentage);
+      
+      // Display strengths
+      const strengthsDiv = document.createElement('div');
+      strengthsDiv.innerHTML = '<h4 style="color: #059669;">Strengths</h4>';
+      
+      const strengths = sortedDomains.filter(d => d.percentage >= 70);
+      if (strengths.length > 0) {
+        const strengthsList = document.createElement('ul');
+        strengths.forEach(domain => {
+          const li = document.createElement('li');
+          li.textContent = `${domain.domain}: ${domain.correct}/${domain.total} correct (${domain.percentage.toFixed(0)}%)`;
+          strengthsList.appendChild(li);
+        });
+        strengthsDiv.appendChild(strengthsList);
+      } else {
+        strengthsDiv.innerHTML += '<p>Keep practicing to develop your strengths.</p>';
+      }
+      
+      // Display growth areas
+      const growthDiv = document.createElement('div');
+      growthDiv.innerHTML = '<h4 style="color: #d97706;">Growth Areas</h4>';
+      
+      const growthAreas = sortedDomains.filter(d => d.percentage < 70);
+      if (growthAreas.length > 0) {
+        const growthList = document.createElement('ul');
+        growthAreas.forEach(domain => {
+          const li = document.createElement('li');
+          li.textContent = `${domain.domain}: ${domain.correct}/${domain.total} correct (${domain.percentage.toFixed(0)}%)`;
+          growthList.appendChild(li);
+        });
+        growthDiv.appendChild(growthList);
+      } else {
+        growthDiv.innerHTML += '<p>Great job! You did well across all domains.</p>';
+      }
+      
+      domainAnalysis.appendChild(strengthsDiv);
+      domainAnalysis.appendChild(growthDiv);
+    }
+
+    // Event listeners
+    submitBtn.addEventListener('click', submitAnswer);
+    nextBtn.addEventListener('click', nextQuestion);
+    restartBtn.addEventListener('click', initQuiz);
+
+    // Start the quiz
+    initQuiz();
+  </script>
+</body>
+</html>
