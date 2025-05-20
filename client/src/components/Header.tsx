@@ -7,8 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import raisingArizonaLogo from "@assets/raising-arizona-logo.jpg";
 // Import the MentorMe logo using the correct asset path
-// The @assets path wasn't working, so use a relative path instead
-import mentormeLogo from "../assets/mentorme-logo.png";
+import mentormeLogo from "@assets/221033113.png";
 
 import {
   DropdownMenu,
