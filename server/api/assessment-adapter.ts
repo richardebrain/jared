@@ -337,13 +337,37 @@ router.post('/answer',
       // Return fallback answer response when assessment service is unavailable
       const { question_id, answer, user_id } = req.body;
       
-      // If this is our fallback question (id 1001), check against the known correct answer
+      // Check all our fallback questions against their known correct answers
       let isCorrect = false;
+      
+      // Level 1 questions
       if (question_id === 1001 && answer.toLowerCase() === 'b') {
+        isCorrect = true;
+      } else if (question_id === 1002 && answer.toLowerCase() === 'b') {
+        isCorrect = true;
+      } else if (question_id === 1003 && answer.toLowerCase() === 'a') {
+        isCorrect = true;
+      } 
+      // Level 2 questions
+      else if (question_id === 2001 && answer.toLowerCase() === 'c') {
+        isCorrect = true;
+      } else if (question_id === 2002 && answer.toLowerCase() === 'b') {
+        isCorrect = true;
+      } else if (question_id === 2003 && answer.toLowerCase() === 'a') {
+        isCorrect = true;
+      }
+      // Level 3 questions
+      else if (question_id === 3001 && answer.toLowerCase() === 'b') {
+        isCorrect = true;
+      } else if (question_id === 3002 && answer.toLowerCase() === 'd') {
+        isCorrect = true;
+      } else if (question_id === 3003 && answer.toLowerCase() === 'c') {
         isCorrect = true;
       } else {
         // For any non-fallback questions, evaluate based on the answer
-        isCorrect = Math.random() > 0.3; // Bias toward correct answers slightly
+        // Fallback to true for unexpected questions to avoid user frustration
+        console.log(`Unknown question ID: ${question_id} with answer: ${answer}`);
+        isCorrect = true;
       }
       
       // Create a bank of fallback questions to select from
