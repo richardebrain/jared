@@ -409,6 +409,28 @@ function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
           'Increased dependency on teacher guidance'
         ],
         correctAnswer: 'Reduced stress and improved emotional regulation'
+      },
+      {
+        id: `mind-${videoHash % 1000}-4`,
+        question: 'What physical space considerations are important for mindfulness activities?',
+        options: [
+          'Rooms must be completely silent and dark',
+          'Comfortable, quiet spaces with minimal distractions',
+          'Only outdoors is suitable for mindfulness',
+          'Bright lights and stimulating decorations are essential'
+        ],
+        correctAnswer: 'Comfortable, quiet spaces with minimal distractions'
+      },
+      {
+        id: `mind-${videoHash % 1000}-5`,
+        question: 'How can mindfulness support children who have experienced trauma?',
+        options: [
+          'It has no effect on trauma responses',
+          'By helping regulate emotions and build self-awareness',
+          'By removing all memories of traumatic events',
+          'By replacing therapeutic interventions entirely'
+        ],
+        correctAnswer: 'By helping regulate emotions and build self-awareness'
       }
     ],
     socialEmotional: [
@@ -444,6 +466,28 @@ function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
           'Advanced mathematics'
         ],
         correctAnswer: 'Self-regulation and relationship skills'
+      },
+      {
+        id: `socemo-${videoHash % 1000}-4`,
+        question: 'When a child is experiencing intense emotions, what approach is most effective?',
+        options: [
+          'Immediately punishing disruptive emotional expressions',
+          'Acknowledging feelings and providing calming strategies',
+          'Ignoring the behavior completely',
+          'Telling the child to "stop feeling that way"'
+        ],
+        correctAnswer: 'Acknowledging feelings and providing calming strategies'
+      },
+      {
+        id: `socemo-${videoHash % 1000}-5`,
+        question: 'How can teachers promote positive peer relationships in the classroom?',
+        options: [
+          'By emphasizing individual achievement only',
+          'Through collaborative activities and modeling respectful interactions',
+          'By separating children who don\'t get along',
+          'By avoiding discussions about feelings'
+        ],
+        correctAnswer: 'Through collaborative activities and modeling respectful interactions'
       }
     ],
     development: [
@@ -473,12 +517,34 @@ function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
         id: `dev-${videoHash % 1000}-3`,
         question: 'What role does responsive caregiving play in child development?',
         options: [
-          'It's unnecessary as children develop independently',
-          'It creates dependency and should be minimized',
-          'It builds secure attachment and social-emotional health',
-          'It only matters for physical development'
+          "It's unnecessary as children develop independently",
+          "It creates dependency and should be minimized",
+          "It builds secure attachment and social-emotional health",
+          "It only matters for physical development"
         ],
         correctAnswer: 'It builds secure attachment and social-emotional health'
+      },
+      {
+        id: `dev-${videoHash % 1000}-4`,
+        question: 'What is a key principle of child development theory?',
+        options: [
+          'Development occurs in a fixed, universal sequence for all children',
+          'Environmental factors have no influence on development',
+          'Development is an interaction between biology and environment',
+          'All developmental domains function independently'
+        ],
+        correctAnswer: 'Development is an interaction between biology and environment'
+      },
+      {
+        id: `dev-${videoHash % 1000}-5`,
+        question: 'What is the significance of "serve and return" interactions for infant development?',
+        options: [
+          'They are mainly important for language development only',
+          'They build foundational brain architecture and emotional security',
+          'They only matter for social skills after age 3',
+          'They have no significant impact on development'
+        ],
+        correctAnswer: 'They build foundational brain architecture and emotional security'
       }
     ],
     literacy: [
@@ -514,6 +580,28 @@ function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
           'Reading should be taught before oral language is developed'
         ],
         correctAnswer: 'Strong oral language skills provide a foundation for reading'
+      },
+      {
+        id: `lit-${videoHash % 1000}-4`,
+        question: 'What role does storytelling play in early literacy development?',
+        options: [
+          'It has minimal educational value',
+          'It helps children understand narrative structure and comprehension',
+          'It should be replaced with direct letter instruction',
+          'It only matters for children who already know how to read'
+        ],
+        correctAnswer: 'It helps children understand narrative structure and comprehension'
+      },
+      {
+        id: `lit-${videoHash % 1000}-5`,
+        question: 'How can the classroom environment support emergent writing?',
+        options: [
+          'By providing only pencils and lined paper',
+          'By discouraging drawing as it delays writing development',
+          'By offering varied writing tools and meaningful purposes for writing',
+          'By focusing exclusively on correct letter formation'
+        ],
+        correctAnswer: 'By offering varied writing tools and meaningful purposes for writing'
       }
     ],
     leadership: [
@@ -549,6 +637,28 @@ function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
           'Leadership only matters for budget management'
         ],
         correctAnswer: 'Effective leadership creates conditions that support learning and development'
+      },
+      {
+        id: `lead-${videoHash % 1000}-4`,
+        question: 'What is the role of mentorship in early childhood education settings?',
+        options: [
+          "It's unnecessary once teachers complete their formal education",
+          "It supports professional growth and improved teaching practice",
+          "It should focus only on administrative tasks",
+          "It's only needed for struggling teachers"
+        ],
+        correctAnswer: 'It supports professional growth and improved teaching practice'
+      },
+      {
+        id: `lead-${videoHash % 1000}-5`,
+        question: 'How can educational leaders effectively support teacher development?',
+        options: [
+          'By focusing exclusively on performance evaluations',
+          'Through observation, feedback, and professional learning opportunities',
+          'By maintaining distance from classroom practices',
+          'By implementing strict standardization of all teaching practices'
+        ],
+        correctAnswer: 'Through observation, feedback, and professional learning opportunities'
       }
     ],
     pedagogy: [
@@ -584,6 +694,28 @@ function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
           'To determine which children should be held back'
         ],
         correctAnswer: 'To inform teaching practices and support individual development'
+      },
+      {
+        id: `ped-${videoHash % 1000}-4`,
+        question: 'What approach best supports children with diverse learning needs?',
+        options: [
+          'Treating all children exactly the same',
+          'Differentiating instruction based on individual strengths and needs',
+          'Separating children by ability level for all activities',
+          'Using the same assessment methods for all children'
+        ],
+        correctAnswer: 'Differentiating instruction based on individual strengths and needs'
+      },
+      {
+        id: `ped-${videoHash % 1000}-5`,
+        question: 'What is the importance of culturally responsive teaching?',
+        options: [
+          "It's unnecessary in early childhood settings",
+          "It only applies to classrooms with diverse populations",
+          "It helps children develop positive identities and respects diverse experiences",
+          "It should focus only on celebrations and holidays"
+        ],
+        correctAnswer: 'It helps children develop positive identities and respects diverse experiences'
       }
     ],
     general: [
@@ -614,11 +746,33 @@ function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
         question: 'What role does family engagement play in early childhood education?',
         options: [
           'It interferes with professional teaching',
-          'It's essential for children's development and learning',
-          'It's unnecessary until elementary school',
-          'It should be limited to fundraising activities'
+          "It's essential for children's development and learning",
+          "It's unnecessary until elementary school",
+          "It should be limited to fundraising activities"
         ],
-        correctAnswer: 'It's essential for children's development and learning'
+        correctAnswer: "It's essential for children's development and learning"
+      },
+      {
+        id: `gen-${videoHash % 1000}-4`,
+        question: 'How can teachers create an inclusive classroom environment?',
+        options: [
+          'By treating all children exactly the same way',
+          'By recognizing and adapting to diverse needs and backgrounds',
+          'By separating children based on ability levels',
+          'By focusing primarily on children who need the most help'
+        ],
+        correctAnswer: 'By recognizing and adapting to diverse needs and backgrounds'
+      },
+      {
+        id: `gen-${videoHash % 1000}-5`,
+        question: 'What role should reflection play in teaching practice?',
+        options: [
+          "It's unnecessary once a teacher has several years of experience",
+          "It should be done only when problems arise",
+          "It should be an ongoing process to improve teaching quality",
+          "It should focus only on student academic performance"
+        ],
+        correctAnswer: "It should be an ongoing process to improve teaching quality"
       }
     ]
   };
@@ -633,111 +787,4 @@ function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
   
   // Return 3 questions for the quiz
   return selectedQuestions.slice(startIndex, startIndex + 3);
-        id: 'social-1',
-        question: 'Which of the following is a key component of social-emotional learning (SEL)?',
-        options: [
-          'Academic achievement only',
-          'Self-awareness and relationship skills',
-          'Competitive behavior between peers',
-          'Memorization of social rules'
-        ],
-        correctAnswer: 'Self-awareness and relationship skills'
-      },
-      {
-        id: 'social-2',
-        question: 'When a child is experiencing intense emotions, what approach is most effective?',
-        options: [
-          'Immediately punishing disruptive emotional expressions',
-          'Ignoring the emotion until it passes',
-          'Recognizing, naming, and validating their feelings',
-          'Telling them to stop feeling that way'
-        ],
-        correctAnswer: 'Recognizing, naming, and validating their feelings'
-      },
-      {
-        id: 'social-3',
-        question: 'How can teachers best support children who have experienced trauma?',
-        options: [
-          'By creating predictable routines and a safe environment',
-          'By treating them exactly like all other students',
-          'By asking them frequently about their traumatic experiences',
-          'By having lower behavioral expectations'
-        ],
-        correctAnswer: 'By creating predictable routines and a safe environment'
-      }
-    ];
-  } else if (isTedTalk) {
-    return [
-      {
-        id: 'ted-1',
-        question: 'What is typically the main purpose of TED Talks in educational contexts?',
-        options: [
-          'To entertain audiences with humor',
-          'To share innovative ideas and research in accessible ways',
-          'To advertise products and services',
-          'To criticize traditional educational methods'
-        ],
-        correctAnswer: 'To share innovative ideas and research in accessible ways'
-      },
-      {
-        id: 'ted-2',
-        question: 'How can teachers effectively implement ideas from educational TED Talks?',
-        options: [
-          'By completely replacing their current teaching methods',
-          'By critically evaluating ideas and adapting them to their specific context',
-          'By following the speaker\'s advice exactly without modification',
-          'By focusing only on talks that align with their existing beliefs'
-        ],
-        correctAnswer: 'By critically evaluating ideas and adapting them to their specific context'
-      },
-      {
-        id: 'ted-3',
-        question: 'What makes TED Talks particularly valuable for professional development?',
-        options: [
-          'They are always long and comprehensive',
-          'They present complex ideas in engaging, understandable formats',
-          'They only feature famous celebrities',
-          'They all follow the same predictable structure'
-        ],
-        correctAnswer: 'They present complex ideas in engaging, understandable formats'
-      }
-    ];
-  } else {
-    // General educational content questions
-    return [
-      {
-        id: 'gen-1',
-        question: 'What is a key principle of effective early childhood education?',
-        options: [
-          'One-size-fits-all curriculum for all children',
-          'Focus exclusively on academic skills',
-          'Developmentally appropriate practices based on child development',
-          'Minimizing play time to maximize instruction'
-        ],
-        correctAnswer: 'Developmentally appropriate practices based on child development'
-      },
-      {
-        id: 'gen-2',
-        question: 'How do educators best support diverse learners in the classroom?',
-        options: [
-          'By treating all students exactly the same way',
-          'By providing varied approaches, materials and learning opportunities',
-          'By focusing only on students who struggle the most',
-          'By separating students based on ability level'
-        ],
-        correctAnswer: 'By providing varied approaches, materials and learning opportunities'
-      },
-      {
-        id: 'gen-3',
-        question: 'What role does play serve in early childhood education?',
-        options: [
-          'It\'s just for fun and has no educational value',
-          'It\'s only appropriate for after academic work is complete',
-          'It\'s a primary vehicle for learning, exploration and skill development',
-          'It should be minimized to focus on worksheets and direct instruction'
-        ],
-        correctAnswer: 'It\'s a primary vehicle for learning, exploration and skill development'
-      }
-    ];
-  }
 }
