@@ -36,6 +36,7 @@ import AdminTools from "@/components/AdminTools";
 import DailyChallenge from "@/components/DailyChallenge";
 import AchievementPopup from "@/components/AchievementPopup";
 import PersonalizedLearningPath from "@/components/PersonalizedLearningPath";
+import PersonalizedMiniLessons from "@/components/PersonalizedMiniLessons";
 
 export default function Dashboard() {
   const [location, setLocation] = useLocation();
@@ -708,6 +709,23 @@ export default function Dashboard() {
                     user={user || {}} 
                     modules={modules || []}
                   />
+                </div>
+              </div>
+              
+              {/* Personalized Mini-Lessons */}
+              <div className="space-y-4 mt-8">
+                <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                  <Book className="h-5 w-5 mr-2 text-emerald-600" />
+                  Personalized Mini-Lessons
+                </h2>
+                <p className="text-neutral-600 mb-4">
+                  These short, targeted lessons are created specifically for you based on assessment questions you missed, 
+                  featuring enriched content with teaching explanations, scientific background, and practical applications.
+                </p>
+                <div className="mb-6">
+                  {user && (
+                    <PersonalizedMiniLessons userId={user.id} />
+                  )}
                 </div>
               </div>
               
