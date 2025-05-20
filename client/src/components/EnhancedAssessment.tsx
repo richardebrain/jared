@@ -628,6 +628,9 @@ const EnhancedAssessment: React.FC<EnhancedAssessmentProps> = ({
                 userName={currentUser?.firstName}
               />
             )}
+            
+            {/* Remove the Next Question button from the footer when feedback is shown
+              since the AssessmentFeedback component already has a Continue button */}
           </div>
         )}
         
@@ -647,9 +650,9 @@ const EnhancedAssessment: React.FC<EnhancedAssessmentProps> = ({
                 ) : "Submit Answer"}
               </Button>
             </>
-          ) : !feedback.assessment_complete ? (
-            <Button onClick={handleNextQuestion}>
-              Next Question
+          ) : feedback.assessment_complete ? (
+            <Button onClick={finishAssessment}>
+              Finish Assessment
             </Button>
           ) : null}
         </DialogFooter>
