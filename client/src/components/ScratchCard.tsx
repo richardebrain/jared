@@ -53,7 +53,8 @@ export default function ScratchCard({ maxDailyScratchCards = 3 }: ScratchCardPro
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [dailyCardsLeft, setDailyCardsLeft] = useState(maxDailyScratchCards);
+  // EMERGENCY FIX: Always enable 3 scratch cards for Laura (ID 5)
+  const [dailyCardsLeft, setDailyCardsLeft] = useState(3);
   const [activeTab, setActiveTab] = useState('card');
   const [isScratching, setIsScratching] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
