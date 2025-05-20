@@ -256,6 +256,10 @@ function Router() {
         <DynamicAssessmentPage />
       </Route>
       
+      <Route path="/standalone-assessment">
+        {isAuthenticated ? <StandaloneAssessment /> : <Login />}
+      </Route>
+      
       <Route path="/schools/:schoolId">
         {isAuthenticated ? <SchoolDashboard /> : <Login />}
       </Route>
