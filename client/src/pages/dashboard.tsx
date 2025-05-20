@@ -509,8 +509,9 @@ export default function Dashboard() {
                 
                 <CardContent className="px-6 py-4">
                   <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-                    <div
-                      onClick={() => window.open('https://docs.google.com/forms/d/e/1FAIpQLSfuKxxqApOXCZmQh5hO9V5-_4bWHgTsA-mxEtCmXHmQCscCdw/viewform', '_blank')}
+                    <a 
+                      href="/ece-assessment-portal.html"
+                      target="_blank"
                       className="group relative overflow-hidden bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl border-2 border-blue-400 transform transition duration-200 ease-in-out hover:scale-105 cursor-pointer"
                     >
                       {/* Corner decorations */}
@@ -526,7 +527,7 @@ export default function Dashboard() {
                       </div>
                       
                       <div className="absolute top-0 right-0 -mt-1 -mr-1 bg-blue-400 text-blue-900 text-xs font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg shadow-sm">NEW!</div>
-                    </div>
+                    </a>
 
                     <Link href="/core-values-shout-out">
                       <div className="group relative overflow-hidden bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 px-6 rounded-xl border-2 border-green-400 transform transition duration-200 ease-in-out hover:scale-105">
