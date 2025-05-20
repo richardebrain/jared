@@ -277,13 +277,19 @@ router.post('/answer',
       // Add logging to help debug
       console.log('Submitting answer to assessment backend:', req.body);
       
+      // Track question count properly for assessment progress
+      const questionCount = req.body.questionCount || 0;
+      console.log(`Processing question ${questionCount + 1} in assessment`);
+      
       // Ensure we're properly tracking difficulty levels
       const submittedData = {
         ...req.body,
         // Make sure we always specify a current difficulty level
         current_difficulty: req.body.current_difficulty || 1,
         // Force all new users to start at difficulty level 1
-        starting_difficulty: 1
+        starting_difficulty: 1,
+        // Track how many questions have been answered in this assessment so far
+        question_count: questionCount
       };
       
       // Try multiple endpoint paths to ensure compatibility
@@ -398,8 +404,72 @@ router.post('/answer',
         }
       ];
       
-      // Select a next question that's different from the current one
-      let nextQuestion = fallbackQuestions[Math.floor(Math.random() * fallbackQuestions.length)];
+      // Create a bank of additional questions for level 3 (hardest difficulty)
+      const level3Questions = [
+        {
+          id: 3003,
+          question: "What is the most effective approach to culturally responsive teaching?",
+          domain: "Curriculum & Planning",
+          sub_domain: "Cultural Responsiveness",
+          difficulty: 3,
+          q_type: "multiple_choice",
+          options: {
+            "a": "Treating all children exactly the same regardless of background",
+            "b": "Incorporating diverse perspectives, materials, and cultural references into curriculum",
+            "c": "Focusing exclusively on mainstream culture to ensure all children have equal exposure",
+            "d": "Grouping children by cultural background for specialized instruction"
+          },
+          correct_answer: "b",
+          explanation: "Culturally responsive teaching involves incorporating diverse perspectives, materials, and cultural references into curriculum to validate children's identities and create meaningful learning experiences.",
+          time_limit: 60,
+          points_value: 20
+        },
+        {
+          id: 4001,
+          question: "Which assessment approach provides the most authentic view of children's learning in early childhood?",
+          domain: "Child Development",
+          sub_domain: "Assessment",
+          difficulty: 3,
+          q_type: "multiple_choice",
+          options: {
+            "a": "Standardized tests administered at regular intervals",
+            "b": "Systematic observation and documentation of children in authentic contexts",
+            "c": "Weekly quizzes on content knowledge",
+            "d": "End-of-year examinations"
+          },
+          correct_answer: "b",
+          explanation: "Systematic observation and documentation in authentic contexts provides rich, contextualized information about children's growth, development, and learning processes.",
+          time_limit: 60,
+          points_value: 20
+        }
+      ];
+      
+      // Deterministically select a next question by tracking where we are in the assessment
+      let nextQuestion;
+
+      // Use the question difficulty to decide what the next question should be
+      if (isCorrect) {
+        // If answer is correct, try to provide a harder question
+        if (question_id < 2000) {
+          // Level 1 question - find a level 2 question
+          nextQuestion = fallbackQuestions.find(q => q.difficulty === 2) || fallbackQuestions[0];
+        } else if (question_id < 3000) {
+          // Level 2 question - find a level 3 question
+          nextQuestion = level3Questions[0]; // Use our level 3 questions
+        } else {
+          // Already at max difficulty, just choose a different question
+          nextQuestion = fallbackQuestions.find(q => q.id !== question_id) || fallbackQuestions[0];
+        }
+      } else {
+        // If answer is incorrect, try to provide an easier or same level question
+        if (question_id >= 3000) {
+          // Level 3 question - move back to level 2
+          nextQuestion = fallbackQuestions.find(q => q.difficulty === 2) || fallbackQuestions[0];
+        } else {
+          // Level 1 or 2 question - choose any question that's not the current one
+          nextQuestion = fallbackQuestions.find(q => q.id !== question_id) || fallbackQuestions[0];
+        }
+      }
       
       // Check for known correct answers to our fallback questions
       let correctAnswer = '';
