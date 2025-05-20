@@ -85,7 +85,7 @@ def process_json_question(db: Session, data: Dict[str, Any]):
         q_type = db.query(QuestionType).filter(QuestionType.name == "MULTIPLE_CHOICE").first()
     
     # Check if question already exists
-    existing_question = db.query(Question).filter(Question.text == data.get("question", "")).first()
+    existing_question = db.query(Question).filter(Question.question == data.get("question", "")).first()
     
     if existing_question:
         logger.info(f"Question already exists: {data.get('question', '')[:50]}...")
