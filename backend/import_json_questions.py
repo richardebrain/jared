@@ -102,21 +102,16 @@ def process_json_question(db: Session, data: Dict[str, Any]):
     
     # Create question
     question = Question(
-        text=data.get("question", ""),
-        domain_id=domain.id,
+        question=data.get("question", ""),  # Changed from 'text' to 'question'
+        domain=domain_name,  # Use domain name directly instead of domain_id
         sub_domain=data.get("sub_domain", ""),
         difficulty=int(data.get("difficulty", 1)),
-        type=q_type.id,
-        options=json.dumps(options),
+        q_type=data.get("q_type", "multiple_choice").lower(),  # Changed from 'type' to 'q_type'
+        options=options,  # Store as direct JSON object, not as string
         correct_answer=data.get("correct_answer", ""),
-        explanation=data.get("explanation", ""),
-        science_behind_it=data.get("science_behind_it", ""),
-        practical_application=data.get("practical_application", ""),
-        why_behind_it=data.get("why_behind_it", ""),
-        story=data.get("story", ""),
-        points_value=int(data.get("points_value", 5)),
+        enhanced_content=data.get("explanation", ""),  # Maps to enhanced_content
+        points=int(data.get("points_value", 5)),  # Changed from points_value to points
         time_limit=int(data.get("time_limit", 60)),
-        hints=json.dumps(data.get("hints", [])),
         created_at=datetime.now()
     )
     

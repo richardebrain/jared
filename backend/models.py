@@ -50,7 +50,7 @@ class Question(Base):
     sub_domain = Column(String(100), nullable=True, index=True)
     difficulty = Column(Integer, nullable=False, default=1)
     q_type = Column(String(20), nullable=False, default="multiple_choice")
-    options = Column(Text, nullable=True)
+    options = Column(JSON, nullable=True)  # Change to JSON type from Text
     correct_answer = Column(String(255), nullable=False)
     tags = Column(Text, nullable=True)
     enhanced_content = Column(Text, nullable=True)
@@ -62,36 +62,54 @@ class Question(Base):
     # Relationships
     answers = relationship("UserAnswer", back_populates="question")
     
-    @hybrid_property
+    @property
     def points_value(self) -> int:
         """Get points value"""
-        if self.points:
+        if self.points is not None and self.points > 0:
             return self.points
         # Fallback: base points on difficulty if points field is not set
-        return 5 * self.difficulty
+        return 5 * (self.difficulty or 1)
     
     def parse_options(self) -> Dict[str, str]:
-        """Parse options from string format"""
+        """Parse options from JSON format"""
         if self.options is None:
             return {}
-        try:
-            if isinstance(self.options, dict):
-                return self.options
-            return eval(self.options)
-        except:
-            # If parsing fails, return empty dict
-            return {}
+        
+        # If already a dict, return as is
+        if isinstance(self.options, dict):
+            return self.options
+            
+        # If it's a string (from older data format), try to parse
+        if isinstance(self.options, str):
+            try:
+                import json
+                return json.loads(self.options)
+            except:
+                try:
+                    # Legacy format using eval (safer to use ast.literal_eval)
+                    import ast
+                    return ast.literal_eval(self.options)
+                except:
+                    return {}
+                    
+        # Fallback for any other case
+        return {}
     
     def parse_tags(self) -> List[str]:
         """Parse tags from string format"""
         if self.tags is None:
             return []
-        try:
-            if isinstance(self.tags, list):
-                return self.tags
+            
+        # If already a list, return as is
+        if isinstance(self.tags, list):
+            return self.tags
+            
+        # If it's a string, split by comma
+        if isinstance(self.tags, str):
             return [tag.strip() for tag in self.tags.split(',')]
-        except:
-            return []
+            
+        # Fallback
+        return []
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for API response"""
@@ -251,18 +269,52 @@ class User(Base):
     email = Column(String(255), nullable=True, unique=True)
     first_name = Column(String(50), nullable=True)
     last_name = Column(String(50), nullable=True)
-    role = Column(String(20), default="teacher")  # teacher, admin, owner
+    # Role is derived from boolean columns in the actual database
+    is_admin = Column(Boolean, default=False)
+    is_school_admin = Column(Boolean, default=False) 
+    is_owner = Column(Boolean, default=False)
     school_id = Column(Integer, ForeignKey('schools.id'), nullable=True)
-    profile_image_url = Column(String(255), nullable=True)
-    language_preference = Column(String(10), default="en")
+    profile_picture = Column(String(255), nullable=True)  # Renamed from profile_image_url
+    language = Column(String(10), default="en")  # Renamed from language_preference
     learning_style = Column(JSON, nullable=True)
-    total_points = Column(Integer, default=0)
+    points = Column(Integer, default=0)  # Renamed from total_points
     level = Column(Integer, default=1)
-    streak_days = Column(Integer, default=0)
-    last_login = Column(DateTime, default=datetime.utcnow)
-    is_active = Column(Boolean, default=True)
+    streak = Column(Integer, default=0)  # Renamed from streak_days
+    last_active = Column(DateTime, default=datetime.utcnow)  # Renamed from last_login
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Virtual property to maintain compatibility
+    @property
+    def role(self):
+        if self.is_owner:
+            return "owner"
+        elif self.is_admin or self.is_school_admin:
+            return "admin"
+        return "teacher"
+    
+    @property
+    def profile_image_url(self):
+        return self.profile_picture
+        
+    @property
+    def language_preference(self):
+        return self.language
+        
+    @property
+    def total_points(self):
+        return self.points
+        
+    @property
+    def streak_days(self):
+        return self.streak
+        
+    @property
+    def last_login(self):
+        return self.last_active
+    
+    @property
+    def is_active(self):
+        return True  # Default to active
     
     # Relationships
     school = relationship("School", back_populates="users")
