@@ -125,7 +125,11 @@ router.post('/start',
     }
 
     try {
-      const { domain, user_id, sub_domain, difficulty } = req.body;
+      // Get request data and ensure first-time users start at difficulty level 1
+      const { domain, user_id, sub_domain } = req.body;
+      
+      // Always force difficulty to level 1 for new assessments to ensure proper escalation
+      const difficulty = 1;
       
       console.log('Starting assessment with params:', { domain, user_id, sub_domain, difficulty });
       
@@ -142,7 +146,8 @@ router.post('/start',
           domain,
           user_id,
           sub_domain,
-          difficulty
+          difficulty,
+          starting_difficulty: 1 // Explicitly set starting difficulty
         }, {
           timeout: 10000
         });
@@ -158,7 +163,8 @@ router.post('/start',
             domain,
             user_id,
             sub_domain,
-            difficulty
+            difficulty: 1, // Force difficulty level 1
+            starting_difficulty: 1
           }, {
             timeout: 10000
           });
@@ -173,7 +179,8 @@ router.post('/start',
             domain,
             user_id,
             sub_domain,
-            difficulty
+            difficulty: 1, // Force difficulty level 1
+            starting_difficulty: 1
           }, {
             timeout: 10000
           });
@@ -227,13 +234,22 @@ router.post('/answer',
       // Add logging to help debug
       console.log('Submitting answer to assessment backend:', req.body);
       
+      // Ensure we're properly tracking difficulty levels
+      const submittedData = {
+        ...req.body,
+        // Make sure we always specify a current difficulty level
+        current_difficulty: req.body.current_difficulty || 1,
+        // Force all new users to start at difficulty level 1
+        starting_difficulty: 1
+      };
+      
       // Try multiple endpoint paths to ensure compatibility
       let response;
       
       try {
         // First try with "assessments" prefix
         console.log('First attempt - submitting to /assessments/answer endpoint');
-        response = await axios.post(`${ASSESSMENT_API_URL}/assessments/answer`, req.body, {
+        response = await axios.post(`${ASSESSMENT_API_URL}/assessments/answer`, submittedData, {
           timeout: 10000
         });
       } catch (firstError) {
@@ -242,7 +258,7 @@ router.post('/answer',
         try {
           // Second try with no prefix
           console.log('Second attempt - submitting to /answer endpoint');
-          response = await axios.post(`${ASSESSMENT_API_URL}/answer`, req.body, {
+          response = await axios.post(`${ASSESSMENT_API_URL}/answer`, submittedData, {
             timeout: 10000
           });
         } catch (secondError) {
@@ -250,7 +266,7 @@ router.post('/answer',
           
           // Third try with "assessment" singular prefix
           console.log('Third attempt - submitting to /assessment/answer endpoint');
-          response = await axios.post(`${ASSESSMENT_API_URL}/assessment/answer`, req.body, {
+          response = await axios.post(`${ASSESSMENT_API_URL}/assessment/answer`, submittedData, {
             timeout: 10000
           });
         }
