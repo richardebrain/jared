@@ -23,7 +23,9 @@ import {
   CheckCircle,
   Building2,
   Shield,
-  Music
+  Music,
+  BrainCircuit,
+  Sparkles
 } from "lucide-react";
 import { MonthlyNewsletter } from "@/components/MonthlyNewsletter";
 import Leaderboard from "@/components/Leaderboard";
@@ -701,7 +703,7 @@ export default function Dashboard() {
               <Card className="overflow-hidden bg-white shadow-md hover:shadow-lg transition-shadow mt-8">
                 <CardHeader className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-4">
                   <CardTitle className="text-xl font-bold text-white mb-0 flex items-center">
-                    <BrainCircuit className="h-5 w-5 mr-2 inline-block" />
+                    <Brain className="h-5 w-5 mr-2 inline-block" />
                     AI-Powered Assessment
                   </CardTitle>
                   <CardDescription className="text-white font-medium opacity-90 m-0">
@@ -714,14 +716,13 @@ export default function Dashboard() {
                     Get personalized feedback and detailed explanations on questions from our database.
                   </p>
                   <div className="flex justify-end">
-                    <Link href="/ai-assessment">
-                      <Button 
-                        className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white"
-                      >
-                        Try AI Assessment
-                        <Sparkles className="h-4 w-4 ml-1" />
-                      </Button>
-                    </Link>
+                    <Button 
+                      className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white"
+                      onClick={() => window.location.href = "/ai-assessment"}
+                    >
+                      Try AI Assessment
+                      <Star className="h-4 w-4 ml-1" />
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
