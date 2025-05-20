@@ -24,7 +24,7 @@ import {
   Building2,
   Shield,
   Music,
-  BrainCircuit,
+  BrainCircuit as Brain,
   Sparkles
 } from "lucide-react";
 import { MonthlyNewsletter } from "@/components/MonthlyNewsletter";
