@@ -24,6 +24,7 @@ import bcrypt from "bcrypt";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import personalizedModuleRoutes from "./api/personalizedModuleRoutes";
+import assessmentQuestionRoutes from "./routes/assessment-questions";
 
 // For ESM __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -121,6 +122,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register enhanced assessment routes
   registerAssessmentRoutes(app);
+  
+  // Register assessment question routes for the enhanced AI assessment
+  app.use(assessmentQuestionRoutes);
   
   // Register personalized module routes for custom learning paths
   app.use(personalizedModuleRoutes);
