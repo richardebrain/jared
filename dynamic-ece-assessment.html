@@ -701,7 +701,8 @@
       
       if (isCorrect) {
         correctAnswers++;
-        pointsEarned += currentQuestion.pointValue;
+        const pointsForThisQuestion = currentQuestion.pointValue;
+        pointsEarned += pointsForThisQuestion;
         correctStreak++;
         incorrectStreak = 0;
         
@@ -714,11 +715,17 @@
           };
         }
         domainResults[currentQuestion.domain].correct++;
-        domainResults[currentQuestion.domain].points += currentQuestion.pointValue;
+        domainResults[currentQuestion.domain].points += pointsForThisQuestion;
         
         // Play success sound and animation
         playSuccessSound();
         triggerConfetti();
+        
+        // Show points animation
+        showPointsAnimation(pointsForThisQuestion);
+        
+        // Update points display immediately
+        document.getElementById('points-earned').textContent = `${pointsEarned} points earned`;
       } else {
         incorrectStreak++;
         correctStreak = 0;
@@ -845,20 +852,41 @@
     }
     
     function nextQuestion() {
-      // Clear feedback
-      document.getElementById('feedback-container').style.display = 'none';
-      
-      // Move to next question in current difficulty level
-      currentQuestionIndex++;
-      
-      // If we've run out of questions at this difficulty or reached max questions, end assessment
-      if (answeredQuestions >= MAX_QUESTIONS || currentQuestionIndex >= currentQuestions.length) {
-        showResults();
-        return;
+      try {
+        // Clear feedback
+        document.getElementById('feedback-container').style.display = 'none';
+        
+        // Update points display immediately to ensure it's always current
+        document.getElementById('points-earned').textContent = `${pointsEarned} points earned`;
+        
+        // Move to next question in current difficulty level
+        currentQuestionIndex++;
+        
+        // Check if we need new questions at the current difficulty level
+        if (currentQuestionIndex >= currentQuestions.length) {
+          // Reset index and get fresh questions at the current difficulty
+          currentQuestionIndex = 0;
+          currentQuestions = getQuestionsForDifficulty(currentDifficulty);
+        }
+        
+        // If we've reached max questions, end assessment
+        if (answeredQuestions >= MAX_QUESTIONS) {
+          showResults();
+          return;
+        }
+        
+        // Otherwise, load the next question
+        loadQuestion();
+      } catch (error) {
+        // Error recovery - if something goes wrong, show a message and try to continue
+        console.error("Error in nextQuestion:", error);
+        alert("There was a problem loading the next question. The assessment will try to continue.");
+        
+        // Try to reset and continue
+        currentQuestionIndex = 0;
+        currentQuestions = getQuestionsForDifficulty(currentDifficulty);
+        loadQuestion();
       }
-      
-      // Otherwise, load the next question
-      loadQuestion();
     }
     
     function showResults() {
@@ -1122,6 +1150,76 @@
         colors: colors
       });
     }
+    // Function to show points animation
+    function showPointsAnimation(points) {
+      const pointsPopup = document.createElement('div');
+      pointsPopup.className = 'fixed z-50 animate-pop';
+      pointsPopup.style.left = '50%';
+      pointsPopup.style.top = '50%';
+      pointsPopup.style.transform = 'translate(-50%, -50%)';
+      pointsPopup.style.pointerEvents = 'none';
+      
+      // Different colors based on point value
+      let color, size;
+      if (points === 5) {
+        color = 'text-blue-500';
+        size = 'text-4xl';
+      } else if (points === 10) {
+        color = 'text-indigo-500';
+        size = 'text-5xl';
+      } else {
+        color = 'text-purple-500';
+        size = 'text-6xl';
+      }
+      
+      pointsPopup.innerHTML = `<div class="font-bold ${color} ${size} drop-shadow-lg">+${points} points!</div>`;
+      document.body.appendChild(pointsPopup);
+      
+      // Animate up and fade out
+      let top = 50;
+      let opacity = 1;
+      const anim = setInterval(() => {
+        top -= 1;
+        opacity -= 0.03;
+        pointsPopup.style.top = `${top}%`;
+        pointsPopup.style.opacity = opacity;
+        
+        if (opacity <= 0) {
+          clearInterval(anim);
+          document.body.removeChild(pointsPopup);
+        }
+      }, 30);
+    }
+    
+    // Emergency save mechanism - save progress to localStorage
+    function saveProgress() {
+      try {
+        const progressData = {
+          answeredQuestions,
+          correctAnswers,
+          pointsEarned,
+          currentDifficulty,
+          maxDifficultyReached,
+          domainResults,
+          questionHistory,
+          timestamp: new Date().getTime()
+        };
+        
+        localStorage.setItem('eceAssessmentProgress', JSON.stringify(progressData));
+      } catch (e) {
+        console.error("Failed to save progress:", e);
+      }
+    }
+    
+    // Save progress after each answer
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden' && answeredQuestions > 0) {
+        saveProgress();
+      }
+    });
+    
+    // Also save progress periodically
+    setInterval(saveProgress, 30000);
   </script>
 </body>
 </html>
