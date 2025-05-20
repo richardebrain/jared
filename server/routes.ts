@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { db } from "./db";
 import express from "express";
 import session from "express-session";
+import { checkAndNotifyExpiringCredentials } from "./services/notificationService";
 import connectPgSimple from "connect-pg-simple";
 import { updateChildDevelopmentModule } from "./updateChildDevelopmentModule";
 import { eq, sql } from "drizzle-orm";
@@ -14,6 +15,7 @@ import { registerModuleRoutes } from "./registerModuleRoutes";
 import { registerQuestionImportRoutes } from "./api-routes/question-import";
 import { registerAssessmentRoutes } from "./registerAssessmentRoutes";
 import * as notebookLmPlugin from "./notebookLmPlugin";
+import credentialRoutes from "./api/credentialRoutes";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -84,7 +86,28 @@ const logoUpload = multer({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create an HTTP server for the Express app (needed for WebSockets)
+  // Register credential management routes
+  app.use("/api/credentials", credentialRoutes);
+  
   const httpServer = createServer(app);
+  
+  // Set up credential expiration check to run daily
+  const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+  // Schedule first check at server startup
+  setTimeout(() => {
+    console.log("Running initial credential expiration check...");
+    checkAndNotifyExpiringCredentials(30) // Check credentials expiring within 30 days
+      .then(() => console.log("Initial credential expiration check complete"))
+      .catch(err => console.error("Error in credential expiration check:", err));
+  }, 5000); // Wait 5 seconds after server start before first check
+  
+  // Then schedule regular daily checks
+  setInterval(() => {
+    console.log("Running scheduled credential expiration check...");
+    checkAndNotifyExpiringCredentials(30) // Check credentials expiring within 30 days
+      .then(() => console.log("Scheduled credential expiration check complete"))
+      .catch(err => console.error("Error in credential expiration check:", err));
+  }, ONE_DAY_MS);
   
   // Register welcome message routes - for teacher notifications and shout-outs
   registerWelcomeMessageRoutes(app);
