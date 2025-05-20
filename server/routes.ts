@@ -3433,7 +3433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Module Management API - Update module visibility
-  app.patch("/api/modules/:id/visibility", requireAuth, requireAdminAuth, async (req, res) => {
+  app.patch("/api/modules/:id/visibility", requireAuth, requireAdmin, async (req, res) => {
     try {
       const moduleId = parseInt(req.params.id);
       const { visible } = req.body;
