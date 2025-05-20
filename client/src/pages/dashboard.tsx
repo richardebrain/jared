@@ -511,9 +511,8 @@ export default function Dashboard() {
                   <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
                     <div 
                       onClick={() => {
-                        // Open our reliable standalone assessment page
-                        const baseUrl = window.location.origin;
-                        window.open(`${baseUrl}/basic-assessment.html`, '_blank');
+                        // Open our reliable standalone assessment page directly
+                        window.open('basic-assessment.html', '_blank');
                       }}
                       className="group relative overflow-hidden bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl border-2 border-blue-400 transform transition duration-200 ease-in-out hover:scale-105 cursor-pointer"
                     >
