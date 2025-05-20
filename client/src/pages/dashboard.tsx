@@ -511,8 +511,8 @@ export default function Dashboard() {
                   <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
                     <div 
                       onClick={() => {
-                        // Direct link to Google Form assessment
-                        window.open('https://docs.google.com/forms/d/e/1FAIpQLSfuKxxqApOXCZmQh5hO9V5-_4bWHgTsA-mxEtCmXHmQCscCdw/viewform', '_blank');
+                        // Open our reliable standalone assessment page
+                        window.open('/basic-assessment.html', '_blank');
                       }}
                       className="group relative overflow-hidden bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl border-2 border-blue-400 transform transition duration-200 ease-in-out hover:scale-105 cursor-pointer"
                     >
@@ -742,7 +742,7 @@ export default function Dashboard() {
                     <div className="flex justify-end">
                       <Button 
                         className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white"
-                        onClick={() => window.open('https://docs.google.com/forms/d/e/1FAIpQLSeCEd35ixqcygYgNgR_Y83K1x6q3_gFmJyT0nZHdCd-7Oez8A/viewform', '_blank')}
+                        onClick={() => window.open('/basic-assessment.html', '_blank')}
                       >
                         Start Assessment
                         <ArrowRight className="h-4 w-4 ml-1" />
@@ -770,7 +770,7 @@ export default function Dashboard() {
                     <div className="flex justify-end">
                       <Button 
                         className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white"
-                        onClick={() => window.open('https://docs.google.com/forms/d/e/1FAIpQLSfuKxxqApOXCZmQh5hO9V5-_4bWHgTsA-mxEtCmXHmQCscCdw/viewform', '_blank')}
+                        onClick={() => window.open('/basic-assessment.html', '_blank')}
                       >
                         Try Assessment
                         <Star className="h-4 w-4 ml-1" />
@@ -801,7 +801,7 @@ export default function Dashboard() {
                     <div className="flex justify-end">
                       <Button 
                         className="bg-gradient-to-r from-amber-500 to-orange-500 text-white"
-                        onClick={() => window.open('https://docs.google.com/forms/d/e/1FAIpQLSdP7lDMU9AEVg_GOPe1mFm4BKr-N7Ro-ZJv5kEljkfv8NrXkA/viewform', '_blank')}
+                        onClick={() => window.open('/comprehensive-assessment.html', '_blank')}
                       >
                         Take Master Assessment
                         <Award className="h-4 w-4 ml-1" />
