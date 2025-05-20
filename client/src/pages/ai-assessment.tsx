@@ -22,21 +22,9 @@ export default function AIAssessmentPage() {
     setCompletedAssessment(true);
     setAssessmentResults({ score, totalPoints });
     
-    // Update user points on the server
-    try {
-      fetch('/api/user/add-points', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user?.id,
-          points: totalPoints,
-        }),
-      }).catch(err => console.log("Failed to add points but continuing"));
-    } catch (error) {
-      console.error('Failed to update points:', error);
-    }
+    // We'll implement this with the backend later
+    console.log(`User earned ${totalPoints} points`);
+    // No backend API call for now in this simplified version
   };
 
   const handleStartAssessment = () => {

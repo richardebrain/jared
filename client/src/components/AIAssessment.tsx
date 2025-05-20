@@ -32,42 +32,12 @@ interface AIAssessmentProps {
   initialDifficulty?: number;
 }
 
-// Function to fetch questions from the database
+// Function to get questions (client-side only implementation)
 const fetchDatabaseQuestions = async (): Promise<Question[]> => {
-  try {
-    const response = await fetch('/api/assessment/questions');
-    
-    if (!response.ok) {
-      // Fall back to our predefined questions if API fails
-      console.log("Using fallback questions due to API error");
-      return fallbackQuestions;
-    }
-    
-    const data = await response.json();
-    
-    // Transform the data to our expected format
-    const formattedQuestions = data.map((q: any) => ({
-      id: q.id,
-      text: q.question || q.text,
-      domain: q.domain || "General ECE Knowledge",
-      subDomain: q.sub_domain,
-      difficulty: q.difficulty || 1,
-      options: q.options || [
-        { id: "A", text: q.option_a || "Option A" },
-        { id: "B", text: q.option_b || "Option B" },
-        { id: "C", text: q.option_c || "Option C" },
-        { id: "D", text: q.option_d || "Option D" }
-      ],
-      correctAnswer: q.correct_answer || q.answer || "A",
-      explanation: q.explanation || "No explanation provided.",
-      points: q.points_value || (q.difficulty || 1) * 5
-    }));
-    
-    return formattedQuestions;
-  } catch (error) {
-    console.error("Error fetching questions:", error);
-    return fallbackQuestions;
-  }
+  // We'll use the client-side fallback questions for now
+  // This avoids dependency on the backend API until we can properly implement it
+  console.log("Using client-side questions");
+  return fallbackQuestions;
 };
 
 // Curated fallback questions that will be used if the API fails
@@ -278,10 +248,8 @@ export default function AIAssessment({
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
   const [currentDifficulty, setCurrentDifficulty] = useState(initialDifficulty);
 
-  // Fetch user data to track points earned
-  const { data: user } = useQuery({
-    queryKey: ["/api/auth/user"],
-  });
+  // Simplified implementation - no user data needed for now
+  const user = { id: 0, points: 0, name: "User" };
 
   // Load questions from database or fallback
   useEffect(() => {
@@ -370,26 +338,9 @@ export default function AIAssessment({
       setFeedbackMessage(`Not quite. The correct answer is ${currentQuestion.correctAnswer}.`);
     }
 
-    // Record answer in backend (if connected to API)
-    try {
-      // This is optional and can be implemented later to record answers
-      fetch('/api/assessment/record-answer', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          questionId: currentQuestion.id,
-          userId: user?.id,
-          answer: optionId,
-          isCorrect,
-          points: isCorrect ? currentQuestion.points : 0,
-          responseTime: responseTime,
-        }),
-      }).catch(err => console.log("Failed to record answer but continuing assessment"));
-    } catch (error) {
-      console.error('Failed to record answer:', error);
-    }
+    // We're using a client-side only version for now - no backend recording
+    console.log(`User answered: ${optionId}, Correct: ${isCorrect}, Points: ${isCorrect ? currentQuestion.points : 0}`);
+    // Later this can be connected to a backend API
   };
 
   // Handle next question
@@ -422,26 +373,12 @@ export default function AIAssessment({
         origin: { y: 0.6 }
       });
 
-      // Record assessment completion in backend
-      try {
-        fetch('/api/assessment/complete', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId: user?.id,
-            score,
-            totalPoints,
-          }),
-        }).catch(err => console.log("Failed to record assessment completion but continuing"));
-        
-        // Call onComplete callback if provided
-        if (onComplete) {
-          onComplete(score, totalPoints);
-        }
-      } catch (error) {
-        console.error('Failed to record assessment completion:', error);
+      // Client-side only implementation - no backend recording
+      console.log(`Assessment completed: Score ${score}, Points ${totalPoints}`);
+      
+      // Call onComplete callback if provided
+      if (onComplete) {
+        onComplete(score, totalPoints);
       }
     }
   };
