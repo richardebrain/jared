@@ -512,7 +512,8 @@ export default function Dashboard() {
                     <div 
                       onClick={() => {
                         // Open our reliable standalone assessment page
-                        window.open('/basic-assessment.html', '_blank');
+                        const baseUrl = window.location.origin;
+                        window.open(`${baseUrl}/basic-assessment.html`, '_blank');
                       }}
                       className="group relative overflow-hidden bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl border-2 border-blue-400 transform transition duration-200 ease-in-out hover:scale-105 cursor-pointer"
                     >
@@ -742,7 +743,10 @@ export default function Dashboard() {
                     <div className="flex justify-end">
                       <Button 
                         className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white"
-                        onClick={() => window.open('/basic-assessment.html', '_blank')}
+                        onClick={() => {
+                          const baseUrl = window.location.origin;
+                          window.open(`${baseUrl}/basic-assessment.html`, '_blank');
+                        }}
                       >
                         Start Assessment
                         <ArrowRight className="h-4 w-4 ml-1" />
@@ -770,7 +774,10 @@ export default function Dashboard() {
                     <div className="flex justify-end">
                       <Button 
                         className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white"
-                        onClick={() => window.open('/basic-assessment.html', '_blank')}
+                        onClick={() => {
+                          const baseUrl = window.location.origin;
+                          window.open(`${baseUrl}/basic-assessment.html`, '_blank');
+                        }}
                       >
                         Try Assessment
                         <Star className="h-4 w-4 ml-1" />
@@ -801,7 +808,10 @@ export default function Dashboard() {
                     <div className="flex justify-end">
                       <Button 
                         className="bg-gradient-to-r from-amber-500 to-orange-500 text-white"
-                        onClick={() => window.open('/comprehensive-assessment.html', '_blank')}
+                        onClick={() => {
+                          const baseUrl = window.location.origin;
+                          window.open(`${baseUrl}/comprehensive-assessment.html`, '_blank');
+                        }}
                       >
                         Take Master Assessment
                         <Award className="h-4 w-4 ml-1" />
