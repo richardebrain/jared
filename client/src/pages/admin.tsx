@@ -253,14 +253,57 @@ export default function AdminPage({ skipPasswordCheck = false }) {
     }));
   };
   
-  // Calculate module points based on time and difficulty
+  // Calculate module points based on time and difficulty or use custom value
   const calculatePoints = (timeEstimate: string, difficulty: string): number => {
+    // If custom points are set, use that value
+    if (newModule.customPoints && !isNaN(parseInt(newModule.customPoints))) {
+      return parseInt(newModule.customPoints);
+    }
+    
+    // Otherwise calculate based on time and difficulty
     const basePoints = parseInt(timeEstimate) || 15;
     const difficultyMultiplier = 
       difficulty === 'advanced' ? 2 :
       difficulty === 'intermediate' ? 1.5 : 1;
     
     return Math.round(basePoints * difficultyMultiplier);
+  };
+  
+  // Generate AI suggestions for module content
+  const generateAiSuggestions = async (type: 'questions' | 'strategies') => {
+    setIsGeneratingIdeas(true);
+    try {
+      const promptText = type === 'questions' 
+        ? `Generate 3 creative assessment questions for a module about "${newModule.title}" in the category of "${newModule.category}". The questions should be suitable for ${newModule.difficulty} level ECE teachers.`
+        : `Suggest 3 creative teaching strategies for a module about "${newModule.title}" in the category of "${newModule.category}". The strategies should be suitable for ${newModule.difficulty} level ECE teachers.`;
+      
+      const response = await apiRequest('/api/ai/generate-suggestions', {
+        method: 'POST',
+        data: { 
+          prompt: promptText,
+          type
+        }
+      });
+      
+      const suggestions = await response.json();
+      setAiSuggestions(prev => ({
+        ...prev,
+        [type]: suggestions.ideas || []
+      }));
+      
+      toast({
+        title: `AI Suggestions Generated`,
+        description: `Creative ${type} have been generated for your module.`,
+      });
+    } catch (error) {
+      console.error(`Error generating ${type}:`, error);
+      toast({
+        title: "Suggestion Error",
+        description: `Could not generate creative ${type}. Please try again.`,
+        variant: "destructive"
+      });
+    }
+    setIsGeneratingIdeas(false);
   };
 
   if (isLoading || !user) return <div>Loading...</div>;
@@ -453,7 +496,7 @@ export default function AdminPage({ skipPasswordCheck = false }) {
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="module-difficulty">Difficulty Level</Label>
                       <Select 
@@ -481,6 +524,25 @@ export default function AdminPage({ skipPasswordCheck = false }) {
                         onChange={(e) => setNewModule({...newModule, estimatedTime: e.target.value})}
                       />
                     </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="module-custom-points">
+                        Custom Points Value 
+                        <span className="text-sm text-gray-500 ml-2">(Optional)</span>
+                      </Label>
+                      <Input 
+                        id="module-custom-points" 
+                        type="number" 
+                        min="1"
+                        max="100"
+                        placeholder="Auto-calculated"
+                        value={newModule.customPoints}
+                        onChange={(e) => setNewModule({...newModule, customPoints: e.target.value})}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Current value: {calculatePoints(newModule.estimatedTime, newModule.difficulty)} points
+                      </p>
+                    </div>
                   </div>
                   
                   <div className="space-y-2">
@@ -492,6 +554,89 @@ export default function AdminPage({ skipPasswordCheck = false }) {
                       value={newModule.description}
                       onChange={(e) => setNewModule({...newModule, description: e.target.value})}
                     />
+                  </div>
+
+                  {/* AI Creative Suggestion Tools */}
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mt-4">
+                    <h3 className="text-md font-medium mb-2 flex items-center">
+                      <Brain className="h-5 w-5 text-blue-500 mr-2" />
+                      AI Creative Tools
+                    </h3>
+                    <div className="text-sm text-gray-600 mb-3">
+                      Need inspiration? Let AI help you generate creative ideas for your module.
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => generateAiSuggestions('questions')}
+                        disabled={isGeneratingIdeas || !newModule.title || !newModule.description}
+                        className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                      >
+                        {isGeneratingIdeas ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Lightbulb className="h-4 w-4 mr-2" />
+                            Generate Question Ideas
+                          </>
+                        )}
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => generateAiSuggestions('strategies')}
+                        disabled={isGeneratingIdeas || !newModule.title || !newModule.description}
+                        className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                      >
+                        {isGeneratingIdeas ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4 mr-2" />
+                            Generate Teaching Strategies
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    
+                    {/* AI Suggestions Results */}
+                    {(aiSuggestions.questions.length > 0 || aiSuggestions.strategies.length > 0) && (
+                      <div className="mt-4 pt-4 border-t border-blue-200">
+                        {aiSuggestions.questions.length > 0 && (
+                          <div className="mb-3">
+                            <h4 className="text-sm font-medium mb-2">Question Ideas:</h4>
+                            <ul className="space-y-2 text-sm">
+                              {aiSuggestions.questions.map((question, i) => (
+                                <li key={i} className="bg-white p-2 rounded border border-blue-100">
+                                  {question}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {aiSuggestions.strategies.length > 0 && (
+                          <div>
+                            <h4 className="text-sm font-medium mb-2">Teaching Strategy Ideas:</h4>
+                            <ul className="space-y-2 text-sm">
+                              {aiSuggestions.strategies.map((strategy, i) => (
+                                <li key={i} className="bg-white p-2 rounded border border-blue-100">
+                                  {strategy}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
                 
