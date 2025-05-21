@@ -320,31 +320,27 @@ export default function AdminPage({ skipPasswordCheck = false }) {
       console.log(`Making API request to /api/ai/generate with type: ${type}`);
       
       try {
-        // Use a simple fetch call with proper error handling
-        const response = await fetch('/api/ai/generate', {
+        // Use apiRequest helper instead of fetch for consistent handling
+        const response = await apiRequest('/api/ai/generate', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
+          data: { 
             prompt: promptText,
             type
-          }),
-          credentials: 'include'
+          }
         });
         
         console.log(`API Response status:`, response.status);
         
-        if (!response.ok) {
+        if (response.status !== 200) {
           console.error(`Error response:`, response);
           throw new Error(`Server responded with status: ${response.status}`);
         }
         
-        const data = await response.json();
+        const data = await response.data;
         console.log(`API Response data:`, data);
         
         if (type === 'quiz') {
-          if (data.quizQuestions && Array.isArray(data.quizQuestions)) {
+          if (data && data.quizQuestions && Array.isArray(data.quizQuestions)) {
             setAiSuggestions(prev => ({
               ...prev,
               quizQuestions: data.quizQuestions
@@ -354,20 +350,28 @@ export default function AdminPage({ skipPasswordCheck = false }) {
               title: `Quiz Questions Generated`,
               description: `${data.quizQuestions.length} multiple-choice quiz questions have been created for your module.`,
             });
+          } else {
+            console.error('Invalid quiz question format:', data);
+            throw new Error('Server returned invalid quiz question format');
           }
         } else {
           // Split the suggestions string into an array by newline
-          const suggestionsArray = data.suggestions ? data.suggestions.split('\n').filter(Boolean) : [];
-          
-          setAiSuggestions(prev => ({
-            ...prev,
-            [type]: suggestionsArray
-          }));
-          
-          toast({
-            title: `AI Suggestions Generated`,
-            description: `Creative ${type} have been generated for your module.`,
-          });
+          if (data && data.suggestions) {
+            const suggestionsArray = data.suggestions.split('\n').filter(Boolean);
+            
+            setAiSuggestions(prev => ({
+              ...prev,
+              [type]: suggestionsArray
+            }));
+            
+            toast({
+              title: `AI Suggestions Generated`,
+              description: `Creative ${type} have been generated for your module.`,
+            });
+          } else {
+            console.error('Invalid suggestions format:', data);
+            throw new Error('Server returned invalid suggestions format');
+          }
         }
       } catch (apiError) {
         console.error(`API call error:`, apiError);
