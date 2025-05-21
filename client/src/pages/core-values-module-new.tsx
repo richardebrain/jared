@@ -5,6 +5,7 @@ import { LearningModule as LearningModuleType, UserProgress } from "@shared/sche
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import Header from "@/components/Header";
+import { StoryNarration } from "@/components/StoryNarration";
 
 import {
   Card,
@@ -194,62 +195,7 @@ export default function CoreValuesModuleNew() {
     setAudioCompleted(true);
   };
 
-  // Narrate text content function with chunking for better reliability
-  const narrateText = (elementId: string, voiceGender: string = 'female', rate: number = 0.9) => {
-    if (narrationPlaying) {
-      synth?.cancel();
-      setNarrationPlaying(false);
-      return;
-    }
-    
-    // Get the full text from the element
-    const fullText = document.getElementById(elementId)?.textContent || '';
-    
-    // Split text into smaller chunks (by paragraphs)
-    const paragraphs = fullText.split('\n\n').filter(p => p.trim().length > 0);
-    
-    // Function to speak paragraphs sequentially
-    const speakParagraphs = (paragraphIndex = 0) => {
-      if (paragraphIndex >= paragraphs.length) {
-        setNarrationPlaying(false);
-        return;
-      }
-      
-      const paragraph = paragraphs[paragraphIndex];
-      const utterance = new SpeechSynthesisUtterance(paragraph);
-      utterance.rate = rate;
-      utterance.pitch = 1;
-      
-      const voices = synth?.getVoices();
-      // Try to find a voice that matches the requested gender
-      const preferredVoice = voices?.find(voice => 
-        voice.name.toLowerCase().includes(voiceGender.toLowerCase())
-      ) || voices?.[0];
-      
-      if (preferredVoice) utterance.voice = preferredVoice;
-      
-      // When this paragraph ends, speak the next one
-      utterance.onend = () => {
-        // Check if narration is still active before continuing
-        if (narrationPlaying) {
-          speakParagraphs(paragraphIndex + 1);
-        }
-      };
-      
-      synth?.speak(utterance);
-    };
-    
-    // Start speaking the first paragraph
-    setNarrationPlaying(true);
-    speakParagraphs(0);
-    
-    // Show toast notification that narration has started
-    toast({
-      title: "Story Narration Started",
-      description: "Click 'Stop Narration' to end playback at any time.",
-      duration: 3000,
-    });
-  };
+  // We've removed the old narrateText function as it's been replaced with the StoryNarration component
   
   // Check fill in the blanks answers
   const checkCoreAnswers = () => {
@@ -476,14 +422,10 @@ export default function CoreValuesModuleNew() {
                                   <h3 className="text-xl font-semibold mb-3">Consistency: Miss Rosa's Unbroken Circle</h3>
                                   <div className="flex justify-between items-center mb-2">
                                     <p className="text-sm text-gray-500 italic">A story about the power of consistency</p>
-                                    <Button 
-                                      size="sm" 
-                                      variant="outline" 
-                                      className="flex items-center gap-1"
-                                      onClick={() => narrateText('rosa-story', 'female', 0.9)}
-                                    >
-                                      {narrationPlaying ? "Stop Narration" : "Listen to Story"} <Volume2 className="h-4 w-4 ml-1" />
-                                    </Button>
+                                    <StoryNarration
+                                      storyId="rosa-story"
+                                      voiceType="female"
+                                    />
                                   </div>
                                   <div className="bg-gray-50 p-5 rounded-lg border border-gray-200 mb-6" id="rosa-story">
                                     <p className="italic text-gray-700 mb-4">From the very first morning, Lila clung to the classroom door, eyes wide with worry. Her home was always shifting—new houses, new faces—but here, every sunrise brought Miss Rosa's familiar smile. Each day, Miss Rosa knelt beside Lila, gently brushing a stray curl from her forehead. "You're safe here, Lila," she whispered, "and I'm not going anywhere."</p>
@@ -515,14 +457,10 @@ export default function CoreValuesModuleNew() {
                                   <h3 className="text-xl font-semibold mb-3">Openness: Ms. Elena's Whispered Promise</h3>
                                   <div className="flex justify-between items-center mb-2">
                                     <p className="text-sm text-gray-500 italic">A story about commitment in teaching</p>
-                                    <Button 
-                                      size="sm" 
-                                      variant="outline" 
-                                      className="flex items-center gap-1"
-                                      onClick={() => narrateText('elena-story', 'female', 0.9)}
-                                    >
-                                      {narrationPlaying ? "Stop Narration" : "Listen to Story"} <Volume2 className="h-4 w-4 ml-1" />
-                                    </Button>
+                                    <StoryNarration
+                                      storyId="elena-story"
+                                      voiceType="female"
+                                    />
                                   </div>
                                   <div className="bg-gray-50 p-5 rounded-lg border border-gray-200 mb-6" id="elena-story">
                                     <p className="italic text-gray-700 mb-4">Tiny footsteps echoed in the cubby-lined hallway as four-year-old Javier approached Ms. Elena. His words tumbled out in a mix of Spanish and English, a jumble of sounds that many teachers might dismiss with a gentle but perplexed smile. But Ms. Elena had made a commitment—every child would be heard, truly heard, in her classroom.</p>
@@ -554,14 +492,10 @@ export default function CoreValuesModuleNew() {
                                   <h3 className="text-xl font-semibold mb-3">Positivity: Craig's Transformation Story</h3>
                                   <div className="flex justify-between items-center mb-2">
                                     <p className="text-sm text-gray-500 italic">A story about finding the positive in every child</p>
-                                    <Button 
-                                      size="sm" 
-                                      variant="outline" 
-                                      className="flex items-center gap-1"
-                                      onClick={() => narrateText('craig-story', 'male', 0.9)}
-                                    >
-                                      {narrationPlaying ? "Stop Narration" : "Listen to Story"} <Volume2 className="h-4 w-4 ml-1" />
-                                    </Button>
+                                    <StoryNarration
+                                      storyId="craig-story"
+                                      voiceType="male"
+                                    />
                                   </div>
                                   <div className="bg-gray-50 p-5 rounded-lg border border-gray-200 mb-6" id="craig-story">
                                     <p className="mb-4">When Craig first walked into our school-age room, he carried more pain than a five-year-old should ever know. He'd been expelled from preschool after preschool, labeled "too disruptive," "too loud," "too much." Our teachers—exhausted and underpaid—felt they were fighting a losing battle.</p>
