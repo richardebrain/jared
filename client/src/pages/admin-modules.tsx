@@ -72,6 +72,14 @@ const AdminModulesPage = () => {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [editingModule, setEditingModule] = useState<Module | null>(null);
+  
+  // Default value for a new section when adding
+  const defaultNewSection = {
+    title: 'New Section',
+    content: '',
+    videoUrl: '',
+    imageUrl: ''
+  };
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isUpdatingModule, setIsUpdatingModule] = useState(false);
   
@@ -161,6 +169,22 @@ const AdminModulesPage = () => {
   const handleEditClick = (module: Module) => {
     // Create a deep copy to avoid referencing the same object
     const moduleCopy = JSON.parse(JSON.stringify(module));
+    
+    // Ensure all required fields are present
+    if (!moduleCopy.customPoints) {
+      moduleCopy.customPoints = "0";
+    }
+    
+    // Ensure sections array exists
+    if (!moduleCopy.sections || !Array.isArray(moduleCopy.sections)) {
+      moduleCopy.sections = [{ 
+        title: 'New Section',
+        content: '',
+        videoUrl: '',
+        imageUrl: ''
+      }];
+    }
+    
     setEditingModule(moduleCopy);
     setIsEditDialogOpen(true);
   };
@@ -185,52 +209,56 @@ const AdminModulesPage = () => {
   
   // Handle updating section fields
   const updateSectionField = (sectionIndex: number, field: string, value: string) => {
-    if (editingModule && editingModule.sections[sectionIndex]) {
-      const updatedSections = [...editingModule.sections];
-      updatedSections[sectionIndex] = {
-        ...updatedSections[sectionIndex],
-        [field]: value
-      };
+    if (editingModule) {
+      const currentSections = editingModule.sections || [];
       
-      setEditingModule({
-        ...editingModule,
-        sections: updatedSections
-      });
+      if (currentSections[sectionIndex]) {
+        const updatedSections = [...currentSections];
+        updatedSections[sectionIndex] = {
+          ...updatedSections[sectionIndex],
+          [field]: value
+        };
+        
+        setEditingModule({
+          ...editingModule,
+          sections: updatedSections
+        });
+      }
     }
   };
   
   // Add a new section
   const addNewSection = () => {
     if (editingModule) {
-      const newSection = {
-        title: 'New Section',
-        content: '',
-        videoUrl: '',
-        imageUrl: ''
-      };
+      // Make sure sections exists, if not create an empty array
+      const currentSections = editingModule.sections || [];
       
       setEditingModule({
         ...editingModule,
-        sections: [...editingModule.sections, newSection]
+        sections: [...currentSections, defaultNewSection]
       });
     }
   };
   
   // Remove a section
   const removeSection = (index: number) => {
-    if (editingModule && editingModule.sections.length > 1) {
-      const updatedSections = editingModule.sections.filter((_, i) => i !== index);
+    if (editingModule) {
+      const currentSections = editingModule.sections || [];
       
-      setEditingModule({
-        ...editingModule,
-        sections: updatedSections
-      });
-    } else {
-      toast({
-        title: "Cannot Remove Section",
-        description: "A module must have at least one section.",
-        variant: "destructive"
-      });
+      if (currentSections.length > 1) {
+        const updatedSections = currentSections.filter((_, i) => i !== index);
+        
+        setEditingModule({
+          ...editingModule,
+          sections: updatedSections
+        });
+      } else {
+        toast({
+          title: "Cannot Remove Section",
+          description: "A module must have at least one section.",
+          variant: "destructive"
+        });
+      }
     }
   };
   
@@ -498,6 +526,16 @@ const AdminModulesPage = () => {
                     type="number" 
                     value={editingModule.estimatedTime}
                     onChange={(e) => updateModuleField('estimatedTime', e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-module-points">Custom Points</Label>
+                  <Input 
+                    id="edit-module-points" 
+                    type="number" 
+                    value={editingModule.customPoints || "0"}
+                    onChange={(e) => updateModuleField('customPoints', e.target.value)}
                   />
                 </div>
                 
