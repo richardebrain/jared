@@ -306,12 +306,15 @@ export default function AdminPage({ skipPasswordCheck = false }) {
         promptText = `Generate quiz questions about "${newModule.title}" in the category of "${newModule.category}" for ${newModule.difficulty} level ECE teachers.`;
       }
       
-      const response = await apiRequest('/api/ai/generate', {
+      const response = await fetch('/api/ai/generate', {
         method: 'POST',
-        data: { 
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
           prompt: promptText,
           type
-        }
+        })
       });
       
       const data = await response.json();
