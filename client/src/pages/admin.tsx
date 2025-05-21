@@ -27,7 +27,16 @@ import {
   Save, 
   PlusCircle, 
   Trash2, 
-  Image
+  Image,
+  FileQuestion,
+  Plus,
+  Settings,
+  Users,
+  ChevronRight,
+  Info,
+  Award,
+  School,
+  X
 } from 'lucide-react';
 
 export default function AdminPage({ skipPasswordCheck = false }) {
@@ -643,10 +652,30 @@ export default function AdminPage({ skipPasswordCheck = false }) {
                           </>
                         )}
                       </Button>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => generateAiSuggestions('quiz')}
+                        disabled={isGeneratingIdeas || !newModule.title || !newModule.description}
+                        className="border-purple-300 text-purple-700 hover:bg-purple-100"
+                      >
+                        {isGeneratingIdeas ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <FileQuestion className="h-4 w-4 mr-2" />
+                            Generate Quiz Questions
+                          </>
+                        )}
+                      </Button>
                     </div>
                     
                     {/* AI Suggestions Results */}
-                    {(aiSuggestions.questions.length > 0 || aiSuggestions.strategies.length > 0) && (
+                    {(aiSuggestions.questions.length > 0 || aiSuggestions.strategies.length > 0 || aiSuggestions.quizQuestions.length > 0) && (
                       <div className="mt-4 pt-4 border-t border-blue-200">
                         {aiSuggestions.questions.length > 0 && (
                           <div className="mb-3">
@@ -662,7 +691,7 @@ export default function AdminPage({ skipPasswordCheck = false }) {
                         )}
                         
                         {aiSuggestions.strategies.length > 0 && (
-                          <div>
+                          <div className="mb-3">
                             <h4 className="text-sm font-medium mb-2">Teaching Strategy Ideas:</h4>
                             <ul className="space-y-2 text-sm">
                               {aiSuggestions.strategies.map((strategy, i) => (
@@ -671,6 +700,68 @@ export default function AdminPage({ skipPasswordCheck = false }) {
                                 </li>
                               ))}
                             </ul>
+                          </div>
+                        )}
+                        
+                        {aiSuggestions.quizQuestions.length > 0 && (
+                          <div>
+                            <h4 className="text-sm font-medium mb-2 flex items-center">
+                              <FileQuestion className="h-4 w-4 mr-2 text-purple-600" />
+                              Quiz Questions:
+                            </h4>
+                            <div className="space-y-4 text-sm">
+                              {aiSuggestions.quizQuestions.map((quizItem, i) => (
+                                <div key={i} className="bg-white p-3 rounded border border-purple-200 space-y-2">
+                                  <p className="font-medium">{i+1}. {quizItem.question}</p>
+                                  <div className="pl-4">
+                                    <ul className="space-y-1 list-disc ml-2">
+                                      {quizItem.options.map((option, j) => (
+                                        <li key={j} className={option === quizItem.correctAnswer ? "text-green-600 font-medium" : ""}>
+                                          {option} {option === quizItem.correctAnswer && 
+                                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded ml-1">
+                                              Correct Answer
+                                            </span>
+                                          }
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                            <div className="mt-3 flex justify-end">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  // Add quiz questions to the module content
+                                  const newSection = {
+                                    title: "Module Quiz",
+                                    content: aiSuggestions.quizQuestions.map((q, i) => 
+                                      `### Question ${i+1}: ${q.question}\n\n` +
+                                      q.options.map((o, j) => `${j+1}. ${o}`).join('\n') +
+                                      `\n\n**Correct Answer: ${q.correctAnswer}**\n\n`
+                                    ).join('\n---\n'),
+                                    videoUrl: '',
+                                    imageUrl: ''
+                                  };
+                                  
+                                  setNewModule({
+                                    ...newModule,
+                                    sections: [...newModule.sections, newSection]
+                                  });
+                                  
+                                  toast({
+                                    title: "Quiz Added to Module",
+                                    description: "Quiz questions have been added as a new section",
+                                  });
+                                }}
+                                className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                              >
+                                <Plus className="h-4 w-4 mr-1" />
+                                Add Quiz to Module
+                              </Button>
+                            </div>
                           </div>
                         )}
                       </div>
