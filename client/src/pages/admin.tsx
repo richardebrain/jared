@@ -315,7 +315,7 @@ export default function AdminPage({ skipPasswordCheck = false }) {
       } else if (type === 'strategies') {
         promptText = `Suggest 3 creative teaching strategies for a module about "${newModule.title}" in the category of "${newModule.category}". The strategies should be suitable for ${newModule.difficulty} level ECE teachers.`;
       } else if (type === 'quiz') {
-        promptText = `Generate quiz questions about "${newModule.title}" in the category of "${newModule.category}" for ${newModule.difficulty} level ECE teachers.`;
+        promptText = `Generate quiz questions specifically for a module titled "${newModule.title}" in the category of "${newModule.category}" for ${newModule.difficulty} level ECE teachers. The content should directly relate to ${newModule.title}.`;
       }
       
       console.log(`Making API request to /api/ai/generate with type: ${type}`);
