@@ -194,7 +194,7 @@ export default function CoreValuesModuleNew() {
     setAudioCompleted(true);
   };
 
-  // Narrate text content function
+  // Narrate text content function with chunking for better reliability
   const narrateText = (elementId: string, voiceGender: string = 'female', rate: number = 0.9) => {
     if (narrationPlaying) {
       synth?.cancel();
@@ -202,22 +202,53 @@ export default function CoreValuesModuleNew() {
       return;
     }
     
-    const text = document.getElementById(elementId)?.textContent || '';
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = rate;
-    utterance.pitch = 1;
+    // Get the full text from the element
+    const fullText = document.getElementById(elementId)?.textContent || '';
     
-    const voices = synth?.getVoices();
-    // Try to find a voice that matches the requested gender
-    const preferredVoice = voices?.find(voice => 
-      voice.name.toLowerCase().includes(voiceGender.toLowerCase())
-    ) || voices?.[0];
+    // Split text into smaller chunks (by paragraphs)
+    const paragraphs = fullText.split('\n\n').filter(p => p.trim().length > 0);
     
-    if (preferredVoice) utterance.voice = preferredVoice;
+    // Function to speak paragraphs sequentially
+    const speakParagraphs = (paragraphIndex = 0) => {
+      if (paragraphIndex >= paragraphs.length) {
+        setNarrationPlaying(false);
+        return;
+      }
+      
+      const paragraph = paragraphs[paragraphIndex];
+      const utterance = new SpeechSynthesisUtterance(paragraph);
+      utterance.rate = rate;
+      utterance.pitch = 1;
+      
+      const voices = synth?.getVoices();
+      // Try to find a voice that matches the requested gender
+      const preferredVoice = voices?.find(voice => 
+        voice.name.toLowerCase().includes(voiceGender.toLowerCase())
+      ) || voices?.[0];
+      
+      if (preferredVoice) utterance.voice = preferredVoice;
+      
+      // When this paragraph ends, speak the next one
+      utterance.onend = () => {
+        // Check if narration is still active before continuing
+        if (narrationPlaying) {
+          speakParagraphs(paragraphIndex + 1);
+        }
+      };
+      
+      synth?.speak(utterance);
+    };
     
-    utterance.onend = () => setNarrationPlaying(false);
+    // Start speaking the first paragraph
     setNarrationPlaying(true);
-    synth?.speak(utterance);
+    speakParagraphs(0);
+    
+    // Show toast notification that narration has started
+    toast({
+      title: "Story Narration Started",
+      description: "Click 'Stop Narration' to end playback at any time.",
+      duration: 3000,
+    });
   };
   
   // Check fill in the blanks answers
