@@ -43,7 +43,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Search, CheckCircle2, XCircle, Edit, AlertTriangle, Save, Loader2, Plus, PlusCircle, Trash2, Video, Image } from 'lucide-react';
+import { ArrowLeft, Search, CheckCircle2, XCircle, Edit, AlertTriangle, Save, Loader2, Plus, PlusCircle, Trash2, Video, Image, Brain } from 'lucide-react';
 
 // Interface for module data
 interface ModuleSection {
@@ -77,13 +77,17 @@ const AdminModulesPage = () => {
   
   // Fetch all modules including hidden ones
   const { data: modules, isLoading, error } = useQuery({
-    queryKey: ['/api/modules/management'],
-    onError: (err) => {
-      toast({
-        title: 'Error fetching modules',
-        description: 'There was a problem retrieving modules. Please try again.',
-        variant: 'destructive',
-      });
+    queryKey: ['/api/modules/management']
+  });
+  
+  // Fetch a single module for editing
+  const getModuleQuery = useQuery({
+    queryKey: ['/api/modules', editingModule?.id],
+    enabled: !!editingModule?.id,
+    onSuccess: (moduleData) => {
+      if (moduleData) {
+        setEditingModule(moduleData);
+      }
     }
   });
   
@@ -114,12 +118,118 @@ const AdminModulesPage = () => {
     }
   });
   
+  // Update module content mutation
+  const updateModuleMutation = useMutation({
+    mutationFn: async (module: Module) => {
+      try {
+        return await apiRequest('PATCH', `/api/modules/${module.id}`, module);
+      } catch (error) {
+        console.error('Error updating module:', error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/modules/management'] });
+      setIsEditDialogOpen(false);
+      setEditingModule(null);
+      setIsUpdatingModule(false);
+      toast({
+        title: 'Module Updated Successfully',
+        description: 'Module content has been updated.',
+      });
+    },
+    onError: (error) => {
+      setIsUpdatingModule(false);
+      console.error('Update module error:', error);
+      toast({
+        title: 'Update Failed',
+        description: 'There was a problem updating the module. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  });
+  
   // Handle visibility toggle
   const handleVisibilityChange = (moduleId: number, currentVisible: boolean) => {
     updateVisibilityMutation.mutate({
       moduleId,
       visible: !currentVisible
     });
+  };
+  
+  // Handle opening the edit dialog
+  const handleEditClick = (module: Module) => {
+    setEditingModule(module);
+    setIsEditDialogOpen(true);
+  };
+  
+  // Handle saving module changes
+  const handleSaveModuleChanges = () => {
+    if (editingModule) {
+      setIsUpdatingModule(true);
+      updateModuleMutation.mutate(editingModule);
+    }
+  };
+  
+  // Handle updating module fields
+  const updateModuleField = (field: string, value: string) => {
+    if (editingModule) {
+      setEditingModule({
+        ...editingModule,
+        [field]: value
+      });
+    }
+  };
+  
+  // Handle updating section fields
+  const updateSectionField = (sectionIndex: number, field: string, value: string) => {
+    if (editingModule && editingModule.sections[sectionIndex]) {
+      const updatedSections = [...editingModule.sections];
+      updatedSections[sectionIndex] = {
+        ...updatedSections[sectionIndex],
+        [field]: value
+      };
+      
+      setEditingModule({
+        ...editingModule,
+        sections: updatedSections
+      });
+    }
+  };
+  
+  // Add a new section
+  const addNewSection = () => {
+    if (editingModule) {
+      const newSection = {
+        title: 'New Section',
+        content: '',
+        videoUrl: '',
+        imageUrl: ''
+      };
+      
+      setEditingModule({
+        ...editingModule,
+        sections: [...editingModule.sections, newSection]
+      });
+    }
+  };
+  
+  // Remove a section
+  const removeSection = (index: number) => {
+    if (editingModule && editingModule.sections.length > 1) {
+      const updatedSections = editingModule.sections.filter((_, i) => i !== index);
+      
+      setEditingModule({
+        ...editingModule,
+        sections: updatedSections
+      });
+    } else {
+      toast({
+        title: "Cannot Remove Section",
+        description: "A module must have at least one section.",
+        variant: "destructive"
+      });
+    }
   };
   
   // Search/filter modules
@@ -287,7 +397,11 @@ const AdminModulesPage = () => {
                       />
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button size="sm" variant="ghost">
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={() => handleEditClick(module)}
+                      >
                         <Edit className="h-4 w-4 mr-1" />
                         Edit
                       </Button>
@@ -304,6 +418,232 @@ const AdminModulesPage = () => {
           </div>
         </CardFooter>
       </Card>
+      
+      {/* Module Edit Dialog */}
+      <Dialog 
+        open={isEditDialogOpen} 
+        onOpenChange={(open) => {
+          setIsEditDialogOpen(open);
+          if (!open) setEditingModule(null);
+        }}
+      >
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="h-5 w-5 text-primary" />
+              Edit Module
+            </DialogTitle>
+            <DialogDescription>
+              Make changes to the module content. These changes will be visible to all users.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {editingModule ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-module-title">Module Title</Label>
+                  <Input 
+                    id="edit-module-title" 
+                    value={editingModule.title}
+                    onChange={(e) => updateModuleField('title', e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-module-category">Category</Label>
+                  <Select 
+                    value={editingModule.category}
+                    onValueChange={(value) => updateModuleField('category', value)}
+                  >
+                    <SelectTrigger id="edit-module-category">
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="classroom-management">Classroom Management</SelectItem>
+                      <SelectItem value="child-development">Child Development</SelectItem>
+                      <SelectItem value="curriculum-planning">Curriculum Planning</SelectItem>
+                      <SelectItem value="assessment">Assessment</SelectItem>
+                      <SelectItem value="family-engagement">Family Engagement</SelectItem>
+                      <SelectItem value="professional-development">Professional Development</SelectItem>
+                      <SelectItem value="health-safety">Health & Safety</SelectItem>
+                      <SelectItem value="special-needs">Special Needs</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-module-difficulty">Difficulty Level</Label>
+                  <Select 
+                    value={editingModule.difficulty}
+                    onValueChange={(value) => updateModuleField('difficulty', value)}
+                  >
+                    <SelectTrigger id="edit-module-difficulty">
+                      <SelectValue placeholder="Select difficulty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="beginner">Beginner</SelectItem>
+                      <SelectItem value="intermediate">Intermediate</SelectItem>
+                      <SelectItem value="advanced">Advanced</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-module-time">Estimated Time (minutes)</Label>
+                  <Input 
+                    id="edit-module-time" 
+                    type="number" 
+                    value={editingModule.estimatedTime}
+                    onChange={(e) => updateModuleField('estimatedTime', e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2 col-span-2">
+                  <Label htmlFor="edit-module-description">Description</Label>
+                  <Textarea 
+                    id="edit-module-description" 
+                    value={editingModule.description}
+                    onChange={(e) => updateModuleField('description', e.target.value)}
+                    rows={3}
+                  />
+                </div>
+              </div>
+              
+              <Separator className="my-4" />
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-medium">Module Sections</h3>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={addNewSection}
+                    className="flex items-center gap-1"
+                  >
+                    <PlusCircle className="h-4 w-4" /> Add Section
+                  </Button>
+                </div>
+                
+                <Accordion type="multiple" className="w-full">
+                  {editingModule.sections.map((section, index) => (
+                    <AccordionItem value={`section-${index}`} key={index}>
+                      <AccordionTrigger className="hover:no-underline">
+                        <div className="flex w-full items-center justify-between pr-4">
+                          <span className="text-sm font-medium">
+                            {section.title || `Section ${index + 1}`}
+                          </span>
+                          {editingModule.sections.length > 1 && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 text-destructive hover:text-destructive/80"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeSection(index);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <div className="space-y-4 pt-2">
+                          <div className="space-y-2">
+                            <Label htmlFor={`section-${index}-title`}>Section Title</Label>
+                            <Input 
+                              id={`section-${index}-title`} 
+                              value={section.title}
+                              onChange={(e) => updateSectionField(index, 'title', e.target.value)}
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor={`section-${index}-content`}>Content</Label>
+                            <Textarea 
+                              id={`section-${index}-content`} 
+                              value={section.content}
+                              onChange={(e) => updateSectionField(index, 'content', e.target.value)}
+                              rows={6}
+                              placeholder="Module content - supports Markdown formatting"
+                            />
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label 
+                                htmlFor={`section-${index}-video`}
+                                className="flex items-center gap-1"
+                              >
+                                <Video className="h-4 w-4 text-blue-500" />
+                                Video URL
+                              </Label>
+                              <Input 
+                                id={`section-${index}-video`} 
+                                value={section.videoUrl}
+                                onChange={(e) => updateSectionField(index, 'videoUrl', e.target.value)}
+                                placeholder="YouTube URL or video ID"
+                              />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label 
+                                htmlFor={`section-${index}-image`}
+                                className="flex items-center gap-1"
+                              >
+                                <Image className="h-4 w-4 text-blue-500" />
+                                Image URL
+                              </Label>
+                              <Input 
+                                id={`section-${index}-image`} 
+                                value={section.imageUrl}
+                                onChange={(e) => updateSectionField(index, 'imageUrl', e.target.value)}
+                                placeholder="Image URL"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </div>
+            </>
+          ) : (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsEditDialogOpen(false)}
+              disabled={isUpdatingModule}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSaveModuleChanges}
+              disabled={isUpdatingModule}
+              className="ml-2"
+            >
+              {isUpdatingModule ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

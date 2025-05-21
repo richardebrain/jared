@@ -706,98 +706,117 @@ export default function AdminPage({ skipPasswordCheck = false }) {
                       </Button>
                     </div>
                     
-                    {/* AI Suggestions Results */}
-                    {(aiSuggestions.questions.length > 0 || aiSuggestions.strategies.length > 0 || aiSuggestions.quizQuestions.length > 0) && (
-                      <div className="mt-4 pt-4 border-t border-blue-200">
-                        {aiSuggestions.questions.length > 0 && (
-                          <div className="mb-3">
-                            <h4 className="text-sm font-medium mb-2">Question Ideas:</h4>
-                            <ul className="space-y-2 text-sm">
-                              {aiSuggestions.questions.map((question, i) => (
-                                <li key={i} className="bg-white p-2 rounded border border-blue-100">
-                                  {question}
-                                </li>
-                              ))}
-                            </ul>
+                    {/* AI Suggestions Results Container - Always visible */}
+                    <div className="mt-4 pt-4 border-t border-blue-200">
+                      {isGeneratingIdeas && (
+                        <div className="flex items-center justify-center p-8 bg-gray-50 rounded-md border border-blue-100">
+                          <div className="text-center">
+                            <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto mb-2" />
+                            <p className="text-sm text-gray-600">Generating creative suggestions...</p>
                           </div>
-                        )}
-                        
-                        {aiSuggestions.strategies.length > 0 && (
-                          <div className="mb-3">
-                            <h4 className="text-sm font-medium mb-2">Teaching Strategy Ideas:</h4>
-                            <ul className="space-y-2 text-sm">
-                              {aiSuggestions.strategies.map((strategy, i) => (
-                                <li key={i} className="bg-white p-2 rounded border border-blue-100">
-                                  {strategy}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                        
-                        {aiSuggestions.quizQuestions.length > 0 && (
-                          <div>
-                            <h4 className="text-sm font-medium mb-2 flex items-center">
-                              <FileQuestion className="h-4 w-4 mr-2 text-purple-600" />
-                              Quiz Questions:
-                            </h4>
-                            <div className="space-y-4 text-sm">
-                              {aiSuggestions.quizQuestions.map((quizItem, i) => (
-                                <div key={i} className="bg-white p-3 rounded border border-purple-200 space-y-2">
-                                  <p className="font-medium">{i+1}. {quizItem.question}</p>
-                                  <div className="pl-4">
-                                    <ul className="space-y-1 list-disc ml-2">
-                                      {quizItem.options.map((option, j) => (
-                                        <li key={j} className={option === quizItem.correctAnswer ? "text-green-600 font-medium" : ""}>
-                                          {option} {option === quizItem.correctAnswer && 
-                                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded ml-1">
-                                              Correct Answer
-                                            </span>
-                                          }
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </div>
+                        </div>
+                      )}
+                      
+                      {!isGeneratingIdeas && aiSuggestions.questions.length === 0 && 
+                       aiSuggestions.strategies.length === 0 && 
+                       aiSuggestions.quizQuestions.length === 0 && (
+                        <div className="p-6 bg-gray-50 rounded-md border border-blue-100 text-center">
+                          <Brain className="h-8 w-8 text-blue-400 mx-auto mb-2" />
+                          <h3 className="text-sm font-medium mb-1">AI Suggestions Will Appear Here</h3>
+                          <p className="text-xs text-gray-500">
+                            Click any of the buttons above to generate creative content
+                          </p>
+                        </div>
+                      )}
+                      
+                      {aiSuggestions.questions.length > 0 && (
+                        <div className="mb-3">
+                          <h4 className="text-sm font-medium mb-2">Question Ideas:</h4>
+                          <ul className="space-y-2 text-sm">
+                            {aiSuggestions.questions.map((question, i) => (
+                              <li key={i} className="bg-white p-2 rounded border border-blue-100">
+                                {question}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {aiSuggestions.strategies.length > 0 && (
+                        <div className="mb-3">
+                          <h4 className="text-sm font-medium mb-2">Teaching Strategy Ideas:</h4>
+                          <ul className="space-y-2 text-sm">
+                            {aiSuggestions.strategies.map((strategy, i) => (
+                              <li key={i} className="bg-white p-2 rounded border border-blue-100">
+                                {strategy}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {aiSuggestions.quizQuestions.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-medium mb-2 flex items-center">
+                            <FileQuestion className="h-4 w-4 mr-2 text-purple-600" />
+                            Quiz Questions:
+                          </h4>
+                          <div className="space-y-4 text-sm">
+                            {aiSuggestions.quizQuestions.map((quizItem, i) => (
+                              <div key={i} className="bg-white p-3 rounded border border-purple-200 space-y-2">
+                                <p className="font-medium">{i+1}. {quizItem.question}</p>
+                                <div className="pl-4">
+                                  <ul className="space-y-1 list-disc ml-2">
+                                    {quizItem.options.map((option, j) => (
+                                      <li key={j} className={option === quizItem.correctAnswer ? "text-green-600 font-medium" : ""}>
+                                        {option} {option === quizItem.correctAnswer && 
+                                          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded ml-1">
+                                            Correct Answer
+                                          </span>
+                                        }
+                                      </li>
+                                    ))}
+                                  </ul>
                                 </div>
-                              ))}
-                            </div>
-                            <div className="mt-3 flex justify-end">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  // Add quiz questions to the module content
-                                  const newSection = {
-                                    title: "Module Quiz",
-                                    content: aiSuggestions.quizQuestions.map((q, i) => 
-                                      `### Question ${i+1}: ${q.question}\n\n` +
-                                      q.options.map((o, j) => `${j+1}. ${o}`).join('\n') +
-                                      `\n\n**Correct Answer: ${q.correctAnswer}**\n\n`
-                                    ).join('\n---\n'),
-                                    videoUrl: '',
-                                    imageUrl: ''
-                                  };
-                                  
-                                  setNewModule({
-                                    ...newModule,
-                                    sections: [...newModule.sections, newSection]
-                                  });
-                                  
-                                  toast({
-                                    title: "Quiz Added to Module",
-                                    description: "Quiz questions have been added as a new section",
-                                  });
-                                }}
-                                className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                              >
-                                <Plus className="h-4 w-4 mr-1" />
-                                Add Quiz to Module
-                              </Button>
-                            </div>
+                              </div>
+                            ))}
                           </div>
-                        )}
-                      </div>
-                    )}
+                          <div className="mt-3 flex justify-end">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                // Add quiz questions to the module content
+                                const newSection = {
+                                  title: "Module Quiz",
+                                  content: aiSuggestions.quizQuestions.map((q, i) => 
+                                    `### Question ${i+1}: ${q.question}\n\n` +
+                                    q.options.map((o, j) => `${j+1}. ${o}`).join('\n') +
+                                    `\n\n**Correct Answer: ${q.correctAnswer}**\n\n`
+                                  ).join('\n---\n'),
+                                  videoUrl: '',
+                                  imageUrl: ''
+                                };
+                                
+                                setNewModule({
+                                  ...newModule,
+                                  sections: [...newModule.sections, newSection]
+                                });
+                                
+                                toast({
+                                  title: "Quiz Added to Module",
+                                  description: "Quiz questions have been added as a new section",
+                                });
+                              }}
+                              className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                            >
+                              <Plus className="h-4 w-4 mr-1" />
+                              Add Quiz to Module
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
                 
