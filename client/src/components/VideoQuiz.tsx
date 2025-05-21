@@ -118,7 +118,9 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
     // Calculate points based on correct answers and implementation
     const implementationPoints = implementationAnswer.length >= 50 ? 2 : 0;
     const quizPoints = Math.round((correctAnswers / questions.length) * 6); // Max 6 points from quiz
-    const totalPoints = quizPoints + implementationPoints; // This can vary between 5-8 points
+    
+    // Ensure a minimum of 5 points for completing any video quiz
+    const totalPoints = Math.max(5, quizPoints + implementationPoints);
     
     setEarnedPoints(totalPoints);
     setQuizCompleted(true);
@@ -137,6 +139,9 @@ export default function VideoQuiz({ videoId, videoTitle, onComplete, onClose }: 
         });
       }
     }
+    
+    // Log completion for debugging
+    console.log(`Quiz completed for video: ${videoId}, earned ${totalPoints} points`);
     
     // Call the onComplete callback with the earned points
     onComplete(totalPoints);

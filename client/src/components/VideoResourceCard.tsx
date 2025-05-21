@@ -138,6 +138,12 @@ Category: ${video.category.join(', ')}
     setShowQuiz(false);
     
     try {
+      // Make sure we always have a valid videoId
+      const validVideoId = video.id || video.youtubeId || "default-video";
+      
+      // Ensure we have valid points (minimum 5)
+      const validPoints = Math.max(5, points || 5);
+      
       // Submit quiz results directly to the endpoint we know works
       const response = await fetch('/api/videos/quiz/complete', {
         method: 'POST',
@@ -146,8 +152,8 @@ Category: ${video.category.join(', ')}
           'Accept': 'application/json'
         },
         body: JSON.stringify({
-          videoId: video.id,
-          points: points, // Use the points calculated by the quiz component
+          videoId: validVideoId,
+          points: validPoints, // Use the points calculated by the quiz component (with minimum value)
           duration: video.duration || 5 // Pass video duration for proper point calculation
         })
       });

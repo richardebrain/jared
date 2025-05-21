@@ -1419,9 +1419,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Determine points based on video duration
+      // Determine points based on video metadata or request
       const videoDuration = duration || 5; // Default to 5 minutes if not provided
-      const potentialPoints = videoDuration >= 10 ? 8 : 5; // 8 points for videos 10+ minutes, 5 points for shorter videos
+      const pointsRequested = req.body.points || 0;
+      
+      // Use points from request if provided, otherwise calculate based on duration
+      // Ensure minimum of 5 points for any video quiz completion
+      const potentialPoints = Math.max(5, 
+        pointsRequested > 0 ? pointsRequested : 
+        (videoDuration >= 10 ? 8 : 5) // 8 points for longer videos
+      );
+      
+      console.log(`Video quiz completion for user ${userId}, video ${videoId}: ${potentialPoints} points`);
       
       try {
         // Record the completion - the storage layer will handle setting points to 0 if daily limit reached
