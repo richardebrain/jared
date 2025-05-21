@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { LearningModule as LearningModuleType, UserProgress } from "@shared/schema";
@@ -20,44 +20,88 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 
-// Mock lessons data (would come from API in production)
-const lessons = [
-  {
-    id: 1,
-    title: "Key Concepts and Theory",
-    duration: 15,
-    type: "theory",
-    completed: false,
-  },
-  {
-    id: 2,
-    title: "Classroom Applications",
-    duration: 15,
-    type: "practical",
-    completed: false,
-  },
-  {
-    id: 3,
-    title: "Video Demonstrations",
-    duration: 20,
-    type: "video",
-    completed: false,
-  },
-  {
-    id: 4,
-    title: "Hands-on Activities",
-    duration: 15,
-    type: "interactive",
-    completed: false,
-  },
-  {
-    id: 5,
-    title: "Knowledge Assessment",
-    duration: 15,
-    type: "assessment",
-    completed: false,
-  },
-];
+// Define module-specific lessons
+const getModuleLessons = (moduleId: number) => {
+  // Special case for CORE Values module (ID: 33)
+  if (moduleId === 33) {
+    return [
+      {
+        id: 1,
+        title: "Our CORE Values",
+        duration: 15,
+        type: "introduction",
+        completed: false,
+      },
+      {
+        id: 2,
+        title: "Miss Rosa's Story",
+        duration: 10,
+        type: "story",
+        completed: false,
+      },
+      {
+        id: 3,
+        title: "Ms. Elena's Story",
+        duration: 10,
+        type: "story",
+        completed: false,
+      },
+      {
+        id: 4,
+        title: "CORE Values Song",
+        duration: 10,
+        type: "interactive",
+        completed: false,
+      },
+      {
+        id: 5,
+        title: "Knowledge Check",
+        duration: 10,
+        type: "assessment",
+        completed: false,
+      },
+    ];
+  }
+  
+  // Default lessons for other modules
+  return [
+    {
+      id: 1,
+      title: "Key Concepts and Theory",
+      duration: 15,
+      type: "theory",
+      completed: false,
+    },
+    {
+      id: 2,
+      title: "Classroom Applications",
+      duration: 15,
+      type: "practical",
+      completed: false,
+    },
+    {
+      id: 3,
+      title: "Video Demonstrations",
+      duration: 20,
+      type: "video",
+      completed: false,
+    },
+    {
+      id: 4,
+      title: "Hands-on Activities",
+      duration: 15,
+      type: "interactive",
+      completed: false,
+    },
+    {
+      id: 5,
+      title: "Knowledge Assessment",
+      duration: 15,
+      type: "assessment",
+      completed: false,
+    },
+  ];
+};
 
 export default function LearningModulePage() {
   const { id } = useParams<{ id: string }>();
@@ -86,6 +130,11 @@ export default function LearningModulePage() {
     queryKey: ["/api/progress"],
   });
   
+  // Get module-specific lessons
+  const moduleLessons = useMemo(() => {
+    return moduleId ? getModuleLessons(moduleId) : [];
+  }, [moduleId]);
+  
   // Set the completed status of lessons based on progress
   useEffect(() => {
     if (progressData && module) {
@@ -95,21 +144,23 @@ export default function LearningModulePage() {
         
         // If progress exists but no current lesson, set to the first uncompleted lesson
         if (currentLessonId === null) {
-          const progressPercentPerLesson = 100 / lessons.length;
+          const progressPercentPerLesson = 100 / moduleLessons.length;
           const completedLessons = Math.floor(moduleProgress.progress / progressPercentPerLesson);
           
-          if (completedLessons < lessons.length) {
-            setCurrentLessonId(lessons[completedLessons].id);
+          if (completedLessons < moduleLessons.length) {
+            setCurrentLessonId(moduleLessons[completedLessons].id);
           } else {
-            setCurrentLessonId(lessons[0].id);
+            setCurrentLessonId(moduleLessons[0].id);
           }
         }
       } else {
         // No progress yet, start with the first lesson
-        setCurrentLessonId(lessons[0].id);
+        if (moduleLessons.length > 0) {
+          setCurrentLessonId(moduleLessons[0].id);
+        }
       }
     }
-  }, [progressData, module, currentLessonId]);
+  }, [progressData, module, currentLessonId, moduleLessons]);
   
   // Update progress mutation
   const { mutate: updateProgress, isPending } = useMutation({
@@ -267,11 +318,11 @@ export default function LearningModulePage() {
                           
                           <div className="mb-8">
                             <h4 className="font-heading font-semibold mb-3">Lesson Content</h4>
-                            <p className="mb-4">
+                            <div className="lesson-content">
                               {module.category === 'mindful-mornings' ? (
                                 module.title.includes('Breathing') ? (
                                   <>
-                                    <p className="mb-4">In this module, you'll learn how to effectively teach breathing exercises to children that can help them regulate their emotions and increase focus in the classroom.</p>
+                                    <div className="mb-4">In this module, you'll learn how to effectively teach breathing exercises to children that can help them regulate their emotions and increase focus in the classroom.</div>
                                     
                                     <h5 className="font-semibold mt-6 mb-2">Key Benefits of Breathing Exercises</h5>
                                     <ul className="list-disc pl-5 mb-4 space-y-1">
@@ -282,13 +333,13 @@ export default function LearningModulePage() {
                                     </ul>
                                     
                                     <div className="p-4 bg-[#e6ecff] border border-[#0030b8] rounded-lg mb-6">
-                                      <p className="font-semibold text-[#0030b8]">🌟 Easter Egg Alert!</p>
-                                      <p className="text-[#333]">If you memorize the phrase "<span className="font-bold">Breathe, Smile, Be Present</span>" and share it with your director, you'll receive a special lunch reward!</p>
+                                      <div className="font-semibold text-[#0030b8]">🌟 Easter Egg Alert!</div>
+                                      <div className="text-[#333]">If you memorize the phrase "<span className="font-bold">Breathe, Smile, Be Present</span>" and share it with your director, you'll receive a special lunch reward!</div>
                                     </div>
                                   </>
                                 ) : module.title.includes('Self-Affirmations') ? (
                                   <>
-                                    <p className="mb-4">This module explores how to teach children positive self-talk and affirmations that build confidence and resilience in the classroom setting.</p>
+                                    <div className="mb-4">This module explores how to teach children positive self-talk and affirmations that build confidence and resilience in the classroom setting.</div>
                                     
                                     <h5 className="font-semibold mt-6 mb-2">Benefits of Self-Affirmations for Children</h5>
                                     <ul className="list-disc pl-5 mb-4 space-y-1">
@@ -299,13 +350,13 @@ export default function LearningModulePage() {
                                     </ul>
                                     
                                     <div className="p-4 bg-[#e6ecff] border border-[#0030b8] rounded-lg mb-6">
-                                      <p className="font-semibold text-[#0030b8]">💫 Activity Challenge!</p>
-                                      <p className="text-[#333]">Create your own classroom affirmation and send it to your director to receive special recognition in the next staff meeting!</p>
+                                      <div className="font-semibold text-[#0030b8]">💫 Activity Challenge!</div>
+                                      <div className="text-[#333]">Create your own classroom affirmation and send it to your director to receive special recognition in the next staff meeting!</div>
                                     </div>
                                   </>
                                 ) : (
                                   <>
-                                    <p className="mb-4">The gratitude module will help you incorporate thankfulness and appreciation practices into your daily classroom routines.</p>
+                                    <div className="mb-4">The gratitude module will help you incorporate thankfulness and appreciation practices into your daily classroom routines.</div>
                                     
                                     <h5 className="font-semibold mt-6 mb-2">Why Teaching Gratitude Matters</h5>
                                     <ul className="list-disc pl-5 mb-4 space-y-1">
@@ -316,8 +367,8 @@ export default function LearningModulePage() {
                                     </ul>
                                     
                                     <div className="p-4 bg-[#e6ecff] border border-[#0030b8] rounded-lg mb-6">
-                                      <p className="font-semibold text-[#0030b8]">🎁 Hidden Challenge!</p>
-                                      <p className="text-[#333]">Find the three gratitude statements embedded in this module. When you find all three, share them with your director to unlock a special reward!</p>
+                                      <div className="font-semibold text-[#0030b8]">🎁 Hidden Challenge!</div>
+                                      <div className="text-[#333]">Find the three gratitude statements embedded in this module. When you find all three, share them with your director to unlock a special reward!</div>
                                     </div>
                                   </>
                                 )
@@ -387,17 +438,17 @@ export default function LearningModulePage() {
                                           
                                           <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                                             <p className="text-sm font-medium text-yellow-800">💡 Teacher Tip:</p>
-                                            <p className="text-sm text-yellow-700">
+                                            <div className="text-sm text-yellow-700">
                                               The correct answers are Compassion, Opportunity, Respect, and Excellence. 
                                               This interactive element helps children better remember our CORE values through active participation.
-                                            </p>
+                                            </div>
                                           </div>
                                         </div>
                                       </div>
                                       
                                       <div className="p-4 bg-[#e6ecff] border border-[#0030b8] rounded-lg mb-6">
-                                        <p className="font-semibold text-[#0030b8]">🎯 Easter Egg Challenge!</p>
-                                        <p className="text-[#333]">There's a special phrase hidden in Miss Rosa's story. Find it and share it with your director to earn 50 bonus points!</p>
+                                        <div className="font-semibold text-[#0030b8]">🎯 Easter Egg Challenge!</div>
+                                        <div className="text-[#333]">There's a special phrase hidden in Miss Rosa's story. Find it and share it with your director to earn 50 bonus points!</div>
                                       </div>
                                     </>
                                   ) : (
@@ -413,7 +464,7 @@ export default function LearningModulePage() {
                                   )}
                                 </>
                               )}
-                            </p>
+                            </div>
                           </div>
                           
                           <Button 

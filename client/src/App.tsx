@@ -23,6 +23,7 @@ import StandaloneAssessment from "@/pages/standalone-assessment";
 import SimpleStandaloneAssessment from "@/pages/simple-standalone-assessment";
 import AssessmentLauncher from "@/pages/assessment-launcher";
 import LearningModulePage from "@/pages/learning-module";
+import CoreValuesModulePage from "@/pages/core-values-module";
 import MicroModulePage from "@/pages/micro-module";
 import LearningStylePage from "@/pages/learning-style";
 import DiscussionsPage from "@/pages/discussions";
