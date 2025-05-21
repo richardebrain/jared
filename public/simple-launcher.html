@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MentorMe Assessment Center</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+      color: #333;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      background: linear-gradient(to right, #4a6bfa, #6e8fff);
+      color: white;
+      padding: 2rem 0;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem;
+      flex: 1;
+    }
+    h1 {
+      margin: 0;
+      font-size: 2.2rem;
+      font-weight: 700;
+    }
+    h2 {
+      color: #4a6bfa;
+      font-size: 1.8rem;
+      margin-top: 0;
+      border-bottom: 2px solid #e0e0e0;
+      padding-bottom: 0.5rem;
+    }
+    p {
+      margin-bottom: 1.5rem;
+      font-size: 1.1rem;
+    }
+    .subtitle {
+      font-size: 1.2rem;
+      opacity: 0.8;
+      margin-top: 0.5rem;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    .card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+    }
+    .card-header {
+      padding: 1.5rem;
+      background: linear-gradient(to right, #4a6bfa, #6e8fff);
+      color: white;
+    }
+    .card-body {
+      padding: 1.5rem;
+    }
+    .card-title {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: bold;
+    }
+    .tag {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      padding: 0.3rem 0.7rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+    }
+    .button {
+      display: inline-block;
+      background: #4a6bfa;
+      color: white;
+      padding: 0.8rem 1.5rem;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background 0.3s ease;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-top: 1rem;
+    }
+    .button:hover {
+      background: #3a5ae8;
+    }
+    .button-secondary {
+      background: #6c757d;
+    }
+    .button-secondary:hover {
+      background: #5a6268;
+    }
+    .footer {
+      text-align: center;
+      padding: 2rem;
+      background: #f8f9fa;
+      margin-top: 2rem;
+    }
+    .feature-list {
+      list-style-type: none;
+      padding: 0;
+    }
+    .feature-list li {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #eee;
+    }
+    .feature-list li:last-child {
+      border-bottom: none;
+    }
+    .feature-list li:before {
+      content: "✓";
+      color: #4caf50;
+      font-weight: bold;
+      display: inline-block;
+      width: 1.2rem;
+      margin-left: -1.2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>MentorMe Assessment Center</h1>
+    <div class="subtitle">Early Childhood Educator Knowledge Assessment</div>
+  </div>
+  
+  <div class="container">
+    <p>Welcome to the MentorMe Assessment Center. Choose an assessment option below to test your knowledge and receive personalized feedback.</p>
+    
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Basic Assessment</h3>
+          <span class="tag">15 Questions</span>
+        </div>
+        <div class="card-body">
+          <p>A straightforward assessment covering fundamental concepts in early childhood education. Perfect for beginners or a quick knowledge check.</p>
+          
+          <ul class="feature-list">
+            <li>Fundamental ECE concepts</li>
+            <li>10-15 minute completion time</li>
+            <li>Instant feedback</li>
+            <li>Score reporting</li>
+          </ul>
+          
+          <a href="basic-assessment.html" class="button" target="_blank">Start Basic Assessment</a>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Comprehensive Assessment</h3>
+          <span class="tag">25 Questions</span>
+        </div>
+        <div class="card-body">
+          <p>An in-depth assessment covering advanced concepts across multiple domains of early childhood education.</p>
+          
+          <ul class="feature-list">
+            <li>Advanced ECE concepts</li>
+            <li>20-30 minute completion time</li>
+            <li>Detailed explanations</li>
+            <li>Personalized suggestions</li>
+          </ul>
+          
+          <a href="comprehensive-assessment.html" class="button" target="_blank">Start Comprehensive Assessment</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="footer">
+    <p>© 2025 MentorMe Professional Development Platform for Early Childhood Educators</p>
+  </div>
+</body>
+</html>
