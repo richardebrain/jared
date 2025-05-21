@@ -4,6 +4,7 @@ import { User } from "@shared/schema";
 import { Link, useLocation } from "wouter";
 import Header from "@/components/Header";
 import ModuleView from "@/components/ModuleView";
+import { CompactModuleCard } from "@/components/CompactModuleCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +46,14 @@ export default function Dashboard() {
   const [showAchievement, setShowAchievement] = useState(false);
   const [lastCompletedModule, setLastCompletedModule] = useState<string | null>(null);
   const [showMindfulnessReminder, setShowMindfulnessReminder] = useState(false);
+  const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
+  
+  // Handle module selection - navigate to the module page
+  useEffect(() => {
+    if (selectedModuleId) {
+      setLocation(`/modules/${selectedModuleId}`);
+    }
+  }, [selectedModuleId, setLocation]);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -669,8 +678,45 @@ export default function Dashboard() {
                   Required Training
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <CoreValuesCard />
-                  <ChapterOneCard />
+                  {/* Replace CoreValuesCard with CompactModuleCard */}
+                  <CompactModuleCard 
+                    module={{
+                      id: 33,
+                      title: "Raising Arizona's CORE Values",
+                      description: "Learn the essential values that guide our work with children",
+                      duration: 20,
+                      pointValue: 10,
+                      category: "training",
+                      difficulty: "beginner",
+                      content: null,
+                      quiz: null,
+                      imageUrl: null,
+                      featured: true,
+                      isVisible: true,
+                      createdAt: null
+                    }}
+                    onClick={(moduleId) => setSelectedModuleId(moduleId)}
+                  />
+                  
+                  {/* Replace ChapterOneCard with CompactModuleCard */}
+                  <CompactModuleCard 
+                    module={{
+                      id: 34,
+                      title: "Chapter 1: Building a Human",
+                      description: "Understanding child development from the ground up",
+                      duration: 30,
+                      pointValue: 15,
+                      category: "training",
+                      difficulty: "beginner",
+                      content: null,
+                      quiz: null,
+                      imageUrl: null,
+                      featured: true,
+                      isVisible: true,
+                      createdAt: null
+                    }}
+                    onClick={(moduleId) => setSelectedModuleId(moduleId)}
+                  />
                 </div>
               </div>
               
@@ -872,10 +918,10 @@ export default function Dashboard() {
                     {recommendedModules.map((item, index) => (
                       <div key={index}>
                         {item.module && (
-                          <ModuleView 
-                            module={item.module} 
-                            progress={item.progress} 
-                            showCategory 
+                          <CompactModuleCard 
+                            module={item.module}
+                            progress={item.progress}
+                            onClick={(moduleId) => setSelectedModuleId(moduleId)}
                           />
                         )}
                       </div>
@@ -896,10 +942,10 @@ export default function Dashboard() {
                     {recentProgress.map((item, index) => (
                       <div key={index}>
                         {item.module && (
-                          <ModuleView 
-                            module={item.module} 
-                            progress={item.progress} 
-                            showCategory 
+                          <CompactModuleCard
+                            module={item.module}
+                            progress={item.progress}
+                            onClick={(moduleId) => setSelectedModuleId(moduleId)}
                           />
                         )}
                       </div>
