@@ -25,6 +25,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import personalizedModuleRoutes from "./api/personalizedModuleRoutes";
 import assessmentQuestionRoutes from "./routes/assessment-questions";
+import aiSuggestionRoutes from "./api/aiSuggestionRoutes";
 
 // For ESM __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -90,6 +91,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create an HTTP server for the Express app (needed for WebSockets)
   // Register credential management routes
   app.use("/api/credentials", credentialRoutes);
+  
+  // Register AI suggestion routes
+  app.use("/api/ai", aiSuggestionRoutes);
   
   // Register personalized mini-lessons routes
   app.use("/api", personalizedModuleRoutes);
