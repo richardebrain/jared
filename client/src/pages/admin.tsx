@@ -317,49 +317,61 @@ export default function AdminPage({ skipPasswordCheck = false }) {
         promptText = `Generate quiz questions about "${newModule.title}" in the category of "${newModule.category}" for ${newModule.difficulty} level ECE teachers.`;
       }
       
-      // Use axios directly for more control over the request
-      const response = await fetch('/api/ai/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          prompt: promptText,
-          type
-        })
-      });
+      console.log(`Making API request to /api/ai/generate with type: ${type}`);
       
-      if (!response.ok) {
-        throw new Error(`Server responded with status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (type === 'quiz') {
-        if (data.quizQuestions && Array.isArray(data.quizQuestions)) {
+      try {
+        // Use a simple fetch call with proper error handling
+        const response = await fetch('/api/ai/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            prompt: promptText,
+            type
+          }),
+          credentials: 'include'
+        });
+        
+        console.log(`API Response status:`, response.status);
+        
+        if (!response.ok) {
+          console.error(`Error response:`, response);
+          throw new Error(`Server responded with status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log(`API Response data:`, data);
+        
+        if (type === 'quiz') {
+          if (data.quizQuestions && Array.isArray(data.quizQuestions)) {
+            setAiSuggestions(prev => ({
+              ...prev,
+              quizQuestions: data.quizQuestions
+            }));
+            
+            toast({
+              title: `Quiz Questions Generated`,
+              description: `${data.quizQuestions.length} multiple-choice quiz questions have been created for your module.`,
+            });
+          }
+        } else {
+          // Split the suggestions string into an array by newline
+          const suggestionsArray = data.suggestions ? data.suggestions.split('\n').filter(Boolean) : [];
+          
           setAiSuggestions(prev => ({
             ...prev,
-            quizQuestions: data.quizQuestions
+            [type]: suggestionsArray
           }));
           
           toast({
-            title: `Quiz Questions Generated`,
-            description: `${data.quizQuestions.length} multiple-choice quiz questions have been created for your module.`,
+            title: `AI Suggestions Generated`,
+            description: `Creative ${type} have been generated for your module.`,
           });
         }
-      } else {
-        // Split the suggestions string into an array by newline
-        const suggestionsArray = data.suggestions ? data.suggestions.split('\n').filter(Boolean) : [];
-        
-        setAiSuggestions(prev => ({
-          ...prev,
-          [type]: suggestionsArray
-        }));
-        
-        toast({
-          title: `AI Suggestions Generated`,
-          description: `Creative ${type} have been generated for your module.`,
-        });
+      } catch (apiError) {
+        console.error(`API call error:`, apiError);
+        throw apiError;
       }
     } catch (error) {
       console.error(`Error generating ${type}:`, error);
@@ -368,8 +380,9 @@ export default function AdminPage({ skipPasswordCheck = false }) {
         description: `Could not generate creative ${type}. Please try again.`,
         variant: "destructive"
       });
+    } finally {
+      setIsGeneratingIdeas(false);
     }
-    setIsGeneratingIdeas(false);
   };
 
   if (isLoading || !user) return <div>Loading...</div>;
