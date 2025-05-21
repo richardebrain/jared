@@ -681,13 +681,7 @@ export default function Dashboard() {
                   </div>
                 </div>
                 
-                {/* Add custom animation */}
-                <style jsx>{`
-                  @keyframes slight-bounce {
-                    0%, 100% { transform: translateY(-30%); }
-                    50% { transform: translateY(-50%); }
-                  }
-                `}</style>
+                {/* Custom animations are added through global CSS instead */}
               </div>
               
               {/* Required Modules Section */}
