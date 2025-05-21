@@ -188,11 +188,11 @@ export default function LearningModulePage() {
   const completeLesson = () => {
     if (!module) return;
     
-    const currentLessonIndex = lessons.findIndex(lesson => lesson.id === currentLessonId);
+    const currentLessonIndex = moduleLessons.findIndex(lesson => lesson.id === currentLessonId);
     if (currentLessonIndex === -1) return;
     
     // Calculate new progress
-    const progressPerLesson = 100 / lessons.length;
+    const progressPerLesson = 100 / moduleLessons.length;
     const newProgress = Math.min(100, Math.round((currentLessonIndex + 1) * progressPerLesson));
     
     // Update progress in the database
@@ -206,8 +206,8 @@ export default function LearningModulePage() {
     setCurrentProgress(newProgress);
     
     // Move to next lesson if available
-    if (currentLessonIndex < lessons.length - 1) {
-      setCurrentLessonId(lessons[currentLessonIndex + 1].id);
+    if (currentLessonIndex < moduleLessons.length - 1) {
+      setCurrentLessonId(moduleLessons[currentLessonIndex + 1].id);
     }
   };
   
@@ -253,7 +253,7 @@ export default function LearningModulePage() {
   }
   
   // Current lesson
-  const currentLesson = lessons.find(lesson => lesson.id === currentLessonId);
+  const currentLesson = moduleLessons.find(lesson => lesson.id === currentLessonId);
   
   return (
     <div className="min-h-screen bg-neutral-100">
@@ -509,9 +509,9 @@ export default function LearningModulePage() {
                       <p className="mb-4">This module contains the following lessons:</p>
                       
                       <div className="space-y-3 mb-6">
-                        {lessons.map((lesson, index) => {
+                        {moduleLessons.map((lesson, index) => {
                           // Calculate if this lesson should be considered complete based on progress
-                          const progressPerLesson = 100 / lessons.length;
+                          const progressPerLesson = 100 / moduleLessons.length;
                           const isComplete = currentProgress >= (index + 1) * progressPerLesson;
                           
                           return (
@@ -597,11 +597,11 @@ export default function LearningModulePage() {
                     <div className="flex justify-between mb-1 text-sm">
                       <span>Lessons Completed</span>
                       <span className="font-semibold">
-                        {Math.floor((lessons.length * currentProgress) / 100)}/{lessons.length}
+                        {Math.floor((moduleLessons.length * currentProgress) / 100)}/{moduleLessons.length}
                       </span>
                     </div>
                     <Progress 
-                      value={(Math.floor((lessons.length * currentProgress) / 100) / lessons.length) * 100} 
+                      value={(Math.floor((moduleLessons.length * currentProgress) / 100) / moduleLessons.length) * 100} 
                     />
                   </div>
                   
