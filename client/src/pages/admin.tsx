@@ -17,14 +17,17 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   Video, 
   Link2, 
-  BookOpen, 
+  BookOpen,
+  Brain,
+  Sparkles,
+  Lightbulb,
+  Loader2,
   ArrowLeft, 
   FileEdit, 
   Save, 
   PlusCircle, 
   Trash2, 
-  Image, 
-  Loader2 
+  Image
 } from 'lucide-react';
 
 export default function AdminPage({ skipPasswordCheck = false }) {
@@ -61,6 +64,8 @@ export default function AdminPage({ skipPasswordCheck = false }) {
     questions: string[];
     strategies: string[];
   }>({ questions: [], strategies: [] });
+  
+
   
   // Admin password
   const ADMIN_PASSWORD = 'BIGSURF55';
