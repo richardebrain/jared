@@ -159,7 +159,9 @@ const AdminModulesPage = () => {
   
   // Handle opening the edit dialog
   const handleEditClick = (module: Module) => {
-    setEditingModule(module);
+    // Create a deep copy to avoid referencing the same object
+    const moduleCopy = JSON.parse(JSON.stringify(module));
+    setEditingModule(moduleCopy);
     setIsEditDialogOpen(true);
   };
   
@@ -233,7 +235,7 @@ const AdminModulesPage = () => {
   };
   
   // Search/filter modules
-  const filteredModules = modules?.filter((module) => {
+  const filteredModules = modules ? modules.filter((module) => {
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
     return (
@@ -241,7 +243,7 @@ const AdminModulesPage = () => {
       module.description.toLowerCase().includes(term) ||
       module.category.toLowerCase().includes(term)
     );
-  });
+  }) : [];
   
   if (isLoading) {
     return (
