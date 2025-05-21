@@ -45,6 +45,7 @@ export default function AdminPage({ skipPasswordCheck = false }) {
     category: 'classroom-management',
     difficulty: 'beginner',
     estimatedTime: '15',
+    customPoints: '',  // Added custom points field
     sections: [
       {
         title: 'Introduction',
@@ -55,6 +56,11 @@ export default function AdminPage({ skipPasswordCheck = false }) {
     ]
   });
   const [isCreatingModule, setIsCreatingModule] = useState(false);
+  const [isGeneratingIdeas, setIsGeneratingIdeas] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<{
+    questions: string[];
+    strategies: string[];
+  }>({ questions: [], strategies: [] });
   
   // Admin password
   const ADMIN_PASSWORD = 'BIGSURF55';
