@@ -9,17 +9,52 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Video, Link2, BookOpen, ArrowLeft } from 'lucide-react';
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { 
+  Video, 
+  Link2, 
+  BookOpen, 
+  ArrowLeft, 
+  FileEdit, 
+  Save, 
+  PlusCircle, 
+  Trash2, 
+  Image, 
+  Loader2 
+} from 'lucide-react';
 
 export default function AdminPage({ skipPasswordCheck = false }) {
   const { user, isLoading } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     // Check if already authenticated from sessionStorage or if skipPasswordCheck is true
     return sessionStorage.getItem('adminAuthenticated') === 'true' || skipPasswordCheck;
   });
+  
+  // Module Creator state
+  const [newModule, setNewModule] = useState({
+    title: '',
+    description: '',
+    category: 'classroom-management',
+    difficulty: 'beginner',
+    estimatedTime: '15',
+    sections: [
+      {
+        title: 'Introduction',
+        content: '',
+        videoUrl: '',
+        imageUrl: ''
+      }
+    ]
+  });
+  const [isCreatingModule, setIsCreatingModule] = useState(false);
   
   // Admin password
   const ADMIN_PASSWORD = 'BIGSURF55';
@@ -74,6 +109,153 @@ export default function AdminPage({ skipPasswordCheck = false }) {
       });
     }
   };
+  
+  // Create module mutation
+  const createModuleMutation = useMutation({
+    mutationFn: async (moduleData: any) => {
+      return await apiRequest('/api/modules', {
+        method: 'POST',
+        data: moduleData
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
+      setNewModule({
+        title: '',
+        description: '',
+        category: 'classroom-management',
+        difficulty: 'beginner',
+        estimatedTime: '15',
+        sections: [
+          {
+            title: 'Introduction',
+            content: '',
+            videoUrl: '',
+            imageUrl: ''
+          }
+        ]
+      });
+      setIsCreatingModule(false);
+      toast({
+        title: "Module Created",
+        description: "Your custom module has been created successfully.",
+        variant: "default",
+      });
+    },
+    onError: (error) => {
+      console.error('Error creating module:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create the module. Please try again.",
+        variant: "destructive",
+      });
+      setIsCreatingModule(false);
+    }
+  });
+  
+  // Handle module creation
+  const handleCreateModule = () => {
+    // Validate module data
+    if (!newModule.title.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Module title is required",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!newModule.description.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Module description is required",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Check if at least one section has content
+    const hasContent = newModule.sections.some(section => 
+      section.content.trim() || section.videoUrl.trim() || section.imageUrl.trim()
+    );
+    
+    if (!hasContent) {
+      toast({
+        title: "Validation Error",
+        description: "At least one section must have content, video, or image",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Create the module
+    setIsCreatingModule(true);
+    const moduleData = {
+      ...newModule,
+      schoolId: user?.schoolId,
+      createdBy: user?.id,
+      // Add tags based on category
+      tags: [newModule.category, newModule.difficulty],
+      // Add points based on estimated time and difficulty
+      points: calculatePoints(newModule.estimatedTime, newModule.difficulty),
+      createdAt: new Date().toISOString()
+    };
+    
+    createModuleMutation.mutate(moduleData);
+  };
+  
+  // Add a new section to the module
+  const addModuleSection = () => {
+    setNewModule(prev => ({
+      ...prev,
+      sections: [
+        ...prev.sections,
+        {
+          title: `Section ${prev.sections.length + 1}`,
+          content: '',
+          videoUrl: '',
+          imageUrl: ''
+        }
+      ]
+    }));
+  };
+  
+  // Remove a section from the module
+  const removeModuleSection = (index: number) => {
+    if (newModule.sections.length <= 1) {
+      toast({
+        title: "Cannot Remove Section",
+        description: "A module must have at least one section",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setNewModule(prev => ({
+      ...prev,
+      sections: prev.sections.filter((_, i) => i !== index)
+    }));
+  };
+  
+  // Update a section in the module
+  const updateModuleSection = (index: number, field: string, value: string) => {
+    setNewModule(prev => ({
+      ...prev,
+      sections: prev.sections.map((section, i) => 
+        i === index ? { ...section, [field]: value } : section
+      )
+    }));
+  };
+  
+  // Calculate module points based on time and difficulty
+  const calculatePoints = (timeEstimate: string, difficulty: string): number => {
+    const basePoints = parseInt(timeEstimate) || 15;
+    const difficultyMultiplier = 
+      difficulty === 'advanced' ? 2 :
+      difficulty === 'intermediate' ? 1.5 : 1;
+    
+    return Math.round(basePoints * difficultyMultiplier);
+  };
 
   if (isLoading || !user) return <div>Loading...</div>;
   
@@ -126,6 +308,7 @@ export default function AdminPage({ skipPasswordCheck = false }) {
       <Tabs defaultValue="management">
         <TabsList className="mb-6">
           <TabsTrigger value="management">Content Management</TabsTrigger>
+          <TabsTrigger value="module-creator">Module Creator</TabsTrigger>
           <TabsTrigger value="users">User Management</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
           <TabsTrigger value="tools">System Tools</TabsTrigger>

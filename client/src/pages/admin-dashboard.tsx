@@ -218,6 +218,48 @@ export default function AdminDashboard() {
       });
     }
   });
+  
+  // Create module mutation
+  const createModuleMutation = useMutation({
+    mutationFn: async (moduleData: any) => {
+      return await apiRequest('/api/modules', {
+        method: 'POST',
+        data: moduleData
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
+      setNewModule({
+        title: '',
+        description: '',
+        category: 'classroom-management',
+        difficulty: 'beginner',
+        estimatedTime: '15',
+        sections: [
+          {
+            title: 'Introduction',
+            content: '',
+            videoUrl: '',
+            imageUrl: ''
+          }
+        ]
+      });
+      setIsCreatingModule(false);
+      toast({
+        title: "Module Created",
+        description: "Your custom module has been created successfully.",
+        variant: "default",
+      });
+    },
+    onError: (error) => {
+      console.error('Error creating module:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create the module. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
 
   // Filter users based on search query
   const filteredUsers = users.filter((user: any) => {
@@ -247,6 +289,110 @@ export default function AdminDashboard() {
   const handleResetProgress = (userId: number) => {
     resetProgressMutation.mutate(userId);
     setSelectedUser(null);
+  };
+  
+  // Handle module creation
+  const handleCreateModule = () => {
+    // Validate module data
+    if (!newModule.title.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Module title is required",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!newModule.description.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Module description is required",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Check if at least one section has content
+    const hasContent = newModule.sections.some(section => 
+      section.content.trim() || section.videoUrl.trim() || section.imageUrl.trim()
+    );
+    
+    if (!hasContent) {
+      toast({
+        title: "Validation Error",
+        description: "At least one section must have content, video, or image",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Create the module
+    setIsCreatingModule(true);
+    const moduleData = {
+      ...newModule,
+      schoolId: user?.schoolId,
+      createdBy: user?.id,
+      // Add tags based on category
+      tags: [newModule.category, newModule.difficulty],
+      // Add points based on estimated time and difficulty
+      points: calculatePoints(newModule.estimatedTime, newModule.difficulty),
+      createdAt: new Date().toISOString()
+    };
+    
+    createModuleMutation.mutate(moduleData);
+  };
+  
+  // Add a new section to the module
+  const addModuleSection = () => {
+    setNewModule(prev => ({
+      ...prev,
+      sections: [
+        ...prev.sections,
+        {
+          title: `Section ${prev.sections.length + 1}`,
+          content: '',
+          videoUrl: '',
+          imageUrl: ''
+        }
+      ]
+    }));
+  };
+  
+  // Remove a section from the module
+  const removeModuleSection = (index: number) => {
+    if (newModule.sections.length <= 1) {
+      toast({
+        title: "Cannot Remove Section",
+        description: "A module must have at least one section",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setNewModule(prev => ({
+      ...prev,
+      sections: prev.sections.filter((_, i) => i !== index)
+    }));
+  };
+  
+  // Update a section in the module
+  const updateModuleSection = (index: number, field: string, value: string) => {
+    setNewModule(prev => ({
+      ...prev,
+      sections: prev.sections.map((section, i) => 
+        i === index ? { ...section, [field]: value } : section
+      )
+    }));
+  };
+  
+  // Calculate module points based on time and difficulty
+  const calculatePoints = (timeEstimate: string, difficulty: string): number => {
+    const basePoints = parseInt(timeEstimate) || 15;
+    const difficultyMultiplier = 
+      difficulty === 'advanced' ? 2 :
+      difficulty === 'intermediate' ? 1.5 : 1;
+    
+    return Math.round(basePoints * difficultyMultiplier);
   };
   
   // Fetch EOS data when component mounts
@@ -1054,6 +1200,267 @@ export default function AdminDashboard() {
                   </Button>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Module Creator Tab */}
+        <TabsContent value="module-creator">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileEdit className="h-5 w-5 text-orange-500" />
+                  <span>Custom Module Creator</span>
+                </div>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCreateModule}
+                  disabled={isCreatingModule}
+                  className="flex items-center gap-1"
+                >
+                  {isCreatingModule ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Creating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" />
+                      <span>Save Module</span>
+                    </>
+                  )}
+                </Button>
+              </CardTitle>
+              <CardDescription>
+                Create custom training modules for your teachers. These modules will appear in their dashboard.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {/* Module Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Module Information</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="module-title">Module Title</Label>
+                      <Input 
+                        id="module-title" 
+                        placeholder="Enter a concise, descriptive title" 
+                        value={newModule.title}
+                        onChange={(e) => setNewModule({...newModule, title: e.target.value})}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="module-category">Category</Label>
+                      <Select 
+                        value={newModule.category}
+                        onValueChange={(value) => setNewModule({...newModule, category: value})}
+                      >
+                        <SelectTrigger id="module-category">
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="classroom-management">Classroom Management</SelectItem>
+                          <SelectItem value="child-development">Child Development</SelectItem>
+                          <SelectItem value="curriculum-planning">Curriculum Planning</SelectItem>
+                          <SelectItem value="assessment">Assessment</SelectItem>
+                          <SelectItem value="family-engagement">Family Engagement</SelectItem>
+                          <SelectItem value="health-safety">Health & Safety</SelectItem>
+                          <SelectItem value="inclusion">Inclusion & Diversity</SelectItem>
+                          <SelectItem value="professional-development">Professional Development</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="module-difficulty">Difficulty Level</Label>
+                      <Select 
+                        value={newModule.difficulty}
+                        onValueChange={(value) => setNewModule({...newModule, difficulty: value})}
+                      >
+                        <SelectTrigger id="module-difficulty">
+                          <SelectValue placeholder="Select difficulty" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="beginner">Beginner</SelectItem>
+                          <SelectItem value="intermediate">Intermediate</SelectItem>
+                          <SelectItem value="advanced">Advanced</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="module-time">Estimated Time (minutes)</Label>
+                      <Input 
+                        id="module-time" 
+                        type="number" 
+                        placeholder="15" 
+                        value={newModule.estimatedTime}
+                        onChange={(e) => setNewModule({...newModule, estimatedTime: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="module-description">Description</Label>
+                    <Textarea 
+                      id="module-description" 
+                      placeholder="Provide a brief description of what teachers will learn in this module"
+                      className="min-h-[100px]"
+                      value={newModule.description}
+                      onChange={(e) => setNewModule({...newModule, description: e.target.value})}
+                    />
+                  </div>
+                </div>
+                
+                <Separator />
+                
+                {/* Module Sections */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium">Module Sections</h3>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={addModuleSection}
+                      className="gap-1"
+                    >
+                      <PlusCircle className="h-4 w-4" />
+                      Add Section
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    {newModule.sections.map((section, index) => (
+                      <Card key={index}>
+                        <CardHeader className="pb-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1 mr-4">
+                              <Label htmlFor={`section-title-${index}`}>Section Title</Label>
+                              <Input
+                                id={`section-title-${index}`}
+                                value={section.title}
+                                onChange={(e) => updateModuleSection(index, 'title', e.target.value)}
+                                placeholder="Section Title"
+                              />
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                              onClick={() => removeModuleSection(index)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor={`section-content-${index}`}>Content</Label>
+                            <Textarea
+                              id={`section-content-${index}`}
+                              value={section.content}
+                              onChange={(e) => updateModuleSection(index, 'content', e.target.value)}
+                              placeholder="Enter the content for this section (Markdown formatting supported)"
+                              className="min-h-[150px]"
+                            />
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor={`section-video-${index}`} className="flex items-center gap-2">
+                                <Video className="h-4 w-4 text-blue-500" />
+                                Video URL (YouTube)
+                              </Label>
+                              <Input
+                                id={`section-video-${index}`}
+                                value={section.videoUrl}
+                                onChange={(e) => updateModuleSection(index, 'videoUrl', e.target.value)}
+                                placeholder="e.g., https://www.youtube.com/watch?v=..."
+                              />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label htmlFor={`section-image-${index}`} className="flex items-center gap-2">
+                                <Image className="h-4 w-4 text-green-500" />
+                                Image URL
+                              </Label>
+                              <Input
+                                id={`section-image-${index}`}
+                                value={section.imageUrl}
+                                onChange={(e) => updateModuleSection(index, 'imageUrl', e.target.value)}
+                                placeholder="e.g., https://example.com/image.jpg"
+                              />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Preview Section */}
+                <Card className="bg-gray-50">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Module Preview</CardTitle>
+                    <CardDescription>
+                      This is how your module will appear to teachers in their dashboard.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="border rounded-md p-4 bg-white shadow-sm">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="font-bold text-lg">{newModule.title || "Module Title"}</h3>
+                          <p className="text-sm text-gray-500">{newModule.description || "Module description will appear here."}</p>
+                          
+                          <div className="flex items-center gap-2 my-2">
+                            <Badge variant="secondary" className="bg-blue-100 text-blue-800 hover:bg-blue-200">
+                              {newModule.category === 'classroom-management' ? 'Classroom Management' :
+                               newModule.category === 'child-development' ? 'Child Development' :
+                               newModule.category === 'curriculum-planning' ? 'Curriculum Planning' :
+                               newModule.category === 'assessment' ? 'Assessment' :
+                               newModule.category === 'family-engagement' ? 'Family Engagement' :
+                               newModule.category === 'health-safety' ? 'Health & Safety' :
+                               newModule.category === 'inclusion' ? 'Inclusion & Diversity' :
+                               'Professional Development'}
+                            </Badge>
+                            <Badge variant="outline" className={
+                              newModule.difficulty === 'beginner' ? 'bg-green-50 text-green-700 border-green-200' :
+                              newModule.difficulty === 'intermediate' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                              'bg-red-50 text-red-700 border-red-200'
+                            }>
+                              {newModule.difficulty === 'beginner' ? 'Beginner' :
+                               newModule.difficulty === 'intermediate' ? 'Intermediate' : 'Advanced'}
+                            </Badge>
+                            <span className="text-xs text-gray-500">
+                              {newModule.estimatedTime} min
+                            </span>
+                          </div>
+                        </div>
+                        <div className="bg-primary/10 text-primary font-semibold px-3 py-1 rounded-md text-sm">
+                          {calculatePoints(newModule.estimatedTime, newModule.difficulty)} points
+                        </div>
+                      </div>
+                      
+                      <div className="mt-4">
+                        <p className="text-sm font-medium mb-2">Sections:</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          {newModule.sections.map((section, index) => (
+                            <li key={index}>{section.title || `Section ${index + 1}`}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
