@@ -743,7 +743,7 @@ export default function Dashboard() {
                       <Button 
                         className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white"
                         onClick={() => {
-                          window.open('direct-access.html', '_blank');
+                          window.open('/assessment.html', '_blank');
                         }}
                       >
                         Start Assessment
@@ -773,7 +773,7 @@ export default function Dashboard() {
                       <Button 
                         className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white"
                         onClick={() => {
-                          window.open('direct-access.html', '_blank');
+                          window.open('/assessment.html', '_blank');
                         }}
                       >
                         Try Assessment
@@ -806,7 +806,7 @@ export default function Dashboard() {
                       <Button 
                         className="bg-gradient-to-r from-amber-500 to-orange-500 text-white"
                         onClick={() => {
-                          window.open('simple-launcher.html', '_blank');
+                          window.open('/assessment.html', '_blank');
                         }}
                       >
                         Take Master Assessment
