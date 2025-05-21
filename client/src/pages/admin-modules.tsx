@@ -23,15 +23,57 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { ArrowLeft, Search, CheckCircle2, XCircle, Edit, AlertTriangle } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { Separator } from '@/components/ui/separator';
+import { ArrowLeft, Search, CheckCircle2, XCircle, Edit, AlertTriangle, Save, Loader2, Plus, PlusCircle, Trash2, Video, Image } from 'lucide-react';
+
+// Interface for module data
+interface ModuleSection {
+  title: string;
+  content: string;
+  videoUrl: string;
+  imageUrl: string;
+}
+
+interface Module {
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  difficulty: string;
+  estimatedTime: string;
+  customPoints?: string;
+  pointValue: number;
+  is_visible: boolean;
+  sections: ModuleSection[];
+}
 
 const AdminModulesPage = () => {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingModule, setEditingModule] = useState<Module | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isUpdatingModule, setIsUpdatingModule] = useState(false);
   
   // Fetch all modules including hidden ones
   const { data: modules, isLoading, error } = useQuery({
