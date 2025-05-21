@@ -24,6 +24,7 @@ import SimpleStandaloneAssessment from "@/pages/simple-standalone-assessment";
 import AssessmentLauncher from "@/pages/assessment-launcher";
 import LearningModulePage from "@/pages/learning-module";
 import CoreValuesModulePage from "@/pages/core-values-module";
+import MindfulMorningsModulePage from "@/pages/mindful-mornings-module";
 import MicroModulePage from "@/pages/micro-module";
 import LearningStylePage from "@/pages/learning-style";
 import DiscussionsPage from "@/pages/discussions";
@@ -123,6 +124,10 @@ function Router() {
         {isAuthenticated ? <LearningModulePage /> : <Login />}
       </Route>
       
+      <Route path="/core-values-module">
+        {isAuthenticated ? <CoreValuesModulePage /> : <Login />}
+      </Route>
+      
       <Route path="/micro-modules/:id">
         {isAuthenticated ? <MicroModulePage /> : <Login />}
       </Route>
@@ -149,6 +154,10 @@ function Router() {
       
       <Route path="/mindful-mornings">
         {isAuthenticated ? <MindfulMorningsPage /> : <Login />}
+      </Route>
+      
+      <Route path="/mindful-mornings-module">
+        {isAuthenticated ? <MindfulMorningsModulePage /> : <Login />}
       </Route>
       
       <Route path="/classroom-music">
