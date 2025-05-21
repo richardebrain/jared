@@ -365,7 +365,7 @@ export default function Dashboard() {
             <Button 
               variant="link" 
               className="p-0 h-auto text-sm text-blue-600 hover:text-blue-800"
-              onClick={() => setLocation(`/modules/${coreValuesModule.id}`)}
+              onClick={() => setLocation(`/core-values-module`)}
             >
               {isComplete ? "Review" : "Start"} Module
               <ArrowRight className="h-4 w-4 ml-1" />
