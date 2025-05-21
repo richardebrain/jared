@@ -31,7 +31,15 @@ import {
   Settings,
   Coins,
   TrendingUp,
-  RefreshCw
+  RefreshCw,
+  Plus,
+  Save,
+  Image,
+  Video,
+  X,
+  Trash2,
+  PlusCircle,
+  Loader2
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
@@ -40,11 +48,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { DataTable } from "@/components/ui/data-table";
 import { useAuth } from '@/hooks/use-auth';
 import { apiRequest } from '@/lib/queryClient';
 import { Progress } from '@/components/ui/progress';
 import { Link } from 'wouter';
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 /**
  * Admin Dashboard Component
@@ -63,6 +72,24 @@ export default function AdminDashboard() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [eosData, setEosData] = useState<any[]>([]);
   const [eosLoading, setEosLoading] = useState(false);
+  
+  // Module Creator state
+  const [newModule, setNewModule] = useState({
+    title: '',
+    description: '',
+    category: 'classroom-management',
+    difficulty: 'beginner',
+    estimatedTime: '15',
+    sections: [
+      {
+        title: 'Introduction',
+        content: '',
+        videoUrl: '',
+        imageUrl: ''
+      }
+    ]
+  });
+  const [isCreatingModule, setIsCreatingModule] = useState(false);
 
   // Fetch EOS data function
   const fetchEOSData = async () => {
@@ -379,6 +406,25 @@ export default function AdminDashboard() {
                 <div className="text-xs text-muted-foreground">Add external systems integration</div>
               </div>
             </Button>
+            
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 px-6 flex flex-col items-center justify-center gap-2"
+              onClick={() => {
+                const tabElement = document.querySelector('[value="module-creator"]');
+                if (tabElement) {
+                  (tabElement as HTMLElement).click();
+                } else {
+                  console.log("Module Creator tab element not found");
+                }
+              }}
+            >
+              <FileEdit className="h-8 w-8 text-orange-600" />
+              <div className="text-center">
+                <div className="font-medium">Module Creator</div>
+                <div className="text-xs text-muted-foreground">Create custom training modules</div>
+              </div>
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -441,6 +487,7 @@ export default function AdminDashboard() {
           <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
           <TabsTrigger value="shoutouts">Core Values Shout-outs</TabsTrigger>
           <TabsTrigger value="eos">EOS Tools</TabsTrigger>
+          <TabsTrigger value="module-creator">Module Creator</TabsTrigger>
           <TabsTrigger value="director">Director View</TabsTrigger>
         </TabsList>
         
