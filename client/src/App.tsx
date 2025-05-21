@@ -24,6 +24,7 @@ import SimpleStandaloneAssessment from "@/pages/simple-standalone-assessment";
 import AssessmentLauncher from "@/pages/assessment-launcher";
 import LearningModulePage from "@/pages/learning-module";
 import CoreValuesModulePage from "@/pages/core-values-module";
+import CoreValuesModuleNew from "@/pages/core-values-module-new";
 import MindfulMorningsModulePage from "@/pages/mindful-mornings-module";
 import MicroModulePage from "@/pages/micro-module";
 import LearningStylePage from "@/pages/learning-style";
@@ -126,6 +127,10 @@ function Router() {
       
       <Route path="/core-values-module">
         {isAuthenticated ? <CoreValuesModulePage /> : <Login />}
+      </Route>
+      
+      <Route path="/core-values-module-new">
+        {isAuthenticated ? <CoreValuesModuleNew /> : <Login />}
       </Route>
       
       <Route path="/micro-modules/:id">

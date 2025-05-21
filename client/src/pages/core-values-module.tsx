@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useParams, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { LearningModule as LearningModuleType, UserProgress } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -17,44 +17,57 @@ import {
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
+import { Play, Pause, SkipBack } from "lucide-react";
+
+// Import audio files
+import sunriseSongPath from "@assets/Sunrise paints the Glendale sky gold.mp3";
+import commitmentRapPath from "@assets/_Commitment's Whistle-Stop Rap (Extended.mp3";
 
 // Custom lessons for CORE Values module
 const coreLessons = [
   {
     id: 1,
     title: "Our CORE Values",
-    duration: 15,
+    duration: 5,
     type: "introduction",
     completed: false,
   },
   {
     id: 2,
-    title: "Miss Rosa's Story",
-    duration: 10,
+    title: "C - Consistency: Miss Rosa's Story",
+    duration: 5,
     type: "story",
     completed: false,
   },
   {
     id: 3,
-    title: "Ms. Elena's Story",
-    duration: 10,
+    title: "O - Openness: Ms. Elena's Story",
+    duration: 5,
     type: "story",
     completed: false,
   },
   {
     id: 4,
-    title: "CORE Values Song",
-    duration: 10,
+    title: "R - Respect: CORE Values Song",
+    duration: 5,
+    type: "audio",
+    completed: false,
+    audioPath: sunriseSongPath,
+  },
+  {
+    id: 5,
+    title: "E - Excellence: Fill in the Blanks",
+    duration: 5,
     type: "interactive",
     completed: false,
   },
   {
-    id: 5,
-    title: "Knowledge Check",
-    duration: 10,
-    type: "assessment",
+    id: 6,
+    title: "Commitment's Whistle-Stop Rap",
+    duration: 5,
+    type: "audio",
     completed: false,
+    audioPath: commitmentRapPath,
   },
 ];
 
@@ -62,9 +75,26 @@ export default function CoreValuesModulePage() {
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
   
-  // State for selected lesson and progress
-  const [currentLessonId, setCurrentLessonId] = useState<number | null>(null);
+  // State for current lesson and progress
+  const [currentLesson, setCurrentLesson] = useState(coreLessons[0]);
   const [currentProgress, setCurrentProgress] = useState(0);
+  const [answers, setAnswers] = useState({
+    c: "",
+    o: "",
+    r: "",
+    e: ""
+  });
+  const [hasCompletedAudio, setHasCompletedAudio] = useState(false);
+  const [hasCompletedExercise, setHasCompletedExercise] = useState(false);
+  const [lessonCompleted, setLessonCompleted] = useState(false);
+  
+  // Fill in the blanks exercise answers
+  const [coreAnswers, setCoreAnswers] = useState({
+    c: "",
+    o: "",
+    r: "",
+    e: ""
+  });
   
   // Get module data
   const { data: module, isLoading: isModuleLoading } = useQuery<LearningModuleType>({
@@ -78,6 +108,64 @@ export default function CoreValuesModulePage() {
   const { data: progressData, isLoading: isProgressLoading } = useQuery<UserProgress[]>({
     queryKey: ["/api/progress"],
   });
+  
+  // Audio controls
+  const togglePlayPause = () => {
+    if (!audioRef.current) return;
+    
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+    
+    setIsPlaying(!isPlaying);
+  };
+  
+  const resetAudio = () => {
+    if (!audioRef.current) return;
+    audioRef.current.currentTime = 0;
+    if (!isPlaying) {
+      audioRef.current.play();
+      setIsPlaying(true);
+    }
+  };
+  
+  // Handle audio ended event
+  const handleAudioEnded = () => {
+    setIsPlaying(false);
+    setLessonCompleted(true);
+  };
+  
+  // Check fill in the blanks answers
+  const checkCoreAnswers = () => {
+    const correctAnswers = {
+      c: "compassion",
+      o: "opportunity",
+      r: "respect",
+      e: "excellence"
+    };
+    
+    const allCorrect = 
+      coreAnswers.c.toLowerCase().includes(correctAnswers.c) &&
+      coreAnswers.o.toLowerCase().includes(correctAnswers.o) &&
+      coreAnswers.r.toLowerCase().includes(correctAnswers.r) &&
+      coreAnswers.e.toLowerCase().includes(correctAnswers.e);
+    
+    if (allCorrect) {
+      toast({
+        title: "Excellent work!",
+        description: "You've correctly identified all the CORE values!",
+      });
+      setLessonCompleted(true);
+    } else {
+      toast({
+        title: "Try again",
+        description: "Some of your answers need correction. Remember our CORE values!",
+        variant: "destructive",
+      });
+    }
+  };
   
   // Set the completed status of lessons based on progress
   useEffect(() => {
@@ -103,6 +191,18 @@ export default function CoreValuesModulePage() {
       }
     }
   }, [progressData, module, currentLessonId]);
+  
+  // Reset lesson completion state when changing lessons
+  useEffect(() => {
+    setLessonCompleted(false);
+    setIsPlaying(false);
+    
+    // Reset audio when lesson changes
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+  }, [currentLessonId]);
   
   // Update progress mutation
   const { mutate: updateProgress, isPending } = useMutation({
