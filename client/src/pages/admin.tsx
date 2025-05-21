@@ -63,7 +63,16 @@ export default function AdminPage({ skipPasswordCheck = false }) {
   const [aiSuggestions, setAiSuggestions] = useState<{
     questions: string[];
     strategies: string[];
-  }>({ questions: [], strategies: [] });
+    quizQuestions: {
+      question: string;
+      options: string[];
+      correctAnswer: string;
+    }[];
+  }>({ 
+    questions: [], 
+    strategies: [],
+    quizQuestions: []
+  });
   
 
   
@@ -275,14 +284,20 @@ export default function AdminPage({ skipPasswordCheck = false }) {
   };
   
   // Generate AI suggestions for module content
-  const generateAiSuggestions = async (type: 'questions' | 'strategies') => {
+  const generateAiSuggestions = async (type: 'questions' | 'strategies' | 'quiz') => {
     setIsGeneratingIdeas(true);
     try {
-      const promptText = type === 'questions' 
-        ? `Generate 3 creative assessment questions for a module about "${newModule.title}" in the category of "${newModule.category}". The questions should be suitable for ${newModule.difficulty} level ECE teachers.`
-        : `Suggest 3 creative teaching strategies for a module about "${newModule.title}" in the category of "${newModule.category}". The strategies should be suitable for ${newModule.difficulty} level ECE teachers.`;
+      let promptText = '';
       
-      const response = await apiRequest('/api/ai/generate-suggestions', {
+      if (type === 'questions') {
+        promptText = `Generate 3 creative assessment questions for a module about "${newModule.title}" in the category of "${newModule.category}". The questions should be suitable for ${newModule.difficulty} level ECE teachers.`;
+      } else if (type === 'strategies') {
+        promptText = `Suggest 3 creative teaching strategies for a module about "${newModule.title}" in the category of "${newModule.category}". The strategies should be suitable for ${newModule.difficulty} level ECE teachers.`;
+      } else if (type === 'quiz') {
+        promptText = `Generate quiz questions about "${newModule.title}" in the category of "${newModule.category}" for ${newModule.difficulty} level ECE teachers.`;
+      }
+      
+      const response = await apiRequest('/api/ai/generate', {
         method: 'POST',
         data: { 
           prompt: promptText,
@@ -290,16 +305,34 @@ export default function AdminPage({ skipPasswordCheck = false }) {
         }
       });
       
-      const suggestions = await response.json();
-      setAiSuggestions(prev => ({
-        ...prev,
-        [type]: suggestions.ideas || []
-      }));
+      const data = await response.json();
       
-      toast({
-        title: `AI Suggestions Generated`,
-        description: `Creative ${type} have been generated for your module.`,
-      });
+      if (type === 'quiz') {
+        if (data.quizQuestions && Array.isArray(data.quizQuestions)) {
+          setAiSuggestions(prev => ({
+            ...prev,
+            quizQuestions: data.quizQuestions
+          }));
+          
+          toast({
+            title: `Quiz Questions Generated`,
+            description: `${data.quizQuestions.length} multiple-choice quiz questions have been created for your module.`,
+          });
+        }
+      } else {
+        // Split the suggestions string into an array by newline
+        const suggestionsArray = data.suggestions ? data.suggestions.split('\n').filter(Boolean) : [];
+        
+        setAiSuggestions(prev => ({
+          ...prev,
+          [type]: suggestionsArray
+        }));
+        
+        toast({
+          title: `AI Suggestions Generated`,
+          description: `Creative ${type} have been generated for your module.`,
+        });
+      }
     } catch (error) {
       console.error(`Error generating ${type}:`, error);
       toast({
