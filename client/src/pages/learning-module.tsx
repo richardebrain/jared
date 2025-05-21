@@ -323,13 +323,94 @@ export default function LearningModulePage() {
                                 )
                               ) : (
                                 <>
-                                  This is where the specific lesson content would be displayed, 
-                                  including text explanations, interactive elements, and practice exercises.
-                                  <div className="p-4 bg-muted rounded-lg mt-4">
-                                    <p className="text-center text-muted-foreground">
-                                      Lesson content is loaded dynamically based on the selected module and lesson.
-                                    </p>
-                                  </div>
+                                  {module.title === "Raising Arizona's CORE Values" ? (
+                                    <>
+                                      <h3 className="text-xl font-semibold mb-4">CORE Values at Raising Arizona</h3>
+                                      <p className="mb-4">Our CORE values guide everything we do at Raising Arizona Preschool. These fundamental principles help create a nurturing environment where children and staff can thrive together.</p>
+                                      
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                          <h4 className="font-bold text-blue-700 mb-2">C - Compassion</h4>
+                                          <p>We show kindness and empathy to everyone in our community, understanding that each person has unique needs and experiences.</p>
+                                        </div>
+                                        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                                          <h4 className="font-bold text-green-700 mb-2">O - Opportunity</h4>
+                                          <p>We create meaningful learning opportunities that inspire curiosity and growth for both children and staff.</p>
+                                        </div>
+                                        <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                                          <h4 className="font-bold text-purple-700 mb-2">R - Respect</h4>
+                                          <p>We honor the dignity and worth of every child, family member, and colleague through our words and actions.</p>
+                                        </div>
+                                        <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                                          <h4 className="font-bold text-amber-700 mb-2">E - Excellence</h4>
+                                          <p>We strive for excellence in all aspects of our work, continuously improving our practices to provide the highest quality care and education.</p>
+                                        </div>
+                                      </div>
+                                      
+                                      <h3 className="text-xl font-semibold mb-3 mt-6">Miss Rosa's Unbroken Circle</h3>
+                                      <div className="bg-gray-50 p-5 rounded-lg border border-gray-200 mb-6">
+                                        <p className="italic text-gray-700 mb-4">From the very first morning, Lila clung to the classroom door, eyes wide with fear. Miss Rosa approached slowly, kneeling to meet Lila's gaze. "Would you like to help me with our welcome song this morning?" she whispered. Lila's grip loosened slightly.</p>
+                                        <p className="italic text-gray-700 mb-4">Each day, Miss Rosa invited Lila to help in small ways—watering plants, arranging cushions for circle time, choosing the morning book. Miss Rosa noticed Lila's careful attention to how things were arranged—her natural sense of order.</p>
+                                        <p className="italic text-gray-700 mb-4">"In our classroom," Miss Rosa explained to her colleagues, "we respect each child's journey. Lila needs to feel safe before she can fully participate." By month's end, it was Lila who organized the welcome circle, carefully placing each cushion in a perfect round formation, ensuring no child was left outside the circle.</p>
+                                        <p className="italic text-gray-700">What Miss Rosa recognized in this child was the need for inclusion through meaningful contribution. By honoring Lila's need for order and giving her purpose, Miss Rosa demonstrated how our CORE values create an unbroken circle where every child belongs.</p>
+                                      </div>
+                                      
+                                      <h3 className="text-xl font-semibold mb-3 mt-6">Ms. Elena's Whispered Promise</h3>
+                                      <div className="bg-gray-50 p-5 rounded-lg border border-gray-200 mb-6">
+                                        <p className="italic text-gray-700 mb-4">Tiny footsteps echoed in the cubby-lined hallway as four-year-old Jamal arrived early each morning. His father, working double shifts, would drop him off before sunrise. Rather than seeing this as an inconvenience, Ms. Elena recognized an opportunity.</p>
+                                        <p className="italic text-gray-700 mb-4">"Jamal, would you like to be my special classroom helper this morning?" she asked that first day. His eyes lit up as she handed him a small spray bottle and cloth. Together, they wiped tables and arranged chairs before other children arrived.</p>
+                                        <p className="italic text-gray-700 mb-4">The early-morning ritual continued for months. One day, Jamal's father arrived later than usual, apologizing profusely. Ms. Elena noticed Jamal whisper something to his father, who looked surprised but nodded. The next day, father and son arrived together—early again.</p>
+                                        <p className="italic text-gray-700">"He told me he had important work to do," his father explained, smiling. "That you were counting on him." Ms. Elena nodded, understanding. Through her simple act of creating opportunity from challenge, she had given Jamal more than just tasks—she had given him purpose and pride, demonstrating that our CORE values provide every child the chance to excel in their own unique way.</p>
+                                      </div>
+                                      
+                                      <h3 className="text-xl font-semibold mb-3">CORE Values Song</h3>
+                                      <div className="bg-gray-50 p-5 rounded-lg border border-gray-200 mb-6">
+                                        <p className="mb-3">Listen to our CORE Values song and fill in the missing words:</p>
+                                        
+                                        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                          <p className="italic mb-2 text-gray-700 font-medium">Sunrise paints the Glendale sky gold,</p>
+                                          <p className="italic mb-2 text-gray-700 font-medium">As we open our doors once more.</p>
+                                          <p className="italic mb-2 text-gray-700 font-medium">At Raising Arizona we uphold</p>
+                                          <p className="italic mb-2 text-gray-700 font-medium">The CORE values we all adore.</p>
+                                          <p className="italic mt-3 text-gray-700 font-medium">♪ These are the values that guide our way... ♪</p>
+                                        </div>
+                                        
+                                        <div className="bg-white p-4 rounded-lg border border-gray-300">
+                                          <p className="mb-4 font-medium">Fill in the missing CORE values:</p>
+                                          <div className="mb-6">
+                                            <p className="mb-2">C stands for <input type="text" className="border-b-2 border-blue-500 bg-transparent px-1 w-28 focus:outline-none" placeholder="type here..." /> in all that we do</p>
+                                            <p className="mb-2">O means <input type="text" className="border-b-2 border-green-500 bg-transparent px-1 w-28 focus:outline-none" placeholder="type here..." /> for learning and growth</p>
+                                            <p className="mb-2">R reminds us of <input type="text" className="border-b-2 border-purple-500 bg-transparent px-1 w-28 focus:outline-none" placeholder="type here..." /> for everyone</p>
+                                            <p className="mb-4">E inspires <input type="text" className="border-b-2 border-amber-500 bg-transparent px-1 w-28 focus:outline-none" placeholder="type here..." /> in our work every day</p>
+                                            <button className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 transition-colors">Check Answers</button>
+                                          </div>
+                                          
+                                          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                            <p className="text-sm font-medium text-yellow-800">💡 Teacher Tip:</p>
+                                            <p className="text-sm text-yellow-700">
+                                              The correct answers are Compassion, Opportunity, Respect, and Excellence. 
+                                              This interactive element helps children better remember our CORE values through active participation.
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      
+                                      <div className="p-4 bg-[#e6ecff] border border-[#0030b8] rounded-lg mb-6">
+                                        <p className="font-semibold text-[#0030b8]">🎯 Easter Egg Challenge!</p>
+                                        <p className="text-[#333]">There's a special phrase hidden in Miss Rosa's story. Find it and share it with your director to earn 50 bonus points!</p>
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      This is where the specific lesson content would be displayed, 
+                                      including text explanations, interactive elements, and practice exercises.
+                                      <div className="p-4 bg-muted rounded-lg mt-4">
+                                        <p className="text-center text-muted-foreground">
+                                          Lesson content is loaded dynamically based on the selected module and lesson.
+                                        </p>
+                                      </div>
+                                    </>
+                                  )}
                                 </>
                               )}
                             </p>
