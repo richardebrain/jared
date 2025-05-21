@@ -695,7 +695,14 @@ export default function Dashboard() {
                       isVisible: true,
                       createdAt: null
                     }}
-                    onClick={(moduleId) => setSelectedModuleId(moduleId)}
+                    onClick={(moduleId) => {
+                      // Direct navigation to the new Core Values module
+                      if (moduleId === 33) {
+                        setLocation('/core-values-module-new');
+                      } else {
+                        setSelectedModuleId(moduleId);
+                      }
+                    }}
                   />
                   
                   {/* Replace ChapterOneCard with CompactModuleCard */}
