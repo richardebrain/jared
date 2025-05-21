@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comprehensive Assessment</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+      color: #333;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    .container {
+      max-width: 600px;
+      background-color: white;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #ff9800;
+      margin-top: 0;
+      font-size: 2rem;
+    }
+    p {
+      margin-bottom: 1.5rem;
+      font-size: 1.1rem;
+    }
+    .loading-icon {
+      width: 60px;
+      height: 60px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #ff9800;
+      border-radius: 50%;
+      margin: 0 auto 20px;
+      animation: spin 1.5s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .button {
+      display: inline-block;
+      background-color: #ff9800;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: bold;
+      margin-top: 20px;
+      transition: all 0.3s ease;
+    }
+    .button:hover {
+      background-color: #e68a00;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="loading-icon"></div>
+    <h1>Comprehensive Assessment</h1>
+    <p>Your comprehensive assessment is being prepared...</p>
+    <p>You will be automatically redirected in a moment.</p>
+    <a href="./comprehensive-assessment.html" class="button">Go to Assessment Now</a>
+  </div>
+
+  <script>
+    // Redirect to the assessment page after a short delay
+    setTimeout(function() {
+      window.location.href = "./comprehensive-assessment.html";
+    }, 1500);
+  </script>
+</body>
+</html>

@@ -806,7 +806,7 @@ export default function Dashboard() {
                       <Button 
                         className="bg-gradient-to-r from-amber-500 to-orange-500 text-white"
                         onClick={() => {
-                          window.open('assessment-launcher.html', '_blank');
+                          window.open('simple-launcher.html', '_blank');
                         }}
                       >
                         Take Master Assessment
