@@ -8,7 +8,7 @@ import { checkAndNotifyExpiringCredentials } from "./services/notificationServic
 import connectPgSimple from "connect-pg-simple";
 import { updateChildDevelopmentModule } from "./updateChildDevelopmentModule";
 import { eq, sql } from "drizzle-orm";
-import { users, eduTokSnippets, eduTokUserInteractions } from "@shared/schema";
+import { users, eduTokSnippets, eduTokUserInteractions, videoQuizCompletions } from "@shared/schema";
 import { registerWelcomeMessageRoutes } from "./welcomeMessageRoutes";
 import { registerModuleManagementRoutes } from "./module-management/moduleRoutes";
 import { registerModuleRoutes } from "./registerModuleRoutes";
@@ -1453,17 +1453,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`Video quiz completion: Manually adding ${potentialPoints} points to user ${userId}`);
           
           // Add points directly to the user record
-          await db.update(users)
-            .set({ 
-              points: (user?.points || 0) + potentialPoints,
-              lifetimePoints: (user?.lifetimePoints || 0) + potentialPoints
-            })
-            .where(eq(users.id, userId));
+          console.log(`Manually adding ${potentialPoints} points to user ${userId}`);
+          
+          try {
+            // First update user's points
+            await storage.updateUserPoints(userId, potentialPoints);
             
-          // Update the completion record too
-          await db.update(videoQuizCompletions)
-            .set({ pointsEarned: potentialPoints })
-            .where(eq(videoQuizCompletions.id, completion.id));
+            // Then update the completion record
+            if (completion && completion.id) {
+              await db.update(videoQuizCompletions)
+                .set({ pointsEarned: potentialPoints })
+                .where(eq(videoQuizCompletions.id, completion.id));
+            }
+          } catch (error) {
+            console.error("Error updating points:", error);
+          }
             
           // Get the updated user 
           const updatedUser = await storage.getUser(userId);
