@@ -1437,16 +1437,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const completion = await storage.createVideoQuizCompletion({
           userId,
           videoId,
-          pointsEarned: potentialPoints,
-          completedAt: new Date()
+          pointsEarned: potentialPoints
+          // completedAt will be added automatically by defaultNow() in the schema
         });
         
         // Get updated user after points added (if any)
         const user = await storage.getUser(userId);
         
-        // Check if points were actually awarded by comparing completion record
+        // Double-check if points were actually awarded
         const pointsAwarded = completion.pointsEarned || 0;
         const isLimitReached = completionsToday >= 2;
+        
+        // If points weren't awarded but should have been, add them manually
+        if (pointsAwarded === 0 && !isLimitReached && completionsToday < 2) {
+          console.log(`Video quiz completion: Manually adding ${potentialPoints} points to user ${userId}`);
+          
+          // Add points directly to the user record
+          await db.update(users)
+            .set({ 
+              points: (user?.points || 0) + potentialPoints,
+              lifetimePoints: (user?.lifetimePoints || 0) + potentialPoints
+            })
+            .where(eq(users.id, userId));
+            
+          // Update the completion record too
+          await db.update(videoQuizCompletions)
+            .set({ pointsEarned: potentialPoints })
+            .where(eq(videoQuizCompletions.id, completion.id));
+            
+          // Get the updated user 
+          const updatedUser = await storage.getUser(userId);
+          return res.status(200).json({
+            success: true,
+            pointsAwarded: potentialPoints,
+            totalPoints: updatedUser?.points || 0,
+            message: "Points awarded successfully!",
+            remaining: Math.max(0, 2 - (completionsToday + 1)),
+            limitReached: false
+          });
+        }
         
         res.status(200).json({ 
           success: true,
