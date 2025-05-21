@@ -155,6 +155,7 @@ export default function AdminPage({ skipPasswordCheck = false }) {
         category: 'classroom-management',
         difficulty: 'beginner',
         estimatedTime: '15',
+        customPoints: '',  // Include customPoints field
         sections: [
           {
             title: 'Introduction',
@@ -320,8 +321,8 @@ export default function AdminPage({ skipPasswordCheck = false }) {
       console.log(`Making API request to /api/ai/generate with type: ${type}`);
       
       try {
-        // Use apiRequest helper instead of fetch for consistent handling
-        const response = await apiRequest('/api/ai/generate', {
+        // Use apiRequest helper which already returns the response data
+        const data = await apiRequest('/api/ai/generate', {
           method: 'POST',
           data: { 
             prompt: promptText,
@@ -329,14 +330,6 @@ export default function AdminPage({ skipPasswordCheck = false }) {
           }
         });
         
-        console.log(`API Response status:`, response.status);
-        
-        if (response.status !== 200) {
-          console.error(`Error response:`, response);
-          throw new Error(`Server responded with status: ${response.status}`);
-        }
-        
-        const data = await response.data;
         console.log(`API Response data:`, data);
         
         if (type === 'quiz') {
