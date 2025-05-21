@@ -296,6 +296,17 @@ export default function AdminPage({ skipPasswordCheck = false }) {
   const generateAiSuggestions = async (type: 'questions' | 'strategies' | 'quiz') => {
     setIsGeneratingIdeas(true);
     try {
+      // Don't proceed if module title or category is empty
+      if (!newModule.title || !newModule.category) {
+        toast({
+          title: "Missing Information",
+          description: "Please provide a module title and category before generating suggestions.",
+          variant: "destructive"
+        });
+        setIsGeneratingIdeas(false);
+        return;
+      }
+      
       let promptText = '';
       
       if (type === 'questions') {
@@ -306,14 +317,23 @@ export default function AdminPage({ skipPasswordCheck = false }) {
         promptText = `Generate quiz questions about "${newModule.title}" in the category of "${newModule.category}" for ${newModule.difficulty} level ECE teachers.`;
       }
       
-      // Use the apiRequest utility from our query client
-      const data = await apiRequest('/api/ai/generate', {
+      // Use axios directly for more control over the request
+      const response = await fetch('/api/ai/generate', {
         method: 'POST',
-        data: { 
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
           prompt: promptText,
           type
-        }
+        })
       });
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+      
+      const data = await response.json();
       
       if (type === 'quiz') {
         if (data.quizQuestions && Array.isArray(data.quizQuestions)) {
