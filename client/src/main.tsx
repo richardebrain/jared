@@ -24,8 +24,24 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasErr
 
   render() {
     if (this.state.hasError) {
-      // Show login page when there's an error
-      return <Login />;
+      // Just show a simple error message with redirect
+      console.log("React error boundary triggered - using simple fallback");
+      return (
+        <div style={{padding: '20px', textAlign: 'center'}}>
+          <h2>Something went wrong</h2>
+          <p>Please try reloading the page.</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            style={{
+              padding: '8px 16px',
+              marginTop: '10px',
+              cursor: 'pointer'
+            }}
+          >
+            Reload
+          </button>
+        </div>
+      );
     }
 
     return this.props.children;

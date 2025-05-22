@@ -116,32 +116,13 @@ export default function Login() {
         variant: "default",
       });
       
-      // Add a direct redirection to dashboard
+      // Use simple direct navigation
       console.log("Login successful! Redirecting to dashboard...");
       
-      // Store the fact that we're authenticated and ready to navigate
-      localStorage.setItem('lastSuccessfulLogin', Date.now().toString());
-      localStorage.setItem('pendingRedirect', 'dashboard');
-      
-      // Use the most direct method for navigation
-      window.location.replace('/dashboard');
-      
-      // Super emergency fallback in case navigation gets stuck
+      // Add a slight delay before redirect to ensure toast is seen
       setTimeout(() => {
-        if (window.location.pathname !== '/dashboard') {
-          console.log("CRITICAL: Navigation failed, emergency redirect");
-          document.body.innerHTML = `
-            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: system-ui, sans-serif;">
-              <h1 style="font-size: 1.5rem; margin-bottom: 1rem;">Login Successful!</h1>
-              <p>Redirecting to dashboard...</p>
-              <a href="/dashboard" style="background: #3b82f6; color: white; padding: 0.5rem 1rem; border-radius: 0.25rem; text-decoration: none; margin-top: 1rem;">
-                Click here if you are not redirected automatically
-              </a>
-              <script>window.location.href = "/dashboard";</script>
-            </div>
-          `;
-        }
-      }, 2000);
+        window.location.href = "/dashboard";
+      }, 800);
     },
     onError: (error: any) => {
       console.error("Login error in mutation:", error);

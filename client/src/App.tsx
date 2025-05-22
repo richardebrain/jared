@@ -131,26 +131,7 @@ function Router() {
     return <Login />;
   }
 
-  // Check if we have a pending redirect from login
-  useEffect(() => {
-    const pendingRedirect = localStorage.getItem('pendingRedirect');
-    const lastLoginTime = localStorage.getItem('lastSuccessfulLogin');
-    
-    // If we have a pending redirect that's less than 30 seconds old
-    if (pendingRedirect && lastLoginTime) {
-      const loginTime = parseInt(lastLoginTime, 10);
-      const now = Date.now();
-      
-      if (now - loginTime < 30000) { // 30 seconds
-        console.log(`Handling pending redirect to: ${pendingRedirect}`);
-        localStorage.removeItem('pendingRedirect');
-        window.location.replace(`/${pendingRedirect}`);
-      } else {
-        // Clear old redirects
-        localStorage.removeItem('pendingRedirect');
-      }
-    }
-  }, []);
+  // We'll handle redirects in a simpler way
   
   // Handle public routes vs. protected routes
   return (
