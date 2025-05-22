@@ -1,7 +1,7 @@
 import express from 'express';
 import { z } from 'zod';
 import { storage } from '../storage';
-import { auth } from '../middleware/auth';
+import { checkAuth } from '../middleware/auth';
 
 const router = express.Router();
 
@@ -15,7 +15,7 @@ const selfAssessmentSchema = z.object({
  * Submit a teacher self-assessment
  * Adds the assessment results to the user's profile and learning path
  */
-router.post('/self-assessment', auth, async (req, res) => {
+router.post('/self-assessment', checkAuth, async (req, res) => {
   try {
     const validation = selfAssessmentSchema.safeParse(req.body);
     
@@ -99,7 +99,7 @@ router.post('/self-assessment', auth, async (req, res) => {
 /**
  * Get a user's latest self-assessment
  */
-router.get('/self-assessment/:userId', auth, async (req, res) => {
+router.get('/self-assessment/:userId', checkAuth, async (req, res) => {
   try {
     const userId = parseInt(req.params.userId);
     

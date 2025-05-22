@@ -143,6 +143,11 @@ export interface IStorage {
   getVideoQuizCompletionsByUserId(userId: number): Promise<VideoQuizCompletion[]>;
   createVideoQuizCompletion(completion: InsertVideoQuizCompletion): Promise<VideoQuizCompletion>;
   getDailyVideoCompletionsCount(userId: number): Promise<number>;
+  
+  // Self-Assessment operations
+  createSelfAssessment(assessment: InsertSelfAssessment): Promise<SelfAssessment>;
+  getLatestSelfAssessment(userId: number): Promise<SelfAssessment | undefined>;
+  updateUserTeacherLevel(userId: number, teacherLevel: string): Promise<User>;
 }
 
 export class MemStorage implements IStorage {

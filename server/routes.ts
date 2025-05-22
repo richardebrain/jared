@@ -28,6 +28,7 @@ import assessmentQuestionRoutes from "./routes/assessment-questions";
 import aiSuggestionRoutes from "./api/aiSuggestionRoutes";
 import moduleRatingsRoutes from "./api/moduleRatingsRoutes";
 import communityModulesRoutes from "./api/communityModulesRoutes";
+import selfAssessmentRoutes from "./api/selfAssessmentRoutes";
 
 // For ESM __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -146,6 +147,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register personalized module routes for custom learning paths
   app.use(personalizedModuleRoutes);
+  
+  // Register self-assessment routes
+  app.use(selfAssessmentRoutes);
   
   // Module management will be handled separately
   
