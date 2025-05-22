@@ -881,23 +881,18 @@ export default function Dashboard() {
                   <Brain className="h-5 w-5 mr-2 text-purple-600" />
                   Teacher Self-Assessment
                 </h2>
-                <Card className="overflow-hidden border-purple-100 shadow-md bg-gradient-to-br from-purple-50 to-blue-50">
-                  <CardContent className="p-6">
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                      <div>
-                        <h3 className="text-lg font-medium text-purple-800 mb-2">Reflect on your teaching practice</h3>
-                        <p className="text-sm text-gray-600 max-w-lg">
-                          Complete a brief self-assessment to help us customize your professional development journey and identify your strengths and growth areas.
-                        </p>
-                      </div>
-                      <Link href="/self-assessment">
-                        <Button className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md">
-                          Start Self-Assessment <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
+                {/* Use our new SelfAssessmentCard component */}
+                {assessments && assessments.length > 0 ? (
+                  // Get the most recent self-assessment if available
+                  <SelfAssessmentCard 
+                    latestAssessment={assessments
+                      .filter(a => a.type === 'self')
+                      .sort((a, b) => new Date(b.completedAt || 0).getTime() - new Date(a.completedAt || 0).getTime())[0]
+                    }
+                  />
+                ) : (
+                  <SelfAssessmentCard latestAssessment={null} />
+                )}
               </div>
               
               {/* Personalized Learning Path */}

@@ -6,6 +6,7 @@ import { checkAuth } from '../middleware/auth';
 const router = express.Router();
 
 // Schema for validating self-assessment submissions
+// Reusing the existing assessment schema but adding a selfAssessment flag
 const selfAssessmentSchema = z.object({
   userId: z.number(),
   results: z.record(z.string(), z.string()),
@@ -30,25 +31,22 @@ router.post('/self-assessment', checkAuth, async (req, res) => {
     
     const { userId, results, strengthAreas: initialStrengthAreas, growthAreas: initialGrowthAreas } = validation.data;
     
-    // Map numeric ratings to skill levels for easier processing
-    // Our frontend uses 1-5 scale for ratings
-    
-    // Calculate average skill level based on numeric ratings
+    // Calculate an overall score based on the ratings (1-5 scale)
     const skillValues = Object.values(results).map(rating => {
       return parseInt(rating) || 1;
     });
     
-    const averageSkillLevel = skillValues.length > 0 
-      ? skillValues.reduce((sum, val) => sum + val, 0) / skillValues.length
-      : 1;
+    const averageScore = skillValues.length > 0 
+      ? Math.round(skillValues.reduce((sum, val) => sum + val, 0) / skillValues.length * 20) // Convert 1-5 scale to percentage
+      : 20; // Minimum score
     
-    // Determine teacher level based on average skill
+    // Determine teacher level based on average score
     let teacherLevel = "beginner";
-    if (averageSkillLevel >= 4.5) {
+    if (averageScore >= 90) {
       teacherLevel = "mentor";
-    } else if (averageSkillLevel >= 3.7) {
+    } else if (averageScore >= 75) {
       teacherLevel = "advanced";
-    } else if (averageSkillLevel >= 2.8) {
+    } else if (averageScore >= 60) {
       teacherLevel = "intermediate";
     }
     
@@ -69,25 +67,25 @@ router.post('/self-assessment', checkAuth, async (req, res) => {
       });
     }
     
-    // Store the self-assessment data
-    const assessment = await storage.createSelfAssessment({
+    // Store the self-assessment data using the existing assessment system
+    const assessment = await storage.createAssessment({
       userId,
-      results,
+      type: 'self', // Mark this as a self-assessment
+      overallScore: averageScore,
+      completedAt: new Date(),
+      domainScores: {}, // Empty for self-assessments
+      answers: {}, // Not used for self-assessments
       strengthAreas,
       growthAreas,
-      averageSkillLevel,
-      teacherLevel
+      teacherLevel,
+      results // Store the raw results in the assessment
     });
     
-    // Update the user's teacher level
-    await storage.updateUserTeacherLevel(userId, teacherLevel);
-    
     // Award points for completing self-assessment
-    // Use the user update method that supports points
     const user = await storage.getUser(userId);
     if (user) {
       const currentPoints = user.points || 0;
-      await storage.updateUser(userId, { points: currentPoints + 25 });
+      await storage.updateUser(userId, { points: currentPoints + 25, teacherLevel });
     }
     
     return res.status(201).json({
@@ -112,13 +110,21 @@ router.get('/self-assessment/:userId', checkAuth, async (req, res) => {
       return res.status(400).json({ error: 'Invalid user ID' });
     }
     
-    const assessment = await storage.getLatestSelfAssessment(userId);
+    // Use the existing assessment storage methods but filter by type = 'self'
+    const assessments = await storage.getAssessmentsByUserId(userId);
+    const selfAssessments = assessments.filter(a => a.type === 'self');
     
-    if (!assessment) {
+    if (selfAssessments.length === 0) {
       return res.status(404).json({ message: 'No self-assessment found for this user' });
     }
     
-    return res.json(assessment);
+    // Return the most recent self-assessment
+    const latestAssessment = selfAssessments.sort((a, b) => {
+      return new Date(b.completedAt || b.createdAt).getTime() - 
+             new Date(a.completedAt || a.createdAt).getTime();
+    })[0];
+    
+    return res.json(latestAssessment);
   } catch (error) {
     console.error('Error fetching self-assessment:', error);
     return res.status(500).json({ error: 'Failed to fetch self-assessment' });
