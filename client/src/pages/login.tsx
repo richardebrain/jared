@@ -22,8 +22,9 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import GoogleAuthButton from "@/components/GoogleAuthButton";
 
-// Import logo
+// Import logos
 import raisingArizonaLogo from '../assets/images/raising-arizona-logo.jpg';
+import mentorMeLogo from '../assets/images/mindful-mornings-logo.jpg';
 
 // Form schema for login
 const loginSchema = z.object({
@@ -167,8 +168,14 @@ export default function Login() {
               className="w-full h-full object-contain mix-blend-multiply"
             />
           </div>
-          <h1 className="text-4xl font-accent bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent mb-2 animate-pulse-slow">MentorMe</h1>
-          <p className="text-neutral-800 animate-pop font-bold">School sucks, mentors rule</p>
+          <div className="w-56 h-auto mb-2">
+            <img 
+              src={mentorMeLogo} 
+              alt="Mindful Mornings" 
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <p className="text-neutral-800 animate-pop font-bold">Professional development for educators</p>
         </div>
         
         <div className="bg-white p-8 rounded-lg shadow-md">
