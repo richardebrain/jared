@@ -121,6 +121,13 @@ app.use((req, res, next) => {
         .then(() => {
           console.log('Video quiz completions table created successfully');
           
+          // Run the assessment type migration
+          console.log('Adding type column to assessments table if needed...');
+          return addTypeToAssessmentsTable();
+        })
+        .then(() => {
+          console.log('Assessments type column migration completed successfully');
+          
           // Then seed the database with initial data
           console.log('Seeding database...');
           return seedDatabase()
