@@ -120,7 +120,9 @@ export default function SelfAssessment() {
       // Submit the self-assessment
       await apiRequest("POST", "/api/self-assessment", {
         userId: user?.id,
-        responses: formattedResponses
+        results: formattedResponses,
+        strengthAreas: [],
+        growthAreas: []
       });
 
       toast({

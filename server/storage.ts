@@ -1699,6 +1699,74 @@ export class DatabaseStorage implements IStorage {
         lt(gameCompletions.completedAt, tomorrow)
       ));
   }
+  
+  // Self-Assessment operations
+  async createSelfAssessment(assessment: InsertTeacherSelfAssessment): Promise<TeacherSelfAssessment> {
+    const [newAssessment] = await db
+      .insert(teacherSelfAssessments)
+      .values(assessment)
+      .returning();
+    return newAssessment;
+  }
+
+  async getLatestSelfAssessment(userId: number): Promise<TeacherSelfAssessment | null> {
+    const [assessment] = await db
+      .select()
+      .from(teacherSelfAssessments)
+      .where(eq(teacherSelfAssessments.userId, userId))
+      .orderBy(desc(teacherSelfAssessments.createdAt))
+      .limit(1);
+    return assessment || null;
+  }
+
+  async updateUserTeacherLevel(userId: number, teacherLevel: string): Promise<User> {
+    // We store the teacher level in the user record for easy access during personalization
+    const [updatedUser] = await db
+      .update(users)
+      .set({ teacherLevel })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return updatedUser;
+  }
+  
+  // Module ratings operations
+  async getRatingsForModule(moduleId: number): Promise<ModuleRating[]> {
+    return db
+      .select()
+      .from(moduleRatings)
+      .where(eq(moduleRatings.moduleId, moduleId));
+  }
+  
+  async createModuleRating(rating: InsertModuleRating): Promise<ModuleRating> {
+    const [newRating] = await db
+      .insert(moduleRatings)
+      .values(rating)
+      .returning();
+    return newRating;
+  }
+  
+  async updateModuleRatingStats(moduleId: number): Promise<void> {
+    // Calculate average rating and count for a module
+    const ratings = await this.getRatingsForModule(moduleId);
+    const ratingCount = ratings.length;
+    let ratingSum = 0;
+    
+    ratings.forEach(rating => {
+      ratingSum += rating.rating;
+    });
+    
+    const averageRating = ratingCount > 0 ? Math.round((ratingSum / ratingCount) * 10) / 10 : 0;
+    
+    // Update the module with the calculated statistics
+    await db
+      .update(learningModules)
+      .set({
+        averageRating,
+        ratingCount
+      })
+      .where(eq(learningModules.id, moduleId));
+  }
 }
 
 // Export a new instance of DatabaseStorage
