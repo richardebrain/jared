@@ -167,18 +167,20 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-background/90 px-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="mx-auto w-48 h-48 mb-4">
+          <div className="mx-auto w-32 h-32 mb-4">
             <img 
               src={raisingArizonaLogo} 
               alt="Raising Arizona Preschool" 
               className="w-full h-full object-contain mix-blend-multiply relative z-0"
+              style={{ maxHeight: "100px", width: "auto" }}
             />
           </div>
-          <div className="w-72 h-auto mb-4 mx-auto">
+          <div className="mx-auto w-56 mb-4">
             <img 
               src={mentorMeLogo} 
               alt="MentorMe" 
-              className="w-full h-full object-contain"
+              className="w-full object-contain"
+              style={{ maxHeight: "60px", width: "auto" }}
             />
           </div>
         </div>
