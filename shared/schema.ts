@@ -670,10 +670,14 @@ export const videoQuizCompletions = pgTable("video_quiz_completions", {
   completedAt: timestamp("completed_at").defaultNow().notNull(),
 });
 
+
+
 export const insertVideoQuizCompletionSchema = createInsertSchema(videoQuizCompletions).omit({
   id: true,
   completedAt: true,
 });
+
+
 
 export const videoQuizCompletionsRelations = relations(videoQuizCompletions, ({ one }) => ({
   user: one(users, {
