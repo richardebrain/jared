@@ -53,30 +53,18 @@ class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
-      // Default fallback UI
+      // Redirect to login page instead of showing error screen
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 100);
+      
+      // Show minimal loading message while redirecting
       return (
         <div className="flex items-center justify-center min-h-screen bg-gray-50">
-          <Card className="w-full max-w-md mx-auto">
-            <CardHeader>
-              <CardTitle className="text-xl font-bold text-center">Something Went Wrong</CardTitle>
-              <CardDescription className="text-center">
-                We're sorry, but there was an error loading this page.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-500 mb-4">
-                The application encountered an unexpected error. Try refreshing the page or click the button below to reset the application.
-              </p>
-            </CardContent>
-            <CardFooter className="flex justify-center space-x-4">
-              <Button onClick={() => window.location.reload()}>
-                Refresh Page
-              </Button>
-              <Button variant="outline" onClick={this.handleReset}>
-                Reset App
-              </Button>
-            </CardFooter>
-          </Card>
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-700">Loading MentorMe...</p>
+          </div>
         </div>
       );
     }

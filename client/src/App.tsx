@@ -97,9 +97,11 @@ function Router() {
   // Create a more resilient check for authentication that handles API failures
   let isAuthenticated = !!user;
   
-  // If the API fails but localStorage indicates the user was previously logged in,
-  // treat them as still authenticated to prevent white screens
-  if ((isError || !user) && localStorage.getItem('isAuthenticated') === 'true') {
+  // If on landing page or login/register pages, don't use fallback auth
+  const isPublicRoute = location === '/' || location === '/login' || location === '/register';
+  
+  // Only use fallback auth for authenticated routes to prevent white screens
+  if (!isPublicRoute && (isError || !user) && localStorage.getItem('isAuthenticated') === 'true') {
     isAuthenticated = true;
     console.log("Using localStorage fallback for authentication state");
     
@@ -128,7 +130,7 @@ function Router() {
   
   // Emergency fallback - if we're still loading after timeout, show login page
   if ((isLoading || isError) && showLoginFallback && 
-      location !== '/login' && location !== '/register') {
+      location !== '/login' && location !== '/register' && location !== '/') {
     console.log("Emergency fallback activated - showing login page");
     return <Login />;
   }
