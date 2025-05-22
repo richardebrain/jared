@@ -17,8 +17,10 @@ export function SelfAssessmentCard({ latestAssessment, showAsSelfAssessment = tr
   const hasSelfAssessment = !!latestAssessment && latestAssessment.type === 'self';
   
   // Calculate time since last assessment to display
-  const getTimeAgo = (date: string) => {
-    const assessmentDate = new Date(date);
+  const getTimeAgo = (date: Date | string | null) => {
+    if (!date) return 'unknown';
+    
+    const assessmentDate = date instanceof Date ? date : new Date(date);
     const now = new Date();
     const diffDays = Math.floor((now.getTime() - assessmentDate.getTime()) / (1000 * 60 * 60 * 24));
     
@@ -68,8 +70,8 @@ export function SelfAssessmentCard({ latestAssessment, showAsSelfAssessment = tr
         </div>
         <div className="flex justify-between items-center">
           <Badge 
-            variant={hasSelfAssessment ? "success" : "outline"} 
-            className="font-normal"
+            variant={hasSelfAssessment ? "default" : "outline"} 
+            className={`font-normal ${hasSelfAssessment ? 'bg-green-500 hover:bg-green-600 text-white' : ''}`}
           >
             {hasSelfAssessment ? "Completed" : "Recommended"}
           </Badge>

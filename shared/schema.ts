@@ -162,6 +162,7 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
 export const assessments = pgTable("assessments", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
+  type: text("type").default("standard"), // standard, self (for self-assessments)
   overallScore: integer("overall_score"),
   completed: boolean("completed").default(false),
   results: json("results").$type<Record<string, string>>(),
