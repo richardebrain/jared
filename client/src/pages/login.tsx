@@ -168,14 +168,13 @@ export default function Login() {
               className="w-full h-full object-contain mix-blend-multiply"
             />
           </div>
-          <div className="w-64 h-auto mb-2">
+          <div className="w-72 h-auto mb-4 mx-auto">
             <img 
               src={mentorMeLogo} 
               alt="MentorMe" 
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain mix-blend-multiply"
             />
           </div>
-          <p className="text-neutral-800 animate-pop font-bold">TEACHER TRAINING</p>
         </div>
         
         <div className="bg-white p-8 rounded-lg shadow-md">
