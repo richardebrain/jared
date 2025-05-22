@@ -752,20 +752,35 @@ export default function CoreValuesModuleNew() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="p-3 border rounded-lg hover:bg-accent transition-colors">
+                  <a 
+                    href="/resources/core-values-poster.html" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="block p-3 border rounded-lg hover:bg-accent transition-colors"
+                  >
                     <h4 className="font-medium">CORE Values Poster</h4>
                     <p className="text-sm text-muted-foreground">Printable poster for your classroom</p>
-                  </div>
+                  </a>
                   
-                  <div className="p-3 border rounded-lg hover:bg-accent transition-colors">
+                  <a 
+                    href="/resources/guided-reflections.html" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="block p-3 border rounded-lg hover:bg-accent transition-colors"
+                  >
                     <h4 className="font-medium">Guided Reflections</h4>
                     <p className="text-sm text-muted-foreground">Questions to deepen understanding</p>
-                  </div>
+                  </a>
                   
-                  <div className="p-3 border rounded-lg hover:bg-accent transition-colors">
+                  <a 
+                    href="/resources/implementation-guide.html" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="block p-3 border rounded-lg hover:bg-accent transition-colors"
+                  >
                     <h4 className="font-medium">Implementation Guide</h4>
                     <p className="text-sm text-muted-foreground">How to apply CORE values daily</p>
-                  </div>
+                  </a>
                 </div>
               </CardContent>
             </Card>
