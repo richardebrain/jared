@@ -10,14 +10,12 @@ import { Trophy, Sparkles, GraduationCap, ArrowRight, Map, Undo } from "lucide-r
 import Header from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   AlertCircle, AlertTriangle, Award, BookOpen, Check, CheckCircle, ChevronRight, 
   ClipboardList, MapIcon, RefreshCw, Star, TrendingUp 
@@ -584,7 +582,8 @@ export default function AssessmentPage() {
     domain: '',
     difficulty: 'beginner' as DifficultyLevel
   };
-  
+
+  console.log(activeQuestion, "activeQuestion", domainQuestions)
   // Handle answer selection
   const handleAnswerSelect = (answer: string) => {
     if (answerFeedback.shown) return; // Prevent changing answers during feedback
