@@ -116,26 +116,32 @@ export default function Login() {
         variant: "default",
       });
       
-      // Add a slight delay before redirect to ensure toast is seen
+      // Add a direct redirection to dashboard
+      console.log("Login successful! Redirecting to dashboard...");
+      
+      // Store the fact that we're authenticated and ready to navigate
+      localStorage.setItem('lastSuccessfulLogin', Date.now().toString());
+      localStorage.setItem('pendingRedirect', 'dashboard');
+      
+      // Use the most direct method for navigation
+      window.location.replace('/dashboard');
+      
+      // Super emergency fallback in case navigation gets stuck
       setTimeout(() => {
-        // Use navigateTo function for consistent navigation behavior
-        try {
-          console.log("Attempting navigation to dashboard...");
-          // Force a full page reload for better compatibility
-          window.location.assign("/dashboard");
-          
-          // Fallback if the above doesn't work
-          setTimeout(() => {
-            if (window.location.pathname !== "/dashboard") {
-              console.log("Navigation fallback triggered");
-              window.location.href = "/dashboard";
-            }
-          }, 100);
-        } catch (e) {
-          console.error("Navigation error:", e);
-          window.location.href = "/dashboard";
+        if (window.location.pathname !== '/dashboard') {
+          console.log("CRITICAL: Navigation failed, emergency redirect");
+          document.body.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: system-ui, sans-serif;">
+              <h1 style="font-size: 1.5rem; margin-bottom: 1rem;">Login Successful!</h1>
+              <p>Redirecting to dashboard...</p>
+              <a href="/dashboard" style="background: #3b82f6; color: white; padding: 0.5rem 1rem; border-radius: 0.25rem; text-decoration: none; margin-top: 1rem;">
+                Click here if you are not redirected automatically
+              </a>
+              <script>window.location.href = "/dashboard";</script>
+            </div>
+          `;
         }
-      }, 800);
+      }, 2000);
     },
     onError: (error: any) => {
       console.error("Login error in mutation:", error);
