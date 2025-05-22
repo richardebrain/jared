@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -66,12 +66,11 @@ function Router() {
   const [showLoginFallback, setShowLoginFallback] = useState(false);
   
   // Initialize an emergency timeout to show login page if loading takes too long
-  // Disable the timeout to prevent reload loops
   useEffect(() => {
-    // const timer = setTimeout(() => {
-    //   setShowLoginFallback(true);
-    // }, 3000);
-    // return () => clearTimeout(timer);
+    const timer = setTimeout(() => {
+      setShowLoginFallback(true);
+    }, 5000); // Increased timeout to 5 seconds for slower connections
+    return () => clearTimeout(timer);
   }, []);
   
   // Use React Query directly to check authenticated state - with simplified options
@@ -93,22 +92,11 @@ function Router() {
   // If on landing page or login/register pages, don't use fallback auth
   const isPublicRoute = location === '/' || location === '/login' || location === '/register';
   
-  // Disable all fallback authentication - it's causing reload loops
-  if (false && !isPublicRoute && (isError || !user) && localStorage.getItem('isAuthenticated') === 'true') {
+  // Simplified fallback authentication for deployment stability
+  if (!isPublicRoute && (isError || !user) && localStorage.getItem('isAuthenticated') === 'true') {
+    // Just use localStorage as a fallback without complex refresh logic
     isAuthenticated = true;
     console.log("Using localStorage fallback for authentication state");
-    
-    // Disable auto-refresh to prevent reload loops
-    if (false && isError && !window.refreshAuthAttempted) {
-      window.refreshAuthAttempted = true;
-      console.log("Scheduling auth refresh attempt");
-      
-      // Try to refresh auth status after a delay
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-        window.refreshAuthAttempted = false;
-      }, 5000);
-    }
   }
   
   // Show spinner only briefly during initial load
@@ -121,11 +109,12 @@ function Router() {
     );
   }
   
-  // Disable emergency fallback completely - it's causing reload loops
-  if (false && (isLoading || isError) && showLoginFallback && 
+  // Simplified emergency fallback for stability
+  if ((isLoading || isError) && showLoginFallback && 
       location !== '/login' && location !== '/register' && location !== '/') {
-    console.log("Emergency fallback activated - showing login page");
-    return <Login />;
+    console.log("Emergency fallback activated - redirecting to login page");
+    window.location.href = '/login';
+    return null;
   }
 
   // We'll handle redirects in a simpler way

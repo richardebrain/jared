@@ -43,9 +43,13 @@ export default function LandingPage() {
                   </Link>
                 </Button>
                 <Button variant="outline" className="gap-1 px-6" asChild>
-                  <Link href="/login">
+                  <a href="/login" onClick={(e) => {
+                    e.preventDefault();
+                    // Force redirect instead of using client routing to avoid loops
+                    window.location.href = '/login';
+                  }}>
                     Sign In
-                  </Link>
+                  </a>
                 </Button>
               </div>
             </div>

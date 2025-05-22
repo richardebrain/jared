@@ -119,6 +119,10 @@ export default function Login() {
       // Use simple direct navigation
       console.log("Login successful! Redirecting to dashboard...");
       
+      // Clear any stale data and force direct navigation to prevent deployment issues
+      localStorage.removeItem('isAuthenticated');
+      localStorage.setItem('isAuthenticated', 'true');
+      
       // Add a slight delay before redirect to ensure toast is seen
       setTimeout(() => {
         window.location.href = "/dashboard";
