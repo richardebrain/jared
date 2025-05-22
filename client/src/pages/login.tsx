@@ -24,7 +24,7 @@ import GoogleAuthButton from "@/components/GoogleAuthButton";
 
 // Import logos
 import raisingArizonaLogo from '../assets/images/raising-arizona-logo.jpg';
-import mentorMeLogo from '../assets/images/mindful-mornings-logo.jpg';
+import mentorMeLogo from '../assets/images/mentorme-logo.png';
 
 // Form schema for login
 const loginSchema = z.object({
@@ -168,14 +168,14 @@ export default function Login() {
               className="w-full h-full object-contain mix-blend-multiply"
             />
           </div>
-          <div className="w-56 h-auto mb-2">
+          <div className="w-64 h-auto mb-2">
             <img 
               src={mentorMeLogo} 
-              alt="Mindful Mornings" 
+              alt="MentorMe" 
               className="w-full h-full object-contain"
             />
           </div>
-          <p className="text-neutral-800 animate-pop font-bold">Professional development for educators</p>
+          <p className="text-neutral-800 animate-pop font-bold">TEACHER TRAINING</p>
         </div>
         
         <div className="bg-white p-8 rounded-lg shadow-md">
