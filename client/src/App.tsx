@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route, Redirect, useLocation } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
@@ -63,46 +63,34 @@ import AdminModulesPage from "@/pages/admin-modules";
 
 function Router() {
   const [location, setLocation] = useLocation();
-  
-  // Force login page only once when app starts
-  useEffect(() => {
-    // Set a more specific flag to prevent repeated redirects
-    const visitedKey = 'initial_visit_handled';
-    const hasVisited = sessionStorage.getItem(visitedKey);
-    
-    // Only check on initial page load
-    if (!hasVisited) {
-      const isDeployed = window.location.href.includes('.replit.app') || 
-                      window.location.href.includes('replit.dev');
-      
-      // Mark that we've handled the initial visit check
-      sessionStorage.setItem(visitedKey, 'true');
-      
-      // In production, ensure proper starting page
-      if (isDeployed && location !== '/login' && location !== '/register') {
-        console.log("First visit - redirecting to login page");
-        setLocation('/login');
-      }
-    }
-  }, []);
-  
-  // Simplified auth check
-  const { data: user } = useQuery({
+
+  // Simplified auth check - reduced retry to avoid request loops
+  const { data: user, isLoading } = useQuery({
     queryKey: ["/api/auth/me"],
-    retry: false,
+    retry: 0, // No retries to prevent loops
     refetchOnWindowFocus: false,
-    staleTime: 60000
+    staleTime: 120000, // Longer stale time (2 minutes)
+    gcTime: 300000, // Longer cache (5 minutes)
   });
   
-  // Simple authentication state
+  // Clean authentication state
   const isAuthenticated = !!user;
 
   // We'll handle redirects in a simpler way
   
-  // Handle public routes vs. protected routes
+  // Display a loading spinner when checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-background/90">
+        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+  
+  // Simple routing logic with direct components, not conditional rendering
   return (
     <Switch>
-      {/* Public routes - accessible when logged out */}
+      {/* Public routes */}
       <Route path="/login">
         {isAuthenticated ? <Dashboard /> : <Login />}
       </Route>
@@ -115,7 +103,7 @@ function Router() {
         <BusinessSignup />
       </Route>
       
-      {/* Protected routes - redirect to login when not authenticated */}
+      {/* Protected routes */}
       <Route path="/dashboard">
         {isAuthenticated ? <Dashboard /> : <Login />}
       </Route>
