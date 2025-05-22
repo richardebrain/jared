@@ -41,6 +41,7 @@ import AchievementPopup from "@/components/AchievementPopup";
 import PersonalizedLearningPath from "@/components/PersonalizedLearningPath";
 import PersonalizedMiniLessons from "@/components/PersonalizedMiniLessons";
 import CommunityModules from "@/components/CommunityModules";
+import TeacherSelfAssessment from "@/components/TeacherSelfAssessment";
 
 export default function Dashboard() {
   const [location, setLocation] = useLocation();
