@@ -29,7 +29,6 @@ import aiSuggestionRoutes from "./api/aiSuggestionRoutes";
 import moduleRatingsRoutes from "./api/moduleRatingsRoutes";
 import communityModulesRoutes from "./api/communityModulesRoutes";
 import selfAssessmentRoutes from "./api/selfAssessmentRoutes";
-import selfAssessmentRoutes from './api/selfAssessmentRoutes';
 
 // For ESM __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
