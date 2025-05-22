@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json, primaryKey, varchar, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, primaryKey, varchar, date, doublePrecision } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -833,10 +833,36 @@ export const eduTokSnippetsRelations = relations(eduTokSnippets, ({ many }) => (
   interactions: many(eduTokUserInteractions)
 }));
 
+// Teacher Self-Assessment schema
+export const teacherSelfAssessments = pgTable("teacher_self_assessments", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  results: json("results").$type<Record<string, string>>().notNull(),
+  strengthAreas: text("strength_areas").array(),
+  growthAreas: text("growth_areas").array(),
+  averageSkillLevel: doublePrecision("average_skill_level"),
+  teacherLevel: text("teacher_level")
+});
+
+export const insertTeacherSelfAssessmentSchema = createInsertSchema(teacherSelfAssessments, {
+  id: undefined,
+  createdAt: undefined,
+});
+
+export const teacherSelfAssessmentsRelations = relations(teacherSelfAssessments, ({ one }) => ({
+  user: one(users, {
+    fields: [teacherSelfAssessments.userId],
+    references: [users.id]
+  })
+}));
+
 export type EduTokSnippet = typeof eduTokSnippets.$inferSelect;
 export type InsertEduTokSnippet = z.infer<typeof insertEduTokSnippetSchema>;
 export type EduTokUserInteraction = typeof eduTokUserInteractions.$inferSelect;
 export type InsertEduTokUserInteraction = z.infer<typeof insertEduTokUserInteractionSchema>;
+export type TeacherSelfAssessment = typeof teacherSelfAssessments.$inferSelect;
+export type InsertTeacherSelfAssessment = z.infer<typeof insertTeacherSelfAssessmentSchema>;
 
 export const coreValuesShoutOutRelations = relations(coreValuesShoutOuts, ({ one }) => ({
   nominator: one(users, {
