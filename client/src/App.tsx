@@ -63,83 +63,35 @@ import AdminModulesPage from "@/pages/admin-modules";
 
 function Router() {
   const [location, setLocation] = useLocation();
-  const [showLoginFallback, setShowLoginFallback] = useState(false);
   
-  // Initialize a timeout to show login page if loading takes too long
+  // DEPLOYMENT FIX: Always redirect to login in production
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowLoginFallback(true);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
+    const isDeployed = window.location.href.includes('.replit.app') || 
+                     window.location.href.includes('replit.dev');
+    
+    if (isDeployed) {
+      // In production, always start at login
+      localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('user');
+      
+      if (location !== '/login' && location !== '/register') {
+        console.log("PRODUCTION DEPLOYMENT: Redirecting to login");
+        window.location.replace('/login');
+        return;
+      }
+    }
+  }, [location]);
   
-  // Use React Query with minimal options to prevent loops
-  const { 
-    data: user,
-    isLoading,
-    isError
-  } = useQuery({
+  // Simplified auth check
+  const { data: user } = useQuery({
     queryKey: ["/api/auth/me"],
     retry: false,
     refetchOnWindowFocus: false,
-    refetchInterval: false,
-    staleTime: Infinity
+    staleTime: 60000
   });
   
-  // Check if we're in a deployed environment
-  const isDeployed = window.location.href.includes('.replit.app') || 
-                    window.location.href.includes('replit.dev');
-  
-  // Force redirect to login in deployed environment
-  useEffect(() => {
-    if (isDeployed && location !== '/login' && location !== '/register' && location !== '/') {
-      window.location.href = '/login';
-    }
-  }, [isDeployed, location]);
-  
-  // Authentication state based on API response
+  // Simple authentication state
   const isAuthenticated = !!user;
-  
-  // Public routes
-  const isPublicRoute = location === '/' || location === '/login' || location === '/register';
-  
-  // Clear localStorage on auth errors to prevent loops
-  if (isError) {
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('user');
-    console.log("Auth error detected, clearing local storage");
-  }
-  
-  // Show spinner only briefly during initial load
-  if (isLoading && !showLoginFallback) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-        <p className="ml-3 text-gray-700">Loading MentorMe...</p>
-      </div>
-    );
-  }
-  
-  // Emergency fallback - direct link to login page
-  if ((isLoading || isError) && showLoginFallback) {
-    console.log("Emergency fallback activated - directing to login page");
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <h1 className="text-2xl font-bold mb-4">MentorMe</h1>
-        <p className="mb-4">Please log in to continue</p>
-        <a 
-          href="/login" 
-          className="px-4 py-2 bg-blue-500 text-white rounded"
-          onClick={() => {
-            localStorage.removeItem('isAuthenticated');
-            localStorage.removeItem('user');
-          }}
-        >
-          Go to Login
-        </a>
-      </div>
-    );
-  }
 
   // We'll handle redirects in a simpler way
   
@@ -369,7 +321,7 @@ function Router() {
       </Route>
       
       <Route path="/">
-        {isAuthenticated ? <Dashboard /> : <Login />}
+        <Login />
       </Route>
       
       {/* Additional copy of login and register routes without conditional rendering for direct access */}

@@ -1,10 +1,19 @@
 // Authentication helper functions for the MentorMe application
+import { apiRequest } from "./queryClient";
+import { User } from "@shared/schema";
 
 /**
  * Function to check if we're running in a deployed environment
  */
 export function isDeployedEnvironment(): boolean {
   return window.location.href.includes('.replit.app') || window.location.href.includes('replit.dev');
+}
+
+/**
+ * Function to check if a user is authenticated based on localStorage
+ */
+export function isAuthenticated(): boolean {
+  return localStorage.getItem('isAuthenticated') === 'true';
 }
 
 /**
@@ -31,41 +40,72 @@ export function handleInitialAuth(): void {
     }
     
     // Clear any stored auth data to prevent loops
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('user');
+    clearAuthState();
   }
 }
 
 /**
- * Function to check if a user is authenticated based on localStorage
+ * Function to get the authenticated user from localStorage
  */
-export function checkIfAuthenticated(): boolean {
-  return localStorage.getItem('isAuthenticated') === 'true';
-}
-
-/**
- * Function to set authenticated status
- */
-export function setAuthenticated(isAuth: boolean): void {
-  if (isAuth) {
-    localStorage.setItem('isAuthenticated', 'true');
-  } else {
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('user');
-  }
-}
-
-/**
- * Function to get the current user from localStorage
- */
-export function getCurrentUser(): any {
+export function getAuthenticatedUser(): User | null {
+  if (!isAuthenticated()) return null;
+  
   const userString = localStorage.getItem('user');
   if (!userString) return null;
   
   try {
-    return JSON.parse(userString);
+    return JSON.parse(userString) as User;
   } catch (error) {
     console.error('Error parsing user from localStorage:', error);
     return null;
+  }
+}
+
+/**
+ * Function to save authentication state to localStorage
+ */
+export function saveAuthState(user: User): void {
+  localStorage.setItem('isAuthenticated', 'true');
+  localStorage.setItem('user', JSON.stringify(user));
+}
+
+/**
+ * Function to clear authentication state from localStorage
+ */
+export function clearAuthState(): void {
+  localStorage.removeItem('isAuthenticated');
+  localStorage.removeItem('user');
+}
+
+/**
+ * Function to login a user
+ */
+export async function loginUser(credentials: { username: string; password: string }): Promise<User> {
+  try {
+    const response = await apiRequest<User>("/api/auth/login", {
+      method: "POST",
+      data: credentials
+    });
+    
+    return response;
+  } catch (error: any) {
+    console.error("Login error:", error);
+    throw new Error(error.message || "Invalid username or password");
+  }
+}
+
+/**
+ * Function to logout a user
+ */
+export async function logoutUser(): Promise<void> {
+  try {
+    await apiRequest("/api/auth/logout", {
+      method: "POST"
+    });
+    
+    clearAuthState();
+  } catch (error: any) {
+    console.error("Logout error:", error);
+    throw new Error(error.message || "Failed to logout");
   }
 }
