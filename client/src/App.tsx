@@ -66,32 +66,25 @@ function Router() {
   const [showLoginFallback, setShowLoginFallback] = useState(false);
   
   // Initialize an emergency timeout to show login page if loading takes too long
+  // Disable the timeout to prevent reload loops
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowLoginFallback(true);
-    }, 3000);
-    return () => clearTimeout(timer);
+    // const timer = setTimeout(() => {
+    //   setShowLoginFallback(true);
+    // }, 3000);
+    // return () => clearTimeout(timer);
   }, []);
   
-  // Use React Query directly to check authenticated state
+  // Use React Query directly to check authenticated state - with simplified options
   const { 
     data: user,
     isLoading,
-    isError,
-    error
+    isError
   } = useQuery({
     queryKey: ["/api/auth/me"],
-    retry: 2, // Try more times for auth errors
-    retryDelay: 1000,
-    onError: (error) => {
-      console.log("Auth error in main router, proceeding with fallback state:", error);
-    },
-    onSuccess: (data) => {
-      if (data) {
-        // Store authentication state in localStorage as backup
-        localStorage.setItem('isAuthenticated', 'true');
-      }
-    }
+    retry: false, // Don't retry to avoid reload loops
+    refetchOnWindowFocus: false, // Disable refetching on window focus to prevent loops
+    refetchInterval: false, // Disable automatic refetching
+    staleTime: Infinity // Keep data fresh indefinitely
   });
   
   // Create a more resilient check for authentication that handles API failures
@@ -100,13 +93,13 @@ function Router() {
   // If on landing page or login/register pages, don't use fallback auth
   const isPublicRoute = location === '/' || location === '/login' || location === '/register';
   
-  // Only use fallback auth for authenticated routes to prevent white screens
-  if (!isPublicRoute && (isError || !user) && localStorage.getItem('isAuthenticated') === 'true') {
+  // Disable all fallback authentication - it's causing reload loops
+  if (false && !isPublicRoute && (isError || !user) && localStorage.getItem('isAuthenticated') === 'true') {
     isAuthenticated = true;
     console.log("Using localStorage fallback for authentication state");
     
-    // Make sure to refresh auth status occasionally to avoid permanent stale state
-    if (isError && !window.refreshAuthAttempted) {
+    // Disable auto-refresh to prevent reload loops
+    if (false && isError && !window.refreshAuthAttempted) {
       window.refreshAuthAttempted = true;
       console.log("Scheduling auth refresh attempt");
       
@@ -128,8 +121,8 @@ function Router() {
     );
   }
   
-  // Emergency fallback - if we're still loading after timeout, show login page
-  if ((isLoading || isError) && showLoginFallback && 
+  // Disable emergency fallback completely - it's causing reload loops
+  if (false && (isLoading || isError) && showLoginFallback && 
       location !== '/login' && location !== '/register' && location !== '/') {
     console.log("Emergency fallback activated - showing login page");
     return <Login />;
