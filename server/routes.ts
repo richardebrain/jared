@@ -26,6 +26,8 @@ import { dirname } from 'path';
 import personalizedModuleRoutes from "./api/personalizedModuleRoutes";
 import assessmentQuestionRoutes from "./routes/assessment-questions";
 import aiSuggestionRoutes from "./api/aiSuggestionRoutes";
+import moduleRatingsRoutes from "./api/moduleRatingsRoutes";
+import communityModulesRoutes from "./api/communityModulesRoutes";
 
 // For ESM __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
