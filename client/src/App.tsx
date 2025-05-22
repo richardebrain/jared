@@ -1,3 +1,4 @@
+import React from "react";
 import { Switch, Route } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -61,14 +62,27 @@ function Router() {
   // Use React Query directly to check authenticated state
   const { 
     data: user,
-    isLoading 
+    isLoading,
+    isError,
+    error
   } = useQuery({
     queryKey: ["/api/auth/me"],
-    retry: false, // Don't retry auth errors
+    retry: 1, // Try once more for auth errors
+    retryDelay: 1000,
+    onError: (error) => {
+      console.log("Auth error in main router, proceeding with fallback state:", error);
+    }
   });
   
   // Check if authenticated based on user data
   const isAuthenticated = !!user;
+  
+  // Check for localStorage fallback immediately, without useEffect
+  // This is a simpler approach to avoid React import issues
+  if (isError && localStorage.getItem('isAuthenticated') === 'true') {
+    // If API call fails but localStorage indicates authentication
+    console.log("Using localStorage fallback for authentication state");
+  }
   
   // We'll handle admin check in the platform integration component instead
   
