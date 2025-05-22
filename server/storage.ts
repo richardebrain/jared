@@ -13,7 +13,9 @@ import {
   coreValuesShoutOuts, type CoreValuesShoutOut, type InsertCoreValuesShoutOut,
   educationalGames, type EducationalGame, type InsertEducationalGame,
   gameCompletions, type GameCompletion, type InsertGameCompletion,
-  videoQuizCompletions, type VideoQuizCompletion, type InsertVideoQuizCompletion
+  videoQuizCompletions, type VideoQuizCompletion, type InsertVideoQuizCompletion,
+  moduleRatings, type ModuleRating, type InsertModuleRating,
+  communityModules, type CommunityModule, type InsertCommunityModule
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, lt, or, sql } from "drizzle-orm";
@@ -48,6 +50,18 @@ export interface IStorage {
   getModule(id: number): Promise<LearningModule | undefined>;
   createModule(module: InsertLearningModule): Promise<LearningModule>;
   updateModule(id: number, moduleData: Partial<LearningModule>): Promise<LearningModule>;
+  
+  // Module rating operations
+  getRatingsForModule(moduleId: number): Promise<ModuleRating[]>;
+  getRatingByUserAndModule(userId: number, moduleId: number): Promise<ModuleRating | undefined>;
+  createOrUpdateRating(rating: InsertModuleRating): Promise<ModuleRating>;
+  getAverageRatingForModule(moduleId: number): Promise<number>;
+  
+  // Community module operations
+  getCommunityModules(): Promise<CommunityModule[]>;
+  getTopRatedCommunityModules(limit?: number): Promise<(CommunityModule & { module: LearningModule })[]>;
+  shareModuleWithCommunity(moduleId: number, schoolId: number): Promise<CommunityModule>;
+  removeCommunityModule(id: number): Promise<void>;
   
   // User progress operations
   getUserProgressByUserId(userId: number): Promise<UserProgress[]>;

@@ -221,8 +221,13 @@ export const usersRelations = relations(users, ({ many, one }) => ({
 }));
 */
 
-export const learningModulesRelations = relations(learningModules, ({ many }) => ({
-  progress: many(userProgress)
+export const learningModulesRelations = relations(learningModules, ({ many, one }) => ({
+  progress: many(userProgress),
+  ratings: many(moduleRatings),
+  school: one(schools, {
+    fields: [learningModules.schoolId],
+    references: [schools.id]
+  })
 }));
 
 export const userProgressRelations = relations(userProgress, ({ one }) => ({

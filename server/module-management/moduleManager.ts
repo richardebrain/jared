@@ -129,6 +129,15 @@ export class ModuleManager {
       console.log(`All essential modules are present (${alreadyExisting.length} modules)`);
     }
     
+    // Update schema for module ratings and community sharing
+    try {
+      // Import here to avoid circular dependencies
+      const { updateSchemaForRatings } = await import("./updateSchemaForRatings");
+      await updateSchemaForRatings();
+    } catch (error) {
+      console.error("Error updating schema for module ratings:", error);
+    }
+    
     // Fix any modules with isVisible set to null by setting them to true (visible)
     try {
       await db.execute(
