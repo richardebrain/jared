@@ -148,9 +148,30 @@ export function useAuth(): UseAuthReturn {
         description: `Welcome back, ${data.firstName}!`,
       });
       
-      // Redirect to dashboard
+      // Redirect to dashboard with more reliable navigation
       setTimeout(() => {
-        window.location.href = "/dashboard";
+        try {
+          console.log("Redirecting to dashboard after successful login");
+          
+          // Store a flag to indicate that we're in the middle of a login redirect
+          sessionStorage.setItem('loginRedirecting', 'true');
+          
+          // Force a full page reload with the destination
+          window.location.href = "/dashboard";
+          
+          // Additional fallback: if we're still on the same page after 100ms, 
+          // try a different navigation approach
+          setTimeout(() => {
+            if (window.location.pathname !== '/dashboard' && 
+                sessionStorage.getItem('loginRedirecting') === 'true') {
+              console.log("Primary navigation failed, using fallback navigation");
+              window.location.replace("/dashboard");
+            }
+          }, 100);
+        } catch (e) {
+          console.error("Navigation error:", e);
+          window.location.href = "/dashboard";
+        }
       }, 500);
     },
     onError: (error: Error) => {
