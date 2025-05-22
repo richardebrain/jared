@@ -65,29 +65,19 @@ function Router() {
   const [location, setLocation] = useLocation();
   const [showLoginFallback, setShowLoginFallback] = useState(false);
   
-  // DEPLOYMENT FIX: Hard-code redirect to login page if not on a public route
+  // Simplified approach for the deployed version: ensure login page is accessible
   useEffect(() => {
-    // Clear any auth state to prevent loops
-    if (localStorage.getItem('redirectedFromLoop') !== 'true') {
-      localStorage.setItem('redirectedFromLoop', 'true');
+    // Clear any potentially problematic localStorage on initial load to prevent loops
+    if (!localStorage.getItem('initialLoadComplete')) {
+      localStorage.setItem('initialLoadComplete', 'true');
       
-      // If not on a public route, redirect to login
-      const isPublicRoute = location === '/' || location === '/login' || location === '/register';
-      if (!isPublicRoute) {
-        console.log("DEPLOYMENT FIX: Non-public route detected, redirecting to login");
+      if (location === '/login' || location === '/register') {
+        // For login/register pages, always clear auth state to ensure clean start
         localStorage.removeItem('isAuthenticated');
         localStorage.removeItem('user');
-        window.location.replace('/login');
       }
     }
-    
-    // Clear the redirect flag after 10 seconds
-    const clearTimer = setTimeout(() => {
-      localStorage.removeItem('redirectedFromLoop');
-    }, 10000);
-    
-    return () => clearTimeout(clearTimer);
-  }, [location]);
+  }, []);
   
   // Initialize a timeout to show login page if loading takes too long
   useEffect(() => {
@@ -384,6 +374,8 @@ function Router() {
       <Route path="/">
         {isAuthenticated ? <Dashboard /> : <LandingPage />}
       </Route>
+      
+      {/* These routes have already been defined earlier */}
       
       <Route>
         <NotFound />
