@@ -161,11 +161,15 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-background/90 px-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="mx-auto w-48 h-48 mb-4 animate-float">
+          <div className="mx-auto w-48 h-48 mb-4 animate-float relative">
+            <div className="absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-white to-transparent pointer-events-none z-10"></div>
+            <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-white to-transparent pointer-events-none z-10"></div>
+            <div className="absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-white to-transparent pointer-events-none z-10"></div>
+            <div className="absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-white to-transparent pointer-events-none z-10"></div>
             <img 
               src={raisingArizonaLogo} 
               alt="Raising Arizona Preschool" 
-              className="w-full h-full object-contain mix-blend-multiply"
+              className="w-full h-full object-contain mix-blend-multiply relative z-0"
             />
           </div>
           <div className="w-72 h-auto mb-4 mx-auto relative p-2">
