@@ -8,7 +8,9 @@ const router = express.Router();
 // Schema for validating self-assessment submissions
 const selfAssessmentSchema = z.object({
   userId: z.number(),
-  assessments: z.record(z.string(), z.string())
+  results: z.record(z.string(), z.string()),
+  strengthAreas: z.array(z.string()).optional().default([]),
+  growthAreas: z.array(z.string()).optional().default([])
 });
 
 /**
@@ -26,19 +28,14 @@ router.post('/self-assessment', checkAuth, async (req, res) => {
       });
     }
     
-    const { userId, assessments } = validation.data;
+    const { userId, results, strengthAreas: initialStrengthAreas, growthAreas: initialGrowthAreas } = validation.data;
     
-    // Map skill levels to numeric values for easier processing
-    const skillLevelMap = {
-      'no_experience': 1,
-      'some_experience': 2,
-      'comfortable': 3,
-      'confident': 4
-    };
+    // Map numeric ratings to skill levels for easier processing
+    // Our frontend uses 1-5 scale for ratings
     
-    // Calculate average skill level
-    const skillValues = Object.values(assessments).map(level => {
-      return skillLevelMap[level as keyof typeof skillLevelMap] || 1;
+    // Calculate average skill level based on numeric ratings
+    const skillValues = Object.values(results).map(rating => {
+      return parseInt(rating) || 1;
     });
     
     const averageSkillLevel = skillValues.length > 0 
@@ -47,32 +44,35 @@ router.post('/self-assessment', checkAuth, async (req, res) => {
     
     // Determine teacher level based on average skill
     let teacherLevel = "beginner";
-    if (averageSkillLevel >= 3.5) {
+    if (averageSkillLevel >= 4.5) {
       teacherLevel = "mentor";
-    } else if (averageSkillLevel >= 2.7) {
+    } else if (averageSkillLevel >= 3.7) {
       teacherLevel = "advanced";
-    } else if (averageSkillLevel >= 2) {
+    } else if (averageSkillLevel >= 2.8) {
       teacherLevel = "intermediate";
     }
     
-    // Identify strength and growth areas
-    const strengthAreas: string[] = [];
-    const growthAreas: string[] = [];
+    // Identify strength and growth areas if not provided
+    const strengthAreas = initialStrengthAreas.length > 0 ? initialStrengthAreas : [];
+    const growthAreas = initialGrowthAreas.length > 0 ? initialGrowthAreas : [];
     
-    Object.entries(assessments).forEach(([skillId, level]) => {
-      const skillLevel = skillLevelMap[level as keyof typeof skillLevelMap] || 1;
-      
-      if (skillLevel >= 3) {
-        strengthAreas.push(skillId);
-      } else {
-        growthAreas.push(skillId);
-      }
-    });
+    // If strength/growth areas weren't provided, derive them from ratings
+    if (strengthAreas.length === 0 && growthAreas.length === 0) {
+      Object.entries(results).forEach(([questionId, rating]) => {
+        const ratingValue = parseInt(rating) || 1;
+        
+        if (ratingValue >= 4) {
+          strengthAreas.push(questionId);
+        } else if (ratingValue <= 3) {
+          growthAreas.push(questionId);
+        }
+      });
+    }
     
     // Store the self-assessment data
     const assessment = await storage.createSelfAssessment({
       userId,
-      results: assessments,
+      results,
       strengthAreas,
       growthAreas,
       averageSkillLevel,
@@ -83,7 +83,12 @@ router.post('/self-assessment', checkAuth, async (req, res) => {
     await storage.updateUserTeacherLevel(userId, teacherLevel);
     
     // Award points for completing self-assessment
-    await storage.updateUserPoints(userId, 25);
+    // Use the user update method that supports points
+    const user = await storage.getUser(userId);
+    if (user) {
+      const currentPoints = user.points || 0;
+      await storage.updateUser(userId, { points: currentPoints + 25 });
+    }
     
     return res.status(201).json({
       message: 'Self-assessment submitted successfully',
