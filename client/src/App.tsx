@@ -92,11 +92,13 @@ function Router() {
   // If on landing page or login/register pages, don't use fallback auth
   const isPublicRoute = location === '/' || location === '/login' || location === '/register';
   
-  // Simplified fallback authentication for deployment stability
-  if (!isPublicRoute && (isError || !user) && localStorage.getItem('isAuthenticated') === 'true') {
-    // Just use localStorage as a fallback without complex refresh logic
-    isAuthenticated = true;
-    console.log("Using localStorage fallback for authentication state");
+  // Completely disable localStorage fallback for deployment stability
+  // Forcing clear login flow without any local state fallbacks
+  if (isError) {
+    // Clear localStorage on auth errors to prevent loops
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('user');
+    console.log("Auth error detected, clearing local storage");
   }
   
   // Show spinner only briefly during initial load
@@ -109,11 +111,12 @@ function Router() {
     );
   }
   
-  // Simplified emergency fallback for stability
+  // Force redirect to login page for deployment stability
   if ((isLoading || isError) && showLoginFallback && 
       location !== '/login' && location !== '/register' && location !== '/') {
-    console.log("Emergency fallback activated - redirecting to login page");
-    window.location.href = '/login';
+    console.log("Emergency fallback activated - forcing hard redirect to login page");
+    // Force a complete page reload to break any potential loop
+    window.location.replace('/login');
     return null;
   }
 

@@ -42,14 +42,14 @@ export default function LandingPage() {
                     <ChevronRight className="h-4 w-4" />
                   </Link>
                 </Button>
-                <Button variant="outline" className="gap-1 px-6" asChild>
-                  <a href="/login" onClick={(e) => {
-                    e.preventDefault();
-                    // Force redirect instead of using client routing to avoid loops
-                    window.location.href = '/login';
-                  }}>
-                    Sign In
-                  </a>
+                <Button variant="outline" className="gap-1 px-6" onClick={() => {
+                  // Clear auth state and force direct navigation
+                  localStorage.removeItem('isAuthenticated');
+                  localStorage.removeItem('user');
+                  // Force a complete hard refresh to break any loop
+                  window.location.replace('/login');
+                }}>
+                  Sign In
                 </Button>
               </div>
             </div>
@@ -317,10 +317,14 @@ export default function LandingPage() {
                   <ChevronRight className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button variant="outline" className="gap-1 px-8" size="lg" asChild>
-                <Link href="/login">
-                  Sign In
-                </Link>
+              <Button variant="outline" className="gap-1 px-8" size="lg" onClick={() => {
+                // Clear any potential stale authentication data
+                localStorage.removeItem('isAuthenticated');
+                localStorage.removeItem('user');
+                // Force direct navigation to login page
+                window.location.href = "/login";
+              }}>
+                Sign In
               </Button>
             </div>
           </div>
@@ -341,7 +345,12 @@ export default function LandingPage() {
               </p>
             </div>
             <div className="flex space-x-4">
-              <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground">Sign In</Link>
+              <a href="#" onClick={(e) => {
+                e.preventDefault();
+                localStorage.removeItem('isAuthenticated');
+                localStorage.removeItem('user');
+                window.location.href = "/login";
+              }} className="text-sm text-muted-foreground hover:text-foreground">Sign In</a>
               <Link href="/business-signup" className="text-sm text-muted-foreground hover:text-foreground">Business Sign-up</Link>
               <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground">Terms</Link>
               <Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground">Privacy</Link>
