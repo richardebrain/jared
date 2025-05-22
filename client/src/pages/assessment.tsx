@@ -874,7 +874,7 @@ export default function AssessmentPage() {
               </TabsList>
             </div>
             
-            <TabsContent value="knowledge">
+            <TabsContent value="knowledge" className="w-full">
               {assessmentState === 'initial' ? (
                 <section className="w-full max-w-4xl mx-auto px-4 pb-16">
                   <Card className="shadow-md">
@@ -1057,7 +1057,6 @@ export default function AssessmentPage() {
             
             <TabsContent value="self">
               <section className="w-full max-w-4xl mx-auto px-4 pb-16">
-                {/* Import the TeacherSelfAssessment component here */}
                 <TeacherSelfAssessment />
               </section>
             </TabsContent>

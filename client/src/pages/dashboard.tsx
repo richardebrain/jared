@@ -1089,20 +1089,7 @@ export default function Dashboard() {
               {/* Community Modules */}
               <CommunityModules limit={3} />
               
-              {/* Teacher Self-Assessment */}
-              <div className="mt-8">
-                <h2 className="text-xl font-bold text-gray-800 flex items-center">
-                  <Brain className="h-5 w-5 mr-2 text-blue-600" />
-                  Teacher Self-Assessment
-                </h2>
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg mb-4">
-                  <p className="text-gray-700">
-                    Share your comfort level with various teaching skills to help personalize your learning journey.
-                    Your input will be combined with your assessment results to create more targeted recommendations.
-                  </p>
-                </div>
-                <TeacherSelfAssessment />
-              </div>
+
               
               {/* Media Section */}
               <MediaSidebar />
