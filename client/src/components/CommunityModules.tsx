@@ -48,9 +48,14 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
     }
   ];
 
-  // Check authentication status
-  const { data: user } = useQuery({
+  // Check authentication status with improved fallback handling
+  const { data: user, isError: authError } = useQuery({
     queryKey: ["/api/auth/me"],
+    retry: 1,
+    retryDelay: 1000,
+    onError: (error) => {
+      console.log('Auth error in CommunityModules, using fallback content:', error);
+    }
   });
 
   // Fetch community modules when user is authenticated
@@ -78,14 +83,19 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
         return demoModules;
       }
     },
-    enabled: !!user, // Only run query when user is authenticated
+    // Show community modules even when user auth state is uncertain
+    // This ensures the component always renders something
+    enabled: true,
     // Always return demo modules on error so the UI never breaks
-    onError: () => {
-      console.log('Error in community modules query, falling back to demo data');
-      return demoModules;
+    onError: (err) => {
+      console.log('Error in community modules query, falling back to demo data:', err);
     },
     // Add fallback data to ensure we always have something to render
     placeholderData: demoModules,
+    // Use stale data while refetching
+    staleTime: 60 * 1000, // 1 minute
+    // Prevent refetching on window focus to reduce potential errors
+    refetchOnWindowFocus: false,
   });
 
   if (isLoading) {
