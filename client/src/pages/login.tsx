@@ -162,10 +162,10 @@ export default function Login() {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <div className="mx-auto w-48 h-48 mb-4 animate-float relative">
-            <div className="absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-white to-transparent pointer-events-none z-10"></div>
-            <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-white to-transparent pointer-events-none z-10"></div>
-            <div className="absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-white to-transparent pointer-events-none z-10"></div>
-            <div className="absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-white to-transparent pointer-events-none z-10"></div>
+            <div className="absolute inset-x-0 top-0 h-3 bg-gradient-to-b from-white to-transparent pointer-events-none z-10"></div>
+            <div className="absolute inset-x-0 bottom-0 h-3 bg-gradient-to-t from-white to-transparent pointer-events-none z-10"></div>
+            <div className="absolute inset-y-0 left-0 w-3 bg-gradient-to-r from-white to-transparent pointer-events-none z-10"></div>
+            <div className="absolute inset-y-0 right-0 w-3 bg-gradient-to-l from-white to-transparent pointer-events-none z-10"></div>
             <img 
               src={raisingArizonaLogo} 
               alt="Raising Arizona Preschool" 
