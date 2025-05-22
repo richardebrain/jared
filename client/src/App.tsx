@@ -3,6 +3,7 @@ import { Switch, Route, useLocation } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
+import { queryClient } from "./lib/queryClient";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import EnhancedDashboard from "@/pages/dashboard-enhanced";
@@ -96,9 +97,21 @@ function Router() {
   
   // If the API fails but localStorage indicates the user was previously logged in,
   // treat them as still authenticated to prevent white screens
-  if (isError && localStorage.getItem('isAuthenticated') === 'true') {
+  if ((isError || !user) && localStorage.getItem('isAuthenticated') === 'true') {
     isAuthenticated = true;
     console.log("Using localStorage fallback for authentication state");
+    
+    // Make sure to refresh auth status occasionally to avoid permanent stale state
+    if (isError && !window.refreshAuthAttempted) {
+      window.refreshAuthAttempted = true;
+      console.log("Scheduling auth refresh attempt");
+      
+      // Try to refresh auth status after a delay
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+        window.refreshAuthAttempted = false;
+      }, 5000);
+    }
   }
   
   // Show spinner only briefly during initial load

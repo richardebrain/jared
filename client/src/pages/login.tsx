@@ -118,8 +118,23 @@ export default function Login() {
       
       // Add a slight delay before redirect to ensure toast is seen
       setTimeout(() => {
-        // Redirect to dashboard using direct window location for more reliable navigation
-        window.location.href = "/dashboard";
+        // Use navigateTo function for consistent navigation behavior
+        try {
+          console.log("Attempting navigation to dashboard...");
+          // Force a full page reload for better compatibility
+          window.location.assign("/dashboard");
+          
+          // Fallback if the above doesn't work
+          setTimeout(() => {
+            if (window.location.pathname !== "/dashboard") {
+              console.log("Navigation fallback triggered");
+              window.location.href = "/dashboard";
+            }
+          }, 100);
+        } catch (e) {
+          console.error("Navigation error:", e);
+          window.location.href = "/dashboard";
+        }
       }, 800);
     },
     onError: (error: any) => {
