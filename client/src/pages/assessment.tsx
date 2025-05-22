@@ -860,22 +860,7 @@ export default function AssessmentPage() {
       ) : (
         // Show assessment interface
         <main className="container max-w-4xl mx-auto px-4 py-8">
-          <Tabs defaultValue="knowledge" className="w-full mb-6">
-            <div className="flex justify-center mb-4">
-              <TabsList className="grid w-full max-w-md grid-cols-2">
-                <TabsTrigger value="knowledge" className="flex items-center gap-2">
-                  <GraduationCap className="h-4 w-4" />
-                  Knowledge Assessment
-                </TabsTrigger>
-                <TabsTrigger value="self" className="flex items-center gap-2">
-                  <ClipboardList className="h-4 w-4" />
-                  Self-Assessment
-                </TabsTrigger>
-              </TabsList>
-            </div>
-            
-            <TabsContent value="knowledge" className="w-full">
-              {assessmentState === 'initial' ? (
+          {assessmentState === 'initial' ? (
                 <section className="w-full max-w-4xl mx-auto px-4 pb-16">
                   <Card className="shadow-md">
                     <CardHeader className="space-y-1">
@@ -1053,14 +1038,6 @@ export default function AssessmentPage() {
               )}
             </>
           )}
-            </TabsContent>
-            
-            <TabsContent value="self">
-              <section className="w-full max-w-4xl mx-auto px-4 pb-16">
-                <TeacherSelfAssessment />
-              </section>
-            </TabsContent>
-          </Tabs>
         </main>
       )}
     </div>
