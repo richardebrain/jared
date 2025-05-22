@@ -38,6 +38,9 @@ const loginSchema = z.object({
 
 export default function Login() {
   const [_, setLocation] = useLocation();
+  const navigate = (path: string) => {
+    setLocation(path);
+  };
   const { toast } = useToast();
 
   // Create form
@@ -119,13 +122,13 @@ export default function Login() {
       // Use simple direct navigation
       console.log("Login successful! Redirecting to dashboard...");
       
-      // Clear any stale data and force direct navigation to prevent deployment issues
-      localStorage.removeItem('isAuthenticated');
+      // Save authentication state but use the router for a smoother transition
       localStorage.setItem('isAuthenticated', 'true');
       
-      // Add a slight delay before redirect to ensure toast is seen
+      // Add a slight delay to see the toast but use router navigation 
+      // instead of forced page refresh for smoother experience
       setTimeout(() => {
-        window.location.href = "/dashboard";
+        navigate("/dashboard");
       }, 800);
     },
     onError: (error: any) => {

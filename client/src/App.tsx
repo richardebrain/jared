@@ -64,23 +64,27 @@ import AdminModulesPage from "@/pages/admin-modules";
 function Router() {
   const [location, setLocation] = useLocation();
   
-  // DEPLOYMENT FIX: Always redirect to login in production
+  // Force login page only once when app starts
   useEffect(() => {
-    const isDeployed = window.location.href.includes('.replit.app') || 
-                     window.location.href.includes('replit.dev');
+    // Set a more specific flag to prevent repeated redirects
+    const visitedKey = 'initial_visit_handled';
+    const hasVisited = sessionStorage.getItem(visitedKey);
     
-    if (isDeployed) {
-      // In production, always start at login
-      localStorage.removeItem('isAuthenticated');
-      localStorage.removeItem('user');
+    // Only check on initial page load
+    if (!hasVisited) {
+      const isDeployed = window.location.href.includes('.replit.app') || 
+                      window.location.href.includes('replit.dev');
       
-      if (location !== '/login' && location !== '/register') {
-        console.log("PRODUCTION DEPLOYMENT: Redirecting to login");
-        window.location.replace('/login');
-        return;
+      // Mark that we've handled the initial visit check
+      sessionStorage.setItem(visitedKey, 'true');
+      
+      // In production, ensure proper starting page
+      if (isDeployed && location !== '/login' && location !== '/register') {
+        console.log("First visit - redirecting to login page");
+        setLocation('/login');
       }
     }
-  }, [location]);
+  }, []);
   
   // Simplified auth check
   const { data: user } = useQuery({
