@@ -1,5 +1,5 @@
-import React from "react";
-import { Switch, Route } from "wouter";
+import React, { useState, useEffect } from "react";
+import { Switch, Route, useLocation } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
@@ -59,6 +59,17 @@ import EduTokPage from "@/pages/edutok";
 import AdminModulesPage from "@/pages/admin-modules";
 
 function Router() {
+  const [location, setLocation] = useLocation();
+  const [showLoginFallback, setShowLoginFallback] = useState(false);
+  
+  // Initialize an emergency timeout to show login page if loading takes too long
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowLoginFallback(true);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+  
   // Use React Query directly to check authenticated state
   const { 
     data: user,
@@ -67,31 +78,44 @@ function Router() {
     error
   } = useQuery({
     queryKey: ["/api/auth/me"],
-    retry: 1, // Try once more for auth errors
+    retry: 2, // Try more times for auth errors
     retryDelay: 1000,
     onError: (error) => {
       console.log("Auth error in main router, proceeding with fallback state:", error);
+    },
+    onSuccess: (data) => {
+      if (data) {
+        // Store authentication state in localStorage as backup
+        localStorage.setItem('isAuthenticated', 'true');
+      }
     }
   });
   
-  // Check if authenticated based on user data
-  const isAuthenticated = !!user;
+  // Create a more resilient check for authentication that handles API failures
+  let isAuthenticated = !!user;
   
-  // Check for localStorage fallback immediately, without useEffect
-  // This is a simpler approach to avoid React import issues
+  // If the API fails but localStorage indicates the user was previously logged in,
+  // treat them as still authenticated to prevent white screens
   if (isError && localStorage.getItem('isAuthenticated') === 'true') {
-    // If API call fails but localStorage indicates authentication
+    isAuthenticated = true;
     console.log("Using localStorage fallback for authentication state");
   }
   
-  // We'll handle admin check in the platform integration component instead
-  
-  if (isLoading) {
+  // Show spinner only briefly during initial load
+  if (isLoading && !showLoginFallback) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <p className="ml-3 text-gray-700">Loading MentorMe...</p>
       </div>
     );
+  }
+  
+  // Emergency fallback - if we're still loading after timeout, show login page
+  if ((isLoading || isError) && showLoginFallback && 
+      location !== '/login' && location !== '/register') {
+    console.log("Emergency fallback activated - showing login page");
+    return <Login />;
   }
 
   // Handle public routes vs. protected routes
