@@ -65,37 +65,59 @@ function Router() {
   const [location, setLocation] = useLocation();
   const [showLoginFallback, setShowLoginFallback] = useState(false);
   
-  // Initialize an emergency timeout to show login page if loading takes too long
+  // DEPLOYMENT FIX: Hard-code redirect to login page if not on a public route
+  useEffect(() => {
+    // Clear any auth state to prevent loops
+    if (localStorage.getItem('redirectedFromLoop') !== 'true') {
+      localStorage.setItem('redirectedFromLoop', 'true');
+      
+      // If not on a public route, redirect to login
+      const isPublicRoute = location === '/' || location === '/login' || location === '/register';
+      if (!isPublicRoute) {
+        console.log("DEPLOYMENT FIX: Non-public route detected, redirecting to login");
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('user');
+        window.location.replace('/login');
+      }
+    }
+    
+    // Clear the redirect flag after 10 seconds
+    const clearTimer = setTimeout(() => {
+      localStorage.removeItem('redirectedFromLoop');
+    }, 10000);
+    
+    return () => clearTimeout(clearTimer);
+  }, [location]);
+  
+  // Initialize a timeout to show login page if loading takes too long
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowLoginFallback(true);
-    }, 5000); // Increased timeout to 5 seconds for slower connections
+    }, 3000);
     return () => clearTimeout(timer);
   }, []);
   
-  // Use React Query directly to check authenticated state - with simplified options
+  // Use React Query with minimal options to prevent loops
   const { 
     data: user,
     isLoading,
     isError
   } = useQuery({
     queryKey: ["/api/auth/me"],
-    retry: false, // Don't retry to avoid reload loops
-    refetchOnWindowFocus: false, // Disable refetching on window focus to prevent loops
-    refetchInterval: false, // Disable automatic refetching
-    staleTime: Infinity // Keep data fresh indefinitely
+    retry: false,
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+    staleTime: Infinity
   });
   
-  // Create a more resilient check for authentication that handles API failures
-  let isAuthenticated = !!user;
+  // Simplified authentication check
+  const isAuthenticated = !!user;
   
-  // If on landing page or login/register pages, don't use fallback auth
+  // Public routes
   const isPublicRoute = location === '/' || location === '/login' || location === '/register';
   
-  // Completely disable localStorage fallback for deployment stability
-  // Forcing clear login flow without any local state fallbacks
+  // Clear localStorage on auth errors to prevent loops
   if (isError) {
-    // Clear localStorage on auth errors to prevent loops
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('user');
     console.log("Auth error detected, clearing local storage");
@@ -111,13 +133,25 @@ function Router() {
     );
   }
   
-  // Force redirect to login page for deployment stability
-  if ((isLoading || isError) && showLoginFallback && 
-      location !== '/login' && location !== '/register' && location !== '/') {
-    console.log("Emergency fallback activated - forcing hard redirect to login page");
-    // Force a complete page reload to break any potential loop
-    window.location.replace('/login');
-    return null;
+  // Emergency fallback - direct link to login page
+  if ((isLoading || isError) && showLoginFallback) {
+    console.log("Emergency fallback activated - directing to login page");
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <h1 className="text-2xl font-bold mb-4">MentorMe</h1>
+        <p className="mb-4">Please log in to continue</p>
+        <a 
+          href="/login" 
+          className="px-4 py-2 bg-blue-500 text-white rounded"
+          onClick={() => {
+            localStorage.removeItem('isAuthenticated');
+            localStorage.removeItem('user');
+          }}
+        >
+          Go to Login
+        </a>
+      </div>
+    );
   }
 
   // We'll handle redirects in a simpler way

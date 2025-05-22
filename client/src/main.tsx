@@ -7,6 +7,12 @@ import { queryClient } from "./lib/queryClient";
 import { ThemeProvider } from "next-themes";
 import Login from "./pages/login";
 
+// EMERGENCY FIX FOR DEPLOYED VERSION
+// Clear any localStorage authentication on app load
+// This prevents the app from getting stuck in a loop
+localStorage.removeItem('isAuthenticated');
+localStorage.removeItem('user');
+
 // Add error boundary to prevent white screens
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {
   constructor(props: {children: React.ReactNode}) {
@@ -58,11 +64,18 @@ window.addEventListener('load', () => {
       rootEl.innerHTML = `
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: system-ui, sans-serif;">
           <h1 style="font-size: 1.5rem; margin-bottom: 1rem;">MentorMe Login</h1>
-          <a href="/login" style="background: #3b82f6; color: white; padding: 0.5rem 1rem; border-radius: 0.25rem; text-decoration: none;">
+          <script>
+            // Clear any potentially problematic auth state
+            localStorage.removeItem('isAuthenticated');
+            localStorage.removeItem('user');
+          </script>
+          <a href="/login" style="background: #3b82f6; color: white; padding: 0.5rem 1rem; border-radius: 0.25rem; text-decoration: none;" 
+             onclick="localStorage.removeItem('isAuthenticated'); localStorage.removeItem('user');">
             Go to Login Page
           </a>
-          <button onclick="window.location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; border: 1px solid #e5e7eb; border-radius: 0.25rem; background: transparent;">
-            Refresh Page
+          <button onclick="localStorage.removeItem('isAuthenticated'); localStorage.removeItem('user'); window.location.href='/login';" 
+                  style="margin-top: 1rem; padding: 0.5rem 1rem; border: 1px solid #e5e7eb; border-radius: 0.25rem; background: transparent;">
+            Clean Login
           </button>
         </div>
       `;
