@@ -108,6 +108,11 @@ export const learningModules = pgTable("learning_modules", {
     }[]
   }>(),
   isVisible: boolean("is_visible").default(true), // controls visibility on dashboard
+  // New fields for module ratings and community sharing
+  averageRating: integer("average_rating").default(0), // Average rating (0-5)
+  ratingCount: integer("rating_count").default(0), // Number of ratings received
+  isSharedToCommunity: boolean("is_shared_to_community").default(false), // Whether shared to community
+  schoolId: integer("school_id").references(() => schools.id), // School that created this module
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -494,6 +499,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   userAchievements: many(userAchievements),
   userItems: many(userItems),
   spinGameRewards: many(spinGameRewards),
+  moduleRatings: many(moduleRatings),
   receivedMessages: many(teacherMessages, { relationName: "recipient" }),
   sentMessages: many(teacherMessages, { relationName: "sender" })
 }));
@@ -689,6 +695,67 @@ export const usersRelationsWithVideos = relations(users, ({ many }) => ({
 
 export type VideoQuizCompletion = typeof videoQuizCompletions.$inferSelect;
 export type InsertVideoQuizCompletion = z.infer<typeof insertVideoQuizCompletionSchema>;
+
+// Module Ratings schema
+export const moduleRatings = pgTable("module_ratings", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  moduleId: integer("module_id").notNull().references(() => learningModules.id),
+  rating: integer("rating").notNull(), // 1-5 star rating
+  comment: text("comment"), // Optional comment with the rating
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertModuleRatingSchema = createInsertSchema(moduleRatings).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const moduleRatingsRelations = relations(moduleRatings, ({ one }) => ({
+  user: one(users, {
+    fields: [moduleRatings.userId],
+    references: [users.id],
+  }),
+  module: one(learningModules, {
+    fields: [moduleRatings.moduleId],
+    references: [learningModules.id],
+  }),
+}));
+
+// Community Module Sharing schema
+export const communityModules = pgTable("community_modules", {
+  id: serial("id").primaryKey(),
+  moduleId: integer("module_id").notNull().references(() => learningModules.id),
+  sharedBySchoolId: integer("shared_by_school_id").notNull().references(() => schools.id),
+  sharedDate: timestamp("shared_date").defaultNow(),
+  status: text("status").notNull().default("active"), // active, featured, archived
+  totalCompletions: integer("total_completions").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCommunityModuleSchema = createInsertSchema(communityModules).omit({
+  id: true,
+  sharedDate: true, 
+  totalCompletions: true,
+  createdAt: true,
+});
+
+export const communityModulesRelations = relations(communityModules, ({ one }) => ({
+  module: one(learningModules, {
+    fields: [communityModules.moduleId],
+    references: [learningModules.id],
+  }),
+  school: one(schools, {
+    fields: [communityModules.sharedBySchoolId],
+    references: [schools.id],
+  }),
+}));
+
+export type ModuleRating = typeof moduleRatings.$inferSelect;
+export type InsertModuleRating = z.infer<typeof insertModuleRatingSchema>;
+
+export type CommunityModule = typeof communityModules.$inferSelect;
+export type InsertCommunityModule = z.infer<typeof insertCommunityModuleSchema>;
 
 // Core Values Shout Out schema
 export const coreValuesShoutOuts = pgTable("core_values_shout_outs", {
