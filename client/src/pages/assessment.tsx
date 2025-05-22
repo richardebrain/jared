@@ -5,6 +5,7 @@ import { User } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AssessmentCelebration from "@/components/AssessmentCelebration";
+import TeacherSelfAssessment from "@/components/TeacherSelfAssessment";
 import { Trophy, Sparkles, GraduationCap, ArrowRight, Map, Undo } from "lucide-react";
 import Header from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -16,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   AlertCircle, AlertTriangle, Award, BookOpen, Check, CheckCircle, ChevronRight, 
   ClipboardList, MapIcon, RefreshCw, Star, TrendingUp 
@@ -858,18 +860,33 @@ export default function AssessmentPage() {
       ) : (
         // Show assessment interface
         <main className="container max-w-4xl mx-auto px-4 py-8">
-          {assessmentState === 'initial' ? (
-            <section className="w-full max-w-4xl mx-auto px-4 pb-16">
-              <Card className="shadow-md">
-                <CardHeader className="space-y-1">
-                  <CardTitle className="text-2xl md:text-3xl flex items-center gap-2">
-                    <GraduationCap className="h-7 w-7 text-primary" />
-                    Teacher Assessment
-                  </CardTitle>
-                  <CardDescription>
-                    Complete this assessment to identify your teaching strengths and areas for growth
-                  </CardDescription>
-                </CardHeader>
+          <Tabs defaultValue="knowledge" className="w-full mb-6">
+            <div className="flex justify-center mb-4">
+              <TabsList className="grid w-full max-w-md grid-cols-2">
+                <TabsTrigger value="knowledge" className="flex items-center gap-2">
+                  <GraduationCap className="h-4 w-4" />
+                  Knowledge Assessment
+                </TabsTrigger>
+                <TabsTrigger value="self" className="flex items-center gap-2">
+                  <ClipboardList className="h-4 w-4" />
+                  Self-Assessment
+                </TabsTrigger>
+              </TabsList>
+            </div>
+            
+            <TabsContent value="knowledge">
+              {assessmentState === 'initial' ? (
+                <section className="w-full max-w-4xl mx-auto px-4 pb-16">
+                  <Card className="shadow-md">
+                    <CardHeader className="space-y-1">
+                      <CardTitle className="text-2xl md:text-3xl flex items-center gap-2">
+                        <GraduationCap className="h-7 w-7 text-primary" />
+                        Knowledge Assessment
+                      </CardTitle>
+                      <CardDescription>
+                        Complete this assessment to identify your teaching knowledge strengths and areas for growth
+                      </CardDescription>
+                    </CardHeader>
                 
                 <CardContent className="pt-2">
                   <div className="space-y-8">
@@ -1036,6 +1053,15 @@ export default function AssessmentPage() {
               )}
             </>
           )}
+            </TabsContent>
+            
+            <TabsContent value="self">
+              <section className="w-full max-w-4xl mx-auto px-4 pb-16">
+                {/* Import the TeacherSelfAssessment component here */}
+                <TeacherSelfAssessment />
+              </section>
+            </TabsContent>
+          </Tabs>
         </main>
       )}
     </div>
