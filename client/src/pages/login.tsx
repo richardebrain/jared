@@ -168,11 +168,15 @@ export default function Login() {
               className="w-full h-full object-contain mix-blend-multiply"
             />
           </div>
-          <div className="w-72 h-auto mb-4 mx-auto">
+          <div className="w-72 h-auto mb-4 mx-auto relative">
+            <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent pointer-events-none z-10"></div>
+            <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-transparent pointer-events-none z-10"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-white via-transparent to-transparent pointer-events-none z-10"></div>
+            <div className="absolute inset-0 bg-gradient-to-l from-white via-transparent to-transparent pointer-events-none z-10"></div>
             <img 
               src={mentorMeLogo} 
               alt="MentorMe" 
-              className="w-full h-full object-contain mix-blend-multiply"
+              className="w-full h-full object-contain mix-blend-multiply relative z-0"
             />
           </div>
         </div>
