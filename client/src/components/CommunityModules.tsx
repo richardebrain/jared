@@ -68,6 +68,7 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
         
         if (!response.ok) {
           console.log('Using demo modules due to API error');
+          // Just return the demo modules to avoid breaking the UI
           return demoModules;
         }
         
@@ -78,6 +79,13 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
       }
     },
     enabled: !!user, // Only run query when user is authenticated
+    // Always return demo modules on error so the UI never breaks
+    onError: () => {
+      console.log('Error in community modules query, falling back to demo data');
+      return demoModules;
+    },
+    // Add fallback data to ensure we always have something to render
+    placeholderData: demoModules,
   });
 
   if (isLoading) {
