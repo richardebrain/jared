@@ -100,6 +100,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register personalized mini-lessons routes
   app.use("/api", personalizedModuleRoutes);
   
+  // Register module ratings routes
+  app.use("/api/module-ratings", moduleRatingsRoutes);
+  
+  // Register community modules routes
+  app.use("/api/community-modules", communityModulesRoutes);
+  
   const httpServer = createServer(app);
   
   // Set up credential expiration check to run daily
@@ -757,9 +763,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Learning modules routes
   app.get("/api/modules", requireAuth, requirePaidAccess, async (req, res) => {
     try {
-      const modules = await storage.getAllModules();
+      // Use direct SQL query to handle schema changes gracefully
+      const result = await db.execute(sql`
+        SELECT id, title, description, duration, point_value as "pointValue", 
+               image_url as "imageUrl", featured, difficulty, category, content, 
+               quiz, is_visible as "isVisible", created_at as "createdAt",
+               average_rating as "averageRating", rating_count as "ratingCount",
+               is_shared_to_community as "isSharedToCommunity", school_id as "schoolId"
+        FROM learning_modules
+        ORDER BY created_at DESC
+      `);
+      
+      // Transform the results to ensure consistent data format
+      const modules = result.rows.map(row => ({
+        ...row,
+        pointValue: row.pointValue || 5, // Default pointValue if null
+        averageRating: row.averageRating || 0,
+        ratingCount: row.ratingCount || 0,
+        isSharedToCommunity: row.isSharedToCommunity || false,
+        schoolId: row.schoolId || null
+      }));
+      
       res.status(200).json(modules);
     } catch (error) {
+      console.error("Error fetching modules:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -800,10 +827,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId as number;
       console.log(`User ${userId} requesting module ${moduleId}`);
       
-      // Fetch the module with error handling
-      const module = await storage.getModule(moduleId);
+      // Fetch the module with error handling using direct SQL to handle schema changes
+      const result = await db.execute(sql`
+        SELECT id, title, description, duration, point_value as "pointValue", 
+               image_url as "imageUrl", featured, difficulty, category, content, 
+               quiz, is_visible as "isVisible", created_at as "createdAt",
+               average_rating as "averageRating", rating_count as "ratingCount",
+               is_shared_to_community as "isSharedToCommunity", school_id as "schoolId"
+        FROM learning_modules
+        WHERE id = ${moduleId}
+      `);
       
-      if (!module) {
+      if (result.rows.length === 0) {
         console.log(`Module ${moduleId} not found for user ${userId}`);
         return res.status(404).json({ 
           message: "Module not found",
@@ -811,11 +846,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Transform the module data to ensure consistent format
+      const moduleData = result.rows[0];
+      
+      // Ensure default values for new fields
+      const transformedModule = {
+        ...moduleData,
+        pointValue: moduleData.pointValue || 5, // Default pointValue if null
+        averageRating: moduleData.averageRating || 0,
+        ratingCount: moduleData.ratingCount || 0,
+        isSharedToCommunity: moduleData.isSharedToCommunity || false,
+        schoolId: moduleData.schoolId || null
+      };
+      
       // Log successful module access for analytics
-      console.log(`Module ${moduleId} (${module.title}) served to user ${userId}`);
+      console.log(`Module ${moduleId} (${moduleData.title || 'Unnamed module'}) served to user ${userId}`);
       
       // Return the module
-      res.status(200).json(module);
+      res.status(200).json(transformedModule);
     } catch (error) {
       console.error("Error fetching module:", error);
       res.status(500).json({ 
