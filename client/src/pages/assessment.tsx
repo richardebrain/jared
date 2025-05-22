@@ -5,7 +5,7 @@ import { User } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AssessmentCelebration from "@/components/AssessmentCelebration";
-import TeacherSelfAssessment from "@/components/TeacherSelfAssessment";
+
 import { Trophy, Sparkles, GraduationCap, ArrowRight, Map, Undo } from "lucide-react";
 import Header from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
