@@ -8,6 +8,23 @@ const defaultQueryFn: QueryFunction = async ({ queryKey }) => {
   }
 
   const path = queryKey[0] as string;
+  
+  // DEPLOYMENT FIX: Force auth errors in production to redirect to login
+  if (path === '/api/auth/me' && (window.location.href.includes('.replit.app') || window.location.href.includes('replit.dev'))) {
+    try {
+      const response = await axios.get(path, {
+        withCredentials: true,
+      });
+      return response.data;
+    } catch (error) {
+      // In deployed version, redirect auth errors directly to login
+      console.log('Auth error in deployed version, redirecting to login');
+      window.location.href = '/login';
+      throw error;
+    }
+  }
+  
+  // Normal API request
   const response = await axios.get(path, {
     withCredentials: true, // Important for cookies/sessions
   });

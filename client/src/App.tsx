@@ -65,20 +65,6 @@ function Router() {
   const [location, setLocation] = useLocation();
   const [showLoginFallback, setShowLoginFallback] = useState(false);
   
-  // Simplified approach for the deployed version: ensure login page is accessible
-  useEffect(() => {
-    // Clear any potentially problematic localStorage on initial load to prevent loops
-    if (!localStorage.getItem('initialLoadComplete')) {
-      localStorage.setItem('initialLoadComplete', 'true');
-      
-      if (location === '/login' || location === '/register') {
-        // For login/register pages, always clear auth state to ensure clean start
-        localStorage.removeItem('isAuthenticated');
-        localStorage.removeItem('user');
-      }
-    }
-  }, []);
-  
   // Initialize a timeout to show login page if loading takes too long
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -100,7 +86,18 @@ function Router() {
     staleTime: Infinity
   });
   
-  // Simplified authentication check
+  // Check if we're in a deployed environment
+  const isDeployed = window.location.href.includes('.replit.app') || 
+                    window.location.href.includes('replit.dev');
+  
+  // Force redirect to login in deployed environment
+  useEffect(() => {
+    if (isDeployed && location !== '/login' && location !== '/register' && location !== '/') {
+      window.location.href = '/login';
+    }
+  }, [isDeployed, location]);
+  
+  // Authentication state based on API response
   const isAuthenticated = !!user;
   
   // Public routes
@@ -372,7 +369,16 @@ function Router() {
       </Route>
       
       <Route path="/">
-        {isAuthenticated ? <Dashboard /> : <LandingPage />}
+        {isAuthenticated ? <Dashboard /> : <Login />}
+      </Route>
+      
+      {/* Additional copy of login and register routes without conditional rendering for direct access */}
+      <Route path="/direct/login">
+        <Login />
+      </Route>
+      
+      <Route path="/direct/register">
+        <Register />
       </Route>
       
       {/* These routes have already been defined earlier */}
