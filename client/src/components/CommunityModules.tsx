@@ -16,7 +16,12 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
   const { toast } = useToast();
   const [viewAll, setViewAll] = useState(false);
 
-  // Fetch community modules
+  // Check authentication status
+  const { data: user } = useQuery({
+    queryKey: ["/api/auth/me"],
+  });
+
+  // Fetch community modules when user is authenticated
   const { data: communityModules, isLoading, error } = useQuery({
     queryKey: [viewAll ? "/api/community-modules" : "/api/community-modules/top"],
     queryFn: async () => {
@@ -26,7 +31,8 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
         throw new Error('Failed to fetch community modules');
       }
       return response.json();
-    }
+    },
+    enabled: !!user, // Only run query when user is authenticated
   });
 
   if (isLoading) {

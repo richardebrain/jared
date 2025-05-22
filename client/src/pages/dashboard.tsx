@@ -40,6 +40,7 @@ import DailyChallenge from "@/components/DailyChallenge";
 import AchievementPopup from "@/components/AchievementPopup";
 import PersonalizedLearningPath from "@/components/PersonalizedLearningPath";
 import PersonalizedMiniLessons from "@/components/PersonalizedMiniLessons";
+import CommunityModules from "@/components/CommunityModules";
 
 export default function Dashboard() {
   const [location, setLocation] = useLocation();
@@ -1080,6 +1081,9 @@ export default function Dashboard() {
 
               {/* Bear Assistant */}
               <BearAssistant />
+              
+              {/* Community Modules */}
+              <CommunityModules limit={3} />
               
               {/* Leaderboard */}
               <SimpleLeaderboard users={users || []} currentUserId={user?.id} />
