@@ -335,6 +335,10 @@ function Router() {
         {isAuthenticated ? <SimpleStandaloneAssessment /> : <Login />}
       </Route>
       
+      <Route path="/self-assessment">
+        {isAuthenticated ? require("./pages/self-assessment").default() : <Login />}
+      </Route>
+      
       <Route path="/assessment-launcher">
         {isAuthenticated ? <AssessmentLauncher /> : <Login />}
       </Route>
