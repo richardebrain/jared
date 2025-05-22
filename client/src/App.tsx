@@ -25,6 +25,7 @@ import DynamicAssessmentPage from "@/pages/dynamic-assessment";
 import StandaloneAssessment from "@/pages/standalone-assessment";
 import SimpleStandaloneAssessment from "@/pages/simple-standalone-assessment";
 import AssessmentLauncher from "@/pages/assessment-launcher";
+import SelfAssessment from "@/pages/self-assessment";
 import LearningModulePage from "@/pages/learning-module";
 import CoreValuesModulePage from "@/pages/core-values-module";
 import CoreValuesModuleNew from "@/pages/core-values-module-new";
@@ -336,7 +337,7 @@ function Router() {
       </Route>
       
       <Route path="/self-assessment">
-        {isAuthenticated ? require("./pages/self-assessment").default() : <Login />}
+        {isAuthenticated ? <SelfAssessment /> : <Login />}
       </Route>
       
       <Route path="/assessment-launcher">
