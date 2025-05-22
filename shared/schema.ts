@@ -282,6 +282,46 @@ export const userAchievements = pgTable("user_achievements", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Teacher invitations schema
+export const teacherInvitations = pgTable("teacher_invitations", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull().references(() => schools.id),
+  email: text("email").notNull(),
+  invitationToken: text("invitation_token").notNull().unique(),
+  invitedByUserId: integer("invited_by_user_id").notNull().references(() => users.id),
+  status: text("status").notNull().default("pending"), // pending, accepted, expired
+  expiresAt: timestamp("expires_at").notNull(),
+  sentAt: timestamp("sent_at").defaultNow(),
+  acceptedAt: timestamp("accepted_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertTeacherInvitationSchema = createInsertSchema(teacherInvitations, {
+  invitationToken: z.string().min(40),
+  email: z.string().email("Valid email address is required"),
+  expiresAt: z.date(),
+}).omit({
+  id: true,
+  sentAt: true,
+  acceptedAt: true,
+  createdAt: true,
+});
+
+// Define relation types for teacher invitations
+export const teacherInvitationsRelations = relations(teacherInvitations, ({ one }) => ({
+  school: one(schools, {
+    fields: [teacherInvitations.schoolId],
+    references: [schools.id]
+  }),
+  invitedBy: one(users, {
+    fields: [teacherInvitations.invitedByUserId],
+    references: [users.id]
+  })
+}));
+
+export type TeacherInvitation = typeof teacherInvitations.$inferSelect;
+export type InsertTeacherInvitation = z.infer<typeof insertTeacherInvitationSchema>;
+
 export const insertUserAchievementSchema = createInsertSchema(userAchievements).omit({
   id: true,
   earnedAt: true,

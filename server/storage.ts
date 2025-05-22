@@ -16,7 +16,8 @@ import {
   videoQuizCompletions, type VideoQuizCompletion, type InsertVideoQuizCompletion,
   moduleRatings, type ModuleRating, type InsertModuleRating,
   communityModules, type CommunityModule, type InsertCommunityModule,
-  teacherSelfAssessments, type TeacherSelfAssessment, type InsertTeacherSelfAssessment
+  teacherSelfAssessments, type TeacherSelfAssessment, type InsertTeacherSelfAssessment,
+  teacherInvitations, type TeacherInvitation, type InsertTeacherInvitation
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, lt, or, sql } from "drizzle-orm";
@@ -28,6 +29,7 @@ export interface IStorage {
   getAllSchools(): Promise<School[]>;
   createSchool(school: InsertSchool): Promise<School>;
   updateSchool(id: number, schoolData: Partial<InsertSchool>): Promise<School>;
+  incrementSchoolTeacherCount(schoolId: number): Promise<School>;
   
   // Teacher self-assessment operations
   createSelfAssessment(data: InsertTeacherSelfAssessment): Promise<TeacherSelfAssessment>;
