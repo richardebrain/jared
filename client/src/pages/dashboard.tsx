@@ -1082,11 +1082,11 @@ export default function Dashboard() {
               {/* Bear Assistant */}
               <BearAssistant />
               
-              {/* Community Modules */}
-              <CommunityModules limit={3} />
-              
               {/* Leaderboard */}
               <SimpleLeaderboard users={users || []} currentUserId={user?.id} />
+              
+              {/* Community Modules */}
+              <CommunityModules limit={3} />
               
               {/* Media Section */}
               <MediaSidebar />
