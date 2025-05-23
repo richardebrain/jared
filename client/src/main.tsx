@@ -9,19 +9,19 @@ import Login from "./pages/login";
 
 // CRITICAL FIX FOR DEPLOYED VERSION
 // Force direct redirect to login page in production to ensure proper startup
-if (window.location.href.includes('.replit.app') || window.location.href.includes('replit.dev')) {
-  // Clear any existing authentication to start fresh
-  localStorage.removeItem('isAuthenticated');
-  localStorage.removeItem('user');
+// if (window.location.href.includes('.replit.app') || window.location.href.includes('replit.dev')) {
+//   // Clear any existing authentication to start fresh
+//   localStorage.removeItem('isAuthenticated');
+//   localStorage.removeItem('user');
   
-  // Only redirect if not already on login or register page
-  if (window.location.pathname !== '/login' && 
-      window.location.pathname !== '/register' && 
-      window.location.pathname !== '/') {
-    console.log("DEPLOYMENT FIX: Redirecting to login page");
-    window.location.replace('/login');
-  }
-}
+//   // Only redirect if not already on login or register page
+//   if (window.location.pathname !== '/login' && 
+//       window.location.pathname !== '/register' && 
+//       window.location.pathname !== '/') {
+//     console.log("DEPLOYMENT FIX: Redirecting to login page");
+//     window.location.replace('/login');
+//   }
+// }
 
 // Add error boundary to prevent white screens
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {

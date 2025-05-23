@@ -60,34 +60,33 @@ import ProfilePage from "@/pages/profile";
 import AppOwnerDashboard from "@/pages/app-owner-dashboard";
 import EduTokPage from "@/pages/edutok";
 import AdminModulesPage from "@/pages/admin-modules";
+import { ProtectedRoute } from "./lib/protectedRoute";
 
 function Router() {
   const [location, setLocation] = useLocation();
 
-  
-  // Simplified auth check - reduced retry to avoid request loops
-  const { data: user, isLoading } = useQuery({
-    queryKey: ["/api/auth/me"],
-    retry: 1, // No retries to prevent loops
-    retryDelay: 1000,
-    refetchOnWindowFocus: false, // ✅ Prevents refetch when tab becomes active
-    staleTime: 120000, // ✅ 2 minutes freshness
-    gcTime: 300000, // ✅ Keep cache for 5 minutes
-  });
+  // // Simplified auth check - reduced retry to avoid request loops
+  // const { data: user, isLoading } = useQuery({
+  //   queryKey: ["/api/auth/me"],
+  //   retry: 0, // No retries to prevent loops
+  //   refetchOnWindowFocus: false,
+  //   staleTime: 120000, // Longer stale time (2 minutes)
+  //   gcTime: 300000, // Longer cache (5 minutes)
+  // });
 
-  // Clean authentication state
-  const isAuthenticated = !!user;
+  // // Clean authentication state
+  // const isAuthenticated = !!user;
 
-  // We'll handle redirects in a simpler way
+  // // We'll handle redirects in a simpler way
 
-  // Display a loading spinner when checking authentication
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-background/90">
-        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
+  // // Display a loading spinner when checking authentication
+  // if (isLoading) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-background/90">
+  //       <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+  //     </div>
+  //   );
+  // }
 
   // Simple routing logic with direct components, not conditional rendering
   return (
@@ -98,7 +97,7 @@ function Router() {
       </Route>
 
       <Route path="/register">
-        {isAuthenticated ? <Dashboard /> : <Register />}
+        <Register />
       </Route>
 
       <Route path="/business-signup">
@@ -106,9 +105,7 @@ function Router() {
       </Route>
 
       {/* Protected routes */}
-      <Route path="/dashboard">
-        {isAuthenticated ? <Dashboard /> : <Login />}
-      </Route>
+       <ProtectedRoute path="/dashboard" component={Dashboard} />
 
       <Route path="/dashboard-enhanced">
         {isAuthenticated ? <EnhancedDashboard /> : <Login />}
@@ -309,7 +306,7 @@ function Router() {
       </Route>
 
       <Route path="/">
-        {isAuthenticated ? <Dashboard /> : <LandingPage />}
+        <Login />
       </Route>
 
       {/* Additional copy of login and register routes without conditional rendering for direct access */}

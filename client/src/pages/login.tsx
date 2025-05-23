@@ -38,6 +38,7 @@ const loginSchema = z.object({
 
 export default function Login() {
   const [_, setLocation] = useLocation();
+  
   const navigate = (path: string) => {
     setLocation(path);
   };
@@ -128,7 +129,8 @@ export default function Login() {
       // Add a slight delay to see the toast but use router navigation 
       // instead of forced page refresh for smoother experience
       setTimeout(() => {
-        navigate("/dashboard");
+        // navigate("/dashboard");
+        window.location.href = "/dashboard"
       }, 800);
     },
     onError: (error: any) => {
