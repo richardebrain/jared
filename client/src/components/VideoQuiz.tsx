@@ -485,6 +485,94 @@ function generateCocoTheButterlyQuestions(): QuizQuestion[] {
   return shuffled.slice(0, 3);
 }
 
+// Function to generate Calming Your Inner Monster specific questions
+function generateCalmingMonsterQuestions(): QuizQuestion[] {
+  // These are specialized questions for "Calming Your Inner Monster (and Meeting Super Grover)"
+  const monsterQuestions: QuizQuestion[] = [
+    {
+      id: 'monster-1',
+      question: 'When your inner monster is having a meltdown and wants to throw things and shout, what\'s the video\'s simple advice?',
+      options: [
+        'Give it a tiny gold trophy for \'Most Dramatic Hissy Fit\'.',
+        'Teach it to yodel its frustrations away from a mountaintop.',
+        'Do some \'belly breathes\' and chill your inner monster out.',
+        'Offer it a complex Sudoku puzzle to distract its tiny monster brain.'
+      ],
+      correctAnswer: 'Do some \'belly breathes\' and chill your inner monster out.'
+    },
+    {
+      id: 'monster-2',
+      question: 'If your \'mad monster\' pops up, what facial expression does the song say it will inspire you to make?',
+      options: [
+        'A look of utter bewilderment, like it just saw a pineapple tap-dancing.',
+        'A \'mad monster face\'.',
+        'The \'Blue Steel\' look, hoping to mesmerize the monster into submission.',
+        'A very convincing impression of a sleepy sloth.'
+      ],
+      correctAnswer: 'A \'mad monster face\'.'
+    },
+    {
+      id: 'monster-3',
+      question: 'According to the video, when your inner monster is feeling mad, angry, or bad, what two chaotic activities does it want to engage in?',
+      options: [
+        'It wants to take up knitting to make tiny monster sweaters.',
+        'It wants to throw things and shout.',
+        'It wants to write a strongly worded letter to the editor about the lack of quality monster snacks.',
+        'It wants to have a serious, sit-down discussion about its feelings over a cup of herbal tea.'
+      ],
+      correctAnswer: 'It wants to throw things and shout.'
+    },
+    {
+      id: 'monster-4',
+      question: 'When you successfully \'calm that monster\' (calm it down), what lovely thing does the video say you\'ll bring out?',
+      options: [
+        'More monster snacks (preferably crunchy).',
+        'A tiny crown and scepter.',
+        'Monster love.',
+        'The ability to file its taxes correctly.'
+      ],
+      correctAnswer: 'Monster love.'
+    },
+    {
+      id: 'monster-5',
+      question: 'After you\'ve done your belly breathes and calmed your inner monster, what feeling does the song say you\'ll experience?',
+      options: [
+        'A sudden craving for pickles and ice cream.',
+        'You feel like yourself again.',
+        'An irresistible urge to do the cha-cha.',
+        'You briefly gain the ability to talk to squirrels.'
+      ],
+      correctAnswer: 'You feel like yourself again.'
+    },
+    {
+      id: 'monster-6',
+      question: 'When Super Grover makes his appearance, what are some of the amazing things he proclaims about himself?',
+      options: [
+        'He arrives on a unicycle juggling flaming torches.',
+        'He\'s \'with the GG,\' defying gravity, graceful as a swan, and has gargantuan muscles.',
+        'He\'s looking for his lost car keys and seems a bit stressed.',
+        'He\'s selling cookies for the local Grover Scout troop.'
+      ],
+      correctAnswer: 'He\'s \'with the GG,\' defying gravity, graceful as a swan, and has gargantuan muscles.'
+    },
+    {
+      id: 'monster-7',
+      question: 'What specific type of breathing does the video suggest is \'how you do it\' to calm your inner monster?',
+      options: [
+        'Throwing a tantrum.',
+        'Making a mad monster face.',
+        'Belly breathing.',
+        'Shouting affirmations very, very loudly.'
+      ],
+      correctAnswer: 'Belly breathing.'
+    }
+  ];
+  
+  // Randomly select 3 questions to use
+  const shuffled = [...monsterQuestions].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, 3);
+}
+
 // Function to generate context-based questions
 function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
   // Check if this is the Rita Pierson video
@@ -497,6 +585,12 @@ function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
   if (videoTitle.toLowerCase().includes('coco the butterfly') || 
       (videoTitle.toLowerCase().includes('cosmic kids') && videoTitle.toLowerCase().includes('butterfly'))) {
     return generateCocoTheButterlyQuestions();
+  }
+  
+  // Check if this is the Calming Your Inner Monster video
+  if (videoTitle.toLowerCase().includes('calming your inner monster') || 
+      (videoTitle.toLowerCase().includes('monster') && videoTitle.toLowerCase().includes('super grover'))) {
+    return generateCalmingMonsterQuestions();
   }
   
   // First, generate a video hash ID to ensure consistent yet unique questions per video
