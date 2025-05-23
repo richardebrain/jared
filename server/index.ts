@@ -8,6 +8,7 @@ import { runSchoolColumnsMigration } from "./schoolColumnsMigration";
 import { runCertificationMigration } from "./certificationMigration";
 import { createVideoQuizCompletionsTable } from "./migrations/create_video_quiz_completions";
 import { addTypeToAssessmentsTable } from "./migrations/add_type_to_assessments";
+import { runAvatarMigration } from "./migrations/avatar-fix";
 // Import module management system
 import { ModuleManager } from "./module-management/moduleManager";
 // Import assessment API auto-starter
@@ -106,6 +107,13 @@ app.use((req, res, next) => {
         })
         .then(() => {
           console.log('Welcome message migration completed successfully');
+          
+          // Run the avatar column migration
+          console.log('Running avatar column migration...');
+          return runAvatarMigration();
+        })
+        .then(() => {
+          console.log('Avatar column migration completed successfully');
           
           // Run the certification tracking migration
           console.log('Running certification tracking migration...');
