@@ -369,51 +369,51 @@ function Router(props: {
       </Route>
 
       <Route path="/enhanced-assessment">
-        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading}>
+        <ProtectedRoute>
           <EnhancedAssessmentPage />
-        </ProtectedRouteComponent>
+        </ProtectedRoute>
       </Route>
 
       <Route path="/simple-assessment">
-        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading}>
+        <ProtectedRoute>
           <SimpleAssessmentPage />
-        </ProtectedRouteComponent>
+        </ProtectedRoute>
       </Route>
 
       <Route path="/ai-assessment">
-        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading}>
+        <ProtectedRoute>
           <AIAssessmentPage />
-        </ProtectedRouteComponent>
+        </ProtectedRoute>
       </Route>
 
       <Route path="/simple-ai-assessment">
-        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading}>
+        <ProtectedRoute>
           <SimpleAIAssessmentPage />
-        </ProtectedRouteComponent>
+        </ProtectedRoute>
       </Route>
 
       <Route path="/enhanced-ai-assessment">
-        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading}>
+        <ProtectedRoute>
           <EnhancedAIAssessmentPage />
-        </ProtectedRouteComponent>
+        </ProtectedRoute>
       </Route>
 
       <Route path="/basic-ai-assessment">
-        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading}>
+        <ProtectedRoute>
           <BasicAIAssessmentPage />
-        </ProtectedRouteComponent>
+        </ProtectedRoute>
       </Route>
 
       <Route path="/dynamic-assessment">
-        <PublicRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading}>
+        <PublicRoute>
           <DynamicAssessmentPage />
-        </PublicRouteComponent>
+        </PublicRoute>
       </Route>
 
       <Route path="/standalone-assessment">
-        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading}>
+        <ProtectedRoute>
           <StandaloneAssessment />
-        </ProtectedRouteComponent>
+        </ProtectedRoute>
       </Route>
 
       <Route path="/simple-standalone-assessment">
