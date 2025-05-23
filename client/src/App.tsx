@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 // Import authentication hooks
 import { useAuth } from "@/lib/auth-context";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { ProtectedRoute, PublicRoute } from "@/components/ProtectedRoute";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import EnhancedDashboard from "@/pages/dashboard-enhanced";
