@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Switch, Route, Redirect, useLocation } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-// Import only the required authentication hooks
+// Import authentication hooks
 import { useAuth } from "@/lib/auth-context";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import NotFound from "@/pages/not-found";
@@ -63,8 +63,38 @@ import AdminModulesPage from "@/pages/admin-modules";
 import InviteTeachersPage from "@/pages/invite-teachers";
 import AvatarCustomizationPage from "@/pages/avatar-customization";
 
-// import AuthWrapper which is our improved authentication component
-import { AuthWrapper } from "@/components/AuthWrapper";
+// Define a helper function for protected route rendering
+const renderProtectedRoute = (Component, isAuthenticated, isLoading, requiresAdmin = false, requiresOwner = false, isAdmin = false, isOwner = false) => {
+  // Loading indicator component for consistent loading display
+  const LoadingIndicator = () => (
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  );
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return <LoadingIndicator />;
+  }
+  
+  // Redirect to login if not authenticated
+  if (!isAuthenticated) {
+    return <Redirect to="/login" />;
+  }
+  
+  // Check for admin permissions if required
+  if (requiresAdmin && !isAdmin) {
+    return <Redirect to="/dashboard" />;
+  }
+  
+  // Check for owner permissions if required
+  if (requiresOwner && !isOwner) {
+    return <Redirect to="/dashboard" />;
+  }
+  
+  // If all checks pass, render the component
+  return <Component />;
+};
 
 function Router() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -313,33 +343,34 @@ function Router() {
       </Route>
 
       <Route path="/beary-ai">
-        <ProtectedRoute>
+        <AuthWrapper isAuthenticated={isAuthenticated} isLoading={isLoading}>
           <BearyAIPage />
-        </ProtectedRoute>
+        </AuthWrapper>
       </Route>
 
       <Route path="/games">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <GamesPage />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/casino">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <CasinoPage />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/lesson-plan-maker">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <LessonPlanMakerPage />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/admin">
-        <ProtectedRoute>
-          <AdminPage />
-        </ProtectedRoute>
+        {renderProtectedRoute(AdminPage, isAuthenticated, isLoading, true, false, isAdmin, isOwner)}
       </Route>
 
       <Route path="/admin-dashboard">
