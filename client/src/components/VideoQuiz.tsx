@@ -397,12 +397,106 @@ function generateRitaPiersonQuestions(): QuizQuestion[] {
   return shuffled.slice(0, 3);
 }
 
+// Function to generate Cosmic Kids Yoga: Coco the Butterfly specific questions
+function generateCocoTheButterlyQuestions(): QuizQuestion[] {
+  // These are specialized questions for "Coco the Butterfly" Cosmic Kids Yoga Adventure
+  const cocoQuestions: QuizQuestion[] = [
+    {
+      id: 'coco-1',
+      question: 'At the beginning of the story, how does Coco the butterfly feel about getting her wings?',
+      options: [
+        'Excited and eager to use them immediately.',
+        'She is sad, doesn\'t want her wings, and wishes to remain a caterpillar in her cocoon.',
+        'She is very proud and shows them off to all the other butterflies.',
+        'She is confused and doesn\'t understand what wings are for.'
+      ],
+      correctAnswer: 'She is sad, doesn\'t want her wings, and wishes to remain a caterpillar in her cocoon.'
+    },
+    {
+      id: 'coco-2',
+      question: 'How do Jamie and the viewers find out they are going to meet Coco the butterfly?',
+      options: [
+        'By looking through a telescope.',
+        'Coco sends them an invitation.',
+        'By looking through their \'cosminoculars\'.',
+        'A friendly bird tells them about Coco.'
+      ],
+      correctAnswer: 'By looking through their \'cosminoculars\'.'
+    },
+    {
+      id: 'coco-3',
+      question: 'What realization does Coco start to have while sheltering in the dark, gloomy cave during the thunderstorm?',
+      options: [
+        'She thinks her wings might not be so bad after all.',
+        'She decides she definitely wants to be a caterpillar forever.',
+        'She makes friends with a bat.',
+        'She finds a map to a sunnier meadow.'
+      ],
+      correctAnswer: 'She thinks her wings might not be so bad after all.'
+    },
+    {
+      id: 'coco-4',
+      question: 'After the rain has passed and a rainbow appears, who comes out and meets Coco?',
+      options: [
+        'A ladybug who loves to paint.',
+        'Suzy the snail, who has an old shell.',
+        'A caterpillar who is also afraid of change.',
+        'A wise old owl who gives Coco advice.'
+      ],
+      correctAnswer: 'Suzy the snail, who has an old shell.'
+    },
+    {
+      id: 'coco-5',
+      question: 'What does Suzy the snail tell Coco she sometimes wishes for?',
+      options: [
+        'She wishes she had colorful wings like Coco.',
+        'She wishes her shell was lighter so she could move faster.',
+        'She wishes she could spread some wings and fly away like Coco.',
+        'She wishes Coco would help her decorate her shell.'
+      ],
+      correctAnswer: 'She wishes she could spread some wings and fly away like Coco.'
+    },
+    {
+      id: 'coco-6',
+      question: 'Which yoga pose do Jamie and the viewers do to \'cycle to the meadow\' to find Coco?',
+      options: [
+        'Bicycle pose',
+        'Butterfly pose',
+        'Snail pose',
+        'Chair pose'
+      ],
+      correctAnswer: 'Bicycle pose'
+    },
+    {
+      id: 'coco-7',
+      question: 'What is a key lesson Coco the butterfly learns by the end of the yoga adventure?',
+      options: [
+        'To always stay in your comfort zone and avoid new things.',
+        'That being a snail is better than being a butterfly.',
+        'That sometimes change can be good, and appreciating your own unique qualities is important.',
+        'That tea parties can solve all problems.'
+      ],
+      correctAnswer: 'That sometimes change can be good, and appreciating your own unique qualities is important.'
+    }
+  ];
+  
+  // Randomly select 3 questions to use
+  const shuffled = [...cocoQuestions].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, 3);
+}
+
 // Function to generate context-based questions
 function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
   // Check if this is the Rita Pierson video
   if (videoTitle.toLowerCase().includes('every kid needs a champion') || 
       videoTitle.toLowerCase().includes('rita pierson')) {
     return generateRitaPiersonQuestions();
+  }
+  
+  // Check if this is the Cosmic Kids Yoga - Coco the Butterfly video
+  if (videoTitle.toLowerCase().includes('coco the butterfly') || 
+      (videoTitle.toLowerCase().includes('cosmic kids') && videoTitle.toLowerCase().includes('butterfly'))) {
+    return generateCocoTheButterlyQuestions();
   }
   
   // First, generate a video hash ID to ensure consistent yet unique questions per video
