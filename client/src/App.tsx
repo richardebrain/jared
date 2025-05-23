@@ -63,9 +63,17 @@ import AdminModulesPage from "@/pages/admin-modules";
 import InviteTeachersPage from "@/pages/invite-teachers";
 import AvatarCustomizationPage from "@/pages/avatar-customization";
 
-// Define a helper function for protected route rendering
-const renderProtectedRoute = (Component, isAuthenticated, isLoading, requiresAdmin = false, requiresOwner = false, isAdmin = false, isOwner = false) => {
-  // Loading indicator component for consistent loading display
+// Define our protected route component
+const ProtectedRouteComponent = ({ 
+  children, 
+  isAuthenticated, 
+  isLoading, 
+  requiresAdmin = false, 
+  requiresOwner = false, 
+  isAdmin = false, 
+  isOwner = false 
+}) => {
+  // Loading indicator UI
   const LoadingIndicator = () => (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -92,8 +100,25 @@ const renderProtectedRoute = (Component, isAuthenticated, isLoading, requiresAdm
     return <Redirect to="/dashboard" />;
   }
   
-  // If all checks pass, render the component
-  return <Component />;
+  // If all checks pass, render the children
+  return <>{children}</>;
+};
+
+// Define public route component for routes that should be inaccessible when logged in
+const PublicRouteComponent = ({ children, isAuthenticated, isLoading }) => {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+  
+  if (isAuthenticated) {
+    return <Redirect to="/dashboard" />;
+  }
+  
+  return <>{children}</>;
 };
 
 function Router() {
@@ -343,9 +368,9 @@ function Router() {
       </Route>
 
       <Route path="/beary-ai">
-        <AuthWrapper isAuthenticated={isAuthenticated} isLoading={isLoading}>
+        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading} isAdmin={isAdmin} isOwner={isOwner}>
           <BearyAIPage />
-        </AuthWrapper>
+        </ProtectedRouteComponent>
       </Route>
 
       <Route path="/games">
@@ -370,31 +395,41 @@ function Router() {
       </Route>
 
       <Route path="/admin">
-        {renderProtectedRoute(AdminPage, isAuthenticated, isLoading, true, false, isAdmin, isOwner)}
+        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading} requiresAdmin={true} isAdmin={isAdmin} isOwner={isOwner}>
+          <AdminPage />
+        </ProtectedRouteComponent>
       </Route>
 
       <Route path="/admin-dashboard">
-        <ProtectedRoute>
+        {isLoading ? (
+          <div className="flex items-center justify-center min-h-screen bg-background">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : !isAuthenticated ? (
+          <Redirect to="/login" />
+        ) : !isAdmin ? (
+          <Redirect to="/dashboard" />
+        ) : (
           <AdminPage skipPasswordCheck={true} />
-        </ProtectedRoute>
+        )}
       </Route>
 
       <Route path="/admin/modules">
-        <ProtectedRoute>
+        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading} requiresAdmin={true} isAdmin={isAdmin} isOwner={isOwner}>
           <AdminModulesPage />
-        </ProtectedRoute>
+        </ProtectedRouteComponent>
       </Route>
 
       <Route path="/transition-timer">
-        <ProtectedRoute>
+        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading} isAdmin={isAdmin} isOwner={isOwner}>
           <TransitionTimer />
-        </ProtectedRoute>
+        </ProtectedRouteComponent>
       </Route>
 
       <Route path="/test-assessment-graph">
-        <ProtectedRoute>
+        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading} isAdmin={isAdmin} isOwner={isOwner}>
           <TestAssessmentGraph />
-        </ProtectedRoute>
+        </ProtectedRouteComponent>
       </Route>
 
       <Route path="/enhanced-assessment">
