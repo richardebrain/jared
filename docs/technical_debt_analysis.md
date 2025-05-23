@@ -14,16 +14,25 @@ This document analyzes the current state of the MentorMe codebase, identifying t
    - The application code expects this column but it's missing from the database schema
    - Impact: Causes API errors and prevents proper avatar functionality
 
-2. **Ad-hoc Schema Migrations**
-   - Multiple migration scripts exist outside a structured migration system:
-     - `server/fixDatabaseSchema.ts`
-     - `server/fix-schemas.ts`
-     - `server/migrations/avatar-fix.ts`
-   - Fix scripts contain `UPDATE learning_modules SET is_visible = TRUE WHERE is_visible IS NULL`
-   - These indicate schema issues are being addressed through one-off scripts rather than proper migrations
-   - Impact: No versioning, potential for inconsistent schema changes, and risk of data loss
+2. **Inconsistent Database Migration Strategy**
+   - Multiple incompatible migration approaches used throughout the codebase:
+     - Raw SQL migrations in `server/fixDatabaseSchema.ts`
+     - SQL embedded in TypeScript in `server/fix-schemas.ts`
+     - One-off migration scripts in `server/migrations/avatar-fix.ts`
+     - Manual updates during server startup in `moduleManager.ts`
+   - No clear sequence or versioning for migrations
+   - Lack of documentation on which migrations have been applied
+   - No standard process for developing, testing, and applying migrations
+   - Fix scripts contain ad-hoc updates like `UPDATE learning_modules SET is_visible = TRUE WHERE is_visible IS NULL`
+   - Impact: High risk of schema drift, inconsistent database state across environments, and data loss during migrations
 
-3. **Missing Foreign Key Constraints**
+3. **No Schema Version Tracking**
+   - No tracking of current schema version
+   - No way to verify if database is in sync with expected schema
+   - No proper migration history table
+   - Impact: Difficult to diagnose schema-related issues and ensure consistent deployments
+
+4. **Missing Foreign Key Constraints**
    - Some tables appear to lack proper foreign key constraints
    - Some relationships are defined in code but not enforced at the database level
    - Impact: Potential for data integrity issues and orphaned records
@@ -190,10 +199,15 @@ This document analyzes the current state of the MentorMe codebase, identifying t
 
 ### High Priority (Fix Immediately)
 
-1. **Database Schema Alignment**
+1. **Database Schema Alignment and Migration Strategy**
    - Implement the `active_avatar_id` column migration as documented in `database_migration_plan.md`
+   - Adopt the "schema-push" approach recommended in Drizzle documentation:
+     * Use TypeScript Drizzle schema as the single source of truth
+     * Push schema changes directly to the database using `drizzle-kit push`
+     * Remove all ad-hoc migration scripts after consolidation
+   - Create a schema version tracking mechanism
    - Resolve TypeScript errors related to missing database fields
-   - Set up proper migration system using Drizzle migrations
+   - Document the new migration process for all developers
 
 2. **API Error Handling Standardization**
    - Create standard error response format for all API endpoints
