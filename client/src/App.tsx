@@ -4,6 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 // Import ErrorBoundary component
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { ProtectedRoute, PublicRoute } from '@/components/ProtectedRoute';
+import { useAuth } from '@/lib/auth-context';
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import EnhancedDashboard from "@/pages/dashboard-enhanced";
@@ -441,39 +443,39 @@ function Router() {
       </Route>
 
       <Route path="/ai-assessment">
-        <ProtectedRoute>
+        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading}>
           <AIAssessmentPage />
-        </ProtectedRoute>
+        </ProtectedRouteComponent>
       </Route>
 
       <Route path="/simple-ai-assessment">
-        <ProtectedRoute>
+        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading}>
           <SimpleAIAssessmentPage />
-        </ProtectedRoute>
+        </ProtectedRouteComponent>
       </Route>
 
       <Route path="/enhanced-ai-assessment">
-        <ProtectedRoute>
+        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading}>
           <EnhancedAIAssessmentPage />
-        </ProtectedRoute>
+        </ProtectedRouteComponent>
       </Route>
 
       <Route path="/basic-ai-assessment">
-        <ProtectedRoute>
+        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading}>
           <BasicAIAssessmentPage />
-        </ProtectedRoute>
+        </ProtectedRouteComponent>
       </Route>
 
       <Route path="/dynamic-assessment">
-        <PublicRoute>
+        <PublicRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading}>
           <DynamicAssessmentPage />
-        </PublicRoute>
+        </PublicRouteComponent>
       </Route>
 
       <Route path="/standalone-assessment">
-        <ProtectedRoute>
+        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading}>
           <StandaloneAssessment />
-        </ProtectedRoute>
+        </ProtectedRouteComponent>
       </Route>
 
       <Route path="/simple-standalone-assessment">
