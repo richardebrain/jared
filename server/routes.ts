@@ -155,6 +155,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register self-assessment routes
   app.use(selfAssessmentRoutes);
   
+  // Register teacher invitation routes
+  app.use('/api/teacher-invitations', teacherInvitationRoutes);
+  
   // Module management will be handled separately
   
   // Serve static files from the uploads directory

@@ -1,454 +1,481 @@
 import { useState, useRef } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { apiRequest, queryClient } from "../lib/queryClient";
-
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { Loader2, CheckCircle, AlertCircle, RefreshCw, X, Clock, Mail } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { FileUpload } from "@/components/FileUpload";
-import { AlertCircle, Mail, Upload, CheckCircle, XCircle, Clock, RefreshCw } from "lucide-react";
-
-// Define schema for manual email input
-const manualEmailSchema = z.object({
-  emails: z.string()
-    .min(5, { message: "Please enter at least one email address" })
-    .refine(value => {
-      // Split by common separators and check each email
-      const emailsArr = value.split(/[\s,;]+/).filter(e => e.trim().length > 0);
-      return emailsArr.every(email => z.string().email().safeParse(email.trim()).success);
-    }, { message: "Some email addresses are invalid. Please check and try again." })
-});
-
-// Status badge mapping
-const StatusBadge = ({ status }: { status: string }) => {
-  switch (status) {
-    case 'pending':
-      return <Badge variant="outline" className="flex items-center gap-1"><Clock className="w-3 h-3" /> Pending</Badge>;
-    case 'sent':
-      return <Badge variant="default" className="bg-green-600 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Sent</Badge>;
-    case 'accepted':
-      return <Badge variant="default" className="bg-blue-600 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Accepted</Badge>;
-    case 'error':
-      return <Badge variant="destructive" className="flex items-center gap-1"><XCircle className="w-3 h-3" /> Error</Badge>;
-    case 'expired':
-      return <Badge variant="secondary" className="flex items-center gap-1"><Clock className="w-3 h-3" /> Expired</Badge>;
-    default:
-      return <Badge variant="outline">{status}</Badge>;
-  }
-};
 
 export default function InviteTeachersPage() {
   const { toast } = useToast();
+  const { user, isOwner, isSchoolAdmin, isAdmin } = useAuth();
+  const [emails, setEmails] = useState<string>("");
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [activeTab, setActiveTab] = useState("manual");
-  const [csvData, setCsvData] = useState<string[]>([]);
-  const [isParsingCsv, setIsParsingCsv] = useState(false);
 
-  // Get user and school info
-  const { data: user } = useQuery({
-    queryKey: ["/api/auth/me"],
-    retry: false,
-  });
-
-  // Get existing invitations
-  const { data: invitations, isLoading: isLoadingInvitations } = useQuery({
-    queryKey: ["/api/teacher-invitations/school", user?.schoolId],
-    enabled: !!user?.schoolId && (user?.isOwner || user?.isSchoolAdmin),
-  });
-
-  // Manual email input form
-  const form = useForm<z.infer<typeof manualEmailSchema>>({
-    resolver: zodResolver(manualEmailSchema),
-    defaultValues: {
-      emails: ""
-    },
-  });
-
-  // File upload handler
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setIsParsingCsv(true);
-    const reader = new FileReader();
-    
-    reader.onload = (e) => {
-      const content = e.target?.result as string;
-      // Parse CSV content to extract email addresses
-      const emailList: string[] = [];
-      
-      // Simple CSV parsing (splitting by newlines and commas)
-      const lines = content.split(/\\r?\\n/);
-      
-      for (const line of lines) {
-        const values = line.split(',');
-        for (const value of values) {
-          const trimmedValue = value.trim();
-          // Try to find email format
-          if (/^[^@]+@[^@]+\\.[^@]+$/.test(trimmedValue)) {
-            emailList.push(trimmedValue);
-          }
-        }
-      }
-      
-      setCsvData(emailList);
-      setIsParsingCsv(false);
-      
-      if (emailList.length === 0) {
-        toast({
-          title: "No valid email addresses found",
-          description: "The uploaded file doesn't contain any valid email addresses.",
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "File parsed successfully",
-          description: `Found ${emailList.length} email addresses in the file.`,
-        });
-      }
-    };
-    
-    reader.onerror = () => {
-      setIsParsingCsv(false);
-      toast({
-        title: "Error reading file",
-        description: "Failed to read the uploaded file. Please try again.",
-        variant: "destructive"
-      });
-    };
-    
-    reader.readAsText(file);
-  };
-
-  // Send invitations mutation for manual input
-  const { mutate: sendManualInvitations, isPending: isSendingManual } = useMutation({
-    mutationFn: async (data: { emails: string[] }) => {
-      return apiRequest("POST", "/api/teacher-invitations/upload", {
-        emails: data.emails,
-        schoolId: user?.schoolId
-      });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Invitations sent successfully",
-        description: "Email invitations have been sent to the teachers.",
-      });
-      
-      // Reset form
-      form.reset();
-      
-      // Refetch invitations list
-      queryClient.invalidateQueries({ queryKey: ["/api/teacher-invitations/school", user?.schoolId] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Failed to send invitations",
-        description: error.message || "An error occurred while sending invitations.",
-        variant: "destructive"
-      });
-    }
-  });
-
-  // Send invitations mutation for CSV upload
-  const { mutate: sendCsvInvitations, isPending: isSendingCsv } = useMutation({
-    mutationFn: async (data: { emails: string[] }) => {
-      return apiRequest("POST", "/api/teacher-invitations/upload", {
-        emails: data.emails,
-        schoolId: user?.schoolId
-      });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Invitations sent successfully",
-        description: "Email invitations have been sent to the teachers.",
-      });
-      
-      // Reset CSV data
-      setCsvData([]);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-      
-      // Refetch invitations list
-      queryClient.invalidateQueries({ queryKey: ["/api/teacher-invitations/school", user?.schoolId] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Failed to send invitations",
-        description: error.message || "An error occurred while sending invitations.",
-        variant: "destructive"
-      });
-    }
-  });
-
-  // Handle manual form submission
-  const onSubmitManual = (values: z.infer<typeof manualEmailSchema>) => {
-    // Extract email addresses from text input
-    const emailsArr = values.emails
-      .split(/[\s,;]+/)
-      .map(e => e.trim())
-      .filter(e => e.length > 0 && z.string().email().safeParse(e).success);
-    
-    if (emailsArr.length === 0) {
-      toast({
-        title: "No valid email addresses",
-        description: "Please enter at least one valid email address.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    sendManualInvitations({ emails: emailsArr });
-  };
-
-  // Handle CSV upload submission
-  const handleSendCsvInvitations = () => {
-    if (csvData.length === 0) {
-      toast({
-        title: "No email addresses",
-        description: "Please upload a file with valid email addresses first.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    sendCsvInvitations({ emails: csvData });
-  };
-
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
-  };
-
-  if (!user) {
+  // Check if the user has permission to access this page
+  const hasPermission = isOwner || isSchoolAdmin || isAdmin;
+  if (!hasPermission) {
     return (
-      <div className="container mx-auto p-8 text-center">
-        <h1 className="text-2xl font-semibold">Loading...</h1>
-      </div>
-    );
-  }
-
-  if (!user.isOwner && !user.isSchoolAdmin) {
-    return (
-      <div className="container mx-auto p-8">
+      <div className="container mx-auto py-8">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Access Denied</AlertTitle>
           <AlertDescription>
-            You don't have permission to invite teachers. This feature is only available to school owners and administrators.
+            You don't have permission to access this page. Only school owners and administrators can invite teachers.
           </AlertDescription>
         </Alert>
       </div>
     );
   }
 
+  // Get the user's school ID
+  const schoolId = user?.schoolId;
+  if (!schoolId && !isAdmin) {
+    return (
+      <div className="container mx-auto py-8">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>School Not Found</AlertTitle>
+          <AlertDescription>
+            You must be associated with a school to invite teachers. Please contact support.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  // Query to get all invitations for this school
+  const { data: invitations, isLoading: isLoadingInvitations, refetch: refetchInvitations } = useQuery({
+    queryKey: [`/api/teacher-invitations/school/${schoolId}`],
+    enabled: !!schoolId,
+  });
+
+  // Mutation to upload emails and send invitations
+  const uploadMutation = useMutation({
+    mutationFn: async (emailsToInvite: string[]) => {
+      const response = await apiRequest(
+        "POST", 
+        "/api/teacher-invitations/upload", 
+        { emails: emailsToInvite, schoolId: schoolId }
+      );
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Invitations Sent",
+        description: `Successfully processed ${data.invitations.filter(i => i.success).length} out of ${data.invitations.length} invitations.`,
+        variant: "default",
+      });
+      setEmails("");
+      refetchInvitations();
+    },
+    onError: (error) => {
+      console.error("Error sending invitations:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send invitations. Please try again.",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      setIsProcessing(false);
+    }
+  });
+
+  // Mutation to resend an invitation
+  const resendMutation = useMutation({
+    mutationFn: async (invitationId: number) => {
+      const response = await apiRequest(
+        "POST", 
+        `/api/teacher-invitations/resend/${invitationId}`, 
+        {}
+      );
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Invitation Resent",
+        description: data.message,
+        variant: "default",
+      });
+      refetchInvitations();
+    },
+    onError: (error) => {
+      console.error("Error resending invitation:", error);
+      toast({
+        title: "Error",
+        description: "Failed to resend invitation. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Mutation to cancel an invitation
+  const cancelMutation = useMutation({
+    mutationFn: async (invitationId: number) => {
+      const response = await apiRequest(
+        "DELETE", 
+        `/api/teacher-invitations/${invitationId}`, 
+        {}
+      );
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Invitation Cancelled",
+        description: data.message,
+        variant: "default",
+      });
+      refetchInvitations();
+    },
+    onError: (error) => {
+      console.error("Error cancelling invitation:", error);
+      toast({
+        title: "Error",
+        description: "Failed to cancel invitation. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Handle form submission
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Split emails into an array, clean up whitespace and empty lines
+    const emailList = emails
+      .split(/[,\n]/)
+      .map(email => email.trim())
+      .filter(email => email.length > 0);
+    
+    if (emailList.length === 0) {
+      toast({
+        title: "No Emails Provided",
+        description: "Please enter at least one email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Show processing state
+    setIsProcessing(true);
+    
+    // Send invitations
+    uploadMutation.mutate(emailList);
+  };
+
+  // Handle CSV file upload
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      
+      // Extract emails from CSV content
+      const lines = content.split(/\r\n|\n/);
+      const extractedEmails: string[] = [];
+      
+      lines.forEach(line => {
+        // Try to extract email from each line
+        const parts = line.split(',');
+        parts.forEach(part => {
+          // Simple email validation regex
+          const emailMatch = part.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+          if (emailMatch) {
+            extractedEmails.push(emailMatch[0]);
+          }
+        });
+      });
+      
+      if (extractedEmails.length === 0) {
+        toast({
+          title: "No Emails Found",
+          description: "No valid email addresses were found in the uploaded file.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Update textarea with found emails
+      setEmails(extractedEmails.join('\n'));
+      
+      toast({
+        title: "File Processed",
+        description: `Found ${extractedEmails.length} email addresses in the uploaded file.`,
+        variant: "default",
+      });
+      
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    };
+    
+    reader.readAsText(file);
+  };
+
+  // Render invitation status badge
+  const renderStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200"><Clock className="w-3 h-3 mr-1" /> Pending</Badge>;
+      case 'sent':
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200"><Mail className="w-3 h-3 mr-1" /> Sent</Badge>;
+      case 'accepted':
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200"><CheckCircle className="w-3 h-3 mr-1" /> Accepted</Badge>;
+      case 'expired':
+        return <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200"><AlertCircle className="w-3 h-3 mr-1" /> Expired</Badge>;
+      case 'error':
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200"><AlertCircle className="w-3 h-3 mr-1" /> Error</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Check if invitation is expired
+  const isExpired = (expiryDate: string) => {
+    if (!expiryDate) return false;
+    return new Date(expiryDate) < new Date();
+  };
+
   return (
-    <div className="container mx-auto p-8">
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Invite Teachers</h1>
-          <p className="text-muted-foreground mt-2">
-            Send email invitations to teachers to join your school on MentorMe.
-          </p>
-        </div>
-
-        <Separator />
-
-        <Tabs defaultValue="manual" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="manual">Manual Entry</TabsTrigger>
-            <TabsTrigger value="upload">CSV Upload</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="manual" className="pt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Add Teachers Manually</CardTitle>
-                <CardDescription>
-                  Enter teacher email addresses separated by commas, spaces, or new lines.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmitManual)} className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="emails"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Teacher Emails</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="teacher1@example.com, teacher2@example.com, teacher3@example.com"
-                              className="min-h-32"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Enter multiple email addresses separated by commas, spaces, or new lines.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button 
-                      type="submit" 
-                      className="w-full" 
-                      disabled={isSendingManual}
-                    >
-                      {isSendingManual ? (
-                        <>
-                          <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                          Sending Invitations...
-                        </>
-                      ) : (
-                        <>
-                          <Mail className="mr-2 h-4 w-4" />
-                          Send Invitations
-                        </>
-                      )}
-                    </Button>
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="upload" className="pt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Upload CSV File</CardTitle>
-                <CardDescription>
-                  Upload a CSV file containing teacher email addresses. The file should have a column that contains email addresses.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="grid w-full items-center gap-1.5">
-                    <Label htmlFor="teacher-emails">Upload File</Label>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        ref={fileInputRef}
-                        id="teacher-emails"
-                        type="file"
-                        accept=".csv,.txt"
-                        onChange={handleFileUpload}
-                        disabled={isParsingCsv || isSendingCsv}
-                      />
-                      <Button 
-                        variant="outline" 
-                        size="icon"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={isParsingCsv || isSendingCsv}
-                      >
-                        <Upload className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {isParsingCsv && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <RefreshCw className="h-4 w-4 animate-spin" />
-                      Parsing file...
-                    </div>
-                  )}
-
-                  {csvData.length > 0 && (
-                    <div className="space-y-2">
-                      <Label>Found {csvData.length} email addresses:</Label>
-                      <div className="max-h-40 overflow-y-auto border rounded-md p-2">
-                        <ul className="text-sm space-y-1">
-                          {csvData.slice(0, 10).map((email, i) => (
-                            <li key={i}>{email}</li>
-                          ))}
-                          {csvData.length > 10 && (
-                            <li className="text-muted-foreground">...and {csvData.length - 10} more</li>
-                          )}
-                        </ul>
-                      </div>
-                    </div>
-                  )}
-
-                  <Button 
-                    className="w-full" 
-                    onClick={handleSendCsvInvitations}
-                    disabled={csvData.length === 0 || isSendingCsv}
-                  >
-                    {isSendingCsv ? (
-                      <>
-                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                        Sending Invitations...
-                      </>
-                    ) : (
-                      <>
-                        <Mail className="mr-2 h-4 w-4" />
-                        Send Invitations
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-
-        <Separator className="my-6" />
-
-        <div>
-          <h2 className="text-2xl font-semibold mb-4">Teacher Invitations</h2>
-          
-          {isLoadingInvitations ? (
-            <div className="flex justify-center p-6">
-              <RefreshCw className="h-6 w-6 animate-spin text-primary" />
+    <div className="container mx-auto py-8 max-w-6xl">
+      <h1 className="text-3xl font-bold mb-8">Invite Teachers</h1>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+        {/* Invitation Form */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Send Invitations</CardTitle>
+            <CardDescription>
+              Enter email addresses of teachers you'd like to invite to your school. Each teacher will receive an invitation email with a link to create an account.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit}>
+              <div className="mb-4">
+                <Label htmlFor="emails">
+                  Email Addresses
+                </Label>
+                <Textarea
+                  id="emails"
+                  value={emails}
+                  onChange={(e) => setEmails(e.target.value)}
+                  placeholder="Enter email addresses, one per line or comma-separated"
+                  className="min-h-[150px]"
+                />
+                <p className="text-sm text-muted-foreground mt-2">
+                  Enter multiple email addresses, one per line or comma-separated.
+                </p>
+              </div>
+              
+              <div className="mb-6">
+                <Label htmlFor="file" className="block mb-2">
+                  Or Upload a CSV File
+                </Label>
+                <Input
+                  id="file"
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv,.txt"
+                  onChange={handleFileUpload}
+                  className="mb-2"
+                />
+                <p className="text-sm text-muted-foreground">
+                  Upload a CSV file containing email addresses. The file will be processed and the emails will be added to the text area above.
+                </p>
+              </div>
+              
+              <Button 
+                type="submit" 
+                disabled={isProcessing || !emails.trim()} 
+                className="w-full"
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending Invitations...
+                  </>
+                ) : (
+                  'Send Invitations'
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+        
+        {/* Tips/Help Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Tips for Inviting Teachers</CardTitle>
+            <CardDescription>
+              Here are some helpful tips for inviting your teachers to the platform.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="border-l-4 border-blue-500 pl-4 py-2">
+                <h3 className="font-medium">Invitation Process</h3>
+                <p className="text-sm text-muted-foreground">
+                  Teachers will receive an email with a link to create their account. The link is valid for 7 days.
+                </p>
+              </div>
+              
+              <div className="border-l-4 border-blue-500 pl-4 py-2">
+                <h3 className="font-medium">CSV Format</h3>
+                <p className="text-sm text-muted-foreground">
+                  If uploading a CSV file, ensure it contains email addresses. The system will automatically extract valid email addresses from the file.
+                </p>
+              </div>
+              
+              <div className="border-l-4 border-blue-500 pl-4 py-2">
+                <h3 className="font-medium">Bulk Import</h3>
+                <p className="text-sm text-muted-foreground">
+                  You can invite multiple teachers at once by adding their email addresses in the text area or uploading a CSV file.
+                </p>
+              </div>
+              
+              <div className="border-l-4 border-blue-500 pl-4 py-2">
+                <h3 className="font-medium">Invitation Management</h3>
+                <p className="text-sm text-muted-foreground">
+                  You can view the status of all invitations below. You can resend invitations that haven't been accepted yet.
+                </p>
+              </div>
             </div>
-          ) : invitations && invitations.length > 0 ? (
-            <Table>
-              <TableCaption>List of teacher invitations for your school</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Sent Date</TableHead>
-                  <TableHead>Expires</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {invitations.map((invitation) => (
-                  <TableRow key={invitation.id}>
-                    <TableCell>{invitation.email}</TableCell>
-                    <TableCell><StatusBadge status={invitation.status} /></TableCell>
-                    <TableCell>{formatDate(invitation.sentAt)}</TableCell>
-                    <TableCell>{formatDate(invitation.expiresAt)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* Invitations Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex justify-between items-center">
+            <span>Teacher Invitations</span>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => refetchInvitations()}
+              disabled={isLoadingInvitations}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoadingInvitations ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </CardTitle>
+          <CardDescription>
+            View and manage all teacher invitations for your school.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoadingInvitations ? (
+            <div className="py-20 flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : !invitations || invitations.length === 0 ? (
+            <div className="py-12 text-center text-muted-foreground">
+              <Mail className="h-12 w-12 mx-auto mb-3 opacity-20" />
+              <p>No invitations have been sent yet.</p>
+              <p className="text-sm">Use the form above to invite teachers to your school.</p>
+            </div>
           ) : (
-            <div className="text-center p-6 border rounded-md bg-muted/10">
-              <p className="text-muted-foreground">No invitations have been sent yet.</p>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableCaption>A list of all teacher invitations for your school.</TableCaption>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Sent Date</TableHead>
+                    <TableHead>Expires</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {invitations.map((invitation) => (
+                    <TableRow key={invitation.id}>
+                      <TableCell className="font-medium">{invitation.email}</TableCell>
+                      <TableCell>{renderStatusBadge(invitation.status)}</TableCell>
+                      <TableCell>{formatDate(invitation.sentAt)}</TableCell>
+                      <TableCell>
+                        {invitation.status === 'accepted' ? (
+                          'N/A'
+                        ) : (
+                          <span className={isExpired(invitation.expiresAt) ? 'text-red-500' : ''}>
+                            {formatDate(invitation.expiresAt)}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {invitation.status !== 'accepted' && (
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => resendMutation.mutate(invitation.id)}
+                              disabled={resendMutation.isPending}
+                            >
+                              {resendMutation.isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <RefreshCw className="h-4 w-4" />
+                              )}
+                              <span className="sr-only md:not-sr-only md:ml-2">Resend</span>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => cancelMutation.mutate(invitation.id)}
+                              disabled={cancelMutation.isPending}
+                            >
+                              {cancelMutation.isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <X className="h-4 w-4" />
+                              )}
+                              <span className="sr-only md:not-sr-only md:ml-2">Cancel</span>
+                            </Button>
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

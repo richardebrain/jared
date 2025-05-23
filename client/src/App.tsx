@@ -60,6 +60,7 @@ import ProfilePage from "@/pages/profile";
 import AppOwnerDashboard from "@/pages/app-owner-dashboard";
 import EduTokPage from "@/pages/edutok";
 import AdminModulesPage from "@/pages/admin-modules";
+import InviteTeachersPage from "@/pages/invite-teachers";
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -302,6 +303,10 @@ function Router() {
 
       <Route path="/app-owner-dashboard">
         {isAuthenticated ? <AppOwnerDashboard /> : <Login />}
+      </Route>
+
+      <Route path="/invite-teachers">
+        {isAuthenticated ? <InviteTeachersPage /> : <Login />}
       </Route>
 
       <Route path="/edutok">
