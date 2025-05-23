@@ -112,27 +112,31 @@ function Router() {
 
       {/* Protected routes */}
       <Route path="/dashboard">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <Dashboard />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/dashboard-enhanced">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <EnhancedDashboard />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/progression-map">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <ProgressionMap />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/assessment">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <Assessment />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/assessment-results">
@@ -437,17 +441,13 @@ function Router() {
 
       {/* Root path handled earlier (showing Dashboard for authenticated users, LandingPage for others) */}
 
-      {/* Direct access routes for emergency use */}
+      {/* Direct access routes for emergency use - simplified to avoid auth context issues */}
       <Route path="/direct/login">
-        <PublicRoute>
-          <Login />
-        </PublicRoute>
+        <Login />
       </Route>
 
       <Route path="/direct/register">
-        <PublicRoute>
-          <Register />
-        </PublicRoute>
+        <Register />
       </Route>
 
       {/* Fallback route */}

@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
-import { useAuth } from '@/lib/auth-context';
 
 interface PublicRouteProps {
   children: React.ReactNode;
   redirectAuthenticated?: boolean;
   redirectPath?: string;
+  isAuthenticated?: boolean;
+  isLoading?: boolean;
 }
 
 /**
@@ -16,9 +17,10 @@ interface PublicRouteProps {
 export function PublicRoute({ 
   children, 
   redirectAuthenticated = false,
-  redirectPath = '/dashboard'
+  redirectPath = '/dashboard',
+  isAuthenticated = false,
+  isLoading = false
 }: PublicRouteProps): JSX.Element {
-  const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
     // Only redirect if we're sure the user is authenticated

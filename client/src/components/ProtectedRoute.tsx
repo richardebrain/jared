@@ -1,11 +1,14 @@
 import React, { useEffect } from 'react';
 import { useLocation } from 'wouter';
-import { useAuth } from '@/lib/auth-context';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   adminOnly?: boolean;
   ownerOnly?: boolean;
+  isAuthenticated?: boolean;
+  isLoading?: boolean;
+  isAdmin?: boolean;
+  isOwner?: boolean;
 }
 
 /**
@@ -17,9 +20,12 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ 
   children, 
   adminOnly = false,
-  ownerOnly = false 
+  ownerOnly = false,
+  isAuthenticated = false,
+  isLoading = false,
+  isAdmin = false,
+  isOwner = false
 }: ProtectedRouteProps): JSX.Element | null {
-  const { isAuthenticated, isLoading, isAdmin, isOwner } = useAuth();
   const [, setLocation] = useLocation();
 
   useEffect(() => {
