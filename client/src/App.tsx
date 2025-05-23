@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { Switch, Route, Redirect, useLocation } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useQuery } from "@tanstack/react-query";
-import { queryClient } from "./lib/queryClient";
+import { useAuth } from "@/lib/auth-context";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { PublicRoute } from "@/components/PublicRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
@@ -64,182 +65,244 @@ import InviteTeachersPage from "@/pages/invite-teachers";
 import AvatarCustomizationPage from "@/pages/avatar-customization";
 
 function Router() {
-  const [location, setLocation] = useLocation();
-
-  
-  // Simplified auth check - reduced retry to avoid request loops
-  const { data: user, isLoading } = useQuery({
-    queryKey: ["/api/auth/me"],
-    retry: 1, // No retries to prevent loops
-    retryDelay: 1000,
-    refetchOnWindowFocus: false, // ✅ Prevents refetch when tab becomes active
-    staleTime: 120000, // ✅ 2 minutes freshness
-    gcTime: 300000, // ✅ Keep cache for 5 minutes
-  });
-
-  // Clean authentication state
-  const isAuthenticated = !!user;
-
-  // We'll handle redirects in a simpler way
-
-  // Display a loading spinner when checking authentication
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-background/90">
-        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  // Simple routing logic with direct components, not conditional rendering
+  // Using our new authentication components for cleaner routing
   return (
     <Switch>
       {/* Public routes */}
       <Route path="/login">
-        <Login />
+        <PublicRoute redirectAuthenticated>
+          <Login />
+        </PublicRoute>
       </Route>
 
       <Route path="/register">
-        {isAuthenticated ? <Dashboard /> : <Register />}
+        <PublicRoute redirectAuthenticated>
+          <Register />
+        </PublicRoute>
       </Route>
 
       <Route path="/business-signup">
-        <BusinessSignup />
+        <PublicRoute>
+          <BusinessSignup />
+        </PublicRoute>
+      </Route>
+
+      {/* Root path shows landing page for public users */}
+      <Route path="/">
+        <PublicRoute>
+          <LandingPage />
+        </PublicRoute>
       </Route>
 
       {/* Protected routes */}
       <Route path="/dashboard">
-        {isAuthenticated ? <Dashboard /> : <Login />}
+        <ProtectedRoute>
+          <Dashboard />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/dashboard-enhanced">
-        {isAuthenticated ? <EnhancedDashboard /> : <Login />}
+        <ProtectedRoute>
+          <EnhancedDashboard />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/progression-map">
-        {isAuthenticated ? <ProgressionMap /> : <Login />}
+        <ProtectedRoute>
+          <ProgressionMap />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/assessment">
-        {isAuthenticated ? <Assessment /> : <Login />}
+        <ProtectedRoute>
+          <Assessment />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/assessment-results">
-        {isAuthenticated ? <AssessmentResults /> : <Login />}
+        <ProtectedRoute>
+          <AssessmentResults />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/learning-style">
-        {isAuthenticated ? <LearningStylePage /> : <Login />}
+        <ProtectedRoute>
+          <LearningStylePage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/modules/:id">
-        {isAuthenticated ? <LearningModulePage /> : <Login />}
+        <ProtectedRoute>
+          <LearningModulePage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/core-values-module">
-        {isAuthenticated ? <CoreValuesModulePage /> : <Login />}
+        <ProtectedRoute>
+          <CoreValuesModulePage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/core-values-module-new">
-        {isAuthenticated ? <CoreValuesModuleNew /> : <Login />}
+        <ProtectedRoute>
+          <CoreValuesModuleNew />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/micro-modules/:id">
-        {isAuthenticated ? <MicroModulePage /> : <Login />}
+        <ProtectedRoute>
+          <MicroModulePage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/discussions/:id">
-        {isAuthenticated ? <DiscussionsPage /> : <Login />}
+        <ProtectedRoute>
+          <DiscussionsPage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/discussions">
-        {isAuthenticated ? <DiscussionsPage /> : <Login />}
+        <ProtectedRoute>
+          <DiscussionsPage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/modules">
-        {isAuthenticated ? <AllModules /> : <Login />}
+        <ProtectedRoute>
+          <AllModules />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/core-values">
-        {isAuthenticated ? <CoreValuesPage /> : <Login />}
+        <ProtectedRoute>
+          <CoreValuesPage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/chapter-one">
-        {isAuthenticated ? <ChapterOnePage /> : <Login />}
+        <ProtectedRoute>
+          <ChapterOnePage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/mindful-mornings">
-        {isAuthenticated ? <MindfulMorningsPage /> : <Login />}
+        <ProtectedRoute>
+          <MindfulMorningsPage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/mindful-mornings-module">
-        {isAuthenticated ? <MindfulMorningsModulePage /> : <Login />}
+        <ProtectedRoute>
+          <MindfulMorningsModulePage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/classroom-music">
-        {isAuthenticated ? <ClassroomMusic /> : <Login />}
+        <ProtectedRoute>
+          <ClassroomMusic />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/storytelling-demo">
-        {isAuthenticated ? <StorytellingDemoPage /> : <Login />}
+        <ProtectedRoute>
+          <StorytellingDemoPage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/core-values-shout-out">
-        {isAuthenticated ? <CoreValuesShoutOutPage /> : <Login />}
+        <ProtectedRoute>
+          <CoreValuesShoutOutPage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/building-child">
-        {isAuthenticated ? <BuildingChildPage /> : <Login />}
+        <ProtectedRoute>
+          <BuildingChildPage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/video-resources">
-        {isAuthenticated ? <VideoResourcesPage /> : <Login />}
+        <ProtectedRoute>
+          <VideoResourcesPage />
+        </ProtectedRoute>
       </Route>
 
-      <Route path="/tools">{isAuthenticated ? <ToolsPage /> : <Login />}</Route>
+      <Route path="/tools">
+        <ProtectedRoute>
+          <ToolsPage />
+        </ProtectedRoute>
+      </Route>
 
       <Route path="/settings/account">
-        {isAuthenticated ? <AccountPage /> : <Login />}
+        <ProtectedRoute>
+          <AccountPage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/settings/owner-dashboard">
-        {isAuthenticated ? <OwnerDashboardPage /> : <Login />}
+        <ProtectedRoute>
+          <OwnerDashboardPage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/owner-dashboard">
-        {isAuthenticated ? <OwnerDashboardStandalone /> : <Login />}
+        <ProtectedRoute>
+          <OwnerDashboardStandalone />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/settings/data-sources">
-        {isAuthenticated ? <DataSourcesPage /> : <Login />}
+        <ProtectedRoute>
+          <DataSourcesPage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/settings/platform-integrations">
-        {isAuthenticated ? <PlatformIntegrationsPage /> : <Login />}
+        <ProtectedRoute>
+          <PlatformIntegrationsPage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/beary-ai">
-        {isAuthenticated ? <BearyAIPage /> : <Login />}
+        <ProtectedRoute>
+          <BearyAIPage />
+        </ProtectedRoute>
       </Route>
 
-      <Route path="/games">{isAuthenticated ? <GamesPage /> : <Login />}</Route>
+      <Route path="/games">
+        <ProtectedRoute>
+          <GamesPage />
+        </ProtectedRoute>
+      </Route>
 
       <Route path="/casino">
-        {isAuthenticated ? <CasinoPage /> : <Login />}
+        <ProtectedRoute>
+          <CasinoPage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/lesson-plan-maker">
-        {isAuthenticated ? <LessonPlanMakerPage /> : <Login />}
+        <ProtectedRoute>
+          <LessonPlanMakerPage />
+        </ProtectedRoute>
       </Route>
 
-      <Route path="/admin">{isAuthenticated ? <AdminPage /> : <Login />}</Route>
+      <Route path="/admin">
+        <ProtectedRoute>
+          <AdminPage />
+        </ProtectedRoute>
+      </Route>
 
       <Route path="/admin-dashboard">
-        {isAuthenticated ? <AdminPage skipPasswordCheck={true} /> : <Login />}
+        <ProtectedRoute>
+          <AdminPage skipPasswordCheck={true} />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/admin/modules">
-        {isAuthenticated ? <AdminModulesPage /> : <Login />}
+        <ProtectedRoute>
+          <AdminModulesPage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/transition-timer">

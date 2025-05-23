@@ -23,17 +23,25 @@ export function ProtectedRoute({
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    // Only redirect if authentication is complete and user is not authenticated
+    // Only redirect if authentication check is complete (not loading)
     if (!isLoading) {
       if (!isAuthenticated) {
-        // Navigate to login
-        window.location.href = '/login';
+        // Prevent redirect loops by using sessionStorage flag
+        if (!sessionStorage.getItem('auth_redirect_in_progress')) {
+          sessionStorage.setItem('auth_redirect_in_progress', 'true');
+          
+          // Navigate to login using window.location for a clean redirect
+          window.location.href = '/login';
+        }
       } else if (adminOnly && !isAdmin) {
         // User is authenticated but not an admin
         setLocation('/dashboard');
       } else if (ownerOnly && !isOwner) {
         // User is authenticated but not an owner
         setLocation('/dashboard');
+      } else {
+        // Clear redirect flag when successfully authenticated
+        sessionStorage.removeItem('auth_redirect_in_progress');
       }
     }
   }, [isAuthenticated, isLoading, isAdmin, isOwner, adminOnly, ownerOnly, setLocation]);
@@ -52,6 +60,6 @@ export function ProtectedRoute({
     return null;
   }
 
-  // User is authenticated, render children
+  // User is authenticated with appropriate permissions, render children
   return <>{children}</>;
 }

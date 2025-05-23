@@ -23,6 +23,10 @@ export function PublicRoute({
   useEffect(() => {
     // Only redirect if we're sure the user is authenticated
     if (!isLoading && isAuthenticated && redirectAuthenticated) {
+      // Clear any auth redirect flags since we're authenticated
+      sessionStorage.removeItem('auth_redirect_in_progress');
+      
+      // Use clean navigation
       window.location.href = redirectPath;
     }
   }, [isAuthenticated, isLoading, redirectAuthenticated, redirectPath]);

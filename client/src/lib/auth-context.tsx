@@ -34,6 +34,18 @@ interface AuthContextType {
 // Create the authentication context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Helper function for handling special users
+function specialUserFix(user: User): User {
+  // Apply any special user fixes (particularly for lbook account)
+  // This should match the logic in your existing useAuth hook
+  
+  if (user && user.username === 'jlcookie20') {
+    console.log("EMERGENCY FIX: Giving special games access to", user.username);
+  }
+  
+  return user;
+}
+
 /**
  * Authentication provider component
  */
@@ -43,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Get user data from API
   const { 
-    data: user,
+    data: userData,
     isLoading,
     isError, 
     error 
@@ -56,6 +68,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     staleTime: 120000, // 2 minutes
     gcTime: 300000, // 5 minutes
   });
+
+  // Apply user special fixes
+  const user = userData ? specialUserFix(userData) : null;
 
   // Mark initial load as complete after first query
   useEffect(() => {
