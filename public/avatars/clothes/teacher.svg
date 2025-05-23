@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <path d="M60,130 L60,200 L140,200 L140,130 C140,130 120,140 100,140 C80,140 60,130 60,130 Z" fill="#2c3e50" stroke="#000000" stroke-width="1"/>
+  <path d="M60,130 C60,130 50,120 50,110 C50,100 55,95 60,95 L80,100 C85,90 95,85 100,85 C105,85 115,90 120,100 L140,95 C145,95 150,100 150,110 C150,120 140,130 140,130" fill="#2c3e50" stroke="#000000" stroke-width="1"/>
+  <!-- Collar -->
+  <path d="M85,105 L100,120 L115,105" fill="none" stroke="#ffffff" stroke-width="2"/>
+</svg>
