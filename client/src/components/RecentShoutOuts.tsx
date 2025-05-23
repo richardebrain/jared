@@ -63,7 +63,7 @@ const RecentShoutOuts: React.FC<RecentShoutOutsProps> = ({ limit = 3 }) => {
   };
 
   return (
-    <Card className="h-full overflow-hidden">
+    <Card className="overflow-hidden">
       <CardHeader className="pb-2 bg-gradient-to-r from-rose-50 to-pink-50">
         <CardTitle className="text-lg font-bold flex items-center gap-2">
           <Heart className="h-5 w-5 text-rose-500" />
