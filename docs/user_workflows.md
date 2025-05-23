@@ -24,17 +24,12 @@ The MentorMe platform supports the following user roles, each with different per
    - Click activation link and set password
    - Complete user profile (name, job title, profile picture)
 
-2. **Learning Style Assessment**
-   - Take initial learning style quiz (visual, auditory, reading, kinesthetic)
-   - System records preferences for personalization
-   - View results and explanation of learning style implications
-
-3. **Knowledge Baseline Assessment**
+2. **Knowledge Baseline Assessment**
    - Complete domain knowledge assessment covering ITERS/ECERS framework areas
    - Assessment adapts difficulty based on performance
    - Receive baseline knowledge score and domain strengths/weaknesses
 
-4. **Personalized Dashboard Introduction**
+3. **Personalized Dashboard Introduction**
    - View tutorial explaining dashboard elements
    - See recommended modules based on assessment results
    - Set initial professional development goals
@@ -237,11 +232,6 @@ The personalized learning path is the core feature for early childhood educators
 ### Initial Path Creation in MVP
 
 1. **Baseline Data Collection**
-   - **Learning Style Assessment**: 
-     * Initial questionnaire identifying preferences (visual, auditory, reading/writing, kinesthetic)
-     * Teachers self-rate effectiveness of different learning approaches
-     * Example questions: "I learn best when I can see diagrams and illustrations" (visual) or "I prefer hands-on practice to understand new concepts" (kinesthetic)
-   
    - **Knowledge Domain Assessment**:
      * Results from mandatory onboarding assessment
      * Performance scores across 6 early childhood domains
@@ -265,13 +255,6 @@ The personalized learning path is the core feature for early childhood educators
      * 60% gap-filling content
      * 30% school-required content
      * 10% strength-building content
-   
-   - **Learning Style Integration**:
-     * Visual learners receive more video, diagram, and visual demonstration content
-     * Auditory learners receive more podcast, discussion, and lecture content
-     * Reading/writing learners receive more text-based and writing-reflection content
-     * Kinesthetic learners receive more interactive simulation and activity-based content
-     * For each recommended module, the system selects presentation format matching the dominant learning style
 
 ### Learning Path Adaptation Mechanisms
 
