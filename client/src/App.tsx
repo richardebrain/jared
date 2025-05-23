@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 // Import ErrorBoundary component
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { ProtectedRoute, PublicRoute } from '@/components/ProtectedRoute';
-import { useAuth } from '@/lib/auth-context';
+import { useAuth, AuthProvider } from '@/lib/auth-context';
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import EnhancedDashboard from "@/pages/dashboard-enhanced";
@@ -304,9 +304,9 @@ function Router(props: {
       </Route>
 
       <Route path="/beary-ai">
-        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading} isAdmin={isAdmin} isOwner={isOwner}>
+        <ProtectedRoute adminOnly={false}>
           <BearyAIPage />
-        </ProtectedRouteComponent>
+        </ProtectedRoute>
       </Route>
 
       <Route path="/games">
@@ -331,9 +331,9 @@ function Router(props: {
       </Route>
 
       <Route path="/admin">
-        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading} requiresAdmin={true} isAdmin={isAdmin} isOwner={isOwner}>
+        <ProtectedRoute adminOnly={true}>
           <AdminPage />
-        </ProtectedRouteComponent>
+        </ProtectedRoute>
       </Route>
 
       <Route path="/admin-dashboard">
@@ -351,21 +351,21 @@ function Router(props: {
       </Route>
 
       <Route path="/admin/modules">
-        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading} requiresAdmin={true} isAdmin={isAdmin} isOwner={isOwner}>
+        <ProtectedRoute adminOnly={true}>
           <AdminModulesPage />
-        </ProtectedRouteComponent>
+        </ProtectedRoute>
       </Route>
 
       <Route path="/transition-timer">
-        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading} isAdmin={isAdmin} isOwner={isOwner}>
+        <ProtectedRoute>
           <TransitionTimer />
-        </ProtectedRouteComponent>
+        </ProtectedRoute>
       </Route>
 
       <Route path="/test-assessment-graph">
-        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading} isAdmin={isAdmin} isOwner={isOwner}>
+        <ProtectedRoute>
           <TestAssessmentGraph />
-        </ProtectedRouteComponent>
+        </ProtectedRoute>
       </Route>
 
       <Route path="/enhanced-assessment">
@@ -494,7 +494,9 @@ function App() {
     <TooltipProvider>
       <Toaster />
       <ErrorBoundary>
-        <AuthenticatedRouter />
+        <AuthProvider>
+          <AuthenticatedRouter />
+        </AuthProvider>
       </ErrorBoundary>
     </TooltipProvider>
   );
