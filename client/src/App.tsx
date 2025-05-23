@@ -315,7 +315,7 @@ function Router() {
       </Route>
 
       <Route path="/avatar-customization">
-        {isAuthenticated ? <AvatarCustomizationPage /> : <Login />}
+        {isAuthenticated ? <ProfilePage /> : <Login />}
       </Route>
 
       <Route path="/">

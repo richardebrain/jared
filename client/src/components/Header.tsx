@@ -176,9 +176,14 @@ export default function Header() {
                 <i className="ri-user-line mr-2"></i>
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/profile")}>
+              {/* Temporarily disabled avatar link to prevent logout issues */}
+              <DropdownMenuItem className="cursor-pointer opacity-50" onClick={() => toast({
+                title: "Feature Update in Progress",
+                description: "The avatar feature is being enhanced. Please check back soon!",
+                duration: 3000
+              })}>
                 <i className="ri-user-smile-line mr-2"></i>
-                My Avatar
+                My Avatar (Coming Soon)
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/settings")}>
                 <i className="ri-settings-line mr-2"></i>
@@ -284,9 +289,13 @@ export default function Header() {
             </Link>
             */}
             <div className="pt-3 mt-2 border-t border-amber-200">
-              <Button variant="ghost" className="w-full justify-start mb-2 hover:bg-amber-200 hover:text-amber-900" onClick={() => setLocation("/avatar-customization")}>
+              <Button variant="ghost" className="w-full justify-start mb-2 hover:bg-amber-200 hover:text-amber-900 opacity-50" onClick={() => toast({
+                title: "Feature Update in Progress",
+                description: "The avatar feature is being enhanced. Please check back soon!",
+                duration: 3000
+              })}>
                 <i className="ri-user-smile-line mr-2"></i>
-                My Avatar
+                My Avatar (Coming Soon)
               </Button>
               
               {isOwner && user?.username === "jlcookie20" && (
