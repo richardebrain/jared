@@ -441,9 +441,9 @@ function Router() {
       </Route>
 
       <Route path="/ai-assessment">
-        <ProtectedRoute>
+        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading}>
           <AIAssessmentPage />
-        </ProtectedRoute>
+        </ProtectedRouteComponent>
       </Route>
 
       <Route path="/simple-ai-assessment">
