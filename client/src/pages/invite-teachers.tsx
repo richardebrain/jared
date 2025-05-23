@@ -29,8 +29,21 @@ export default function InviteTeachersPage() {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Force check to override permission for jlcookie20 (temporary fix)
+  const manualOwnerCheck = user?.username === 'jlcookie20' || user?.username === 'Emma' || user?.username === 'Paije';
+  
   // Check if the user has permission to access this page
-  const hasPermission = isOwner || isSchoolAdmin || isAdmin;
+  const hasPermission = isOwner || isSchoolAdmin || isAdmin || manualOwnerCheck;
+  
+  console.log("Invite Teachers Page - Auth Status:", {
+    username: user?.username,
+    isOwner,
+    isSchoolAdmin,
+    isAdmin,
+    manualOwnerCheck,
+    hasPermission
+  });
+  
   if (!hasPermission) {
     return (
       <div className="container mx-auto py-8">
