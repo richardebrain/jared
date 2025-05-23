@@ -1,14 +1,11 @@
 import React from 'react';
 import { Redirect } from 'wouter';
+import { useAuth } from '@/lib/auth-context';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   adminOnly?: boolean;
   ownerOnly?: boolean;
-  isAuthenticated?: boolean;
-  isLoading?: boolean;
-  isAdmin?: boolean;
-  isOwner?: boolean;
 }
 
 /**
@@ -18,15 +15,12 @@ interface ProtectedRouteProps {
  * Optionally checks if the user is an admin or owner
  */
 export function ProtectedRoute({ 
-  children, 
+  children,
   adminOnly = false,
-  ownerOnly = false,
-  isAuthenticated = false,
-  isLoading = false,
-  isAdmin = false,
-  isOwner = false
+  ownerOnly = false
 }: ProtectedRouteProps): JSX.Element {
-  // Show loading state while checking authentication
+  const { isAuthenticated, isLoading, isAdmin, isOwner } = useAuth();
+  
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
@@ -35,42 +29,38 @@ export function ProtectedRoute({
     );
   }
   
-  // Check if user is authenticated
   if (!isAuthenticated) {
     return <Redirect to="/login" />;
   }
   
-  // Check if user is admin when adminOnly is true
   if (adminOnly && !isAdmin) {
     return <Redirect to="/dashboard" />;
   }
   
-  // Check if user is owner when ownerOnly is true
   if (ownerOnly && !isOwner) {
     return <Redirect to="/dashboard" />;
   }
   
-  // If all checks pass, render the children
   return <>{children}</>;
 }
-          
-          // Navigate to login using window.location for a clean redirect
-          window.location.href = '/login';
-        }
-      } else if (adminOnly && !isAdmin) {
-        // User is authenticated but not an admin
-        setLocation('/dashboard');
-      } else if (ownerOnly && !isOwner) {
-        // User is authenticated but not an owner
-        setLocation('/dashboard');
-      } else {
-        // Clear redirect flag when successfully authenticated
-        sessionStorage.removeItem('auth_redirect_in_progress');
-      }
-    }
-  }, [isAuthenticated, isLoading, isAdmin, isOwner, adminOnly, ownerOnly, setLocation]);
 
-  // Show loading state
+interface PublicRouteProps {
+  children: React.ReactNode;
+  redirectAuthenticated?: boolean;
+}
+
+/**
+ * PublicRoute component
+ * 
+ * Route component for public pages
+ * Optionally redirects authenticated users
+ */
+export function PublicRoute({ 
+  children,
+  redirectAuthenticated = false 
+}: PublicRouteProps): JSX.Element {
+  const { isAuthenticated, isLoading } = useAuth();
+  
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
@@ -78,12 +68,10 @@ export function ProtectedRoute({
       </div>
     );
   }
-
-  // If authentication failed, return null (redirect happens in useEffect)
-  if (!isAuthenticated || (adminOnly && !isAdmin) || (ownerOnly && !isOwner)) {
-    return null;
+  
+  if (redirectAuthenticated && isAuthenticated) {
+    return <Redirect to="/dashboard" />;
   }
-
-  // User is authenticated with appropriate permissions, render children
+  
   return <>{children}</>;
 }
