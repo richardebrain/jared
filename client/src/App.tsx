@@ -64,93 +64,13 @@ import AdminModulesPage from "@/pages/admin-modules";
 import InviteTeachersPage from "@/pages/invite-teachers";
 import AvatarCustomizationPage from "@/pages/avatar-customization";
 
-// Define our protected route component
-const ProtectedRouteComponent = ({ 
-  children, 
-  isAuthenticated, 
-  isLoading, 
-  requiresAdmin = false, 
-  requiresOwner = false, 
-  isAdmin = false, 
-  isOwner = false 
-}) => {
-  // Loading indicator UI
-  const LoadingIndicator = () => (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-    </div>
-  );
-
-  // Show loading state while checking authentication
-  if (isLoading) {
-    return <LoadingIndicator />;
-  }
-  
-  // Redirect to login if not authenticated
-  if (!isAuthenticated) {
-    return <Redirect to="/login" />;
-  }
-  
-  // Check for admin permissions if required
-  if (requiresAdmin && !isAdmin) {
-    return <Redirect to="/dashboard" />;
-  }
-  
-  // Check for owner permissions if required
-  if (requiresOwner && !isOwner) {
-    return <Redirect to="/dashboard" />;
-  }
-  
-  // If all checks pass, render the children
-  return <>{children}</>;
-};
-
-// Define public route component for routes that should be inaccessible when logged in
-const PublicRouteComponent = ({ children, isAuthenticated, isLoading }) => {
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-  
-  if (isAuthenticated) {
-    return <Redirect to="/dashboard" />;
-  }
-  
-  return <>{children}</>;
-};
+// We're using the imported ProtectedRoute and PublicRoute components from '@/components/ProtectedRoute'
+// which have full TypeScript type checking and use the auth context properly
 
 function Router() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isOwner, setIsOwner] = useState(false);
-  
-  // Load auth state on mount
-  useEffect(() => {
-    // Simple auth check using the /api/auth/me endpoint
-    fetch('/api/auth/me')
-      .then(response => {
-        if (response.ok) return response.json();
-        throw new Error('Not authenticated');
-      })
-      .then(userData => {
-        console.log('Auth check: User authenticated');
-        setUser(userData);
-        setIsAuthenticated(true);
-        setIsAdmin(userData.isAdmin || false);
-        setIsOwner(userData.isOwner || false);
-        setIsLoading(false);
-      })
-      .catch(err => {
-        console.log('Auth check: Not authenticated');
-        setIsAuthenticated(false);
-        setIsLoading(false);
-      });
-  }, []);
+  // Use the authentication context hook for consistent auth across the app
+  const auth = useAuth();
+  const { isAuthenticated, isLoading, user, isAdmin, isOwner } = auth;
   return (
     <Switch>
       {/* Public routes */}
@@ -173,21 +93,21 @@ function Router() {
 
       {/* Protected routes */}
       <Route path="/dashboard">
-        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading}>
+        <ProtectedRoute>
           <Dashboard />
-        </ProtectedRouteComponent>
+        </ProtectedRoute>
       </Route>
 
       <Route path="/dashboard-enhanced">
-        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading}>
+        <ProtectedRoute>
           <EnhancedDashboard />
-        </ProtectedRouteComponent>
+        </ProtectedRoute>
       </Route>
 
       <Route path="/progression-map">
-        <ProtectedRouteComponent isAuthenticated={isAuthenticated} isLoading={isLoading}>
+        <ProtectedRoute>
           <ProgressionMap />
-        </ProtectedRouteComponent>
+        </ProtectedRoute>
       </Route>
 
       <Route path="/assessment">
@@ -552,12 +472,19 @@ function Router() {
 }
 
 function App() {
-  // No auth check at top level - moved to Router component to avoid circular dependency
+  // Get authentication state directly in App component
+  const { isAuthenticated, isLoading, isAdmin, isOwner } = useAuth();
+  
   return (
     <TooltipProvider>
       <Toaster />
       <ErrorBoundary>
-        <Router />
+        <Router 
+          isAuthenticated={isAuthenticated} 
+          isLoading={isLoading} 
+          isAdmin={isAdmin} 
+          isOwner={isOwner} 
+        />
       </ErrorBoundary>
     </TooltipProvider>
   );
