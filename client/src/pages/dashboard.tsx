@@ -927,9 +927,10 @@ export default function Dashboard() {
                   )}
                 </div>
                 
-                {/* Recent Shout-Outs Section */}
-                <div className="mb-6">
-                  <RecentShoutOuts limit={5} />
+                {/* Recent Shout-Outs and Newsletter Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <RecentShoutOuts limit={3} />
+                  <MonthlyNewsletter />
                 </div>
               </div>
               

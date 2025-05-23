@@ -64,55 +64,55 @@ const RecentShoutOuts: React.FC<RecentShoutOutsProps> = ({ limit = 3 }) => {
 
   return (
     <Card className="h-full overflow-hidden">
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2 bg-gradient-to-r from-rose-50 to-pink-50">
         <CardTitle className="text-lg font-bold flex items-center gap-2">
           <Heart className="h-5 w-5 text-rose-500" />
           Recent Shout-Outs
         </CardTitle>
         <CardDescription>
-          Teachers recognizing each other for living our core values
+          Teachers recognizing core values
         </CardDescription>
       </CardHeader>
       
-      <CardContent>
+      <CardContent className="p-3">
         {isLoading ? (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-start gap-3 p-3 border rounded-md">
-                <Skeleton className="h-8 w-8 rounded-full" />
+              <div key={i} className="flex items-start gap-2 p-2 border rounded-md">
+                <Skeleton className="h-6 w-6 rounded-full" />
                 <div className="flex-1">
-                  <div className="flex justify-between mb-2">
-                    <Skeleton className="h-5 w-24" />
-                    <Skeleton className="h-5 w-16" />
+                  <div className="flex justify-between mb-1">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-4 w-12" />
                   </div>
-                  <Skeleton className="h-4 w-32 mb-2" />
-                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-3 w-24 mb-1" />
+                  <Skeleton className="h-10 w-full" />
                 </div>
               </div>
             ))}
           </div>
         ) : !shoutouts || shoutouts.length === 0 ? (
-          <div className="p-6 text-center text-muted-foreground">
-            <Star className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
-            <p>No shout-outs yet!</p>
-            <p className="text-sm mt-1">
-              Be the first to recognize a colleague who exemplifies our core values.
+          <div className="p-4 text-center text-muted-foreground">
+            <Star className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
+            <p className="text-sm">No shout-outs yet!</p>
+            <p className="text-xs mt-1">
+              Be the first to recognize a colleague.
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {shoutouts.slice(0, limit).map((shoutout) => (
-              <div key={shoutout.id} className="p-4 border rounded-md hover:bg-accent/5 transition-colors">
-                <div className="flex items-start gap-3">
-                  <Avatar className="h-8 w-8">
+              <div key={shoutout.id} className="p-2 border rounded-md hover:bg-accent/5 transition-colors shadow-sm">
+                <div className="flex items-start gap-2">
+                  <Avatar className="h-6 w-6">
                     <AvatarImage src={null} />
-                    <AvatarFallback className="bg-primary/10 text-primary">
+                    <AvatarFallback className="bg-primary/10 text-primary text-xs">
                       {getInitials(shoutout.nomineeId)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <div className="flex justify-between mb-1">
-                      <div className="font-medium text-base">
+                      <div className="font-medium text-sm">
                         To: {getUserName(shoutout.nomineeId)}
                       </div>
                       <div className="flex items-center text-xs text-muted-foreground">
@@ -120,13 +120,13 @@ const RecentShoutOuts: React.FC<RecentShoutOutsProps> = ({ limit = 3 }) => {
                         {formatDistanceToNow(new Date(shoutout.createdAt), { addSuffix: true })}
                       </div>
                     </div>
-                    <div className="mb-2">
+                    <div className="mb-1">
                       {getCoreValueBadge(shoutout.coreValue)}
-                      <span className="ml-2 text-sm text-muted-foreground">
+                      <span className="ml-2 text-xs text-muted-foreground">
                         From: {getUserName(shoutout.nominatorId)}
                       </span>
                     </div>
-                    <p className="text-sm text-neutral-700">
+                    <p className="text-xs text-neutral-700 line-clamp-2">
                       {shoutout.description}
                     </p>
                   </div>
