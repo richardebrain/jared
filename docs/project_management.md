@@ -5,13 +5,13 @@ This document serves as the central project management framework for MentorMe, t
 ## Structure
 
 ### Epic Status Indicators
-- 🔴 Not Started
+- 🔴 TODO
 - 🟠 In Progress 
 - 🟢 Completed
 - ⚠️ Blocked
 
 ### Task Status Indicators
-- ⬜ Not Started
+- ⬜ TODO
 - 🟦 In Progress
 - ✅ Completed
 - 🚫 Blocked
@@ -31,8 +31,6 @@ This document serves as the central project management framework for MentorMe, t
 - Assessment completion triggers appropriate achievements/rewards
 - Data is securely stored for long-term progress tracking
 
-**Target Completion:** Q3 2023
-
 **Tasks:**
 1. ⬜ [EP-001-01] **Investigate Existing Assessment Codebase**
    - **Description:** Review current assessment-related code, identify reusable components, and document the current assessment flow. 
@@ -43,8 +41,6 @@ This document serves as the central project management framework for MentorMe, t
      - Evaluate the current question bank for coverage and quality
      - Identify any performance or scalability issues
    - **Dependencies:** None
-   - **Assigned:** TBD
-   - **Estimated Hours:** 16
    - **Technical Notes:** 
      - Focus on `backend/assessment.py`, `assessment_api_integration.py` and related files
      - Assess feasibility of consolidating Python and TypeScript assessment code
@@ -53,9 +49,7 @@ This document serves as the central project management framework for MentorMe, t
 2. ⬜ [EP-001-02] **Design Dynamic Question Selection Algorithm**
    - **Description:** Create specification for an algorithm that selects questions based on user performance, adjusting difficulty appropriately.
    - **Requirements:** TBD after investigation phase
-   - **Dependencies:** [EP-001-01]
-   - **Assigned:** TBD
-   - **Estimated Hours:** 24
+   - **Dependencies:** None
    - **Technical Notes:** TBD
 
 ## Tracking Progress
@@ -73,13 +67,13 @@ Weekly status updates will be added below to track overall project progress.
 
 1. **Adding a New Epic:**
    - Assign the next available epic number (e.g., EP-002)
-   - Include description, business value, success criteria, and target completion
+   - Include description, business value, and success criteria
    - Add initial tasks if known
 
 2. **Adding Tasks to an Epic:**
    - Assign the next available task number for the epic (e.g., EP-001-03)
    - Include detailed description and requirements
-   - Note dependencies, assignee, and estimated hours
+   - Note dependencies if applicable
    - Add technical notes as needed
 
 3. **Updating Task Status:**
