@@ -155,15 +155,21 @@ function Router() {
     <Switch>
       {/* Public routes */}
       <Route path="/login">
-        {isAuthenticated ? <Redirect to="/dashboard" /> : <Login />}
+        <PublicRoute redirectAuthenticated>
+          <Login />
+        </PublicRoute>
       </Route>
 
       <Route path="/register">
-        {isAuthenticated ? <Redirect to="/dashboard" /> : <Register />}
+        <PublicRoute redirectAuthenticated>
+          <Register />
+        </PublicRoute>
       </Route>
 
       <Route path="/business-signup">
-        <BusinessSignup />
+        <PublicRoute>
+          <BusinessSignup />
+        </PublicRoute>
       </Route>
 
       {/* Root path shows landing page for public users or dashboard for authenticated users */}
@@ -173,17 +179,15 @@ function Router() {
 
       {/* Protected routes */}
       <Route path="/dashboard">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        <ProtectedRoute>
           <Dashboard />
-        }
+        </ProtectedRoute>
       </Route>
 
       <Route path="/dashboard-enhanced">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        <ProtectedRoute>
           <EnhancedDashboard />
-        }
+        </ProtectedRoute>
       </Route>
 
       <Route path="/progression-map">
