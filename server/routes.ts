@@ -143,7 +143,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register assessment question routes for the enhanced AI assessment
   try {
-    const assessmentQuestionRoutes = (await import('./routes/assessment-questions')).default;
     app.use(assessmentQuestionRoutes);
     console.log("Assessment question routes registered successfully");
   } catch (error) {
