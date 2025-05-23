@@ -17,7 +17,11 @@ import {
   moduleRatings, type ModuleRating, type InsertModuleRating,
   communityModules, type CommunityModule, type InsertCommunityModule,
   teacherSelfAssessments, type TeacherSelfAssessment, type InsertTeacherSelfAssessment,
-  teacherInvitations, type TeacherInvitation, type InsertTeacherInvitation
+  teacherInvitations, type TeacherInvitation, type InsertTeacherInvitation,
+  avatarCategories, type AvatarCategory, type InsertAvatarCategory,
+  avatarItems, type AvatarItem, type InsertAvatarItem,
+  userAvatars, type UserAvatar, type InsertUserAvatar,
+  userAvatarItems, type UserAvatarItem, type InsertUserAvatarItem
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, lt, or, sql } from "drizzle-orm";
@@ -150,6 +154,29 @@ export interface IStorage {
   createSelfAssessment(assessment: InsertSelfAssessment): Promise<SelfAssessment>;
   getLatestSelfAssessment(userId: number): Promise<SelfAssessment | undefined>;
   updateUserTeacherLevel(userId: number, teacherLevel: string): Promise<User>;
+  
+  // Avatar category operations
+  getAllAvatarCategories(): Promise<AvatarCategory[]>;
+  getAvatarCategory(id: number): Promise<AvatarCategory | undefined>;
+  createAvatarCategory(category: InsertAvatarCategory): Promise<AvatarCategory>;
+  
+  // Avatar item operations
+  getAllAvatarItems(): Promise<AvatarItem[]>;
+  getAvatarItemsByCategory(categoryId: number): Promise<AvatarItem[]>;
+  getAvatarItem(id: number): Promise<AvatarItem | undefined>;
+  createAvatarItem(item: InsertAvatarItem): Promise<AvatarItem>;
+  
+  // User avatar operations
+  getUserAvatars(userId: number): Promise<UserAvatar[]>;
+  getUserActiveAvatar(userId: number): Promise<UserAvatar | undefined>;
+  createUserAvatar(avatar: InsertUserAvatar): Promise<UserAvatar>;
+  updateUserAvatar(id: number, avatarData: Partial<InsertUserAvatar>): Promise<UserAvatar>;
+  setActiveAvatar(userId: number, avatarId: number): Promise<boolean>;
+  
+  // User avatar items operations
+  getUserAvatarItems(userId: number): Promise<UserAvatarItem[]>;
+  purchaseAvatarItem(userId: number, itemId: number): Promise<UserAvatarItem>;
+  checkUserOwnsAvatarItem(userId: number, itemId: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -636,6 +663,187 @@ export class MemStorage implements IStorage {
 
 // Create a DatabaseStorage class that implements the IStorage interface
 export class DatabaseStorage implements IStorage {
+  // Avatar categories operations
+  async getAllAvatarCategories(): Promise<AvatarCategory[]> {
+    return await db.select().from(avatarCategories).orderBy(avatarCategories.displayOrder);
+  }
+  
+  async getAvatarCategory(id: number): Promise<AvatarCategory | undefined> {
+    const [category] = await db.select().from(avatarCategories).where(eq(avatarCategories.id, id));
+    return category;
+  }
+  
+  async createAvatarCategory(category: InsertAvatarCategory): Promise<AvatarCategory> {
+    const [newCategory] = await db.insert(avatarCategories).values(category).returning();
+    return newCategory;
+  }
+  
+  // Avatar items operations
+  async getAllAvatarItems(): Promise<AvatarItem[]> {
+    return await db.select().from(avatarItems);
+  }
+  
+  async getAvatarItemsByCategory(categoryId: number): Promise<AvatarItem[]> {
+    return await db.select().from(avatarItems).where(eq(avatarItems.categoryId, categoryId));
+  }
+  
+  async getAvatarItem(id: number): Promise<AvatarItem | undefined> {
+    const [item] = await db.select().from(avatarItems).where(eq(avatarItems.id, id));
+    return item;
+  }
+  
+  async createAvatarItem(item: InsertAvatarItem): Promise<AvatarItem> {
+    const [newItem] = await db.insert(avatarItems).values(item).returning();
+    return newItem;
+  }
+  
+  // User avatar operations
+  async getUserAvatars(userId: number): Promise<UserAvatar[]> {
+    return await db.select().from(userAvatars).where(eq(userAvatars.userId, userId));
+  }
+  
+  async getUserActiveAvatar(userId: number): Promise<UserAvatar | undefined> {
+    const [avatar] = await db.select()
+      .from(userAvatars)
+      .where(and(
+        eq(userAvatars.userId, userId),
+        eq(userAvatars.isActive, true)
+      ));
+    return avatar;
+  }
+  
+  async createUserAvatar(avatar: InsertUserAvatar): Promise<UserAvatar> {
+    // If this is set to active, deactivate all other avatars first
+    if (avatar.isActive) {
+      await db.update(userAvatars)
+        .set({ isActive: false })
+        .where(eq(userAvatars.userId, avatar.userId));
+    }
+    
+    const [newAvatar] = await db.insert(userAvatars)
+      .values({
+        ...avatar,
+        components: avatar.components || {}, // Ensure components is not null
+        updatedAt: new Date()
+      })
+      .returning();
+    
+    return newAvatar;
+  }
+  
+  async updateUserAvatar(id: number, avatarData: Partial<InsertUserAvatar>): Promise<UserAvatar> {
+    // If setting to active, deactivate all other avatars first
+    if (avatarData.isActive) {
+      const [avatar] = await db.select().from(userAvatars).where(eq(userAvatars.id, id));
+      
+      if (avatar) {
+        await db.update(userAvatars)
+          .set({ isActive: false })
+          .where(and(
+            eq(userAvatars.userId, avatar.userId),
+            sql`${userAvatars.id} != ${id}`
+          ));
+      }
+    }
+    
+    const [updatedAvatar] = await db.update(userAvatars)
+      .set({
+        ...avatarData,
+        updatedAt: new Date()
+      })
+      .where(eq(userAvatars.id, id))
+      .returning();
+    
+    return updatedAvatar;
+  }
+  
+  async setActiveAvatar(userId: number, avatarId: number): Promise<boolean> {
+    // First deactivate all avatars for this user
+    await db.update(userAvatars)
+      .set({ isActive: false })
+      .where(eq(userAvatars.userId, userId));
+    
+    // Then activate the requested avatar
+    const [updatedAvatar] = await db.update(userAvatars)
+      .set({ isActive: true, updatedAt: new Date() })
+      .where(and(
+        eq(userAvatars.id, avatarId),
+        eq(userAvatars.userId, userId)
+      ))
+      .returning();
+    
+    return !!updatedAvatar;
+  }
+  
+  // User avatar items operations
+  async getUserAvatarItems(userId: number): Promise<UserAvatarItem[]> {
+    return await db.select()
+      .from(userAvatarItems)
+      .where(eq(userAvatarItems.userId, userId));
+  }
+  
+  async purchaseAvatarItem(userId: number, itemId: number): Promise<UserAvatarItem> {
+    // First check if the user already owns this item
+    const existingItems = await db.select()
+      .from(userAvatarItems)
+      .where(and(
+        eq(userAvatarItems.userId, userId),
+        eq(userAvatarItems.itemId, itemId)
+      ));
+    
+    if (existingItems.length > 0) {
+      return existingItems[0]; // User already owns this item
+    }
+    
+    // Get the item to check its cost
+    const [item] = await db.select().from(avatarItems).where(eq(avatarItems.id, itemId));
+    
+    if (!item) {
+      throw new Error("Avatar item not found");
+    }
+    
+    // Get the user to check and update points
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    
+    if (!user) {
+      throw new Error("User not found");
+    }
+    
+    // Check if user has enough points
+    if (user.points < item.pointsCost) {
+      throw new Error("Not enough points to purchase this item");
+    }
+    
+    // Start a transaction
+    return await db.transaction(async (tx) => {
+      // Deduct points from user
+      await tx.update(users)
+        .set({ points: user.points - item.pointsCost })
+        .where(eq(users.id, userId));
+      
+      // Create the user avatar item record
+      const [userItem] = await tx.insert(userAvatarItems)
+        .values({
+          userId,
+          itemId,
+        })
+        .returning();
+      
+      return userItem;
+    });
+  }
+  
+  async checkUserOwnsAvatarItem(userId: number, itemId: number): Promise<boolean> {
+    const items = await db.select()
+      .from(userAvatarItems)
+      .where(and(
+        eq(userAvatarItems.userId, userId),
+        eq(userAvatarItems.itemId, itemId)
+      ));
+    
+    return items.length > 0;
+  }
+  
   // School operations
   async getSchool(id: number): Promise<School | undefined> {
     const [school] = await db.select({
