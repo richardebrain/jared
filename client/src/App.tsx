@@ -65,34 +65,49 @@ import InviteTeachersPage from "@/pages/invite-teachers";
 import AvatarCustomizationPage from "@/pages/avatar-customization";
 
 function Router() {
-  // We don't need to get authentication state here anymore - 
-  // it will be handled by the ProtectedRoute and PublicRoute components
+  // Let's simplify this temporarily to get things working
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  
+  // Load auth state on mount
+  useEffect(() => {
+    // Simple auth check using the /api/auth/me endpoint
+    fetch('/api/auth/me')
+      .then(response => {
+        if (response.ok) return response.json();
+        throw new Error('Not authenticated');
+      })
+      .then(userData => {
+        console.log('Auth check: User authenticated');
+        setUser(userData);
+        setIsAuthenticated(true);
+        setIsLoading(false);
+      })
+      .catch(err => {
+        console.log('Auth check: Not authenticated');
+        setIsAuthenticated(false);
+        setIsLoading(false);
+      });
+  }, []);
   return (
     <Switch>
       {/* Public routes */}
       <Route path="/login">
-        <PublicRoute redirectAuthenticated>
-          <Login />
-        </PublicRoute>
+        {isAuthenticated ? <Redirect to="/dashboard" /> : <Login />}
       </Route>
 
       <Route path="/register">
-        <PublicRoute redirectAuthenticated>
-          <Register />
-        </PublicRoute>
+        {isAuthenticated ? <Redirect to="/dashboard" /> : <Register />}
       </Route>
 
       <Route path="/business-signup">
-        <PublicRoute>
-          <BusinessSignup />
-        </PublicRoute>
+        <BusinessSignup />
       </Route>
 
-      {/* Root path shows landing page for public users */}
+      {/* Root path shows landing page for public users or dashboard for authenticated users */}
       <Route path="/">
-        <PublicRoute>
-          <LandingPage />
-        </PublicRoute>
+        {isAuthenticated ? <Dashboard /> : <LandingPage />}
       </Route>
 
       {/* Protected routes */}
@@ -444,20 +459,7 @@ function Router() {
 }
 
 function App() {
-  const { isLoading } = useAuth();
-  
-  // Show a loading spinner while authentication is being checked
-  if (isLoading) {
-    return (
-      <TooltipProvider>
-        <Toaster />
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-background/90">
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      </TooltipProvider>
-    );
-  }
-  
+  // No auth check at top level - moved to Router component to avoid circular dependency
   return (
     <TooltipProvider>
       <Toaster />
