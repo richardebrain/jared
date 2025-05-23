@@ -1,0 +1,470 @@
+openapi: 3.0.0
+info:
+  title: MentorMe API
+  description: API documentation for the MentorMe professional development platform for early childhood educators
+  version: 1.0.0
+  contact:
+    name: MentorMe Support
+servers:
+  - url: /api
+    description: API base URL
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: connect.sid
+      description: Session cookie for authentication
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Error message
+      required:
+        - message
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        language:
+          type: string
+        nativeLanguage:
+          type: string
+        timeZone:
+          type: string
+        profilePicture:
+          type: string
+          nullable: true
+        learningStyle:
+          type: object
+          properties:
+            visual:
+              type: integer
+            reading:
+              type: integer
+            auditory:
+              type: integer
+            preferred:
+              type: string
+              nullable: true
+            kinesthetic:
+              type: integer
+        bearBucks:
+          type: integer
+        points:
+          type: integer
+        lifetimePoints:
+          type: integer
+        level:
+          type: integer
+        streak:
+          type: integer
+        lastActive:
+          type: string
+          format: date-time
+        achievementCount:
+          type: integer
+        isAdmin:
+          type: boolean
+        isSchoolAdmin:
+          type: boolean
+        isOwner:
+          type: boolean
+        schoolId:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        active_avatar_id:
+          type: integer
+          nullable: true
+    CoreValueShoutOut:
+      type: object
+      properties:
+        id:
+          type: integer
+        nominatorId:
+          type: integer
+        nomineeId:
+          type: integer
+        message:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        nominator:
+          $ref: '#/components/schemas/User'
+        nominee:
+          $ref: '#/components/schemas/User'
+    Module:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        difficultyLevel:
+          type: integer
+        estimatedDuration:
+          type: integer
+        points:
+          type: integer
+        requiredForCertification:
+          type: boolean
+        thumbnail:
+          type: string
+        sections:
+          type: array
+          items:
+            type: object
+        authorId:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        isVisible:
+          type: boolean
+    Assessment:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        type:
+          type: string
+        overallScore:
+          type: number
+          format: float
+        detailedResults:
+          type: object
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+    Progress:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        moduleId:
+          type: integer
+        progress:
+          type: number
+          format: float
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+    Game:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        gameId:
+          type: integer
+        score:
+          type: integer
+        duration:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+  responses:
+    Unauthorized:
+      description: Unauthorized - user not logged in
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Forbidden - user does not have required permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+security:
+  - sessionAuth: []
+paths:
+  /auth/me:
+    get:
+      summary: Get current user
+      description: Returns information about the currently authenticated user
+      responses:
+        '200':
+          description: Current user information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /core-values-shoutouts:
+    get:
+      summary: Get core values shout outs
+      description: Returns a list of all core values shout outs
+      responses:
+        '200':
+          description: List of core values shout outs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CoreValueShoutOut'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /shout-outs:
+    get:
+      summary: Get shout outs (legacy endpoint)
+      description: Returns a list of all shout outs (alias for /core-values-shoutouts)
+      deprecated: true
+      responses:
+        '200':
+          description: List of shout outs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CoreValueShoutOut'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /modules:
+    get:
+      summary: Get all modules
+      description: Returns a list of all modules
+      responses:
+        '200':
+          description: List of modules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Module'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /modules/management:
+    get:
+      summary: Get all modules with visibility status
+      description: Returns a list of all modules with visibility status for admin panel
+      responses:
+        '200':
+          description: List of modules with visibility status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Module'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /modules/visible:
+    get:
+      summary: Get visible modules
+      description: Returns a list of visible modules for dashboard
+      responses:
+        '200':
+          description: List of visible modules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Module'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /modules/{id}/visibility:
+    patch:
+      summary: Update module visibility
+      description: Update the visibility status of a module
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Module ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                visible:
+                  type: boolean
+              required:
+                - visible
+      responses:
+        '200':
+          description: Module visibility updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Module'
+        '400':
+          description: Invalid module ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /assessment:
+    get:
+      summary: Assessment system root
+      description: Base route for the assessment API adapter
+      responses:
+        '200':
+          description: Assessment system information
+          content:
+            application/json:
+              schema:
+                type: object
+  /users:
+    get:
+      summary: Get all users
+      description: Returns a list of all users
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /personalized-modules/{userId}:
+    get:
+      summary: Get personalized modules for user
+      description: Returns a list of personalized modules for a specific user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      responses:
+        '200':
+          description: List of personalized modules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Module'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /community-modules/top:
+    get:
+      summary: Get top community modules
+      description: Returns a list of top-rated community modules
+      responses:
+        '200':
+          description: List of top community modules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Module'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /assessments:
+    get:
+      summary: Get user assessments
+      description: Returns a list of assessments for the current user
+      responses:
+        '200':
+          description: List of assessments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Assessment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /progress:
+    get:
+      summary: Get user progress
+      description: Returns a list of module progress records for the current user
+      responses:
+        '200':
+          description: List of progress records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Progress'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /games/history:
+    get:
+      summary: Get user game history
+      description: Returns a list of game history records for the current user
+      responses:
+        '200':
+          description: List of game history records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Game'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
