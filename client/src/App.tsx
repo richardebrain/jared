@@ -64,13 +64,9 @@ import AdminModulesPage from "@/pages/admin-modules";
 import InviteTeachersPage from "@/pages/invite-teachers";
 import AvatarCustomizationPage from "@/pages/avatar-customization";
 
-// We're using the imported ProtectedRoute and PublicRoute components from '@/components/ProtectedRoute'
-// which have full TypeScript type checking and use the auth context properly
-
 function Router() {
-  // Use the authentication context hook for consistent auth across the app
-  const auth = useAuth();
-  const { isAuthenticated, isLoading, user, isAdmin, isOwner } = auth;
+  // This component needs access to auth state
+  const { isAuthenticated, isLoading, user, isAdmin, isOwner } = useAuth();
   return (
     <Switch>
       {/* Public routes */}
@@ -472,19 +468,11 @@ function Router() {
 }
 
 function App() {
-  // Get authentication state directly in App component
-  const { isAuthenticated, isLoading, isAdmin, isOwner } = useAuth();
-  
   return (
     <TooltipProvider>
       <Toaster />
       <ErrorBoundary>
-        <Router 
-          isAuthenticated={isAuthenticated} 
-          isLoading={isLoading} 
-          isAdmin={isAdmin} 
-          isOwner={isOwner} 
-        />
+        <Router />
       </ErrorBoundary>
     </TooltipProvider>
   );
