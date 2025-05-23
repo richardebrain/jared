@@ -4,15 +4,14 @@
  * This script populates the database with initial avatar categories and items
  * for the avatar customization system.
  */
-const { pool } = require('../db');
-const { db } = require('../db');
-const { avatarCategories, avatarItems } = require('../../shared/schema');
-const { eq } = require('drizzle-orm');
+import { pool, db } from '../db.js';
+import { avatarCategories, avatarItems } from '../../shared/schema.js';
+import { eq } from 'drizzle-orm';
 
 /**
  * Seeds the database with avatar categories and items
  */
-async function seedAvatars() {
+export async function seedAvatars() {
   try {
     console.log("Checking for existing avatar categories...");
     const existingCategories = await db.select().from(avatarCategories);
