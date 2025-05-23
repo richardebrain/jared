@@ -9,49 +9,15 @@
 import { queryClient } from "../lib/queryClient";
 
 /**
- * Fix authentication loop issues by stabilizing the auth state
- * Call this function on app initialization
+ * Simple component for protecting routes with authentication
+ * This component can be exported and used in the main App router
+ * Instead of conditional rendering which causes React updates loops
  */
-export function fixAuthenticationLoop() {
-  // Create a safer way to prevent redundant auth updates
-  const authUpdateCount: Record<string, number> = {};
-  const MAX_UPDATES_PER_SECOND = 3;
-  const DETECTION_WINDOW_MS = 1000;
-  
-  // Monkey patch the query cache's notify function
-  const originalNotify = queryClient.getQueryCache().notify;
-  
-  queryClient.getQueryCache().notify = function(...args) {
-    // Check if this is an authentication query update
-    const event = args[0] as any;
-    if (event?.query?.queryKey && 
-        Array.isArray(event.query.queryKey) && 
-        event.query.queryKey[0] === "/api/auth/me") {
-      
-      const now = Date.now();
-      const key = now - (now % DETECTION_WINDOW_MS); // Current second timeframe
-      
-      // Increment the counter for this timeframe
-      authUpdateCount[key] = (authUpdateCount[key] || 0) + 1;
-      
-      // If too many updates, log and break the cycle
-      if (authUpdateCount[key] > MAX_UPDATES_PER_SECOND) {
-        console.log(`Prevented auth update loop: ${authUpdateCount[key]} updates in < 1s`);
-        
-        // Clean up old counters
-        Object.keys(authUpdateCount).forEach(timeKey => {
-          if (Number(timeKey) < now - 5000) {
-            delete authUpdateCount[timeKey];
-          }
-        });
-        
-        return; // Skip this update
-      }
-    }
-    
-    // Call original method for all other cases or valid auth updates
-    return originalNotify.apply(queryClient.getQueryCache(), args);
-  };
+export function createAuthComponents() {
+  // Create flag in sessionStorage to prevent auth redirect loops
+  if (!sessionStorage.getItem('auth_check_count')) {
+    sessionStorage.setItem('auth_check_count', '0');
+  }
   
   // Add safeguard to prevent repeated redirects
   const originalReplace = window.location.replace;
@@ -75,6 +41,65 @@ export function fixAuthenticationLoop() {
     // Proceed with the redirect
     return originalReplace.call(window.location, url);
   };
+}
+
+/**
+ * Fix authentication loop issues by stabilizing the auth state
+ * Call this function on app initialization
+ */
+export function fixAuthenticationLoop() {
+  // Create a safer way to prevent redundant auth updates
+  const authUpdateCount: Record<string, number> = {};
+  const MAX_UPDATES_PER_SECOND = 3;
+  const DETECTION_WINDOW_MS = 1000;
   
-  console.log('Authentication loop protection installed');
+  try {
+    // Monkey patch the query cache's notify function
+    const originalNotify = queryClient.getQueryCache().notify;
+    
+    queryClient.getQueryCache().notify = function(...args) {
+      try {
+        // Check if this is an authentication query update
+        const event = args[0] as any;
+        if (event?.query?.queryKey && 
+            Array.isArray(event.query.queryKey) && 
+            event.query.queryKey[0] === "/api/auth/me") {
+          
+          const now = Date.now();
+          const key = now - (now % DETECTION_WINDOW_MS); // Current second timeframe
+          
+          // Increment the counter for this timeframe
+          authUpdateCount[key] = (authUpdateCount[key] || 0) + 1;
+          
+          // If too many updates, log and break the cycle
+          if (authUpdateCount[key] > MAX_UPDATES_PER_SECOND) {
+            console.log(`Prevented auth update loop: ${authUpdateCount[key]} updates in < 1s`);
+            
+            // Clean up old counters
+            Object.keys(authUpdateCount).forEach(timeKey => {
+              if (Number(timeKey) < now - 5000) {
+                delete authUpdateCount[timeKey];
+              }
+            });
+            
+            return; // Skip this update
+          }
+        }
+        
+        // Call original method for all other cases or valid auth updates
+        return originalNotify.apply(queryClient.getQueryCache(), args);
+      } catch (error) {
+        console.error("Error in patched notify function:", error);
+        // Fall back to original function if our patch fails
+        return originalNotify.apply(queryClient.getQueryCache(), args);
+      }
+    };
+    
+    // Setup protection for login redirect loops
+    createAuthComponents();
+    
+    console.log('Authentication loop protection installed');
+  } catch (error) {
+    console.error("Error setting up authentication loop protection:", error);
+  }
 }
