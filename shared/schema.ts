@@ -54,6 +54,8 @@ export const users = pgTable("users", {
   nativeLanguage: text("native_language").notNull(),
   timeZone: text("time_zone").notNull(),
   profilePicture: text("profile_picture"),
+  // Avatar customization fields
+  activeAvatarId: integer("active_avatar_id"), // Reference to the current avatar configuration
   learningStyle: json("learning_style").$type<{
     visual: number,
     auditory: number,
@@ -416,12 +418,118 @@ export const insertGameCompletionSchema = createInsertSchema(gameCompletions).om
   completedAt: true,
 });
 
+// Avatar item categories table
+export const avatarCategories = pgTable("avatar_categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(), // head, hair, eyes, clothes, accessories, etc.
+  displayOrder: integer("display_order").default(0), // For ordering in UI
+  isLayerable: boolean("is_layerable").default(false), // Whether this category can be worn with other items
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertAvatarCategorySchema = createInsertSchema(avatarCategories).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Avatar items table for customization pieces
+export const avatarItems = pgTable("avatar_items", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  categoryId: integer("category_id").notNull().references(() => avatarCategories.id),
+  svgPath: text("svg_path").notNull(), // Path to SVG asset
+  pointsCost: integer("points_cost").notNull().default(50), // Cost in points
+  levelRequired: integer("level_required").default(1), // Minimum level to purchase
+  rarity: text("rarity").default("common"), // common, uncommon, rare, epic, legendary
+  isDefault: boolean("is_default").default(false), // Default items are free and available to all
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertAvatarItemSchema = createInsertSchema(avatarItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+// User avatars - users can create and save multiple avatar configurations
+export const userAvatars = pgTable("user_avatars", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  name: text("name").notNull(), // User-given name for this avatar
+  isActive: boolean("is_active").default(false), // Whether this is the currently active avatar
+  components: json("components").$type<{
+    [categoryId: string]: number // Category ID to item ID mapping
+  }>().notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertUserAvatarSchema = createInsertSchema(userAvatars).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// User purchased avatar items
+export const userAvatarItems = pgTable("user_avatar_items", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  itemId: integer("item_id").notNull().references(() => avatarItems.id),
+  purchasedAt: timestamp("purchased_at").defaultNow(),
+});
+
+export const insertUserAvatarItemSchema = createInsertSchema(userAvatarItems).omit({
+  id: true,
+  purchasedAt: true,
+});
+
 export type EducationalGame = typeof educationalGames.$inferSelect;
 export type InsertEducationalGame = z.infer<typeof insertEducationalGameSchema>;
 export type GameCompletion = typeof gameCompletions.$inferSelect;
 export type InsertGameCompletion = z.infer<typeof insertGameCompletionSchema>;
 export type TeacherMessage = typeof teacherMessages.$inferSelect;
 export type InsertTeacherMessage = z.infer<typeof insertTeacherMessageSchema>;
+
+// Avatar relations
+export const avatarCategoriesRelations = relations(avatarCategories, ({ many }) => ({
+  items: many(avatarItems)
+}));
+
+export const avatarItemsRelations = relations(avatarItems, ({ one, many }) => ({
+  category: one(avatarCategories, {
+    fields: [avatarItems.categoryId],
+    references: [avatarCategories.id]
+  }),
+  userItems: many(userAvatarItems)
+}));
+
+export const userAvatarsRelations = relations(userAvatars, ({ one }) => ({
+  user: one(users, {
+    fields: [userAvatars.userId],
+    references: [users.id]
+  })
+}));
+
+export const userAvatarItemsRelations = relations(userAvatarItems, ({ one }) => ({
+  user: one(users, {
+    fields: [userAvatarItems.userId],
+    references: [users.id]
+  }),
+  item: one(avatarItems, {
+    fields: [userAvatarItems.itemId],
+    references: [avatarItems.id]
+  })
+}));
+
+// Export the types for the avatar-related tables
+export type AvatarCategory = typeof avatarCategories.$inferSelect;
+export type InsertAvatarCategory = z.infer<typeof insertAvatarCategorySchema>;
+export type AvatarItem = typeof avatarItems.$inferSelect;
+export type InsertAvatarItem = z.infer<typeof insertAvatarItemSchema>;
+export type UserAvatar = typeof userAvatars.$inferSelect;
+export type InsertUserAvatar = z.infer<typeof insertUserAvatarSchema>;
+export type UserAvatarItem = typeof userAvatarItems.$inferSelect;
+export type InsertUserAvatarItem = z.infer<typeof insertUserAvatarItemSchema>;
 
 export const assessmentsRelations = relations(assessments, ({ one }) => ({
   user: one(users, {
@@ -546,6 +654,9 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   userItems: many(userItems),
   spinGameRewards: many(spinGameRewards),
   moduleRatings: many(moduleRatings),
+  // Avatar customization relations
+  userAvatars: many(userAvatars),
+  avatarItems: many(userAvatarItems),
   receivedMessages: many(teacherMessages, { relationName: "recipient" }),
   sentMessages: many(teacherMessages, { relationName: "sender" })
 }));
