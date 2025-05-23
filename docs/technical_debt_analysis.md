@@ -8,13 +8,7 @@ This document analyzes the current state of the MentorMe codebase, identifying t
 
 ### Schema Evolution Problems
 
-1. **Missing `active_avatar_id` Column**
-   - Multiple error logs show: `column "active_avatar_id" does not exist`
-   - This affects critical API endpoints including `/api/users`, `/api/progress`, etc.
-   - The application code expects this column but it's missing from the database schema
-   - Impact: Causes API errors and prevents proper avatar functionality
-
-2. **Inconsistent Database Migration Strategy**
+1. **Inconsistent Database Migration Strategy**
    - Multiple incompatible migration approaches used throughout the codebase:
      - Raw SQL migrations in `server/fixDatabaseSchema.ts`
      - SQL embedded in TypeScript in `server/fix-schemas.ts`
@@ -199,14 +193,12 @@ This document analyzes the current state of the MentorMe codebase, identifying t
 
 ### High Priority (Fix Immediately)
 
-1. **Database Schema Alignment and Migration Strategy**
-   - Implement the `active_avatar_id` column migration as documented in `database_migration_plan.md`
+1. **Database Migration Strategy Standardization**
    - Adopt the "schema-push" approach recommended in Drizzle documentation:
      * Use TypeScript Drizzle schema as the single source of truth
      * Push schema changes directly to the database using `drizzle-kit push`
      * Remove all ad-hoc migration scripts after consolidation
    - Create a schema version tracking mechanism
-   - Resolve TypeScript errors related to missing database fields
    - Document the new migration process for all developers
 
 2. **API Error Handling Standardization**
