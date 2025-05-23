@@ -73,6 +73,9 @@ export default function AvatarCustomizationPage() {
     queryKey: ["/api/avatars/user-avatars"],
   });
   
+  // Ensure userAvatars is always an array
+  const avatarsArray = Array.isArray(userAvatars) ? userAvatars : [];
+  
   // Fetch user's purchased items
   const { data: userItems = [] } = useQuery({
     queryKey: ["/api/avatars/user-avatar-items"],
@@ -89,9 +92,9 @@ export default function AvatarCustomizationPage() {
     },
     onError: () => {
       // If no active avatar, create one if the user has avatars
-      if (userAvatars.length > 0) {
-        setSelectedAvatar(userAvatars[0]);
-        setCustomization(userAvatars[0].components || {});
+      if (avatarsArray.length > 0) {
+        setSelectedAvatar(avatarsArray[0]);
+        setCustomization(avatarsArray[0].components || {});
       }
     }
   });
@@ -203,7 +206,7 @@ export default function AvatarCustomizationPage() {
   
   // Create a new avatar if none exists
   const handleCreateAvatar = () => {
-    const name = `Avatar ${userAvatars.length + 1}`;
+    const name = `Avatar ${avatarsArray.length + 1}`;
     createAvatarMutation.mutate({ name });
   };
   
@@ -324,7 +327,7 @@ export default function AvatarCustomizationPage() {
           
           {/* Customize Tab */}
           <TabsContent value="customize">
-            {userAvatars.length === 0 ? (
+            {avatarsArray.length === 0 ? (
               <Card>
                 <CardHeader>
                   <CardTitle>Create Your First Avatar</CardTitle>
@@ -566,7 +569,7 @@ export default function AvatarCustomizationPage() {
                 </Button>
               </CardHeader>
               <CardContent>
-                {userAvatars.length === 0 ? (
+                {avatarsArray.length === 0 ? (
                   <div className="p-8 text-center">
                     <Alert>
                       <AlertCircle className="h-4 w-4" />
