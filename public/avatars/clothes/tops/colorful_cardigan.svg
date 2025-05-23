@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Colorful cardigan for teachers -->
+  <path d="M65,110 L65,180 L135,180 L135,110" fill="#9575CD" stroke="#000000" stroke-width="1"/>
+  
+  <!-- Cardigan opening -->
+  <path d="M95,110 L95,180 L105,180 L105,110" fill="#F0F4F8" stroke="#000000" stroke-width="0.5"/>
+  
+  <!-- Colorful pattern -->
+  <rect x="70" y="120" width="20" height="10" fill="#FF9800" rx="2" ry="2"/>
+  <rect x="70" y="140" width="20" height="10" fill="#4CAF50" rx="2" ry="2"/>
+  <rect x="70" y="160" width="20" height="10" fill="#F44336" rx="2" ry="2"/>
+  
+  <rect x="110" y="120" width="20" height="10" fill="#F44336" rx="2" ry="2"/>
+  <rect x="110" y="140" width="20" height="10" fill="#FF9800" rx="2" ry="2"/>
+  <rect x="110" y="160" width="20" height="10" fill="#4CAF50" rx="2" ry="2"/>
+</svg>

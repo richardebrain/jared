@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Professional collared shirt for teacher -->
+  <path d="M65,110 L65,180 L135,180 L135,110" fill="#5B9BD5" stroke="#000000" stroke-width="1"/>
+  
+  <!-- Collar -->
+  <path d="M85,110 L100,125 L115,110" fill="#ffffff" stroke="#000000" stroke-width="1"/>
+  
+  <!-- Buttons -->
+  <circle cx="100" cy="135" r="2" fill="#ffffff" stroke="#000000" stroke-width="0.5"/>
+  <circle cx="100" cy="150" r="2" fill="#ffffff" stroke="#000000" stroke-width="0.5"/>
+  <circle cx="100" cy="165" r="2" fill="#ffffff" stroke="#000000" stroke-width="0.5"/>
+</svg>

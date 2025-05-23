@@ -1,10 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-  <rect width="200" height="200" fill="#FFFACD"/>
-  <!-- Chalkboard outline -->
-  <rect x="40" y="30" width="120" height="80" fill="#2C3E50" stroke="#000000" stroke-width="2"/>
-  <!-- Window outline -->
-  <rect x="10" y="40" width="20" height="60" fill="#87CEEB" stroke="#000000" stroke-width="1"/>
-  <line x1="10" y1="70" x2="30" y2="70" stroke="#000000" stroke-width="1"/>
-  <line x1="20" y1="40" x2="20" y2="100" stroke="#000000" stroke-width="1"/>
+  <!-- Classroom wall background -->
+  <rect x="0" y="0" width="200" height="200" fill="#F0F4F8"/>
+  
+  <!-- Alphabet border at top -->
+  <rect x="10" y="10" width="180" height="20" fill="#FFD580" stroke="#000000" stroke-width="1"/>
+  <text x="20" y="25" font-family="Arial" font-size="10" fill="#333333">ABCDEFGHIJKLMNOPQRSTUVWXYZ</text>
+  
+  <!-- Chalkboard/whiteboard -->
+  <rect x="50" y="40" width="100" height="60" fill="#4CAF50" stroke="#333333" stroke-width="2"/>
+  
+  <!-- Windows -->
+  <rect x="10" y="50" width="30" height="40" fill="#ADD8E6" stroke="#000000" stroke-width="1"/>
+  <rect x="160" y="50" width="30" height="40" fill="#ADD8E6" stroke="#000000" stroke-width="1"/>
+  
+  <!-- Window curtains -->
+  <rect x="10" y="50" width="30" height="5" fill="#FFC0CB" stroke="#000000" stroke-width="0.5"/>
+  <rect x="160" y="50" width="30" height="5" fill="#FFC0CB" stroke="#000000" stroke-width="0.5"/>
 </svg>
