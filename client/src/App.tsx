@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { Switch, Route, Redirect, useLocation } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-// Import our simpler authentication component
-import { SimpleProtectedRoute } from "@/components/SimpleProtectedRoute";
+// Import only the required authentication hooks
+import { useAuth } from "@/lib/auth-context";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
@@ -292,21 +292,24 @@ function Router() {
       </Route>
 
       <Route path="/owner-dashboard">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <OwnerDashboardStandalone />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/settings/data-sources">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <DataSourcesPage />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/settings/platform-integrations">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <PlatformIntegrationsPage />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/beary-ai">
