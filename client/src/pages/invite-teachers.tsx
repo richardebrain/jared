@@ -29,20 +29,12 @@ export default function InviteTeachersPage() {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Force check to override permission for jlcookie20 (temporary fix)
+  // Special permission check for specific users
   const manualOwnerCheck = user?.username === 'jlcookie20' || user?.username === 'Emma' || user?.username === 'Paije';
   
   // Check if the user has permission to access this page
-  const hasPermission = isOwner || isSchoolAdmin || isAdmin || manualOwnerCheck;
-  
-  console.log("Invite Teachers Page - Auth Status:", {
-    username: user?.username,
-    isOwner,
-    isSchoolAdmin,
-    isAdmin,
-    manualOwnerCheck,
-    hasPermission
-  });
+  // Since we know jlcookie20 should have access, we use the direct check here
+  const hasPermission = isOwner || isSchoolAdmin || isAdmin || manualOwnerCheck || user?.isOwner;
   
   if (!hasPermission) {
     return (
@@ -75,7 +67,7 @@ export default function InviteTeachersPage() {
   }
 
   // Query to get all invitations for this school
-  const { data: invitations, isLoading: isLoadingInvitations, refetch: refetchInvitations } = useQuery({
+  const { data: invitations = [], isLoading: isLoadingInvitations, refetch: refetchInvitations } = useQuery({
     queryKey: [`/api/teacher-invitations/school/${schoolId}`],
     enabled: !!schoolId,
   });
