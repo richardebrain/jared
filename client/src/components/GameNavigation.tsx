@@ -31,9 +31,6 @@ export default function GameNavigation() {
   const [showSparkle, setShowSparkle] = useState<number | null>(null);
   const { isOwner, isSchoolAdmin, isAdmin } = useAuth();
   
-  // Check if user has admin privileges
-  const hasAdminAccess = isOwner || isSchoolAdmin || isAdmin;
-  
   // Define main navigation items
   const navigationItems: NavigationItem[] = [
     { 
@@ -77,15 +74,7 @@ export default function GameNavigation() {
       name: "Owner", 
       icon: <Building2 className="h-5 w-5" />, 
       path: "/owner-dashboard", 
-    },
-    // Only show Invite Teachers for users with admin privileges
-    ...(hasAdminAccess ? [{ 
-      name: "Invite Teachers", 
-      icon: <Mail className="h-5 w-5" />, 
-      path: "/invite-teachers", 
-      badge: "New",
-      highlight: true
-    }] : [])
+    }
   ];
   
   // When a menu item is clicked, show sparkle animation

@@ -36,7 +36,8 @@ import {
   Info,
   Award,
   School,
-  X
+  X,
+  Mail
 } from 'lucide-react';
 
 export default function AdminPage({ skipPasswordCheck = false }) {
@@ -964,15 +965,42 @@ export default function AdminPage({ skipPasswordCheck = false }) {
         </TabsContent>
         
         <TabsContent value="users">
-          <Card>
-            <CardHeader>
-              <CardTitle>User Management</CardTitle>
-              <CardDescription>Manage teacher accounts, progress, and performance</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AdminTools />
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle>User Management</CardTitle>
+                <CardDescription>Manage teacher accounts, progress, and performance</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AdminTools />
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="h-5 w-5 text-primary" />
+                  Teacher Invitations
+                </CardTitle>
+                <CardDescription>Invite new teachers to your school</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Send email invitations to teachers to join your school. They'll receive a link to create their account.
+                  </p>
+                  
+                  <Button 
+                    className="w-full"
+                    onClick={() => navigate('/invite-teachers')}
+                  >
+                    <Mail className="mr-2 h-4 w-4" />
+                    Invite Teachers
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
         
         <TabsContent value="reports">
