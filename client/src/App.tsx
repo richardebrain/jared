@@ -140,117 +140,136 @@ function Router() {
       </Route>
 
       <Route path="/assessment-results">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <AssessmentResults />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/learning-style">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <LearningStylePage />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/modules/:id">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <LearningModulePage />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/core-values-module">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <CoreValuesModulePage />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/core-values-module-new">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <CoreValuesModuleNew />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/micro-modules/:id">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <MicroModulePage />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/discussions/:id">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <DiscussionsPage />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/discussions">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <DiscussionsPage />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/modules">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <AllModules />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/core-values">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <CoreValuesPage />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/chapter-one">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <ChapterOnePage />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/mindful-mornings">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <MindfulMorningsPage />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/mindful-mornings-module">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <MindfulMorningsModulePage />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/classroom-music">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <ClassroomMusic />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/storytelling-demo">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <StorytellingDemoPage />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/core-values-shout-out">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <CoreValuesShoutOutPage />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/building-child">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <BuildingChildPage />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/video-resources">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <VideoResourcesPage />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/tools">
-        <ProtectedRoute>
+        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
+          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
           <ToolsPage />
-        </ProtectedRoute>
+        }
       </Route>
 
       <Route path="/settings/account">
