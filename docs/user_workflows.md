@@ -232,131 +232,306 @@ The MentorMe platform supports the following user roles, each with different per
 
 ## Personalized Learning Path System
 
-The personalized learning path is a core feature for early childhood educators. Here's a detailed breakdown of how it functions:
+The personalized learning path is the core feature for early childhood educators on the MentorMe platform. It delivers targeted professional development based on individual needs while addressing school requirements.
 
-### Initial Path Creation
+### Initial Path Creation in MVP
 
-1. **Data Collection**
-   - Learning style assessment results
-   - Knowledge domain baseline scores
-   - Teacher's self-identified goals
-   - School-required competencies
+1. **Baseline Data Collection**
+   - **Learning Style Assessment**: 
+     * Initial questionnaire identifying preferences (visual, auditory, reading/writing, kinesthetic)
+     * Teachers self-rate effectiveness of different learning approaches
+     * Example questions: "I learn best when I can see diagrams and illustrations" (visual) or "I prefer hands-on practice to understand new concepts" (kinesthetic)
+   
+   - **Knowledge Domain Assessment**:
+     * Results from mandatory onboarding assessment
+     * Performance scores across 6 early childhood domains
+     * Identified knowledge gaps and strength areas
+     * Difficulty level reached in each domain
+   
+   - **School Requirements**:
+     * Mandatory training modules set by school administrator
+     * Compliance requirements (health & safety, child protection)
+     * School-specific policy modules
+     * Required certification preparation
 
-2. **Path Generation**
-   - AI analyzes assessment results to identify knowledge gaps
-   - System considers learning style preferences
-   - Path balances required and interest-based content
-   - Initial sequence of 10-15 recommended modules created
+2. **Initial Path Algorithm**
+   - **Priority Calculation**:
+     * Knowledge gaps (score < 70% in domain) = Highest priority
+     * School-required modules = High priority
+     * Complementary content for strength areas = Medium priority
+     * Special interest areas = Lower priority
+   
+   - **Content Selection Factors**:
+     * 60% gap-filling content
+     * 30% school-required content
+     * 10% strength-building content
+   
+   - **Learning Style Integration**:
+     * Visual learners receive more video, diagram, and visual demonstration content
+     * Auditory learners receive more podcast, discussion, and lecture content
+     * Reading/writing learners receive more text-based and writing-reflection content
+     * Kinesthetic learners receive more interactive simulation and activity-based content
+     * For each recommended module, the system selects presentation format matching the dominant learning style
 
-### Adaptive Path Refinement
+### Learning Path Adaptation Mechanisms
 
-1. **Performance-Based Adjustments**
-   - Module quiz performance influences future recommendations
-   - Struggling areas receive additional content recommendations
-   - Strong performance areas advance to more challenging content
-   - System recognizes patterns in learning preferences
+1. **Performance-Based Triggers**
+   
+   The system modifies learning paths based on specific performance metrics:
+   
+   - **Low Module Quiz Performance** (< 70% correct)
+     * Generates supplemental content recommendations
+     * May repeat key concepts in different learning format
+     * Reduces difficulty level of subsequent content
+     * Example: Teacher struggles with behavior management quiz → System adds foundational module on child development psychology
+   
+   - **High Module Quiz Performance** (> 90% correct)
+     * Advances content difficulty
+     * Reduces similar content recommendations
+     * Offers opportunity to skip related introductory content
+     * Example: Teacher excels at curriculum planning → System offers advanced unit planning modules
+   
+   - **Completion Speed**
+     * Unusually quick completion with high scores triggers more challenging content
+     * Slow completion triggers additional support resources
+     * Consistent pace receives standard progression
+   
+   - **Engagement Patterns**
+     * High engagement with specific content types influences future recommendations
+     * Low engagement prompts learning format changes
+     * Example: Teacher consistently completes video modules but abandons text-based content → System prioritizes video format
 
-2. **Progress Milestones**
-   - Path includes specific milestone achievements
-   - Quarterly assessments reassess knowledge domains
-   - Major milestone achievements unlock special rewards
-   - Visualized progress journey shows growth over time
+2. **Content Balancing Rules**
+   
+   The system maintains balance between requirements and personalization:
+   
+   - **School Required vs. Personal Growth**
+     * Minimum 30% of recommendations must be school-required content
+     * Content alternates between required and personalized to maintain engagement
+     * School requirements front-loaded when time-sensitive (e.g., compliance deadlines)
+   
+   - **Theory vs. Practical Application**
+     * Maintains 40/60 ratio of theoretical to practical content
+     * Theoretical foundation provided before practical application
+     * Practical application follows knowledge acquisition in same domain
+   
+   - **Domain Coverage**
+     * No domain can represent more than 40% of active recommendations
+     * All domains receive minimum representation (at least 5%)
+     * Weaker domains receive proportionally more content
 
-### Path Components
+3. **Timeline and Scheduling Factors**
+   
+   The system considers timing and scheduling constraints:
+   
+   - **Time-to-Completion Estimates**
+     * Each module tagged with typical completion time
+     * Path considers available teacher time (set in preferences)
+     * Suggests daily/weekly goals based on teacher schedule
+   
+   - **Seasonal Relevance**
+     * Content aligned with academic calendar when appropriate
+     * Special topics for beginning/end of school year
+     * Timely topics prioritized (e.g., parent conferences, transitions)
+   
+   - **Certification Deadlines**
+     * System tracks certification expiration dates
+     * Required renewal content prioritized as deadlines approach
+     * Preparation content scheduled to complete before testing windows
 
-1. **Recommended Modules**
-   - Primary learning content organized by domain
-   - Sequenced by prerequisite knowledge requirements
-   - Labeled with difficulty and time commitment
-   - Includes mix of video, interactive, and reading content
+### Learning Path Components for Early Childhood Educators
 
-2. **Skill Practice Activities**
-   - Interactive application of learned concepts
-   - Scenario-based decision making
-   - Reflection prompts for knowledge integration
-   - Peer discussion opportunities
+1. **Module Types and Formats**
+   
+   The system offers diverse content formats aligned with early childhood practice:
+   
+   - **Video Demonstration Modules**
+     * Expert teachers demonstrating techniques
+     * Classroom scenarios with analysis
+     * Narrated examples of best practices
+     * Virtual classroom observation opportunities
+     * Example: "Effective Circle Time Management for 3-4 Year Olds"
+   
+   - **Interactive Case Studies**
+     * Scenario-based decision making
+     * Branching narratives with consequences
+     * Real-world problem solving with feedback
+     * Example: "Navigating Challenging Behaviors: What Would You Do?"
+   
+   - **Reflection and Application**
+     * Guided reflection on current classroom practice
+     * Implementation planning templates
+     * Documentation tools for classroom application
+     * Example: "Applying Learning Centers to Your Current Classroom"
+   
+   - **Resource Collections**
+     * Curated materials for classroom use
+     * Printable activities and assessment tools
+     * Parent communication templates
+     * Example: "STEM Activities for Preschool: Ready-to-Use Resources"
 
-3. **Knowledge Assessments**
-   - Periodic testing of domain knowledge
-   - Adaptive difficulty based on performance
-   - Detailed feedback and explanation
-   - Growth tracking compared to baseline
+2. **Practical Implementation Support**
+   
+   Content designed to bridge theory and classroom practice:
+   
+   - **Classroom Implementation Guides**
+     * Step-by-step instructions for implementing new techniques
+     * Materials lists and preparation guidance
+     * Troubleshooting common challenges
+     * Example: "Implementing Learning Centers: First Steps Guide"
+   
+   - **Peer Connection Opportunities**
+     * Discussion prompts for team learning
+     * Shared experiences from other teachers
+     * Collaborative challenge activities
+     * Example: "Mentor Circle: Discussing Child-Led Curriculum Planning"
+   
+   - **Environmental Assessment Tools**
+     * Classroom environment evaluation checklists
+     * Self-assessment of teaching practice
+     * Guided improvement planning
+     * Example: "ECERS Self-Assessment: Improving Your Physical Environment"
 
-4. **Certification Preparation**
-   - Content aligned with industry certifications
-   - Practice exams for certification readiness
-   - Documentation of completed requirements
-   - Certificate generation upon completion
+3. **Specialized Early Childhood Content**
+   
+   Domain-specific content aligned with quality standards:
+   
+   - **Child Development Modules**
+     * Age-specific developmental milestones
+     * Brain development and learning science
+     * Developmentally appropriate practice
+     * Example: "Understanding Executive Function in Preschoolers"
+   
+   - **Curriculum and Planning**
+     * Emergent curriculum techniques
+     * Child-centered activity planning
+     * Assessment and documentation methods
+     * Example: "Project Approach: Planning Child-Led Investigations"
+   
+   - **Family Engagement**
+     * Family communication strategies
+     * Parent conference preparation
+     * Cultural responsiveness
+     * Example: "Building Partnerships: Effective Family Communication"
+   
+   - **Health and Safety**
+     * Required certification preparation
+     * Crisis response procedures
+     * Health and wellness promotion
+     * Example: "Recognizing and Reporting: Child Protection Training"
 
 ## Assessment System Details
 
-The assessment system is designed to accurately measure teacher knowledge while providing a positive and constructive experience.
+The assessment system is designed to accurately measure early childhood educator knowledge while providing a constructive experience that aligns with professional development goals in the preschool teaching environment.
 
 ### Assessment Types
 
-1. **Baseline Assessment**
-   - Comprehensive evaluation across all domains
-   - Establishes initial knowledge levels
-   - Typically 30-45 questions
-   - Results seed the personalized learning path
+1. **Onboarding Baseline Assessment (MVP)**
+   - Mandatory comprehensive evaluation across all early childhood knowledge domains
+   - Based on ITERS/ECERS framework and CLASS assessment standards
+   - Covers classroom management, child development, safety, curriculum planning, and parent engagement
+   - Typically 30-45 questions (5-7 questions per domain)
+   - Results directly seed the initial personalized learning path
+   - Required for all teachers during first platform login
 
-2. **Domain-Specific Assessment**
-   - Focused on single knowledge area
-   - More in-depth than baseline
-   - Typically 15-20 questions
-   - Used for targeted improvement
+2. **Future Assessment Types (Post-MVP)**
+   - **Domain-Specific Assessment**: Focused evaluation of single knowledge area
+   - **Quick Knowledge Checks**: Brief assessments embedded within learning modules
+   - **Self-Assessment**: Reflection-based evaluation of teaching practice
+   - **Observational Assessment**: Integration of classroom observation data
 
-3. **Quick Knowledge Checks**
-   - Brief 3-5 question assessments
-   - Embedded within modules
-   - Immediate feedback provided
-   - Low-stakes formative assessment
+### Adaptive Difficulty Algorithm
 
-4. **Self-Assessment**
-   - Teacher evaluates own knowledge/skills
-   - Reflection-based responses
-   - Compared with objective assessments
-   - Helps identify perception vs. reality gaps
+1. **Initial Difficulty Determination**
+   - All teachers begin with medium difficulty questions (level 3 on 1-5 scale)
+   - Initial questions are carefully selected to represent core competencies in early childhood education
+   - Questions drawn from validated item bank aligned with NAEYC standards
+   - First 3-5 questions establish baseline performance before adaptation begins
 
-### Adaptive Question Selection
+2. **Difficulty Adjustment Metrics**
+   - Consecutive correct answers (3+) trigger difficulty increase (+1 level)
+   - Consecutive incorrect answers (2+) trigger difficulty decrease (-1 level)
+   - Mixed performance maintains current difficulty level
+   - Difficulty boundaries enforced (cannot go below level 1 or above level 5)
+   - Example progression:
+     * Start: Medium (level 3)
+     * Answer correctly 3 times → Difficulty increases to level 4
+     * Answer incorrectly 2 times → Difficulty decreases to level 3
+     * Mixed correct/incorrect → Remains at level 3
 
-1. **Difficulty Scaling**
-   - Initial questions at moderate difficulty
-   - Correct answers lead to more challenging questions
-   - Incorrect answers lead to easier questions
-   - System calibrates to find knowledge threshold
+3. **Domain-Specific Adaptation**
+   - Difficulty adjusts independently within each knowledge domain
+   - System tracks performance in:
+     * Child Development Knowledge
+     * Classroom Environment Management
+     * Curriculum Planning & Implementation
+     * Health & Safety Protocols
+     * Family Engagement Practices
+     * Professional Development Knowledge
+   - Teacher can excel in one domain while receiving extra support in others
 
-2. **Domain Coverage**
-   - Questions distributed across sub-domains
-   - Higher concentration in areas of uncertainty
-   - Reduced questioning in mastered areas
-   - Complete coverage over assessment cycle
+4. **Question Selection Logic**
+   - Questions are tagged with:
+     * Knowledge domain and sub-domain
+     * Difficulty rating (1-5)
+     * Question type (multiple choice, scenario-based, etc.)
+     * Alignment with specific standards (NAEYC, state requirements)
+   - Selection algorithm ensures:
+     * No question repeats within same assessment session
+     * Appropriate difficulty level based on current performance
+     * Coverage across all relevant sub-domains
+     * Mix of theoretical and practical application questions
+   - Questions with contextual relevance to preschool environments are prioritized
 
-3. **Question Variability**
-   - Multiple question types (multiple choice, scenario, matching)
-   - Questions rotate through assessment bank
-   - New questions added regularly to prevent memorization
-   - Question difficulty periodically recalibrated
+### Assessment Feedback System
 
-### Performance Evaluation
+1. **Immediate Question Feedback**
+   - Correct/incorrect indication immediately after each answer
+   - Brief explanation of correct answer with early childhood education context
+   - Supporting research or best practice citation
+   - Visual indicators (green/red) with accessible design considerations
 
-1. **Scoring System**
-   - Points awarded based on question difficulty
-   - Partial credit available for certain question types
-   - Time factor considered for efficiency
-   - Consistency across domains evaluated
+2. **Comprehensive Assessment Report**
+   - Overall score with comparison to professional standards
+   - Detailed breakdown by knowledge domain
+   - Visual representation of strengths and growth areas specific to early childhood education
+   - Identified knowledge gaps with highest priority for improvement
+   - Example feedback: 
+     * "Strong understanding of child development principles"
+     * "Growth opportunity in positive behavior management techniques"
+     * "Consider focusing on age-appropriate STEM activities"
 
-2. **Mastery Recognition**
-   - Domain mastery thresholds established
-   - Mastery achievements prominently displayed
-   - Mastered content requires less frequent reassessment
-   - Mastery contributes to level advancement
+3. **Actionable Recommendations**
+   - 3-5 specific learning modules recommended based on identified gaps
+   - Practical classroom implementation suggestions for each growth area
+   - Relevant resources from respected early childhood organizations (NAEYC, Zero to Three)
+   - Printable summary for professional development documentation
 
-3. **Growth Tracking**
-   - Initial baseline establishes starting point
-   - Growth measured against personal baseline
-   - Visual representations of improvement
-   - Growth rate factored into recommendations
+4. **Progress Comparison**
+   - Baseline comparison for subsequent assessments
+   - Growth percentage by domain
+   - Achievement recognition for significant improvement
+   - Professional development hour tracking for certification requirements
+
+### Assessment Data Utilization
+
+1. **Learning Path Generation**
+   - Assessment results directly inform personalized learning path
+   - Identified knowledge gaps become priority learning modules
+   - Strength areas unlock more advanced content options
+   - School requirements integrated with personal growth needs
+
+2. **School-Level Insights**
+   - Aggregated, anonymized data shows school-wide professional development needs
+   - Administrators can identify common growth areas across teaching staff
+   - Targeted professional development planning based on collective results
+   - Progress tracking against school quality improvement goals
+
+3. **Standards Alignment**
+   - Assessment performance mapped to relevant quality rating systems
+   - Progress toward meeting state licensing requirements
+   - Documentation for accreditation processes
+   - Evidence for professional advancement opportunities
 
 ## Common Cross-Role Workflows
 
