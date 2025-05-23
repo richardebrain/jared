@@ -61,6 +61,7 @@ import AppOwnerDashboard from "@/pages/app-owner-dashboard";
 import EduTokPage from "@/pages/edutok";
 import AdminModulesPage from "@/pages/admin-modules";
 import InviteTeachersPage from "@/pages/invite-teachers";
+import AvatarCustomizationPage from "@/pages/avatar-customization";
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -311,6 +312,10 @@ function Router() {
 
       <Route path="/edutok">
         {isAuthenticated ? <EduTokPage /> : <Login />}
+      </Route>
+
+      <Route path="/avatar-customization">
+        {isAuthenticated ? <AvatarCustomizationPage /> : <Login />}
       </Route>
 
       <Route path="/">

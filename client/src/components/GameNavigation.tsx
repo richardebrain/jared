@@ -13,6 +13,7 @@ import {
   BarChart,
   Star,
   Building2,
+  UserCircle,
   Sparkles,
   Users,
   Mail
@@ -69,6 +70,13 @@ export default function GameNavigation() {
       name: "Assessment", 
       icon: <BarChart className="h-5 w-5" />, 
       path: "/assessment", 
+    },
+    { 
+      name: "Avatar", 
+      icon: <UserCircle className="h-5 w-5" />, 
+      path: "/avatar-customization", 
+      badge: "New",
+      highlight: true
     },
     { 
       name: "Owner", 
