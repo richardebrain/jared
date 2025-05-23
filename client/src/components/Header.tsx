@@ -176,6 +176,10 @@ export default function Header() {
                 <i className="ri-user-line mr-2"></i>
                 Profile
               </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/avatar-customization")}>
+                <i className="ri-user-smile-line mr-2"></i>
+                My Avatar
+              </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/settings")}>
                 <i className="ri-settings-line mr-2"></i>
                 Settings
@@ -280,6 +284,11 @@ export default function Header() {
             </Link>
             */}
             <div className="pt-3 mt-2 border-t border-amber-200">
+              <Button variant="ghost" className="w-full justify-start mb-2 hover:bg-amber-200 hover:text-amber-900" onClick={() => setLocation("/avatar-customization")}>
+                <i className="ri-user-smile-line mr-2"></i>
+                My Avatar
+              </Button>
+              
               {isOwner && user?.username === "jlcookie20" && (
                 <Button variant="ghost" className="w-full justify-start mb-2 hover:bg-amber-200 hover:text-amber-900" onClick={() => setLocation("/app-owner-dashboard")}>
                   <i className="ri-vip-crown-line mr-2"></i>
