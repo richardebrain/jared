@@ -65,7 +65,8 @@ import InviteTeachersPage from "@/pages/invite-teachers";
 import AvatarCustomizationPage from "@/pages/avatar-customization";
 
 function Router() {
-  // Using our new authentication components for cleaner routing
+  // We don't need to get authentication state here anymore - 
+  // it will be handled by the ProtectedRoute and PublicRoute components
   return (
     <Switch>
       {/* Public routes */}
@@ -306,96 +307,135 @@ function Router() {
       </Route>
 
       <Route path="/transition-timer">
-        {isAuthenticated ? <TransitionTimer /> : <Login />}
+        <ProtectedRoute>
+          <TransitionTimer />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/test-assessment-graph">
-        {isAuthenticated ? <TestAssessmentGraph /> : <Login />}
+        <ProtectedRoute>
+          <TestAssessmentGraph />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/enhanced-assessment">
-        {isAuthenticated ? <EnhancedAssessmentPage /> : <Login />}
+        <ProtectedRoute>
+          <EnhancedAssessmentPage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/simple-assessment">
-        {isAuthenticated ? <SimpleAssessmentPage /> : <Login />}
+        <ProtectedRoute>
+          <SimpleAssessmentPage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/ai-assessment">
-        {isAuthenticated ? <AIAssessmentPage /> : <Login />}
+        <ProtectedRoute>
+          <AIAssessmentPage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/simple-ai-assessment">
-        {isAuthenticated ? <SimpleAIAssessmentPage /> : <Login />}
+        <ProtectedRoute>
+          <SimpleAIAssessmentPage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/enhanced-ai-assessment">
-        {isAuthenticated ? <EnhancedAIAssessmentPage /> : <Login />}
+        <ProtectedRoute>
+          <EnhancedAIAssessmentPage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/basic-ai-assessment">
-        {isAuthenticated ? <BasicAIAssessmentPage /> : <Login />}
+        <ProtectedRoute>
+          <BasicAIAssessmentPage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/dynamic-assessment">
-        <DynamicAssessmentPage />
+        <PublicRoute>
+          <DynamicAssessmentPage />
+        </PublicRoute>
       </Route>
 
       <Route path="/standalone-assessment">
-        {isAuthenticated ? <StandaloneAssessment /> : <Login />}
+        <ProtectedRoute>
+          <StandaloneAssessment />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/simple-standalone-assessment">
-        {isAuthenticated ? <SimpleStandaloneAssessment /> : <Login />}
+        <ProtectedRoute>
+          <SimpleStandaloneAssessment />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/self-assessment">
-        {isAuthenticated ? <SelfAssessment /> : <Login />}
+        <ProtectedRoute>
+          <SelfAssessment />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/assessment-launcher">
-        {isAuthenticated ? <AssessmentLauncher /> : <Login />}
+        <ProtectedRoute>
+          <AssessmentLauncher />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/schools/:schoolId">
-        {isAuthenticated ? <SchoolDashboard /> : <Login />}
+        <ProtectedRoute>
+          <SchoolDashboard />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/profile">
-        {isAuthenticated ? <ProfilePage /> : <Login />}
+        <ProtectedRoute>
+          <ProfilePage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/app-owner-dashboard">
-        {isAuthenticated ? <AppOwnerDashboard /> : <Login />}
+        <ProtectedRoute>
+          <AppOwnerDashboard />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/invite-teachers">
-        {isAuthenticated ? <InviteTeachersPage /> : <Login />}
+        <ProtectedRoute>
+          <InviteTeachersPage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/edutok">
-        {isAuthenticated ? <EduTokPage /> : <Login />}
+        <ProtectedRoute>
+          <EduTokPage />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/avatar-customization">
-        {isAuthenticated ? <ProfilePage /> : <Login />}
+        <ProtectedRoute>
+          <ProfilePage />
+        </ProtectedRoute>
       </Route>
 
-      <Route path="/">
-        {isAuthenticated ? <Dashboard /> : <LandingPage />}
-      </Route>
+      {/* Root path handled earlier (showing Dashboard for authenticated users, LandingPage for others) */}
 
-      {/* Additional copy of login and register routes without conditional rendering for direct access */}
+      {/* Direct access routes for emergency use */}
       <Route path="/direct/login">
-        <Login />
+        <PublicRoute>
+          <Login />
+        </PublicRoute>
       </Route>
 
       <Route path="/direct/register">
-        <Register />
+        <PublicRoute>
+          <Register />
+        </PublicRoute>
       </Route>
 
-      {/* These routes have already been defined earlier */}
-
+      {/* Fallback route */}
       <Route>
         <NotFound />
       </Route>
@@ -404,6 +444,20 @@ function Router() {
 }
 
 function App() {
+  const { isLoading } = useAuth();
+  
+  // Show a loading spinner while authentication is being checked
+  if (isLoading) {
+    return (
+      <TooltipProvider>
+        <Toaster />
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-background/90">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </TooltipProvider>
+    );
+  }
+  
   return (
     <TooltipProvider>
       <Toaster />
