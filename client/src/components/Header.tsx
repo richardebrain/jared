@@ -176,7 +176,7 @@ export default function Header() {
                 <i className="ri-user-line mr-2"></i>
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/avatar-customization")}>
+              <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/profile")}>
                 <i className="ri-user-smile-line mr-2"></i>
                 My Avatar
               </DropdownMenuItem>

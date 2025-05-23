@@ -380,7 +380,7 @@ export default function AvatarCustomizationPage() {
                   <CardContent>
                     {/* Category Tabs */}
                     <div className="flex overflow-x-auto pb-2 mb-4 space-x-2">
-                      {categories.map((category: AvatarCategory) => (
+                      {Array.isArray(categories) ? categories.map((category: AvatarCategory) => (
                         <Button
                           key={category.id}
                           variant={selectedCategory === category.id ? "default" : "outline"}
@@ -389,12 +389,16 @@ export default function AvatarCustomizationPage() {
                         >
                           {category.name}
                         </Button>
-                      ))}
+                      )) : (
+                        <div className="text-center p-4">
+                          <p>Loading categories...</p>
+                        </div>
+                      )}
                     </div>
                     
                     {/* Items Grid */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                      {itemsByCategory.map((item: AvatarItem) => {
+                      {Array.isArray(itemsByCategory) ? itemsByCategory.map((item: AvatarItem) => {
                         const isOwned = userOwnsItem(item.id);
                         const isSelected = customization[selectedCategory?.toString() || ""] === item.id;
                         
