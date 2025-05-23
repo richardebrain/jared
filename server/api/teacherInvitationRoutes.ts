@@ -1,287 +1,518 @@
-import { Router } from "express";
-import { storage } from "../storage";
-import { nanoid } from "nanoid";
-import { randomBytes } from "crypto";
-import { db } from "../db";
-import { eq } from "drizzle-orm";
-import { teacherInvitations } from "@shared/schema";
-import { insertTeacherInvitationSchema } from "@shared/schema";
-import { z } from "zod";
-import { createTransport } from "nodemailer";
+import express from 'express';
+import { z } from 'zod';
+import { v4 as uuidv4 } from 'uuid';
+import { storage } from '../storage';
+import { eq, and } from 'drizzle-orm';
+import { teacherInvitations } from '@shared/schema';
+import { db } from '../db';
+import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 
-const router = Router();
+const router = express.Router();
 
-// Email service setup
-const transporter = createTransport({
-  service: "Gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
+// Environment variables for email configuration
+const EMAIL_HOST = process.env.EMAIL_HOST || 'smtp.gmail.com';
+const EMAIL_PORT = parseInt(process.env.EMAIL_PORT || '587', 10);
+const EMAIL_USER = process.env.EMAIL_USER;
+const EMAIL_PASS = process.env.EMAIL_PASS;
+const APP_URL = process.env.APP_URL || 'http://localhost:5000';
+const INVITE_EXPIRY_DAYS = 7; // Invitations expire after 7 days
 
-// Allow school owners and admins to upload a CSV/list of teacher emails
-router.post("/api/teacher-invitations/upload", async (req, res) => {
-  try {
-    // Check if user is authenticated and is a school owner or admin
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    const user = await storage.getUserById(req.user.id);
-    
-    if (!user || (!user.isOwner && !user.isSchoolAdmin)) {
-      return res.status(403).json({ message: "Forbidden - Only school owners and admins can invite teachers" });
-    }
-
-    // Validate request body with a custom schema
-    const bodySchema = z.object({
-      emails: z.array(z.string().email("Invalid email format")),
-      schoolId: z.number().positive()
+// Authentication middleware to verify user is logged in
+const requireAuth = (req, res, next) => {
+  if (!req.isAuthenticated || !req.isAuthenticated()) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+  
+  // Get user from session ID
+  const userId = req.session.userId;
+  if (!userId) {
+    return res.status(401).json({ message: 'Unauthorized - No user ID in session' });
+  }
+  
+  storage.getUser(userId)
+    .then(user => {
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized - User not found' });
+      }
+      
+      req.user = user;
+      next();
+    })
+    .catch(err => {
+      console.error('Auth middleware error:', err);
+      res.status(500).json({ message: 'Server error authenticating user' });
     });
+};
 
-    const validation = bodySchema.safeParse(req.body);
-    if (!validation.success) {
-      return res.status(400).json({ 
-        message: "Invalid data format", 
-        errors: validation.error.issues 
-      });
+// Middleware to verify user is a school owner or admin
+const requireOwnerOrAdmin = async (req, res, next) => {
+  const user = req.user;
+  
+  if (!user) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+  
+  if (!user.schoolId) {
+    return res.status(403).json({ message: 'Forbidden - User not associated with a school' });
+  }
+  
+  const school = await storage.getSchool(user.schoolId);
+  if (!school) {
+    return res.status(404).json({ message: 'School not found' });
+  }
+  
+  // Check if user is an owner or admin
+  if (!user.isOwner && !user.isSchoolAdmin && !user.isAdmin) {
+    return res.status(403).json({ message: 'Forbidden - Only school owners and admins can invite teachers' });
+  }
+  
+  req.school = school;
+  next();
+};
+
+// Helper function to create and send email invitations
+async function sendInvitationEmail(invitation, school) {
+  // Skip sending emails if we don't have email credentials
+  if (!EMAIL_USER || !EMAIL_PASS) {
+    console.log('Email credentials not found, skipping email sending');
+    return { success: false, message: 'Email credentials not configured' };
+  }
+  
+  try {
+    // Create a transporter
+    const transporter = nodemailer.createTransport({
+      host: EMAIL_HOST,
+      port: EMAIL_PORT,
+      secure: EMAIL_PORT === 465, // true for 465, false for other ports
+      auth: {
+        user: EMAIL_USER,
+        pass: EMAIL_PASS,
+      },
+    });
+    
+    // Invitation URL with token
+    const inviteUrl = `${APP_URL}/register?token=${invitation.invitationToken}&email=${encodeURIComponent(invitation.email)}`;
+    
+    // Email content
+    const mailOptions = {
+      from: `"MentorMe" <${EMAIL_USER}>`,
+      to: invitation.email,
+      subject: `Join ${school.name} on MentorMe`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #4a5568;">You've been invited to join MentorMe</h2>
+          <p>Hello,</p>
+          <p>You've been invited to join <strong>${school.name}</strong> on MentorMe, a professional development platform for early childhood educators.</p>
+          <p>Click the button below to accept this invitation and create your account:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${inviteUrl}" style="background-color: #4299e1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Accept Invitation</a>
+          </div>
+          <p>This invitation will expire in ${INVITE_EXPIRY_DAYS} days. If you have any questions, please contact your administrator.</p>
+          <p>Thank you,<br>The MentorMe Team</p>
+          <p style="font-size: 12px; color: #718096;">If you didn't expect this invitation, you can safely ignore this email.</p>
+        </div>
+      `,
+    };
+    
+    // Send the email
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Invitation email sent:', info.messageId);
+    
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Error sending invitation email:', error);
+    return { success: false, message: error.message };
+  }
+}
+
+// API routes
+
+// Upload multiple teacher email addresses and send invitations
+router.post('/upload', requireAuth, requireOwnerOrAdmin, async (req, res) => {
+  try {
+    const { emails, schoolId } = req.body;
+    
+    if (!emails || !Array.isArray(emails) || emails.length === 0) {
+      return res.status(400).json({ message: 'No email addresses provided' });
     }
-
-    const { emails, schoolId } = validation.data;
-
-    // Make sure the user belongs to the school they're inviting teachers to
-    if (user.schoolId !== schoolId) {
-      return res.status(403).json({ message: "You can only invite teachers to your own school" });
+    
+    // Validate school
+    if (!schoolId) {
+      return res.status(400).json({ message: 'School ID is required' });
     }
-
-    // Get school details for the invitation email
-    const school = await storage.getSchoolById(schoolId);
+    
+    const school = await storage.getSchool(schoolId);
     if (!school) {
-      return res.status(404).json({ message: "School not found" });
+      return res.status(404).json({ message: 'School not found' });
     }
-
-    // Process each email
+    
+    // Create a unique token for each email address and send invitation
     const results = [];
-    const baseUrl = req.protocol + '://' + req.get('host');
+    const now = new Date();
+    const expiryDate = new Date(now.getTime() + (INVITE_EXPIRY_DAYS * 24 * 60 * 60 * 1000));
     
     for (const email of emails) {
       try {
-        // Check if invitation already exists
-        const existingInvitation = await db.select()
+        // Validate email
+        const emailValidator = z.string().email();
+        const validatedEmail = emailValidator.parse(email);
+        
+        // Check for existing invitations
+        const existingInvitations = await db.select()
           .from(teacherInvitations)
-          .where(eq(teacherInvitations.email, email))
-          .limit(1);
-
-        if (existingInvitation.length > 0 && existingInvitation[0].status === "pending") {
-          results.push({
-            email,
-            status: 'skipped',
-            message: 'Invitation already pending'
-          });
-          continue;
-        }
-
-        // Check if the user with this email already exists
-        const existingUser = await storage.getUserByEmail(email);
-        if (existingUser) {
-          results.push({
-            email,
-            status: 'skipped',
-            message: 'User already exists with this email'
-          });
-          continue;
-        }
-
-        // Create a secure invitation token
-        const invitationToken = randomBytes(32).toString('hex');
+          .where(and(
+            eq(teacherInvitations.email, validatedEmail),
+            eq(teacherInvitations.schoolId, schoolId)
+          ));
         
-        // Set expiration (7 days from now)
-        const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + 7);
-
-        // Store invitation in database
-        const invitation = await db.insert(teacherInvitations)
-          .values({
-            email,
-            schoolId,
-            invitedByUserId: user.id,
-            invitationToken,
-            expiresAt,
-            status: "pending"
-          })
+        if (existingInvitations.length > 0) {
+          results.push({
+            email: validatedEmail,
+            success: false,
+            message: 'Invitation already exists for this email'
+          });
+          continue;
+        }
+        
+        // Generate a secure token
+        const token = crypto.randomBytes(32).toString('hex');
+        
+        // Create invitation in database
+        const invitation = {
+          schoolId,
+          email: validatedEmail,
+          invitationToken: token,
+          invitedByUserId: req.user.id,
+          status: 'pending',
+          expiresAt: expiryDate,
+        };
+        
+        const [insertedInvitation] = await db
+          .insert(teacherInvitations)
+          .values(invitation)
           .returning();
-
-        // Construct invitation link 
-        const invitationLink = `${baseUrl}/register?token=${invitationToken}&email=${encodeURIComponent(email)}`;
         
-        // Send email invitation
-        await transporter.sendMail({
-          from: process.env.EMAIL_USER,
-          to: email,
-          subject: `You've been invited to join ${school.name} on MentorMe`,
-          html: `
-            <div>
-              <h2>Join ${school.name} on MentorMe</h2>
-              <p>You've been invited by ${user.firstName} ${user.lastName} to join MentorMe - the professional development platform for early childhood educators.</p>
-              <p>MentorMe provides personalized training to help you advance your teaching skills and career.</p>
-              <a href="${invitationLink}" style="display:inline-block; background-color:#4F46E5; color:white; padding:12px 24px; text-decoration:none; border-radius:4px; margin:20px 0;">
-                Accept Invitation & Create Account
-              </a>
-              <p>This invitation will expire in 7 days.</p>
-              <p>If you have any questions, please contact ${user.firstName} at ${user.email}.</p>
-            </div>
-          `
-        });
-
-        results.push({
-          email,
-          status: 'sent',
-          message: 'Invitation sent successfully'
-        });
+        // Send invitation email
+        const emailResult = await sendInvitationEmail(insertedInvitation, school);
+        
+        // Update invitation status based on email sending result
+        if (emailResult.success) {
+          await db
+            .update(teacherInvitations)
+            .set({ status: 'sent' })
+            .where(eq(teacherInvitations.id, insertedInvitation.id));
+          
+          results.push({
+            email: validatedEmail,
+            success: true,
+            message: 'Invitation sent successfully'
+          });
+        } else {
+          await db
+            .update(teacherInvitations)
+            .set({ status: 'error' })
+            .where(eq(teacherInvitations.id, insertedInvitation.id));
+          
+          results.push({
+            email: validatedEmail,
+            success: false,
+            message: 'Failed to send invitation email'
+          });
+        }
       } catch (error) {
-        console.error(`Error processing invitation for ${email}:`, error);
         results.push({
           email,
-          status: 'error',
-          message: error.message || 'Failed to send invitation'
+          success: false,
+          message: error.message || 'Invalid email address'
         });
       }
     }
-
-    // Return results of the batch operation
-    return res.status(200).json({
-      message: `Processed ${emails.length} invitations`,
-      results
+    
+    res.status(200).json({
+      success: results.some(r => r.success),
+      invitations: results
     });
   } catch (error) {
-    console.error("Error in teacher invitations upload:", error);
-    return res.status(500).json({ message: "Failed to process invitations" });
+    console.error('Error uploading teacher invitations:', error);
+    res.status(500).json({ 
+      message: 'Failed to process invitations',
+      error: error.message 
+    });
   }
 });
 
-// Get all invitations for a school (for school owners/admins)
-router.get("/api/teacher-invitations/school/:schoolId", async (req, res) => {
+// Get all invitations for a school
+router.get('/school/:schoolId', requireAuth, requireOwnerOrAdmin, async (req, res) => {
   try {
-    // Check if user is authenticated and authorized
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    const user = await storage.getUserById(req.user.id);
-    const schoolId = parseInt(req.params.schoolId);
+    const { schoolId } = req.params;
     
-    if (!user || (!user.isOwner && !user.isSchoolAdmin) || user.schoolId !== schoolId) {
-      return res.status(403).json({ message: "Forbidden - Not authorized to view these invitations" });
+    // Validate user belongs to this school and has permission
+    const user = req.user;
+    
+    if (user.schoolId !== parseInt(schoolId) && !user.isAdmin) {
+      return res.status(403).json({ message: 'You do not have permission to view invitations for this school' });
     }
-
+    
+    // Get school
+    const school = await storage.getSchool(parseInt(schoolId));
+    if (!school) {
+      return res.status(404).json({ message: 'School not found' });
+    }
+    
     // Get all invitations for the school
     const invitations = await db.select()
       .from(teacherInvitations)
-      .where(eq(teacherInvitations.schoolId, schoolId));
-
-    return res.status(200).json(invitations);
+      .where(eq(teacherInvitations.schoolId, parseInt(schoolId)))
+      .orderBy(teacherInvitations.createdAt, 'desc');
+    
+    res.status(200).json(invitations);
   } catch (error) {
-    console.error("Error fetching teacher invitations:", error);
-    return res.status(500).json({ message: "Failed to fetch invitations" });
+    console.error('Error getting teacher invitations:', error);
+    res.status(500).json({ message: 'Failed to get invitations' });
   }
 });
 
-// Route to verify invitation token (used during registration)
-router.get("/api/teacher-invitations/verify", async (req, res) => {
+// Resend an invitation
+router.post('/resend/:invitationId', requireAuth, requireOwnerOrAdmin, async (req, res) => {
   try {
-    const { token, email } = req.query;
+    const { invitationId } = req.params;
     
-    if (!token || !email) {
-      return res.status(400).json({ message: "Missing token or email" });
-    }
-
-    // Find the invitation
+    // Get the invitation
     const [invitation] = await db.select()
       .from(teacherInvitations)
-      .where(eq(teacherInvitations.invitationToken, token as string))
-      .where(eq(teacherInvitations.email, email as string))
-      .limit(1);
-
+      .where(eq(teacherInvitations.id, parseInt(invitationId)));
+    
     if (!invitation) {
-      return res.status(404).json({ message: "Invalid invitation" });
+      return res.status(404).json({ message: 'Invitation not found' });
     }
-
-    // Check if invitation is still valid
-    if (invitation.status !== "pending") {
-      return res.status(400).json({ message: `Invitation has already been ${invitation.status}` });
+    
+    // Check if user has permission (same school)
+    if (invitation.schoolId !== req.user.schoolId && !req.user.isAdmin) {
+      return res.status(403).json({ message: 'You do not have permission to resend this invitation' });
     }
-
+    
+    // Get school
+    const school = await storage.getSchool(invitation.schoolId);
+    if (!school) {
+      return res.status(404).json({ message: 'School not found' });
+    }
+    
+    // Update expiry date
     const now = new Date();
-    if (now > invitation.expiresAt) {
-      // Mark as expired
-      await db.update(teacherInvitations)
-        .set({ status: "expired" })
+    const expiryDate = new Date(now.getTime() + (INVITE_EXPIRY_DAYS * 24 * 60 * 60 * 1000));
+    
+    // Update invitation status and expiry date
+    await db
+      .update(teacherInvitations)
+      .set({ 
+        status: 'pending',
+        expiresAt: expiryDate,
+        sentAt: now
+      })
+      .where(eq(teacherInvitations.id, invitation.id));
+    
+    // Get updated invitation
+    const [updatedInvitation] = await db.select()
+      .from(teacherInvitations)
+      .where(eq(teacherInvitations.id, invitation.id));
+    
+    // Send invitation email
+    const emailResult = await sendInvitationEmail(updatedInvitation, school);
+    
+    // Update invitation status based on email sending result
+    if (emailResult.success) {
+      await db
+        .update(teacherInvitations)
+        .set({ status: 'sent' })
         .where(eq(teacherInvitations.id, invitation.id));
-        
-      return res.status(400).json({ message: "Invitation has expired" });
+      
+      res.status(200).json({ 
+        success: true,
+        message: 'Invitation resent successfully'
+      });
+    } else {
+      await db
+        .update(teacherInvitations)
+        .set({ status: 'error' })
+        .where(eq(teacherInvitations.id, invitation.id));
+      
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to resend invitation email',
+        error: emailResult.message
+      });
     }
-
-    // Get school details to return with verification
-    const school = await storage.getSchoolById(invitation.schoolId);
-
-    return res.status(200).json({
-      valid: true,
-      invitation: {
-        id: invitation.id,
-        email: invitation.email,
-        schoolId: invitation.schoolId,
-        schoolName: school?.name || 'Unknown School'
-      }
-    });
   } catch (error) {
-    console.error("Error verifying invitation:", error);
-    return res.status(500).json({ message: "Failed to verify invitation" });
+    console.error('Error resending invitation:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to resend invitation',
+      error: error.message
+    });
   }
 });
 
-// Route to mark an invitation as accepted (called during registration when a teacher account is created)
-router.post("/api/teacher-invitations/accept", async (req, res) => {
+// Accept an invitation (used during registration)
+router.post('/accept', async (req, res) => {
   try {
     const { token, email, userId } = req.body;
     
     if (!token || !email || !userId) {
-      return res.status(400).json({ message: "Missing required fields" });
+      return res.status(400).json({ message: 'Token, email, and userId are required' });
     }
-
-    // Find and update the invitation
+    
+    // Find the invitation
     const [invitation] = await db.select()
       .from(teacherInvitations)
-      .where(eq(teacherInvitations.invitationToken, token))
-      .where(eq(teacherInvitations.email, email))
-      .limit(1);
-
+      .where(and(
+        eq(teacherInvitations.invitationToken, token),
+        eq(teacherInvitations.email, email)
+      ));
+    
     if (!invitation) {
-      return res.status(404).json({ message: "Invalid invitation" });
+      return res.status(404).json({ message: 'Invitation not found' });
     }
-
-    if (invitation.status !== "pending") {
-      return res.status(400).json({ message: `Invitation has already been ${invitation.status}` });
+    
+    // Check if invitation is expired
+    if (new Date() > invitation.expiresAt) {
+      return res.status(400).json({ message: 'Invitation has expired' });
     }
-
-    // Mark invitation as accepted
-    await db.update(teacherInvitations)
+    
+    // Check if invitation is already accepted
+    if (invitation.status === 'accepted') {
+      return res.status(400).json({ message: 'Invitation has already been accepted' });
+    }
+    
+    // Get school
+    const school = await storage.getSchool(invitation.schoolId);
+    if (!school) {
+      return res.status(404).json({ message: 'School not found' });
+    }
+    
+    // Update invitation status
+    await db
+      .update(teacherInvitations)
       .set({ 
-        status: "accepted",
-        acceptedAt: new Date()
+        status: 'accepted',
+        acceptedAt: new Date(),
+        userId
       })
       .where(eq(teacherInvitations.id, invitation.id));
-
-    // Update the school's teacher count
+    
+    // Update user's school ID
+    await storage.updateUserSchool(userId, invitation.schoolId);
+    
+    // Increment school teacher count
     await storage.incrementSchoolTeacherCount(invitation.schoolId);
-        
-    return res.status(200).json({
-      message: "Invitation accepted successfully",
-      schoolId: invitation.schoolId
+    
+    res.status(200).json({ 
+      success: true,
+      message: 'Invitation accepted successfully',
+      schoolId: invitation.schoolId,
+      schoolName: school.name
     });
   } catch (error) {
-    console.error("Error accepting invitation:", error);
-    return res.status(500).json({ message: "Failed to accept invitation" });
+    console.error('Error accepting invitation:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to accept invitation',
+      error: error.message
+    });
+  }
+});
+
+// Cancel an invitation
+router.delete('/:invitationId', requireAuth, requireOwnerOrAdmin, async (req, res) => {
+  try {
+    const { invitationId } = req.params;
+    
+    // Get the invitation
+    const [invitation] = await db.select()
+      .from(teacherInvitations)
+      .where(eq(teacherInvitations.id, parseInt(invitationId)));
+    
+    if (!invitation) {
+      return res.status(404).json({ message: 'Invitation not found' });
+    }
+    
+    // Check if user has permission (same school)
+    if (invitation.schoolId !== req.user.schoolId && !req.user.isAdmin) {
+      return res.status(403).json({ message: 'You do not have permission to cancel this invitation' });
+    }
+    
+    // Delete the invitation
+    await db
+      .delete(teacherInvitations)
+      .where(eq(teacherInvitations.id, invitation.id));
+    
+    res.status(200).json({ 
+      success: true,
+      message: 'Invitation cancelled successfully'
+    });
+  } catch (error) {
+    console.error('Error cancelling invitation:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to cancel invitation',
+      error: error.message
+    });
+  }
+});
+
+// Verify if a token is valid (used during registration)
+router.get('/verify', async (req, res) => {
+  try {
+    const { token, email } = req.query;
+    
+    if (!token || !email) {
+      return res.status(400).json({ message: 'Token and email are required' });
+    }
+    
+    // Find the invitation
+    const [invitation] = await db.select()
+      .from(teacherInvitations)
+      .where(and(
+        eq(teacherInvitations.invitationToken, token.toString()),
+        eq(teacherInvitations.email, email.toString())
+      ));
+    
+    if (!invitation) {
+      return res.status(404).json({ message: 'Invitation not found' });
+    }
+    
+    // Check if invitation is expired
+    if (new Date() > invitation.expiresAt) {
+      return res.status(400).json({ 
+        valid: false,
+        message: 'Invitation has expired'
+      });
+    }
+    
+    // Check if invitation is already accepted
+    if (invitation.status === 'accepted') {
+      return res.status(400).json({ 
+        valid: false,
+        message: 'Invitation has already been accepted'
+      });
+    }
+    
+    // Get school
+    const school = await storage.getSchool(invitation.schoolId);
+    
+    res.status(200).json({ 
+      valid: true,
+      schoolId: invitation.schoolId,
+      schoolName: school?.name || 'Unknown School',
+      email: invitation.email
+    });
+  } catch (error) {
+    console.error('Error verifying invitation:', error);
+    res.status(500).json({ 
+      valid: false,
+      message: 'Failed to verify invitation',
+      error: error.message
+    });
   }
 });
 

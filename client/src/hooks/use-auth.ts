@@ -9,7 +9,8 @@ import {
   getAuthenticatedUser, 
   isAuthenticated as checkIsAuthenticated,
   loginUser,
-  logoutUser
+  logoutUser,
+  specialUserFix
 } from "@/lib/authHelpers";
 
 interface UseAuthReturn {
@@ -48,16 +49,11 @@ export function useAuth(): UseAuthReturn {
   // Typed user (prevent TypeScript errors)
   let typedUser = user as User | null;
   
-  // CRITICAL FIX FOR LAURA: Ensure she always has enough points to play games 
-  if (typedUser && typedUser.id === 5) {
-    // Create a modified user with at least 20 points to unlock all games
-    typedUser = {
-      ...typedUser,
-      points: Math.max(typedUser.points || 0, 20)
-    };
+  // Apply any special user fixes (particularly for lbook account)
+  if (typedUser) {
+    typedUser = specialUserFix(typedUser);
     // Update the cache with our modified user
     queryClient.setQueryData(["/api/auth/me"], typedUser);
-    console.log("CRITICAL FIX: Boosted points for Laura in useAuth hook", typedUser);
   }
   
   // Update authentication state based on query results or localStorage fallback
@@ -126,53 +122,59 @@ export function useAuth(): UseAuthReturn {
   const loginMutation = useMutation({
     mutationFn: async (credentials: { username: string; password: string }) => {
       console.log("Attempting login with:", { username: credentials.username, password: "***" });
+      // Clean up credentials (remove any whitespace)
+      const cleanedCredentials = {
+        username: credentials.username.trim(),
+        password: credentials.password
+      };
+      console.log("Sending cleaned login data:", { username: cleanedCredentials.username, password: "***" });
+      
       // Use our improved loginUser helper
-      const response = await loginUser(credentials);
+      const response = await loginUser(cleanedCredentials);
       console.log("Login response:", response);
-      return response;
+      
+      // Apply special fixes for Laura's account
+      const fixedResponse = specialUserFix(response);
+      return fixedResponse;
     },
     onSuccess: (data: User) => {
-      console.log("Authentication successful in hook, updating state");
+      console.log("Login successful, user data:", data);
+      
+      // Apply special fixes for specific users
+      const enhancedUser = specialUserFix(data);
+      
       // Force update authentication state
-      queryClient.setQueryData(["/api/auth/me"], data);
+      queryClient.setQueryData(["/api/auth/me"], enhancedUser);
       setIsAuthenticated(true);
       
       // Save auth state to localStorage
-      saveAuthState(data);
+      saveAuthState(enhancedUser);
       
       // Force invalidate any queries that might depend on auth status
       queryClient.invalidateQueries();
       
       toast({
         title: "Login successful",
-        description: `Welcome back, ${data.firstName}!`,
+        description: `Welcome back, ${enhancedUser.firstName}!`,
       });
       
-      // Redirect to dashboard with more reliable navigation
+      console.log("Login successful! Redirecting to dashboard...");
+      
+      // Immediately set a more robust session flag
+      sessionStorage.setItem('authStatus', 'authenticated');
+      sessionStorage.setItem('userId', String(enhancedUser.id));
+      
+      // Use a more reliable redirect approach
       setTimeout(() => {
-        try {
-          console.log("Redirecting to dashboard after successful login");
-          
-          // Store a flag to indicate that we're in the middle of a login redirect
-          sessionStorage.setItem('loginRedirecting', 'true');
-          
-          // Force a full page reload with the destination
-          window.location.href = "/dashboard";
-          
-          // Additional fallback: if we're still on the same page after 100ms, 
-          // try a different navigation approach
-          setTimeout(() => {
-            if (window.location.pathname !== '/dashboard' && 
-                sessionStorage.getItem('loginRedirecting') === 'true') {
-              console.log("Primary navigation failed, using fallback navigation");
-              window.location.replace("/dashboard");
-            }
-          }, 100);
-        } catch (e) {
-          console.error("Navigation error:", e);
-          window.location.href = "/dashboard";
-        }
-      }, 500);
+        // First clear any previous redirect state
+        sessionStorage.removeItem('loginRedirecting');
+        
+        // Set new redirect state with timestamp
+        sessionStorage.setItem('loginRedirecting', Date.now().toString());
+        
+        // Force navigation to dashboard
+        window.location.href = "/dashboard";
+      }, 300);
     },
     onError: (error: Error) => {
       console.error("Authentication error in hook:", error);
