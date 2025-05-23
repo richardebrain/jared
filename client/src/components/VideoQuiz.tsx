@@ -331,8 +331,80 @@ function stringToHash(str: string): number {
   return Math.abs(hash);
 }
 
+// Function to generate Rita Pierson specific questions
+function generateRitaPiersonQuestions(): QuizQuestion[] {
+  // These are specialized questions for "Every Kid Needs a Champion" by Rita Pierson
+  const ritaQuestions: QuizQuestion[] = [
+    {
+      id: 'rita-1',
+      question: 'According to Rita Pierson, what is one of the things rarely discussed in education reform that is crucial for learning?',
+      options: [
+        'The frequency of standardized testing.',
+        'The value and importance of human connection and relationships.',
+        'The amount of homework assigned.',
+        'The newest educational technology.'
+      ],
+      correctAnswer: 'The value and importance of human connection and relationships.'
+    },
+    {
+      id: 'rita-2',
+      question: 'How did Rita Pierson say she handled a student who missed 18 out of 20 questions on a quiz?',
+      options: [
+        'She told the student they needed to study much harder and retake the test.',
+        'She gave the student an F and a stern lecture.',
+        'She put a \'+2\' on the paper with a big smiley face, focusing on the questions the student got right.',
+        'She suggested the student might not be capable of the work.'
+      ],
+      correctAnswer: 'She put a \'+2\' on the paper with a big smiley face, focusing on the questions the student got right.'
+    },
+    {
+      id: 'rita-3',
+      question: 'What was Rita Pierson\'s response to her colleague who said, \'They don\'t pay me to like the kids\'?',
+      options: [
+        'Kids learn best when they are afraid of their teacher.',
+        'You should seek first to be understood, then to understand.',
+        'Kids don\'t learn from people they don\'t like.',
+        'Liking students is not part of a teacher\'s job description.'
+      ],
+      correctAnswer: 'Kids don\'t learn from people they don\'t like.'
+    },
+    {
+      id: 'rita-4',
+      question: 'What items did Rita Pierson mention her mother kept in her desk for students in need?',
+      options: [
+        'Expensive textbooks and new computers.',
+        'Extra homework packets and strict discipline charts.',
+        'Combs, brushes, peanut butter, crackers, washcloths, and soap.',
+        'Gold stars for good behavior and certificates for perfect attendance.'
+      ],
+      correctAnswer: 'Combs, brushes, peanut butter, crackers, washcloths, and soap.'
+    },
+    {
+      id: 'rita-5',
+      question: 'What does Rita Pierson mean when she says, \'Every child deserves a champion\'?',
+      options: [
+        'A student who is always afraid to take risks.',
+        'An adult who will never give up on them, understands connection, and insists they become their best.',
+        'A system that relies solely on standardized test scores to measure worth.',
+        'A guarantee that they will never fail or face hardship.'
+      ],
+      correctAnswer: 'An adult who will never give up on them, understands connection, and insists they become their best.'
+    }
+  ];
+  
+  // Randomly select 3 questions to use
+  const shuffled = [...ritaQuestions].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, 3);
+}
+
 // Function to generate context-based questions
 function generateContentBasedQuestions(videoTitle: string): QuizQuestion[] {
+  // Check if this is the Rita Pierson video
+  if (videoTitle.toLowerCase().includes('every kid needs a champion') || 
+      videoTitle.toLowerCase().includes('rita pierson')) {
+    return generateRitaPiersonQuestions();
+  }
+  
   // First, generate a video hash ID to ensure consistent yet unique questions per video
   const videoHash = stringToHash(videoTitle);
   
