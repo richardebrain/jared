@@ -1062,15 +1062,7 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
               
-              {/* Core Values Shoutouts */}
-              {hasCoreValuesComplete && (
-                <RecentShoutOuts 
-                  shoutouts={coreValuesShoutouts || []} 
-                  userData={users || []} 
-                  currentUserId={user?.id}
-                  onShoutoutAdded={() => {}}
-                />
-              )}
+              {/* Core Values Shoutouts section removed to avoid duplication */}
               
 
               {/* Bear Assistant */}
