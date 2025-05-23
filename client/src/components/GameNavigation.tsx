@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   Home, 
   Briefcase, 
@@ -12,7 +13,9 @@ import {
   BarChart,
   Star,
   Building2,
-  Sparkles
+  Sparkles,
+  Users,
+  Mail
 } from "lucide-react";
 
 interface NavigationItem {
@@ -26,6 +29,10 @@ interface NavigationItem {
 export default function GameNavigation() {
   const [location, setLocation] = useLocation();
   const [showSparkle, setShowSparkle] = useState<number | null>(null);
+  const { isOwner, isSchoolAdmin, isAdmin } = useAuth();
+  
+  // Check if user has admin privileges
+  const hasAdminAccess = isOwner || isSchoolAdmin || isAdmin;
   
   // Define main navigation items
   const navigationItems: NavigationItem[] = [
@@ -70,7 +77,15 @@ export default function GameNavigation() {
       name: "Owner", 
       icon: <Building2 className="h-5 w-5" />, 
       path: "/owner-dashboard", 
-    }
+    },
+    // Only show Invite Teachers for users with admin privileges
+    ...(hasAdminAccess ? [{ 
+      name: "Invite Teachers", 
+      icon: <Mail className="h-5 w-5" />, 
+      path: "/invite-teachers", 
+      badge: "New",
+      highlight: true
+    }] : [])
   ];
   
   // When a menu item is clicked, show sparkle animation
