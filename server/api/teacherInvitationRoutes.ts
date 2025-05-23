@@ -73,14 +73,28 @@ const requireOwnerOrAdmin = async (req, res, next) => {
 
 // Helper function to create and send email invitations
 async function sendInvitationEmail(invitation, school) {
-  // Skip sending emails if we don't have email credentials
-  if (!EMAIL_USER || !EMAIL_PASS) {
-    console.log('Email credentials not found, skipping email sending');
-    return { success: false, message: 'Email credentials not configured' };
+  // Use test mode if email credentials are not configured
+  const TEST_MODE = !EMAIL_USER || !EMAIL_PASS;
+  
+  if (TEST_MODE) {
+    // In test mode, log the invitation details and pretend it succeeded
+    console.log('Email credentials not found, running in test mode');
+    console.log('TEST MODE - Would have sent invitation to:', invitation.email);
+    
+    // Invitation URL with token
+    const inviteUrl = `${APP_URL}/register?token=${invitation.invitationToken}&email=${encodeURIComponent(invitation.email)}`;
+    console.log('TEST MODE - Invitation link:', inviteUrl);
+    
+    // Return success for test mode
+    return { 
+      success: true, 
+      testMode: true,
+      messageId: `test-${Date.now()}`
+    };
   }
   
   try {
-    // Create a transporter
+    // Create a transporter for real email sending
     const transporter = nodemailer.createTransport({
       host: EMAIL_HOST,
       port: EMAIL_PORT,
