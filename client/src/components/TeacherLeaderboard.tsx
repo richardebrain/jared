@@ -100,17 +100,22 @@ export default function TeacherLeaderboard() {
     );
   }
 
+  // Use mock data when API fails
+  const displayTeacherData = (teacherData && Array.isArray(teacherData) && teacherData.length > 0)
+    ? teacherData
+    : (error ? mockTeacherData : []);
+  
   // Process teacher data into rankings format
   const rankings: TeacherRanking[] = React.useMemo(() => {
-    if (!teacherData || !Array.isArray(teacherData)) {
-      console.log("No teacher data available or not in array format");
+    if (!displayTeacherData || !Array.isArray(displayTeacherData) || displayTeacherData.length === 0) {
+      console.log("No teacher data available");
       return [];
     }
     
-    console.log("Processing teacher data:", teacherData);
+    console.log("Processing teacher data", displayTeacherData.length, "teachers");
     
     // Sort teachers by points in descending order
-    const sortedTeachers = [...teacherData].sort((a, b) => {
+    const sortedTeachers = [...displayTeacherData].sort((a, b) => {
       return (b.points || 0) - (a.points || 0);
     });
     
