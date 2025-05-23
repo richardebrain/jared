@@ -53,37 +53,3 @@ export function ProtectedRoute({
   // If all checks pass, render the children
   return <>{children}</>;
 }
-          
-          // Navigate to login using window.location for a clean redirect
-          window.location.href = '/login';
-        }
-      } else if (adminOnly && !isAdmin) {
-        // User is authenticated but not an admin
-        setLocation('/dashboard');
-      } else if (ownerOnly && !isOwner) {
-        // User is authenticated but not an owner
-        setLocation('/dashboard');
-      } else {
-        // Clear redirect flag when successfully authenticated
-        sessionStorage.removeItem('auth_redirect_in_progress');
-      }
-    }
-  }, [isAuthenticated, isLoading, isAdmin, isOwner, adminOnly, ownerOnly, setLocation]);
-
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  // If authentication failed, return null (redirect happens in useEffect)
-  if (!isAuthenticated || (adminOnly && !isAdmin) || (ownerOnly && !isOwner)) {
-    return null;
-  }
-
-  // User is authenticated with appropriate permissions, render children
-  return <>{children}</>;
-}

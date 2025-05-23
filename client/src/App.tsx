@@ -2,9 +2,8 @@ import { useState, useEffect } from "react";
 import { Switch, Route, Redirect, useLocation } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useAuth } from "@/lib/auth-context";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { PublicRoute } from "@/components/PublicRoute";
+// Import our simpler authentication component
+import { SimpleProtectedRoute } from "@/components/SimpleProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
@@ -64,11 +63,15 @@ import AdminModulesPage from "@/pages/admin-modules";
 import InviteTeachersPage from "@/pages/invite-teachers";
 import AvatarCustomizationPage from "@/pages/avatar-customization";
 
+// import AuthWrapper which is our improved authentication component
+import { AuthWrapper } from "@/components/AuthWrapper";
+
 function Router() {
-  // Let's simplify this temporarily to get things working
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
   
   // Load auth state on mount
   useEffect(() => {
@@ -82,6 +85,8 @@ function Router() {
         console.log('Auth check: User authenticated');
         setUser(userData);
         setIsAuthenticated(true);
+        setIsAdmin(userData.isAdmin || false);
+        setIsOwner(userData.isOwner || false);
         setIsLoading(false);
       })
       .catch(err => {
