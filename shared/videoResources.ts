@@ -3084,5 +3084,110 @@ export const videoResourcesData: VideoResource[] = [
           }
     ]
   }
+},
+{
+    id: "video-150",
+    title: "The Listening Game | Cosmic Kids Zen Den - Mindfulness for kids",
+    description: "A fun mindfulness activity that helps children develop listening skills and activate their 'Spidey senses' through focused attention.",
+    youtubeId: "uSD6rEjecU0",
+    category: ["mindfulness", "listening", "attention"],
+    tags: ["spidey senses", "listening skills", "mindful activities", "zen den"],
+    duration: 6,
+    source: "Cosmic Kids",
+    expertLevel: "beginner",
+    dateAdded: "2025-05-23",
+    featured: true,
+  quiz: {
+    questions: [
+      {
+        "question": "Before settling on the 'good bright smell' of lemon for concentration, what other, shall we say, less conventional Zen Den smells were on the table?",
+        "options": [
+          "Stinky gym socks and week-old broccoli.",
+          "Freshly baked bread and a hint of existential dread.",
+          "Pineapple and Pizza.",
+          "Wet dog and the faint smell of regret."
+        ],
+        "correctAnswer": 2,
+        "explanation": "In the Zen Den, pineapple and pizza were mentioned as potential smells."
+      },
+      {
+        "question": "On the Zen Den's official 'Listening Prowess Scale,' what does a score of 10 indicate about your auditory skills?",
+        "options": [
+          "A score of 11, because you're off the charts amazing.",
+          "A perfect 10, meaning you're 'the best in the world' (and possibly Spiderman).",
+          "A 'meh' 5, indicating you only listen when a cookie is involved.",
+          "A 1, because 'not being very good' is the new ironic 'excellent'."
+        ],
+        "correctAnswer": 1,
+        "explanation": "A score of 10 means you're 'the best in the world' at listening, with superhero-level skills."
+      },
+      {
+        "question": "In the 'Listen for the Bell' game, what is the super-secret, highly advanced yogic maneuver you perform when you can no longer hear the sound?",
+        "options": [
+          "You start yodeling loudly to announce the bell's demise.",
+          "You dramatically wave a tiny white flag of auditory surrender.",
+          "You move your hands from your knees into your lap.",
+          "You begin to tap dance to create your own new soundscape."
+        ],
+        "correctAnswer": 2,
+        "explanation": "When you can no longer hear the bell sound, you simply move your hands from your knees into your lap."
+      },
+      {
+        "question": "What is the stated, very serious, and not-at-all-silly purpose of the 'Listen for the Bell' game in the Zen Den?",
+        "options": [
+          "To see if you can identify the bell's brand and model number purely by its tone.",
+          "To test how long you can hold your breath while listening intently.",
+          "To see how good you are at listening and how strong your 'Spidey senses' are.",
+          "To determine if the bell is secretly whispering the answers to next week's lottery."
+        ],
+        "correctAnswer": 2,
+        "explanation": "The purpose is to test your listening skills and the strength of your 'Spidey senses'."
+      },
+      {
+        "question": "To get 'comfy' at the start of the Zen Den session, what classic and surprisingly achievable sitting posture is recommended?",
+        "options": [
+          "Sitting on your head while humming the national anthem backwards.",
+          "Sitting on your bottom with your legs crossed.",
+          "Balancing a pineapple on your nose (if you chose that smell earlier).",
+          "Doing your best impression of a very relaxed jellyfish."
+        ],
+        "correctAnswer": 1,
+        "explanation": "The recommended posture is simply sitting cross-legged on the floor."
+      },
+      {
+        "question": "When 'getting the Zen Den ready,' which two delightful colors are chosen to help everyone feel 'all lovely and calm' and 'sunny'?",
+        "options": [
+          "An invigorating lime green and a 'don't talk to me before coffee' beige.",
+          "A 'lovely blue' and a 'sunny yellow'.",
+          "A 'moody midnight black' and a 'surprisingly aggressive fuchsia'.",
+          "Clear, because they decided true zen is invisible."
+        ],
+        "correctAnswer": 1,
+        "explanation": "The Zen Den uses blue to create a calm feeling and yellow for a sunny atmosphere."
+      },
+      {
+        "question": "How many times do you get to play the 'Listen for the Bell' game to stretch those Spidey senses and achieve peak listening?",
+        "options": [
+          "Zero times, because true masters hear the echo of the first bell forever.",
+          "Once, very loudly, to ensure everyone gets the point immediately.",
+          "Three times.",
+          "Until someone finally guesses what brand of bell it is."
+        ],
+        "correctAnswer": 2,
+        "explanation": "You play the bell listening game three times to practice your listening skills."
+      },
+      {
+        "question": "After proving your great listening skills in the game, what amazing superpower gets 'activated' and how will it help you in real life?",
+        "options": [
+          "You spontaneously develop the ability to understand squirrel chatter.",
+          "You get a certificate declaring you 'Officially Less Annoying When Others Are Talking'.",
+          "Your 'Spider Sense is activated' and you'll notice how much more you can hear when learning or someone is telling you something.",
+          "You win a lifetime supply of lemons (for concentration, of course)."
+        ],
+        "correctAnswer": 2,
+        "explanation": "Your Spider Sense is activated, helping you hear and understand more when learning or listening to others."
+      }
+    ]
+  }
 }
 ];

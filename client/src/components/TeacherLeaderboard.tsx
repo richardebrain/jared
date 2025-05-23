@@ -22,10 +22,59 @@ interface TeacherRanking {
 
 export default function TeacherLeaderboard() {
   // Fetch school-filtered teachers for leaderboard
-  const { data: teacherData, isLoading } = useQuery({
+  const { data: teacherData, isLoading, error } = useQuery({
     queryKey: ['/api/teachers-by-school'],
     staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: 1
   });
+  
+  // Mock teacher data to use when API fails
+  const mockTeacherData = [
+    {
+      id: 1,
+      username: "emma",
+      firstName: "Emma",
+      lastName: "Smith",
+      profilePicture: null,
+      points: 275,
+      level: 3,
+      completedModulesCount: 8,
+      isCurrentUser: false
+    },
+    {
+      id: 2,
+      username: "jlcookie20",
+      firstName: "Jared",
+      lastName: "Cook",
+      profilePicture: null,
+      points: 350,
+      level: 3,
+      completedModulesCount: 12,
+      isCurrentUser: true
+    },
+    {
+      id: 3,
+      username: "lbooks",
+      firstName: "Laura",
+      lastName: "Books",
+      profilePicture: null,
+      points: 410,
+      level: 4,
+      completedModulesCount: 15,
+      isCurrentUser: false
+    },
+    {
+      id: 4,
+      username: "mjohnson",
+      firstName: "Michael",
+      lastName: "Johnson",
+      profilePicture: null,
+      points: 190,
+      level: 2,
+      completedModulesCount: 5,
+      isCurrentUser: false
+    }
+  ];
 
   // Get current user data
   const { data: currentUser } = useQuery<User>({ 
@@ -53,7 +102,12 @@ export default function TeacherLeaderboard() {
 
   // Process teacher data into rankings format
   const rankings: TeacherRanking[] = React.useMemo(() => {
-    if (!teacherData || !Array.isArray(teacherData)) return [];
+    if (!teacherData || !Array.isArray(teacherData)) {
+      console.log("No teacher data available or not in array format");
+      return [];
+    }
+    
+    console.log("Processing teacher data:", teacherData);
     
     // Sort teachers by points in descending order
     const sortedTeachers = [...teacherData].sort((a, b) => {
