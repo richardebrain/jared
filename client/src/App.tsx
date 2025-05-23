@@ -64,9 +64,31 @@ import AdminModulesPage from "@/pages/admin-modules";
 import InviteTeachersPage from "@/pages/invite-teachers";
 import AvatarCustomizationPage from "@/pages/avatar-customization";
 
-function Router() {
-  // This component needs access to auth state
+// Create a wrapper component that uses AuthProvider internally
+function AuthenticatedRouter() {
+  // This component safely uses useAuth inside the AuthProvider
   const { isAuthenticated, isLoading, user, isAdmin, isOwner } = useAuth();
+  
+  return (
+    <Router 
+      isAuthenticated={isAuthenticated}
+      isLoading={isLoading}
+      user={user}
+      isAdmin={isAdmin}
+      isOwner={isOwner}
+    />
+  );
+}
+
+// Router component takes auth state as props
+function Router(props: { 
+  isAuthenticated: boolean; 
+  isLoading: boolean;
+  user: any;
+  isAdmin: boolean;
+  isOwner: boolean;
+}) {
+  const { isAuthenticated, isLoading, user, isAdmin, isOwner } = props;
   return (
     <Switch>
       {/* Public routes */}
@@ -472,7 +494,7 @@ function App() {
     <TooltipProvider>
       <Toaster />
       <ErrorBoundary>
-        <Router />
+        <AuthenticatedRouter />
       </ErrorBoundary>
     </TooltipProvider>
   );
