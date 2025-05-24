@@ -28,6 +28,8 @@ import passDontHogItAudio from "@assets/pass it dont hog it sharing song 1 (2).m
 import passDontHogItAudio2 from "@assets/pass it dont hog it sharing version 2.mp3";
 import welcomeAboardAudio from "@assets/Welcome Aboard.mp3";
 import welcomeAboardAudio2 from "@assets/Welcome Aboard version 2.mp3";
+import spidermanNapSongAudio from "@assets/spiderman_takes_naps.mp3";
+import spidermanNapLullabyAudio from "@assets/spiderman_takes_naps_lullaby.mp3";
 
 // Define classroom song categories
 const audioCategories = [

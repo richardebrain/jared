@@ -27,6 +27,8 @@ import sharingAudio from "@assets/pass it dont hog it sharing song 1 (2).mp3";
 import sharingAudio2 from "@assets/pass it dont hog it sharing version 2.mp3";
 import welcomeAboardAudio from "@assets/Welcome Aboard.mp3";
 import welcomeAboardAudio2 from "@assets/Welcome Aboard version 2.mp3";
+import spidermanNapSongAudio from "@assets/spiderman_takes_naps.mp3";
+import spidermanNapLullabyAudio from "@assets/spiderman_takes_naps_lullaby.mp3";
 
 // Define classroom song categories
 const audioCategories = [
@@ -130,6 +132,24 @@ const classroomSongs = [
     description: 'Soothing lullaby-style naptime song',
     duration: '3:08',
     usageNotes: 'This gentler version works especially well for younger children or when you need a more lullaby-like approach to rest time.'
+  },
+  {
+    id: 19,
+    title: 'Spiderman Takes Naps',
+    file: spidermanNapSongAudio,
+    category: 'rest',
+    description: 'Fun superhero-themed naptime song for preschoolers',
+    duration: '2:45',
+    usageNotes: 'Perfect for superhero-loving children who resist naptime. The song normalizes that even superheroes need rest to recharge their powers.'
+  },
+  {
+    id: 20,
+    title: 'Spiderman Takes Naps (Lullaby Edition)',
+    file: spidermanNapLullabyAudio,
+    category: 'rest',
+    description: 'Gentle lullaby version of the Spiderman nap song',
+    duration: '3:20',
+    usageNotes: 'A softer, slower version that works well for creating a peaceful atmosphere during naptime, while still using the superhero theme that children enjoy.'
   },
   { 
     id: 11, 
