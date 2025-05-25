@@ -254,11 +254,9 @@ export default function MysteryBox({ maxDailyBoxes = 2, freeStreak5SilverBox = t
   // Claim streak silver box mutation
   const claimStreakSilverBox = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest(
-        "POST",
-        "/api/streak/claim-silver-box",
-        {}
-      );
+      const response = await apiRequest("/api/streak/claim-silver-box", {
+        method: "POST",
+      });
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -297,11 +295,10 @@ export default function MysteryBox({ maxDailyBoxes = 2, freeStreak5SilverBox = t
       rewardAmount: number;
       itemType?: string;
     }) => {
-      const response = await apiRequest(
-        "POST",
-        "/api/mystery-box/reward",
+      const response = await apiRequest("/api/mystery-box/reward", {
+        method: "POST",
         data
-      );
+      });
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -421,7 +418,9 @@ export default function MysteryBox({ maxDailyBoxes = 2, freeStreak5SilverBox = t
     // In a real application, would fetch from the server
     const fetchDailyBoxesOpened = async () => {
       try {
-        const response = await apiRequest('GET', '/api/rewards/daily-boxes');
+        const response = await apiRequest('/api/rewards/daily-boxes', {
+          method: 'GET'
+        });
         const data = await response.json();
         
         if (response.ok) {
@@ -442,7 +441,9 @@ export default function MysteryBox({ maxDailyBoxes = 2, freeStreak5SilverBox = t
       if (!freeStreak5SilverBox) return; // Skip if feature is disabled
       
       try {
-        const response = await apiRequest('GET', '/api/streak/silver-box-eligibility');
+        const response = await apiRequest('/api/streak/silver-box-eligibility', {
+          method: 'GET'
+        });
         const data = await response.json();
         
         if (response.ok) {

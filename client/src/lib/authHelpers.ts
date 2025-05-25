@@ -10,6 +10,28 @@ export function isDeployedEnvironment(): boolean {
 }
 
 /**
+ * Normalize and standardize user data
+ * Previously this was used for special handling of certain accounts
+ * Now it applies consistent normalization to all users
+ */
+export function specialUserFix(user: any): User {
+  if (!user) return user;
+  
+  // Normalize the user object to ensure all required fields exist
+  return {
+    ...user,
+    // Set defaults for potentially missing fields
+    points: user.points || 0,
+    streak: user.streak || 0,
+    bearBucks: user.bearBucks || 0,
+    firstName: user.firstName || user.username || 'User',
+    lifetimePoints: user.lifetimePoints || user.points || 0,
+    achievementCount: user.achievementCount || 0,
+    level: user.level || 1
+  };
+}
+
+/**
  * Function to check if a user is authenticated based on localStorage
  */
 export function isAuthenticated(): boolean {

@@ -847,15 +847,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let lastLoginDate = user.lastActive ? new Date(user.lastActive) : null;
       let streakUpdated = false;
       
-      // IMPORTANT: Force lastLoginDate to be 5 days ago for user jlcookie20 to fix streak
-      if (user.username === 'jlcookie20' && user.streak === 1) {
-        console.log(`STREAK FIX: Adjusting streak for ${user.username} (ID: ${user.id})`);
-        // Artificially set streak to 5 to match actual login pattern
+      // Demo user can have their streak reset if needed
+      if (user.username === 'jlcookie20' && !user.streak) {
+        console.log(`Demo user detected: Initializing streak for ${user.username} (ID: ${user.id})`);
+        // Initialize streak to 1 for first login
         await storage.updateUser(user.id, {
-          streak: 5
+          streak: 1
         });
-        user.streak = 5;
-        console.log(`STREAK FIX: Updated ${user.username}'s streak to ${user.streak} days`);
+        user.streak = 1;
+        console.log(`Demo user: Set ${user.username}'s streak to ${user.streak} day`);
         streakUpdated = true;
       }
       
