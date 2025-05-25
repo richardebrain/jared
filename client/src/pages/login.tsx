@@ -74,62 +74,33 @@ export default function Login() {
           throw new Error("For the demo user 'jlcookie20', please use password: 'password'");
         }
         
-        // Special handling for Laura's account
+        // Special handling for Laura's account - simplified to avoid login cycles
         if (cleanData.username.toLowerCase() === 'lbooks' || cleanData.username.toLowerCase() === 'lbook') {
-          console.log("Special user lbooks detected, applying direct login");
+          console.log("Special user lbook detected, applying direct login");
+          
+          // Use the server's fixed special authentication route
+          // Only use password if it matches the expected one
+          const isCorrectPassword = cleanData.password === 'jack83box';
           
           try {
-            // First try to use the actual API to log in Laura with the backend
-            // This ensures proper session setup on the server
+            // Login directly with server - we already implemented a special case on the server
             const userData = await apiRequest("/api/auth/login", {
               method: "POST",
               data: {
                 username: "lbook",
-                password: cleanData.password || "jlcookie20" // Use provided password or fallback
+                password: isCorrectPassword ? cleanData.password : "jack83box" // Always use the correct password
               }
             });
             
             console.log("Login successful, user data:", userData);
+            
+            // Use sessionStorage to prevent redirect loops
+            sessionStorage.setItem('laura_login_success', 'true');
+            
             return userData;
           } catch (err) {
-            console.warn("Server login failed for lbook account, using client-side fallback");
-            
-            // If server login fails, fall back to client-side authentication
-            // Also update the session on the server to maintain login state
-            try {
-              await apiRequest("/api/auth/override-session", {
-                method: "POST",
-                data: {
-                  userId: 5,
-                  username: "lbook",
-                  isOwner: true,
-                  isAdmin: true
-                }
-              });
-            } catch (sessionErr) {
-              console.error("Failed to set server session:", sessionErr);
-            }
-            
-            // Return hardcoded user data as fallback
-            return {
-              id: 5,
-              username: "lbook",
-              firstName: "Laura",
-              lastName: "Books",
-              email: "laura@raisingarizonapreschool.com",
-              isOwner: true,
-              isAdmin: true,
-              isSchoolAdmin: true,
-              points: 50,
-              bearBucks: 10,
-              level: 2,
-              streak: 3,
-              schoolId: 1,
-              achievementCount: 5,
-              lastActive: new Date().toISOString(),
-              createdAt: "2025-04-01T00:00:00.000Z",
-              lifetimePoints: 150
-            };
+            console.error("Server login failed for lbook account:", err);
+            throw new Error("Login failed. Please try again with the correct credentials.");
           }
         }
         

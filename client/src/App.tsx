@@ -66,18 +66,30 @@ import AvatarCustomizationPage from "@/pages/avatar-customization";
 
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
-  // This component safely uses useAuth inside the AuthProvider
-  const { isAuthenticated, isLoading, user, isAdmin, isOwner } = useAuth();
-  
-  return (
-    <Router 
-      isAuthenticated={isAuthenticated}
-      isLoading={isLoading}
-      user={user}
-      isAdmin={isAdmin}
-      isOwner={isOwner}
-    />
-  );
+  try {
+    // This component safely uses useAuth inside the AuthProvider
+    const { isAuthenticated, isLoading, user, isAdmin, isOwner } = useAuth();
+    
+    return (
+      <Router 
+        isAuthenticated={isAuthenticated}
+        isLoading={isLoading}
+        user={user}
+        isAdmin={isAdmin}
+        isOwner={isOwner}
+      />
+    );
+  } catch (error) {
+    console.error("Auth router error:", error);
+    // Fallback to a simplified router with no auth
+    return (
+      <Switch>
+        <Route path="/login"><Login /></Route>
+        <Route path="/register"><Register /></Route>
+        <Route path="/"><Redirect to="/login" /></Route>
+      </Switch>
+    );
+  }
 }
 
 // Router component takes auth state as props
