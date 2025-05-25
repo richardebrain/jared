@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Lightbulb, Star, Clock, Building2, ArrowRight, Trophy, Award, Medal } from "lucide-react";
+import { Lightbulb, Star, Clock, Building2, ArrowRight, Trophy, Award, Medal, DollarSign, AlertTriangle } from "lucide-react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -207,7 +207,7 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
         </div>
         <CardDescription className="flex items-center gap-1">
           <Star className="h-3.5 w-3.5 text-amber-500" />
-          <span>Highly rated modules from our community</span>
+          <span>Highly rated modules from our community. Top creators get special prizes!</span>
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-2">
@@ -317,9 +317,9 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
                                   : 'bg-gradient-to-r from-amber-700 to-amber-600 text-white border-0'
                               }`}
                             >
-                              {module.award_place === 1 ? '1st Place (+500 pts)' : 
-                               module.award_place === 2 ? '2nd Place (+300 pts)' : 
-                               module.award_place === 3 ? '3rd Place (+150 pts)' : 
+                              {module.award_place === 1 ? '1st Place: Free Month' : 
+                               module.award_place === 2 ? '2nd Place: $100 Gift Card' : 
+                               module.award_place === 3 ? '3rd Place: $50 Gift Card' : 
                                `From: ${module.school_name}`}
                             </Badge>
                           </div>

@@ -593,25 +593,28 @@ export default function AdminPage({ skipPasswordCheck = false }) {
                         <div className="mt-2 flex flex-col gap-2">
                           <div className="flex items-center gap-2">
                             <div className="bg-amber-200 p-1 rounded-full">
-                              <Medal className="h-4 w-4 text-amber-600" />
+                              <Trophy className="h-4 w-4 text-amber-600" />
                             </div>
-                            <span className="text-xs text-indigo-700">1st Place: 500 points + Gold Badge</span>
+                            <span className="text-xs text-indigo-700">1st Place: <span className="font-bold">Free Month of MentorMe</span> + Gold Badge</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="bg-slate-200 p-1 rounded-full">
-                              <Medal className="h-4 w-4 text-slate-500" />
+                              <DollarSign className="h-4 w-4 text-slate-500" />
                             </div>
-                            <span className="text-xs text-indigo-700">2nd Place: 300 points + Silver Badge</span>
+                            <span className="text-xs text-indigo-700">2nd Place: <span className="font-bold">$100 Gift Card</span> + Silver Badge</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="bg-amber-100 p-1 rounded-full">
-                              <Medal className="h-4 w-4 text-amber-600" />
+                              <DollarSign className="h-4 w-4 text-amber-600" />
                             </div>
-                            <span className="text-xs text-indigo-700">3rd Place: 150 points + Bronze Badge</span>
+                            <span className="text-xs text-indigo-700">3rd Place: <span className="font-bold">$50 Gift Card</span> + Bronze Badge</span>
                           </div>
+                          <p className="text-xs text-purple-600 italic mt-1">
+                            Prizes will increase as more schools join the platform!
+                          </p>
                         </div>
                         
-                        <div className="mt-3 flex items-center">
+                        <div className="mt-3">
                           <div className="flex items-center space-x-2">
                             <input
                               type="checkbox"
@@ -623,13 +626,13 @@ export default function AdminPage({ skipPasswordCheck = false }) {
                               }
                             />
                             <Label htmlFor="share-module" className="ml-2 cursor-pointer font-medium">
-                              Enter Competition
+                              Share with Community & Enter Competition
                             </Label>
                           </div>
                         </div>
                         
                         {newModule.shareWithCommunity && (
-                          <div className="mt-3 p-2 bg-white/70 rounded border border-indigo-100 text-xs">
+                          <div className="mt-3 p-3 bg-white/70 rounded border border-indigo-100 text-xs space-y-2">
                             <p className="text-gray-700 flex items-center gap-1">
                               <Info className="h-3 w-3 text-indigo-500" />
                               <span>Modules must be 30 minutes or less to be eligible.</span>
@@ -639,6 +642,12 @@ export default function AdminPage({ skipPasswordCheck = false }) {
                                 </span>
                               )}
                             </p>
+                            <div className="flex items-start gap-2 pt-1 border-t border-gray-100">
+                              <AlertTriangle className="h-3 w-3 text-amber-500 flex-shrink-0 mt-0.5" />
+                              <span className="text-gray-700">
+                                By sharing this module, it will be available to all schools in the community. Inappropriate content or content that violates professional standards will be removed and may result in account penalties.
+                              </span>
+                            </div>
                           </div>
                         )}
                       </div>
