@@ -315,7 +315,7 @@ export default function Header() {
               {isSchoolAdmin && (
                 <Button variant="ghost" className="w-full justify-start mb-2 hover:bg-amber-200 hover:text-amber-900" onClick={() => setLocation(`/schools/${user?.schoolId}`)}>
                   <i className="ri-school-line mr-2"></i>
-                  Director/School Admin
+                  Director/Admin Panel
                 </Button>
               )}
               
