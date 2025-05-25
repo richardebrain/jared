@@ -100,7 +100,47 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   next();
 };
 
+// Initialize default school if needed
+async function ensureDefaultSchoolExists() {
+  try {
+    // Check if we have any schools
+    const schools = await storage.getAllSchools();
+    
+    if (schools.length === 0) {
+      // Create Raising Arizona Preschool as our default school
+      await storage.createSchool({
+        name: "Raising Arizona Preschool",
+        address: "123 Sunshine Way",
+        city: "Phoenix",
+        state: "Arizona", 
+        zipCode: "85001",
+        contactEmail: "info@raisingarizona.edu",
+        contactPhone: "(602) 555-1234",
+        logoUrl: "/assets/raising-arizona-logo.jpg",
+        websiteUrl: "https://raisingarizona.edu",
+        isFreeAccess: true,
+        subscriptionActive: true,
+        subscriptionType: "Premium",
+        teacherCount: 8,
+        customization: JSON.stringify({
+          primaryColor: "#4A7B9D",
+          secondaryColor: "#FFCC5C",
+          welcomeMessage: "Welcome to Raising Arizona Preschool's Professional Development Portal!"
+        }),
+        subscriptionStartedAt: new Date("2025-01-01"),
+        subscriptionExpiresAt: new Date("2026-01-01")
+      });
+      
+      console.log("Created default school: Raising Arizona Preschool");
+    }
+  } catch (error) {
+    console.error("Error ensuring default school exists:", error);
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Initialize default data
+  await ensureDefaultSchoolExists();
   // Create an HTTP server for the Express app (needed for WebSockets)
   // Register credential management routes
   app.use("/api/credentials", credentialRoutes);
