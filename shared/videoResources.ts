@@ -3189,5 +3189,154 @@ export const videoResourcesData: VideoResource[] = [
       }
     ]
   }
+},
+{
+    id: "video-151",
+    title: "Calming Your Inner Monster (and Meeting Super Grover!)",
+    description: "A delightful Sesame Street video teaching young children how to manage their emotions using belly breathing techniques when their 'inner monster' appears.",
+    youtubeId: "SKanTX1huJw",
+    category: ["mindfulness", "self-regulation", "social-emotional"],
+    tags: ["breathing exercises", "emotional regulation", "calm down technique", "monster feelings"],
+    duration: 3,
+    source: "Sesame Street",
+    expertLevel: "beginner",
+    dateAdded: "2025-05-25",
+    featured: true,
+    quiz: {
+      questions: [
+        {
+          "question": "When your inner monster is having a meltdown and wants to throw things and shout, what's the video's surprisingly simple (and less destructive) advice?",
+          "options": [
+            "Give it a tiny gold trophy for 'Most Dramatic Hissy Fit'.",
+            "Teach it to yodel its frustrations away from a mountaintop.",
+            "Do some 'belly breathes' and chill your inner monster out.",
+            "Offer it a complex Sudoku puzzle to distract its tiny monster brain."
+          ],
+          "correctAnswer": 2,
+          "explanation": "The video teaches that belly breathing is an effective way to calm down your inner monster."
+        },
+        {
+          "question": "If your 'mad monster' pops up, what fabulous facial expression does the song say it will inspire you to make?",
+          "options": [
+            "A look of utter bewilderment, like it just saw a pineapple tap-dancing.",
+            "A 'mad monster face'.",
+            "The 'Blue Steel' look, hoping to mesmerize the monster into submission.",
+            "A very convincing impression of a sleepy sloth."
+          ],
+          "correctAnswer": 1,
+          "explanation": "The song mentions that when your mad monster appears, you'll make a 'mad monster face'."
+        },
+        {
+          "question": "According to the video, when your inner monster is feeling mad, angry, or bad, what two chaotic activities does it want to engage in?",
+          "options": [
+            "It wants to take up knitting to make tiny monster sweaters.",
+            "It wants to throw things and shout.",
+            "It wants to write a strongly worded letter to the editor about the lack of quality monster snacks.",
+            "It wants to have a serious, sit-down discussion about its feelings over a cup of herbal tea."
+          ],
+          "correctAnswer": 1,
+          "explanation": "The video explains that when your inner monster is upset, it wants to throw things and shout."
+        },
+        {
+          "question": "When you successfully 'come that monster' (calm it down), what lovely thing does the video say you'll bring out?",
+          "options": [
+            "More monster snacks (preferably crunchy).",
+            "A tiny crown and scepter.",
+            "Monster love.",
+            "The ability to file its taxes correctly."
+          ],
+          "correctAnswer": 2,
+          "explanation": "The video says that when you calm your inner monster, you bring out 'monster love'."
+        },
+        {
+          "question": "After you've done your belly breathes and calmed your inner monster, what fantastic feeling does the song say you'll experience?",
+          "options": [
+            "A sudden craving for pickles and ice cream.",
+            "You feel like yourself again.",
+            "An irresistible urge to do the cha-cha.",
+            "You briefly gain the ability to talk to squirrels."
+          ],
+          "correctAnswer": 1,
+          "explanation": "After calming your inner monster, the song says you'll feel like yourself again."
+        },
+        {
+          "question": "When Super Grover makes his grand appearance, what are some of the amazing things he proclaims about himself?",
+          "options": [
+            "He arrives on a unicycle juggling flaming torches.",
+            "He's 'with the GG,' defying gravity, graceful as a swan, and has gargantuan muscles.",
+            "He's looking for his lost car keys and seems a bit stressed.",
+            "He's selling cookies for the local Grover Scout troop."
+          ],
+          "correctAnswer": 1,
+          "explanation": "Super Grover claims he's 'with the GG,' defies gravity, is as graceful as a swan, and has gargantuan muscles."
+        },
+        {
+          "question": "Super Grover mentions he's 'with the GG.' What does 'GG' stand for?",
+          "options": [
+            "The 'GG Spot,' a notoriously hard-to-find location.",
+            "His 'Good Groceries,' because he promotes healthy eating.",
+            "It's not specified, remaining one of life's great mysteries, like why socks disappear in the laundry.",
+            "His 'Granny's Go-kart,' his preferred mode of transport."
+          ],
+          "correctAnswer": 2,
+          "explanation": "The video doesn't actually explain what 'GG' stands for, leaving it as a mystery."
+        },
+        {
+          "question": "To what elegant creature does Super Grover compare his gracefulness?",
+          "options": [
+            "A fluffy cloud.",
+            "A slightly tipsy flamingo.",
+            "A swan.",
+            "A runaway shopping cart on a downhill slope."
+          ],
+          "correctAnswer": 2,
+          "explanation": "Super Grover compares his gracefulness to that of a swan."
+        },
+        {
+          "question": "What specific type of breathing does the video suggest is 'how you do it' to calm your inner monster?",
+          "options": [
+            "Throwing a tantrum.",
+            "Making a mad monster face.",
+            "Belly breathing.",
+            "Shouting affirmations very, very loudly."
+          ],
+          "correctAnswer": 2,
+          "explanation": "The video teaches that belly breathing is the technique to use when calming your inner monster."
+        },
+        {
+          "question": "What is the very first piece of advice given in the video for when the 'monster inside you is mad'?",
+          "options": [
+            "Give it a cookie and a warm glass of milk.",
+            "Breathe.",
+            "Watch Super Grover videos until it forgets why it's mad.",
+            "Engage in vigorous interpretive dance."
+          ],
+          "correctAnswer": 1,
+          "explanation": "The first advice given in the video is simply to breathe when your inner monster is mad."
+        },
+        {
+          "question": "According to the lyrics, when your 'mad monster' makes an appearance, what two things does 'he make you wanna' do?",
+          "options": [
+            "Push and shout.",
+            "Bake a cake and write poetry.",
+            "Do belly breathing and feel like yourself again.",
+            "Defy gravity and announce your muscles are gargantuan."
+          ],
+          "correctAnswer": 0,
+          "explanation": "The lyrics say that when your mad monster appears, he makes you want to push and shout."
+        },
+        {
+          "question": "How does Super Grover describe the size of his muscles?",
+          "options": [
+            "A very small, slightly dusty ant.",
+            "Non-existent, as he relies on pure grace.",
+            "Gargantuan.",
+            "Made entirely of fluffy marshmallows."
+          ],
+          "correctAnswer": 2,
+          "explanation": "Super Grover describes his muscles as 'gargantuan'."
+        }
+      ]
+    }
 }
 ];
