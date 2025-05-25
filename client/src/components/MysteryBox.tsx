@@ -137,7 +137,6 @@ export default function MysteryBox({ maxDailyBoxes = 2 }: MysteryBoxProps) {
   // Update reward mutation
   const updateUserReward = useMutation({
     mutationFn: async (data: {
-      userId: number;
       rewardType: string;
       rewardAmount: number;
       points?: number;
@@ -358,14 +357,12 @@ export default function MysteryBox({ maxDailyBoxes = 2 }: MysteryBoxProps) {
           if (selectedReward) {
             if (selectedReward.type === 'points') {
               updateUserReward.mutate({
-                userId: user.id,
                 rewardType: selectedReward.type,
                 rewardAmount: selectedReward.value,
                 points: user.points + selectedReward.value - boxType.cost
               });
             } else if (selectedReward.type === 'bearBucks') {
               updateUserReward.mutate({
-                userId: user.id,
                 rewardType: selectedReward.type,
                 rewardAmount: selectedReward.value,
                 points: user.points - boxType.cost,
