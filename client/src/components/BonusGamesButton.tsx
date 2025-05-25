@@ -7,9 +7,8 @@ export default function BonusGamesButton() {
   const { user } = useAuth();
   const [gamePlayed, setGamePlayed] = useState(false);
   
-  // Check for special access using username or Laura's account (ID 5)
+  // Check for special access using demo account
   const isJLCookie = user?.username === 'jlcookie20';
-  const isLaura = user?.id === 5; // Special fix for Laura
   
   // Fetch game history to check if a game was played today
   const { data: gameHistory, refetch: refetchGameHistory } = useQuery({
@@ -26,12 +25,12 @@ export default function BonusGamesButton() {
   
   // Check game history from server data
   useEffect(() => {
-    // Special override for jlcookie20 and Laura - always allow access
-    if (isJLCookie || isLaura) {
+    // Special override for demo account - always allow access
+    if (isJLCookie) {
       setGamePlayed(false);
       // Clear any restrictions
       localStorage.removeItem('lastGamePlayedDate');
-      console.log("EMERGENCY FIX: Giving special games access to", user?.username);
+      console.log("Demo user detected: Giving special games access to", user?.username);
       return;
     }
     

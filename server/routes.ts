@@ -837,7 +837,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("Running in deployed/production environment");
         
         // Force special permissions for certain accounts in production
-        if (isLauraUser || isDemoUser) {
+        if (isDemoUser) {
           console.log(`Special deployment permissions for ${username}`);
           user.isAdmin = true;
           user.isOwner = true;
@@ -1090,10 +1090,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`GET /api/auth/me - Found user: ${user.username} (ID: ${user.id})`);
       
-      // EMERGENCY FIX: Boost Laura's points to enable games
-      if (user.id === 5 && user.username === 'lbook') {
-        console.log("EMERGENCY FIX: Temporarily boosting Laura's points to 15");
-        user.points = 15; // This does not modify database, just response
+      // Ensure user points are properly initialized
+      if (user.points === undefined || user.points === null) {
+        user.points = 0; // Just ensure points field exists
       }
       
       // Do not return password in response
@@ -1325,7 +1324,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     // List of admin usernames by their numeric IDs
-    const adminUserIds = [4, 5]; // Assuming 4 is jlcookie20 and 5 is laura's ID
+    const adminUserIds = [4]; // Admin user ID for the demo account (jlcookie20)
     
     if (adminUserIds.includes(userId)) {
       return next(); // Allow access for admin users
@@ -2557,9 +2556,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
       
-      // Special access for jlcookie20 user (bypass daily limit)
-      // Special users and Laura (user ID 5) bypass game limitations
-      const isSpecialUser = user.username === 'jlcookie20' || user.id === 5;
+      // Special access for demo user (bypass daily limit)
+      const isSpecialUser = user.username === 'jlcookie20';
       
       // Only check if the user has already played if they're not a special user
       if (!isSpecialUser) {
