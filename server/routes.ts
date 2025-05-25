@@ -196,7 +196,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Process mystery box reward
-  app.post("/api/mystery-box/reward", requireAuth, async (req, res) => {
+  app.post("/api/mystery-box/reward", async (req, res) => {
+    // Check authentication
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
     try {
       const userId = req.session.userId;
       const { rewardType, rewardAmount, itemType } = req.body;
@@ -271,7 +275,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Streak reward endpoints
   
   // Check if user is eligible for 5-day streak silver box
-  app.get("/api/streak/silver-box-eligibility", requireAuth, async (req, res) => {
+  app.get("/api/streak/silver-box-eligibility", async (req, res) => {
+    // Check authentication
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
     try {
       const userId = req.session.userId;
       const user = await storage.getUser(userId);
@@ -289,9 +297,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const streakRewards = await storage.getStreakRewardsByUserId(userId);
       const claimedToday = streakRewards.some(reward => {
+        if (!reward.createdAt) return false;
         const rewardDate = new Date(reward.createdAt);
         rewardDate.setHours(0, 0, 0, 0);
-        return rewardDate.getTime() === today.getTime() && reward.type === 'silver_box';
+        return rewardDate.getTime() === today.getTime() && reward.rewardType === 'silver_box';
       });
       
       res.status(200).json({
@@ -306,7 +315,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Claim 5-day streak silver box reward
-  app.post("/api/streak/claim-silver-box", requireAuth, async (req, res) => {
+  app.post("/api/streak/claim-silver-box", async (req, res) => {
+    // Check authentication
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
     try {
       const userId = req.session.userId;
       const user = await storage.getUser(userId);
@@ -329,9 +342,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const streakRewards = await storage.getStreakRewardsByUserId(userId);
       const claimedToday = streakRewards.some(reward => {
+        if (!reward.createdAt) return false;
         const rewardDate = new Date(reward.createdAt);
         rewardDate.setHours(0, 0, 0, 0);
-        return rewardDate.getTime() === today.getTime() && reward.type === 'silver_box';
+        return rewardDate.getTime() === today.getTime() && reward.rewardType === 'silver_box';
       });
       
       if (claimedToday) {
