@@ -28,6 +28,14 @@ import { db } from "./db";
 import { eq, and, desc, gte, lt, or, sql } from "drizzle-orm";
 
 export interface IStorage {
+  // Streak rewards
+  getStreakRewardsByUserId(userId: number): Promise<StreakReward[]>;
+  createStreakReward(reward: InsertStreakReward): Promise<StreakReward>;
+  
+  // User points and items
+  addUserPoints(userId: number, points: number): Promise<User>;
+  addUserBearBucks(userId: number, amount: number): Promise<User>;
+  addUserItem(userId: number, item: { itemType: string, quantity: number, expiresAt?: Date }): Promise<UserItem>;
   // School operations
   getSchool(id: number): Promise<School | undefined>;
   getSchoolByName(name: string): Promise<School | undefined>;
@@ -686,6 +694,86 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return reward;
+  }
+  
+  // User points and items methods
+  async addUserPoints(userId: number, points: number): Promise<User> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    
+    const currentPoints = user.points || 0;
+    const currentLifetimePoints = user.lifetimePoints || 0;
+    
+    const [updatedUser] = await db
+      .update(users)
+      .set({ 
+        points: currentPoints + points,
+        lifetimePoints: currentLifetimePoints + points
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return updatedUser;
+  }
+  
+  async addUserBearBucks(userId: number, amount: number): Promise<User> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    
+    const currentBearBucks = user.bearBucks || 0;
+    
+    const [updatedUser] = await db
+      .update(users)
+      .set({ bearBucks: currentBearBucks + amount })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return updatedUser;
+  }
+  
+  async addUserItem(userId: number, item: { itemType: string, quantity: number, expiresAt?: Date }): Promise<UserItem> {
+    // Check if the user already has this item type
+    const existingItems = await db
+      .select()
+      .from(userItems)
+      .where(and(
+        eq(userItems.userId, userId),
+        eq(userItems.itemType, item.itemType)
+      ));
+    
+    if (existingItems.length > 0) {
+      // Update existing item quantity
+      const currentItem = existingItems[0];
+      const newQuantity = (currentItem.quantity || 0) + item.quantity;
+      
+      const [updatedItem] = await db
+        .update(userItems)
+        .set({ 
+          quantity: newQuantity,
+          expiresAt: item.expiresAt || currentItem.expiresAt
+        })
+        .where(eq(userItems.id, currentItem.id))
+        .returning();
+      
+      return updatedItem;
+    } else {
+      // Create new item
+      const [newItem] = await db
+        .insert(userItems)
+        .values({
+          userId,
+          itemType: item.itemType,
+          quantity: item.quantity,
+          expiresAt: item.expiresAt
+        })
+        .returning();
+      
+      return newItem;
+    }
   }
   
   // Streak reward methods

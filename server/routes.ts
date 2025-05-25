@@ -92,6 +92,14 @@ const logoUpload = multer({
   }
 });
 
+// Helper middleware for requiring authentication
+const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  next();
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create an HTTP server for the Express app (needed for WebSockets)
   // Register credential management routes
@@ -140,6 +148,217 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register enhanced assessment routes
   registerAssessmentRoutes(app);
+  
+  // Mystery box and rewards endpoints
+  
+  // Get daily mystery boxes information
+  app.get("/api/rewards/daily-boxes", async (req, res) => {
+    // Check authentication
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    try {
+      const userId = req.session.userId;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // In a real application, we would fetch from the database
+      // For now, return a simple response with boxes opened today
+      // In the future, this would track boxes opened in the database
+      
+      // Mock data - in production this would come from database
+      const boxesOpened = Math.min(2, Math.floor(Math.random() * 3));
+      
+      // Get the user's recent reward history
+      const streakRewards = await storage.getStreakRewardsByUserId(userId);
+      const recentRewards = streakRewards.slice(0, 10).map(reward => ({
+        id: reward.id,
+        date: reward.createdAt,
+        boxType: reward.type.replace('_box', ''),
+        type: 'points',
+        value: 25, // Sample value
+        label: '25 Points',
+        icon: null // Frontend will render this
+      }));
+      
+      res.status(200).json({
+        opened: boxesOpened,
+        remaining: 2 - boxesOpened,
+        history: recentRewards
+      });
+    } catch (error) {
+      console.error("Error fetching daily boxes data:", error);
+      res.status(500).json({ message: "Failed to fetch daily boxes data" });
+    }
+  });
+  
+  // Process mystery box reward
+  app.post("/api/mystery-box/reward", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      const { rewardType, rewardAmount, itemType } = req.body;
+      
+      if (!rewardType || !rewardAmount) {
+        return res.status(400).json({ 
+          message: "Missing required fields: rewardType and rewardAmount are required" 
+        });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      let levelUp = false;
+      let newLevel = user.level || 1;
+      
+      // Process different reward types
+      if (rewardType === 'points') {
+        // Add points to user account
+        await storage.addUserPoints(userId, rewardAmount);
+        
+        // Check if user leveled up (simplified logic - would be more complex in production)
+        const newTotalPoints = (user.points || 0) + rewardAmount;
+        if (newTotalPoints >= 1000 && (user.level || 1) < 2) {
+          newLevel = 2;
+          levelUp = true;
+          await storage.updateUser(userId, { level: 2 });
+        } else if (newTotalPoints >= 2500 && (user.level || 1) < 3) {
+          newLevel = 3;
+          levelUp = true;
+          await storage.updateUser(userId, { level: 3 });
+        }
+      } else if (rewardType === 'bearBucks') {
+        // Add Bear Bucks to user account
+        await storage.addUserBearBucks(userId, rewardAmount);
+      } else if (rewardType === 'item') {
+        // Handle special items
+        if (itemType === 'streak_shield') {
+          // Add streak shield item to user inventory
+          await storage.addUserItem(userId, {
+            itemType: 'streak_shield',
+            quantity: rewardAmount,
+            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+          });
+        } else if (itemType === 'double_xp') {
+          // Add double XP item to user inventory
+          const duration = rewardAmount === 1 ? 24 : 48; // 24h or 48h
+          await storage.addUserItem(userId, {
+            itemType: 'double_xp',
+            quantity: 1,
+            expiresAt: new Date(Date.now() + duration * 60 * 60 * 1000)
+          });
+        }
+      }
+      
+      // Return the updated user data with level up info if applicable
+      res.status(200).json({
+        success: true,
+        rewardType,
+        rewardAmount,
+        levelUp,
+        level: newLevel
+      });
+    } catch (error) {
+      console.error("Error processing mystery box reward:", error);
+      res.status(500).json({ message: "Failed to process reward" });
+    }
+  });
+  
+  // Streak reward endpoints
+  
+  // Check if user is eligible for 5-day streak silver box
+  app.get("/api/streak/silver-box-eligibility", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Check if user has a streak of 5 or more days
+      const isEligible = user.streak >= 5;
+      
+      // Check if user has already claimed the reward today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const streakRewards = await storage.getStreakRewardsByUserId(userId);
+      const claimedToday = streakRewards.some(reward => {
+        const rewardDate = new Date(reward.createdAt);
+        rewardDate.setHours(0, 0, 0, 0);
+        return rewardDate.getTime() === today.getTime() && reward.type === 'silver_box';
+      });
+      
+      res.status(200).json({
+        eligible: isEligible,
+        alreadyClaimed: claimedToday,
+        streak: user.streak
+      });
+    } catch (error) {
+      console.error("Error checking silver box eligibility:", error);
+      res.status(500).json({ message: "Failed to check silver box eligibility" });
+    }
+  });
+  
+  // Claim 5-day streak silver box reward
+  app.post("/api/streak/claim-silver-box", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Verify eligibility
+      if (user.streak < 5) {
+        return res.status(400).json({ 
+          message: "You need a 5-day login streak to claim this reward",
+          streak: user.streak
+        });
+      }
+      
+      // Check if already claimed today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const streakRewards = await storage.getStreakRewardsByUserId(userId);
+      const claimedToday = streakRewards.some(reward => {
+        const rewardDate = new Date(reward.createdAt);
+        rewardDate.setHours(0, 0, 0, 0);
+        return rewardDate.getTime() === today.getTime() && reward.type === 'silver_box';
+      });
+      
+      if (claimedToday) {
+        return res.status(400).json({ 
+          message: "You've already claimed your streak reward today",
+          streak: user.streak
+        });
+      }
+      
+      // Record the streak reward claim
+      await storage.createStreakReward({
+        userId,
+        type: 'silver_box',
+        streakCount: user.streak
+      });
+      
+      // Success response
+      res.status(200).json({ 
+        success: true,
+        message: "5-day streak Silver Box claimed successfully!",
+        streak: user.streak
+      });
+    } catch (error) {
+      console.error("Error claiming silver box reward:", error);
+      res.status(500).json({ message: "Failed to claim silver box reward" });
+    }
+  });
   
   // Register assessment question routes for the enhanced AI assessment
   try {
