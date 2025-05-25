@@ -1318,6 +1318,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Endpoint to get all schools with additional data for the System Admin dashboard
+  app.get("/api/owner/schools", requireAdmin, async (req, res) => {
+    try {
+      // Get all schools
+      const schools = await storage.getAllSchools();
+      
+      // Enrich school data with additional information
+      const enrichedSchools = await Promise.all(schools.map(async (school) => {
+        // Get teachers for this school
+        const teachers = await storage.getUsersBySchoolId(school.id);
+        
+        // Create enriched school object with teacher count and other details
+        return {
+          ...school,
+          teacherCount: teachers.length,
+          subscription: {
+            planName: school.isFreeAccess ? "Free Plan" : "Standard Plan",
+            status: school.subscriptionActive ? "active" : "inactive",
+            startDate: school.createdAt,
+            nextBillingDate: school.subscriptionActive ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null,
+            amount: school.isFreeAccess ? 0 : 250,
+            teacherLimit: school.isFreeAccess ? 10 : 50,
+            paymentMethod: school.isFreeAccess ? "None" : "Credit Card"
+          }
+        };
+      }));
+      
+      res.status(200).json(enrichedSchools);
+    } catch (error) {
+      console.error("Error fetching schools data:", error);
+      res.status(500).json({ message: "Error fetching schools data" });
+    }
+  });
+  
   // Assign owner privileges to another user
   app.post("/api/owner/assign", requireOwner, async (req, res) => {
     try {

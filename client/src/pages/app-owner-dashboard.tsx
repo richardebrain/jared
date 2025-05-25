@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Building, Users, CreditCard, DollarSign, TrendingUp, 
   CheckCircle, XCircle, ChevronDown, ChevronUp, Badge,
-  Calendar, Clock, User 
+  Calendar, Clock, User, ArrowLeft, AlertCircle
 } from "lucide-react";
 import {
   Select,
@@ -172,6 +173,13 @@ export default function AppOwnerDashboard() {
 
   return (
     <div className="container max-w-7xl mx-auto p-6">
+      <div className="flex items-center mb-4">
+        <Button variant="ghost" onClick={() => window.location.href = "/dashboard"} className="flex items-center gap-2">
+          <ArrowLeft className="h-4 w-4" />
+          Back to Dashboard
+        </Button>
+      </div>
+      
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">App Owner Dashboard</h1>
