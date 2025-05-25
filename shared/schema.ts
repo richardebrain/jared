@@ -378,6 +378,30 @@ export const insertSpinGameRewardSchema = createInsertSchema(spinGameRewards).om
   createdAt: true,
 });
 
+// Streak Rewards schema
+export const streakRewards = pgTable("streak_rewards", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  rewardType: text("reward_type").notNull(), // silver_box, gold_box, etc.
+  streakCount: integer("streak_count").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertStreakRewardSchema = createInsertSchema(streakRewards).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const streakRewardsRelations = relations(streakRewards, ({ one }) => ({
+  user: one(users, {
+    fields: [streakRewards.userId],
+    references: [users.id],
+  }),
+}));
+
+export type StreakReward = typeof streakRewards.$inferSelect;
+export type InsertStreakReward = z.infer<typeof insertStreakRewardSchema>;
+
 // Educational games schema
 export const educationalGames = pgTable("educational_games", {
   id: serial("id").primaryKey(),
@@ -857,20 +881,7 @@ export const usersRelationsWithVideos = relations(users, ({ many }) => ({
 export type VideoQuizCompletion = typeof videoQuizCompletions.$inferSelect;
 export type InsertVideoQuizCompletion = z.infer<typeof insertVideoQuizCompletionSchema>;
 
-export const insertStreakRewardSchema = createInsertSchema(streakRewards).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const streakRewardsRelations = relations(streakRewards, ({ one }) => ({
-  user: one(users, {
-    fields: [streakRewards.userId],
-    references: [users.id],
-  }),
-}));
-
-export type StreakReward = typeof streakRewards.$inferSelect;
-export type InsertStreakReward = z.infer<typeof insertStreakRewardSchema>;
+// These are already defined elsewhere in the schema
 
 // Module Ratings schema
 export const moduleRatings = pgTable("module_ratings", {
@@ -934,28 +945,7 @@ export type CommunityModule = typeof communityModules.$inferSelect;
 export type InsertCommunityModule = z.infer<typeof insertCommunityModuleSchema>;
 
 // Streak Rewards schema
-export const streakRewards = pgTable("streak_rewards", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
-  rewardType: text("reward_type").notNull(), // silver_box, gold_box, etc.
-  streakCount: integer("streak_count").notNull().default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-export const insertStreakRewardSchema = createInsertSchema(streakRewards).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const streakRewardsRelations = relations(streakRewards, ({ one }) => ({
-  user: one(users, {
-    fields: [streakRewards.userId],
-    references: [users.id],
-  }),
-}));
-
-export type StreakReward = typeof streakRewards.$inferSelect;
-export type InsertStreakReward = z.infer<typeof insertStreakRewardSchema>;
+// Streak rewards are defined earlier in the file
 
 // Core Values Shout Out schema
 export const coreValuesShoutOuts = pgTable("core_values_shout_outs", {
