@@ -69,9 +69,11 @@ router.post('/generate', async (req, res) => {
       return res.status(400).json({ message: 'Prompt is required' });
     }
     
-    // First check if this is a "that one kid" module - this direct check is more reliable
-    if (prompt.toLowerCase().includes("that one kid")) {
-      console.log("Detected special module type: That one kid");
+    console.log("Received AI suggestion request:", { prompt, type });
+    
+    // Direct and simple check for "that one kid" in the title
+    if (prompt.includes("That one kid") || prompt.includes("that one kid")) {
+      console.log("MATCH FOUND: Special module type detected: That one kid");
       
       // Extract difficulty level from the prompt
       let difficultyLevel = "intermediate";
@@ -83,6 +85,7 @@ router.post('/generate', async (req, res) => {
       
       // Return custom suggestions based on type
       if (type === 'strategies') {
+        console.log("Returning witty strategies for challenging student module");
         return res.json({
           suggestions: 
             "Try the 'invisible string' technique - connect with your challenging student privately before they act out. It's like having a teacher superpower for a " + difficultyLevel + " classroom!\n" +
@@ -92,6 +95,7 @@ router.post('/generate', async (req, res) => {
             "The 'two positive comments for every redirection' rule works wonders for your challenging student - catch them being good twice as often as you correct!"
         });
       } else if (type === 'questions') {
+        console.log("Returning witty questions for challenging student module");
         return res.json({
           suggestions: 
             "What underlying needs might be driving your challenging student's behavior? (Remember: kids aren't giving you a hard time, they're having a hard time!)\n" +
