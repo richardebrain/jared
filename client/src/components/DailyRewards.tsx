@@ -161,11 +161,10 @@ export default function DailyRewards({ className }: DailyRewardsProps) {
   const claimStreakPointsMutation = useMutation({
     mutationFn: async () => {
       // In a real app, this would be an API call to claim the streak points
-      const response = await apiRequest(
-        "POST",
-        "/api/user/claim-streak-points",
-        { userId: user?.id, points: streakPoints }
-      );
+      const response = await apiRequest("/api/user/claim-streak-points", {
+        method: "POST",
+        data: { userId: user?.id, points: streakPoints }
+      });
       return response.json();
     },
     onSuccess: () => {
@@ -189,11 +188,10 @@ export default function DailyRewards({ className }: DailyRewardsProps) {
   const activateStreakProtection = useMutation({
     mutationFn: async () => {
       // In a real app, this would be an API call to activate streak protection
-      const response = await apiRequest(
-        "POST",
-        "/api/user/activate-streak-protection",
-        { userId: user?.id }
-      );
+      const response = await apiRequest("/api/user/activate-streak-protection", {
+        method: "POST",
+        data: { userId: user?.id }
+      });
       return response.json();
     },
     onSuccess: () => {
