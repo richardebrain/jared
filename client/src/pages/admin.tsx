@@ -315,9 +315,16 @@ export default function AdminPage({ skipPasswordCheck = false }) {
         return;
       }
       
+      // Special handling for "That one kid" module
+      const isThatOneKidModule = newModule.title.toLowerCase().includes('that one kid');
+      console.log("Module detection:", { title: newModule.title, isThatOneKidModule });
+      
       let promptText = '';
       
-      if (type === 'questions') {
+      if (isThatOneKidModule) {
+        // Direct title format for special module types
+        promptText = `That one kid - ${newModule.difficulty} level`;
+      } else if (type === 'questions') {
         promptText = `Generate 3 creative assessment questions for a module about "${newModule.title}" in the category of "${newModule.category}". The questions should be suitable for ${newModule.difficulty} level ECE teachers.`;
       } else if (type === 'strategies') {
         promptText = `Suggest 3 creative teaching strategies for a module about "${newModule.title}" in the category of "${newModule.category}". The strategies should be suitable for ${newModule.difficulty} level ECE teachers.`;
@@ -325,7 +332,7 @@ export default function AdminPage({ skipPasswordCheck = false }) {
         promptText = `Generate quiz questions specifically for a module titled "${newModule.title}" in the category of "${newModule.category}" for ${newModule.difficulty} level ECE teachers. The content should directly relate to ${newModule.title}.`;
       }
       
-      console.log(`Making API request to /api/ai/generate with type: ${type}`);
+      console.log(`Making API request to /api/ai/generate with type: ${type} and prompt: ${promptText}`);
       
       try {
         // Use apiRequest helper which already returns the response data

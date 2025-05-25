@@ -78,9 +78,10 @@ router.post('/generate', async (req, res) => {
     console.log("Extracted module title:", extractedTitle);
     
     // Direct and simple check for "that one kid" in the title
-    // Use the extracted title from our regex pattern
-    if (extractedTitle.toLowerCase().includes("that one kid") || prompt.toLowerCase().includes("that one kid")) {
-      console.log("MATCH FOUND: Special module type detected: That one kid");
+    // Use the extracted title from our regex pattern or check if the prompt starts with "That one kid"
+    const exactMatch = prompt.startsWith("That one kid");
+    if (exactMatch || extractedTitle.toLowerCase().includes("that one kid") || prompt.toLowerCase().includes("that one kid")) {
+      console.log("MATCH FOUND: Special module type detected: That one kid", { exactMatch, extractedTitle });
       
       // Extract difficulty level from the prompt
       let difficultyLevel = "intermediate";
