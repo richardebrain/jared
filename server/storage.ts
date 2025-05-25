@@ -35,6 +35,10 @@ export interface IStorage {
   updateSchool(id: number, schoolData: Partial<InsertSchool>): Promise<School>;
   incrementSchoolTeacherCount(schoolId: number): Promise<School>;
   
+  // Streak rewards
+  hasClaimedStreakReward(userId: number, rewardType: string): Promise<boolean>;
+  recordStreakReward(userId: number, rewardType: string): Promise<StreakReward>;
+  
   // Teacher self-assessment operations
   createSelfAssessment(data: InsertTeacherSelfAssessment): Promise<TeacherSelfAssessment>;
   getLatestSelfAssessment(userId: number): Promise<TeacherSelfAssessment | null>;
