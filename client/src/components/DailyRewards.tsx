@@ -24,12 +24,110 @@ import {
   Shield,
   Info,
   Trophy,
-  Star
+  Star,
+  LucideIcon
 } from "lucide-react";
 
 import { SpinWheel } from "./SpinWheel";
 import ScratchCard from "./ScratchCard";
 import MysteryBox from "./MysteryBox";
+
+interface StreakRewardItem {
+  day: number;
+  points: number;
+  icon: LucideIcon;
+  unlocked: boolean;
+}
+
+// Streak Rewards Summary Component that can be displayed prominently on the games home page
+export function StreakRewardsSummary({ 
+  streakCount, 
+  className 
+}: { 
+  streakCount: number; 
+  className?: string;
+}) {
+  // Calculate streak points based on streak count
+  const calculateStreakPoints = (streak: number) => {
+    if (streak < 2) return 0;
+    return Math.min(5, streak); // 2 points for day 2, 3 for day 3, etc. up to max 5 points
+  };
+  
+  // Current streak points
+  const streakPoints = calculateStreakPoints(streakCount);
+  
+  const rewards: StreakRewardItem[] = [
+    { day: 1, points: 0, icon: Flame, unlocked: streakCount >= 1 },
+    { day: 2, points: 2, icon: Star, unlocked: streakCount >= 2 },
+    { day: 3, points: 3, icon: Star, unlocked: streakCount >= 3 },
+    { day: 4, points: 4, icon: Star, unlocked: streakCount >= 4 },
+    { day: 5, points: 5, icon: Trophy, unlocked: streakCount >= 5 },
+  ];
+  
+  return (
+    <Card className={`${className} overflow-hidden border-2 border-amber-200`}>
+      <CardHeader className="py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg flex items-center">
+            <Flame className="h-5 w-5 mr-2" />
+            Streak Rewards
+          </CardTitle>
+          {streakCount > 0 && (
+            <Badge variant="outline" className="bg-white/20 text-white border-white/30">
+              {streakCount} Day Streak
+            </Badge>
+          )}
+        </div>
+        <CardDescription className="text-amber-100 text-sm">
+          Login daily to earn increasing rewards!
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-3">
+        <div className="flex justify-between items-center mb-3">
+          <div className="text-sm font-medium text-gray-700 flex items-center">
+            {streakCount >= 2 ? (
+              <div className="flex items-center">
+                <Star className="h-4 w-4 text-amber-500 mr-1" />
+                <span>Earning <span className="font-bold text-amber-600">{streakPoints} points</span> per day!</span>
+              </div>
+            ) : (
+              <span className="text-gray-500">Log in tomorrow to start earning points!</span>
+            )}
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-5 gap-1">
+          {rewards.map((reward) => (
+            <div key={reward.day} className="flex flex-col items-center">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-1 relative ${
+                reward.unlocked 
+                  ? 'bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-md' 
+                  : 'bg-gray-100 text-gray-400'
+              }`}>
+                {reward.unlocked ? <Check className="h-5 w-5" /> : <span>{reward.day}</span>}
+                {reward.points > 0 && (
+                  <div className={`absolute -bottom-1 -right-1 ${
+                    reward.unlocked ? 'bg-purple-600' : 'bg-gray-300'
+                  } text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold`}>
+                    +{reward.points}
+                  </div>
+                )}
+              </div>
+              <span className="text-xs text-gray-600">Day {reward.day}</span>
+            </div>
+          ))}
+        </div>
+        
+        <div className="mt-3 text-xs text-gray-500 bg-amber-50 p-2 rounded-md border border-amber-100">
+          <p className="flex items-start">
+            <Info className="h-3 w-3 text-amber-500 mr-1 mt-0.5 flex-shrink-0" />
+            <span>Login 2+ days in a row to earn points. Day 2: 2 points, Day 3: 3 points, up to 5 points per day!</span>
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 interface DailyRewardsProps {
   className?: string;

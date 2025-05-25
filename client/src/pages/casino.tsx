@@ -42,6 +42,8 @@ import {
   StreakProtection 
 } from "@/components";
 
+import { StreakRewardsSummary } from "@/components/DailyRewards";
+
 export default function CasinoPage() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("games");
@@ -246,20 +248,22 @@ export default function CasinoPage() {
           </div>
         </div>
         
-        <div className="mt-4">
-          <div className="flex items-center gap-2">
-            <span className="text-amber-500">
-              <Gift className="h-5 w-5" />
-            </span>
-            <p className="text-muted-foreground">
-              Celebrate your learning journey with these fun rewards!
-            </p>
-            <span className="text-amber-500">
-              <Trophy className="h-5 w-5" />
-            </span>
-          </div>
-          
-          {!hasCompletedActivity && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+          {/* Left column - 2/3 width */}
+          <div className="md:col-span-2">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-amber-500">
+                <Gift className="h-5 w-5" />
+              </span>
+              <p className="text-muted-foreground">
+                Celebrate your learning journey with these fun rewards!
+              </p>
+              <span className="text-amber-500">
+                <Trophy className="h-5 w-5" />
+              </span>
+            </div>
+            
+            {!hasCompletedActivity && (
             <Card className="mt-4 border-yellow-200 bg-yellow-50">
               <CardContent className="pt-6">
                 <div className="flex items-start space-x-4">
