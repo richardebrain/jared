@@ -633,7 +633,7 @@ export default function AdminPage({ skipPasswordCheck = false }) {
                             <p className="text-gray-700 flex items-center gap-1">
                               <Info className="h-3 w-3 text-indigo-500" />
                               <span>Modules must be 30 minutes or less to be eligible.</span>
-                              {parseInt(newModule.estimatedTime) > 30 && (
+                              {Number(newModule.estimatedTime) > 30 && (
                                 <span className="text-red-500 ml-1 font-medium">
                                   Your module exceeds this limit.
                                 </span>
