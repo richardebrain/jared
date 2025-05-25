@@ -14,15 +14,18 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { 
-  Video, 
-  Link2, 
+import {
+  Video,
+  Link2,
   BookOpen,
   Brain,
   Sparkles,
   Lightbulb,
   Loader2,
-  ArrowLeft, 
+  ArrowLeft,
+  Trophy,
+  Award,
+  Medal, 
   FileEdit, 
   Save, 
   PlusCircle, 
@@ -570,6 +573,48 @@ export default function AdminPage({ skipPasswordCheck = false }) {
                           <SelectItem value="professional-development">Professional Development</SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-lg border border-indigo-100">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 mr-4">
+                        <Trophy className="h-6 w-6 text-amber-500" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-medium text-indigo-800">Community Module Competition</h4>
+                        <p className="text-xs text-indigo-600 mt-1">
+                          Share your best modules with the community to enter our monthly competition!
+                          The top-rated modules each month receive point prizes and recognition.
+                        </p>
+                        <div className="mt-3 flex items-center">
+                          <Switch 
+                            id="share-module" 
+                            checked={newModule.shareWithCommunity || false}
+                            onCheckedChange={(checked) => 
+                              setNewModule({...newModule, shareWithCommunity: checked})
+                            }
+                          />
+                          <Label htmlFor="share-module" className="ml-2 cursor-pointer">
+                            Share with Community
+                          </Label>
+                        </div>
+                        {newModule.shareWithCommunity && (
+                          <div className="mt-2 text-xs">
+                            <p className="text-gray-600">
+                              <span className="font-medium">Note:</span> Modules must be 30 minutes or less to be eligible for the competition.
+                              {newModule.estimatedTime > 30 && (
+                                <span className="text-red-500 ml-1 font-medium">
+                                  Your module currently exceeds this limit.
+                                </span>
+                              )}
+                            </p>
+                            <p className="text-gray-600 mt-1">
+                              Current month: <span className="font-medium">May 2025</span>
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                   
