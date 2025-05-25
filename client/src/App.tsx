@@ -4,8 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 // Import ErrorBoundary component
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { ProtectedRoute, PublicRoute } from '@/components/ProtectedRoute';
-import { useAuth, AuthProvider } from '@/lib/auth-context';
+import { ProtectedRoute, PublicRoute } from "@/components/ProtectedRoute";
+import { useAuth, AuthProvider } from "@/lib/auth-context";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import EnhancedDashboard from "@/pages/dashboard-enhanced";
@@ -67,18 +67,18 @@ import AvatarCustomizationPage from "@/pages/avatar-customization";
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
   const [initialSessionCleared, setInitialSessionCleared] = useState(false);
-  
+
   // Effect to clear server-side session on initial page load
   useEffect(() => {
     const clearInitialSession = async () => {
       if (window.location.pathname === "/" && !initialSessionCleared) {
         try {
           // Clear any client-side storage
-          sessionStorage.removeItem('laura_login_success');
-          localStorage.removeItem('isAuthenticated');
-          
+          sessionStorage.removeItem("laura_login_success");
+          localStorage.removeItem("isAuthenticated");
+
           // Call server endpoint to clear any existing session
-          await fetch('/api/auth/clear-session');
+          await fetch("/api/auth/clear-session");
           console.log("Initial session cleared on page load");
         } catch (err) {
           console.warn("Error clearing initial session:", err);
@@ -87,16 +87,16 @@ function AuthenticatedRouter() {
         }
       }
     };
-    
+
     clearInitialSession();
   }, [initialSessionCleared]);
-  
+
   try {
     // This component safely uses useAuth inside the AuthProvider
     const { isAuthenticated, isLoading, user, isAdmin, isOwner } = useAuth();
-    
+
     return (
-      <Router 
+      <Router
         isAuthenticated={isAuthenticated}
         isLoading={isLoading}
         user={user}
@@ -108,22 +108,28 @@ function AuthenticatedRouter() {
     console.error("Auth router error:", error);
     // Fallback to a simplified router with no auth
     // Clear any stored auth data to ensure fresh login
-    sessionStorage.removeItem('laura_login_success');
-    localStorage.removeItem('isAuthenticated');
-    
+    sessionStorage.removeItem("laura_login_success");
+    localStorage.removeItem("isAuthenticated");
+
     return (
       <Switch>
-        <Route path="/login"><Login /></Route>
-        <Route path="/register"><Register /></Route>
-        <Route path="/"><Redirect to="/login" /></Route>
+        <Route path="/login">
+          <Login />
+        </Route>
+        <Route path="/register">
+          <Register />
+        </Route>
+        <Route path="/">
+          <Redirect to="/login" />
+        </Route>
       </Switch>
     );
   }
 }
 
 // Router component takes auth state as props
-function Router(props: { 
-  isAuthenticated: boolean; 
+function Router(props: {
+  isAuthenticated: boolean;
   isLoading: boolean;
   user: any;
   isAdmin: boolean;
@@ -170,178 +176,303 @@ function Router(props: {
       </Route>
 
       <Route path="/assessment">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <Assessment />
-        }
+        )}
       </Route>
 
       <Route path="/assessment-results">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <AssessmentResults />
-        }
+        )}
       </Route>
 
       <Route path="/learning-style">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <LearningStylePage />
-        }
+        )}
       </Route>
 
       <Route path="/modules/:id">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <LearningModulePage />
-        }
+        )}
       </Route>
 
       <Route path="/core-values-module">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <CoreValuesModulePage />
-        }
+        )}
       </Route>
 
       <Route path="/core-values-module-new">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <CoreValuesModuleNew />
-        }
+        )}
       </Route>
 
       <Route path="/micro-modules/:id">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <MicroModulePage />
-        }
+        )}
       </Route>
 
       <Route path="/discussions/:id">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <DiscussionsPage />
-        }
+        )}
       </Route>
 
       <Route path="/discussions">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <DiscussionsPage />
-        }
+        )}
       </Route>
 
       <Route path="/modules">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <AllModules />
-        }
+        )}
       </Route>
 
       <Route path="/core-values">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <CoreValuesPage />
-        }
+        )}
       </Route>
 
       <Route path="/chapter-one">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <ChapterOnePage />
-        }
+        )}
       </Route>
 
       <Route path="/mindful-mornings">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <MindfulMorningsPage />
-        }
+        )}
       </Route>
 
       <Route path="/mindful-mornings-module">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <MindfulMorningsModulePage />
-        }
+        )}
       </Route>
 
       <Route path="/classroom-music">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <ClassroomMusic />
-        }
+        )}
       </Route>
 
       <Route path="/storytelling-demo">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <StorytellingDemoPage />
-        }
+        )}
       </Route>
 
       <Route path="/core-values-shout-out">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <CoreValuesShoutOutPage />
-        }
+        )}
       </Route>
 
       <Route path="/building-child">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <BuildingChildPage />
-        }
+        )}
       </Route>
 
       <Route path="/video-resources">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <VideoResourcesPage />
-        }
+        )}
       </Route>
 
       <Route path="/tools">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <ToolsPage />
-        }
+        )}
       </Route>
 
       <Route path="/settings/account">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <AccountPage />
-        }
+        )}
       </Route>
 
       <Route path="/settings/owner-dashboard">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <OwnerDashboardPage />
-        }
+        )}
       </Route>
 
       <Route path="/owner-dashboard">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <OwnerDashboardStandalone />
-        }
+        )}
       </Route>
 
       <Route path="/settings/data-sources">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <DataSourcesPage />
-        }
+        )}
       </Route>
 
       <Route path="/settings/platform-integrations">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <PlatformIntegrationsPage />
-        }
+        )}
       </Route>
 
       <Route path="/beary-ai">
@@ -351,24 +482,39 @@ function Router(props: {
       </Route>
 
       <Route path="/games">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <GamesPage />
-        }
+        )}
       </Route>
 
       <Route path="/casino">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <CasinoPage />
-        }
+        )}
       </Route>
 
       <Route path="/lesson-plan-maker">
-        {!isAuthenticated && !isLoading ? <Redirect to="/login" /> : 
-          isLoading ? <div className="flex items-center justify-center min-h-screen"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div> : 
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
           <LessonPlanMakerPage />
-        }
+        )}
       </Route>
 
       <Route path="/admin">

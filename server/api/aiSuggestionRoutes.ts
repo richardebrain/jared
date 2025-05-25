@@ -2,6 +2,64 @@ import { Router } from 'express';
 
 const router = Router();
 
+/**
+ * Helper function to add a witty tone to suggestions
+ * Adds humor and personality to the suggestions
+ */
+function addWittyTone(suggestions: string[], moduleTitle: string) {
+  // Add witty intros to some suggestions
+  return suggestions.map((suggestion, index) => {
+    // Only add witty intros to some suggestions to keep a balance
+    if (index % 2 === 0) {
+      const wittyIntros = [
+        `Ready for a game-changer? ${suggestion}`,
+        `Here's a sanity-saver: ${suggestion}`,
+        `The secret weapon of veteran teachers: ${suggestion}`,
+        `This one's pure gold: ${suggestion}`,
+        `Your future self will thank you: ${suggestion}`,
+        `Teacher hack alert! ${suggestion}`,
+        `Classroom magic trick: ${suggestion}`,
+        `This might just save your day: ${suggestion}`,
+        `Brilliant idea coming through: ${suggestion}`,
+        `Trust me on this one: ${suggestion}`
+      ];
+      
+      // Select a random witty intro
+      const randomIndex = Math.floor(Math.random() * wittyIntros.length);
+      return wittyIntros[randomIndex];
+    }
+    return suggestion;
+  });
+}
+
+/**
+ * Helper function to make suggestions more specific to the module title
+ */
+function customizeForModuleTitle(suggestions: string[], moduleTitle: string) {
+  // Replace generic terms with specific ones related to the module title
+  const lowercaseTitle = moduleTitle.toLowerCase();
+  
+  return suggestions.map(suggestion => {
+    let customized = suggestion;
+    
+    // Replace generic terms with specific module-related terms
+    if (lowercaseTitle.includes('that one kid')) {
+      customized = customized
+        .replace(/children/g, 'challenging students')
+        .replace(/child/g, 'challenging student')
+        .replace(/preschoolers/g, 'students who test boundaries')
+        .replace(/classroom environment/g, 'environment for diverse behavioral needs');
+    } else if (lowercaseTitle.includes('difficult conversation')) {
+      customized = customized
+        .replace(/teaching/g, 'communication')
+        .replace(/classroom management/g, 'difficult conversation management')
+        .replace(/children/g, 'conversation participants');
+    }
+    
+    return customized;
+  });
+}
+
 // AI suggestion generation endpoint for module creator
 router.post('/generate', async (req, res) => {
   try {
@@ -119,6 +177,59 @@ router.post('/generate', async (req, res) => {
             correctAnswer: "Clearly state the expected behavior rather than focusing on the negative"
           }
         ];
+      } else if (moduleTitle.toLowerCase().includes('that one kid')) {
+        quizQuestions = [
+          {
+            question: "When dealing with a challenging student who consistently disrupts the class, what approach is most effective?",
+            options: [
+              "Immediately removing them from the classroom to maintain order",
+              "Publicly addressing the behavior to set clear expectations for all students",
+              "Understanding potential triggers and implementing preventative strategies",
+              "Assigning a classroom buddy to monitor their behavior"
+            ],
+            correctAnswer: "Understanding potential triggers and implementing preventative strategies"
+          },
+          {
+            question: "What strategy best helps build a positive relationship with a consistently challenging student?",
+            options: [
+              "Maintaining strict professional boundaries at all times",
+              "Finding specific strengths to genuinely praise every day",
+              "Focusing primarily on correcting negative behaviors",
+              "Giving them special privileges to earn their cooperation"
+            ],
+            correctAnswer: "Finding specific strengths to genuinely praise every day"
+          },
+          {
+            question: "Which statement reflects best practice when communicating with parents about their challenging child?",
+            options: [
+              "Focusing only on problematic behaviors that need immediate attention",
+              "Comparing the child's behavior to peers to provide context",
+              "Starting with positive observations before addressing challenges",
+              "Suggesting they seek professional help for their child's behavior"
+            ],
+            correctAnswer: "Starting with positive observations before addressing challenges"
+          },
+          {
+            question: "When a student has frequent emotional outbursts, which approach is most supported by research?",
+            options: [
+              "Immediately removing them from the situation to calm down alone",
+              "Implementing a token system where calm behavior earns rewards",
+              "Teaching self-regulation strategies during calm moments",
+              "Extending their nap time to reduce stress and fatigue"
+            ],
+            correctAnswer: "Teaching self-regulation strategies during calm moments"
+          },
+          {
+            question: "What is the most effective first step when a typically challenging student begins acting out?",
+            options: [
+              "Immediately implementing the predetermined consequence",
+              "Calmly assessing if basic needs (hunger, sleep, security) are met",
+              "Separating them from peers until they can rejoin appropriately",
+              "Calling their parents to discuss the ongoing behavior issues"
+            ],
+            correctAnswer: "Calmly assessing if basic needs (hunger, sleep, security) are met"
+          }
+        ];
       } else {
         // Default generic quiz questions if no specific topic is detected
         quizQuestions = [
@@ -186,7 +297,33 @@ router.post('/generate', async (req, res) => {
     console.log("Module title for AI suggestions:", moduleTitle);
     
     // Generate topic-specific suggestions based on the module title
-    if (moduleTitle.toLowerCase().includes('potty training')) {
+    if (moduleTitle.toLowerCase().includes('that one kid')) {
+      if (prompt.includes('questions')) {
+        suggestions = [
+          "What underlying needs might be driving your challenging student's behavior? (Remember: kids aren't giving you a hard time, they're having a hard time!)",
+          "How do you differentiate between attention-seeking behavior and skill deficits in your most challenging students?",
+          "What surprising strategies have worked with your most challenging students when nothing else seemed to?",
+          "How do you maintain your own emotional regulation when dealing with 'that one kid' who knows exactly which buttons to push?",
+          "What specific language do you use when speaking privately with a student about disruptive behavior that preserves their dignity?"
+        ];
+      } else if (prompt.includes('strategies')) {
+        suggestions = [
+          "Start each day with a 2-minute private check-in with your challenging student - it's like preventative medicine for behavior issues!",
+          "Create a special signal between you and your challenging student to communicate 'I need a break' without words or drama.",
+          "Use the 'connection before correction' approach - address the emotional need before the behavior, unless someone's bleeding!",
+          "Implement the '10-to-1 ratio' rule: Give 10 positive comments for every correction. Your facial muscles might get tired from smiling, but trust us, it works!",
+          "Create a personalized calm-down kit with sensory tools specifically chosen for your challenging student - like a behavioral first aid kit!"
+        ];
+      } else {
+        suggestions = [
+          "Include a section on 'Behavior Detective Work' - how to recognize when a challenging behavior is actually communicating a need.",
+          "Add a flowchart for teachers called 'Is This the Hill to Die On?' to help prioritize which behaviors truly need intervention.",
+          "Incorporate brain research that explains why traditional 'consequences' often backfire spectacularly with challenging students.",
+          "Include role-playing scenarios titled 'What Would You Do If...?' featuring classic challenging behaviors.",
+          "Add a section on teacher self-care strategies titled 'Keeping Your Cool When They're Pushing Your Buttons'."
+        ];
+      }
+    } else if (moduleTitle.toLowerCase().includes('potty training')) {
       if (prompt.includes('questions')) {
         suggestions = [
           "What are the key developmental signs that indicate a child is ready for potty training?",
@@ -264,6 +401,19 @@ router.post('/generate', async (req, res) => {
       suggestions = suggestions.map(s => s.replace(/children|preschoolers/g, 'students in your classroom'));
     } else if (prompt.includes('social-emotional')) {
       suggestions = suggestions.map(s => s.includes('emotion') ? s : s + ' Consider how this supports emotional development.');
+    }
+    
+    // Add more wit and personality to the suggestions
+    suggestions = addWittyTone(suggestions, moduleTitle);
+    
+    // Make suggestions more specific to the module title
+    suggestions = customizeForModuleTitle(suggestions, moduleTitle);
+    
+    // Add custom suggestions for specific module titles that weren't matched earlier
+    if (moduleTitle.toLowerCase().includes('that one kid')) {
+      // Add module-specific suggestions to the list
+      suggestions.push("Try the 'invisible string' technique - connect with your challenging student privately before they act out. It's like having a teacher superpower!");
+      suggestions.push("Create a special responsibility just for that boundary-testing student. Nothing says 'I see your potential' like being the classroom's official lizard caretaker!");
     }
     
     res.json({ suggestions: suggestions.join('\n') });
