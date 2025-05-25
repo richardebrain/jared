@@ -207,9 +207,9 @@ export default function Header() {
                     <i className="ri-building-line mr-2"></i>
                     School Management
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/admin")}>
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/app-owner-dashboard")}>
                     <i className="ri-shield-keyhole-line mr-2"></i>
-                    Platform Administration
+                    System Administration
                   </DropdownMenuItem>
                 </>
               )}
@@ -306,9 +306,9 @@ export default function Header() {
               )}
               
               {isAdmin && (
-                <Button variant="ghost" className="w-full justify-start mb-2 hover:bg-amber-200 hover:text-amber-900" onClick={() => setLocation("/admin")}>
+                <Button variant="ghost" className="w-full justify-start mb-2 hover:bg-amber-200 hover:text-amber-900" onClick={() => setLocation("/app-owner-dashboard")}>
                   <i className="ri-shield-keyhole-line mr-2"></i>
-                  Platform Administration
+                  System Administration
                 </Button>
               )}
               
