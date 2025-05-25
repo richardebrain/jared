@@ -267,4 +267,114 @@ router.delete("/:moduleId", requireAuth, requirePaidAccess, requireAdmin, async 
   }
 });
 
+// Get modules in the current month's competition
+router.get("/competition", requireAuth, requirePaidAccess, async (req, res) => {
+  try {
+    const competitionModules = await CommunityModuleManager.getCommunityModulesForCompetition();
+    return res.status(200).json(competitionModules);
+  } catch (error) {
+    console.error("Error retrieving competition modules:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Get past competition winners
+router.get("/winners", requireAuth, requirePaidAccess, async (req, res) => {
+  try {
+    const winners = await CommunityModuleManager.getPastCompetitionWinners();
+    return res.status(200).json(winners);
+  } catch (error) {
+    console.error("Error retrieving competition winners:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Get current month's leaderboard
+router.get("/leaderboard", requireAuth, requirePaidAccess, async (req, res) => {
+  try {
+    const leaderboard = await CommunityModuleManager.getCurrentMonthLeaderboard();
+    return res.status(200).json(leaderboard);
+  } catch (error) {
+    console.error("Error retrieving competition leaderboard:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Trigger monthly prize awards (admin only)
+router.post("/awards/process", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const awards = await CommunityModuleManager.awardMonthlyPrizes();
+    return res.status(200).json({
+      message: "Monthly prizes awarded successfully",
+      awards
+    });
+  } catch (error) {
+    console.error("Error awarding monthly prizes:", error);
+    return res.status(500).json({ message: "Failed to award monthly prizes" });
+  }
+});
+
+// Update the sharing process to notify users about competition
+router.post("/share", requireAuth, requirePaidAccess, requireAdmin, async (req, res) => {
+  try {
+    const { moduleId } = req.body;
+    
+    if (!moduleId) {
+      return res.status(400).json({ message: "Module ID is required" });
+    }
+    
+    // Get user's school ID
+    const userId = req.session.userId as number;
+    const user = await storage.getUser(userId);
+    
+    if (!user || !user.schoolId) {
+      return res.status(400).json({ message: "User not associated with a school" });
+    }
+    
+    // Check if module exists
+    const module = await storage.getModule(moduleId);
+    
+    if (!module) {
+      return res.status(404).json({ message: "Module not found" });
+    }
+    
+    // Check if module duration is 30 minutes or less
+    if (module.duration > 30) {
+      return res.status(400).json({ 
+        message: "Module too long for community sharing",
+        details: "Community modules must be 30 minutes or less in duration"
+      });
+    }
+    
+    // Use the CommunityModuleManager instead of raw SQL
+    try {
+      const result = await CommunityModuleManager.shareModuleToCommunity(moduleId, user.schoolId);
+      
+      // Get current month competition info
+      const currentMonth = new Date().toLocaleString('default', { month: 'long' });
+      const currentYear = new Date().getFullYear();
+      
+      return res.status(200).json({
+        message: "Module successfully shared with the community",
+        moduleId,
+        competitionInfo: {
+          message: `Your module has been entered into the ${currentMonth} ${currentYear} Community Module Competition!`,
+          details: "The top-rated modules each month will earn points prizes. The competition ends on the last day of the month."
+        }
+      });
+    } catch (error) {
+      if (error.message === "Module is already shared to the community") {
+        return res.status(400).json({ 
+          message: "Module already shared",
+          details: "This module has already been shared with the community"
+        });
+      }
+      throw error;
+    }
+  } catch (error) {
+    console.error("Error sharing module with community:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 export default router;
