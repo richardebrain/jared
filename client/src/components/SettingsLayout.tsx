@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
-import { Settings, Database, BookCopy, Shield, User, Building2 } from 'lucide-react';
+import { Settings, Database, BookCopy, Shield, User, Building2, Home } from 'lucide-react';
 
 interface SettingsLayoutProps {
   title: string;
@@ -54,6 +54,17 @@ export default function SettingsLayout({
             <h3 className="font-semibold">Settings</h3>
           </div>
           <nav className="flex flex-col space-y-1">
+            <Link
+              href="/dashboard"
+              className={cn(
+                buttonVariants({ variant: 'ghost' }),
+                'justify-start bg-amber-100 hover:bg-amber-200 text-amber-900 mb-2'
+              )}
+            >
+              <Home className="h-4 w-4" />
+              <span className="ml-2">Return to Dashboard</span>
+            </Link>
+            
             {settingsNavItems.map((item) => (
               <Link
                 key={item.href}
