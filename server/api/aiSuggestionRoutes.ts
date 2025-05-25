@@ -71,17 +71,53 @@ router.post('/generate', async (req, res) => {
     
     console.log("Received AI suggestion request:", { prompt, type });
     
-    // Better title extraction from prompt
+    // DIRECT SOLUTION - Check if this is a special format from our client-side "That one kid" handling
+    if (prompt.startsWith("That one kid -")) {
+      console.log("DIRECT MATCH: Special module type detected using simplified format");
+      
+      // Extract difficulty level from the prompt
+      let difficultyLevel = "intermediate";
+      if (prompt.includes("beginner level")) {
+        difficultyLevel = "beginner";
+      } else if (prompt.includes("advanced level")) {
+        difficultyLevel = "advanced";
+      } else if (prompt.includes("intermediate level")) {
+        difficultyLevel = "intermediate";
+      }
+      
+      // Return custom suggestions based on type
+      if (type === 'strategies') {
+        console.log("Returning witty strategies for challenging student module");
+        return res.json({
+          suggestions: 
+            "Try the 'invisible string' technique - connect with your challenging student privately before they act out. It's like having a teacher superpower for a " + difficultyLevel + " classroom!\n" +
+            "Create a special responsibility just for that boundary-testing student. Nothing says 'I see your potential' like being the classroom's official lizard caretaker!\n" +
+            "For that one spirited kid, try 'first-then' statements: 'First finish your worksheet, then you get to be my special helper.' Works like classroom magic!\n" +
+            "Give that energetic student a secret signal only you two know - a wink or hand gesture that says 'I see you need a break' before they lose control.\n" +
+            "The 'two positive comments for every redirection' rule works wonders for your challenging student - catch them being good twice as often as you correct!"
+        });
+      } else if (type === 'questions') {
+        console.log("Returning witty questions for challenging student module");
+        return res.json({
+          suggestions: 
+            "What underlying needs might be driving your challenging student's behavior? (Remember: kids aren't giving you a hard time, they're having a hard time!)\n" +
+            "How do you differentiate between attention-seeking behavior and skill deficits in your most challenging students?\n" +
+            "What environmental triggers might be affecting your challenging student, and how can you modify the classroom to reduce them?\n" +
+            "How would you create a behavior intervention plan for that one student who consistently tests boundaries?\n" +
+            "How might trauma-informed practices help you connect with your most challenging student?"
+        });
+      }
+    }
+    
+    // FALLBACK - Try to extract title from more complex prompts
     const titlePattern = /\"([^\"]+)\"/; // Extract text between quotes
     const titleMatch = prompt.match(titlePattern);
     const extractedTitle = titleMatch ? titleMatch[1] : "";
     console.log("Extracted module title:", extractedTitle);
     
-    // Direct and simple check for "that one kid" in the title
-    // Use the extracted title from our regex pattern or check if the prompt starts with "That one kid"
-    const exactMatch = prompt.startsWith("That one kid");
-    if (exactMatch || extractedTitle.toLowerCase().includes("that one kid") || prompt.toLowerCase().includes("that one kid")) {
-      console.log("MATCH FOUND: Special module type detected: That one kid", { exactMatch, extractedTitle });
+    // Check for "that one kid" in the extracted title or the full prompt
+    if (extractedTitle.toLowerCase().includes("that one kid") || prompt.toLowerCase().includes("that one kid")) {
+      console.log("MATCH FOUND: Special module type detected: That one kid");
       
       // Extract difficulty level from the prompt
       let difficultyLevel = "intermediate";
