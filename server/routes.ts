@@ -1922,7 +1922,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Mystery box rewards endpoint
-  app.post("/api/mystery-box/reward", requireAuth, async (req, res) => {
+  app.post("/api/mystery-box/reward", isAuthenticated, async (req, res) => {
     try {
       const userId = req.session.userId as number;
       const { rewardType, rewardAmount, points, bearBucks, itemType, itemCount } = req.body;
