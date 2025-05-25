@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -37,7 +38,6 @@ import {
   Users,
   ChevronRight,
   Info,
-  Award,
   School,
   X,
   Mail
@@ -62,6 +62,7 @@ export default function AdminPage({ skipPasswordCheck = false }) {
     difficulty: 'beginner',
     estimatedTime: '15',
     customPoints: '',  // Added custom points field
+    shareWithCommunity: false, // Flag to share with community for competition
     sections: [
       {
         title: 'Introduction',
@@ -576,41 +577,67 @@ export default function AdminPage({ skipPasswordCheck = false }) {
                     </div>
                   </div>
                   
-                  <div className="mt-4 bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-lg border border-indigo-100">
+                  <div className="mt-4 bg-gradient-to-br from-amber-50 via-indigo-50 to-purple-50 p-4 rounded-lg border-2 border-amber-200 shadow-sm">
                     <div className="flex items-start">
                       <div className="flex-shrink-0 mr-4">
-                        <Trophy className="h-6 w-6 text-amber-500" />
+                        <div className="bg-amber-100 p-2 rounded-full">
+                          <Trophy className="h-6 w-6 text-amber-500" />
+                        </div>
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-sm font-medium text-indigo-800">Community Module Competition</h4>
-                        <p className="text-xs text-indigo-600 mt-1">
-                          Share your best modules with the community to enter our monthly competition!
-                          The top-rated modules each month receive point prizes and recognition.
-                        </p>
-                        <div className="mt-3 flex items-center">
-                          <Switch 
-                            id="share-module" 
-                            checked={newModule.shareWithCommunity || false}
-                            onCheckedChange={(checked) => 
-                              setNewModule({...newModule, shareWithCommunity: checked})
-                            }
-                          />
-                          <Label htmlFor="share-module" className="ml-2 cursor-pointer">
-                            Share with Community
-                          </Label>
+                        <div className="flex items-center">
+                          <h4 className="text-sm font-bold text-indigo-800">Community Module Competition</h4>
+                          <div className="ml-2 px-2 py-0.5 bg-amber-100 rounded-full text-xs font-semibold text-amber-700">May 2025</div>
                         </div>
+                        
+                        <div className="mt-2 flex flex-col gap-2">
+                          <div className="flex items-center gap-2">
+                            <div className="bg-amber-200 p-1 rounded-full">
+                              <Medal className="h-4 w-4 text-amber-600" />
+                            </div>
+                            <span className="text-xs text-indigo-700">1st Place: 500 points + Gold Badge</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="bg-slate-200 p-1 rounded-full">
+                              <Medal className="h-4 w-4 text-slate-500" />
+                            </div>
+                            <span className="text-xs text-indigo-700">2nd Place: 300 points + Silver Badge</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="bg-amber-100 p-1 rounded-full">
+                              <Medal className="h-4 w-4 text-amber-600" />
+                            </div>
+                            <span className="text-xs text-indigo-700">3rd Place: 150 points + Bronze Badge</span>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-3 flex items-center">
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id="share-module"
+                              className="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                              checked={newModule.shareWithCommunity || false}
+                              onChange={(e) => 
+                                setNewModule({...newModule, shareWithCommunity: e.target.checked})
+                              }
+                            />
+                            <Label htmlFor="share-module" className="ml-2 cursor-pointer font-medium">
+                              Enter Competition
+                            </Label>
+                          </div>
+                        </div>
+                        
                         {newModule.shareWithCommunity && (
-                          <div className="mt-2 text-xs">
-                            <p className="text-gray-600">
-                              <span className="font-medium">Note:</span> Modules must be 30 minutes or less to be eligible for the competition.
-                              {newModule.estimatedTime > 30 && (
+                          <div className="mt-3 p-2 bg-white/70 rounded border border-indigo-100 text-xs">
+                            <p className="text-gray-700 flex items-center gap-1">
+                              <Info className="h-3 w-3 text-indigo-500" />
+                              <span>Modules must be 30 minutes or less to be eligible.</span>
+                              {parseInt(newModule.estimatedTime) > 30 && (
                                 <span className="text-red-500 ml-1 font-medium">
-                                  Your module currently exceeds this limit.
+                                  Your module exceeds this limit.
                                 </span>
                               )}
-                            </p>
-                            <p className="text-gray-600 mt-1">
-                              Current month: <span className="font-medium">May 2025</span>
                             </p>
                           </div>
                         )}
