@@ -314,10 +314,23 @@ export default function MysteryBox({ maxDailyBoxes = 2 }: MysteryBoxProps) {
       return;
     }
     
-    if (boxType.cost > 0 && user.points < boxType.cost) {
+    if (boxType.cost > 0 && (user?.points || 0) < boxType.cost) {
       toast({
         title: "Not enough points",
         description: `You need ${boxType.cost} points to open this ${boxType.name}.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Check if user reached daily point limit (20 points)
+    const dailyPointLimit = 20;
+    const currentPoints = user?.points || 0;
+    
+    if (currentPoints >= dailyPointLimit) {
+      toast({
+        title: "Daily point limit reached",
+        description: `You've reached the daily limit of ${dailyPointLimit} points. Come back tomorrow for more rewards!`,
         variant: "destructive",
       });
       return;
