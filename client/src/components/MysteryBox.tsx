@@ -149,6 +149,12 @@ export default function MysteryBox({ maxDailyBoxes = 2 }: MysteryBoxProps) {
         "/api/mystery-box/reward",
         data
       );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to process reward");
+      }
+      
       return response.json();
     },
     onSuccess: (data) => {

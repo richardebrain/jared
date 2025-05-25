@@ -1921,72 +1921,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Mystery box rewards endpoint
+  // Mystery box rewards endpoint - FIXED VERSION
   app.post("/api/mystery-box/reward", requireAuth, async (req, res) => {
     try {
       const userId = req.session.userId as number;
       const { rewardType, rewardAmount, points, bearBucks, itemType, itemCount } = req.body;
       
-      if (!rewardType || !rewardAmount) {
-        return res.status(400).json({ message: "Missing required fields: rewardType and rewardAmount" });
+      console.log("Mystery box reward request:", {
+        userId,
+        rewardType,
+        rewardAmount,
+        points,
+        bearBucks,
+        itemType,
+        itemCount
+      });
+      
+      if (!rewardType || rewardAmount === undefined) {
+        console.log("Mystery box reward error: Missing required fields");
+        return res.status(400).json({ message: "Missing required fields: rewardType and rewardAmount", success: false });
       }
       
       // Get current user data
       const user = await storage.getUser(userId);
       if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        console.log("Mystery box reward error: User not found", userId);
+        return res.status(404).json({ message: "User not found", success: false });
       }
       
-      // Update user based on reward type
-      const updateData: any = {
-        lastActive: new Date()
-      };
-      
-      // Set points if provided (could be reduced by box cost)
-      if (typeof points !== 'undefined') {
-        updateData.points = points;
-      } else if (rewardType === 'points') {
-        // Fallback if direct points value not provided
-        updateData.points = (user.points || 0) + rewardAmount;
+      try {
+        // Update user based on reward type
+        let updateData: any = {
+          lastActive: new Date()
+        };
+        
+        // Set points if provided (could be reduced by box cost)
+        if (typeof points !== 'undefined') {
+          updateData.points = points;
+        } else if (rewardType === 'points') {
+          // Fallback if direct points value not provided
+          updateData.points = (user.points || 0) + rewardAmount;
+        }
+        
+        // Add Bear Bucks if that's the reward
+        if (rewardType === 'bearBucks' || bearBucks) {
+          updateData.bearBucks = (user.bearBucks || 0) + (bearBucks || rewardAmount);
+        }
+        
+        // Store item rewards in user inventory (simple implementation)
+        if (rewardType === 'item' && itemType) {
+          // In a real app, you'd store this in a user_items table
+          console.log(`User ${userId} received item: ${itemType}, count: ${itemCount || 1}`);
+          // Could add to an inventory field if you have one
+        }
+        
+        console.log("Updating user with reward data:", updateData);
+        
+        // Update the user with their new rewards
+        await storage.updateUser(userId, updateData);
+        
+        // Get updated user to check for level changes
+        const updatedUser = await storage.getUser(userId);
+        
+        console.log("User after update:", {
+          before: {
+            points: user.points,
+            bearBucks: user.bearBucks,
+            level: user.level
+          },
+          after: {
+            points: updatedUser?.points,
+            bearBucks: updatedUser?.bearBucks,
+            level: updatedUser?.level
+          }
+        });
+        
+        const response = {
+          success: true,
+          message: `Successfully added ${rewardAmount} ${rewardType} to user account`,
+          levelUp: false,
+          level: updatedUser?.level || 1
+        };
+        
+        // Check if user leveled up (simple level calculation)
+        if (updatedUser && user.level !== updatedUser.level) {
+          response.levelUp = true;
+          response.level = updatedUser.level;
+        }
+        
+        // Record this reward in history (in a real app)
+        console.log(`User ${userId} received mystery box reward: ${rewardAmount} ${rewardType}`);
+        
+        return res.status(200).json(response);
+      } catch (updateError) {
+        console.error("Error updating user for mystery box reward:", updateError);
+        return res.status(500).json({ 
+          message: "Failed to update user with reward", 
+          success: false,
+          error: updateError.message 
+        });
       }
-      
-      // Add Bear Bucks if that's the reward
-      if (rewardType === 'bearBucks' || bearBucks) {
-        updateData.bearBucks = (user.bearBucks || 0) + (bearBucks || rewardAmount);
-      }
-      
-      // Store item rewards in user inventory (simple implementation)
-      if (rewardType === 'item' && itemType) {
-        // In a real app, you'd store this in a user_items table
-        console.log(`User ${userId} received item: ${itemType}, count: ${itemCount || 1}`);
-        // Could add to an inventory field if you have one
-      }
-      
-      // Update the user with their new rewards
-      await storage.updateUser(userId, updateData);
-      
-      // Get updated user to check for level changes
-      const updatedUser = await storage.getUser(userId);
-      const response = {
-        success: true,
-        message: `Successfully added ${rewardAmount} ${rewardType} to user account`,
-        levelUp: false,
-        level: updatedUser?.level || 1
-      };
-      
-      // Check if user leveled up (simple level calculation)
-      if (updatedUser && user.level !== updatedUser.level) {
-        response.levelUp = true;
-        response.level = updatedUser.level;
-      }
-      
-      // Record this reward in history (in a real app)
-      console.log(`User ${userId} received mystery box reward: ${rewardAmount} ${rewardType}`);
-      
-      res.status(200).json(response);
     } catch (error) {
       console.error("Error processing mystery box reward:", error);
-      res.status(500).json({ message: "Failed to process reward" });
+      return res.status(500).json({ 
+        message: "Failed to process reward", 
+        success: false,
+        error: error.message 
+      });
     }
   });
   
