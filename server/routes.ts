@@ -802,7 +802,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Special handling for Laura's account to ensure proper permissions
       if (isLauraUser) {
-        // Always update Laura's permissions and points on login to ensure access
+        // Create a dedicated special handler for Laura's account login
+        console.log("CRITICAL: Special login process for Laura's account");
+        
+        // Ensure session is initialized fresh for Laura
+        if (req.session.userId) {
+          // Clear any existing session first to prevent loop
+          await new Promise<void>((resolve) => {
+            req.session.destroy((err) => {
+              if (err) console.error("Error destroying existing session for Laura:", err);
+              resolve();
+            });
+          });
+          
+          // Need to manually clear the cookie since destroy doesn't do it automatically
+          res.clearCookie('connect.sid');
+          
+          // Initialize a new session object since we destroyed the previous one
+          req.session = req.session || {};
+        }
+        
+        // Now proceed with creating a fresh session for Laura
         console.log(`Fixing permissions for Laura's account (ID: ${user.id})`);
         await storage.updateUser(user.id, {
           isOwner: true,
