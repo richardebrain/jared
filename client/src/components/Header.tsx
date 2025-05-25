@@ -29,7 +29,7 @@ export default function Header() {
   const { data: user } = useQuery<User>({
     queryKey: ["/api/auth/me"]
   });
-  
+  console.log(user,'user from header')
   const { mutate: logout } = useMutation({
     mutationFn: async () => {
       try {

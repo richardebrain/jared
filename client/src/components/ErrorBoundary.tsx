@@ -54,9 +54,9 @@ class ErrorBoundary extends Component<Props, State> {
       }
 
       // Redirect to login page instead of showing error screen
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, 100);
+      // setTimeout(() => {
+      //   window.location.href = '/login';
+      // }, 100);
       
       // Show minimal loading message while redirecting
       return (
