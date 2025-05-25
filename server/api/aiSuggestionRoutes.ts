@@ -60,7 +60,98 @@ function customizeForModuleTitle(suggestions: string[], moduleTitle: string) {
   });
 }
 
-// AI suggestion generation endpoint for module creator
+// AI suggestion generation endpoint for module creator - Dynamic topic-based suggestion system
+// Helper function to generate module-specific strategies
+function generateTeachingStrategies(moduleTopic: string, difficulty: string): string[] {
+  const commonStrategies = [
+    `Create a visual aid or anchor chart displaying key concepts about ${moduleTopic}`,
+    `Develop a hands-on learning center that allows exploration of ${moduleTopic}`,
+    `Incorporate children's literature that relates to ${moduleTopic}`,
+    `Design a group discussion activity to explore different aspects of ${moduleTopic}`,
+    `Create a family engagement activity that extends learning about ${moduleTopic} at home`
+  ];
+  
+  // Add difficulty-specific strategies
+  if (difficulty === 'beginner') {
+    commonStrategies.push(
+      `Start with simple vocabulary building activities about ${moduleTopic}`,
+      `Find a mentor teacher who has experience teaching ${moduleTopic}`,
+      `Begin with one small aspect of ${moduleTopic} before tackling the whole concept`
+    );
+  } else if (difficulty === 'advanced') {
+    commonStrategies.push(
+      `Develop a professional learning community focused on ${moduleTopic}`,
+      `Create documentation methods to track children's progress with ${moduleTopic}`,
+      `Design a research project to measure the effectiveness of your approach to ${moduleTopic}`
+    );
+  }
+  
+  return commonStrategies;
+}
+
+// Helper function to generate module-specific assessment questions
+function generateAssessmentQuestions(moduleTopic: string, difficulty: string): string[] {
+  const commonQuestions = [
+    `How could you integrate ${moduleTopic} into your existing curriculum?`,
+    `What materials would you need to effectively teach about ${moduleTopic}?`,
+    `How would you assess children's understanding of ${moduleTopic}?`,
+    `What challenges might arise when introducing ${moduleTopic} to young children?`,
+    `How could you differentiate instruction about ${moduleTopic} for diverse learners?`
+  ];
+  
+  // Add difficulty-specific questions
+  if (difficulty === 'beginner') {
+    commonQuestions.push(
+      `What resources could help you learn more about ${moduleTopic}?`,
+      `What small steps could you take to begin implementing lessons on ${moduleTopic}?`
+    );
+  } else if (difficulty === 'advanced') {
+    commonQuestions.push(
+      `How could you measure the long-term impact of your teaching about ${moduleTopic}?`,
+      `What innovative approaches could extend current best practices related to ${moduleTopic}?`
+    );
+  }
+  
+  return commonQuestions;
+}
+
+// Helper function to generate module-specific quiz questions
+function generateModuleQuizQuestions(moduleTopic: string, difficulty: string): any[] {
+  // Create adaptable quiz questions based on the module topic
+  return [
+    {
+      question: `Which approach is most developmentally appropriate when teaching young children about ${moduleTopic}?`,
+      options: [
+        "Using primarily worksheets and flashcards",
+        "Incorporating play-based activities with intentional teaching moments",
+        "Having children memorize key facts",
+        "Using lecture-style instruction"
+      ],
+      correctAnswer: "Incorporating play-based activities with intentional teaching moments"
+    },
+    {
+      question: `Which of the following best supports children's learning about ${moduleTopic}?`,
+      options: [
+        "Testing children frequently on key concepts",
+        "Creating an environment rich with related materials and experiences",
+        "Requiring all children to complete the same activities",
+        "Focusing exclusively on academic skills"
+      ],
+      correctAnswer: "Creating an environment rich with related materials and experiences"
+    },
+    {
+      question: `How can teachers best document children's learning related to ${moduleTopic}?`,
+      options: [
+        "Using only standardized assessments",
+        "Collecting work samples, photos, and observation notes over time",
+        "Giving weekly quizzes",
+        "Comparing children to each other"
+      ],
+      correctAnswer: "Collecting work samples, photos, and observation notes over time"
+    }
+  ];
+}
+
 router.post('/generate', async (req, res) => {
   try {
     const { prompt, type } = req.body;
@@ -71,58 +162,34 @@ router.post('/generate', async (req, res) => {
     
     console.log("Received AI suggestion request:", { prompt, type });
     
-    // DIRECT SOLUTION - Check if this is a special format from our client-side "That one kid" handling
-    if (prompt.startsWith("That one kid -")) {
-      console.log("DIRECT MATCH: Special module type detected using simplified format");
-      
-      // Extract difficulty level from the prompt
-      let difficultyLevel = "intermediate";
-      if (prompt.includes("beginner level")) {
-        difficultyLevel = "beginner";
-      } else if (prompt.includes("advanced level")) {
-        difficultyLevel = "advanced";
-      } else if (prompt.includes("intermediate level")) {
-        difficultyLevel = "intermediate";
+    // Extract difficulty level from the prompt
+    let difficulty = "intermediate";
+    if (prompt.toLowerCase().includes("beginner level")) {
+      difficulty = "beginner";
+    } else if (prompt.toLowerCase().includes("advanced level")) {
+      difficulty = "advanced";
+    }
+    
+    // Extract module topic - either from direct format or quoted title
+    let moduleTopic = "";
+    
+    // First try to extract from simplified format (Topic - level)
+    const directFormatMatch = prompt.match(/^(.*?)\s*-\s*(?:beginner|intermediate|advanced)/i);
+    if (directFormatMatch) {
+      moduleTopic = directFormatMatch[1].trim();
+      console.log("Direct format detected, module topic:", moduleTopic);
+    } else {
+      // Otherwise extract from quotes
+      const titleMatch = prompt.match(/\"([^\"]+)\"/);
+      if (titleMatch) {
+        moduleTopic = titleMatch[1].trim();
+        console.log("Quoted format detected, module topic:", moduleTopic);
+      } else {
+        // Last resort - use the whole prompt as topic
+        moduleTopic = prompt.trim();
+        console.log("Using full prompt as module topic:", moduleTopic);
       }
-      
-      // Special handling for quiz type
-      if (type === 'quiz') {
-        console.log("Returning quiz questions for That one kid module");
-        return res.json({
-          quizQuestions: [
-            {
-              question: "What is the most effective way to support emotional development in preschoolers?",
-              options: [
-                "Ignore emotional outbursts to avoid reinforcing negative behavior",
-                "Label and validate emotions while offering coping strategies",
-                "Reward only positive emotions like happiness and excitement",
-                "Remove children from the group when they show strong emotions"
-              ],
-              correctAnswer: "Label and validate emotions while offering coping strategies"
-            },
-            {
-              question: "Which approach best supports children with sensory processing challenges?",
-              options: [
-                "Keeping all classroom stimuli at the same level throughout the day",
-                "Creating a designated quiet space with reduced stimulation",
-                "Encouraging children to overcome their sensitivities through repeated exposure",
-                "Separating children with sensory challenges from the main group"
-              ],
-              correctAnswer: "Creating a designated quiet space with reduced stimulation"
-            },
-            {
-              question: "What is a key principle of trauma-informed teaching?",
-              options: [
-                "Maintaining strict discipline to create clear boundaries",
-                "Focusing on academic achievement over emotional needs",
-                "Understanding that challenging behaviors may be survival responses",
-                "Treating all children exactly the same regardless of background"
-              ],
-              correctAnswer: "Understanding that challenging behaviors may be survival responses"
-            }
-          ]
-        });
-      }
+    }
       
       // Return custom suggestions based on type
       if (type === 'strategies') {
