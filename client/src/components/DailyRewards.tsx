@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { 
   Gift, 
   Sparkles, 
@@ -17,7 +21,10 @@ import {
   Clock,
   Flame,
   Check,
-  Shield
+  Shield,
+  Info,
+  Trophy,
+  Star
 } from "lucide-react";
 
 import { SpinWheel } from "./SpinWheel";
@@ -30,15 +37,78 @@ interface DailyRewardsProps {
 
 export default function DailyRewards({ className }: DailyRewardsProps) {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("daily-rewards");
   const [showSpinWheel, setShowSpinWheel] = useState(false);
   const [showScratchCard, setShowScratchCard] = useState(false);
   const [showMysteryBox, setShowMysteryBox] = useState(false);
+  const [showStreakInfo, setShowStreakInfo] = useState(false);
   const [streakCount, setStreakCount] = useState(user?.streak || 0);
   
   // For demo purposes - in a real implementation these would come from the backend
   const [lastRewardClaimed, setLastRewardClaimed] = useState<Date | null>(null);
   const [streakProtectionActive, setStreakProtectionActive] = useState(false);
+  
+  // Calculate streak points based on streak count
+  const calculateStreakPoints = (streak: number) => {
+    if (streak < 2) return 0;
+    return Math.min(5, streak); // 2 points for day 2, 3 for day 3, etc. up to max 5 points
+  };
+  
+  // Current streak points
+  const streakPoints = calculateStreakPoints(streakCount);
+  
+  // Mutation for claiming streak points
+  const claimStreakPointsMutation = useMutation({
+    mutationFn: async () => {
+      // In a real app, this would be an API call to claim the streak points
+      const response = await apiRequest(
+        "POST",
+        "/api/user/claim-streak-points",
+        { userId: user?.id, points: streakPoints }
+      );
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Streak Points Claimed!",
+        description: `You've earned ${streakPoints} points for your ${streakCount}-day streak!`,
+      });
+      
+      // Refresh user data
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+    },
+    onError: () => {
+      toast({
+        title: "Error Claiming Points",
+        description: "There was a problem claiming your streak points.",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  const activateStreakProtection = useMutation({
+    mutationFn: async () => {
+      // In a real app, this would be an API call to activate streak protection
+      const response = await apiRequest(
+        "POST",
+        "/api/user/activate-streak-protection",
+        { userId: user?.id }
+      );
+      return response.json();
+    },
+    onSuccess: () => {
+      setStreakProtectionActive(true);
+      toast({
+        title: "Streak Protection Activated",
+        description: "Your streak is now protected for the next 24 hours!",
+      });
+      
+      // Refresh user data
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+    }
+  });
   
   const formatTime = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
@@ -155,18 +225,62 @@ export default function DailyRewards({ className }: DailyRewardsProps) {
         
         <TabsContent value="streak" className="p-4 pt-2">
           <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center mb-2">
+              <div className="flex items-center mb-1">
+                <Flame className="h-5 w-5 text-red-500 mr-2" />
+                <h3 className="font-bold text-lg text-gray-800">Streak Rewards</h3>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-400 ml-1" onClick={() => setShowStreakInfo(true)}>
+                        <Info className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">Learn about streak rewards</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              {streakCount >= 2 ? (
+                <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white text-sm px-3 py-1 rounded-full flex items-center mb-2">
+                  <Star className="h-3 w-3 mr-1.5" />
+                  Earning {streakPoints} points per day!
+                </div>
+              ) : (
+                <div className="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full flex items-center mb-2">
+                  Log in tomorrow to start earning streak points!
+                </div>
+              )}
+            </div>
+            
             <div className="flex items-center justify-center space-x-1 py-2">
               {Array.from({ length: 7 }).map((_, index) => (
                 <div 
                   key={index}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center border ${index < streakCount ? 'bg-purple-600 text-white border-purple-700' : 'bg-gray-100 text-gray-400 border-gray-200'}`}
+                  className={`w-9 h-9 rounded-full flex flex-col items-center justify-center border relative ${
+                    index < streakCount 
+                      ? 'bg-gradient-to-br from-purple-500 to-purple-700 text-white border-purple-300 shadow-md' 
+                      : 'bg-gray-100 text-gray-400 border-gray-200'
+                  }`}
                 >
-                  {index < streakCount ? <Check className="h-4 w-4" /> : (index + 1)}
+                  {index < streakCount ? (
+                    <>
+                      <Check className="h-4 w-4" />
+                      {index >= 1 && (
+                        <div className="absolute -bottom-1 -right-1 bg-amber-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+                          {Math.min(5, index + 1)}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-sm">{index + 1}</span>
+                  )}
                 </div>
               ))}
             </div>
             
-            <div className="text-center mt-2">
+            <div className="text-center mt-3">
               <p className="text-sm text-gray-700 mb-1">
                 Current streak: <span className="font-bold text-purple-600">{streakCount} days</span>
               </p>
@@ -182,7 +296,28 @@ export default function DailyRewards({ className }: DailyRewardsProps) {
               )}
             </div>
             
-            <div className="w-full bg-gray-50 rounded-lg p-3 mt-3 border border-gray-200">
+            {streakCount >= 2 && (
+              <Button
+                className="mt-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white"
+                size="sm"
+                onClick={() => claimStreakPointsMutation.mutate()}
+                disabled={claimStreakPointsMutation.isPending}
+              >
+                {claimStreakPointsMutation.isPending ? (
+                  <>
+                    <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Claiming...
+                  </>
+                ) : (
+                  <>
+                    <Star className="h-4 w-4 mr-1.5" />
+                    Claim {streakPoints} Points
+                  </>
+                )}
+              </Button>
+            )}
+            
+            <div className="w-full bg-gray-50 rounded-lg p-3 mt-4 border border-gray-200">
               <h4 className="font-medium text-sm text-gray-700 mb-2 flex items-center">
                 <Shield className="h-4 w-4 mr-1.5 text-purple-500" />
                 Streak Protection
@@ -196,14 +331,81 @@ export default function DailyRewards({ className }: DailyRewardsProps) {
               ) : (
                 <div className="flex justify-between items-center">
                   <div className="text-xs text-gray-600">Protect your streak from being reset!</div>
-                  <Button size="sm" variant="outline" className="h-8">
-                    Use 5 Bear Bucks
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="h-8"
+                    onClick={() => activateStreakProtection.mutate()}
+                    disabled={activateStreakProtection.isPending}
+                  >
+                    Use 5 Points
                   </Button>
                 </div>
               )}
             </div>
           </div>
         </TabsContent>
+        
+        {/* Streak Info Dialog */}
+        <Dialog open={showStreakInfo} onOpenChange={setShowStreakInfo}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center text-xl">
+                <Flame className="h-5 w-5 text-red-500 mr-2" />
+                Streak Point System
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="py-4">
+              <h3 className="font-semibold text-lg mb-3 text-purple-700">How Streak Points Work:</h3>
+              
+              <div className="space-y-3 text-sm">
+                <div className="flex items-start">
+                  <div className="bg-gray-100 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">1</div>
+                  <p>Log in for 2 consecutive days to start earning streak points.</p>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="bg-gray-100 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">2</div>
+                  <p>Day 2: Earn <span className="font-semibold">2 points</span></p>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="bg-gray-100 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">3</div>
+                  <p>Day 3: Earn <span className="font-semibold">3 points</span></p>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="bg-gray-100 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">4</div>
+                  <p>Day 4: Earn <span className="font-semibold">4 points</span></p>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="bg-gray-100 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">5</div>
+                  <p>Day 5 and beyond: Earn <span className="font-semibold">5 points per day</span></p>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="bg-amber-100 text-amber-700 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">
+                    <Trophy className="h-3 w-3" />
+                  </div>
+                  <p>Your streak continues until you miss a day, then it resets.</p>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="bg-purple-100 text-purple-700 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">
+                    <Shield className="h-3 w-3" />
+                  </div>
+                  <p>Use Streak Protection to prevent losing your streak if you miss a day!</p>
+                </div>
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button variant="default" onClick={() => setShowStreakInfo(false)}>Got it</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </Tabs>
       
       {/* Spin Wheel Dialog */}
