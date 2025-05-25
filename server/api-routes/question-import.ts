@@ -23,7 +23,7 @@ export function registerQuestionImportRoutes(app: Express) {
       
       // Admin check - only certain users can access this endpoint
       const userId = req.session.userId;
-      const adminUserIds = [4, 5]; // jlcookie20 and lbook IDs
+      const adminUserIds = [4]; // Only the demo account (jlcookie20) has admin privileges
       
       // Simple password-based admin authentication
       const adminPassword = req.query.admin_password || req.body.admin_password;

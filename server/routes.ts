@@ -522,8 +522,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
   
-  // Special endpoint for Laura's account to override session
   // Login reset endpoint (helps with debugging stuck sessions)
+  // This endpoint allows any user to reset their session when they encounter login issues
   app.post("/api/auth/reset-session", async (req, res) => {
     try {
       // Clear the current session
