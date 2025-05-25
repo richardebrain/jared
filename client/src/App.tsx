@@ -447,7 +447,7 @@ function Router(props: {
       </Route>
 
       <Route path="/app-owner-dashboard">
-        <ProtectedRoute>
+        <ProtectedRoute adminOnly={true}>
           <AppOwnerDashboard />
         </ProtectedRoute>
       </Route>
