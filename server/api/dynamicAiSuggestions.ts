@@ -19,7 +19,10 @@ export function generateTeachingStrategies(topic: string, difficulty: Difficulty
     `Create a special responsibility related to ${topic} for children who need extra engagement. Nothing says 'I see your potential' like being the classroom's official ${topic} helper!`,
     `For teaching ${topic}, use 'first-then' statements: 'First we'll learn about this concept, then you get to try the hands-on activity.' Works like classroom magic!`,
     `Develop a special signal related to ${topic} that helps redirect attention - a gesture that becomes your secret classroom cue when focus drifts.`,
-    `The 'two positive comments for every redirection' rule works wonders when teaching ${topic} - catch children being good twice as often as you correct!`
+    `The 'two positive comments for every redirection' rule works wonders when teaching ${topic} - catch children being good twice as often as you correct!`,
+    `Use a visual schedule to help children understand the steps and sequence of ${topic} activities, reducing anxiety and building independence.`,
+    `Create a "question of the day" about ${topic} that children can respond to during morning meeting, building engagement and vocabulary.`,
+    `Incorporate songs or chants that reinforce key concepts of ${topic} - music helps information stick in children's developing brains!`
   ];
   
   // Add difficulty-specific strategies
@@ -48,31 +51,89 @@ export function generateTeachingStrategies(topic: string, difficulty: Difficulty
     strategies.push(
       `Create a print-rich environment that connects ${topic} concepts with written language throughout the classroom.`,
       `Use interactive storytelling techniques that engage children emotionally with ${topic} concepts.`,
-      `Incorporate ${topic} vocabulary into dramatic play scenarios for meaningful context.`
+      `Incorporate ${topic} vocabulary into dramatic play scenarios for meaningful context.`,
+      `Design a book nook featuring diverse literature that relates to ${topic}, encouraging children to explore independently.`,
+      `Create a "word wall" dedicated to ${topic} that grows throughout your teaching unit as children learn new vocabulary.`
     );
   } else if (topicLower.includes('math') || topicLower.includes('number') || topicLower.includes('counting')) {
     strategies.push(
       `Use concrete materials first before moving to pictorial and then abstract representations of ${topic} concepts.`,
       `Embed ${topic} language into transitions, routines and everyday activities for natural math exposure.`,
-      `Create math games that incorporate physical movement to teach ${topic} - young bodies need to move to learn!`
+      `Create math games that incorporate physical movement to teach ${topic} - young bodies need to move to learn!`,
+      `Develop a math vocabulary chart specific to ${topic} with visual representations of key concepts.`,
+      `Set up measurement and comparison activities where children can directly experience ${topic} in hands-on ways.`
     );
   } else if (topicLower.includes('science') || topicLower.includes('nature') || topicLower.includes('experiment')) {
     strategies.push(
       `Set up a discovery table with materials that invite exploration of ${topic} through multiple senses.`,
       `Document children's questions about ${topic} and use them to guide further investigation.`,
-      `Use the scientific method at an appropriate level: question, predict, try, observe, and discuss ${topic}.`
+      `Use the scientific method at an appropriate level: question, predict, try, observe, and discuss ${topic}.`,
+      `Create a class documentation board where you record children's observations and discoveries about ${topic}.`,
+      `Take learning outdoors when possible to connect ${topic} with the natural environment children can observe firsthand.`
     );
   } else if (topicLower.includes('social') || topicLower.includes('emotional') || topicLower.includes('feeling')) {
     strategies.push(
       `Use puppets and role-play to explore emotional aspects of ${topic} in a safe, supported context.`,
       `Create a feelings vocabulary connected to ${topic} that helps children name and manage their emotions.`,
-      `Incorporate mindfulness practices that help children regulate their bodies and emotions while learning about ${topic}.`
+      `Incorporate mindfulness practices that help children regulate their bodies and emotions while learning about ${topic}.`,
+      `Design a "peace corner" with tools and visuals related to ${topic} where children can practice self-regulation.`,
+      `Use social stories that address common challenges related to ${topic} in ways children can understand and relate to.`
     );
   } else if (topicLower.includes('behavior') || topicLower.includes('challenging') || topicLower.includes('difficult')) {
     strategies.push(
       `For that one spirited child, establish clear visual expectations for ${topic} activities before beginning.`,
       `Give your energetic students special roles during ${topic} lessons to channel their energy positively.`,
-      `Create a predictable structure for ${topic} activities that helps children who struggle with transitions.`
+      `Create a predictable structure for ${topic} activities that helps children who struggle with transitions.`,
+      `Develop an individualized visual support system for children who need extra help with ${topic}.`,
+      `Use positive behavior reinforcement specifically focused on successful engagement with ${topic} activities.`
+    );
+  } else if (topicLower.includes('art') || topicLower.includes('creative') || topicLower.includes('craft')) {
+    strategies.push(
+      `Provide open-ended art materials that allow children to explore ${topic} through multiple media and techniques.`,
+      `Create an inspiration gallery with diverse examples related to ${topic} to spark creativity without dictating outcomes.`,
+      `Document children's creative process with ${topic}, not just their final products.`,
+      `Integrate ${topic} into other areas of the curriculum to show how art connects to math, science, and literacy.`,
+      `Use the language of art (color, shape, texture, design) when discussing children's exploration of ${topic}.`
+    );
+  } else if (topicLower.includes('music') || topicLower.includes('rhythm') || topicLower.includes('song')) {
+    strategies.push(
+      `Create a listening station where children can explore various aspects of ${topic} at their own pace.`,
+      `Use call-and-response techniques to engage children actively in ${topic} learning experiences.`,
+      `Incorporate movement and dance to help kinesthetic learners connect with concepts in ${topic}.`,
+      `Create visual representations of sounds and patterns related to ${topic} to connect auditory and visual learning.`,
+      `Design simple instruments that children can use to explore and create with ${topic} concepts.`
+    );
+  } else if (topicLower.includes('outdoor') || topicLower.includes('nature') || topicLower.includes('environment')) {
+    strategies.push(
+      `Create an outdoor classroom area specifically designed for exploring ${topic} in the natural environment.`,
+      `Use natural materials for sorting, classifying, and creating patterns related to ${topic}.`,
+      `Develop a documentation system for recording children's observations about ${topic} in the outdoor environment.`,
+      `Bring outdoor elements inside to extend learning about ${topic} during inclement weather.`,
+      `Create connections between ${topic} and sustainable practices appropriate for young children.`
+    );
+  } else if (topicLower.includes('motor') || topicLower.includes('movement') || topicLower.includes('physical')) {
+    strategies.push(
+      `Design movement challenges that specifically develop skills related to ${topic} at different levels of difficulty.`,
+      `Create visual supports showing the steps or components of physical skills involved in ${topic}.`,
+      `Incorporate fine motor activities into learning centers that connect with ${topic} concepts.`,
+      `Use adaptive equipment as needed to ensure all children can participate successfully in ${topic} activities.`,
+      `Break down complex movement skills in ${topic} into smaller components for scaffolded learning.`
+    );
+  } else if (topicLower.includes('family') || topicLower.includes('home') || topicLower.includes('parent')) {
+    strategies.push(
+      `Create simple take-home activities that extend classroom learning about ${topic} in meaningful ways.`,
+      `Develop a family resource library with materials related to ${topic} that families can borrow.`,
+      `Use digital communication tools to share documentation of children's learning about ${topic} with families.`,
+      `Invite family members to share their knowledge and expertise related to ${topic} in the classroom.`,
+      `Create opportunities for two-way communication about children's interests and questions related to ${topic}.`
+    );
+  } else if (topicLower.includes('transition') || topicLower.includes('routine') || topicLower.includes('schedule')) {
+    strategies.push(
+      `Create visual schedules that help children understand and anticipate the sequence of ${topic} activities.`,
+      `Use transition songs or chants specific to ${topic} that signal changes in the daily routine.`,
+      `Provide individual visual supports for children who need extra help with ${topic} transitions.`,
+      `Create consistent rituals around ${topic} that provide security and predictability.`,
+      `Allow extra time for transitions related to ${topic}, especially for children who struggle with change.`
     );
   }
   
