@@ -294,10 +294,20 @@ router.post('/generate', async (req, res) => {
     
     // Parse the module topic from the prompt
     const moduleTitle = prompt.match(/\"([^\"]+)\"/)?.[1] || "";
-    console.log("Module title for AI suggestions:", moduleTitle);
+    
+    // Fix for title detection - if original regex fails, try a more flexible approach
+    let extractedTitle = moduleTitle;
+    if (!extractedTitle) {
+      // Try alternate extraction methods
+      const aboutMatch = prompt.match(/about\s+\"([^\"]+)\"/i);
+      const titledMatch = prompt.match(/titled\s+\"([^\"]+)\"/i);
+      extractedTitle = aboutMatch?.[1] || titledMatch?.[1] || prompt.split('"')[1] || "";
+    }
+    
+    console.log("Module title for AI suggestions:", extractedTitle);
     
     // Generate topic-specific suggestions based on the module title
-    if (moduleTitle.toLowerCase().includes('that one kid')) {
+    if (extractedTitle.toLowerCase().includes('that one kid') || moduleTitle.toLowerCase().includes('that one kid')) {
       if (prompt.includes('questions')) {
         suggestions = [
           "What underlying needs might be driving your challenging student's behavior? (Remember: kids aren't giving you a hard time, they're having a hard time!)",
@@ -393,6 +403,39 @@ router.post('/generate', async (req, res) => {
           "Include a section on adapting strategies for different age groups.",
           "Add downloadable resources teachers can use in their classrooms."
         ];
+      }
+    }
+    
+    // Extract difficulty level from the prompt
+    let difficultyLevel = "intermediate";
+    if (prompt.includes("beginner level")) {
+      difficultyLevel = "beginner";
+    } else if (prompt.includes("advanced level")) {
+      difficultyLevel = "advanced";
+    } else if (prompt.includes("intermediate level")) {
+      difficultyLevel = "intermediate";
+    }
+    
+    // Check for "That one kid" module and directly return custom suggestions if found
+    if (extractedTitle.toLowerCase().includes('that one kid') || moduleTitle.toLowerCase().includes('that one kid')) {
+      if (type === 'strategies') {
+        return res.json({
+          suggestions: 
+            "Try the 'invisible string' technique - connect with your challenging student privately before they act out. It's like having a teacher superpower for a " + difficultyLevel + " classroom!\n" +
+            "Create a special responsibility just for that boundary-testing student. Nothing says 'I see your potential' like being the classroom's official lizard caretaker!\n" +
+            "For that one spirited kid, try 'first-then' statements: 'First finish your worksheet, then you get to be my special helper.' Works like classroom magic!\n" +
+            "Give that energetic student a secret signal only you two know - a wink or hand gesture that says 'I see you need a break' before they lose control.\n" +
+            "The 'two positive comments for every redirection' rule works wonders for your challenging student - catch them being good twice as often as you correct!"
+        });
+      } else if (type === 'questions') {
+        return res.json({
+          suggestions: 
+            "What underlying needs might be driving your challenging student's behavior? (Remember: kids aren't giving you a hard time, they're having a hard time!)\n" +
+            "How do you differentiate between attention-seeking behavior and skill deficits in your most challenging students?\n" +
+            "What environmental triggers might be affecting your challenging student, and how can you modify the classroom to reduce them?\n" +
+            "How would you create a behavior intervention plan for that one student who consistently tests boundaries?\n" +
+            "How might trauma-informed practices help you connect with your most challenging student?"
+        });
       }
     }
     
