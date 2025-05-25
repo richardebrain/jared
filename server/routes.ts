@@ -1,6 +1,8 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+// Import our debugging helper to track Laura's account issue
+import debugStorage from "./fix-debug";
 import { db } from "./db";
 import express from "express";
 import session from "express-session";
