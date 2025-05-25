@@ -920,6 +920,25 @@ export const communityModules = pgTable("community_modules", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Community Module Awards schema for monthly competitions
+export const communityModuleAwards = pgTable("community_module_awards", {
+  id: serial("id").primaryKey(),
+  moduleId: integer("module_id").notNull().references(() => learningModules.id),
+  schoolId: integer("school_id").notNull().references(() => schools.id),
+  awardDate: timestamp("award_date").defaultNow(),
+  prizePoints: integer("prize_points").notNull(), // Points awarded to the school
+  rank: integer("rank").notNull(), // 1 = First place, 2 = Second place, etc.
+  monthYear: text("month_year").notNull(), // e.g., "May 2025"
+  averageRating: integer("average_rating").notNull(), // The module's rating at time of award
+  totalRatings: integer("total_ratings").notNull(), // Number of ratings at time of award
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCommunityModuleAwardSchema = createInsertSchema(communityModuleAwards).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertCommunityModuleSchema = createInsertSchema(communityModules).omit({
   id: true,
   sharedDate: true, 
@@ -927,13 +946,25 @@ export const insertCommunityModuleSchema = createInsertSchema(communityModules).
   createdAt: true,
 });
 
-export const communityModulesRelations = relations(communityModules, ({ one }) => ({
+export const communityModulesRelations = relations(communityModules, ({ one, many }) => ({
   module: one(learningModules, {
     fields: [communityModules.moduleId],
     references: [learningModules.id],
   }),
   school: one(schools, {
     fields: [communityModules.sharedBySchoolId],
+    references: [schools.id],
+  }),
+  awards: many(communityModuleAwards),
+}));
+
+export const communityModuleAwardsRelations = relations(communityModuleAwards, ({ one }) => ({
+  module: one(learningModules, {
+    fields: [communityModuleAwards.moduleId],
+    references: [learningModules.id],
+  }),
+  school: one(schools, {
+    fields: [communityModuleAwards.schoolId],
     references: [schools.id],
   }),
 }));
@@ -943,6 +974,8 @@ export type InsertModuleRating = z.infer<typeof insertModuleRatingSchema>;
 
 export type CommunityModule = typeof communityModules.$inferSelect;
 export type InsertCommunityModule = z.infer<typeof insertCommunityModuleSchema>;
+export type CommunityModuleAward = typeof communityModuleAwards.$inferSelect;
+export type InsertCommunityModuleAward = z.infer<typeof insertCommunityModuleAwardSchema>;
 
 // Streak Rewards schema
 // Streak rewards are defined earlier in the file

@@ -3,6 +3,7 @@ import { storage } from "../storage";
 import { insertCommunityModuleSchema } from "@shared/schema";
 import { db } from "../db";
 import { eq, sql } from "drizzle-orm";
+import { CommunityModuleManager } from "../communityModules";
 
 // Auth middleware
 const requireAuth = async (req: any, res: any, next: any) => {
