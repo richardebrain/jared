@@ -103,5 +103,5 @@ createRoot(document.getElementById("root")!).render(
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
-  </ErrorBoundary>
+   </ErrorBoundary>
 );

@@ -680,11 +680,11 @@ function App() {
   return (
     <TooltipProvider>
       <Toaster />
-      <ErrorBoundary>
+      {/* <ErrorBoundary> */}
         <AuthProvider>
           <AuthenticatedRouter />
         </AuthProvider>
-      </ErrorBoundary>
+      {/* </ErrorBoundary> */}
     </TooltipProvider>
   );
 }

@@ -1,16 +1,38 @@
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Progress } from '@/components/ui/progress';
-import { CheckCircle, Book, Star, Clock, Award, BrainCircuit, FlaskConical, Lightbulb, Zap } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
-import { queryClient } from '@/lib/queryClient';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from '@/hooks/use-toast';
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Progress } from "@/components/ui/progress";
+import {
+  CheckCircle,
+  Book,
+  Star,
+  Clock,
+  Award,
+  BrainCircuit,
+  FlaskConical,
+  Lightbulb,
+  Zap,
+} from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/hooks/use-toast";
 
 interface PersonalizedMiniLessonsProps {
   userId: number;
@@ -42,20 +64,30 @@ interface PersonalizedQuestion {
   story: string;
 }
 
-const PersonalizedMiniLessons: React.FC<PersonalizedMiniLessonsProps> = ({ userId }) => {
+const PersonalizedMiniLessons: React.FC<PersonalizedMiniLessonsProps> = ({
+  userId,
+}) => {
   const [activeLesson, setActiveLesson] = useState<string | null>(null);
   const [activeQuestion, setActiveQuestion] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
-  const [completedLessons, setCompletedLessons] = useState<Record<string, boolean>>({});
-  const [expandedItems, setExpandedItems] = useState<Record<string, string[]>>({});
+  const [viewMode, setViewMode] = useState<"list" | "detail">("list");
+  const [completedLessons, setCompletedLessons] = useState<
+    Record<string, boolean>
+  >({});
+  const [expandedItems, setExpandedItems] = useState<Record<string, string[]>>(
+    {}
+  );
 
   // Fetch personalized mini-lessons for the user
-  const { data: miniLessons, isLoading, error } = useQuery({
-    queryKey: ['/api/personalized-modules', userId],
+  const {
+    data: miniLessons,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["/api/personalized-modules", userId],
     queryFn: async () => {
       const response = await fetch(`/api/personalized-modules/${userId}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch personalized mini-lessons');
+        throw new Error("Failed to fetch personalized mini-lessons");
       }
       return response.json() as Promise<PersonalizedMiniLesson[]>;
     },
@@ -64,25 +96,28 @@ const PersonalizedMiniLessons: React.FC<PersonalizedMiniLessonsProps> = ({ userI
 
   const handleLessonClick = (lessonId: string) => {
     setActiveLesson(lessonId);
-    setViewMode('detail');
+    setViewMode("detail");
   };
 
   const handleBackToList = () => {
     setActiveLesson(null);
-    setViewMode('list');
+    setViewMode("list");
   };
 
   const handleCompleteLesson = async (lessonId: string) => {
     try {
       // Update progress on the server
-      await apiRequest('POST', `/api/personalized-modules/${userId}/progress`, {
-        moduleId: lessonId,
-        progress: 100,
-        isCompleted: true,
+      await apiRequest(`/api/personalized-modules/${userId}/progress`, {
+        data: {
+          userId,
+          moduleId: lessonId,
+          progress: 100, // Mark as complete
+        },
+        method: "POST",
       });
 
       // Update local state
-      setCompletedLessons(prev => ({
+      setCompletedLessons((prev) => ({
         ...prev,
         [lessonId]: true,
       }));
@@ -90,18 +125,21 @@ const PersonalizedMiniLessons: React.FC<PersonalizedMiniLessonsProps> = ({ userI
       // Show success message
       toast({
         title: "Mini-Lesson Completed!",
-        description: "You've earned 15 points for completing this personalized mini-lesson.",
+        description:
+          "You've earned 15 points for completing this personalized mini-lesson.",
         duration: 5000,
       });
 
       // Invalidate queries to refresh the data
-      queryClient.invalidateQueries({ queryKey: ['/api/personalized-modules'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/personalized-modules"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
 
       // Return to list view
       handleBackToList();
     } catch (error) {
-      console.error('Error completing lesson:', error);
+      console.error("Error completing lesson:", error);
       toast({
         title: "Error",
         description: "Failed to mark the lesson as complete.",
@@ -111,14 +149,14 @@ const PersonalizedMiniLessons: React.FC<PersonalizedMiniLessonsProps> = ({ userI
   };
 
   const toggleContentSection = (lessonId: string, itemId: string) => {
-    setExpandedItems(prev => {
+    setExpandedItems((prev) => {
       const lessonItems = prev[lessonId] || [];
       const isExpanded = lessonItems.includes(itemId);
-      
+
       if (isExpanded) {
         return {
           ...prev,
-          [lessonId]: lessonItems.filter(id => id !== itemId),
+          [lessonId]: lessonItems.filter((id) => id !== itemId),
         };
       } else {
         return {
@@ -149,7 +187,9 @@ const PersonalizedMiniLessons: React.FC<PersonalizedMiniLessonsProps> = ({ userI
     return (
       <div className="text-center p-8 border border-red-200 rounded-lg bg-red-50 text-red-800">
         <p>Failed to load personalized mini-lessons.</p>
-        <p className="text-sm mt-2">Please try again later or contact support if the problem persists.</p>
+        <p className="text-sm mt-2">
+          Please try again later or contact support if the problem persists.
+        </p>
       </div>
     );
   }
@@ -158,20 +198,24 @@ const PersonalizedMiniLessons: React.FC<PersonalizedMiniLessonsProps> = ({ userI
     return (
       <div className="text-center p-8 border border-gray-200 rounded-lg bg-gray-50">
         <Book className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-        <h3 className="text-lg font-semibold mb-2">No Personalized Mini-Lessons Yet</h3>
+        <h3 className="text-lg font-semibold mb-2">
+          No Personalized Mini-Lessons Yet
+        </h3>
         <div className="text-neutral-600 max-w-md mx-auto space-y-3">
           <p>
-            <strong>You need to complete assessments first!</strong> Personalized mini-lessons are generated 
-            based on your assessment results, specifically focusing on questions you missed.
+            <strong>You need to complete assessments first!</strong>{" "}
+            Personalized mini-lessons are generated based on your assessment
+            results, specifically focusing on questions you missed.
           </p>
           <p>
-            Each mini-lesson will include teaching explanations, scientific background, and practical 
-            applications to help you improve in specific areas.
+            Each mini-lesson will include teaching explanations, scientific
+            background, and practical applications to help you improve in
+            specific areas.
           </p>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="mt-3"
-            onClick={() => window.location.href = '/assessments'}
+            onClick={() => (window.location.href = "/assessments")}
           >
             <CheckCircle className="mr-2 h-4 w-4" />
             Take an Assessment
@@ -189,7 +233,9 @@ const PersonalizedMiniLessons: React.FC<PersonalizedMiniLessonsProps> = ({ userI
           <Star
             key={index}
             className={`h-4 w-4 ${
-              index < difficulty ? 'text-amber-500 fill-amber-500' : 'text-gray-300'
+              index < difficulty
+                ? "text-amber-500 fill-amber-500"
+                : "text-gray-300"
             }`}
           />
         ))}
@@ -198,20 +244,32 @@ const PersonalizedMiniLessons: React.FC<PersonalizedMiniLessonsProps> = ({ userI
   };
 
   // Render the list view of mini-lessons
-  if (viewMode === 'list') {
+  if (viewMode === "list") {
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {miniLessons.map((lesson) => (
-            <Card key={lesson.id} className={`overflow-hidden transition-all duration-300 hover:shadow-md ${completedLessons[lesson.id] || lesson.isCompleted ? 'bg-green-50 border-green-200' : ''}`}>
+            <Card
+              key={lesson.id}
+              className={`overflow-hidden transition-all duration-300 hover:shadow-md ${
+                completedLessons[lesson.id] || lesson.isCompleted
+                  ? "bg-green-50 border-green-200"
+                  : ""
+              }`}
+            >
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg font-bold">{lesson.title}</CardTitle>
+                  <CardTitle className="text-lg font-bold">
+                    {lesson.title}
+                  </CardTitle>
                   {renderDifficultyStars(lesson.difficulty)}
                 </div>
                 <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <Badge variant="outline" className="border-blue-200 text-blue-700 bg-blue-50">
-                    {lesson.domain.replace('_', ' ')}
+                  <Badge
+                    variant="outline"
+                    className="border-blue-200 text-blue-700 bg-blue-50"
+                  >
+                    {lesson.domain.replace("_", " ")}
                   </Badge>
                   <div className="flex items-center">
                     <Clock className="h-3 w-3 mr-1" />
@@ -224,41 +282,55 @@ const PersonalizedMiniLessons: React.FC<PersonalizedMiniLessonsProps> = ({ userI
               </CardHeader>
               <CardContent className="pb-2">
                 <div className="text-sm mb-2">
-                  <span className="font-medium">Learning points: </span> 
-                  <span className="text-emerald-600 font-semibold">{lesson.pointsAvailable}</span>
+                  <span className="font-medium">Learning points: </span>
+                  <span className="text-emerald-600 font-semibold">
+                    {lesson.pointsAvailable}
+                  </span>
                 </div>
                 <div className="relative pt-1">
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="text-xs font-semibold inline-block text-blue-600">
-                        {completedLessons[lesson.id] || lesson.isCompleted ? 'Completed' : 'Progress'}
+                        {completedLessons[lesson.id] || lesson.isCompleted
+                          ? "Completed"
+                          : "Progress"}
                       </span>
                     </div>
                     <div className="text-right">
                       <span className="text-xs font-semibold inline-block text-blue-600">
-                        {completedLessons[lesson.id] || lesson.isCompleted ? '100%' : `${lesson.progress}%`}
+                        {completedLessons[lesson.id] || lesson.isCompleted
+                          ? "100%"
+                          : `${lesson.progress}%`}
                       </span>
                     </div>
                   </div>
-                  <Progress 
-                    value={completedLessons[lesson.id] || lesson.isCompleted ? 100 : lesson.progress} 
+                  <Progress
+                    value={
+                      completedLessons[lesson.id] || lesson.isCompleted
+                        ? 100
+                        : lesson.progress
+                    }
                     className="h-2 mt-1"
                   />
                 </div>
               </CardContent>
               <CardFooter className="pt-2">
-                <Button 
+                <Button
                   onClick={() => handleLessonClick(lesson.id)}
                   className="w-full"
-                  variant={completedLessons[lesson.id] || lesson.isCompleted ? "outline" : "default"}
+                  variant={
+                    completedLessons[lesson.id] || lesson.isCompleted
+                      ? "outline"
+                      : "default"
+                  }
                 >
                   {completedLessons[lesson.id] || lesson.isCompleted ? (
                     <>
-                      <CheckCircle className="mr-2 h-4 w-4" /> 
+                      <CheckCircle className="mr-2 h-4 w-4" />
                       Review Lesson
                     </>
                   ) : (
-                    'Start Lesson'
+                    "Start Lesson"
                   )}
                 </Button>
               </CardFooter>
@@ -270,8 +342,8 @@ const PersonalizedMiniLessons: React.FC<PersonalizedMiniLessonsProps> = ({ userI
   }
 
   // Render the detail view of a selected mini-lesson
-  const activeData = miniLessons?.find(lesson => lesson.id === activeLesson);
-  
+  const activeData = miniLessons?.find((lesson) => lesson.id === activeLesson);
+
   if (!activeData) {
     return null;
   }
@@ -294,10 +366,15 @@ const PersonalizedMiniLessons: React.FC<PersonalizedMiniLessonsProps> = ({ userI
         <CardHeader>
           <div className="flex justify-between items-start">
             <div>
-              <CardTitle className="text-xl font-bold">{activeData.title}</CardTitle>
+              <CardTitle className="text-xl font-bold">
+                {activeData.title}
+              </CardTitle>
               <div className="flex items-center space-x-2 mt-1 text-sm text-muted-foreground">
-                <Badge variant="outline" className="border-blue-200 text-blue-700 bg-blue-50">
-                  {activeData.domain.replace('_', ' ')}
+                <Badge
+                  variant="outline"
+                  className="border-blue-200 text-blue-700 bg-blue-50"
+                >
+                  {activeData.domain.replace("_", " ")}
                 </Badge>
                 <div className="flex items-center">
                   <Clock className="h-3 w-3 mr-1" />
@@ -336,7 +413,7 @@ const PersonalizedMiniLessons: React.FC<PersonalizedMiniLessonsProps> = ({ userI
                   <TabsTrigger value="practice">Practice</TabsTrigger>
                   <TabsTrigger value="why">Why It Matters</TabsTrigger>
                 </TabsList>
-                
+
                 <TabsContent value="explanation" className="pt-4">
                   <div>
                     <div className="font-medium text-lg flex items-center mb-2">
@@ -344,11 +421,13 @@ const PersonalizedMiniLessons: React.FC<PersonalizedMiniLessonsProps> = ({ userI
                       Teaching Explanation
                     </div>
                     <p className="text-neutral-700 whitespace-pre-line">
-                      {question.teachingExplanation || question.explanation || "No detailed explanation available for this question."}
+                      {question.teachingExplanation ||
+                        question.explanation ||
+                        "No detailed explanation available for this question."}
                     </p>
                   </div>
                 </TabsContent>
-                
+
                 <TabsContent value="theory" className="pt-4">
                   <div>
                     <div className="font-medium text-lg flex items-center mb-2">
@@ -356,11 +435,12 @@ const PersonalizedMiniLessons: React.FC<PersonalizedMiniLessonsProps> = ({ userI
                       The Science Behind It
                     </div>
                     <p className="text-neutral-700 whitespace-pre-line">
-                      {question.scienceBehindIt || "No scientific background available for this question."}
+                      {question.scienceBehindIt ||
+                        "No scientific background available for this question."}
                     </p>
                   </div>
                 </TabsContent>
-                
+
                 <TabsContent value="practice" className="pt-4">
                   <div>
                     <div className="font-medium text-lg flex items-center mb-2">
@@ -368,11 +448,12 @@ const PersonalizedMiniLessons: React.FC<PersonalizedMiniLessonsProps> = ({ userI
                       Practical Application
                     </div>
                     <p className="text-neutral-700 whitespace-pre-line">
-                      {question.practicalApplication || "No practical application examples available for this question."}
+                      {question.practicalApplication ||
+                        "No practical application examples available for this question."}
                     </p>
                   </div>
                 </TabsContent>
-                
+
                 <TabsContent value="why" className="pt-4">
                   <div>
                     <div className="font-medium text-lg flex items-center mb-2">
@@ -380,9 +461,10 @@ const PersonalizedMiniLessons: React.FC<PersonalizedMiniLessonsProps> = ({ userI
                       Why This Matters
                     </div>
                     <p className="text-neutral-700 whitespace-pre-line mb-4">
-                      {question.whyBehindIt || "No additional context available for why this is important."}
+                      {question.whyBehindIt ||
+                        "No additional context available for why this is important."}
                     </p>
-                    
+
                     {question.story && (
                       <div className="mt-4 border-l-4 border-blue-200 pl-4 italic text-neutral-600 bg-blue-50 p-3 rounded-r-md">
                         <div className="font-medium text-base flex items-center mb-1">
@@ -399,7 +481,7 @@ const PersonalizedMiniLessons: React.FC<PersonalizedMiniLessonsProps> = ({ userI
           </Card>
         ))}
       </div>
-      
+
       <div className="flex justify-between items-center mt-6">
         <Button variant="outline" onClick={handleBackToList}>
           Back to All Mini-Lessons

@@ -97,7 +97,7 @@ export default function Dashboard() {
   });
   
   // Fetch leaderboard
-  const { data: users } = useQuery({
+  const { data: users,isLoading:teachLoading } = useQuery({
     queryKey: ["/api/users"],
   });
 
@@ -493,7 +493,7 @@ export default function Dashboard() {
       {showAchievement && (
         <AchievementPopup 
           title={`Module Completed!`}
-          message={`You've completed "${lastCompletedModule}"`}
+          description={`You've completed "${lastCompletedModule}"`}
           onClose={() => setShowAchievement(false)}
         />
       )}
@@ -512,7 +512,7 @@ export default function Dashboard() {
               <Card className="bg-white shadow-md overflow-hidden">
                 <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
                   <h1 className="text-2xl font-bold text-white">
-                    Welcome back, {user.firstName}!
+                    Welcome back, {user?.firstName}!
                   </h1>
                   <p className="text-blue-100">
                     Ready to continue your professional development journey?
@@ -741,10 +741,7 @@ export default function Dashboard() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-4">
-                  <UltimateEscalator 
-                    currentLevel={user?.level || 1}
-                    points={user?.points || 0}
-                    assessments={assessments || []}
+                  <UltimateEscalator
                   />
                 </CardContent>
               </Card>
@@ -938,7 +935,11 @@ export default function Dashboard() {
             {/* Sidebar - Right 1/3 */}
             <div className="space-y-6">
               {/* Leaderboard - Now at the top */}
-              <SimpleLeaderboard users={users || []} currentUserId={user?.id} />
+              <SimpleLeaderboard
+                teachers={(users as any[]) || []}
+                userId={user?.id as number}
+                isLoading={teachLoading}
+              />
               
               {/* User Stats Card */}
               <Card className="bg-white shadow-md">
