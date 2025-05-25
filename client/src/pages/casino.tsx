@@ -264,50 +264,78 @@ export default function CasinoPage() {
             </div>
             
             {!hasCompletedActivity && (
-            <Card className="mt-4 border-yellow-200 bg-yellow-50">
-              <CardContent className="pt-6">
-                <div className="flex items-start space-x-4">
-                  <Calendar className="h-8 w-8 text-yellow-600 flex-shrink-0 mt-1" />
-                  <div>
-                    <h3 className="font-medium text-yellow-800">Complete an activity first</h3>
-                    <p className="text-yellow-700 text-sm mt-1">
-                      Complete at least one learning activity today to unlock bonus games and earn rewards.
-                    </p>
+              <Card className="mt-4 border-yellow-200 bg-yellow-50">
+                <CardContent className="pt-6">
+                  <div className="flex items-start space-x-4">
+                    <Calendar className="h-8 w-8 text-yellow-600 flex-shrink-0 mt-1" />
+                    <div>
+                      <h3 className="font-medium text-yellow-800">Complete an activity first</h3>
+                      <p className="text-yellow-700 text-sm mt-1">
+                        Complete at least one learning activity today to unlock bonus games and earn rewards.
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                </CardContent>
+              </Card>
+            )}
           
-          {hasCompletedActivity && dailyGameUsed && (
-            <Card className="mt-4 border-purple-200 bg-purple-50">
-              <CardContent className="pt-6">
-                <div className="flex items-start space-x-4">
-                  <Clock className="h-8 w-8 text-purple-600 flex-shrink-0 mt-1" />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-purple-800">Daily game limit reached</h3>
-                    <p className="text-purple-700 text-sm mt-1">
-                      You've already played a bonus game today. Return tomorrow for another chance to win points!
-                    </p>
-                    
-                    {/* Special reset button only for jlcookie20 */}
-                    {isJLCookie && (
-                      <div className="mt-4">
-                        <Button 
-                          onClick={resetBonusGames}
-                          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700"
-                          size="sm"
-                        >
-                          <RefreshCcw className="mr-2 h-4 w-4" />
-                          Reset Bonus Games (Special Access)
-                        </Button>
-                      </div>
-                    )}
+            {hasCompletedActivity && dailyGameUsed && (
+              <Card className="mt-4 border-purple-200 bg-purple-50">
+                <CardContent className="pt-6">
+                  <div className="flex items-start space-x-4">
+                    <Clock className="h-8 w-8 text-purple-600 flex-shrink-0 mt-1" />
+                    <div className="flex-1">
+                      <h3 className="font-medium text-purple-800">Daily game limit reached</h3>
+                      <p className="text-purple-700 text-sm mt-1">
+                        You've already played a bonus game today. Return tomorrow for another chance to win points!
+                      </p>
+                      
+                      {/* Special reset button only for jlcookie20 */}
+                      {isJLCookie && (
+                        <div className="mt-4">
+                          <Button 
+                            onClick={resetBonusGames}
+                            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700"
+                            size="sm"
+                          >
+                            <RefreshCcw className="mr-2 h-4 w-4" />
+                            Reset Bonus Games (Special Access)
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+          
+          {/* Right column - 1/3 width - Streak information */}
+          <div className="md:col-span-1">
+            <Card className="border-blue-200 shadow-md">
+              <CardHeader className="pb-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-lg font-bold">Login Streak</CardTitle>
+                  <Badge className="bg-blue-700 hover:bg-blue-800">
+                    <Flame className="h-3 w-3 mr-1 text-yellow-300" /> ACTIVE
+                  </Badge>
+                </div>
+                <CardDescription className="text-blue-100">
+                  Keep your streak alive for bonus points!
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <StreakRewardsSummary streak={user?.streak || 0} />
+                
+                <div className="mt-3 text-sm text-muted-foreground">
+                  <p className="flex items-center">
+                    <Medal className="h-4 w-4 mr-1 text-amber-500" />
+                    Login daily to earn 2-5 points each day
+                  </p>
                 </div>
               </CardContent>
             </Card>
-          )}
+          </div>
         </div>
         
         <Tabs 
@@ -392,7 +420,7 @@ export default function CasinoPage() {
                     <span className="absolute top-0 right-0 w-12 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] translate-x-[-100%] animate-shine"></span>
                   </Button>
                   
-                  {dailyGameUsed && (
+                  {dailyGameUsed && !isJLCookie && (
                     <div className="absolute inset-0 bg-black/80 flex items-center justify-center backdrop-blur-sm">
                       <div className="text-center p-4">
                         <Clock className="h-10 w-10 text-white/70 mx-auto mb-2" />
@@ -403,341 +431,144 @@ export default function CasinoPage() {
                 </CardContent>
               </Card>
               
-              {/* Scratch Card - Enhanced Casino Style */}
+              {/* Scratch Card - Enhanced Game Style */}
+              <Card className="shadow-2xl hover:shadow-glow-green transition-all transform hover:scale-105 border-2 border-green-500/30 overflow-hidden bg-gradient-to-b from-gray-900 to-gray-950">
+                <CardHeader className="relative pb-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-emerald-400"></div>
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-lg font-bold">Scratch Card</CardTitle>
+                    <Badge className="bg-emerald-700 border-emerald-500 hover:bg-emerald-800">
+                      NEW
+                    </Badge>
+                  </div>
+                  <CardDescription className="text-green-100">
+                    Match symbols to win points!
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-4 relative">
+                  <div className="h-40 bg-gradient-to-b from-black to-gray-900 rounded-md border-2 border-green-700 flex items-center justify-center mb-4 relative overflow-hidden shadow-inner">
+                    {/* Scratch card display */}
+                    <div className="grid grid-cols-3 grid-rows-3 gap-2 w-3/4 h-3/4 p-2 bg-green-800 rounded-md border border-green-600 shadow-lg">
+                      {Array.from({ length: 9 }).map((_, i) => (
+                        <div 
+                          key={i} 
+                          className="bg-gradient-to-b from-green-200 to-green-300 rounded-md flex items-center justify-center shadow-inner overflow-hidden"
+                          style={{ 
+                            opacity: i % 2 === 0 ? 0.9 : 0.7,
+                            transform: i % 3 === 0 ? 'rotate(1deg)' : i % 3 === 1 ? 'rotate(-1deg)' : 'rotate(0deg)'
+                          }}
+                        >
+                          {i === 4 && (
+                            <Coins className="h-5 w-5 text-yellow-500 animate-pulse" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Decorative scratch marks */}
+                    <div className="absolute top-0 left-0 w-full h-full opacity-40 pointer-events-none">
+                      <div className="absolute top-[20%] left-[35%] w-[30%] h-2 bg-gray-200 rounded-full transform rotate-45"></div>
+                      <div className="absolute top-[50%] left-[25%] w-[20%] h-2 bg-gray-200 rounded-full transform -rotate-30"></div>
+                      <div className="absolute bottom-[30%] right-[25%] w-[25%] h-2 bg-gray-200 rounded-full transform rotate-15"></div>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    className="w-full relative overflow-hidden group border-2 border-green-700"
+                    disabled={!hasCompletedActivity || (dailyGameUsed && !isJLCookie)}
+                    onClick={() => setActiveTab("game-scratch")}
+                  >
+                    <span className="absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-600 group-hover:from-green-500 group-hover:to-emerald-500"></span>
+                    <span className="relative flex items-center justify-center text-white font-bold tracking-wider py-1">
+                      <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7 15L17 7M15 15L12 12M9 9L5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      SCRATCH & WIN
+                    </span>
+                    <span className="absolute top-0 right-0 w-12 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] translate-x-[-100%] animate-shine"></span>
+                  </Button>
+                  
+                  {dailyGameUsed && !isJLCookie && (
+                    <div className="absolute inset-0 bg-black/80 flex items-center justify-center backdrop-blur-sm">
+                      <div className="text-center p-4">
+                        <Clock className="h-10 w-10 text-white/70 mx-auto mb-2" />
+                        <p className="text-white font-bold">Come back tomorrow!</p>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+              
+              {/* Mystery Box - Enhanced Treasure Style */}
               <Card className="shadow-2xl hover:shadow-glow-blue transition-all transform hover:scale-105 border-2 border-blue-500/30 overflow-hidden bg-gradient-to-b from-gray-900 to-gray-950">
                 <CardHeader className="relative pb-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-purple-400"></div>
                   <div className="flex justify-between items-center">
-                    <CardTitle className="text-lg font-bold">Scratch Cards</CardTitle>
-                    <Badge className="bg-purple-700 border-purple-500 hover:bg-purple-800">
-                      <Sparkles className="h-3 w-3 mr-1 text-yellow-300" /> WIN
+                    <CardTitle className="text-lg font-bold">Mystery Box</CardTitle>
+                    <Badge className="bg-blue-700 border-blue-500 hover:bg-blue-800 animate-pulse-slow">
+                      <Gem className="h-3 w-3 mr-1 text-cyan-300" /> PREMIUM
                     </Badge>
                   </div>
-                  <CardDescription className="text-blue-200">
-                    Scratch & reveal treasures!
+                  <CardDescription className="text-blue-100">
+                    Unlock treasures and points!
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-4 relative">
                   <div className="h-40 bg-gradient-to-b from-black to-gray-900 rounded-md border-2 border-blue-700 flex items-center justify-center mb-4 relative overflow-hidden shadow-inner">
-                    {/* Scratch card display */}
-                    <div className="relative w-32 h-32 bg-gradient-to-br from-blue-200 to-purple-200 rounded-md shadow-lg flex items-center justify-center overflow-hidden">
-                      {/* Card design */}
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="absolute inset-0 bg-gradient-to-br from-blue-300 to-purple-300 opacity-50"></div>
-                        <div className="w-full h-full flex flex-col items-center justify-center bg-blue-100/30">
-                          <Gift className="h-12 w-12 text-blue-600 drop-shadow-lg" />
-                          <div className="mt-2 text-blue-900 font-bold text-lg">?</div>
-                        </div>
-                      </div>
-                      
-                      {/* Scratched layer */}
-                      <div className="absolute inset-0 bg-gray-300 opacity-70 flex items-center justify-center">
-                        <div className="w-full h-full flex items-center justify-center">
-                          <div className="relative">
-                            <div className="absolute inset-0 flex items-center justify-center -rotate-6">
-                              <div className="text-gray-800 font-bold text-xl">SCRATCH</div>
-                            </div>
-                            <div className="absolute inset-0 flex items-center justify-center rotate-6 translate-y-6">
-                              <div className="text-gray-800 font-bold text-xl">HERE</div>
-                            </div>
+                    {/* Mystery box display */}
+                    <div className="relative w-24 h-24">
+                      {/* Treasure chest */}
+                      <div className="absolute inset-0 w-full h-full flex items-center justify-center">
+                        <div className="w-20 h-16 bg-gradient-to-b from-amber-700 to-amber-900 rounded-md relative border-2 border-amber-600">
+                          {/* Chest lid */}
+                          <div className="absolute -top-4 left-0 w-full h-6 bg-gradient-to-b from-amber-600 to-amber-800 rounded-t-md border-2 border-amber-500 origin-bottom transform transition-all"></div>
+                          
+                          {/* Chest lock */}
+                          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-yellow-600 rounded-sm border border-yellow-400"></div>
+                          
+                          {/* Chest glow */}
+                          <div className="absolute inset-0 w-full h-full opacity-60 animate-pulse-slow">
+                            <div className="absolute inset-0 bg-blue-500 blur-lg opacity-40"></div>
                           </div>
                         </div>
                       </div>
                       
-                      {/* Scratch marks */}
-                      <div className="absolute top-3 right-4 h-10 w-24 bg-blue-300/10 rounded-full transform rotate-45"></div>
-                      <div className="absolute bottom-3 left-4 h-8 w-20 bg-blue-300/10 rounded-full transform -rotate-30"></div>
-                    </div>
-                    
-                    {/* Decorative elements */}
-                    <div className="absolute top-2 left-2">
-                      <Sparkles className="h-4 w-4 text-blue-400 animate-pulse" />
-                    </div>
-                    <div className="absolute bottom-2 right-2">
-                      <Award className="h-4 w-4 text-purple-400 animate-pulse" style={{animationDelay: '0.5s'}} />
+                      {/* Floating particles */}
+                      <div className="absolute top-0 left-0 w-full h-full">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <div 
+                            key={i}
+                            className="absolute w-1 h-1 bg-blue-400 rounded-full opacity-70 animate-float-particle"
+                            style={{ 
+                              left: `${15 + (i * 15)}%`, 
+                              top: `${50 + (i % 3 * 10)}%`,
+                              animationDelay: `${i * 0.5}s`,
+                              animationDuration: `${3 + (i % 2)}s`
+                            }}
+                          ></div>
+                        ))}
+                      </div>
+                      
+                      {/* Mystery sparkles */}
+                      <div className="absolute -top-2 -right-2 text-yellow-400 animate-ping">✨</div>
+                      <div className="absolute -bottom-2 -left-2 text-purple-400 animate-ping" style={{ animationDelay: '0.5s' }}>✨</div>
                     </div>
                   </div>
                   
                   <Button 
                     className="w-full relative overflow-hidden group border-2 border-blue-700"
                     disabled={!hasCompletedActivity || (dailyGameUsed && !isJLCookie)}
-                    onClick={() => setActiveTab("game-scratch")}
+                    onClick={() => setActiveTab("game-mystery")}
                   >
                     <span className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 group-hover:from-blue-500 group-hover:to-purple-500"></span>
                     <span className="relative flex items-center justify-center text-white font-bold tracking-wider py-1">
-                      <Ticket className="h-4 w-4 mr-2" />
-                      SCRATCH NOW
-                    </span>
-                    <span className="absolute top-0 right-0 w-12 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] translate-x-[-100%] animate-shine"></span>
-                  </Button>
-                  
-                  {dailyGameUsed && (
-                    <div className="absolute inset-0 bg-black/80 flex items-center justify-center backdrop-blur-sm">
-                      <div className="text-center p-4">
-                        <Clock className="h-10 w-10 text-white/70 mx-auto mb-2" />
-                        <p className="text-white font-bold">Come back tomorrow!</p>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-              
-              {/* Mystery Box - Enhanced Casino Style */}
-              <Card className="shadow-2xl hover:shadow-glow-amber transition-all transform hover:scale-105 border-2 border-amber-500/30 overflow-hidden bg-gradient-to-b from-gray-900 to-gray-950">
-                <CardHeader className="relative pb-2 bg-gradient-to-r from-amber-600 to-orange-600 text-white">
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-orange-400"></div>
-                  <div className="flex justify-between items-center">
-                    <CardTitle className="text-lg font-bold">Mystery Box</CardTitle>
-                    <Badge className="bg-amber-700 border-amber-500 hover:bg-amber-800">
-                      <Gift className="h-3 w-3 mr-1 text-yellow-300" /> SURPRISE
-                    </Badge>
-                  </div>
-                  <CardDescription className="text-amber-200">
-                    Unlock mysterious prizes!
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-4 relative">
-                  <div className="h-40 bg-gradient-to-b from-black to-gray-900 rounded-md border-2 border-amber-700 flex items-center justify-center mb-4 relative overflow-hidden shadow-inner">
-                    {/* Mystery box display */}
-                    <div className="w-32 h-32 bg-gradient-to-br from-amber-700 to-amber-900 rounded-lg shadow-2xl relative overflow-hidden">
-                      {/* Box lid */}
-                      <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-br from-amber-600 to-amber-800 rounded-t-md border-b-2 border-amber-500"></div>
-                      
-                      {/* Box highlights */}
-                      <div className="absolute top-[33%] left-0 right-0 h-1 bg-amber-500"></div>
-                      <div className="absolute inset-y-0 left-0 w-1 bg-amber-500"></div>
-                      <div className="absolute inset-y-0 right-0 w-1 bg-amber-500"></div>
-                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-amber-500"></div>
-                      
-                      {/* Lock */}
-                      <div className="absolute top-[15%] left-1/2 transform -translate-x-1/2 w-6 h-6 bg-amber-400 rounded-full border-2 border-amber-800"></div>
-                      
-                      {/* Magical glow */}
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-8 h-8 bg-amber-400/30 rounded-full blur-md animate-pulse"></div>
-                      </div>
-                      
-                      {/* Sparkles */}
-                      <div className="absolute top-1/4 left-1/4 animate-ping">
-                        <Sparkles className="h-3 w-3 text-yellow-400" />
-                      </div>
-                      <div className="absolute bottom-1/4 right-1/4 animate-ping" style={{animationDelay: '0.7s'}}>
-                        <Sparkles className="h-3 w-3 text-yellow-400" />
-                      </div>
-                    </div>
-                    
-                    {/* Rays of light */}
-                    <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
-                      <div className="w-full h-full bg-gradient-to-r from-amber-500/0 via-amber-500/10 to-amber-500/0 animate-pulse"></div>
-                    </div>
-                  </div>
-                  
-                  <Button 
-                    className="w-full relative overflow-hidden group border-2 border-amber-700"
-                    disabled={!hasCompletedActivity || (dailyGameUsed && !isJLCookie)}
-                    onClick={() => setActiveTab("game-mystery")}
-                  >
-                    <span className="absolute inset-0 bg-gradient-to-r from-amber-600 to-orange-600 group-hover:from-amber-500 group-hover:to-orange-500"></span>
-                    <span className="relative flex items-center justify-center text-white font-bold tracking-wider py-1">
                       <Package className="h-4 w-4 mr-2" />
-                      OPEN BOX
+                      OPEN TREASURE
                     </span>
                     <span className="absolute top-0 right-0 w-12 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] translate-x-[-100%] animate-shine"></span>
                   </Button>
                   
-                  {dailyGameUsed && (
-                    <div className="absolute inset-0 bg-black/80 flex items-center justify-center backdrop-blur-sm">
-                      <div className="text-center p-4">
-                        <Clock className="h-10 w-10 text-white/70 mx-auto mb-2" />
-                        <p className="text-white font-bold">Come back tomorrow!</p>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-              
-              {/* Streak Protection - Enhanced Casino Style */}
-              <Card className="shadow-2xl hover:shadow-glow-indigo transition-all transform hover:scale-105 border-2 border-indigo-500/30 overflow-hidden bg-gradient-to-b from-gray-900 to-gray-950">
-                <CardHeader className="relative pb-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-400 to-purple-400"></div>
-                  <div className="flex justify-between items-center">
-                    <CardTitle className="text-lg font-bold">Streak Guardian</CardTitle>
-                    <Badge className="bg-indigo-700 border-indigo-500 hover:bg-indigo-800">
-                      <Shield className="h-3 w-3 mr-1 text-blue-300" /> PROTECT
-                    </Badge>
-                  </div>
-                  <CardDescription className="text-indigo-200">
-                    Shield your daily streaks!
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-4 relative">
-                  <div className="h-40 bg-gradient-to-b from-black to-gray-900 rounded-md border-2 border-indigo-700 flex items-center justify-center mb-4 relative overflow-hidden shadow-inner">
-                    {/* Shield display */}
-                    <div className="relative">
-                      <div className="w-28 h-28 rounded-full flex items-center justify-center relative">
-                        {/* Shield aura */}
-                        <div className="absolute inset-0 bg-indigo-500/20 rounded-full animate-pulse filter blur-md"></div>
-                        
-                        {/* Shield image */}
-                        <div className="relative z-10">
-                          <div className="w-20 h-20 bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-full flex items-center justify-center shadow-2xl">
-                            <Shield className="h-10 w-10 text-white" />
-                          </div>
-                        </div>
-                        
-                        {/* Shield ring */}
-                        <div className="absolute inset-0 border-2 border-indigo-400/30 rounded-full animate-spin-slow"></div>
-                        
-                        {/* Magical runes */}
-                        <div className="absolute inset-0">
-                          <div className="w-28 h-28 rounded-full border border-indigo-500/20 flex items-center justify-center animate-reverse-spin-slow">
-                            {[0, 60, 120, 180, 240, 300].map((deg, i) => (
-                              <div 
-                                key={i} 
-                                className="absolute w-1 h-1 bg-indigo-400 rounded-full"
-                                style={{ 
-                                  transform: `rotate(${deg}deg) translateY(-12px)`,
-                                  animationDelay: `${i * 0.1}s`
-                                }}
-                              ></div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Text */}
-                      <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-center">
-                        <p className="text-xs font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-                          STREAK PROTECTOR
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <Button 
-                    className="w-full relative overflow-hidden group border-2 border-indigo-700"
-                    disabled={!hasCompletedActivity || dailyGameUsed}
-                    onClick={() => setActiveTab("game-streak")}
-                  >
-                    <span className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 group-hover:from-indigo-500 group-hover:to-purple-500"></span>
-                    <span className="relative flex items-center justify-center text-white font-bold tracking-wider py-1">
-                      <Shield className="h-4 w-4 mr-2" />
-                      ACTIVATE SHIELD
-                    </span>
-                    <span className="absolute top-0 right-0 w-12 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] translate-x-[-100%] animate-shine"></span>
-                  </Button>
-                  
-                  {dailyGameUsed && (
-                    <div className="absolute inset-0 bg-black/80 flex items-center justify-center backdrop-blur-sm">
-                      <div className="text-center p-4">
-                        <Clock className="h-10 w-10 text-white/70 mx-auto mb-2" />
-                        <p className="text-white font-bold">Come back tomorrow!</p>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-              
-              {/* Daily Rewards - Enhanced Casino Style */}
-              <Card className="shadow-2xl hover:shadow-glow-pink transition-all transform hover:scale-105 border-2 border-pink-500/30 overflow-hidden bg-gradient-to-b from-gray-900 to-gray-950">
-                <CardHeader className="relative pb-2 bg-gradient-to-r from-pink-600 to-rose-600 text-white">
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 to-rose-400"></div>
-                  <div className="flex justify-between items-center">
-                    <CardTitle className="text-lg font-bold">Daily Rewards</CardTitle>
-                    <Badge className="bg-pink-700 border-pink-500 hover:bg-pink-800">
-                      <Calendar className="h-3 w-3 mr-1 text-white" /> DAILY
-                    </Badge>
-                  </div>
-                  <CardDescription className="text-pink-200">
-                    Claim bonus points daily!
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-4 relative">
-                  <div className="h-40 bg-gradient-to-b from-black to-gray-900 rounded-md border-2 border-pink-700 flex items-center justify-center mb-4 relative overflow-hidden shadow-inner">
-                    {/* Calendar display */}
-                    <div className="w-32 h-32 bg-gradient-to-br from-white to-gray-100 rounded-md shadow-2xl relative overflow-hidden">
-                      {/* Calendar header */}
-                      <div className="h-8 bg-gradient-to-r from-pink-500 to-rose-500 flex items-center justify-center">
-                        <span className="text-white font-bold text-sm">MAY 2025</span>
-                      </div>
-                      
-                      {/* Calendar body */}
-                      <div className="p-2">
-                        <div className="grid grid-cols-7 gap-1">
-                          {/* Week days */}
-                          {['S','M','T','W','T','F','S'].map((day, i) => (
-                            <div key={i} className="h-3 flex items-center justify-center">
-                              <span className="text-[6px] text-gray-500">{day}</span>
-                            </div>
-                          ))}
-                          
-                          {/* Days - first row (empty + days) */}
-                          {[...Array(7)].map((_, i) => (
-                            <div key={i} className="h-3 flex items-center justify-center">
-                              {i >= 3 ? (
-                                <span className="text-[6px] text-gray-700">{i-2}</span>
-                              ) : null}
-                            </div>
-                          ))}
-                          
-                          {/* Days - second row */}
-                          {[...Array(7)].map((_, i) => (
-                            <div key={i+7} className="h-3 flex items-center justify-center">
-                              <span className="text-[6px] text-gray-700">{i+5}</span>
-                            </div>
-                          ))}
-                          
-                          {/* Days - third row with today */}
-                          {[...Array(7)].map((_, i) => (
-                            <div key={i+14} className={`h-3 flex items-center justify-center ${i+12 === 16 ? 'bg-pink-500 rounded-full' : ''}`}>
-                              <span className={`text-[6px] ${i+12 === 16 ? 'text-white' : 'text-gray-700'}`}>{i+12}</span>
-                            </div>
-                          ))}
-                          
-                          {/* More days */}
-                          {[...Array(14)].map((_, i) => (
-                            <div key={i+21} className="h-3 flex items-center justify-center">
-                              <span className="text-[6px] text-gray-700">{i+19 <= 31 ? i+19 : i+19-31}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      {/* Reward marker */}
-                      <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-r from-pink-500 to-rose-500 flex items-center justify-center">
-                        <div className="flex items-center">
-                          <Gift className="h-3 w-3 text-white mr-1" />
-                          <span className="text-white text-[8px] font-bold">DAILY REWARDS</span>
-                        </div>
-                      </div>
-                      
-                      {/* Shine effect */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/0 via-white/30 to-white/0 opacity-30"></div>
-                    </div>
-                    
-                    {/* Decorative elements */}
-                    <div className="absolute top-3 left-3">
-                      <Gift className="h-4 w-4 text-pink-400 animate-bounce" style={{animationDuration: '3s'}} />
-                    </div>
-                    <div className="absolute bottom-3 right-3">
-                      <Coins className="h-4 w-4 text-yellow-400 animate-bounce" style={{animationDuration: '2.5s', animationDelay: '0.5s'}} />
-                    </div>
-                  </div>
-                  
-                  <Button 
-                    className="w-full relative overflow-hidden group border-2 border-pink-700"
-                    disabled={!hasCompletedActivity || dailyGameUsed}
-                    onClick={() => setActiveTab("game-daily")}
-                  >
-                    <span className="absolute inset-0 bg-gradient-to-r from-pink-600 to-rose-600 group-hover:from-pink-500 group-hover:to-rose-500"></span>
-                    <span className="relative flex items-center justify-center text-white font-bold tracking-wider py-1">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      CLAIM REWARD
-                    </span>
-                    <span className="absolute top-0 right-0 w-12 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] translate-x-[-100%] animate-shine"></span>
-                  </Button>
-                  
-                  {dailyGameUsed && (
+                  {dailyGameUsed && !isJLCookie && (
                     <div className="absolute inset-0 bg-black/80 flex items-center justify-center backdrop-blur-sm">
                       <div className="text-center p-4">
                         <Clock className="h-10 w-10 text-white/70 mx-auto mb-2" />
@@ -754,645 +585,127 @@ export default function CasinoPage() {
           <TabsContent value="rewards" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Your Reward History</CardTitle>
+                <CardTitle>Your Rewards History</CardTitle>
                 <CardDescription>
-                  Recent points and rewards you've earned
+                  Track your points and rewards earned from bonus games
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
-                    <div className="flex items-center">
-                      <span className="p-2 bg-green-100 rounded-full mr-3">
-                        <Coins className="h-4 w-4 text-green-600" />
-                      </span>
+                  <div className="flex items-center justify-between border-b pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-amber-100 p-2 rounded-full text-amber-600">
+                        <Coins className="h-5 w-5" />
+                      </div>
                       <div>
-                        <h4 className="font-medium">Daily Login Bonus</h4>
-                        <p className="text-sm text-gray-500">
-                          <Clock className="h-3 w-3 inline mr-1" />
-                          Today at 9:15 AM
-                        </p>
+                        <p className="font-medium">Mystery Box Treasure</p>
+                        <p className="text-sm text-muted-foreground">May 23, 2025</p>
                       </div>
                     </div>
-                    <Badge className="bg-green-500">+3 points</Badge>
+                    <Badge className="bg-gradient-to-r from-amber-500 to-amber-600">+5 Points</Badge>
                   </div>
                   
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
-                    <div className="flex items-center">
-                      <span className="p-2 bg-amber-100 rounded-full mr-3">
-                        <Star className="h-4 w-4 text-amber-600" />
-                      </span>
+                  <div className="flex items-center justify-between border-b pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-green-100 p-2 rounded-full text-green-600">
+                        <Ticket className="h-5 w-5" />
+                      </div>
                       <div>
-                        <h4 className="font-medium">Lucky Slots Win</h4>
-                        <p className="text-sm text-gray-500">
-                          <Clock className="h-3 w-3 inline mr-1" />
-                          Yesterday at 2:30 PM
-                        </p>
+                        <p className="font-medium">Scratch Card Win</p>
+                        <p className="text-sm text-muted-foreground">May 22, 2025</p>
                       </div>
                     </div>
-                    <Badge className="bg-amber-500">+5 points</Badge>
+                    <Badge className="bg-gradient-to-r from-green-500 to-green-600">+10 Points</Badge>
                   </div>
                   
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
-                    <div className="flex items-center">
-                      <span className="p-2 bg-blue-100 rounded-full mr-3">
-                        <Trophy className="h-4 w-4 text-blue-600" />
-                      </span>
+                  <div className="flex items-center justify-between border-b pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-red-100 p-2 rounded-full text-red-600">
+                        <Star className="h-5 w-5" />
+                      </div>
                       <div>
-                        <h4 className="font-medium">Module Completion</h4>
-                        <p className="text-sm text-gray-500">
-                          <Clock className="h-3 w-3 inline mr-1" />
-                          2 days ago
-                        </p>
+                        <p className="font-medium">Lucky Slots Jackpot</p>
+                        <p className="text-sm text-muted-foreground">May 21, 2025</p>
                       </div>
                     </div>
-                    <Badge className="bg-blue-500">+10 points</Badge>
+                    <Badge className="bg-gradient-to-r from-red-500 to-red-600">+15 Points</Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-purple-100 p-2 rounded-full text-purple-600">
+                        <Shield className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Streak Protection Used</p>
+                        <p className="text-sm text-muted-foreground">May 20, 2025</p>
+                      </div>
+                    </div>
+                    <Badge className="bg-gradient-to-r from-purple-500 to-purple-600">Streak Saved</Badge>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
           
-          {/* Game content tabs */}
+          {/* Lucky Slots Game Tab */}
           <TabsContent value="game-slot" className="mt-6">
-            <div className="max-w-md mx-auto">
-              <Card className="w-full border shadow-lg overflow-hidden">
-                <CardHeader className="text-center bg-gradient-to-r from-red-600 to-yellow-600 text-white">
-                  <CardTitle className="text-2xl font-bold">Lucky Slots</CardTitle>
-                  <CardDescription className="text-amber-100">
-                    Match symbols to win points!
-                  </CardDescription>
-                  <div className="flex justify-center space-x-2 mt-2">
-                    <Badge variant="outline" className="bg-white/20 text-white border-white">
-                      <Gift className="h-3 w-3 mr-1" /> Daily Spins: 3
-                    </Badge>
-                  </div>
+            <div className="flex flex-col items-center max-w-xl mx-auto">
+              <Card className="w-full border-amber-300 bg-gradient-to-b from-gray-900 to-black shadow-glow-red">
+                <CardHeader className="bg-gradient-to-r from-red-600 to-amber-600 text-white">
+                  <CardTitle className="text-center">Lucky Slots</CardTitle>
+                  <CardDescription className="text-center text-white/80">Spin the reels to win points!</CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
-                  {/* Casino machine with enhanced visuals */}
-                  <div className="bg-gradient-to-b from-gray-900 to-gray-950 p-6 rounded-lg border-4 border-amber-600 shadow-inner mb-4 w-full relative overflow-hidden">
-                    {/* Casino machine decorations */}
-                    <div className="absolute top-0 left-0 w-full h-8 bg-gradient-to-r from-red-700 to-amber-700 flex items-center justify-center">
-                      <div className="flex space-x-2">
-                        {[1, 2, 3, 4, 5].map((_, i) => (
-                          <div key={i} className="w-2 h-2 rounded-full bg-yellow-300 animate-pulse" style={{ animationDelay: `${i * 0.2}s` }}></div>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    {/* Slot machine arm */}
-                    <div className="absolute top-14 right-0 h-32 w-6 flex flex-col items-center">
-                      <div className="w-6 h-10 bg-gradient-to-b from-red-500 to-red-700 rounded-t-md"></div>
-                      <div className="w-3 h-24 bg-gradient-to-b from-gray-300 to-gray-500"></div>
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-b from-red-400 to-red-600 cursor-pointer"></div>
-                    </div>
-                    
-                    {/* Reels with enhanced visuals */}
-                    <div className="flex justify-center gap-2 bg-black p-5 rounded-md mt-8 mx-4 border border-amber-900">
-                      {/* Reel 1 */}
-                      <div className="relative bg-gradient-to-b from-gray-100 to-gray-300 border-2 border-gray-400 rounded-md p-2 flex items-center justify-center shadow-inner w-20 h-20" style={{ boxShadow: "inset 0 0 10px rgba(0,0,0,0.3)" }}>
-                        <Cherry className="h-8 w-8 text-red-500" />
-                      </div>
-                      
-                      {/* Reel 2 */}
-                      <div className="relative bg-gradient-to-b from-gray-100 to-gray-300 border-2 border-gray-400 rounded-md p-2 flex items-center justify-center shadow-inner w-20 h-20" style={{ boxShadow: "inset 0 0 10px rgba(0,0,0,0.3)" }}>
-                        <Star className="h-8 w-8 text-yellow-500" />
-                      </div>
-                      
-                      {/* Reel 3 */}
-                      <div className="relative bg-gradient-to-b from-gray-100 to-gray-300 border-2 border-gray-400 rounded-md p-2 flex items-center justify-center shadow-inner w-20 h-20" style={{ boxShadow: "inset 0 0 10px rgba(0,0,0,0.3)" }}>
-                        <Gift className="h-8 w-8 text-blue-500" />
-                      </div>
-                    </div>
-                    
-                    {/* Pay line with flashing effect */}
-                    <div className="flex justify-between items-center mt-2 mx-8">
-                      <div className="h-1 flex-1 bg-gradient-to-r from-transparent via-red-500 to-transparent animate-pulse"></div>
-                      <span className="text-xs text-amber-500 px-2 font-bold">PAY LINE</span>
-                      <div className="h-1 flex-1 bg-gradient-to-r from-transparent via-red-500 to-transparent animate-pulse"></div>
-                    </div>
-                    
-                    {/* Machine controls */}
-                    <div className="flex justify-center mt-4 space-x-4">
-                      <div className="w-6 h-6 rounded-full bg-red-500 border-2 border-red-700 shadow-md"></div>
-                      <div className="w-6 h-6 rounded-full bg-amber-500 border-2 border-amber-700 shadow-md"></div>
-                    </div>
+                  <div className="mb-6">
+                    <LuckySlots 
+                      onWin={handlePointsReward}
+                      onClose={() => setActiveTab("games")}
+                      isDisabled={isPending}
+                    />
                   </div>
-                  
-                  {/* Prize table with enhanced casino theme */}
-                  <div className="bg-gradient-to-r from-amber-50 to-amber-100 border border-amber-200 p-4 rounded-md mb-4 w-full text-sm shadow-md">
-                    <h3 className="font-bold text-amber-800 mb-2 text-center bg-gradient-to-r from-amber-600 to-red-600 text-white p-2 rounded-t-md -mt-4 -mx-4 shadow-sm">
-                      JACKPOT PAYOUT TABLE
-                    </h3>
-                    <div className="grid grid-cols-2 gap-3 pt-1">
-                      <div className="flex items-center bg-white p-2 rounded-md shadow-sm transition-transform hover:scale-105">
-                        <Diamond className="h-6 w-6 text-cyan-500 mr-2" />
-                        <div>
-                          <span className="text-gray-800 font-medium">3× Diamonds</span>
-                          <div className="text-amber-600 font-bold">20 POINTS</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center bg-white p-2 rounded-md shadow-sm transition-transform hover:scale-105">
-                        <Sparkles className="h-6 w-6 text-pink-500 mr-2" />
-                        <div>
-                          <span className="text-gray-800 font-medium">3× Sparkles</span>
-                          <div className="text-amber-600 font-bold">10 POINTS</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center bg-white p-2 rounded-md shadow-sm transition-transform hover:scale-105">
-                        <Award className="h-6 w-6 text-amber-500 mr-2" />
-                        <div>
-                          <span className="text-gray-800 font-medium">3× Awards</span>
-                          <div className="text-amber-600 font-bold">7 POINTS</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center bg-white p-2 rounded-md shadow-sm transition-transform hover:scale-105">
-                        <Gem className="h-6 w-6 text-purple-500 mr-2" />
-                        <div>
-                          <span className="text-gray-800 font-medium">3× Gems</span>
-                          <div className="text-amber-600 font-bold">5 POINTS</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center bg-white p-2 rounded-md shadow-sm col-span-2 transition-transform hover:scale-105">
-                        <Star className="h-6 w-6 text-yellow-500 mr-2" />
-                        <div>
-                          <span className="text-gray-800 font-medium">Any 2 matching symbols</span>
-                          <div className="text-amber-600 font-bold">1-3 POINTS</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Casino-style button with flashing effect */}
-                  <div className="relative mb-4">
-                    <Button 
-                      variant="default" 
-                      onClick={() => toast({
-                        title: "Coming Soon!",
-                        description: "The slot machine will be available after your next activity!",
-                      })}
-                      className="bg-gradient-to-r from-red-500 to-amber-500 hover:from-red-600 hover:to-amber-600 
-                        text-white w-full relative border-2 border-amber-700 shadow-xl
-                        animate-pulse py-6 font-bold tracking-wide text-xl"
-                      size="lg"
-                    >
-                      <span className="relative z-10">
-                        SPIN & WIN
-                        <span className="absolute -right-8 top-0 rotate-12 bg-yellow-300 text-red-600 text-xs px-2 py-1 rounded-md font-bold transform -translate-y-1/2">
-                          !
-                        </span>
-                      </span>
-                    </Button>
-                    
-                    {/* Button shine effect */}
-                    <div className="absolute inset-0 overflow-hidden rounded-md pointer-events-none">
-                      <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-shine" style={{ transform: "skewX(-20deg)" }}></div>
-                    </div>
-                  </div>
-                  
-                  <Button
-                    variant="outline"
-                    onClick={() => setActiveTab("games")}
-                    className="w-full"
-                  >
-                    Back to Games
-                  </Button>
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
           
+          {/* Scratch Card Game Tab */}
           <TabsContent value="game-scratch" className="mt-6">
-            <div className="max-w-md mx-auto">
-              <Card className="w-full border shadow-lg overflow-hidden">
-                <CardHeader className="text-center bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                  <CardTitle className="text-2xl font-bold">Lucky Scratch Card</CardTitle>
-                  <CardDescription className="text-blue-100">
-                    Scratch to reveal amazing rewards!
-                  </CardDescription>
-                  <div className="flex justify-center space-x-2 mt-2">
-                    <Badge variant="outline" className="bg-white/20 text-white border-white">
-                      <Gift className="h-3 w-3 mr-1" /> Daily Scratches: 1
-                    </Badge>
-                  </div>
+            <div className="flex flex-col items-center max-w-xl mx-auto">
+              <Card className="w-full border-green-300 bg-gradient-to-b from-gray-900 to-black shadow-glow-green">
+                <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white">
+                  <CardTitle className="text-center">Scratch Card</CardTitle>
+                  <CardDescription className="text-center text-white/80">Scratch to reveal prizes!</CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
-                  {/* Enhanced scratch card visuals */}
-                  <div className="bg-gradient-to-br from-blue-800 to-purple-900 p-6 rounded-lg border-4 border-blue-600 shadow-inner mb-4 w-full relative overflow-hidden">
-                    {/* Decorative elements */}
-                    <div className="absolute top-0 left-0 w-full h-8 bg-gradient-to-r from-blue-700 to-purple-700 flex items-center justify-center">
-                      <div className="flex space-x-2">
-                        {[1, 2, 3, 4, 5].map((_, i) => (
-                          <div key={i} className="w-2 h-2 rounded-full bg-blue-300 animate-pulse" style={{ animationDelay: `${i * 0.2}s` }}></div>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    {/* Scratch card area */}
-                    <div className="mt-8 relative bg-gradient-to-br from-slate-200 to-white rounded-lg p-4 shadow-md w-full aspect-[4/3] flex items-center justify-center overflow-hidden">
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-full h-full bg-gradient-to-br from-blue-100 to-purple-100 absolute"></div>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="relative w-24 h-24 bg-white rounded-full shadow-md flex items-center justify-center z-10">
-                            <div className="absolute inset-0 bg-gradient-to-br from-blue-200 to-purple-200 rounded-full"></div>
-                            <Gift className="h-12 w-12 text-blue-600 relative z-20" />
-                          </div>
-                        </div>
-                        <div className="absolute top-4 left-4 p-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-full transform rotate-12 animate-pulse">
-                          <Sparkles className="h-3 w-3" />
-                        </div>
-                        <div className="absolute bottom-4 right-4 p-2 bg-gradient-to-r from-yellow-500 to-amber-500 text-white rounded-full transform -rotate-12 animate-pulse" style={{animationDelay: '1s'}}>
-                          <Award className="h-3 w-3" />
-                        </div>
-                      </div>
-                      <div className="absolute inset-0 bg-gray-300 opacity-90 rounded-lg"></div>
-                    </div>
-                    
-                    {/* Scratch instructions */}
-                    <div className="flex justify-center mt-2 text-center">
-                      <p className="text-xs text-blue-100 bg-blue-900/50 px-2 py-1 rounded-full">
-                        Scratch to reveal your prize!
-                      </p>
-                    </div>
+                  <div className="mb-6">
+                    <ScratchCard 
+                      onWin={handlePointsReward}
+                      onClose={() => setActiveTab("games")}
+                      isDisabled={isPending}
+                    />
                   </div>
-                  
-                  {/* Prize table with enhanced casino theme */}
-                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 p-4 rounded-md mb-4 w-full text-sm shadow-md">
-                    <h3 className="font-bold text-blue-800 mb-2 text-center bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 rounded-t-md -mt-4 -mx-4 shadow-sm">
-                      POSSIBLE PRIZES
-                    </h3>
-                    <div className="grid grid-cols-2 gap-3 pt-1">
-                      <div className="flex items-center bg-white p-2 rounded-md shadow-sm transition-transform hover:scale-105">
-                        <Award className="h-6 w-6 text-yellow-500 mr-2" />
-                        <div>
-                          <span className="text-gray-800 font-medium">Jackpot Prize</span>
-                          <div className="text-blue-600 font-bold">20 POINTS!</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center bg-white p-2 rounded-md shadow-sm transition-transform hover:scale-105">
-                        <Sparkles className="h-6 w-6 text-purple-500 mr-2" />
-                        <div>
-                          <span className="text-gray-800 font-medium">Rare Find</span>
-                          <div className="text-blue-600 font-bold">10-15 POINTS</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center bg-white p-2 rounded-md shadow-sm transition-transform hover:scale-105 col-span-2">
-                        <Gift className="h-6 w-6 text-blue-500 mr-2" />
-                        <div>
-                          <span className="text-gray-800 font-medium">Standard Prize</span>
-                          <div className="text-blue-600 font-bold">1-5 POINTS</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Scratch button with flashing effect */}
-                  <div className="relative mb-4">
-                    <Button 
-                      variant="default" 
-                      onClick={() => {
-                        // Mark that the user has played a game today
-                        const today = new Date().toDateString();
-                        localStorage.setItem('lastGamePlayedDate', today);
-                        
-                        toast({
-                          title: "Congratulations!",
-                          description: "You won 5 points with your scratch card!",
-                        });
-                        
-                        // Refresh to show updated points in 2 seconds
-                        setTimeout(() => {
-                          window.location.reload();
-                        }, 2000);
-                      }}
-                      className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 
-                        text-white w-full relative border-2 border-blue-700 shadow-xl
-                        animate-pulse py-6 font-bold tracking-wide text-xl"
-                      size="lg"
-                      disabled={dailyGameUsed}
-                    >
-                      <span className="relative z-10">
-                        SCRATCH NOW
-                        <span className="absolute -right-8 top-0 rotate-12 bg-yellow-300 text-purple-600 text-xs px-2 py-1 rounded-md font-bold transform -translate-y-1/2">
-                          !
-                        </span>
-                      </span>
-                    </Button>
-                    
-                    {/* Button shine effect */}
-                    <div className="absolute inset-0 overflow-hidden rounded-md pointer-events-none">
-                      <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-shine" style={{ transform: "skewX(-20deg)" }}></div>
-                    </div>
-                  </div>
-                  
-                  <Button
-                    variant="outline"
-                    onClick={() => setActiveTab("games")}
-                    className="w-full"
-                  >
-                    Back to Games
-                  </Button>
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
           
+          {/* Mystery Box Game Tab */}
           <TabsContent value="game-mystery" className="mt-6">
-            <div className="max-w-md mx-auto">
-              <Card className="w-full border shadow-lg overflow-hidden">
-                <CardHeader className="text-center bg-gradient-to-r from-amber-500 to-orange-600 text-white">
-                  <CardTitle className="text-2xl font-bold">Mystery Treasure Box</CardTitle>
-                  <CardDescription className="text-amber-100">
-                    Open a magical box of mystery rewards!
-                  </CardDescription>
-                  <div className="flex justify-center space-x-2 mt-2">
-                    <Badge variant="outline" className="bg-white/20 text-white border-white">
-                      <Gift className="h-3 w-3 mr-1" /> Daily Boxes: 1
-                    </Badge>
-                  </div>
+            <div className="flex flex-col items-center max-w-xl mx-auto">
+              <Card className="w-full border-blue-300 bg-gradient-to-b from-gray-900 to-black shadow-glow-blue">
+                <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                  <CardTitle className="text-center">Mystery Box</CardTitle>
+                  <CardDescription className="text-center text-white/80">Open the treasure chest for rewards!</CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
-                  {/* Mystery box with enhanced visuals */}
-                  <div className="bg-gradient-to-br from-amber-800 to-orange-900 p-6 rounded-lg border-4 border-amber-600 shadow-inner mb-4 w-full relative overflow-hidden">
-                    {/* Decorative elements */}
-                    <div className="absolute top-0 left-0 w-full h-8 bg-gradient-to-r from-amber-700 to-orange-700 flex items-center justify-center">
-                      <div className="flex space-x-2">
-                        {[1, 2, 3, 4, 5].map((_, i) => (
-                          <div key={i} className="w-2 h-2 rounded-full bg-amber-300 animate-pulse" style={{ animationDelay: `${i * 0.2}s` }}></div>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    {/* Mystery box display */}
-                    <div className="mt-8 flex items-center justify-center">
-                      <div className="relative">
-                        {/* Base box */}
-                        <div className="w-48 h-48 bg-gradient-to-br from-amber-700 to-amber-900 rounded-lg shadow-2xl relative overflow-hidden">
-                          {/* Box lid */}
-                          <div className="absolute inset-0 bg-gradient-to-br from-amber-600 to-amber-800 rounded-t-lg h-1/3 transform origin-bottom transition-transform duration-500"></div>
-                          
-                          {/* Box edges */}
-                          <div className="absolute inset-x-0 top-1/3 h-2 bg-amber-400"></div>
-                          <div className="absolute left-0 top-0 w-2 h-full bg-amber-500"></div>
-                          <div className="absolute right-0 top-0 w-2 h-full bg-amber-500"></div>
-                          <div className="absolute inset-x-0 bottom-0 h-2 bg-amber-500"></div>
-                          
-                          {/* Box lock */}
-                          <div className="absolute top-1/6 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-amber-300 rounded-full border-4 border-amber-800 z-10"></div>
-                          
-                          {/* Sparkle effects */}
-                          <div className="absolute top-1/4 left-1/4 text-yellow-300 animate-ping">
-                            <Sparkles className="h-4 w-4" />
-                          </div>
-                          <div className="absolute bottom-1/4 right-1/4 text-yellow-300 animate-ping" style={{animationDelay: '1s'}}>
-                            <Sparkles className="h-4 w-4" />
-                          </div>
-                        </div>
-                        
-                        {/* Magical glow effect */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 to-amber-400 opacity-30 rounded-lg filter blur-xl animate-pulse"></div>
-                      </div>
-                    </div>
-                    
-                    {/* Mystery box instructions */}
-                    <div className="flex justify-center mt-4 text-center">
-                      <p className="text-xs text-amber-100 bg-amber-900/50 px-2 py-1 rounded-full">
-                        Click to open your mystery box!
-                      </p>
-                    </div>
+                  <div className="mb-6">
+                    <MysteryBox 
+                      onWin={handlePointsReward}
+                      onClose={() => setActiveTab("games")}
+                      isDisabled={isPending}
+                    />
                   </div>
-                  
-                  {/* Prize table with enhanced casino theme */}
-                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-4 rounded-md mb-4 w-full text-sm shadow-md">
-                    <h3 className="font-bold text-amber-800 mb-2 text-center bg-gradient-to-r from-amber-600 to-orange-600 text-white p-2 rounded-t-md -mt-4 -mx-4 shadow-sm">
-                      POTENTIAL TREASURES
-                    </h3>
-                    <div className="grid grid-cols-2 gap-3 pt-1">
-                      <div className="flex items-center bg-white p-2 rounded-md shadow-sm transition-transform hover:scale-105">
-                        <Award className="h-6 w-6 text-amber-500 mr-2" />
-                        <div>
-                          <span className="text-gray-800 font-medium">Golden Treasure</span>
-                          <div className="text-amber-600 font-bold">10-20 POINTS!</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center bg-white p-2 rounded-md shadow-sm transition-transform hover:scale-105">
-                        <Gift className="h-6 w-6 text-orange-500 mr-2" />
-                        <div>
-                          <span className="text-gray-800 font-medium">Special Prize</span>
-                          <div className="text-amber-600 font-bold">5-10 POINTS</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center bg-white p-2 rounded-md shadow-sm transition-transform hover:scale-105 col-span-2">
-                        <Package className="h-6 w-6 text-amber-500 mr-2" />
-                        <div>
-                          <span className="text-gray-800 font-medium">Mystery Reward</span>
-                          <div className="text-amber-600 font-bold">1-5 POINTS</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Open box button with flashing effect */}
-                  <div className="relative mb-4">
-                    <Button 
-                      variant="default" 
-                      onClick={() => {
-                        // Mark that the user has played a game today
-                        const today = new Date().toDateString();
-                        localStorage.setItem('lastGamePlayedDate', today);
-                        
-                        toast({
-                          title: "Amazing Find!",
-                          description: "You opened a mystery box and found 7 points!",
-                        });
-                        
-                        // Refresh to show updated points in 2 seconds
-                        setTimeout(() => {
-                          window.location.reload();
-                        }, 2000);
-                      }}
-                      className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600
-                        text-white w-full relative border-2 border-amber-700 shadow-xl
-                        animate-pulse py-6 font-bold tracking-wide text-xl"
-                      size="lg"
-                      disabled={dailyGameUsed}
-                    >
-                      <span className="relative z-10">
-                        OPEN TREASURE BOX
-                        <span className="absolute -right-8 top-0 rotate-12 bg-yellow-300 text-orange-600 text-xs px-2 py-1 rounded-md font-bold transform -translate-y-1/2">
-                          !
-                        </span>
-                      </span>
-                    </Button>
-                    
-                    {/* Button shine effect */}
-                    <div className="absolute inset-0 overflow-hidden rounded-md pointer-events-none">
-                      <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-shine" style={{ transform: "skewX(-20deg)" }}></div>
-                    </div>
-                  </div>
-                  
-                  <Button
-                    variant="outline"
-                    onClick={() => setActiveTab("games")}
-                    className="w-full"
-                  >
-                    Back to Games
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="game-daily" className="mt-6">
-            <div className="max-w-md mx-auto">
-              <DailyRewards onClose={() => setActiveTab("games")} />
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="game-streak" className="mt-6">
-            <div className="max-w-md mx-auto">
-              <Card className="w-full border shadow-lg overflow-hidden">
-                <CardHeader className="text-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
-                  <CardTitle className="text-2xl font-bold">Streak Guardian</CardTitle>
-                  <CardDescription className="text-indigo-100">
-                    Protect your daily streaks from being broken!
-                  </CardDescription>
-                  <div className="flex justify-center space-x-2 mt-2">
-                    <Badge variant="outline" className="bg-white/20 text-white border-white">
-                      <Shield className="h-3 w-3 mr-1" /> Shields Available: 1
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-6">
-                  {/* Streak protection with enhanced visuals */}
-                  <div className="bg-gradient-to-br from-indigo-800 to-purple-900 p-6 rounded-lg border-4 border-indigo-600 shadow-inner mb-4 w-full relative overflow-hidden">
-                    {/* Decorative elements */}
-                    <div className="absolute top-0 left-0 w-full h-8 bg-gradient-to-r from-indigo-700 to-purple-700 flex items-center justify-center">
-                      <div className="flex space-x-2">
-                        {[1, 2, 3, 4, 5].map((_, i) => (
-                          <div key={i} className="w-2 h-2 rounded-full bg-indigo-300 animate-pulse" style={{ animationDelay: `${i * 0.2}s` }}></div>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    {/* Shield display */}
-                    <div className="mt-8 flex items-center justify-center">
-                      <div className="relative">
-                        {/* Magical shield */}
-                        <div className="w-48 h-48 rounded-full flex items-center justify-center relative">
-                          {/* Inner glow */}
-                          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-indigo-500/30 to-purple-500/30 animate-pulse"></div>
-                          
-                          {/* Shield image */}
-                          <div className="relative z-10 transform transition-transform duration-300 hover:scale-110">
-                            <div className="w-32 h-32 bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-full flex items-center justify-center shadow-2xl">
-                              <Shield className="h-16 w-16 text-white" />
-                            </div>
-                            
-                            {/* Shield outer ring */}
-                            <div className="absolute inset-0 border-4 border-indigo-400 rounded-full animate-spin-slow"></div>
-                            
-                            {/* Protection aura */}
-                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-400/20 to-purple-400/20 rounded-full filter blur-md"></div>
-                          </div>
-                          
-                          {/* Magical runes */}
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-48 h-48 rounded-full border-2 border-indigo-400/30 flex items-center justify-center animate-reverse-spin-slow">
-                              {[0, 60, 120, 180, 240, 300].map((deg, i) => (
-                                <div 
-                                  key={i} 
-                                  className="absolute w-2 h-2 bg-indigo-400 rounded-full"
-                                  style={{ 
-                                    transform: `rotate(${deg}deg) translateY(-20px)`,
-                                    animationDelay: `${i * 0.1}s`
-                                  }}
-                                ></div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Streak protection instructions */}
-                    <div className="flex justify-center mt-4 text-center">
-                      <p className="text-xs text-indigo-100 bg-indigo-900/50 px-2 py-1 rounded-full">
-                        Activate to protect your streak for one day!
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {/* Information box */}
-                  <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 p-4 rounded-md mb-4 w-full text-sm shadow-md">
-                    <h3 className="font-bold text-indigo-800 mb-2 text-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-2 rounded-t-md -mt-4 -mx-4 shadow-sm">
-                      STREAK PROTECTION
-                    </h3>
-                    <div className="space-y-3 pt-1">
-                      <div className="flex items-start bg-white p-2 rounded-md shadow-sm">
-                        <Shield className="h-6 w-6 text-indigo-500 mr-2 flex-shrink-0 mt-1" />
-                        <div>
-                          <span className="text-gray-800 font-medium block">Why Protect Your Streak?</span>
-                          <p className="text-gray-600 text-xs">A streak protector shields you from losing your daily progress streak when you miss a day. Keep building points without interruption!</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-start bg-white p-2 rounded-md shadow-sm">
-                        <Clock className="h-6 w-6 text-purple-500 mr-2 flex-shrink-0 mt-1" />
-                        <div>
-                          <span className="text-gray-800 font-medium block">How It Works</span>
-                          <p className="text-gray-600 text-xs">Activate a shield today to protect your streak for 24 hours if you can't complete an activity tomorrow. Each shield costs 8 points.</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Activation button with flashing effect */}
-                  <div className="relative mb-4">
-                    <Button 
-                      variant="default" 
-                      onClick={() => {
-                        // Mark that the user has played a game today
-                        const today = new Date().toDateString();
-                        localStorage.setItem('lastGamePlayedDate', today);
-                        
-                        toast({
-                          title: "Shield Activated!",
-                          description: "Your streak is now protected for the next 24 hours!",
-                        });
-                        
-                        // Refresh to show updated points in 2 seconds
-                        setTimeout(() => {
-                          window.location.reload();
-                        }, 2000);
-                      }}
-                      className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600
-                        text-white w-full relative border-2 border-indigo-700 shadow-xl
-                        animate-pulse py-6 font-bold tracking-wide text-xl"
-                      size="lg"
-                      disabled={dailyGameUsed}
-                    >
-                      <span className="relative z-10">
-                        ACTIVATE SHIELD
-                        <span className="absolute -right-8 top-0 rotate-12 bg-yellow-300 text-purple-600 text-xs px-2 py-1 rounded-md font-bold transform -translate-y-1/2">
-                          !
-                        </span>
-                      </span>
-                    </Button>
-                    
-                    {/* Button shine effect */}
-                    <div className="absolute inset-0 overflow-hidden rounded-md pointer-events-none">
-                      <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-shine" style={{ transform: "skewX(-20deg)" }}></div>
-                    </div>
-                  </div>
-                  
-                  <Button
-                    variant="outline"
-                    onClick={() => setActiveTab("games")}
-                    className="w-full"
-                  >
-                    Back to Games
-                  </Button>
                 </CardContent>
               </Card>
             </div>
