@@ -219,7 +219,7 @@ export default function Header() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/school-dashboard")}>
                     <i className="ri-school-line mr-2"></i>
-                    School Administrator
+                    Director/School Admin
                   </DropdownMenuItem>
                 </>
               )}
@@ -315,7 +315,7 @@ export default function Header() {
               {isSchoolAdmin && (
                 <Button variant="ghost" className="w-full justify-start mb-2 hover:bg-amber-200 hover:text-amber-900" onClick={() => setLocation("/school-dashboard")}>
                   <i className="ri-school-line mr-2"></i>
-                  School Administrator
+                  Director/School Admin
                 </Button>
               )}
               
