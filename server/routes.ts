@@ -1318,6 +1318,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Endpoint to get metrics for the System Admin dashboard
+  app.get("/api/owner/metrics", requireAdmin, async (req, res) => {
+    try {
+      // Get all schools
+      const schools = await storage.getAllSchools();
+      
+      // Get all users
+      const allUsers = await storage.getAllUsers();
+      
+      // Get total active subscribers count (exclude Raising Arizona users)
+      const subscribedSchools = schools.filter(school => 
+        school.subscriptionActive && !school.isFreeAccess
+      );
+      
+      // Prepare metrics response
+      const metrics = {
+        totalSchools: schools.length,
+        activeSubscriptions: subscribedSchools.length,
+        totalUsers: allUsers.length,
+        averageUsersPerSchool: Math.round(allUsers.length / (schools.length || 1)),
+        monthlyRevenue: subscribedSchools.length * 250, // Placeholder $250/month per school
+        annualGrowthRate: 15, // Placeholder 15% growth rate
+      };
+      
+      res.status(200).json(metrics);
+    } catch (error) {
+      console.error("Error fetching metrics:", error);
+      res.status(500).json({ message: "Error fetching dashboard metrics" });
+    }
+  });
+  
   // Endpoint to get all schools with additional data for the System Admin dashboard
   app.get("/api/owner/schools", requireAdmin, async (req, res) => {
     try {
@@ -1383,6 +1414,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error assigning owner privileges:", error);
       res.status(500).json({ message: "Error assigning owner privileges" });
+    }
+  });
+  
+  // Get payment plans for the System Admin dashboard
+  app.get("/api/owner/payment-plans", requireAdmin, async (req, res) => {
+    try {
+      // Return default payment plans
+      const paymentPlans = [
+        {
+          id: 1,
+          name: "Standard Plan",
+          description: "Complete access to all training modules and features",
+          price: 250,
+          billingCycle: "monthly",
+          features: [
+            "Unlimited teachers",
+            "Custom school branding",
+            "All learning modules",
+            "Teacher progress tracking",
+            "Achievement system",
+            "Teacher retention tools",
+            "Premium support"
+          ],
+          isPopular: true,
+          isActive: true
+        },
+        {
+          id: 2,
+          name: "Annual Plan",
+          description: "Save 15% with annual billing",
+          price: 2550,
+          billingCycle: "annual",
+          features: [
+            "All Standard Plan features",
+            "15% annual discount",
+            "Priority support response",
+            "Dedicated account manager"
+          ],
+          isPopular: false,
+          isActive: true
+        },
+        {
+          id: 3,
+          name: "Free Trial",
+          description: "14-day access to all features",
+          price: 0,
+          billingCycle: "one-time",
+          features: [
+            "Limited to 5 teachers",
+            "14-day access to all features",
+            "Basic support"
+          ],
+          isPopular: false,
+          isActive: true
+        }
+      ];
+      
+      res.status(200).json(paymentPlans);
+    } catch (error) {
+      console.error("Error fetching payment plans:", error);
+      res.status(500).json({ message: "Error fetching payment plans" });
     }
   });
   
