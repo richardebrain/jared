@@ -1,4 +1,9 @@
 import { Router } from 'express';
+import { 
+  generateTeachingStrategies, 
+  generateAssessmentQuestions, 
+  generateQuizQuestions 
+} from './dynamicAiSuggestions';
 
 const router = Router();
 
