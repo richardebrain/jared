@@ -92,8 +92,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     gcTime: 300000, // 5 minutes
   });
 
-  // Apply user special fixes
-  const user = userData ? specialUserFix(userData) : null;
+  // Apply data normalization to all users
+  const user = userData ? normalizeUserData(userData) : null;
 
   // Mark initial load as complete after first query
   useEffect(() => {

@@ -786,9 +786,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Username and password are required" });
       }
       
-      // Special cases for specific users
+      // Demo user for testing purposes
       const isDemoUser = username === 'jlcookie20' && password === 'password';
-      const isLauraUser = (username === 'lbook' || username === 'lbooks') && password === 'jack83box';
       
       const user = await storage.getUserByUsername(username);
       
@@ -800,46 +799,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Special handling for Laura's account to ensure proper permissions
-      if (isLauraUser) {
-        // Create a dedicated special handler for Laura's account login
-        console.log("CRITICAL: Special login process for Laura's account");
-        
-        // Ensure session is initialized fresh for Laura
-        if (req.session.userId) {
-          // Clear any existing session first to prevent loop
-          await new Promise<void>((resolve) => {
-            req.session.destroy((err) => {
-              if (err) console.error("Error destroying existing session for Laura:", err);
-              resolve();
-            });
+      // Clean up session if user is already logged in to prevent login loops
+      if (req.session.userId) {
+        // Clear any existing session first
+        await new Promise<void>((resolve) => {
+          req.session.destroy((err) => {
+            if (err) console.error("Error destroying existing session for user:", err);
+            resolve();
           });
-          
-          // Need to manually clear the cookie since destroy doesn't do it automatically
-          res.clearCookie('connect.sid');
-          
-          // Initialize a new session object since we destroyed the previous one
-          req.session = req.session || {};
-        }
-        
-        // Now proceed with creating a fresh session for Laura
-        console.log(`Fixing permissions for Laura's account (ID: ${user.id})`);
-        await storage.updateUser(user.id, {
-          isOwner: true,
-          isAdmin: true,
-          isSchoolAdmin: true,
-          points: Math.max(user.points || 0, 15) // Ensure enough points for game access
         });
         
-        // Update user object with the changes for the current request
-        user.isOwner = true;
-        user.isAdmin = true;
-        user.isSchoolAdmin = true;
-        user.points = Math.max(user.points || 0, 15);
+        // Need to manually clear the cookie since destroy doesn't do it automatically
+        res.clearCookie('connect.sid');
+        
+        // Initialize a new session object since we destroyed the previous one
+        req.session = req.session || {};
       }
       
-      // Check password - either special cases or normal validation
-      const passwordValid = isDemoUser || isLauraUser || user.password === password;
+      // Check password - either demo user or normal validation
+      const passwordValid = isDemoUser || user.password === password;
       
       if (!passwordValid) {
         console.log(`Login failed: Password mismatch for user: "${username}"`);
