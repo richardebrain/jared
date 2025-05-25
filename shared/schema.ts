@@ -857,17 +857,9 @@ export const usersRelationsWithVideos = relations(users, ({ many }) => ({
 export type VideoQuizCompletion = typeof videoQuizCompletions.$inferSelect;
 export type InsertVideoQuizCompletion = z.infer<typeof insertVideoQuizCompletionSchema>;
 
-// Streak rewards table for tracking special streak-based rewards
-export const streakRewards = pgTable("streak_rewards", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
-  rewardType: varchar("reward_type", { length: 50 }).notNull(), // e.g., 'silver_box_5day'
-  claimedAt: timestamp("claimed_at").defaultNow(),
-});
-
 export const insertStreakRewardSchema = createInsertSchema(streakRewards).omit({
   id: true,
-  claimedAt: true,
+  createdAt: true,
 });
 
 export const streakRewardsRelations = relations(streakRewards, ({ one }) => ({
@@ -945,8 +937,8 @@ export type InsertCommunityModule = z.infer<typeof insertCommunityModuleSchema>;
 export const streakRewards = pgTable("streak_rewards", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
-  type: text("type").notNull(), // silver_box, gold_box, etc.
-  streakCount: integer("streak_count").notNull(),
+  rewardType: text("reward_type").notNull(), // silver_box, gold_box, etc.
+  streakCount: integer("streak_count").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

@@ -358,8 +358,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Record the streak reward claim
       await storage.createStreakReward({
         userId,
-        type: 'silver_box',
-        streakCount: user.streak
+        rewardType: 'silver_box',
+        streakCount: user.streak || 5
       });
       
       // Success response
