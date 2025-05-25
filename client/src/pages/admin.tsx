@@ -357,7 +357,17 @@ export default function AdminPage({ skipPasswordCheck = false }) {
         } else {
           // Split the suggestions string into an array by newline
           if (data && data.suggestions) {
-            const suggestionsArray = data.suggestions.split('\n').filter(Boolean);
+            // Improved parser for suggestion handling, especially for "That one kid" module
+            // This allows for longer, multi-line suggestions with witty content
+            const suggestionsText = data.suggestions;
+            let suggestionsArray = suggestionsText.split('\n').filter(Boolean);
+            
+            // Special handling for longer suggestions with punctuation
+            if (suggestionsArray.length <= 2 && suggestionsText.includes('!')) {
+              // If we have very few items but text contains exclamation marks,
+              // it's likely they need to be split differently
+              suggestionsArray = suggestionsText.split(/(?<=!)\s+/).filter(Boolean);
+            }
             
             setAiSuggestions(prev => ({
               ...prev,
