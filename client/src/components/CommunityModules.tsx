@@ -3,9 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Lightbulb, Star, Clock, Building2, ArrowRight } from "lucide-react";
+import { Lightbulb, Star, Clock, Building2, ArrowRight, Trophy, Award, Medal } from "lucide-react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface CommunityModuleProps {
   limit?: number;
@@ -26,7 +27,11 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
       description: "Essential knowledge about developmental milestones and brain development",
       duration: 25,
       average_rating: 4.8,
-      school_name: "Bright Beginnings Preschool"
+      school_name: "Bright Beginnings Preschool",
+      is_winner: true,
+      award_month: "March",
+      award_year: "2025",
+      award_place: 1
     },
     {
       id: 2,
@@ -35,7 +40,11 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
       description: "Strategies for building strong relationships with families",
       duration: 20,
       average_rating: 4.5,
-      school_name: "Little Scholars Academy"
+      school_name: "Little Scholars Academy",
+      is_winner: true,
+      award_month: "March",
+      award_year: "2025",
+      award_place: 2
     },
     {
       id: 3,
@@ -44,7 +53,11 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
       description: "Techniques for supporting diversity and accommodating all learning styles",
       duration: 15,
       average_rating: 4.7,
-      school_name: "Growing Minds Preschool"
+      school_name: "Growing Minds Preschool",
+      is_winner: true,
+      award_month: "March",
+      award_year: "2025",
+      award_place: 3
     }
   ];
 
@@ -160,13 +173,29 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
     setViewAll(!viewAll);
   };
 
+  const [activeTab, setActiveTab] = useState("topRated");
+  
+  // Helper function to get medal icon based on award place
+  const getMedalIcon = (place: number) => {
+    switch(place) {
+      case 1:
+        return <Trophy className="h-4 w-4 text-yellow-500" />;
+      case 2:
+        return <Award className="h-4 w-4 text-gray-400" />;
+      case 3:
+        return <Medal className="h-4 w-4 text-amber-700" />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <Card className="shadow-md bg-white">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg flex items-center">
           <Building2 className="h-5 w-5 mr-2 text-blue-500" />
           <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-            Community Modules
+            Top Rated Community Trainings
           </span>
         </CardTitle>
         <CardDescription>
@@ -174,35 +203,92 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-2">
-        <div className="space-y-3">
-          {communityModules.map((module: any) => (
-            <div 
-              key={module.id} 
-              className="border rounded-md p-3 hover:bg-gray-50 cursor-pointer transition-colors"
-              onClick={() => handleModuleClick(module.module_id)}
-            >
-              <div className="flex justify-between items-start">
-                <h3 className="font-medium text-base line-clamp-1">{module.title}</h3>
-                <div className="flex items-center space-x-1 text-amber-500">
-                  <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                  <span className="text-sm">{module.average_rating || 0}</span>
+        <Tabs defaultValue="topRated" className="w-full" onValueChange={setActiveTab}>
+          <TabsList className="w-full mb-4">
+            <TabsTrigger value="topRated" className="flex-1">Top Rated</TabsTrigger>
+            <TabsTrigger value="marchWinners" className="flex-1">March Winners</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="topRated" className="mt-0">
+            <div className="space-y-3">
+              {communityModules.map((module: any) => (
+                <div 
+                  key={module.id} 
+                  className="border rounded-md p-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                  onClick={() => handleModuleClick(module.module_id)}
+                >
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-medium text-base line-clamp-1">{module.title}</h3>
+                    <div className="flex items-center space-x-1 text-amber-500">
+                      <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
+                      <span className="text-sm">{module.average_rating || 0}</span>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-500 line-clamp-1 mt-1">{module.description}</p>
+                  <div className="flex justify-between mt-2">
+                    <div className="flex items-center text-xs text-gray-500">
+                      <Clock className="h-3 w-3 mr-1" />
+                      <span>{module.duration} min</span>
+                    </div>
+                    <Badge variant="outline" className="text-xs">
+                      From: {module.school_name}
+                    </Badge>
+                  </div>
                 </div>
-              </div>
-              <p className="text-sm text-gray-500 line-clamp-1 mt-1">{module.description}</p>
-              <div className="flex justify-between mt-2">
-                <div className="flex items-center text-xs text-gray-500">
-                  <Clock className="h-3 w-3 mr-1" />
-                  <span>{module.duration} min</span>
-                </div>
-                <Badge variant="outline" className="text-xs">
-                  From: {module.school_name}
-                </Badge>
+              ))}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="marchWinners" className="mt-0">
+            <div className="space-y-3">
+              {communityModules
+                .filter((module: any) => module.is_winner && module.award_month === "March")
+                .sort((a: any, b: any) => a.award_place - b.award_place)
+                .map((module: any) => (
+                  <div 
+                    key={module.id} 
+                    className="border rounded-md p-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                    onClick={() => handleModuleClick(module.module_id)}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-2">
+                        {getMedalIcon(module.award_place)}
+                        <h3 className="font-medium text-base line-clamp-1">
+                          {module.title}
+                        </h3>
+                      </div>
+                      <div className="flex items-center space-x-1 text-amber-500">
+                        <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
+                        <span className="text-sm">{module.average_rating || 0}</span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-500 line-clamp-1 mt-1">{module.description}</p>
+                    <div className="flex justify-between mt-2">
+                      <div className="flex items-center text-xs text-gray-500">
+                        <Clock className="h-3 w-3 mr-1" />
+                        <span>{module.duration} min</span>
+                      </div>
+                      <Badge 
+                        variant={module.award_place === 1 ? "default" : "outline"}
+                        className={`text-xs ${module.award_place === 1 ? 'bg-yellow-500 hover:bg-yellow-600' : ''}`}
+                      >
+                        {module.award_place === 1 ? '🏆 1st Place' : 
+                         module.award_place === 2 ? '🥈 2nd Place' : 
+                         module.award_place === 3 ? '🥉 3rd Place' : 
+                         `From: ${module.school_name}`}
+                      </Badge>
+                    </div>
+                  </div>
+              ))}
+              <div className="text-center mt-4">
+                <p className="text-sm font-medium text-indigo-600">March 2025 Competition Winners</p>
+                <p className="text-xs text-gray-500 mt-1">Congratulations to our March module contributors!</p>
               </div>
             </div>
-          ))}
-        </div>
+          </TabsContent>
+        </Tabs>
 
-        {communityModules.length > 0 && (
+        {communityModules.length > 0 && activeTab === "topRated" && (
           <Button
             variant="link"
             className="w-full mt-3 text-blue-600"
