@@ -115,7 +115,7 @@ const REWARDS = {
   ]
 };
 
-export default function MysteryBox({ maxDailyBoxes = 2 }: MysteryBoxProps) {
+export default function MysteryBox({ maxDailyBoxes = 2, freeStreak5SilverBox = true }: MysteryBoxProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -129,21 +129,173 @@ export default function MysteryBox({ maxDailyBoxes = 2 }: MysteryBoxProps) {
   const [showRewardDialog, setShowRewardDialog] = useState(false);
   const [rewardHistory, setRewardHistory] = useState<any[]>([]);
   
+  // 5-day streak Silver Box eligibility state
+  const [streakSilverBoxEligible, setStreakSilverBoxEligible] = useState(false);
+  const [streakSilverBoxClaimed, setStreakSilverBoxClaimed] = useState(false);
+  
   // Track level up info for the reward dialog
   const [levelUpInfo, setLevelUpInfo] = useState<{levelUp: boolean, level: number} | null>(null);
   
   // Box references
   const mysteryBoxRef = useRef<HTMLDivElement>(null);
   
+  // Helper function to select a reward based on probability
+  const selectWeightedReward = (rewards: any[]) => {
+    const randomValue = Math.random();
+    let cumulativeProbability = 0;
+    
+    for (const reward of rewards) {
+      cumulativeProbability += reward.probability;
+      if (randomValue <= cumulativeProbability) {
+        return reward;
+      }
+    }
+    
+    // Fallback to the first reward if something goes wrong
+    return rewards[0];
+  };
+  
+  // Helper function to get the selected box type
+  const getSelectedBox = () => {
+    return BOX_TYPES.find(box => box.id === selectedBoxType) || BOX_TYPES[0];
+  };
+  
+  // Handle opening of a box with option for free streak box
+  const handleOpenBox = (boxTypeId: string, isStreakReward = false) => {
+    const boxType = BOX_TYPES.find(box => box.id === boxTypeId);
+    
+    if (!boxType) {
+      toast({
+        title: "Invalid box type",
+        description: "Please select a valid mystery box type.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Check if user reached daily point limit (20 points)
+    const dailyPointLimit = 20;
+    const currentPoints = user?.points || 0;
+    
+    if (currentPoints >= dailyPointLimit) {
+      toast({
+        title: "Daily point limit reached",
+        description: `You've reached the daily limit of ${dailyPointLimit} points. Come back tomorrow for more rewards!`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Skip the daily box check for streak rewards
+    if (!isStreakReward && dailyBoxesLeft <= 0 && boxType.cost === 0) {
+      toast({
+        title: "No free boxes left",
+        description: "You've used all your free mystery boxes for today. Purchase premium boxes or come back tomorrow!",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Skip the point cost check for streak rewards
+    if (!isStreakReward && boxType.cost > 0 && (user?.points || 0) < boxType.cost) {
+      toast({
+        title: "Not enough points",
+        description: `You need ${boxType.cost} points to open this ${boxType.name}.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Proceed with box opening animation and reward selection
+    setIsOpening(true);
+    setIsRevealed(false);
+    setOpenProgress(0);
+    
+    // Get the rewards for this box type
+    const boxRewards = REWARDS[boxType.id as keyof typeof REWARDS];
+    
+    // Use weighted random selection based on probability
+    const selectedReward = selectWeightedReward(boxRewards);
+    setCurrentReward(selectedReward);
+    
+    // Start the opening animation
+    const openingInterval = setInterval(() => {
+      setOpenProgress(prev => {
+        const newProgress = prev + 2;
+        
+        if (newProgress >= 100) {
+          clearInterval(openingInterval);
+          setIsRevealed(true);
+          
+          // Update user rewards in database
+          updateUserReward.mutate({
+            rewardType: selectedReward.type,
+            rewardAmount: selectedReward.value,
+            itemType: selectedReward.type === 'item' ? selectedReward.id : undefined
+          });
+          
+          // Update the daily boxes left if this was a free box
+          if (!isStreakReward && boxType.cost === 0) {
+            setDailyBoxesLeft(prev => Math.max(0, prev - 1));
+          }
+          
+          return 100;
+        }
+        
+        return newProgress;
+      });
+    }, 30);
+  };
+  
+  const handleBoxOpen = () => {
+    handleOpenBox(selectedBoxType);
+  };
+  
+  // Claim streak silver box mutation
+  const claimStreakSilverBox = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest(
+        "POST",
+        "/api/streak/claim-silver-box",
+        {}
+      );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to claim streak reward");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      setStreakSilverBoxClaimed(true);
+      
+      // Show success toast
+      toast({
+        title: "Reward Claimed!",
+        description: "You've successfully claimed your 5-day streak Silver Box reward!",
+        variant: "default",
+      });
+      
+      // Set silver box as selected and trigger opening
+      setSelectedBoxType('silver');
+      handleOpenBox('silver', true);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error Claiming Reward",
+        description: error.message || "There was a problem claiming your streak reward.",
+        variant: "destructive",
+      });
+    }
+  });
+  
   // Update reward mutation
   const updateUserReward = useMutation({
     mutationFn: async (data: {
       rewardType: string;
       rewardAmount: number;
-      points?: number;
-      bearBucks?: number;
       itemType?: string;
-      itemCount?: number;
     }) => {
       const response = await apiRequest(
         "POST",
@@ -229,7 +381,7 @@ export default function MysteryBox({ maxDailyBoxes = 2 }: MysteryBoxProps) {
           const animationEnd = Date.now() + duration;
           const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
           
-          const randomInRange = (min, max) => Math.random() * (max - min) + min;
+          const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
           
           const interval = setInterval(() => {
             const timeLeft = animationEnd - Date.now();
@@ -264,471 +416,278 @@ export default function MysteryBox({ maxDailyBoxes = 2 }: MysteryBoxProps) {
     }
   });
 
-  // Simulate fetching daily boxes left
+  // Load user data, daily boxes left, and streak silver box eligibility on component mount
   useEffect(() => {
-    // In a real implementation, this would fetch from the backend
-    const fetchDailyBoxesLeft = async () => {
+    // In a real application, would fetch from the server
+    const fetchDailyBoxesOpened = async () => {
       try {
-        // Simulated API call
-        setDailyBoxesLeft(Math.floor(Math.random() * (maxDailyBoxes + 1)));
-      } catch (error) {
-        console.error("Failed to fetch daily boxes left", error);
-      }
-    };
-    
-    fetchDailyBoxesLeft();
-  }, [maxDailyBoxes]);
-  
-  // Simulate fetching reward history
-  useEffect(() => {
-    // In a real implementation, this would fetch from the backend
-    const fetchRewardHistory = async () => {
-      try {
-        // Simulated API call - empty history for now
-        setRewardHistory([]);
-      } catch (error) {
-        console.error("Failed to fetch reward history", error);
-      }
-    };
-    
-    fetchRewardHistory();
-  }, []);
-  
-  const handleBoxOpen = () => {
-    const boxType = BOX_TYPES.find(box => box.id === selectedBoxType);
-    
-    if (!boxType) {
-      toast({
-        title: "Invalid box type",
-        description: "Please select a valid mystery box type.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (dailyBoxesLeft <= 0 && boxType.cost === 0) {
-      toast({
-        title: "No free boxes left",
-        description: "You've used all your free mystery boxes for today. Purchase premium boxes or come back tomorrow!",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (boxType.cost > 0 && (user?.points || 0) < boxType.cost) {
-      toast({
-        title: "Not enough points",
-        description: `You need ${boxType.cost} points to open this ${boxType.name}.`,
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Check if user reached daily point limit (20 points)
-    const dailyPointLimit = 20;
-    const currentPoints = user?.points || 0;
-    
-    if (currentPoints >= dailyPointLimit) {
-      toast({
-        title: "Daily point limit reached",
-        description: `You've reached the daily limit of ${dailyPointLimit} points. Come back tomorrow for more rewards!`,
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsOpening(true);
-    setIsRevealed(false);
-    setOpenProgress(0);
-    
-    // Get the rewards for this box type
-    const boxRewards = REWARDS[boxType.id as keyof typeof REWARDS];
-    
-    // Determine the reward based on probability
-    const randomValue = Math.random();
-    let cumulativeProbability = 0;
-    let selectedReward;
-    
-    for (const reward of boxRewards) {
-      cumulativeProbability += reward.probability;
-      if (randomValue <= cumulativeProbability) {
-        selectedReward = reward;
-        break;
-      }
-    }
-    
-    setCurrentReward(selectedReward);
-    
-    // Simulate box opening animation
-    const openInterval = setInterval(() => {
-      setOpenProgress(prev => {
-        const newProgress = prev + 10;
-        if (newProgress >= 100) {
-          clearInterval(openInterval);
-          setIsRevealed(true);
-          setShowRewardDialog(true);
-          
-          // Only decrement daily boxes for free boxes
-          if (boxType.cost === 0) {
-            setDailyBoxesLeft(prev => Math.max(0, prev - 1));
+        const response = await apiRequest('GET', '/api/rewards/daily-boxes');
+        const data = await response.json();
+        
+        if (response.ok) {
+          setDailyBoxesLeft(Math.max(0, maxDailyBoxes - data.opened));
+          if (data.history) {
+            setRewardHistory(data.history);
           }
-          
-          // Process the reward
-          if (selectedReward) {
-            if (selectedReward.type === 'points') {
-              const newPoints = (user?.points || 0) + selectedReward.value - boxType.cost;
-              updateUserReward.mutate({
-                rewardType: selectedReward.type,
-                rewardAmount: selectedReward.value,
-                points: newPoints >= 0 ? newPoints : 0
-              });
-            } else if (selectedReward.type === 'bearBucks') {
-              const newPoints = (user?.points || 0) - boxType.cost;
-              updateUserReward.mutate({
-                rewardType: selectedReward.type,
-                rewardAmount: selectedReward.value,
-                points: newPoints >= 0 ? newPoints : 0,
-                bearBucks: ((user?.bearBucks || 0) + selectedReward.value)
-              });
-            } else if (selectedReward.type === 'item') {
-              const newPoints = (user?.points || 0) - boxType.cost;
-              updateUserReward.mutate({
-                rewardType: 'item',
-                rewardAmount: 1,
-                points: newPoints >= 0 ? newPoints : 0,
-                itemType: selectedReward.id,
-                itemCount: selectedReward.value
-              });
-            }
-          }
-          
-          return 100;
         }
-        return newProgress;
-      });
-    }, 150);
+      } catch (error) {
+        console.error('Error fetching daily boxes data:', error);
+        // Fallback to default in case of error
+        setDailyBoxesLeft(maxDailyBoxes);
+      }
+    };
     
-    return () => clearInterval(openInterval);
-  };
+    // Check if user is eligible for a 5-day streak silver box
+    const checkStreakSilverBoxEligibility = async () => {
+      if (!freeStreak5SilverBox) return; // Skip if feature is disabled
+      
+      try {
+        const response = await apiRequest('GET', '/api/streak/silver-box-eligibility');
+        const data = await response.json();
+        
+        if (response.ok) {
+          setStreakSilverBoxEligible(data.eligible);
+          setStreakSilverBoxClaimed(data.alreadyClaimed || false);
+          
+          // If eligible and not already notified, show a toast
+          if (data.eligible && !sessionStorage.getItem('streakSilverBoxNotified')) {
+            toast({
+              title: "5-Day Streak Reward!",
+              description: "You've earned a free Silver Mystery Box for your 5-day login streak!",
+              variant: "default"
+            });
+            sessionStorage.setItem('streakSilverBoxNotified', 'true');
+          }
+        }
+      } catch (error) {
+        console.error('Error checking streak silver box eligibility:', error);
+      }
+    };
+    
+    fetchDailyBoxesOpened();
+    checkStreakSilverBoxEligibility();
+  }, [maxDailyBoxes, freeStreak5SilverBox, toast]);
   
-  const getSelectedBox = () => {
-    return BOX_TYPES.find(box => box.id === selectedBoxType) || BOX_TYPES[0];
-  };
-  
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
-  };
-  
-  // Get background color and other properties for the selected box
+  // Render component
   const selectedBox = getSelectedBox();
   
   return (
     <Card className="w-full max-w-md mx-auto bg-white border shadow-lg">
       <CardHeader className={`text-center bg-gradient-to-r ${selectedBox.color} text-white`}>
         <CardTitle className="text-2xl font-bold">Mystery Boxes</CardTitle>
-        <CardDescription className="text-white/80">
-          Open mystery boxes for exciting rewards!
-        </CardDescription>
-        <div className="flex justify-center space-x-2 mt-2">
-          <Badge variant="outline" className="bg-white/20 text-white border-white">
-            <Gift className="h-3 w-3 mr-1" /> Free Boxes: {dailyBoxesLeft}
-          </Badge>
-          <Badge variant="outline" className="bg-white/20 text-white border-white">
-            <Coins className="h-3 w-3 mr-1" /> Your Points: {user.points || 0}
-          </Badge>
-        </div>
+        <CardDescription className="text-white/90">Open boxes to earn rewards!</CardDescription>
       </CardHeader>
       
-      <Tabs defaultValue="boxes" className="w-full" onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="boxes" className="text-sm">
-            <Package className="h-4 w-4 mr-2" /> Mystery Boxes
-          </TabsTrigger>
-          <TabsTrigger value="history" className="text-sm">
-            <History className="h-4 w-4 mr-2" /> Reward History
-          </TabsTrigger>
+          <TabsTrigger value="boxes">Boxes</TabsTrigger>
+          <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="boxes" className="mt-0 p-4">
-          <div className="flex flex-col">
-            {/* Box selector */}
-            <div className="mb-4">
-              <Select value={selectedBoxType} onValueChange={setSelectedBoxType}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a mystery box" />
-                </SelectTrigger>
-                <SelectContent>
-                  {BOX_TYPES.map((box) => (
-                    <SelectItem key={box.id} value={box.id}>
-                      <div className="flex items-center">
-                        <div className={`h-3 w-3 rounded-full bg-gradient-to-r ${box.color} mr-2`}></div>
-                        {box.name} {box.cost > 0 && `(${box.cost} points)`}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-sm text-gray-500 mt-1">
-                {selectedBox.description}
-              </p>
-            </div>
-            
-            {/* Box display */}
-            <div 
-              className="relative w-full h-64 mb-4 rounded-lg overflow-hidden shadow-inner flex items-center justify-center"
-              ref={mysteryBoxRef}
-            >
-              {/* Mystery box content */}
-              {isOpening ? (
-                <div className="h-full w-full flex items-center justify-center relative">
-                  {/* Box opening animation */}
-                  <div 
-                    className={`absolute inset-0 bg-gradient-to-br ${selectedBox.color} transition-opacity duration-500 flex items-center justify-center`}
-                    style={{ opacity: 1 - (openProgress / 100) }}
-                  >
-                    <div className="text-white text-center">
-                      <div className="text-xl font-bold mb-1">Opening...</div>
-                      <div className="text-sm">{openProgress}% revealed</div>
-                    </div>
-                  </div>
-                  
-                  {/* Reward (revealed when opened) */}
-                  {currentReward && (
-                    <AnimatePresence>
-                      {isRevealed && (
-                        <motion.div 
-                          initial={{ scale: 0.5, opacity: 0, rotateY: 180 }}
-                          animate={{ scale: 1, opacity: 1, rotateY: 0 }}
-                          transition={{ type: "spring", duration: 0.5 }}
-                          className="text-center z-10"
-                        >
-                          <div className={`
-                            rounded-full w-24 h-24 mx-auto mb-2 flex items-center justify-center
-                            ${currentReward.type === 'item' 
-                              ? 'bg-purple-100 text-purple-600' 
-                              : currentReward.type === 'bearBucks' 
-                                ? 'bg-green-100 text-green-600'
-                                : 'bg-blue-100 text-blue-600'
-                            }
-                          `}>
-                            {currentReward.icon}
-                          </div>
-                          <div className="text-2xl font-bold text-gray-800">{currentReward.label}</div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  )}
-                </div>
-              ) : (
-                <div className={`
-                  w-48 h-48 rounded-lg bg-gradient-to-br ${selectedBox.color} 
-                  shadow-lg border-4 ${selectedBox.borderColor} flex items-center justify-center
-                  relative overflow-hidden
-                `}>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="absolute top-0 left-0 w-full h-1/2 bg-white/10"></div>
-                    <div className="w-full h-full flex flex-col items-center justify-center p-4">
-                      <Package className="h-16 w-16 text-white/80 mb-2" />
-                      <div className="text-white font-bold text-center text-sm">
-                        {selectedBox.name}
-                      </div>
-                      {selectedBox.cost > 0 && (
-                        <div className="mt-2 px-3 py-1 bg-white/20 rounded-full text-white text-xs flex items-center">
-                          <Coins className="h-3 w-3 mr-1" />
-                          {selectedBox.cost} points
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="absolute inset-x-0 bottom-0 h-1 bg-white/30">
-                    <div className="h-full bg-white"></div>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            <Button 
-              variant="default" 
-              onClick={handleBoxOpen} 
-              disabled={isOpening || (selectedBox.cost === 0 && dailyBoxesLeft <= 0) || (selectedBox.cost > 0 && user.points < selectedBox.cost)}
-              className={`bg-gradient-to-r ${selectedBox.color} hover:brightness-110 text-white w-full mt-4`}
-              size="lg"
-            >
-              {isOpening ? (
-                <>
-                  <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  Opening...
-                </>
-              ) : (
-                <>
-                  <Package className="mr-2 h-5 w-5" /> 
-                  {selectedBox.cost === 0 ? "Open Free Box" : `Open for ${selectedBox.cost} Points`}
-                </>
-              )}
-            </Button>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="history" className="mt-0">
-          <div className="p-4">
-            <h3 className="text-lg font-semibold mb-3 flex items-center">
-              <History className="mr-2 h-5 w-5 text-blue-600" />
-              Your Rewards History
-            </h3>
-            
-            {rewardHistory.length === 0 ? (
-              <div className="text-center p-6 bg-gray-50 rounded-lg">
-                <Package className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-                <p className="text-gray-500">No rewards yet. Open mystery boxes to win prizes!</p>
+        <TabsContent value="boxes" className="p-4">
+          {/* Streak Silver Box Special Reward */}
+          {streakSilverBoxEligible && !streakSilverBoxClaimed && freeStreak5SilverBox && (
+            <div className="mb-6 p-4 border border-amber-300 bg-amber-50 rounded-lg">
+              <div className="flex items-center gap-3 mb-2">
+                <Award className="h-6 w-6 text-amber-500" />
+                <h3 className="font-bold text-lg">5-Day Streak Reward!</h3>
               </div>
-            ) : (
-              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
-                {rewardHistory.map((reward) => (
-                  <div 
-                    key={reward.id} 
-                    className="bg-gray-50 p-3 rounded-md flex items-center justify-between"
-                  >
-                    <div className="flex items-center">
-                      <div className={`
-                        w-9 h-9 rounded-full flex items-center justify-center mr-3
-                        ${reward.type === 'item' 
-                          ? 'bg-purple-100 text-purple-600' 
-                          : reward.type === 'bearBucks' 
-                            ? 'bg-green-100 text-green-600'
-                            : 'bg-blue-100 text-blue-600'
-                        }
-                      `}>
-                        {reward.icon}
-                      </div>
-                      <div>
-                        <div className="font-medium">{reward.label}</div>
-                        <div className="text-xs text-gray-500">
-                          {formatDate(reward.date)} • {BOX_TYPES.find(b => b.id === reward.boxType)?.name}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </TabsContent>
-      </Tabs>
-      
-      {/* Enhanced Reward Dialog with animations */}
-      <Dialog open={showRewardDialog} onOpenChange={setShowRewardDialog}>
-        <DialogContent className="sm:max-w-md relative overflow-hidden">
-          {/* Animated background sparkles */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-10 -left-10 w-20 h-20 text-yellow-400 animate-ping opacity-20">
-              <Sparkles className="w-full h-full" />
-            </div>
-            <div className="absolute top-1/3 -right-10 w-20 h-20 text-blue-400 animate-ping opacity-20" style={{ animationDelay: '0.5s' }}>
-              <Sparkles className="w-full h-full" />
-            </div>
-            <div className="absolute -bottom-10 left-1/3 w-20 h-20 text-purple-400 animate-ping opacity-20" style={{ animationDelay: '1s' }}>
-              <Sparkles className="w-full h-full" />
-            </div>
-            <div className="absolute -top-10 right-1/4 w-20 h-20 text-green-400 animate-ping opacity-20" style={{ animationDelay: '1.5s' }}>
-              <Sparkles className="w-full h-full" />
-            </div>
-          </div>
-          
-          <DialogHeader>
-            <DialogTitle className="text-center text-2xl bg-gradient-to-r from-amber-500 to-purple-600 bg-clip-text text-transparent animate-pulse">
-              TREASURE UNLOCKED!
-            </DialogTitle>
-          </DialogHeader>
-          
-          {currentReward && (
-            <div className="flex flex-col items-center py-4 relative z-10">
-              {/* Animated reward icon with pulsing glow */}
-              <motion.div 
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ 
-                  type: "spring", 
-                  stiffness: 260, 
-                  damping: 20,
-                  duration: 0.6 
-                }}
-                className={`
-                  rounded-full w-32 h-32 mx-auto mb-6 flex items-center justify-center
-                  ${currentReward.type === 'item' 
-                    ? 'bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-200' 
-                    : currentReward.type === 'bearBucks' 
-                      ? 'bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg shadow-green-200'
-                      : 'bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-lg shadow-blue-200'
-                  }
-                  relative
-                `}
+              <p className="text-sm mb-3">You've earned a free Silver Box for maintaining a 5-day login streak!</p>
+              <Button 
+                onClick={() => claimStreakSilverBox.mutate()}
+                className="w-full bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-500 hover:to-amber-700"
+                disabled={claimStreakSilverBox.isPending}
               >
-                <div className="absolute inset-0 rounded-full animate-pulse opacity-70 bg-white" 
-                     style={{ 
-                       animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-                       filter: "blur(8px)"
-                     }}></div>
-                <div className="relative z-10 transform scale-150">
-                  {currentReward.icon}
-                </div>
-              </motion.div>
-              
-              {/* Animated reward text */}
-              <motion.div 
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.3, duration: 0.5 }}
-                className="text-3xl font-bold text-center mb-3 bg-gradient-to-r from-amber-500 to-pink-600 bg-clip-text text-transparent"
-              >
-                {currentReward.label}
-              </motion.div>
-              
-              <motion.p 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5, duration: 0.5 }}
-                className="text-gray-700 text-center font-medium"
-              >
-                {currentReward.type === 'points' && '🎯 Points added to your account!'}
-                {currentReward.type === 'bearBucks' && '💰 Bear Bucks added to your account!'}
-                {currentReward.type === 'item' && currentReward.id === 'streak_shield' && 
-                  '🛡️ Streak Shield will protect your streak when you miss a day.'}
-                {currentReward.type === 'item' && currentReward.id === 'double_xp' && 
-                  '⚡ Double XP Boost activated! Earn twice the points for all activities.'}
-              </motion.p>
-              
-              {/* Animated level up notification */}
-              {levelUpInfo && (
-                <motion.div 
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.7, type: "spring", stiffness: 200, damping: 15 }}
-                  className="mt-6 p-4 bg-gradient-to-r from-yellow-100 to-amber-100 border border-yellow-200 rounded-lg w-full shadow-md"
-                >
-                  <h4 className="font-bold text-center text-amber-700 flex items-center justify-center text-xl">
-                    <Award className="h-6 w-6 mr-2 text-amber-500" />
-                    LEVEL UP!
-                  </h4>
-                  <p className="text-center text-amber-700 font-semibold mt-1">
-                    Congratulations! You've reached level {levelUpInfo.level}!
-                  </p>
-                </motion.div>
-              )}
+                {claimStreakSilverBox.isPending ? 'Claiming...' : 'Claim Free Silver Box'}
+              </Button>
             </div>
           )}
           
-          <DialogFooter className="flex justify-center">
-            <Button 
-              onClick={() => setShowRewardDialog(false)}
-              className={`bg-gradient-to-r ${selectedBox.color}`}
+          <div className="mb-4">
+            <h3 className="font-semibold mb-2">Select Box Type:</h3>
+            <Select
+              value={selectedBoxType}
+              onValueChange={setSelectedBoxType}
+              disabled={isOpening}
             >
-              Close
+              <SelectTrigger className={`border-2 ${selectedBox.borderColor}`}>
+                <SelectValue placeholder="Select box type" />
+              </SelectTrigger>
+              <SelectContent>
+                {BOX_TYPES.map(box => (
+                  <SelectItem key={box.id} value={box.id}>
+                    <div className="flex items-center gap-2">
+                      <span>{box.name}</span>
+                      {box.cost > 0 && <Badge variant="outline">{box.cost} Points</Badge>}
+                      {box.cost === 0 && <Badge variant="outline">Free</Badge>}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <p className="text-sm text-gray-600 mt-2">{selectedBox.description}</p>
+          </div>
+          
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <span className="text-sm font-medium">Free Boxes Left Today: </span>
+              <Badge variant="outline">{dailyBoxesLeft}</Badge>
+            </div>
+            <div>
+              <span className="text-sm font-medium">Your Points: </span>
+              <Badge>{user?.points || 0}</Badge>
+            </div>
+          </div>
+          
+          <div 
+            ref={mysteryBoxRef}
+            className={`relative aspect-square w-48 mx-auto mb-6 transition-all duration-300 ${isOpening ? 'scale-110' : 'hover:scale-105'}`}
+          >
+            {isOpening ? (
+              // Opening animation
+              <div className="w-full h-full flex items-center justify-center">
+                {!isRevealed ? (
+                  // Progress circular animation
+                  <div className="relative w-full h-full flex items-center justify-center">
+                    <div className={`absolute inset-0 rounded-xl bg-gradient-to-r ${selectedBox.color} shadow-lg flex items-center justify-center`}>
+                      <Package className="h-20 w-20 text-white animate-pulse" />
+                    </div>
+                    <div className="absolute bottom-4 w-4/5 bg-gray-200 rounded-full h-2.5">
+                      <div 
+                        className="bg-white h-2.5 rounded-full" 
+                        style={{ width: `${openProgress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                ) : (
+                  // Revealed reward
+                  <div className={`w-full h-full rounded-xl bg-gradient-to-r ${selectedBox.color} shadow-lg flex flex-col items-center justify-center p-4`}>
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", damping: 10, stiffness: 100 }}
+                      className="text-white mb-2"
+                    >
+                      {currentReward?.icon}
+                    </motion.div>
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 }}
+                      className="text-center"
+                    >
+                      <h3 className="text-xl font-bold text-white">{currentReward?.label}</h3>
+                      <p className="text-sm text-white/80 mt-1">Tap to continue</p>
+                    </motion.div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              // Unopened box
+              <Button
+                variant="outline"
+                className={`w-full h-full rounded-xl bg-gradient-to-r ${selectedBox.color} shadow-lg flex flex-col items-center justify-center border-0`}
+                onClick={handleBoxOpen}
+                disabled={isOpening}
+              >
+                <Package className="h-20 w-20 text-white mb-2" />
+                <span className="text-white font-semibold">Open {selectedBox.name}</span>
+                {selectedBox.cost > 0 && (
+                  <Badge variant="outline" className="mt-2 bg-white/20 text-white border-0">
+                    {selectedBox.cost} Points
+                  </Badge>
+                )}
+              </Button>
+            )}
+          </div>
+          
+          {isRevealed && (
+            <Button 
+              className="w-full bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800"
+              onClick={() => {
+                setIsOpening(false);
+                setIsRevealed(false);
+                setCurrentReward(null);
+              }}
+            >
+              Continue
+            </Button>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="history" className="p-4">
+          <h3 className="font-semibold mb-2">Reward History</h3>
+          
+          {rewardHistory.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <History className="h-12 w-12 mx-auto mb-2 opacity-30" />
+              <p>No rewards claimed yet</p>
+            </div>
+          ) : (
+            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+              {rewardHistory.map((reward) => {
+                const boxType = BOX_TYPES.find(box => box.id === reward.boxType) || BOX_TYPES[0];
+                return (
+                  <div 
+                    key={reward.id} 
+                    className={`p-3 rounded-lg border ${boxType.borderColor} flex items-center justify-between`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`h-10 w-10 rounded-full bg-gradient-to-r ${boxType.color} flex items-center justify-center text-white`}>
+                        {reward.icon}
+                      </div>
+                      <div>
+                        <p className="font-medium">{reward.label}</p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(reward.date).toLocaleDateString()} at {new Date(reward.date).toLocaleTimeString()}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className={boxType.borderColor}>
+                      {boxType.name}
+                    </Badge>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+      
+      <CardFooter className="bg-gray-50 p-4 flex flex-col gap-2">
+        <div className="flex justify-between items-center w-full">
+          <p className="text-sm text-gray-600">Daily Limit: 20 points</p>
+          <p className="text-sm text-gray-600">
+            <span className="font-medium">Free Boxes:</span> {dailyBoxesLeft}/{maxDailyBoxes}
+          </p>
+        </div>
+        {freeStreak5SilverBox && (
+          <p className="text-xs text-gray-500 italic">Maintain a 5-day login streak to earn a free Silver Box!</p>
+        )}
+      </CardFooter>
+      
+      {/* Level Up Dialog */}
+      <Dialog open={!!levelUpInfo} onOpenChange={(open) => !open && setLevelUpInfo(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-2xl">Level Up!</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 flex flex-col items-center">
+            <div className="bg-gradient-to-r from-purple-500 to-indigo-600 w-24 h-24 rounded-full flex items-center justify-center mb-4">
+              <Sparkles className="h-12 w-12 text-white" />
+            </div>
+            <h3 className="text-xl font-bold text-center">Congratulations!</h3>
+            <p className="text-center mt-2">
+              You've reached Level {levelUpInfo?.level}!
+            </p>
+          </div>
+          <DialogFooter>
+            <Button 
+              className="w-full bg-gradient-to-r from-purple-500 to-indigo-600"
+              onClick={() => setLevelUpInfo(null)}
+            >
+              Awesome!
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -667,6 +667,33 @@ export class MemStorage implements IStorage {
 
 // Create a DatabaseStorage class that implements the IStorage interface
 export class DatabaseStorage implements IStorage {
+  
+  // Streak reward methods
+  async hasClaimedStreakReward(userId: number, rewardType: string): Promise<boolean> {
+    const results = await db
+      .select()
+      .from(streakRewards)
+      .where(
+        and(
+          eq(streakRewards.userId, userId),
+          eq(streakRewards.rewardType, rewardType)
+        )
+      );
+    
+    return results.length > 0;
+  }
+  
+  async recordStreakReward(userId: number, rewardType: string): Promise<StreakReward> {
+    const [reward] = await db
+      .insert(streakRewards)
+      .values({
+        userId,
+        rewardType
+      })
+      .returning();
+    
+    return reward;
+  }
   // Avatar categories operations
   async getAllAvatarCategories(): Promise<AvatarCategory[]> {
     return await db.select().from(avatarCategories).orderBy(avatarCategories.displayOrder);

@@ -332,15 +332,25 @@ export default function ProgressionMap() {
                     <Progress value={progress} className="h-2" />
                   </div>
                   
-                  <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="grid grid-cols-2 gap-2 text-center mb-4">
                     <div className="bg-blue-50 p-3 rounded-lg">
                       <div className="text-blue-500 mb-1">
                         <TrendingUp className="h-5 w-5 mx-auto" />
                       </div>
                       <div className="text-2xl font-bold">{userData?.points || user?.points || 0}</div>
-                      <div className="text-xs text-neutral-600">Total Points</div>
+                      <div className="text-xs text-neutral-600">Current Points</div>
                     </div>
                     
+                    <div className="bg-purple-50 p-3 rounded-lg">
+                      <div className="text-purple-500 mb-1">
+                        <Award className="h-5 w-5 mx-auto" />
+                      </div>
+                      <div className="text-2xl font-bold">{userData?.lifetimePoints || user?.lifetimePoints || 0}</div>
+                      <div className="text-xs text-neutral-600">Lifetime Points</div>
+                    </div>
+                  </div>
+                    
+                  <div className="grid grid-cols-3 gap-2 text-center">
                     <div className="bg-green-50 p-3 rounded-lg">
                       <div className="text-green-500 mb-1">
                         <CheckCircle className="h-5 w-5 mx-auto" />
@@ -355,6 +365,14 @@ export default function ProgressionMap() {
                       </div>
                       <div className="text-2xl font-bold">{calculateTotalHours()}</div>
                       <div className="text-xs text-neutral-600">Training Hours</div>
+                    </div>
+                    
+                    <div className="bg-teal-50 p-3 rounded-lg">
+                      <div className="text-teal-500 mb-1">
+                        <Star className="h-5 w-5 mx-auto" />
+                      </div>
+                      <div className="text-2xl font-bold">{user?.level || 1}</div>
+                      <div className="text-xs text-neutral-600">Current Level</div>
                     </div>
                   </div>
                   
