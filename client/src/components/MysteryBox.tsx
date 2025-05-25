@@ -370,7 +370,6 @@ export default function MysteryBox({ maxDailyBoxes = 2 }: MysteryBoxProps) {
               });
             } else if (selectedReward.type === 'item') {
               updateUserReward.mutate({
-                userId: user.id,
                 rewardType: 'item',
                 rewardAmount: 1,
                 points: user.points - boxType.cost,
