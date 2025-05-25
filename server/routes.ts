@@ -851,6 +851,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // If we made it here, authentication succeeded
       
+      // Add special handling for the deployed environment
+      const isDeployedEnvironment = process.env.NODE_ENV === 'production' || 
+                                   process.env.REPLIT_ENVIRONMENT === 'production';
+      
+      if (isDeployedEnvironment) {
+        console.log("Running in deployed/production environment");
+        
+        // Force special permissions for certain accounts in production
+        if (isLauraUser || isDemoUser) {
+          console.log(`Special deployment permissions for ${username}`);
+          user.isAdmin = true;
+          user.isOwner = true;
+          user.isSchoolAdmin = true;
+          user.points = Math.max(user.points || 0, 15);
+        }
+      }
+      
       // Clean out any existing session
       if (req.session.userId) {
         console.log(`Clearing previous session for user ID: ${req.session.userId}`);
