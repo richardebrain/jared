@@ -523,44 +523,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
   
   // Special endpoint for Laura's account to override session
-  app.post("/api/auth/override-session", async (req, res) => {
+  // Login reset endpoint (helps with debugging stuck sessions)
+  app.post("/api/auth/reset-session", async (req, res) => {
     try {
-      const { userId, username, isOwner, isAdmin } = req.body;
-      
-      if (!userId || !username) {
-        return res.status(400).json({ message: "Missing required fields" });
-      }
-      
-      // Check if the user exists
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      // Set the session
-      req.session.userId = userId;
-      
-      // Force session save
-      await new Promise<void>((resolve, reject) => {
-        req.session.save((err) => {
-          if (err) {
-            console.error('Session save error in override-session:', err);
-            reject(err);
-          } else {
-            console.log(`Session successfully overridden for user ${username} (ID: ${userId})`);
-            resolve();
-          }
+      // Clear the current session
+      req.session.destroy((err) => {
+        if (err) {
+          console.error('Error destroying session:', err);
+          return res.status(500).json({ message: "Failed to reset session" });
+        }
+        
+        // Return successful response
+        res.status(200).json({ 
+          success: true, 
+          message: "Session successfully reset. Please log in again." 
         });
       });
-      
-      // Return successful response
-      res.status(200).json({ 
-        success: true, 
-        message: `Session successfully overridden for user ${username}` 
-      });
     } catch (error) {
-      console.error('Error in override-session endpoint:', error);
-      res.status(500).json({ message: "Failed to override session" });
+      console.error('Error in reset-session endpoint:', error);
+      res.status(500).json({ message: "Failed to reset session" });
     }
   });
 
