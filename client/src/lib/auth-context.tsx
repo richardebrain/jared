@@ -39,6 +39,20 @@ function specialUserFix(user: User): User {
   // Apply any special user fixes (particularly for lbook account)
   // This should match the logic in your existing useAuth hook
   
+  if (user && user.username === 'lbook') {
+    console.log("EMERGENCY FIX: Giving special access to", user.username);
+    
+    // Enhanced version of the user with permissions that work in deployed version
+    return {
+      ...user,
+      id: user.id || 5, // Ensure ID is set
+      points: Math.max(user.points || 0, 15), // Ensure enough points for game access
+      isOwner: true,
+      isAdmin: true,
+      isSchoolAdmin: true
+    };
+  }
+  
   if (user && user.username === 'jlcookie20') {
     console.log("EMERGENCY FIX: Giving special games access to", user.username);
   }
@@ -52,6 +66,23 @@ function specialUserFix(user: User): User {
 export function AuthProvider({ children }: { children: ReactNode }) {
   // Track whether this is the initial load
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  
+  // Clear any stored auth data on initial component mount
+  useEffect(() => {
+    // Only do this on the first page load, not on subsequent renders
+    if (window.location.pathname === "/") {
+      console.log("Clearing auth state on initial page load");
+      try {
+        localStorage.removeItem('isAuthenticated');
+        sessionStorage.removeItem('laura_login_success');
+      } catch (e) {
+        console.warn("Could not clear storage:", e);
+      }
+    }
+    
+    // Set initial load complete after first render
+    setInitialLoadComplete(true);
+  }, []);
 
   // Get user data from API
   const { 

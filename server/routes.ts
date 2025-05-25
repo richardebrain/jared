@@ -802,15 +802,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Special handling for Laura's account to ensure proper permissions
       if (isLauraUser) {
-        // Update user permissions if needed
-        if (!user.isOwner || !user.isAdmin || !user.isSchoolAdmin) {
-          console.log(`Fixing permissions for Laura's account (ID: ${user.id})`);
-          await storage.updateUser(user.id, {
-            isOwner: true,
-            isAdmin: true,
-            isSchoolAdmin: true
-          });
-        }
+        // Always update Laura's permissions and points on login to ensure access
+        console.log(`Fixing permissions for Laura's account (ID: ${user.id})`);
+        await storage.updateUser(user.id, {
+          isOwner: true,
+          isAdmin: true,
+          isSchoolAdmin: true,
+          points: Math.max(user.points || 0, 15) // Ensure enough points for game access
+        });
+        
+        // Update user object with the changes for the current request
+        user.isOwner = true;
+        user.isAdmin = true;
+        user.isSchoolAdmin = true;
+        user.points = Math.max(user.points || 0, 15);
       }
       
       // Check password - either special cases or normal validation
@@ -1009,6 +1014,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         details: "Your session has been ended successfully."
       });
     });
+  });
+  
+  // Clear session route - for use on fresh deployment to ensure no auto-login
+  app.get("/api/auth/clear-session", (req, res) => {
+    console.log(`Clear session attempt - Session ID: ${req.session?.id || 'none'}`);
+    
+    if (req.session) {
+      req.session.destroy((err) => {
+        if (err) {
+          console.error('Clear session error:', err);
+          return res.status(500).json({ 
+            message: "Failed to clear session", 
+            details: "There was a problem clearing your session. Please try again."
+          });
+        }
+        
+        console.log("Session cleared successfully");
+        
+        // Clear cookies by setting expiration in the past
+        res.clearCookie('connect.sid');
+        
+        return res.status(200).json({ 
+          message: "Session cleared successfully",
+          details: "Your session has been cleared successfully."
+        });
+      });
+    } else {
+      console.log("No active session to clear");
+      res.status(200).json({ 
+        message: "No active session to clear",
+        details: "No active session was found to clear."
+      });
+    }
   });
   
   app.get("/api/auth/me", async (req, res) => {

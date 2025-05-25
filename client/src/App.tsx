@@ -66,6 +66,31 @@ import AvatarCustomizationPage from "@/pages/avatar-customization";
 
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
+  const [initialSessionCleared, setInitialSessionCleared] = useState(false);
+  
+  // Effect to clear server-side session on initial page load
+  useEffect(() => {
+    const clearInitialSession = async () => {
+      if (window.location.pathname === "/" && !initialSessionCleared) {
+        try {
+          // Clear any client-side storage
+          sessionStorage.removeItem('laura_login_success');
+          localStorage.removeItem('isAuthenticated');
+          
+          // Call server endpoint to clear any existing session
+          await fetch('/api/auth/clear-session');
+          console.log("Initial session cleared on page load");
+        } catch (err) {
+          console.warn("Error clearing initial session:", err);
+        } finally {
+          setInitialSessionCleared(true);
+        }
+      }
+    };
+    
+    clearInitialSession();
+  }, [initialSessionCleared]);
+  
   try {
     // This component safely uses useAuth inside the AuthProvider
     const { isAuthenticated, isLoading, user, isAdmin, isOwner } = useAuth();
@@ -82,6 +107,10 @@ function AuthenticatedRouter() {
   } catch (error) {
     console.error("Auth router error:", error);
     // Fallback to a simplified router with no auth
+    // Clear any stored auth data to ensure fresh login
+    sessionStorage.removeItem('laura_login_success');
+    localStorage.removeItem('isAuthenticated');
+    
     return (
       <Switch>
         <Route path="/login"><Login /></Route>
