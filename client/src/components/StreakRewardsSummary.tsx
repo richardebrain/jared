@@ -101,13 +101,31 @@ export function StreakRewardsSummary({ streakCount }: StreakRewardsSummaryProps)
         })}
       </div>
       
+      {/* Silver Box Reward for 5-day streak */}
+      {streakCount >= 5 && (
+        <div className="mt-4 p-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg border border-gray-400 flex items-center">
+          <div className="h-10 w-10 bg-gradient-to-r from-gray-400 to-gray-500 rounded-md flex items-center justify-center">
+            <div className="h-6 w-6 bg-gray-200 rounded-sm flex items-center justify-center">
+              <Star className="h-4 w-4 text-gray-600" />
+            </div>
+          </div>
+          <div className="ml-3 flex-1">
+            <div className="font-semibold text-gray-700">5-Day Streak Reward</div>
+            <div className="text-xs text-gray-600">You've earned a free Silver Mystery Box! Visit the Rewards page to claim it.</div>
+          </div>
+          <Badge className="bg-gradient-to-r from-gray-500 to-gray-600 text-white">
+            SILVER BOX
+          </Badge>
+        </div>
+      )}
+      
       {/* Streak info message */}
-      <div className="text-xs text-gray-500 mt-8 flex items-start">
+      <div className="text-xs text-gray-500 mt-4 flex items-start">
         <Medal className="h-3 w-3 mr-1 text-amber-500 mt-0.5 flex-shrink-0" />
         <span>
           Maintain your streak by logging in daily. Your current streak earns you 
           <span className="font-bold text-amber-600"> {currentBonus > 0 ? currentBonus : 'no'} bonus points </span> 
-          each day!
+          each day! {streakCount < 5 && "Reach a 5-day streak to earn a free Silver Mystery Box!"}
         </span>
       </div>
     </div>

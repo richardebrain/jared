@@ -43,6 +43,7 @@ import {
 
 interface MysteryBoxProps {
   maxDailyBoxes?: number;
+  freeStreak5SilverBox?: boolean;
 }
 
 const BOX_TYPES = [
