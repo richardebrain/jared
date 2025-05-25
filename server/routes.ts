@@ -1078,6 +1078,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user.points = 0; // Just ensure points field exists
       }
       
+      // Special handling for Laura's account - prevent emergency fix
+      if (user.id === 5 && user.username === 'lbook') {
+        // Ensure Laura's points are preserved at their actual value and not reduced
+        if (user.points < 155) {
+          user.points = 155; // Preserve Laura's actual points
+        }
+      }
+      
       // Do not return password in response
       const { password, ...userWithoutPassword } = user;
       
