@@ -325,7 +325,7 @@ export default function CasinoPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-4">
-                <StreakRewardsSummary streak={user?.streak || 0} />
+                <StreakRewardsSummary streakCount={user?.streak || 0} />
                 
                 <div className="mt-3 text-sm text-muted-foreground">
                   <p className="flex items-center">
