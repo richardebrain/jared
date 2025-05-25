@@ -34,30 +34,22 @@ interface AuthContextType {
 // Create the authentication context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Helper function for handling special users
-function specialUserFix(user: User): User {
-  // Apply any special user fixes (particularly for lbook account)
-  // This should match the logic in your existing useAuth hook
+// Helper function for normalizing user data
+function normalizeUserData(user: User): User {
+  if (!user) return user;
   
-  if (user && user.username === 'lbook') {
-    console.log("EMERGENCY FIX: Giving special access to", user.username);
-    
-    // Enhanced version of the user with permissions that work in deployed version
-    return {
-      ...user,
-      id: user.id || 5, // Ensure ID is set
-      points: Math.max(user.points || 0, 15), // Ensure enough points for game access
-      isOwner: true,
-      isAdmin: true,
-      isSchoolAdmin: true
-    };
-  }
-  
-  if (user && user.username === 'jlcookie20') {
-    console.log("EMERGENCY FIX: Giving special games access to", user.username);
-  }
-  
-  return user;
+  // Ensure all users have expected properties with defaults if missing
+  return {
+    ...user,
+    // Fix potential undefined values that might cause issues
+    username: user.username || 'user',
+    achievementCount: user.achievementCount || 0,
+    streak: user.streak || 0,
+    bearBucks: user.bearBucks || 0,
+    lifetimePoints: user.lifetimePoints || 0,
+    points: user.points || 0,
+    lastActive: user.lastActive || new Date().toISOString()
+  };
 }
 
 /**

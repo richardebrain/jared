@@ -21,40 +21,23 @@ export function isAuthenticated(): boolean {
 }
 
 /**
- * Special fix for Laura's (lbook) account
+ * Ensure user object has expected properties
  */
-export function specialUserFix(user: any): any {
+export function normalizeUserData(user: any): any {
   if (!user) return user;
   
-  // Special handling for lbook account (also checking for lbooks variant)
-  if (user.username === 'lbook' || user.username === 'lbooks' || user.id === 5) {
-    console.log("EMERGENCY FIX: Giving special access to", user.username);
-    
-    // Enhanced version of the user with permissions that work in deployed version
-    return {
-      ...user,
-      id: user.id || 5, // Ensure ID is set
-      points: Math.max(user.points || 0, 20), // Ensure enough points for game access
-      // Fix potential undefined values that might cause issues
-      username: user.username || 'lbook', // Ensure username is set
-      achievementCount: user.achievementCount || 0,
-      streak: user.streak || 0,
-      bearBucks: user.bearBucks || 0,
-      lifetimePoints: user.lifetimePoints || 0,
-      // Ensure role flags are set
-      isOwner: true,
-      isAdmin: true,
-      isSchoolAdmin: true,
-      // Set timestamps that might be missing
-      lastActive: user.lastActive || new Date().toISOString(),
-      // Extra fields to ensure login works
-      firstName: user.firstName || 'Laura',
-      lastName: user.lastName || 'Books',
-      email: user.email || 'lbooks@example.com'
-    };
-  }
-  
-  return user;
+  // Ensure all users have expected properties with defaults if missing
+  return {
+    ...user,
+    // Fix potential undefined values that might cause issues
+    username: user.username || 'user',
+    achievementCount: user.achievementCount || 0,
+    streak: user.streak || 0,
+    bearBucks: user.bearBucks || 0,
+    lifetimePoints: user.lifetimePoints || 0,
+    points: user.points || 0,
+    lastActive: user.lastActive || new Date().toISOString()
+  };
 }
 
 /**
