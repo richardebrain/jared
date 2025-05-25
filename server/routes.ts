@@ -1934,7 +1934,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           try {
             // First update user's points
-            await storage.updateUserPoints(userId, potentialPoints);
+            await storage.addUserPoints(userId, potentialPoints);
             
             // Then update the completion record
             if (completion && completion.id) {
@@ -2043,9 +2043,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Determine points based on video metadata or request
       const pointsRequested = req.body.points || 0;
       
-      // Use the points from the request, falling back to duration-based calculation
-      const potentialPoints = pointsRequested > 0 ? pointsRequested : 
-                            (videoDuration >= 10 ? 8 : 5); // 8 points for longer videos
+      // Use the points from the request, falling back to default points
+      // Default to 8 points for video quiz completions
+      const potentialPoints = pointsRequested > 0 ? pointsRequested : 8;
       
       try {
         // Record the completion - our updated storage layer will handle setting points to 0 if limit reached
