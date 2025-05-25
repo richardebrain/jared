@@ -71,8 +71,15 @@ router.post('/generate', async (req, res) => {
     
     console.log("Received AI suggestion request:", { prompt, type });
     
+    // Better title extraction from prompt
+    const titlePattern = /\"([^\"]+)\"/; // Extract text between quotes
+    const titleMatch = prompt.match(titlePattern);
+    const extractedTitle = titleMatch ? titleMatch[1] : "";
+    console.log("Extracted module title:", extractedTitle);
+    
     // Direct and simple check for "that one kid" in the title
-    if (prompt.includes("That one kid") || prompt.includes("that one kid")) {
+    // Use the extracted title from our regex pattern
+    if (extractedTitle.toLowerCase().includes("that one kid") || prompt.toLowerCase().includes("that one kid")) {
       console.log("MATCH FOUND: Special module type detected: That one kid");
       
       // Extract difficulty level from the prompt
