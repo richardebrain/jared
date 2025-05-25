@@ -937,6 +937,9 @@ export default function Dashboard() {
             
             {/* Sidebar - Right 1/3 */}
             <div className="space-y-6">
+              {/* Leaderboard - Now at the top */}
+              <SimpleLeaderboard users={users || []} currentUserId={user?.id} />
+              
               {/* User Stats Card */}
               <Card className="bg-white shadow-md">
                 <CardHeader className="pb-2">
@@ -985,12 +988,8 @@ export default function Dashboard() {
               
               {/* Core Values Shoutouts section removed to avoid duplication */}
               
-
               {/* Bear Assistant */}
               <BearAssistant />
-              
-              {/* Leaderboard */}
-              <SimpleLeaderboard users={users || []} currentUserId={user?.id} />
               
               {/* Community Modules */}
               <CommunityModules limit={3} />
