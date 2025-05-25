@@ -174,17 +174,79 @@ export default function MysteryBox({ maxDailyBoxes = 2 }: MysteryBoxProps) {
         ...prev
       ]);
       
-      // Trigger confetti for significant rewards
+      // Trigger enhanced confetti effects for all rewards
+      // First, always trigger confetti for any reward
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+      
+      // For better rewards, add additional confetti effects with different colors and patterns
       if (
-        (currentReward.type === 'points' && currentReward.value >= 100) || 
-        (currentReward.type === 'bearBucks' && currentReward.value >= 3) || 
+        (currentReward.type === 'points' && currentReward.value >= 50) || 
+        (currentReward.type === 'bearBucks' && currentReward.value >= 2) || 
         currentReward.type === 'item'
       ) {
-        confetti({
-          particleCount: currentReward.type === 'bearBucks' && currentReward.value >= 5 ? 150 : 100,
-          spread: 70,
-          origin: { y: 0.6 }
-        });
+        // Add a second burst of confetti with delay
+        setTimeout(() => {
+          confetti({
+            particleCount: 80,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0, y: 0.6 },
+            colors: ['#ffd700', '#ffb700', '#ffa500']
+          });
+        }, 300);
+        
+        // Add a third burst from the other side
+        setTimeout(() => {
+          confetti({
+            particleCount: 80,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1, y: 0.6 },
+            colors: ['#87CEFA', '#00BFFF', '#1E90FF']
+          });
+        }, 600);
+      }
+      
+      // For premium rewards, add even more spectacular effects
+      if (
+        (currentReward.type === 'points' && currentReward.value >= 100) || 
+        (currentReward.type === 'bearBucks' && currentReward.value >= 5) || 
+        (currentReward.type === 'item' && (currentReward.id === 'streak_shield' || currentReward.id === 'double_xp'))
+      ) {
+        // Add confetti cannon effect
+        setTimeout(() => {
+          const duration = 3 * 1000;
+          const animationEnd = Date.now() + duration;
+          const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+          
+          const randomInRange = (min, max) => Math.random() * (max - min) + min;
+          
+          const interval = setInterval(() => {
+            const timeLeft = animationEnd - Date.now();
+            
+            if (timeLeft <= 0) {
+              return clearInterval(interval);
+            }
+            
+            const particleCount = 50 * (timeLeft / duration);
+            
+            // Since particles fall down, start a bit higher than random
+            confetti({
+              ...defaults,
+              particleCount,
+              origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+            });
+            confetti({
+              ...defaults,
+              particleCount,
+              origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+            });
+          }, 250);
+        }, 1000);
       }
     },
     onError: () => {
@@ -540,48 +602,104 @@ export default function MysteryBox({ maxDailyBoxes = 2 }: MysteryBoxProps) {
         </TabsContent>
       </Tabs>
       
-      {/* Reward Dialog */}
+      {/* Enhanced Reward Dialog with animations */}
       <Dialog open={showRewardDialog} onOpenChange={setShowRewardDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md relative overflow-hidden">
+          {/* Animated background sparkles */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-10 -left-10 w-20 h-20 text-yellow-400 animate-ping opacity-20">
+              <Sparkles className="w-full h-full" />
+            </div>
+            <div className="absolute top-1/3 -right-10 w-20 h-20 text-blue-400 animate-ping opacity-20" style={{ animationDelay: '0.5s' }}>
+              <Sparkles className="w-full h-full" />
+            </div>
+            <div className="absolute -bottom-10 left-1/3 w-20 h-20 text-purple-400 animate-ping opacity-20" style={{ animationDelay: '1s' }}>
+              <Sparkles className="w-full h-full" />
+            </div>
+            <div className="absolute -top-10 right-1/4 w-20 h-20 text-green-400 animate-ping opacity-20" style={{ animationDelay: '1.5s' }}>
+              <Sparkles className="w-full h-full" />
+            </div>
+          </div>
+          
           <DialogHeader>
-            <DialogTitle className="text-center text-2xl">
-              Mystery Box Reward!
+            <DialogTitle className="text-center text-2xl bg-gradient-to-r from-amber-500 to-purple-600 bg-clip-text text-transparent animate-pulse">
+              TREASURE UNLOCKED!
             </DialogTitle>
           </DialogHeader>
           
           {currentReward && (
-            <div className="flex flex-col items-center py-4">
-              <div className={`
-                rounded-full w-24 h-24 mx-auto mb-4 flex items-center justify-center
-                ${currentReward.type === 'item' 
-                  ? 'bg-purple-100 text-purple-600' 
-                  : currentReward.type === 'bearBucks' 
-                    ? 'bg-green-100 text-green-600'
-                    : 'bg-blue-100 text-blue-600'
-                }
-              `}>
-                {currentReward.icon}
-              </div>
-              <div className="text-2xl font-bold text-center mb-2">{currentReward.label}</div>
-              <p className="text-gray-600 text-center">
-                {currentReward.type === 'points' && 'Points added to your account!'}
-                {currentReward.type === 'bearBucks' && 'Bear Bucks added to your account!'}
-                {currentReward.type === 'item' && currentReward.id === 'streak_shield' && 
-                  'Streak Shield will protect your streak when you miss a day.'}
-                {currentReward.type === 'item' && currentReward.id === 'double_xp' && 
-                  'Double XP Boost activated! Earn twice the points for all activities.'}
-              </p>
+            <div className="flex flex-col items-center py-4 relative z-10">
+              {/* Animated reward icon with pulsing glow */}
+              <motion.div 
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 260, 
+                  damping: 20,
+                  duration: 0.6 
+                }}
+                className={`
+                  rounded-full w-32 h-32 mx-auto mb-6 flex items-center justify-center
+                  ${currentReward.type === 'item' 
+                    ? 'bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-200' 
+                    : currentReward.type === 'bearBucks' 
+                      ? 'bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg shadow-green-200'
+                      : 'bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-lg shadow-blue-200'
+                  }
+                  relative
+                `}
+              >
+                <div className="absolute inset-0 rounded-full animate-pulse opacity-70 bg-white" 
+                     style={{ 
+                       animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+                       filter: "blur(8px)"
+                     }}></div>
+                <div className="relative z-10 transform scale-150">
+                  {currentReward.icon}
+                </div>
+              </motion.div>
               
+              {/* Animated reward text */}
+              <motion.div 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+                className="text-3xl font-bold text-center mb-3 bg-gradient-to-r from-amber-500 to-pink-600 bg-clip-text text-transparent"
+              >
+                {currentReward.label}
+              </motion.div>
+              
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+                className="text-gray-700 text-center font-medium"
+              >
+                {currentReward.type === 'points' && '🎯 Points added to your account!'}
+                {currentReward.type === 'bearBucks' && '💰 Bear Bucks added to your account!'}
+                {currentReward.type === 'item' && currentReward.id === 'streak_shield' && 
+                  '🛡️ Streak Shield will protect your streak when you miss a day.'}
+                {currentReward.type === 'item' && currentReward.id === 'double_xp' && 
+                  '⚡ Double XP Boost activated! Earn twice the points for all activities.'}
+              </motion.p>
+              
+              {/* Animated level up notification */}
               {levelUpInfo && (
-                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-100 rounded-lg w-full">
-                  <h4 className="font-bold text-center text-yellow-700 flex items-center justify-center">
-                    <Award className="h-5 w-5 mr-2" />
-                    Level Up!
+                <motion.div 
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.7, type: "spring", stiffness: 200, damping: 15 }}
+                  className="mt-6 p-4 bg-gradient-to-r from-yellow-100 to-amber-100 border border-yellow-200 rounded-lg w-full shadow-md"
+                >
+                  <h4 className="font-bold text-center text-amber-700 flex items-center justify-center text-xl">
+                    <Award className="h-6 w-6 mr-2 text-amber-500" />
+                    LEVEL UP!
                   </h4>
-                  <p className="text-center text-yellow-600">
+                  <p className="text-center text-amber-700 font-semibold mt-1">
                     Congratulations! You've reached level {levelUpInfo.level}!
                   </p>
-                </div>
+                </motion.div>
               )}
             </div>
           )}
