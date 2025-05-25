@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { LearningModule, learningModules } from "@shared/schema";
+import { LearningModule, learningModules, InsertLearningModule } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 import { createRaisingArizonaCoreModule } from "../createCoreModule";
 import { createChapterOneModule } from "../createChapterOneModule";
@@ -148,6 +148,198 @@ export class ModuleManager {
       console.log("Updated visibility for modules with null visibility");
     } catch (error) {
       console.error("Error updating module visibility:", error);
+    }
+  }
+  
+  /**
+   * Create a new module from template
+   * 
+   * Creates a new learning module in the database using the provided template data.
+   * This handles the conversion from the template format to the database format.
+   */
+  static async createModuleFromTemplate(moduleData: Partial<LearningModule>): Promise<LearningModule> {
+    // First ensure default values are set for required fields
+    const moduleToInsert = {
+      title: moduleData.title || "New Module",
+      description: moduleData.description || "",
+      duration: moduleData.duration || 60,
+      pointValue: moduleData.pointValue || 10,
+      difficulty: moduleData.difficulty || "intermediate",
+      category: moduleData.category || "Professional Development",
+      content: moduleData.content || "",
+      quiz: moduleData.quiz || { questions: [] },
+      featured: moduleData.featured || false,
+      isVisible: moduleData.isVisible !== undefined ? moduleData.isVisible : true,
+      schoolId: moduleData.schoolId || null,
+      imageUrl: moduleData.imageUrl || null,
+      // Set defaults for rating fields
+      averageRating: 0,
+      ratingCount: 0,
+      isSharedToCommunity: false
+    } as InsertLearningModule;
+    
+    // Insert the module
+    const [createdModule] = await db.insert(learningModules)
+      .values(moduleToInsert)
+      .returning();
+    
+    return createdModule;
+  }
+  
+  /**
+   * Update a module from template
+   * 
+   * Updates an existing learning module in the database using the provided template data.
+   * This handles the conversion from the template format to the database format.
+   */
+  static async updateModuleFromTemplate(
+    moduleId: number,
+    moduleData: Partial<LearningModule>
+  ): Promise<LearningModule | null> {
+    // Check if module exists
+    const existingModule = await db.query.learningModules.findFirst({
+      where: (modules, { eq }) => eq(modules.id, moduleId)
+    });
+    
+    if (!existingModule) {
+      return null;
+    }
+    
+    // Update the module
+    await db.update(learningModules)
+      .set({
+        title: moduleData.title || existingModule.title,
+        description: moduleData.description || existingModule.description,
+        duration: moduleData.duration || existingModule.duration,
+        pointValue: moduleData.pointValue || existingModule.pointValue,
+        difficulty: moduleData.difficulty || existingModule.difficulty,
+        category: moduleData.category || existingModule.category,
+        content: moduleData.content || existingModule.content,
+        quiz: moduleData.quiz || existingModule.quiz,
+        featured: moduleData.featured !== undefined ? moduleData.featured : existingModule.featured,
+        isVisible: moduleData.isVisible !== undefined ? moduleData.isVisible : existingModule.isVisible,
+        imageUrl: moduleData.imageUrl || existingModule.imageUrl
+      })
+      .where(eq(learningModules.id, moduleId));
+    
+    // Retrieve and return the updated module
+    const updatedModule = await db.query.learningModules.findFirst({
+      where: (modules, { eq }) => eq(modules.id, moduleId)
+    });
+    
+    return updatedModule;
+  }
+  
+  /**
+   * Extract a module to template format
+   * 
+   * This takes an existing learning module and converts it back to the template format
+   * so it can be edited in the module editor.
+   */
+  static async convertModuleToTemplate(moduleId: number): Promise<any> {
+    const module = await db.query.learningModules.findFirst({
+      where: (modules, { eq }) => eq(modules.id, moduleId)
+    });
+    
+    if (!module) {
+      return null;
+    }
+    
+    try {
+      // Parse the content to extract the template sections
+      // This is a simplified version that works with the template format
+      // used in moduleContentTemplates.ts
+      const contentHtml = module.content || '';
+      
+      // Extract objective
+      const objectiveMatch = contentHtml.match(/<section class="objective">[\s\S]*?<p>([\s\S]*?)<\/p>/);
+      const objective = objectiveMatch ? objectiveMatch[1].trim() : '';
+      
+      // Extract intro video URL
+      const videoMatch = contentHtml.match(/data-video-url="([\s\S]*?)"/);
+      const videoUrl = videoMatch ? videoMatch[1].trim() : '';
+      
+      // Extract downloadable resource
+      const resourceMatch = contentHtml.match(/<a href="([\s\S]*?)" class="resource-download"/);
+      const resourceUrl = resourceMatch ? resourceMatch[1].trim() : '';
+      
+      // Extract interactive scenario
+      const scenarioMatch = contentHtml.match(/<div class="scenario-description">[\s\S]*?<p>([\s\S]*?)<\/p>/);
+      const scenario = scenarioMatch ? scenarioMatch[1].trim() : '';
+      
+      // Extract scenario choices JSON
+      const choicesMatch = contentHtml.match(/data-scenario-json='([\s\S]*?)'/);
+      let choices = [];
+      if (choicesMatch) {
+        try {
+          choices = JSON.parse(choicesMatch[1]);
+        } catch (err) {
+          console.error("Error parsing scenario choices:", err);
+        }
+      }
+      
+      // Extract reflection prompt
+      const reflectionMatch = contentHtml.match(/<div class="reflection-prompt">[\s\S]*?<p>([\s\S]*?)<\/p>/);
+      const reflectionPrompt = reflectionMatch ? reflectionMatch[1].trim() : '';
+      
+      // Build the template object
+      return {
+        title: module.title,
+        objective: objective || module.description,
+        
+        introVideo: {
+          title: "Why This Topic Matters",
+          videoUrl,
+          duration: 3 // Default
+        },
+        
+        downloadableResource: {
+          title: "Printable Support Tool",
+          fileUrl: resourceUrl,
+          fileType: "PDF" // Default
+        },
+        
+        interactiveScenario: {
+          title: "Choose Your Own Response",
+          scenario: scenario || "Describe a real-life preschool scenario related to this topic...",
+          choices: choices.length > 0 ? choices : [
+            {
+              text: "Option A",
+              isCorrect: false,
+              feedback: { explanation: "This is feedback for option A" }
+            },
+            {
+              text: "Option B",
+              isCorrect: true,
+              feedback: { explanation: "This is feedback for option B" }
+            }
+          ]
+        },
+        
+        quiz: module.quiz || {
+          questions: []
+        },
+        
+        reflectionPrompt: {
+          prompt: reflectionPrompt || "What's your personal approach or tip for handling this topic?",
+          allowUpload: true
+        },
+        
+        completionBadge: {
+          name: `${module.title} Badge`,
+          imageUrl: module.imageUrl || "",
+        },
+        
+        trackingMetrics: {
+          requiredCompletion: false,
+          estimatedDuration: module.duration,
+          targetTeacherLevel: module.difficulty === "advanced" ? "Lead" : 
+                              module.difficulty === "beginner" ? "New" : "All"
+        }
+      };
+    } catch (error) {
+      console.error("Error converting module to template:", error);
+      return null;
     }
   }
 }
