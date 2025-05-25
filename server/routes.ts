@@ -1921,6 +1921,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Mystery box rewards endpoint
+  app.post("/api/mystery-box/reward", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const { rewardType, rewardAmount, points, bearBucks, itemType, itemCount } = req.body;
+      
+      if (!rewardType || !rewardAmount) {
+        return res.status(400).json({ message: "Missing required fields: rewardType and rewardAmount" });
+      }
+      
+      // Get current user data
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Update user based on reward type
+      const updateData: any = {
+        lastActive: new Date()
+      };
+      
+      // Set points if provided (could be reduced by box cost)
+      if (typeof points !== 'undefined') {
+        updateData.points = points;
+      } else if (rewardType === 'points') {
+        // Fallback if direct points value not provided
+        updateData.points = (user.points || 0) + rewardAmount;
+      }
+      
+      // Add Bear Bucks if that's the reward
+      if (rewardType === 'bearBucks' || bearBucks) {
+        updateData.bearBucks = (user.bearBucks || 0) + (bearBucks || rewardAmount);
+      }
+      
+      // Store item rewards in user inventory (simple implementation)
+      if (rewardType === 'item' && itemType) {
+        // In a real app, you'd store this in a user_items table
+        console.log(`User ${userId} received item: ${itemType}, count: ${itemCount || 1}`);
+        // Could add to an inventory field if you have one
+      }
+      
+      // Update the user with their new rewards
+      await storage.updateUser(userId, updateData);
+      
+      // Get updated user to check for level changes
+      const updatedUser = await storage.getUser(userId);
+      const response = {
+        success: true,
+        message: `Successfully added ${rewardAmount} ${rewardType} to user account`,
+        levelUp: false,
+        level: updatedUser?.level || 1
+      };
+      
+      // Check if user leveled up (simple level calculation)
+      if (updatedUser && user.level !== updatedUser.level) {
+        response.levelUp = true;
+        response.level = updatedUser.level;
+      }
+      
+      // Record this reward in history (in a real app)
+      console.log(`User ${userId} received mystery box reward: ${rewardAmount} ${rewardType}`);
+      
+      res.status(200).json(response);
+    } catch (error) {
+      console.error("Error processing mystery box reward:", error);
+      res.status(500).json({ message: "Failed to process reward" });
+    }
+  });
+  
   // Dedicated API endpoint for bonus game rewards
   app.post("/api/rewards/points", requireAuth, async (req, res) => {
     try {
