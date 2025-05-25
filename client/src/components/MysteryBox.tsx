@@ -362,23 +362,26 @@ export default function MysteryBox({ maxDailyBoxes = 2 }: MysteryBoxProps) {
           // Process the reward
           if (selectedReward) {
             if (selectedReward.type === 'points') {
+              const newPoints = (user?.points || 0) + selectedReward.value - boxType.cost;
               updateUserReward.mutate({
                 rewardType: selectedReward.type,
                 rewardAmount: selectedReward.value,
-                points: user.points + selectedReward.value - boxType.cost
+                points: newPoints >= 0 ? newPoints : 0
               });
             } else if (selectedReward.type === 'bearBucks') {
+              const newPoints = (user?.points || 0) - boxType.cost;
               updateUserReward.mutate({
                 rewardType: selectedReward.type,
                 rewardAmount: selectedReward.value,
-                points: user.points - boxType.cost,
-                bearBucks: (user.bearBucks || 0) + selectedReward.value
+                points: newPoints >= 0 ? newPoints : 0,
+                bearBucks: ((user?.bearBucks || 0) + selectedReward.value)
               });
             } else if (selectedReward.type === 'item') {
+              const newPoints = (user?.points || 0) - boxType.cost;
               updateUserReward.mutate({
                 rewardType: 'item',
                 rewardAmount: 1,
-                points: user.points - boxType.cost,
+                points: newPoints >= 0 ? newPoints : 0,
                 itemType: selectedReward.id,
                 itemCount: selectedReward.value
               });
