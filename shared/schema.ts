@@ -941,6 +941,30 @@ export type InsertModuleRating = z.infer<typeof insertModuleRatingSchema>;
 export type CommunityModule = typeof communityModules.$inferSelect;
 export type InsertCommunityModule = z.infer<typeof insertCommunityModuleSchema>;
 
+// Streak Rewards schema
+export const streakRewards = pgTable("streak_rewards", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  type: text("type").notNull(), // silver_box, gold_box, etc.
+  streakCount: integer("streak_count").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertStreakRewardSchema = createInsertSchema(streakRewards).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const streakRewardsRelations = relations(streakRewards, ({ one }) => ({
+  user: one(users, {
+    fields: [streakRewards.userId],
+    references: [users.id],
+  }),
+}));
+
+export type StreakReward = typeof streakRewards.$inferSelect;
+export type InsertStreakReward = z.infer<typeof insertStreakRewardSchema>;
+
 // Core Values Shout Out schema
 export const coreValuesShoutOuts = pgTable("core_values_shout_outs", {
   id: serial("id").primaryKey(),

@@ -21,7 +21,8 @@ import {
   avatarCategories, type AvatarCategory, type InsertAvatarCategory,
   avatarItems, type AvatarItem, type InsertAvatarItem,
   userAvatars, type UserAvatar, type InsertUserAvatar,
-  userAvatarItems, type UserAvatarItem, type InsertUserAvatarItem
+  userAvatarItems, type UserAvatarItem, type InsertUserAvatarItem,
+  streakRewards, type StreakReward, type InsertStreakReward
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, lt, or, sql } from "drizzle-orm";
@@ -36,8 +37,8 @@ export interface IStorage {
   incrementSchoolTeacherCount(schoolId: number): Promise<School>;
   
   // Streak rewards
-  hasClaimedStreakReward(userId: number, rewardType: string): Promise<boolean>;
-  recordStreakReward(userId: number, rewardType: string): Promise<StreakReward>;
+  getStreakRewardsByUserId(userId: number): Promise<StreakReward[]>;
+  createStreakReward(data: InsertStreakReward): Promise<StreakReward>;
   
   // Teacher self-assessment operations
   createSelfAssessment(data: InsertTeacherSelfAssessment): Promise<TeacherSelfAssessment>;
@@ -667,6 +668,25 @@ export class MemStorage implements IStorage {
 
 // Create a DatabaseStorage class that implements the IStorage interface
 export class DatabaseStorage implements IStorage {
+  // Streak rewards operations
+  async getStreakRewardsByUserId(userId: number): Promise<StreakReward[]> {
+    const rewards = await db
+      .select()
+      .from(streakRewards)
+      .where(eq(streakRewards.userId, userId))
+      .orderBy(desc(streakRewards.createdAt));
+    
+    return rewards;
+  }
+  
+  async createStreakReward(data: InsertStreakReward): Promise<StreakReward> {
+    const [reward] = await db
+      .insert(streakRewards)
+      .values(data)
+      .returning();
+    
+    return reward;
+  }
   
   // Streak reward methods
   async hasClaimedStreakReward(userId: number, rewardType: string): Promise<boolean> {
