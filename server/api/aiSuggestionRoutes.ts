@@ -85,6 +85,45 @@ router.post('/generate', async (req, res) => {
         difficultyLevel = "intermediate";
       }
       
+      // Special handling for quiz type
+      if (type === 'quiz') {
+        console.log("Returning quiz questions for That one kid module");
+        return res.json({
+          quizQuestions: [
+            {
+              question: "What is the most effective way to support emotional development in preschoolers?",
+              options: [
+                "Ignore emotional outbursts to avoid reinforcing negative behavior",
+                "Label and validate emotions while offering coping strategies",
+                "Reward only positive emotions like happiness and excitement",
+                "Remove children from the group when they show strong emotions"
+              ],
+              correctAnswer: "Label and validate emotions while offering coping strategies"
+            },
+            {
+              question: "Which approach best supports children with sensory processing challenges?",
+              options: [
+                "Keeping all classroom stimuli at the same level throughout the day",
+                "Creating a designated quiet space with reduced stimulation",
+                "Encouraging children to overcome their sensitivities through repeated exposure",
+                "Separating children with sensory challenges from the main group"
+              ],
+              correctAnswer: "Creating a designated quiet space with reduced stimulation"
+            },
+            {
+              question: "What is a key principle of trauma-informed teaching?",
+              options: [
+                "Maintaining strict discipline to create clear boundaries",
+                "Focusing on academic achievement over emotional needs",
+                "Understanding that challenging behaviors may be survival responses",
+                "Treating all children exactly the same regardless of background"
+              ],
+              correctAnswer: "Understanding that challenging behaviors may be survival responses"
+            }
+          ]
+        });
+      }
+      
       // Return custom suggestions based on type
       if (type === 'strategies') {
         console.log("Returning witty strategies for challenging student module");
