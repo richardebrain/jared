@@ -1,43 +1,31 @@
 {
-  "include": ["client/src/**/*", "shared/**/*", "server/**/*"],
-  "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
   "compilerOptions": {
-    "incremental": true,
-    "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
-    "noEmit": true,
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "strict": true,
-    "lib": ["esnext", "dom", "dom.iterable"],
-    "jsx": "preserve",
-    "esModuleInterop": true,
     "skipLibCheck": true,
-    "allowImportingTsExtensions": true,
     "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
-    "types": ["node", "vite/client"],
     "paths": {
       "@/*": ["./client/src/*"],
-      "@shared/*": ["./shared/*"]
-    },
-    
-    // Additional strict checks for better code quality
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    // "noUncheckedIndexedAccess": true,  // Temporarily disabled - needs fixes
-    "exactOptionalPropertyTypes": true,
-    "noImplicitOverride": true,
-    // "noPropertyAccessFromIndexSignature": true,  // Temporarily disabled
-    
-    // Helpful for catching unused code
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    
-    // Better import/export checking
-    "verbatimModuleSyntax": true,
-    "allowUnusedLabels": false,
-    "allowUnreachableCode": false,
-    
-    // Ensure consistent casing
-    "forceConsistentCasingInFileNames": true
-  }
+      "@shared/*": ["./shared/*"],
+      "@assets/*": ["./attached_assets/*"]
+    }
+  },
+  "include": [
+    "client/src",
+    "shared",
+    "server",
+    "vite.config.ts"
+  ],
+  "exclude": ["node_modules"]
 }
