@@ -1,0 +1,43 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    // Start with minimal strict settings to reduce error count
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    
+    // Enable only the safest strict checks first
+    "noFallthroughCasesInSwitch": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    "forceConsistentCasingInFileNames": true,
+    
+    // Gradually enable these as we fix issues
+    "noImplicitReturns": true,        // 28 errors - manageable
+    // "strictNullChecks": true,         // Major refactor needed
+    // "noImplicitAny": true,            // 531 errors - needs gradual approach
+    // "noImplicitThis": true,           // Moderate impact
+    // "alwaysStrict": true,             // Low impact
+    
+    // Advanced checks for later
+    // "exactOptionalPropertyTypes": true,
+    // "verbatimModuleSyntax": true,
+    // "noImplicitOverride": true,
+    
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@shared/*": ["../shared/*"],
+      "@assets/*": ["../attached_assets/*"]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "../vite.config.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "../server",
+    "../shared"
+  ]
+} 

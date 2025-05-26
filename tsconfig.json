@@ -10,10 +10,27 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
+    
+    // Basic settings (keeping current state)
     "strict": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
+    
+    // Fix for drizzle-zod .omit() type issues
+    "strictNullChecks": true,
+    
+    // Very safe strict checks (minimal risk)
     "noFallthroughCasesInSwitch": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    "forceConsistentCasingInFileNames": true,
+    
+    // Temporarily disabled - will enable incrementally
+    // "noImplicitReturns": true,            // Needs function return fixes
+    // "exactOptionalPropertyTypes": true,   // Needs strictNullChecks + fixes
+    // "verbatimModuleSyntax": true,         // Needs import statement fixes
+    // "noImplicitOverride": true,           // Needs override keyword additions
+    
     "baseUrl": ".",
     "paths": {
       "@/*": ["./client/src/*"],

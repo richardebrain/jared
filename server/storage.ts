@@ -35,7 +35,7 @@ export interface IStorage {
   // User points and items
   addUserPoints(userId: number, points: number): Promise<User>;
   addUserBearBucks(userId: number, amount: number): Promise<User>;
-  addUserItem(userId: number, item: { itemType: string, quantity: number, expiresAt?: Date }): Promise<UserItem>;
+  addUserItem(userId: number, itemId: number): Promise<UserItem>;
   // School operations
   getSchool(id: number): Promise<School | undefined>;
   getSchoolByName(name: string): Promise<School | undefined>;
@@ -164,8 +164,8 @@ export interface IStorage {
   getDailyVideoCompletionsCount(userId: number): Promise<number>;
   
   // Self-Assessment operations
-  createSelfAssessment(assessment: InsertSelfAssessment): Promise<SelfAssessment>;
-  getLatestSelfAssessment(userId: number): Promise<SelfAssessment | undefined>;
+  createSelfAssessment(assessment: InsertTeacherSelfAssessment): Promise<TeacherSelfAssessment>;
+  getLatestSelfAssessment(userId: number): Promise<TeacherSelfAssessment | undefined>;
   updateUserTeacherLevel(userId: number, teacherLevel: string): Promise<User>;
   
   // Avatar category operations
@@ -735,45 +735,17 @@ export class DatabaseStorage implements IStorage {
     return updatedUser;
   }
   
-  async addUserItem(userId: number, item: { itemType: string, quantity: number, expiresAt?: Date }): Promise<UserItem> {
-    // Check if the user already has this item type
-    const existingItems = await db
-      .select()
-      .from(userItems)
-      .where(and(
-        eq(userItems.userId, userId),
-        eq(userItems.itemType, item.itemType)
-      ));
+  async addUserItem(userId: number, itemId: number): Promise<UserItem> {
+    // Create new user item
+    const [newItem] = await db
+      .insert(userItems)
+      .values({
+        userId,
+        itemId
+      })
+      .returning();
     
-    if (existingItems.length > 0) {
-      // Update existing item quantity
-      const currentItem = existingItems[0];
-      const newQuantity = (currentItem.quantity || 0) + item.quantity;
-      
-      const [updatedItem] = await db
-        .update(userItems)
-        .set({ 
-          quantity: newQuantity,
-          expiresAt: item.expiresAt || currentItem.expiresAt
-        })
-        .where(eq(userItems.id, currentItem.id))
-        .returning();
-      
-      return updatedItem;
-    } else {
-      // Create new item
-      const [newItem] = await db
-        .insert(userItems)
-        .values({
-          userId,
-          itemType: item.itemType,
-          quantity: item.quantity,
-          expiresAt: item.expiresAt
-        })
-        .returning();
-      
-      return newItem;
-    }
+    return newItem;
   }
   
   // Streak reward methods
