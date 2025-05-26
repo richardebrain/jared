@@ -4,10 +4,52 @@
  * with adjustable difficulty levels and contextual adaptation
  */
 
+import OpenAI from 'openai';
+
+// Initialize OpenAI
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
 type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced';
 
 /**
- * Generate teaching strategies for any module topic
+ * Generate teaching strategies using AI for any module topic
+ * Produces high-quality, engaging strategy suggestions
+ */
+export async function generateAITeachingStrategies(topic: string, difficulty: DifficultyLevel): Promise<string[]> {
+  try {
+    const prompt = `Generate 8 creative, practical teaching strategies for early childhood educators (ages 3-6) on the topic "${topic}". 
+
+Requirements:
+- Strategies should be for ${difficulty} level teachers
+- Include specific, actionable advice
+- Add humor and encouraging language where appropriate
+- Focus on hands-on, developmentally appropriate activities
+- Include emojis to make it engaging
+- Each strategy should be 1-2 sentences
+- Make them feel fun and doable, not overwhelming
+
+Return as a JSON array of strings.`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+      temperature: 0.8,
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || '{"strategies": []}');
+    return result.strategies || [];
+  } catch (error) {
+    console.error('OpenAI API error for teaching strategies:', error);
+    // Fallback to built-in strategies if AI fails
+    return generateTeachingStrategies(topic, difficulty);
+  }
+}
+
+/**
+ * Generate teaching strategies for any module topic (fallback version)
  * Produces high-quality, engaging strategy suggestions
  */
 export function generateTeachingStrategies(topic: string, difficulty: DifficultyLevel): string[] {
@@ -288,7 +330,84 @@ export function generateTeachingStrategies(topic: string, difficulty: Difficulty
 }
 
 /**
- * Generate assessment questions for any module topic
+ * Generate assessment questions using AI for any module topic
+ * Produces thoughtful, reflective questions that promote deeper thinking
+ */
+export async function generateAIAssessmentQuestions(topic: string, difficulty: DifficultyLevel): Promise<string[]> {
+  try {
+    const prompt = `Generate 6 thoughtful assessment questions for early childhood educators about "${topic}". 
+
+Requirements:
+- Questions should be for ${difficulty} level teachers
+- Focus on reflection, critical thinking, and practical application
+- Questions should promote deeper understanding of developmentally appropriate practices
+- Include some encouragement and supportive language
+- Each question should be 1-2 sentences
+- Make them thought-provoking but not overwhelming
+
+Return as a JSON array of strings.`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+      temperature: 0.7,
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || '{"questions": []}');
+    return result.questions || [];
+  } catch (error) {
+    console.error('OpenAI API error for assessment questions:', error);
+    // Fallback to built-in questions if AI fails
+    return generateAssessmentQuestions(topic, difficulty);
+  }
+}
+
+/**
+ * Generate quiz questions using AI for any module topic
+ * Produces engaging multiple-choice questions with appropriate distractors
+ */
+export async function generateAIQuizQuestions(topic: string, difficulty: DifficultyLevel): Promise<any[]> {
+  try {
+    const prompt = `Generate 4 multiple-choice quiz questions for early childhood educators about "${topic}". 
+
+Requirements:
+- Questions should be for ${difficulty} level teachers
+- Each question should have 4 answer options
+- Focus on evidence-based practices and developmentally appropriate approaches
+- Include realistic distractors that represent common misconceptions
+- Add some humor or engaging language where appropriate
+- Make them practical and relevant to classroom situations
+
+Return as JSON with this format:
+{
+  "questions": [
+    {
+      "question": "Question text here",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correctAnswer": "The correct option text"
+    }
+  ]
+}`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+      temperature: 0.7,
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || '{"questions": []}');
+    return result.questions || [];
+  } catch (error) {
+    console.error('OpenAI API error for quiz questions:', error);
+    // Fallback to built-in questions if AI fails
+    return generateQuizQuestions(topic, difficulty);
+  }
+}
+
+/**
+ * Generate assessment questions for any module topic (fallback version)
  * Produces thoughtful, reflective questions that promote deeper thinking
  */
 export function generateAssessmentQuestions(topic: string, difficulty: DifficultyLevel): string[] {

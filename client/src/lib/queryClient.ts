@@ -64,18 +64,42 @@ export const queryClient = new QueryClient({
 });
 
 // API wrapper for other methods (POST, PUT, DELETE)
+// Supports both new format: apiRequest(url, config) and legacy format: apiRequest(method, url, data)
 export async function apiRequest<T = any>(
-  url: string,
-  config: AxiosRequestConfig = {}
+  urlOrMethod: string,
+  configOrUrl?: AxiosRequestConfig | string,
+  data?: any
 ): Promise<T> {
-  try {
-    const response = await axios({
+  let finalConfig: AxiosRequestConfig;
+
+  // Check if this is the legacy 3-argument format: apiRequest(method, url, data)
+  if (typeof configOrUrl === 'string' && data !== undefined) {
+    // Legacy format: apiRequest("POST", "/api/endpoint", { data })
+    const method = urlOrMethod.toUpperCase();
+    const url = configOrUrl;
+    
+    finalConfig = {
+      method: method as any,
+      url,
+      data,
+      withCredentials: true,
+      timeout: 10000,
+    };
+  } else {
+    // New format: apiRequest("/api/endpoint", { method: "POST", data: {...} })
+    const url = urlOrMethod;
+    const config = (configOrUrl as AxiosRequestConfig) || {};
+    
+    finalConfig = {
       url,
       ...config,
-      withCredentials: true, // Important for cookies/sessions
-      timeout: 10000, // 10 second timeout
-    });
-    
+      withCredentials: true,
+      timeout: 10000,
+    };
+  }
+
+  try {
+    const response = await axios(finalConfig);
     return response.data;
   } catch (error) {
     console.error("API Error:", error);

@@ -1,5 +1,8 @@
 import { Router } from 'express';
 import { 
+  generateAITeachingStrategies,
+  generateAIAssessmentQuestions,
+  generateAIQuizQuestions,
   generateTeachingStrategies, 
   generateAssessmentQuestions, 
   generateQuizQuestions 
@@ -53,34 +56,70 @@ router.post('/generate', async (req, res) => {
     // Log the extracted module title for debugging
     console.log(`Module title for ${type} generation: ${moduleTopic}`);
     
-    // Generate topic-specific content based on request type
+    // Generate topic-specific content based on request type using AI first, with fallback
     if (type === 'strategies') {
-      // Generate teaching strategies specific to the module topic and difficulty level
-      const strategies = generateTeachingStrategies(
-        moduleTopic, 
-        difficultyLevel as 'beginner' | 'intermediate' | 'advanced'
-      );
-      return res.json({
-        suggestions: strategies.join('\n')
-      });
+      try {
+        // Use AI for dynamic, contextual strategies
+        const strategies = await generateAITeachingStrategies(
+          moduleTopic, 
+          difficultyLevel as 'beginner' | 'intermediate' | 'advanced'
+        );
+        return res.json({
+          suggestions: strategies.join('\n')
+        });
+      } catch (error) {
+        console.log('AI strategies failed, using fallback:', error);
+        // Fallback to built-in strategies
+        const strategies = generateTeachingStrategies(
+          moduleTopic, 
+          difficultyLevel as 'beginner' | 'intermediate' | 'advanced'
+        );
+        return res.json({
+          suggestions: strategies.join('\n')
+        });
+      }
     } else if (type === 'questions') {
-      // Generate assessment questions specific to the module topic and difficulty level
-      const questions = generateAssessmentQuestions(
-        moduleTopic, 
-        difficultyLevel as 'beginner' | 'intermediate' | 'advanced'
-      );
-      return res.json({
-        suggestions: questions.join('\n')
-      });
+      try {
+        // Use AI for dynamic, contextual assessment questions
+        const questions = await generateAIAssessmentQuestions(
+          moduleTopic, 
+          difficultyLevel as 'beginner' | 'intermediate' | 'advanced'
+        );
+        return res.json({
+          suggestions: questions.join('\n')
+        });
+      } catch (error) {
+        console.log('AI questions failed, using fallback:', error);
+        // Fallback to built-in questions
+        const questions = generateAssessmentQuestions(
+          moduleTopic, 
+          difficultyLevel as 'beginner' | 'intermediate' | 'advanced'
+        );
+        return res.json({
+          suggestions: questions.join('\n')
+        });
+      }
     } else if (type === 'quiz') {
-      // Generate quiz questions specific to the module topic and difficulty level
-      const quizQuestions = generateQuizQuestions(
-        moduleTopic, 
-        difficultyLevel as 'beginner' | 'intermediate' | 'advanced'
-      );
-      return res.json({
-        quizQuestions: quizQuestions
-      });
+      try {
+        // Use AI for dynamic, contextual quiz questions
+        const quizQuestions = await generateAIQuizQuestions(
+          moduleTopic, 
+          difficultyLevel as 'beginner' | 'intermediate' | 'advanced'
+        );
+        return res.json({
+          quizQuestions: quizQuestions
+        });
+      } catch (error) {
+        console.log('AI quiz failed, using fallback:', error);
+        // Fallback to built-in quiz questions
+        const quizQuestions = generateQuizQuestions(
+          moduleTopic, 
+          difficultyLevel as 'beginner' | 'intermediate' | 'advanced'
+        );
+        return res.json({
+          quizQuestions: quizQuestions
+        });
+      }
     } else {
       return res.status(400).json({ message: 'Invalid suggestion type' });
     }
