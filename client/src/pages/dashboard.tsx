@@ -566,7 +566,7 @@ export default function Dashboard() {
                       user.username === 'jlcookie20' || 
                       (user.streak && user.streak > 0)
                     ) ? (
-                      <BonusGamesButton />
+                      <BonusGamesButton user={user} />
                     ) : (
                       <div className="group relative overflow-hidden bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700 text-white font-bold py-3 px-6 rounded-xl border-2 border-gray-400 opacity-90">
                         {/* Disabled state decorations */}
