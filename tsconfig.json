@@ -18,6 +18,26 @@
     "paths": {
       "@/*": ["./client/src/*"],
       "@shared/*": ["./shared/*"]
-    }
+    },
+    
+    // Additional strict checks for better code quality
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    // "noUncheckedIndexedAccess": true,  // Temporarily disabled
+    // "exactOptionalPropertyTypes": true,  // Temporarily disabled
+    "noImplicitOverride": true,
+    // "noPropertyAccessFromIndexSignature": true,  // Temporarily disabled
+    
+    // Helpful for catching unused code
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    
+    // Better import/export checking
+    // "verbatimModuleSyntax": true,  // Temporarily disabled
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    
+    // Ensure consistent casing
+    "forceConsistentCasingInFileNames": true
   }
 }
