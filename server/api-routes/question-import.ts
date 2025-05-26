@@ -3,7 +3,7 @@
  * Handles ECE question database import functionality
  */
 
-import { Express, Request, Response } from 'express';
+import type { Express, Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';

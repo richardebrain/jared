@@ -1,5 +1,9 @@
 import { db } from "../db";
-import { LearningModule, learningModules, InsertLearningModule } from "@shared/schema";
+import { learningModules, insertLearningModuleSchema } from "@shared/schema";
+import type { LearningModule } from "@shared/schema";
+import type { z } from "zod";
+
+type InsertLearningModule = z.infer<typeof insertLearningModuleSchema>;
 import { eq, sql } from "drizzle-orm";
 import { createRaisingArizonaCoreModule } from "../createCoreModule";
 import { createChapterOneModule } from "../createChapterOneModule";

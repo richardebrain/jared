@@ -7,7 +7,8 @@
  */
 
 import axios from 'axios';
-import { DataSource, DataSourceCategory, defaultEducationalSources } from '@shared/dataSources';
+import type { DataSource } from '@shared/dataSources';
+import { DataSourceCategory, defaultEducationalSources } from '@shared/dataSources';
 
 /**
  * Configuration for the notebook LM plugin

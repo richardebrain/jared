@@ -1,9 +1,10 @@
-import { Express, Request, Response } from "express";
+import type { Express, Request, Response } from "express";
 import { ModuleManager } from "./moduleManager";
 import { db } from "../db";
 import { learningModules } from "@shared/schema";
 import { eq } from "drizzle-orm";
-import { TrainingModuleTemplate, templateToLearningModule, validateModuleTemplate, defaultModuleTemplate } from "../moduleContentTemplates";
+import type { TrainingModuleTemplate } from "../moduleContentTemplates";
+import { templateToLearningModule, validateModuleTemplate, defaultModuleTemplate } from "../moduleContentTemplates";
 
 /**
  * Register module management routes
