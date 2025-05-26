@@ -147,6 +147,17 @@ export function generateTeachingStrategies(topic: string, difficulty: Difficulty
       `Encourage collaboration: "Can you work together to build something bigger than either of you could make alone?"`,
       `Create block building challenges: "Can you build a tower as tall as your shoulder?" or "Make a bridge a car can drive under."`
     ];
+  } else if (topicLower.includes('safety') || topicLower.includes('health') || topicLower.includes('playground') || topicLower.includes('injury')) {
+    strategies = [
+      `Turn safety rules into catchy songs and chants - "Walking feet, walking feet, keep our friends safe and neat!" Kids remember melodies better than lectures! 🎵`,
+      `Create "Safety Superhero" roles where children become playground monitors, fire drill leaders, or hand-washing champions - they LOVE being the safety police! 🦸‍♀️`,
+      `Use dramatic play to practice safety: set up a pretend hospital, fire station, or safety inspection station where kids can role-play emergency scenarios. 🚑`,
+      `Make safety visual with picture schedules and signs at child height - "Stop, Look, Listen" before crossing areas, complete with traffic light colors! 🚦`,
+      `Practice safety skills during circle time with fun scenarios: "What would you do if you saw someone crying on the playground?" Problem-solving in action! 🤔`,
+      `Create a "Boo-boo Book" where children draw pictures of safe vs. unsafe behaviors - their illustrations are both hilarious and educational! 📚`,
+      `Use positive reinforcement: "I noticed Marcus walking carefully down the slide - that's how we keep everyone safe!" Catch them being safe! 👀`,
+      `Implement safety buddies where older children help younger ones learn rules - peer teaching is the most effective teacher training program ever! 👫`
+    ];
   } else {
     // Enhanced default strategies for any topic
     strategies = [
@@ -534,6 +545,39 @@ export function generateQuizQuestions(topic: string, difficulty: DifficultyLevel
           "Only allow risk-taking for older children"
         ],
         correctAnswer: "Support age-appropriate risk-taking with proper supervision"
+      }
+    ];
+  } else if (topicLower.includes('safety') || topicLower.includes('health') || topicLower.includes('injury')) {
+    quizQuestions = [
+      {
+        question: "What's the most effective way to teach safety rules to preschoolers?",
+        options: [
+          "Have children memorize a long list of safety rules",
+          "Use songs, games, and hands-on practice to make safety fun and memorable",
+          "Show scary videos about what happens when rules are broken",
+          "Only discuss safety after an accident occurs"
+        ],
+        correctAnswer: "Use songs, games, and hands-on practice to make safety fun and memorable"
+      },
+      {
+        question: "When a child gets a minor injury on the playground, what should you do first?",
+        options: [
+          "Immediately call the parents to pick up the child",
+          "Tell the child they're fine and to keep playing",
+          "Stay calm, comfort the child, assess the injury, and provide appropriate care",
+          "Ignore minor injuries since they happen all the time"
+        ],
+        correctAnswer: "Stay calm, comfort the child, assess the injury, and provide appropriate care"
+      },
+      {
+        question: "How can teachers help children develop their own safety awareness?",
+        options: [
+          "Do everything for them so they never get hurt",
+          "Let them figure it out on their own through trial and error",
+          "Involve children in identifying potential hazards and solutions",
+          "Create so many rules that children can't move freely"
+        ],
+        correctAnswer: "Involve children in identifying potential hazards and solutions"
       }
     ];
   } else {
