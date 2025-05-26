@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "../lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
 import { loginUser, saveAuthState } from "../lib/authHelpers";
+import { useAuth } from "@/lib/auth-context";
 
 import {
   Form,
@@ -38,11 +39,29 @@ const loginSchema = z.object({
 
 export default function Login() {
   const [_, setLocation] = useLocation();
+  const { isAuthenticated, isLoading } = useAuth();
   
   const navigate = (path: string) => {
     setLocation(path);
   };
   const { toast } = useToast();
+
+  // Prevent infinite redirects - only redirect if authenticated and not loading
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      console.log("User is authenticated, redirecting to dashboard");
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, isLoading, navigate]);
+
+  // If still loading auth state, show loading spinner
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   // Create form
   const form = useForm<z.infer<typeof loginSchema>>({

@@ -9,36 +9,55 @@ const defaultQueryFn: QueryFunction = async ({ queryKey }) => {
 
   const path = queryKey[0] as string;
   
-  // DEPLOYMENT FIX: Force auth errors in production to redirect to login
-  // if (path === '/api/auth/me' && (window.location.href.includes('.replit.app') || window.location.href.includes('replit.dev'))) {
-  //   try {
-  //     const response = await axios.get(path, {
-  //       withCredentials: true,
-  //     });
-  //     return response.data;
-  //   } catch (error) {
-  //     // In deployed version, redirect auth errors directly to login
-  //     console.log('Auth error in deployed version, redirecting to login');
-  //     window.location.href = '/login';
-  //     throw error;
-  //   }
-  // }
-  
-  // Normal API request
-  const response = await axios.get(path, {
-    withCredentials: true, // Important for cookies/sessions
-  });
-  
-  return response.data;
+  try {
+    // Normal API request
+    const response = await axios.get(path, {
+      withCredentials: true, // Important for cookies/sessions
+      timeout: 10000, // 10 second timeout to prevent hanging requests
+    });
+    
+    return response.data;
+  } catch (error: any) {
+    // Enhanced error handling for auth endpoints
+    if (path === '/api/auth/me') {
+      const isOnPublicPage = () => {
+        const currentPath = window.location.pathname;
+        return currentPath === '/login' || currentPath === '/register' || 
+               currentPath === '/business-signup' || currentPath === '/';
+      };
+      
+      // If we're on a public page and get auth error, don't redirect
+      if (isOnPublicPage() && (error.response?.status === 401 || error.response?.status === 403)) {
+        console.log('Auth error on public page, not redirecting');
+        throw error;
+      }
+      
+      // For auth errors on protected pages, let the auth context handle it
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        console.log('Auth error detected, letting auth context handle it');
+        throw error;
+      }
+    }
+    
+    // For other errors, just throw them
+    throw error;
+  }
 };
 
 // Create the query client with our custom default function
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
+      retry: (failureCount, error: any) => {
+        // Don't retry auth errors
+        if (error?.response?.status === 401 || error?.response?.status === 403) {
+          return false;
+        }
+        // Retry other errors only once
+        return failureCount < 1;
+      },
       staleTime: 5 * 60 * 1000, // 5 minutes
-      refetchOnWindowFocus: false,
+      refetchOnWindowFocus: false, // Disable to prevent loops
       queryFn: defaultQueryFn,
     },
   },
@@ -54,6 +73,7 @@ export async function apiRequest<T = any>(
       url,
       ...config,
       withCredentials: true, // Important for cookies/sessions
+      timeout: 10000, // 10 second timeout
     });
     
     return response.data;

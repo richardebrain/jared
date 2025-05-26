@@ -58,6 +58,7 @@ function normalizeUserData(user: User): User {
 export function AuthProvider({ children }: { children: ReactNode }) {
   // Track whether this is the initial load
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const [authFailed, setAuthFailed] = useState(false);
   
   // Clear any stored auth data on initial component mount
   useEffect(() => {
@@ -76,7 +77,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setInitialLoadComplete(true);
   }, []);
 
-  // Get user data from API
+  // Check if we're on a public page where auth queries should be disabled
+  const isOnPublicPage = () => {
+    const path = window.location.pathname;
+    return path === '/login' || path === '/register' || path === '/business-signup' || path === '/';
+  };
+
+  // Get user data from API - but disable on public pages if auth has failed
   const { 
     data: userData,
     isLoading,
@@ -84,12 +91,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     error 
   } = useQuery<User>({
     queryKey: ['/api/auth/me'],
-    retry: 1,
-    retryDelay: 1000,
-    refetchOnWindowFocus: initialLoadComplete, // Only refetch on window focus after initial load
-    refetchOnMount: true,
+    retry: (failureCount, error: any) => {
+      // Don't retry if we're on a public page and auth failed
+      if (isOnPublicPage() && (error?.response?.status === 401 || error?.response?.status === 403)) {
+        console.log('Auth failed on public page, not retrying');
+        setAuthFailed(true);
+        return false;
+      }
+      // Only retry once for other errors
+      return failureCount < 1;
+    },
+    retryDelay: 2000,
+    refetchOnWindowFocus: false, // Disable refetch on window focus to prevent loops
+    refetchOnMount: !authFailed, // Don't refetch if auth has failed
     staleTime: 120000, // 2 minutes
     gcTime: 300000, // 5 minutes
+    enabled: !authFailed || !isOnPublicPage(), // Disable query if auth failed and we're on a public page
   });
 
   // Apply data normalization to all users
@@ -102,8 +119,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [isLoading, initialLoadComplete]);
 
+  // Handle auth errors
+  useEffect(() => {
+    if (isError && error) {
+      const errorStatus = (error as any)?.response?.status;
+      if (errorStatus === 401 || errorStatus === 403) {
+        console.log('Authentication failed, marking auth as failed');
+        setAuthFailed(true);
+        
+        // Clear any stored auth state
+        try {
+          localStorage.removeItem('isAuthenticated');
+          sessionStorage.removeItem('laura_login_success');
+        } catch (e) {
+          console.warn("Could not clear storage on auth failure:", e);
+        }
+      }
+    }
+  }, [isError, error]);
+
+  // Reset auth failed state when user data is successfully retrieved
+  useEffect(() => {
+    if (user && authFailed) {
+      console.log('Auth successful, resetting auth failed state');
+      setAuthFailed(false);
+    }
+  }, [user, authFailed]);
+
   // Determine authentication state
-  const isAuthenticated = !!user;
+  const isAuthenticated = !!user && !authFailed;
   const isAdmin = user?.isAdmin || false;
   const isSchoolAdmin = user?.isSchoolAdmin || false;
   const isOwner = user?.isOwner || false;
@@ -112,6 +156,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     // Clear local query cache
     queryClient.removeQueries({ queryKey: ['/api/auth/me'] });
+    
+    // Reset auth failed state
+    setAuthFailed(false);
     
     // Redirect to logout endpoint
     window.location.href = '/api/logout';
@@ -122,7 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
-        isLoading,
+        isLoading: isLoading && !authFailed,
         isAuthenticated,
         isAdmin,
         isSchoolAdmin,

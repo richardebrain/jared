@@ -6,6 +6,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { ProtectedRoute, PublicRoute } from "@/components/ProtectedRoute";
 import { useAuth, AuthProvider } from "@/lib/auth-context";
+import AuthDebugger from "@/components/AuthDebugger";
+// Import session utilities for debugging
+import "@/lib/sessionUtils";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import EnhancedDashboard from "@/pages/dashboard-enhanced";
@@ -136,6 +139,8 @@ function Router(props: {
   isOwner: boolean;
 }) {
   const { isAuthenticated, isLoading, user, isAdmin, isOwner } = props;
+  const [location] = useLocation();
+  
   return (
     <Switch>
       {/* Public routes */}
@@ -177,7 +182,7 @@ function Router(props: {
 
       <Route path="/assessment">
         {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
+          location !== "/login" ? <Redirect to="/login" /> : <Login />
         ) : isLoading ? (
           <div className="flex items-center justify-center min-h-screen">
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -189,7 +194,7 @@ function Router(props: {
 
       <Route path="/assessment-results">
         {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
+          location !== "/login" ? <Redirect to="/login" /> : <Login />
         ) : isLoading ? (
           <div className="flex items-center justify-center min-h-screen">
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -683,6 +688,7 @@ function App() {
       {/* <ErrorBoundary> */}
         <AuthProvider>
           <AuthenticatedRouter />
+          <AuthDebugger show={true} />
         </AuthProvider>
       {/* </ErrorBoundary> */}
     </TooltipProvider>
