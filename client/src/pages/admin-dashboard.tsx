@@ -262,23 +262,23 @@ export default function AdminDashboard() {
   });
 
   // Filter users based on search query
-  const filteredUsers = users.filter((user: any) => {
+  const filteredUsers = Array.isArray(users) ? users.filter((user: any) => {
     const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
     return fullName.includes(searchQuery.toLowerCase()) || 
            user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
            user.email.toLowerCase().includes(searchQuery.toLowerCase());
-  });
+  }) : [];
 
   // Calculate statistics
-  const totalUsers = users.length;
-  const totalPoints = users.reduce((sum: number, user: any) => sum + (user.points || 0), 0);
+  const totalUsers = Array.isArray(users) ? users.length : 0;
+  const totalPoints = Array.isArray(users) ? users.reduce((sum: number, user: any) => sum + (user.points || 0), 0) : 0;
   const averagePoints = totalUsers > 0 ? Math.round(totalPoints / totalUsers) : 0;
-  const totalShoutOuts = shoutOuts.length;
+  const totalShoutOuts = Array.isArray(shoutOuts) ? shoutOuts.length : 0;
 
   // Get top users by points
-  const topUsers = [...users]
+  const topUsers = Array.isArray(users) ? [...users]
     .sort((a: any, b: any) => (b.points || 0) - (a.points || 0))
-    .slice(0, 5);
+    .slice(0, 5) : [];
 
   // Handle reset confirmations
   const handleResetPoints = (userId: number) => {
