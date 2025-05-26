@@ -24,11 +24,16 @@ export default function Header() {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isOwner, isAdmin, isSchoolAdmin } = useAuth();
+  // const { isOwner, isAdmin, isSchoolAdmin } = useAuth();
   
   const { data: user } = useQuery<User>({
     queryKey: ["/api/auth/me"]
   });
+  const isAdmin = user?.isAdmin || false;
+  const isSchoolAdmin = user?.isSchoolAdmin || false;
+  const isOwner = user?.isOwner || false;
+  
+  console.log(isAdmin,isSchoolAdmin,isOwner,'isAdmin,isSchoolAdmin,isOwner from header')
   console.log(user,'user from header')
   const { mutate: logout } = useMutation({
     mutationFn: async () => {
