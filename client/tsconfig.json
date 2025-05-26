@@ -13,9 +13,9 @@
     "forceConsistentCasingInFileNames": true,
     
     // Gradually enable these as we fix issues
-    "noImplicitReturns": true,        // 28 errors - manageable
+    "noImplicitReturns": true,        // 28 errors - manageable ✅ ENABLED
+    "noImplicitAny": true,            // Enable to catch implicit any types
     // "strictNullChecks": true,         // Major refactor needed
-    // "noImplicitAny": true,            // 531 errors - needs gradual approach
     // "noImplicitThis": true,           // Moderate impact
     // "alwaysStrict": true,             // Low impact
     
@@ -33,6 +33,7 @@
   },
   "include": [
     "src/**/*",
+    "src/types/**/*",
     "../vite.config.ts"
   ],
   "exclude": [
