@@ -23,8 +23,8 @@
     // Additional strict checks for better code quality
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    // "exactOptionalPropertyTypes": true,  // Temporarily disabled
+    // "noUncheckedIndexedAccess": true,  // Temporarily disabled - needs fixes
+    "exactOptionalPropertyTypes": true,
     "noImplicitOverride": true,
     // "noPropertyAccessFromIndexSignature": true,  // Temporarily disabled
     
@@ -33,7 +33,7 @@
     "noUnusedParameters": true,
     
     // Better import/export checking
-    // "verbatimModuleSyntax": true,  // Temporarily disabled
+    "verbatimModuleSyntax": true,
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
     

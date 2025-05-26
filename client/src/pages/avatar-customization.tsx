@@ -435,7 +435,7 @@ export default function AvatarCustomizationPage() {
                             </div>
                           </div>
                         );
-                      })}
+                      }): <></>}
                       
                       {itemsByCategory.filter(item => userOwnsItem(item.id)).length === 0 && (
                         <div className="col-span-full p-8 text-center">
