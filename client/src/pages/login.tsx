@@ -46,24 +46,7 @@ export default function Login() {
   };
   const { toast } = useToast();
 
-  // Prevent infinite redirects - only redirect if authenticated and not loading
-  useEffect(() => {
-    if (isAuthenticated && !isLoading) {
-      console.log("User is authenticated, redirecting to dashboard");
-      navigate("/dashboard");
-    }
-  }, [isAuthenticated, isLoading, navigate]);
-
-  // If still loading auth state, show loading spinner
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  // Create form
+  // Create form - MUST be before any conditional returns
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -72,7 +55,7 @@ export default function Login() {
     },
   });
 
-  // Login mutation
+  // Login mutation - MUST be before any conditional returns
   const { mutate: login, isPending } = useMutation({
     mutationFn: async (data: z.infer<typeof loginSchema>) => {
       console.log("Attempting login with:", { username: data.username, password: "***" });
@@ -196,6 +179,23 @@ export default function Login() {
       password: values.password.trim()
     };
     login(trimmedValues);
+  }
+
+  // Prevent infinite redirects - only redirect if authenticated and not loading
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      console.log("User is authenticated, redirecting to dashboard");
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, isLoading, navigate]);
+
+  // If still loading auth state, show loading spinner
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   return (
