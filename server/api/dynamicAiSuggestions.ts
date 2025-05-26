@@ -12,18 +12,88 @@ type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced';
  */
 export function generateTeachingStrategies(topic: string, difficulty: DifficultyLevel): string[] {
   const topicLower = topic.toLowerCase();
+  let strategies: string[] = [];
   
-  // Core strategies that work for any teaching topic
-  const strategies = [
-    `Try the 'preview connection' technique - talk with children about ${topic} privately before group activities. It's like having a teacher superpower for a ${difficulty} classroom!`,
-    `Create a special responsibility related to ${topic} for children who need extra engagement. Nothing says 'I see your potential' like being the classroom's official ${topic} helper!`,
-    `For teaching ${topic}, use 'first-then' statements: 'First we'll learn about this concept, then you get to try the hands-on activity.' Works like classroom magic!`,
-    `Develop a special signal related to ${topic} that helps redirect attention - a gesture that becomes your secret classroom cue when focus drifts.`,
-    `The 'two positive comments for every redirection' rule works wonders when teaching ${topic} - catch children being good twice as often as you correct!`,
-    `Use a visual schedule to help children understand the steps and sequence of ${topic} activities, reducing anxiety and building independence.`,
-    `Create a "question of the day" about ${topic} that children can respond to during morning meeting, building engagement and vocabulary.`,
-    `Incorporate songs or chants that reinforce key concepts of ${topic} - music helps information stick in children's developing brains!`
-  ];
+  // Specific strategies based on topic recognition
+  if (topicLower.includes('that one kid') || topicLower.includes('challenging behavior') || topicLower.includes('difficult child')) {
+    strategies = [
+      `Build a strong relationship first - spend 5 minutes of one-on-one time with this child daily, even if they've had a tough day. Connection before correction is key.`,
+      `Create a 'calm down kit' specific to this child's needs - stress ball, fidget toy, or special picture. Let them help choose what works best for self-regulation.`,
+      `Use positive behavior narration: "I see you walking carefully around your friends" rather than "Don't run." Focus on what they're doing right.`,
+      `Implement a visual schedule with picture cards so the child knows what's coming next - predictability reduces anxiety and outbursts.`,
+      `Give choices whenever possible: "Would you like to clean up the blocks or the art supplies first?" Choice gives them control and reduces power struggles.`,
+      `Create a special helper role for this child - being the line leader or snack helper can redirect their energy into positive leadership.`,
+      `Use proximity and gentle touch (if appropriate) - sometimes just standing nearby or a gentle hand on the shoulder can prevent escalation.`,
+      `Develop a private signal between you and the child for when they need a break - a thumbs up or touching their nose can be their way to ask for help.`
+    ];
+  } else if (topicLower.includes('literacy') || topicLower.includes('reading') || topicLower.includes('language') || topicLower.includes('writing')) {
+    strategies = [
+      `Create a print-rich environment where children see their names, favorite words, and meaningful text everywhere - from labels to story charts.`,
+      `Use interactive read-alouds with props, voices, and movement - make stories come alive so children connect emotionally with books.`,
+      `Implement morning message writing where children help you write about the day ahead - they see writing has real purpose and meaning.`,
+      `Set up a classroom library with cozy reading nooks using pillows, soft lighting, and book baskets organized by theme or reading level.`,
+      `Use story retelling with felt boards, puppets, or dramatic play - children internalize story structure through hands-on experiences.`,
+      `Create individual name recognition activities - children love seeing their names in different fonts, colors, and contexts around the room.`,
+      `Implement letter sound games during transitions - "Everyone whose name starts with /b/ can line up" makes phonics fun and practical.`,
+      `Use environmental print collections - bring in cereal boxes, street signs, and logos children recognize to bridge home and school literacy.`
+    ];
+  } else if (topicLower.includes('math') || topicLower.includes('number') || topicLower.includes('counting') || topicLower.includes('shapes')) {
+    strategies = [
+      `Use concrete materials like blocks, counters, and manipulatives before introducing abstract number concepts - children need to touch and move objects to understand.`,
+      `Embed math language into daily routines: "We have 3 more minutes until cleanup" or "Let's count how many friends are here today."`,
+      `Create measurement stations with different tools - rulers, scales, measuring cups - so children experience math as a real-world tool.`,
+      `Use number songs and fingerplays to make math concepts memorable and fun - rhythm helps mathematical thinking stick.`,
+      `Set up comparison activities: "Which tower is taller?" "Who has more crackers?" to develop mathematical reasoning.`,
+      `Make patterns with real objects children can manipulate - buttons, shells, blocks - before moving to worksheet patterns.`,
+      `Use your classroom environment for math learning - count steps to the bathroom, sort snacks by color, measure ingredients for cooking.`,
+      `Create number stories using children's names and interests: "Sarah has 3 toy cars, then she finds 2 more. How many does she have now?"`
+    ];
+  } else if (topicLower.includes('science') || topicLower.includes('nature') || topicLower.includes('experiment') || topicLower.includes('discovery')) {
+    strategies = [
+      `Set up an investigation table with magnifying glasses, scales, and natural materials that invite open-ended exploration.`,
+      `Document children's questions on chart paper and use them to guide your science investigations - follow their curiosity.`,
+      `Use the "predict, try, observe" method: "What do you think will happen? Let's try it and see. What did you notice?"`,
+      `Take science learning outdoors whenever possible - nature is the ultimate science laboratory for young children.`,
+      `Create science journals using drawings and children's dictated words to document discoveries and observations over time.`,
+      `Use everyday materials for experiments - baking soda, vinegar, food coloring - to show science happens everywhere.`,
+      `Invite children to be "nature detectives" looking for patterns, changes, and interesting phenomena in their environment.`,
+      `Connect science to children's bodies: "How does your heart feel after running? What happens to your breath when you exercise?"`
+    ];
+  } else if (topicLower.includes('art') || topicLower.includes('creative') || topicLower.includes('drawing') || topicLower.includes('paint')) {
+    strategies = [
+      `Provide open-ended art materials that allow for process-focused rather than product-focused creation - focus on exploration, not perfection.`,
+      `Set up art provocations that invite investigation: "What happens when you paint with ice cubes?" or "How many ways can you use this paintbrush?"`,
+      `Display children's artwork at their eye level with their own words about their creative process documented alongside.`,
+      `Offer diverse art materials from different cultures and traditions to expand children's understanding of artistic expression.`,
+      `Create collaborative art projects where children work together on large-scale pieces, developing social skills alongside creativity.`,
+      `Use art as a language for children who may not yet have extensive verbal skills - let them express ideas through color, line, and form.`,
+      `Connect art to other curriculum areas: paint with nature materials (science), create patterns (math), illustrate stories (literacy).`,
+      `Save interesting "mistakes" and "accidents" in art - they often lead to the most innovative discoveries and creative breakthroughs.`
+    ];
+  } else if (topicLower.includes('music') || topicLower.includes('rhythm') || topicLower.includes('song') || topicLower.includes('movement')) {
+    strategies = [
+      `Use music and movement for transitions - create special songs for cleanup time, lining up, or getting ready for lunch.`,
+      `Provide simple instruments that children can explore independently - shakers, drums, bells - in a dedicated music area.`,
+      `Connect music to children's cultures by inviting families to share songs and musical traditions from their heritage.`,
+      `Create rhythm patterns with body percussion (clapping, stomping, snapping) before introducing instruments.`,
+      `Use call and response songs to develop listening skills and create a sense of community in your classroom.`,
+      `Make your own instruments using recycled materials - toilet paper roll shakers, oatmeal container drums, rubber band guitars.`,
+      `Use music to support emotional regulation - calming songs for rest time, energetic songs for active play.`,
+      `Document children's original songs and musical creations - their natural musical expression is valuable and worth preserving.`
+    ];
+  } else {
+    // Default strategies for unknown topics
+    strategies = [
+      `Start with children's interests and build curriculum around what naturally engages them - authentic learning happens when kids are invested.`,
+      `Use hands-on exploration and discovery - young children learn best through touching, manipulating, and experimenting with real materials.`,
+      `Create meaningful learning contexts through dramatic play, projects, and real-world connections that make abstract concepts concrete.`,
+      `Implement small group instruction to meet individual developmental needs - differentiate your approach for each child's learning style.`,
+      `Use open-ended questioning: "What do you notice?" "How did you figure that out?" to encourage critical thinking and problem-solving.`,
+      `Document learning through photos and children's words - make their thinking visible to support reflection and extend learning.`,
+      `Provide multiple ways for children to express understanding - through art, movement, building, or conversation rather than just verbal responses.`,
+      `Create regular opportunities for peer collaboration - children learn so much from teaching and learning alongside their friends.`
+    ];
+  }
   
   // Add difficulty-specific strategies
   if (difficulty === 'beginner') {
@@ -219,40 +289,153 @@ export function generateAssessmentQuestions(topic: string, difficulty: Difficult
  */
 export function generateQuizQuestions(topic: string, difficulty: DifficultyLevel): any[] {
   const topicLower = topic.toLowerCase();
+  let quizQuestions: any[] = [];
   
-  // Core quiz questions that work for any teaching topic
-  const quizQuestions = [
-    {
-      question: `Which approach is most developmentally appropriate when teaching young children about ${topic}?`,
-      options: [
-        "Using primarily worksheets and flashcards",
-        "Incorporating play-based activities with intentional teaching moments",
-        "Having children memorize key facts",
-        "Using lecture-style instruction"
-      ],
-      correctAnswer: "Incorporating play-based activities with intentional teaching moments"
-    },
-    {
-      question: `When planning activities related to ${topic}, which of the following is most important?`,
-      options: [
-        "Ensuring all children complete the same activities in the same way",
-        "Focusing primarily on academic skills",
-        "Considering children's interests and developmental levels",
-        "Following a prescribed curriculum exactly"
-      ],
-      correctAnswer: "Considering children's interests and developmental levels"
-    },
-    {
-      question: `How can teachers best support family engagement related to ${topic}?`,
-      options: [
-        "Sending home worksheets for parents to complete with children",
-        "Sharing information only when problems arise",
-        "Providing regular communication about classroom learning and simple extension activities",
-        "Expecting families to teach the same content at home"
-      ],
-      correctAnswer: "Providing regular communication about classroom learning and simple extension activities"
-    }
-  ];
+  // Topic-specific quiz questions based on content area
+  if (topicLower.includes('that one kid') || topicLower.includes('challenging behavior') || topicLower.includes('difficult child')) {
+    quizQuestions = [
+      {
+        question: "When working with a child who displays challenging behaviors, what should be your first priority?",
+        options: [
+          "Implementing immediate consequences for misbehavior",
+          "Building a positive relationship and understanding the child's needs",
+          "Removing the child from group activities",
+          "Focusing on academic instruction to keep them busy"
+        ],
+        correctAnswer: "Building a positive relationship and understanding the child's needs"
+      },
+      {
+        question: "Which strategy is most effective for preventing challenging behaviors?",
+        options: [
+          "Waiting for problems to occur, then addressing them",
+          "Using consistent consequences regardless of the situation",
+          "Creating predictable routines and clear expectations",
+          "Isolating the child when they struggle"
+        ],
+        correctAnswer: "Creating predictable routines and clear expectations"
+      },
+      {
+        question: "How should you respond when a child is having a meltdown or emotional outburst?",
+        options: [
+          "Tell them to stop crying and use their words",
+          "Put them in time-out until they calm down",
+          "Stay calm, ensure safety, and offer comfort when they're ready",
+          "Ignore the behavior completely"
+        ],
+        correctAnswer: "Stay calm, ensure safety, and offer comfort when they're ready"
+      },
+      {
+        question: "What's the best way to help a child develop self-regulation skills?",
+        options: [
+          "Expect them to control themselves without support",
+          "Teach coping strategies and practice them during calm moments",
+          "Remove all triggers from their environment",
+          "Only intervene when behaviors become disruptive"
+        ],
+        correctAnswer: "Teach coping strategies and practice them during calm moments"
+      }
+    ];
+  } else if (topicLower.includes('literacy') || topicLower.includes('reading') || topicLower.includes('language')) {
+    quizQuestions = [
+      {
+        question: "Which approach best supports emergent literacy in preschoolers?",
+        options: [
+          "Direct phonics instruction with worksheets",
+          "Memorizing sight words through flashcards",
+          "Rich language experiences through stories, songs, and conversations",
+          "Formal reading lessons with grade-level texts"
+        ],
+        correctAnswer: "Rich language experiences through stories, songs, and conversations"
+      },
+      {
+        question: "How can you best support a child who speaks a language other than English at home?",
+        options: [
+          "Discourage use of their home language in the classroom",
+          "Focus only on English vocabulary and grammar",
+          "Value their home language while supporting English development",
+          "Separate them from English-speaking peers during literacy activities"
+        ],
+        correctAnswer: "Value their home language while supporting English development"
+      },
+      {
+        question: "What's the most important element of a print-rich classroom environment?",
+        options: [
+          "Walls covered with teacher-made bulletin boards",
+          "Meaningful print that connects to children's interests and experiences",
+          "Alphabet posters displayed at adult eye level",
+          "Commercially produced reading charts and displays"
+        ],
+        correctAnswer: "Meaningful print that connects to children's interests and experiences"
+      }
+    ];
+  } else if (topicLower.includes('math') || topicLower.includes('number') || topicLower.includes('counting')) {
+    quizQuestions = [
+      {
+        question: "What's the most effective way to introduce number concepts to preschoolers?",
+        options: [
+          "Using worksheets with number practice",
+          "Memorizing number facts through repetition",
+          "Hands-on exploration with concrete materials",
+          "Flash cards for number recognition"
+        ],
+        correctAnswer: "Hands-on exploration with concrete materials"
+      },
+      {
+        question: "Which activity best develops mathematical thinking in young children?",
+        options: [
+          "Completing number puzzles independently",
+          "Comparing, sorting, and organizing real objects",
+          "Practicing number writing on paper",
+          "Reciting number sequences from memory"
+        ],
+        correctAnswer: "Comparing, sorting, and organizing real objects"
+      },
+      {
+        question: "How should mathematical learning be integrated into the preschool day?",
+        options: [
+          "During a separate 30-minute math lesson only",
+          "Embedded naturally in routines, play, and exploration",
+          "As homework assignments for families",
+          "Through computer-based math programs"
+        ],
+        correctAnswer: "Embedded naturally in routines, play, and exploration"
+      }
+    ];
+  } else {
+    // Default questions for unknown topics
+    quizQuestions = [
+      {
+        question: `Which approach is most developmentally appropriate when teaching young children?`,
+        options: [
+          "Using primarily worksheets and flashcards",
+          "Incorporating play-based activities with intentional teaching moments",
+          "Having children memorize key facts",
+          "Using lecture-style instruction"
+        ],
+        correctAnswer: "Incorporating play-based activities with intentional teaching moments"
+      },
+      {
+        question: `When planning learning activities, which of the following is most important?`,
+        options: [
+          "Ensuring all children complete the same activities in the same way",
+          "Focusing primarily on academic skills",
+          "Considering children's interests and developmental levels",
+          "Following a prescribed curriculum exactly"
+        ],
+        correctAnswer: "Considering children's interests and developmental levels"
+      },
+      {
+        question: `How can teachers best support family engagement?`,
+        options: [
+          "Sending home worksheets for parents to complete with children",
+          "Sharing information only when problems arise",
+          "Providing regular communication about classroom learning and simple extension activities",
+          "Expecting families to teach the same content at home"
+        ],
+        correctAnswer: "Providing regular communication about classroom learning and simple extension activities"
+      }
+    ];
+  }
   
   // Add difficulty-specific quiz questions
   if (difficulty === 'beginner') {
