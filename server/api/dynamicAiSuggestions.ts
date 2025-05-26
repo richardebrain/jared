@@ -17,14 +17,14 @@ export function generateTeachingStrategies(topic: string, difficulty: Difficulty
   // Specific strategies based on topic recognition
   if (topicLower.includes('that one kid') || topicLower.includes('challenging behavior') || topicLower.includes('difficult child')) {
     strategies = [
-      `Build a strong relationship first - spend 5 minutes of one-on-one time with this child daily, even if they've had a tough day. Connection before correction is key.`,
-      `Create a 'calm down kit' specific to this child's needs - stress ball, fidget toy, or special picture. Let them help choose what works best for self-regulation.`,
-      `Use positive behavior narration: "I see you walking carefully around your friends" rather than "Don't run." Focus on what they're doing right.`,
-      `Implement a visual schedule with picture cards so the child knows what's coming next - predictability reduces anxiety and outbursts.`,
-      `Give choices whenever possible: "Would you like to clean up the blocks or the art supplies first?" Choice gives them control and reduces power struggles.`,
-      `Create a special helper role for this child - being the line leader or snack helper can redirect their energy into positive leadership.`,
-      `Use proximity and gentle touch (if appropriate) - sometimes just standing nearby or a gentle hand on the shoulder can prevent escalation.`,
-      `Develop a private signal between you and the child for when they need a break - a thumbs up or touching their nose can be their way to ask for help.`
+      `Build a strong relationship first - spend 5 minutes of one-on-one time with this child daily. Think of yourself as their personal cheerleader and life coach rolled into one! 📣`,
+      `Create a 'calm down kit' specific to their needs - stress ball, fidget toy, or special picture. It's like Batman's utility belt, but for emotions! 🦸‍♂️`,
+      `Use positive behavior narration: "I see you walking carefully around your friends" rather than "Don't run." Be their personal sports commentator, but only for the good plays!`,
+      `Visual schedules are your secret weapon - when kids know what's coming next, they're less likely to turn into tiny tornadoes of chaos! 🌪️`,
+      `Give choices whenever possible: "Clean up blocks or art supplies first?" Choice = power, and powerful kids make better decisions (and fewer meltdowns!).`,
+      `Create a special helper role - being the "Chief Line Leader" or "Snack Distribution Expert" can work miracles. Who doesn't want an important job title? 👨‍💼`,
+      `Use the "teacher proximity magic" - sometimes just being nearby is like having a superhero cape that prevents chaos!`,
+      `Develop secret signals - a thumbs up or nose touch becomes their "help me" button. It's like having a classroom walkie-talkie system! 📻`
     ];
   } else if (topicLower.includes('literacy') || topicLower.includes('reading') || topicLower.includes('language') || topicLower.includes('writing')) {
     strategies = [
@@ -39,14 +39,14 @@ export function generateTeachingStrategies(topic: string, difficulty: Difficulty
     ];
   } else if (topicLower.includes('math') || topicLower.includes('number') || topicLower.includes('counting') || topicLower.includes('shapes')) {
     strategies = [
-      `Use concrete materials like blocks, counters, and manipulatives before introducing abstract number concepts - children need to touch and move objects to understand.`,
-      `Embed math language into daily routines: "We have 3 more minutes until cleanup" or "Let's count how many friends are here today."`,
-      `Create measurement stations with different tools - rulers, scales, measuring cups - so children experience math as a real-world tool.`,
-      `Use number songs and fingerplays to make math concepts memorable and fun - rhythm helps mathematical thinking stick.`,
-      `Set up comparison activities: "Which tower is taller?" "Who has more crackers?" to develop mathematical reasoning.`,
-      `Make patterns with real objects children can manipulate - buttons, shells, blocks - before moving to worksheet patterns.`,
-      `Use your classroom environment for math learning - count steps to the bathroom, sort snacks by color, measure ingredients for cooking.`,
-      `Create number stories using children's names and interests: "Sarah has 3 toy cars, then she finds 2 more. How many does she have now?"`
+      `Forget worksheets! Use blocks, counters, and manipulatives - kids need to touch math to understand it. Think "hands-on mathematician" not "tiny accountant!" 🧮`,
+      `Sneak math into everything: "3 more minutes until cleanup!" "Let's count friends!" "How many crackers?" Math is everywhere when you have teacher vision! 👀`,
+      `Create a "math laboratory" with rulers, scales, and measuring cups - suddenly everyone's a scientist AND a mathematician! 🔬`,
+      `Number songs are your secret weapon - when kids sing "5 Little Ducks," they're doing advanced subtraction and don't even know it! 🎵`,
+      `Turn everything into a comparison game: "Whose tower is taller?" "Who has more goldfish crackers?" Competition makes math irresistible! 🏆`,
+      `Pattern parties with real objects - buttons, shells, blocks - way more fun than worksheet patterns (and no pencil grip required!). 🌟`,
+      `Your classroom is a math wonderland: count bathroom steps, sort snacks by color, measure cooking ingredients. Math. Is. Everywhere! 🏠`,
+      `Personal math stories hit different: "Emma has 3 toy dinosaurs, then finds 2 more. How many dinos are having a party?" 🦕`
     ];
   } else if (topicLower.includes('science') || topicLower.includes('nature') || topicLower.includes('experiment') || topicLower.includes('discovery')) {
     strategies = [
@@ -81,38 +81,104 @@ export function generateTeachingStrategies(topic: string, difficulty: Difficulty
       `Use music to support emotional regulation - calming songs for rest time, energetic songs for active play.`,
       `Document children's original songs and musical creations - their natural musical expression is valuable and worth preserving.`
     ];
-  } else {
-    // Default strategies for unknown topics
+  } else if (topicLower.includes('outdoor') || topicLower.includes('nature') || topicLower.includes('garden') || topicLower.includes('playground')) {
     strategies = [
-      `Start with children's interests and build curriculum around what naturally engages them - authentic learning happens when kids are invested.`,
-      `Use hands-on exploration and discovery - young children learn best through touching, manipulating, and experimenting with real materials.`,
-      `Create meaningful learning contexts through dramatic play, projects, and real-world connections that make abstract concepts concrete.`,
-      `Implement small group instruction to meet individual developmental needs - differentiate your approach for each child's learning style.`,
-      `Use open-ended questioning: "What do you notice?" "How did you figure that out?" to encourage critical thinking and problem-solving.`,
-      `Document learning through photos and children's words - make their thinking visible to support reflection and extend learning.`,
-      `Provide multiple ways for children to express understanding - through art, movement, building, or conversation rather than just verbal responses.`,
-      `Create regular opportunities for peer collaboration - children learn so much from teaching and learning alongside their friends.`
+      `Take learning outside daily - fresh air and natural materials provide endless opportunities for discovery and wonder.`,
+      `Create outdoor learning stations: mud kitchen, water wall, digging area, and building space with natural materials.`,
+      `Use nature as your curriculum - observe seasonal changes, collect natural treasures, and document what children discover.`,
+      `Implement "loose parts" play with sticks, stones, shells, and pinecones that children can move and manipulate freely.`,
+      `Encourage risk-appropriate challenge: climbing, balancing, jumping - children need to test their physical capabilities.`,
+      `Create quiet outdoor spaces too - reading nooks under trees, meditation circles, and observation spots for introverted children.`,
+      `Document outdoor learning through nature journals, photography, and children's verbal reflections about their discoveries.`,
+      `Connect outdoor experiences to indoor follow-up: paint with mud, create nature collages, write stories about outdoor adventures.`
+    ];
+  } else if (topicLower.includes('social') || topicLower.includes('emotional') || topicLower.includes('feeling') || topicLower.includes('friendship')) {
+    strategies = [
+      `Use emotion coaching: "I see you're feeling frustrated. Your face looks angry and your fists are tight. What can we do to help?"`,
+      `Create an emotion vocabulary wall with photos of children showing different feelings - make emotions concrete and visible.`,
+      `Read books about feelings daily and connect stories to children's real experiences: "Remember when you felt worried like the character?"`,
+      `Implement problem-solving steps children can use: "What's the problem? What are some solutions? Let's try one and see what happens."`,
+      `Use calm-down strategies that work for different children: deep breathing, counting, squeezing a stress ball, or looking at family photos.`,
+      `Narrate positive social interactions: "I saw you share your toy with Marcus. That showed kindness and made him smile."`,
+      `Create friendship activities: partner projects, buddy systems, and opportunities for children to help and care for each other.`,
+      `Model emotional regulation yourself - children learn more from what they see than what they hear about managing feelings.`
+    ];
+  } else if (topicLower.includes('dramatic play') || topicLower.includes('pretend') || topicLower.includes('imaginative') || topicLower.includes('dress up')) {
+    strategies = [
+      `Change dramatic play themes based on children's interests - if they're fascinated by construction, create a building site center.`,
+      `Provide real props when possible: actual kitchen tools, real telephones, authentic cultural clothing and artifacts.`,
+      `Extend dramatic play by adding literacy: clipboards for taking orders, signs for the play store, prescription pads for the doctor's office.`,
+      `Take photos of children's elaborate play scenarios and display them to show how much you value their creative thinking.`,
+      `Add diversity to dramatic play through dolls, books, and props that represent many different families and cultures.`,
+      `Create outdoor dramatic play opportunities: camping with real tents, car wash with hoses, outdoor kitchen with mud and water.`,
+      `Support shy children by providing behind-the-scenes roles: ticket seller, cook in the restaurant kitchen, veterinarian assistant.`,
+      `Connect dramatic play to curriculum goals: pharmacy for math (counting pills), veterinarian office for science (animal care).`
+    ];
+  } else if (topicLower.includes('family') || topicLower.includes('parent') || topicLower.includes('home') || topicLower.includes('culture')) {
+    strategies = [
+      `Create family photo displays at children's eye level and refer to them throughout the day: "Your grandma would love to see this artwork!"`,
+      `Invite family members to share their expertise: a parent who's a firefighter, a grandparent who speaks another language.`,
+      `Honor different family structures through books, dolls, and discussions that validate all types of families children know.`,
+      `Send home documentation of learning with specific questions: "Ask your child about our science experiment with floating and sinking."`,
+      `Create family recipe books, tradition sharing projects, and cultural celebration opportunities throughout the year.`,
+      `Use home visits or virtual meetings to see children in their family context and understand their home experiences.`,
+      `Provide materials in families' home languages and invite bilingual family members to read stories to the class.`,
+      `Respect different parenting approaches while maintaining consistent classroom expectations and clear communication about school practices.`
+    ];
+  } else if (topicLower.includes('transition') || topicLower.includes('routine') || topicLower.includes('schedule') || topicLower.includes('cleanup')) {
+    strategies = [
+      `Create visual schedules with photos of actual children in your class doing each routine - this makes expectations concrete and personal.`,
+      `Use transition songs that children help create: "This is the way we clean our room" with movements children suggest.`,
+      `Give 5-minute and 2-minute warnings before transitions, using visual timers so children can see time passing.`,
+      `Create special jobs during transitions: line leader, light switcher, door holder - everyone can have an important role.`,
+      `Use dramatic play to practice routines: "pretend it's cleanup time" during play lets children rehearse expectations.`,
+      `Make cleanup engaging with sorting games: "Find all the red toys" or "Put away everything that starts with B."`,
+      `Celebrate successful transitions: "Everyone listened for the cleanup song and found something to put away. Teamwork!"`,
+      `Plan engaging activities immediately following difficult transitions to motivate children through the challenging parts.`
+    ];
+  } else if (topicLower.includes('block') || topicLower.includes('building') || topicLower.includes('construction') || topicLower.includes('engineering')) {
+    strategies = [
+      `Provide blocks of different sizes, materials, and textures: wooden unit blocks, foam blocks, cardboard blocks, natural wood pieces.`,
+      `Add people figures, animals, and vehicles that reflect the diversity of your community and children's families.`,
+      `Document block constructions through photos before cleanup time, creating a "block builders gallery" to honor children's work.`,
+      `Introduce engineering vocabulary naturally: "Your bridge is sturdy" or "That foundation looks stable."`,
+      `Connect block play to math: counting, sorting by size, creating patterns, measuring with non-standard units.`,
+      `Add literacy to block play: signs for buildings, maps of the block city, books about construction and architecture.`,
+      `Encourage collaboration: "Can you work together to build something bigger than either of you could make alone?"`,
+      `Create block building challenges: "Can you build a tower as tall as your shoulder?" or "Make a bridge a car can drive under."`
+    ];
+  } else {
+    // Enhanced default strategies for any topic
+    strategies = [
+      `Connect this topic to children's real experiences and interests - authentic learning happens when kids see relevance to their lives.`,
+      `Use multi-sensory approaches: let children see, hear, touch, move, and when appropriate, taste and smell to explore this topic fully.`,
+      `Create hands-on investigations where children can experiment, test ideas, and make discoveries about this topic through active exploration.`,
+      `Implement project-based learning where children can dive deep into aspects of this topic that fascinate them most.`,
+      `Use open-ended questioning to extend thinking: "What do you notice?" "Why do you think that happened?" "What would happen if...?"`,
+      `Document children's learning journey through photos, quotes, and work samples that show how their understanding develops over time.`,
+      `Connect this topic across all curriculum areas - art, music, math, science, literacy, and social-emotional learning.`,
+      `Invite community experts to share their knowledge and passion for this topic, bringing real-world connections into your classroom.`
     ];
   }
   
-  // Add difficulty-specific strategies
+  // Add difficulty-specific strategies with humor
   if (difficulty === 'beginner') {
     strategies.push(
-      `For beginners teaching ${topic}, start with just one key concept per week rather than tackling everything at once.`,
-      `Find a mentor teacher who has experience with ${topic} - their guidance will be invaluable as you develop your approach.`,
-      `Begin with simple vocabulary related to ${topic} and build complexity gradually as children master the basics.`
+      `New to teaching this topic? Start with one key concept per week - think of it as the appetizer before the main course! 🍽️`,
+      `Find a mentor teacher who's mastered this topic - they're like your teaching GPS, preventing those "how did I end up here?" moments!`,
+      `Begin with simple vocabulary and build complexity gradually - like teaching children to walk before they run (or in preschool terms, before they zoom around like tiny tornadoes!).`
     );
   } else if (difficulty === 'intermediate') {
     strategies.push(
-      `For intermediate ${topic} instruction, create documentation panels that make children's learning visible to families and visitors.`,
-      `Develop cross-curricular connections between ${topic} and other areas of your curriculum for deeper learning.`,
-      `Try the 'expert groups' approach where small teams of children become specialists in different aspects of ${topic}.`
+      `Ready for the next level? Create documentation panels that show families your teaching superpowers in action!`,
+      `Connect this topic to everything else - you're basically becoming a curriculum DJ, mixing all the best learning beats together! 🎵`,
+      `Try 'expert groups' where children become mini-professors of different aspects - they take this job VERY seriously (and it's adorable).`
     );
   } else if (difficulty === 'advanced') {
     strategies.push(
-      `For advanced ${topic} teaching, develop action research to measure the effectiveness of your specific approaches.`,
-      `Create professional development materials to help colleagues implement effective ${topic} teaching strategies in their own classrooms.`,
-      `Design a progressive skill-building framework that maps the development of ${topic} understanding across age groups or developmental stages.`
+      `You're in the teaching major leagues now! Develop action research to prove what you already know - that you're making magic happen daily! ✨`,
+      `Share your wisdom with colleagues - become the teaching guru others seek for professional development (cape optional but recommended).`,
+      `Design frameworks that map learning across age groups - you're basically creating the blueprint for future amazing teachers!`
     );
   }
   
@@ -401,38 +467,117 @@ export function generateQuizQuestions(topic: string, difficulty: DifficultyLevel
         correctAnswer: "Embedded naturally in routines, play, and exploration"
       }
     ];
-  } else {
-    // Default questions for unknown topics
+  } else if (topicLower.includes('science') || topicLower.includes('nature') || topicLower.includes('experiment')) {
     quizQuestions = [
       {
-        question: `Which approach is most developmentally appropriate when teaching young children?`,
+        question: "What's the best way to introduce scientific thinking to preschoolers?",
         options: [
-          "Using primarily worksheets and flashcards",
-          "Incorporating play-based activities with intentional teaching moments",
-          "Having children memorize key facts",
-          "Using lecture-style instruction"
+          "Teaching them to memorize scientific facts",
+          "Encouraging questions and hands-on exploration",
+          "Using complicated scientific vocabulary",
+          "Showing them educational videos only"
         ],
-        correctAnswer: "Incorporating play-based activities with intentional teaching moments"
+        correctAnswer: "Encouraging questions and hands-on exploration"
       },
       {
-        question: `When planning learning activities, which of the following is most important?`,
+        question: "Which statement about preschool science experiments is most accurate?",
         options: [
-          "Ensuring all children complete the same activities in the same way",
-          "Focusing primarily on academic skills",
-          "Considering children's interests and developmental levels",
-          "Following a prescribed curriculum exactly"
+          "Results don't matter - it's all about the process and wonder!",
+          "Children should get the 'right' answer every time",
+          "Only do experiments with guaranteed outcomes",
+          "Focus on teaching complex scientific theories"
         ],
-        correctAnswer: "Considering children's interests and developmental levels"
+        correctAnswer: "Results don't matter - it's all about the process and wonder!"
+      }
+    ];
+  } else if (topicLower.includes('art') || topicLower.includes('creative') || topicLower.includes('music')) {
+    quizQuestions = [
+      {
+        question: "What's the most important goal of creative activities with young children?",
+        options: [
+          "Creating beautiful products to display",
+          "Teaching specific artistic techniques",
+          "Encouraging self-expression and creativity",
+          "Making sure all artwork looks the same"
+        ],
+        correctAnswer: "Encouraging self-expression and creativity"
       },
       {
-        question: `How can teachers best support family engagement?`,
+        question: "How should you respond when a child says their artwork 'doesn't look right'?",
         options: [
-          "Sending home worksheets for parents to complete with children",
-          "Sharing information only when problems arise",
-          "Providing regular communication about classroom learning and simple extension activities",
-          "Expecting families to teach the same content at home"
+          "Fix it for them so it looks better",
+          "Tell them it's wrong and show them the correct way",
+          "Ask them to tell you about their creation and what they were thinking",
+          "Ignore their concern and move on"
         ],
-        correctAnswer: "Providing regular communication about classroom learning and simple extension activities"
+        correctAnswer: "Ask them to tell you about their creation and what they were thinking"
+      }
+    ];
+  } else if (topicLower.includes('outdoor') || topicLower.includes('nature') || topicLower.includes('playground')) {
+    quizQuestions = [
+      {
+        question: "What's the teacher's most important role during outdoor play?",
+        options: [
+          "Directing all activities and keeping children in one area",
+          "Staying inside while children play independently",
+          "Observing, facilitating, and ensuring safety while encouraging exploration",
+          "Making sure children stay clean and don't get dirty"
+        ],
+        correctAnswer: "Observing, facilitating, and ensuring safety while encouraging exploration"
+      },
+      {
+        question: "How should teachers handle 'risky play' like climbing or jumping?",
+        options: [
+          "Ban all potentially risky activities",
+          "Allow any activity children want to try",
+          "Support age-appropriate risk-taking with proper supervision",
+          "Only allow risk-taking for older children"
+        ],
+        correctAnswer: "Support age-appropriate risk-taking with proper supervision"
+      }
+    ];
+  } else {
+    // Enhanced default questions for any topic with humor
+    quizQuestions = [
+      {
+        question: `Which approach works best when teaching young children? (Hint: Think like a preschooler! 🎈)`,
+        options: [
+          "Worksheets and flashcards (because tiny fingers LOVE holding pencils for hours... not!)",
+          "Play-based activities with intentional teaching moments (aka 'sneaky learning'!)",
+          "Having children memorize facts (like tiny parrots, but less colorful)",
+          "Lecture-style instruction (because 4-year-olds are famous for their attention spans 😄)"
+        ],
+        correctAnswer: "Play-based activities with intentional teaching moments (aka 'sneaky learning'!)"
+      },
+      {
+        question: `When planning activities, what should be your North Star? ⭐`,
+        options: [
+          "Making sure everyone does exactly the same thing (cookie-cutter kids, anyone?)",
+          "Focusing only on academic skills (fun is for recess, right?)",
+          "Considering children's interests and developmental levels (the magical sweet spot!)",
+          "Following curriculum guides word-for-word (because flexibility is overrated... NOT!)"
+        ],
+        correctAnswer: "Considering children's interests and developmental levels (the magical sweet spot!)"
+      },
+      {
+        question: `How can teachers build amazing family partnerships? 🤝`,
+        options: [
+          "Sending home worksheets (because parents LOVE more homework!)",
+          "Only communicating when problems arise (surprise phone calls!)",
+          "Regular communication about learning + simple extension activities (the winning combo!)",
+          "Expecting families to replicate school at home (because that's totally realistic!)"
+        ],
+        correctAnswer: "Regular communication about learning + simple extension activities (the winning combo!)"
+      },
+      {
+        question: `What's the secret ingredient to engaging young learners? 🎭`,
+        options: [
+          "Keeping activities serious and academic at all times",
+          "Following a strict schedule with no flexibility",
+          "Making learning joyful, hands-on, and meaningful to their lives",
+          "Using the same teaching method for every child"
+        ],
+        correctAnswer: "Making learning joyful, hands-on, and meaningful to their lives"
       }
     ];
   }
