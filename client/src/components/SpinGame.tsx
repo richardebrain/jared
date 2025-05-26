@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { SparklesIcon, Award, Gift, Coins, Star, Trophy, Heart } from "lucide-react";
 import { User } from "@shared/schema";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { ensureUserDefaults } from "@/types/user";
 
 // Game rewards
 const REWARDS = [
@@ -33,7 +34,8 @@ interface SpinGameProps {
 }
 
 export default function SpinGame({ canSpin = true, onSpinComplete }: SpinGameProps) {
-  const { user } = useAuth();
+  const { user: baseUser } = useAuth();
+  const user = ensureUserDefaults(baseUser);
   const queryClient = useQueryClient();
   const [spinning, setSpinning] = useState(false);
   const [rewardWon, setRewardWon] = useState<any>(null);

@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
 import { Sparkles, Gift, History, Coins, Award, AlertTriangle } from "lucide-react";
 import PointsAnimation from "./PointsAnimation";
+import { ensureUserDefaults } from "@/types/user";
 
 import {
   Card,
@@ -50,7 +51,8 @@ const REWARDS = [
 ];
 
 export default function ScratchCard({ maxDailyScratchCards = 3 }: ScratchCardProps) {
-  const { user } = useAuth();
+  const { user: baseUser } = useAuth();
+  const user = ensureUserDefaults(baseUser);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   // EMERGENCY FIX: Always enable 3 scratch cards for Laura (ID 5)
