@@ -48,7 +48,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/lib/auth-context';
 import { apiRequest } from '@/lib/queryClient';
 import { Progress } from '@/components/ui/progress';
 import { Link } from 'wouter';
@@ -402,65 +402,7 @@ export default function AdminDashboard() {
     }
   }, [user]);
 
-  // Function to fetch EOS data from Google Sheets
-  const fetchEOSData = async () => {
-    try {
-      setEosLoading(true);
-      // Google Sheets URL as provided by the user
-      const googleSheetsUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSWfTtWjkrs64yp_BglYDBl0HCUrnSoCJiVrGueitr0GJ8mXhsXi2d7WG_6LsouKo8ISnuUuNiVl3On/pubhtml";
-      
-      // Parse it to get the raw data
-      const response = await fetch(googleSheetsUrl);
-      const htmlText = await response.text();
-      
-      // Process the HTML to extract the table data
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(htmlText, 'text/html');
-      const tables = doc.querySelectorAll('table');
-      
-      if (tables.length > 0) {
-        const mainTable = tables[0];
-        const rows = mainTable.querySelectorAll('tr');
-        const data = [];
-        
-        // Extract header from first row
-        const headerRow = rows[0];
-        const headers = Array.from(headerRow.querySelectorAll('td')).map(cell => cell.textContent?.trim() || '');
-        
-        // Extract data rows
-        for (let i = 1; i < rows.length; i++) {
-          const row = rows[i];
-          const cells = row.querySelectorAll('td');
-          const rowData = {};
-          
-          for (let j = 0; j < headers.length; j++) {
-            if (j < cells.length) {
-              rowData[headers[j]] = cells[j].textContent?.trim() || '';
-            }
-          }
-          
-          data.push(rowData);
-        }
-        
-        setEosData(data);
-      }
-      
-      toast({
-        title: "EOS Data Updated",
-        description: "The EOS data has been successfully updated from Google Sheets.",
-        variant: "default",
-      });
-    } catch (error) {
-      console.error('Error fetching EOS data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load EOS data from Google Sheets. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setEosLoading(false);
-    }
-  };
+  // Function to fetch EOS data from Google Sheets (removed duplicate)
 
   if (usersLoading) {
     return (

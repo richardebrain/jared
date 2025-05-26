@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/lib/auth-context';
 import NotebookSourcesConfig from '@/components/NotebookSourcesConfig';
 import SettingsLayout from '@/components/SettingsLayout';
 

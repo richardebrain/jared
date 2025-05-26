@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/lib/auth-context';
 import { useLocation } from 'wouter';
 import AdminTools from '@/components/AdminTools';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

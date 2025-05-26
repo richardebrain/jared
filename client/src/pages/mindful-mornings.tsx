@@ -1,6 +1,6 @@
 import Header from "@/components/Header";
 import { MindfulMorningsOutline } from "@/components/MindfulMorningsOutline";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/lib/auth-context";
 import BearAssistant from "@/components/BearAssistant";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

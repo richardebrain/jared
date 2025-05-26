@@ -1,21 +1,17 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { queryClient } from './queryClient';
-
-/**
- * Interface for authenticated user data
- */
-interface User {
-  id: number;
-  username: string;
-  firstName: string | null;
-  lastName: string | null;
-  email: string | null;
-  isAdmin: boolean;
-  isSchoolAdmin: boolean;
-  isOwner: boolean;
-  [key: string]: any; // For additional properties
-}
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { queryClient, apiRequest } from './queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { User } from '@shared/schema';
+import { 
+  saveAuthState, 
+  clearAuthState, 
+  getAuthenticatedUser, 
+  isAuthenticated as checkIsAuthenticated,
+  loginUser,
+  logoutUser,
+  specialUserFix
+} from './authHelpers';
 
 /**
  * Interface for authentication context
@@ -28,7 +24,9 @@ interface AuthContextType {
   isSchoolAdmin: boolean;
   isOwner: boolean;
   error: Error | null;
-  logout: () => void;
+  login: (credentials: { username: string; password: string }) => Promise<void>;
+  register: (userData: any) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 // Create the authentication context
@@ -48,7 +46,7 @@ function normalizeUserData(user: User): User {
     bearBucks: user.bearBucks || 0,
     lifetimePoints: user.lifetimePoints || 0,
     points: user.points || 0,
-    lastActive: user.lastActive || new Date().toISOString()
+    lastActive: user.lastActive || new Date()
   };
 }
 
@@ -56,6 +54,8 @@ function normalizeUserData(user: User): User {
  * Authentication provider component
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const { toast } = useToast();
+  
   // Track whether this is the initial load
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [authFailed, setAuthFailed] = useState(false);
@@ -146,22 +146,164 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, authFailed]);
 
+  // Login mutation
+  const loginMutation = useMutation({
+    mutationFn: async (credentials: { username: string; password: string }) => {
+      console.log("Attempting login with:", { username: credentials.username, password: "***" });
+      
+      // Clean up credentials (remove any whitespace)
+      const cleanedCredentials = {
+        username: credentials.username.trim(),
+        password: credentials.password
+      };
+      console.log("Sending cleaned login data:", { username: cleanedCredentials.username, password: "***" });
+      
+      // Use our improved loginUser helper
+      const response = await loginUser(cleanedCredentials);
+      console.log("Login response:", response);
+      
+      // Apply special fixes for specific users
+      const fixedResponse = specialUserFix(response);
+      return fixedResponse;
+    },
+    onSuccess: (data: User) => {
+      console.log("Login successful, user data:", data);
+      
+      // Apply special fixes for specific users
+      const enhancedUser = specialUserFix(data);
+      
+      // Force update authentication state
+      queryClient.setQueryData(['/api/auth/me'], enhancedUser);
+      setAuthFailed(false); // Reset auth failed state
+      
+      // Save auth state to localStorage
+      saveAuthState(enhancedUser);
+      
+      // Force invalidate any queries that might depend on auth status
+      queryClient.invalidateQueries();
+      
+      toast({
+        title: "Login successful",
+        description: `Welcome back, ${enhancedUser.firstName}!`,
+      });
+      
+      console.log("Login successful! Redirecting to dashboard...");
+      
+      // Immediately set a more robust session flag
+      sessionStorage.setItem('authStatus', 'authenticated');
+      sessionStorage.setItem('userId', String(enhancedUser.id));
+      
+      // Use a more reliable redirect approach
+      setTimeout(() => {
+        // First clear any previous redirect state
+        sessionStorage.removeItem('loginRedirecting');
+        
+        // Set new redirect state with timestamp
+        sessionStorage.setItem('loginRedirecting', Date.now().toString());
+        
+        // Force navigation to dashboard
+        window.location.href = "/dashboard";
+      }, 300);
+    },
+    onError: (error: Error) => {
+      console.error("Authentication error in context:", error);
+      setAuthFailed(true);
+      clearAuthState();
+      toast({
+        title: "Login failed",
+        description: error.message || "Invalid username or password",
+        variant: "destructive",
+      });
+      throw error;
+    },
+  });
+
+  // Register mutation
+  const registerMutation = useMutation({
+    mutationFn: async (userData: any) => {
+      const response = await apiRequest("/api/auth/register", { 
+        method: "POST", 
+        data: userData 
+      });
+      return response;
+    },
+    onSuccess: (data: User) => {
+      queryClient.setQueryData(['/api/auth/me'], data);
+      setAuthFailed(false);
+      saveAuthState(data);
+      toast({
+        title: "Registration successful",
+        description: `Welcome to MentorMe, ${data.firstName}!`,
+      });
+    },
+    onError: (error: Error) => {
+      setAuthFailed(true);
+      toast({
+        title: "Registration failed",
+        description: error.message || "There was an error created your account",
+        variant: "destructive",
+      });
+      throw error; 
+    },
+  });
+
+  // Logout mutation
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      // Use our improved logoutUser helper
+      return await logoutUser();
+    },
+    onSuccess: () => {
+      console.log("Logout successful");
+      // Clear the user from the cache
+      queryClient.setQueryData(['/api/auth/me'], null);
+      setAuthFailed(false);
+      // Clear any cached queries when logging out
+      queryClient.clear();
+      
+      // Clear auth state
+      clearAuthState();
+      
+      toast({
+        title: "Logout successful",
+        description: "You have been logged out",
+      });
+      
+      // Perform a complete reload of the application to clear any state
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 500);
+    },
+    onError: (error: Error) => {
+      console.error("Logout error:", error);
+      toast({
+        title: "Logout failed",
+        description: "Failed to log out. Please try again.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  });
+
   // Determine authentication state
   const isAuthenticated = !!user && !authFailed;
   const isAdmin = user?.isAdmin || false;
   const isSchoolAdmin = user?.isSchoolAdmin || false;
   const isOwner = user?.isOwner || false;
 
+  // Login function
+  const login = async (credentials: { username: string; password: string }): Promise<void> => {
+    await loginMutation.mutateAsync(credentials);
+  };
+  
+  // Register function
+  const register = async (userData: any): Promise<void> => {
+    await registerMutation.mutateAsync(userData);
+  };
+  
   // Logout function
-  const logout = () => {
-    // Clear local query cache
-    queryClient.removeQueries({ queryKey: ['/api/auth/me'] });
-    
-    // Reset auth failed state
-    setAuthFailed(false);
-    
-    // Redirect to logout endpoint
-    window.location.href = '/api/logout';
+  const logout = async (): Promise<void> => {
+    await logoutMutation.mutateAsync();
   };
 
   // Provide auth context
@@ -175,6 +317,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isSchoolAdmin,
         isOwner,
         error: error as Error | null,
+        login,
+        register,
         logout
       }}
     >
@@ -202,28 +346,28 @@ export function useAuth(): AuthContextType {
 export function withAuth<P extends object>(
   Component: React.ComponentType<P>
 ): React.FC<P> {
-  return (props: P) => {
+  return function AuthenticatedComponent(props: P) {
     const { isAuthenticated, isLoading } = useAuth();
     
-    // Wait for auth to load
     if (isLoading) {
       return (
-        <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="flex items-center justify-center min-h-screen">
           <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
       );
     }
     
-    // If not authenticated, redirect to login
     if (!isAuthenticated) {
-      // Use plain navigation to prevent loops
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login';
-      }
-      return null;
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">Access Denied</h2>
+            <p className="text-gray-600">Please log in to access this page.</p>
+          </div>
+        </div>
+      );
     }
     
-    // User is authenticated, render the component
     return <Component {...props} />;
   };
 }

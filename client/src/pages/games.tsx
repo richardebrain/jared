@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/lib/auth-context';
 import { Link } from 'wouter';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -52,7 +52,9 @@ export default function GamesPage() {
   });
   
   // Calculate user stats
-  const completedModules = userProgress?.filter(p => p.completed)?.length || 0;
+  const completedModules = Array.isArray(userProgress) 
+    ? userProgress.filter((p: any) => p.completed)?.length || 0 
+    : 0;
   const totalPoints = user?.points || 0;
   const bearBucks = user?.bearBucks || 0;
   

@@ -1,6 +1,6 @@
 import Header from "@/components/Header";
 import LearningStyleAssessment from "@/components/LearningStyleAssessment";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/lib/auth-context";
 import { Redirect } from "wouter";
 
 export default function LearningStylePage() {

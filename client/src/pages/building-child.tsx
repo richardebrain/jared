@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/lib/auth-context';
 import { useLocation } from 'wouter';
 import BuildingChildTraining from '@/components/BuildingChildTraining';
 import Header from '@/components/Header';

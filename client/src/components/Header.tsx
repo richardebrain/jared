@@ -4,7 +4,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { User } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/lib/auth-context";
 import raisingArizonaLogo from "@assets/raising-arizona-logo.jpg";
 // Import the MentorMe logo using the correct asset path
 import mentormeLogo from "@assets/221033113.png";

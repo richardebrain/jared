@@ -11,7 +11,7 @@ export default function BonusGamesButton({user}:{user:any}) {
   const isJLCookie = user?.username === 'jlcookie20';
   
   // Fetch game history to check if a game was played today
-  const { data: gameHistory, refetch: refetchGameHistory } = useQuery({
+  const { data: gameHistory, refetch: refetchGameHistory } = useQuery<any[]>({
     queryKey: ["/api/games/history"],
     staleTime: 60 * 1000, // 1 minute
     refetchOnWindowFocus: true,

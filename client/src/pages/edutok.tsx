@@ -1,7 +1,7 @@
 import React from "react";
 import Header from "@/components/Header";
 import EduTokFeed from "@/components/EduTokFeed";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/lib/auth-context";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";

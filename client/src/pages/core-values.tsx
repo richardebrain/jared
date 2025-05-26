@@ -1,6 +1,6 @@
 import Header from "@/components/Header";
 import { CoreValuesTraining } from "@/components/CoreValuesTraining";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/lib/auth-context";
 import BearAssistant from "@/components/BearAssistant";
 
 export default function CoreValuesPage() {
