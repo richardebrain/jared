@@ -1,9 +1,5 @@
 import type { Express, Request, Response } from "express";
 import { ModuleManager } from "./moduleManager";
-import { db } from "../db";
-import { learningModules } from "@shared/schema";
-import { eq } from "drizzle-orm";
-import type { TrainingModuleTemplate } from "../moduleContentTemplates";
 import { templateToLearningModule, validateModuleTemplate, defaultModuleTemplate } from "../moduleContentTemplates";
 
 /**
@@ -108,7 +104,7 @@ export function registerModuleManagementRoutes(app: Express) {
   // Create a new module using the template structure
   app.post("/api/modules/template", async (req: Request, res: Response) => {
     try {
-      const moduleTemplate: TrainingModuleTemplate = req.body;
+      const moduleTemplate = req.body;
       
       // Validate the template
       const validation = validateModuleTemplate(moduleTemplate);
@@ -145,7 +141,7 @@ export function registerModuleManagementRoutes(app: Express) {
         return res.status(400).json({ message: "Invalid module ID" });
       }
       
-      const moduleTemplate: TrainingModuleTemplate = req.body;
+      const moduleTemplate = req.body;
       
       // Validate the template
       const validation = validateModuleTemplate(moduleTemplate);

@@ -7,16 +7,13 @@ import { eq } from 'drizzle-orm';
 
 export interface AuthenticatedRequest extends Request {
   user?: any;
-  session?: {
-    userId?: number;
-  };
 }
 
 export const checkAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     // Check for session-based auth first
-    if (req.session?.userId) {
-      const user = await db.select().from(users).where(eq(users.id, req.session.userId));
+    if ((req as any).session?.userId) {
+      const user = await db.select().from(users).where(eq(users.id, (req as any).session.userId));
       if (user?.length) {
         req.user = user[0];
         return next();
