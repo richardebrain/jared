@@ -23,7 +23,7 @@
     // Additional strict checks for better code quality
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    // "noUncheckedIndexedAccess": true,  // Temporarily disabled
+    "noUncheckedIndexedAccess": true,
     // "exactOptionalPropertyTypes": true,  // Temporarily disabled
     "noImplicitOverride": true,
     // "noPropertyAccessFromIndexSignature": true,  // Temporarily disabled

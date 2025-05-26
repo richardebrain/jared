@@ -7,7 +7,7 @@
  */
 
 import { storage } from './storage';
-import { User } from '@shared/schema';
+import type { User } from '@shared/schema';
 
 // Store the original getUser method
 const originalGetUser = storage.getUser.bind(storage);
