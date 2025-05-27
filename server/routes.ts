@@ -4075,7 +4075,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdAt: new Date()
       });
       
-      console.log(`School registered successfully: ${schoolName} (ID: ${newSchool.id})`);
+      console.log(`School created successfully: ${schoolName} (ID: ${newSchool.id} )`);
+      
+      // Create school owner account from business registration form data
+      const { 
+        firstName, 
+        lastName, 
+        username, 
+        password: userPassword,
+        language = "English",
+        nativeLanguage = "English",
+        timeZone = "UTC-05:00"
+      } = req.body;
+      
+      // Hash the user password
+      const hashedUserPassword = await bcrypt.hash(userPassword, saltRounds);
+      
+      // Create the school owner user account
+      const schoolOwner = await storage.createUser({
+        username,
+        password: hashedUserPassword,
+        firstName,
+        lastName,
+        email: contactEmail,
+        language,
+        nativeLanguage,
+        timeZone,
+        schoolId: newSchool.id,
+        isOwner: true,
+        isSchoolAdmin: true,
+        isAdmin: false,
+        role: "owner",
+        points: 0,
+        bearBucks: 0,
+        level: 1,
+        streak: 0
+      });
+      
+      console.log(`School owner account created successfully: ${username} (ID: ${schoolOwner.id} )`);
       
       // Return success response with school details (except password)
       const { adminPasswordHash, ...schoolWithoutPassword } = newSchool;
