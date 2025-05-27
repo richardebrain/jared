@@ -4105,7 +4105,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isOwner: true,
         isSchoolAdmin: true,
         isAdmin: false,
-        role: "owner",
         points: 0,
         bearBucks: 0,
         level: 1,
