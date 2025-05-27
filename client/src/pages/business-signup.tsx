@@ -283,6 +283,116 @@ export default function BusinessSignup() {
                   </div>
                 </div>
 
+                {/* Subscription Plan Section */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-primary border-b pb-2">Choose Your Plan</h3>
+                  
+                  <FormField
+                    control={form.control}
+                    name="subscriptionPlan"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="grid grid-cols-1 gap-4"
+                          >
+                            {/* 30-Day Trial */}
+                            <div className="relative">
+                              <RadioGroupItem
+                                value="trial"
+                                id="trial"
+                                className="peer sr-only"
+                              />
+                              <Label
+                                htmlFor="trial"
+                                className="flex flex-col items-start space-y-2 rounded-lg border-2 border-gray-200 p-4 cursor-pointer hover:border-blue-300 peer-checked:border-blue-500 peer-checked:bg-blue-50"
+                              >
+                                <div className="flex items-center justify-between w-full">
+                                  <div className="flex items-center space-x-2">
+                                    <span className="font-semibold text-lg">30-Day Free Trial</span>
+                                    <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
+                                      Recommended
+                                    </span>
+                                  </div>
+                                  <span className="text-2xl font-bold text-green-600">FREE</span>
+                                </div>
+                                <p className="text-sm text-gray-600">
+                                  Full access to all features for 30 days. No credit card required.
+                                </p>
+                                <ul className="text-sm text-gray-600 space-y-1">
+                                  <li>• Unlimited teacher accounts</li>
+                                  <li>• Complete module library</li>
+                                  <li>• Progress tracking</li>
+                                  <li>• Admin dashboard</li>
+                                </ul>
+                              </Label>
+                            </div>
+
+                            {/* Monthly Plan */}
+                            <div className="relative">
+                              <RadioGroupItem
+                                value="monthly"
+                                id="monthly"
+                                className="peer sr-only"
+                              />
+                              <Label
+                                htmlFor="monthly"
+                                className="flex flex-col items-start space-y-2 rounded-lg border-2 border-gray-200 p-4 cursor-pointer hover:border-blue-300 peer-checked:border-blue-500 peer-checked:bg-blue-50"
+                              >
+                                <div className="flex items-center justify-between w-full">
+                                  <span className="font-semibold text-lg">Monthly Plan</span>
+                                  <span className="text-2xl font-bold">$49<span className="text-sm font-normal">/month</span></span>
+                                </div>
+                                <p className="text-sm text-gray-600">
+                                  Perfect for getting started with flexible monthly billing.
+                                </p>
+                                <p className="text-xs text-amber-600 font-medium">
+                                  * Payment processing will be available after trial period
+                                </p>
+                              </Label>
+                            </div>
+
+                            {/* Annual Plan */}
+                            <div className="relative">
+                              <RadioGroupItem
+                                value="yearly"
+                                id="yearly"
+                                className="peer sr-only"
+                              />
+                              <Label
+                                htmlFor="yearly"
+                                className="flex flex-col items-start space-y-2 rounded-lg border-2 border-gray-200 p-4 cursor-pointer hover:border-blue-300 peer-checked:border-blue-500 peer-checked:bg-blue-50"
+                              >
+                                <div className="flex items-center justify-between w-full">
+                                  <div className="flex items-center space-x-2">
+                                    <span className="font-semibold text-lg">Annual Plan</span>
+                                    <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
+                                      Save 25%
+                                    </span>
+                                  </div>
+                                  <div className="text-right">
+                                    <span className="text-2xl font-bold">$39<span className="text-sm font-normal">/month</span></span>
+                                    <p className="text-xs text-gray-500">($468 billed annually)</p>
+                                  </div>
+                                </div>
+                                <p className="text-sm text-gray-600">
+                                  Best value for committed schools. Save $120 per year!
+                                </p>
+                                <p className="text-xs text-amber-600 font-medium">
+                                  * Payment processing will be available after trial period
+                                </p>
+                              </Label>
+                            </div>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
                 {/* Administrator Account Section */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-primary border-b pb-2">Administrator Account</h3>
