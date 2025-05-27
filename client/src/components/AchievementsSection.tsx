@@ -7,6 +7,22 @@ import { Award, Star, Gift, Trophy, BookOpen } from 'lucide-react';
 import ProgressHeatmap from './ProgressHeatmap';
 import { Skeleton } from "@/components/ui/skeleton";
 
+interface AchievementData {
+  totalPoints: number;
+  teacherLevel: string;
+  achievements: Array<{
+    id: number;
+    name: string;
+    description: string;
+    points: number;
+  }>;
+  stats: {
+    totalModules: number;
+    modulesInProgress: number;
+    assessmentsCompleted: number;
+  };
+}
+
 interface AchievementsSectionProps {
   modules: LearningModule[];
   progress: UserProgress[];
@@ -14,7 +30,7 @@ interface AchievementsSectionProps {
 
 export default function AchievementsSection({ modules, progress }: AchievementsSectionProps) {
   // Fetch user achievement data
-  const { data: achievementData, isLoading, error } = useQuery({
+  const { data: achievementData, isLoading, error } = useQuery<AchievementData>({
     queryKey: ['/api/achievements'],
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
@@ -49,12 +65,15 @@ export default function AchievementsSection({ modules, progress }: AchievementsS
     );
   }
 
-  const { totalPoints, teacherLevel, achievements, stats } = achievementData || {
+  // Provide safe defaults with proper typing
+  const defaultData: AchievementData = {
     totalPoints: 0,
     teacherLevel: 'Teacher in Training',
     achievements: [],
     stats: { totalModules: 0, modulesInProgress: 0, assessmentsCompleted: 0 }
   };
+
+  const { totalPoints, teacherLevel, achievements, stats } = achievementData || defaultData;
 
   // Achievement icon mapping
   const achievementIcons: Record<string, any> = {
@@ -116,7 +135,7 @@ export default function AchievementsSection({ modules, progress }: AchievementsS
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {achievements.map((achievement: any) => {
+              {achievements.map((achievement) => {
                 const Icon = achievementIcons[achievement.name] || BookOpen;
                 return (
                   <div 

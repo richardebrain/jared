@@ -14,14 +14,14 @@
     
     // Gradually enable these as we fix issues
     "noImplicitReturns": true,        // 28 errors - manageable ✅ ENABLED
-    "noImplicitAny": true,            // Enable to catch implicit any types
-    // "strictNullChecks": true,         // Major refactor needed
+    "noImplicitAny": true,            // Enable to catch implicit any types ✅ ENABLED
+    "strictNullChecks": true,         // Major refactor needed ✅ ENABLING
     // "noImplicitThis": true,           // Moderate impact
-    // "alwaysStrict": true,             // Low impact
+    "alwaysStrict": true,             // Low impact ✅ ENABLING
     
     // Advanced checks for later
     // "exactOptionalPropertyTypes": true,
-    // "verbatimModuleSyntax": true,
+    "verbatimModuleSyntax": true,     // Better import/export checking ✅ ENABLING
     // "noImplicitOverride": true,
     
     "baseUrl": ".",

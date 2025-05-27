@@ -261,7 +261,7 @@ export default function SpinGame({ canSpin = true, onSpinComplete }: SpinGamePro
           </div>
           
           {/* Add CSS animation for pointer pulse */}
-          <style jsx>{`
+          <style>{`
             @keyframes pointerPulse {
               from { transform: scale(1); }
               to { transform: scale(1.2); }
