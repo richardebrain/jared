@@ -688,7 +688,6 @@ function App() {
       {/* <ErrorBoundary> */}
         <AuthProvider>
           <AuthenticatedRouter />
-          <AuthDebugger show={true} />
         </AuthProvider>
       {/* </ErrorBoundary> */}
     </TooltipProvider>
