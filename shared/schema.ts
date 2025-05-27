@@ -624,18 +624,28 @@ export const schoolsRelations = relations(schools, ({ many }) => ({
   users: many(users),
 }));
 
+// Assessment domains table for weighted question distribution
+export const assessmentDomains = pgTable("assessment_domains", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description").notNull(),
+  questionWeight: integer("question_weight").notNull(), // Number of questions from this domain
+  displayOrder: integer("display_order").notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Assessment questions table
 export const assessmentQuestions = pgTable("assessment_questions", {
-  id: text("id").primaryKey(), // Using text ID to support various formats (e.g., "build-1", "csv-123")
-  domain: text("domain").notNull(), // core, mindful, build, language, etc.
-  category: text("category").notNull(), // Sub-category within domain
+  id: text("id").primaryKey(), // Using text ID to support various formats (e.g., "safety-3-001")
+  domainId: integer("domain_id").notNull().references(() => assessmentDomains.id), // Reference to domain
   text: text("text").notNull(), // The question text
   options: json("options").$type<string[]>().notNull(), // Array of answer options
   correctAnswer: integer("correct_answer").notNull(), // Index of correct option (0-based)
-  difficulty: integer("difficulty").notNull(), // 1=basic, 2=intermediate, 3=advanced
+  difficulty: integer("difficulty").notNull(), // 1=Easy, 2=Easy/Medium, 3=Medium, 4=Medium/Hard, 5=Hard, 6=Master
   explanation: text("explanation"), // Explanation for correct answer
   miniLesson: text("mini_lesson"), // Written mini lesson content for this question
-  timeLimit: integer("time_limit"), // Optional time limit in seconds
   tags: json("tags").$type<string[]>(), // Additional categorization tags
   createdBy: integer("created_by").references(() => users.id), // User who added the question
   approvedBy: integer("approved_by").references(() => users.id), // User who approved the question
@@ -659,14 +669,14 @@ export const assessmentResponses = pgTable("assessment_responses", {
   assessmentId: integer("assessment_id").notNull().references(() => assessments.id),
   questionId: text("question_id").notNull().references(() => assessmentQuestions.id),
   userId: integer("user_id").notNull().references(() => users.id),
+  questionSequence: integer("question_sequence").notNull(), // Order of question in assessment (1-40)
   selectedAnswer: integer("selected_answer"), // Index of selected option, null if timed out
   isCorrect: boolean("is_correct").notNull(),
   pointsEarned: integer("points_earned").default(0),
   timeSpent: integer("time_spent"), // Seconds spent on question
   timedOut: boolean("timed_out").default(false), // Whether question timed out
-  difficulty: integer("difficulty").notNull(), // Difficulty level when question was presented (1-3)
-  domain: text("domain").notNull(), // Store domain for failed answer analysis
-  category: text("category").notNull(), // Store category for failed answer analysis
+  difficulty: integer("difficulty").notNull(), // Difficulty level when question was presented (1-6)
+  domainId: integer("domain_id").notNull().references(() => assessmentDomains.id), // Store domain for failed answer analysis
   answeredAt: timestamp("answered_at").defaultNow(),
 });
 
@@ -684,10 +694,10 @@ export const questionAvailability = pgTable("question_availability", {
 export const assessmentConfig = pgTable("assessment_config", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").references(() => schools.id), // null for platform-wide default
-  questionCount: integer("question_count").default(25), // Configurable number of questions
-  timePerQuestion: integer("time_per_question").default(120), // Seconds per question
-  startingDifficulty: integer("starting_difficulty").default(2), // Starting difficulty level
-  minDomainCoverage: integer("min_domain_coverage").default(2), // Minimum questions per domain
+  questionCount: integer("question_count").default(40), // Configurable number of questions
+  timePerQuestion: integer("time_per_question").default(60), // Seconds per question (school-level setting)
+  startingDifficulty: integer("starting_difficulty").default(3), // Starting difficulty level (Medium)
+  minDomainCoverage: integer("min_domain_coverage").default(1), // Minimum questions per domain
   updatedBy: integer("updated_by").references(() => users.id),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

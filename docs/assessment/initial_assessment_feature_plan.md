@@ -28,7 +28,7 @@ The Initial Assessment is a core feature for MentorMe that provides new teachers
 The current schema has:
 - `assessments` table with comprehensive fields
 - `assessmentQuestions` table with basic structure
-- No dedicated `assessmentAnswers` table in the main schema
+- No dedicated `assessmentResponses` table in the main schema
 - Inconsistent question format and difficulty levels
 
 ## Feature Requirements
@@ -36,19 +36,19 @@ The current schema has:
 ### Core Functionality
 1. **Adaptive Assessment Engine**
    - Starts at medium difficulty
-   - Adjusts difficulty based on user performance
-   - Presents questions from various ECE domains
+   - Adjusts difficulty based on user performance across 6 difficulty levels
+   - Presents questions from various ECE domains with weighted distribution
    - Limits assessment to one attempt per teacher
 
 2. **Question Selection**
-   - Draw from multiple domains/categories
-   - Ensure balanced coverage across knowledge areas
-   - Adaptive difficulty progression
+   - Draw from multiple domains with proper weighting
+   - Ensure balanced coverage according to domain question weights
+   - Adaptive difficulty progression through 6 levels
    - No question repetition within assessment
 
 3. **Data Storage**
    - Store all assessment data in database
-   - Track individual question responses
+   - Track individual question responses in sequence
    - Store evaluation results and analytics
    - Maintain assessment completion status
 
@@ -84,20 +84,45 @@ The current schema has:
 
 ## Data Structure Design
 
+### Assessment Domains Schema
+
+```typescript
+export const assessmentDomains = pgTable("assessment_domains", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description").notNull(),
+  questionWeight: integer("question_weight").notNull(), // Number of questions from this domain
+  displayOrder: integer("display_order").notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Seed data for domains:
+// Child Safety & Supervision - 10 questions
+// Health & Development - 8 questions  
+// Trauma-Informed & Emotional Care - 7 questions
+// Positive Guidance - 8 questions
+// Curriculum & Learning Through Play - 8 questions
+// Family Engagement - 5 questions
+// Assessment & Observation - 5 questions
+// Professionalism & Ethics - 4 questions
+// Cultural & Individual Inclusion - 4 questions
+// Real Classroom Scenarios - 6 questions
+```
+
 ### Enhanced Assessment Questions Schema
 
 ```typescript
 export const assessmentQuestions = pgTable("assessment_questions", {
-  id: text("id").primaryKey(), // Format: "domain-difficulty-sequence" (e.g., "core-2-001")
-  domain: text("domain").notNull(), // ECE domain (core, mindful, build, language, etc.)
-  category: text("category").notNull(), // Sub-category within domain
+  id: text("id").primaryKey(), // Format: "domain-difficulty-sequence" (e.g., "safety-3-001")
+  domainId: integer("domain_id").notNull().references(() => assessmentDomains.id),
   text: text("text").notNull(), // Question text
   options: json("options").$type<string[]>().notNull(), // Array of answer options
   correctAnswer: integer("correct_answer").notNull(), // Index of correct option (0-based)
-  difficulty: integer("difficulty").notNull(), // 1=basic, 2=intermediate, 3=advanced
+  difficulty: integer("difficulty").notNull(), // 1=Easy, 2=Easy/Medium, 3=Medium, 4=Medium/Hard, 5=Hard, 6=Master
   explanation: text("explanation"), // Explanation for correct answer
   miniLesson: text("mini_lesson"), // Written mini lesson content for this question
-  timeLimit: integer("time_limit"), // Optional time limit in seconds
   tags: json("tags").$type<string[]>(), // Additional categorization tags
   createdBy: integer("created_by").references(() => users.id), // User who added the question
   approvedBy: integer("approved_by").references(() => users.id), // User who approved the question
@@ -121,10 +146,10 @@ export const questionAvailability = pgTable("question_availability", {
 export const assessmentConfig = pgTable("assessment_config", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").references(() => schools.id), // null for platform-wide default
-  questionCount: integer("question_count").default(25), // Configurable number of questions
-  timePerQuestion: integer("time_per_question").default(120), // Seconds per question
-  startingDifficulty: integer("starting_difficulty").default(2), // Starting difficulty level
-  minDomainCoverage: integer("min_domain_coverage").default(2), // Minimum questions per domain
+  questionCount: integer("question_count").default(40), // Configurable number of questions
+  timePerQuestion: integer("time_per_question").default(60), // Seconds per question (school-level setting)
+  startingDifficulty: integer("starting_difficulty").default(3), // Starting difficulty level (Medium)
+  minDomainCoverage: integer("min_domain_coverage").default(1), // Minimum questions per domain
   updatedBy: integer("updated_by").references(() => users.id),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -138,14 +163,14 @@ export const assessmentResponses = pgTable("assessment_responses", {
   assessmentId: integer("assessment_id").notNull().references(() => assessments.id),
   questionId: text("question_id").notNull().references(() => assessmentQuestions.id),
   userId: integer("user_id").notNull().references(() => users.id),
+  questionSequence: integer("question_sequence").notNull(), // Order of question in assessment (1-40)
   selectedAnswer: integer("selected_answer"), // Index of selected option, null if timed out
   isCorrect: boolean("is_correct").notNull(),
   pointsEarned: integer("points_earned").default(0),
   timeSpent: integer("time_spent"), // Seconds spent on question
   timedOut: boolean("timed_out").default(false), // Whether question timed out
-  difficulty: integer("difficulty").notNull(), // Difficulty level when question was presented (1-3)
-  domain: text("domain").notNull(), // Store domain for failed answer analysis
-  category: text("category").notNull(), // Store category for failed answer analysis
+  difficulty: integer("difficulty").notNull(), // Difficulty level when question was presented (1-6)
+  domainId: integer("domain_id").notNull().references(() => assessmentDomains.id), // Store domain for failed answer analysis
   answeredAt: timestamp("answered_at").defaultNow(),
 });
 ```
@@ -160,13 +185,13 @@ export const assessments = pgTable("assessments", {
   assessmentType: text("assessment_type").default("initial"), // initial, progress, final
   startedAt: timestamp("started_at"),
   completedAt: timestamp("completed_at"),
-  totalQuestions: integer("total_questions").default(0),
+  totalQuestions: integer("total_questions").default(40),
   correctAnswers: integer("correct_answers").default(0),
   averageDifficulty: doublePrecision("average_difficulty"),
   timeSpent: integer("time_spent"), // Total seconds spent
   
   // Adaptive assessment tracking
-  startingDifficulty: integer("starting_difficulty").default(2), // Start at intermediate
+  startingDifficulty: integer("starting_difficulty").default(3), // Start at Medium
   finalDifficulty: integer("final_difficulty"),
   difficultyProgression: json("difficulty_progression").$type<Array<{
     questionNumber: number;
@@ -184,8 +209,8 @@ export const assessments = pgTable("assessments", {
   
   // Growth areas identified from failed questions
   growthAreas: json("growth_areas").$type<Array<{
-    domain: string;
-    category: string;
+    domainId: number;
+    domainName: string;
     questionIds: string[];
     miniLessons: string[];
     priority: 'high' | 'medium' | 'low';
@@ -195,105 +220,271 @@ export const assessments = pgTable("assessments", {
 
 ## Assessment Domains and Categories
 
-### Primary Domains
-1. **Core Values** (Raising Arizona CORE)
-   - Consistency
-   - Preparedness  
-   - Commitment
-   - Caring
+### Primary Domains with Question Weights
+1. **Child Safety & Supervision** (10 questions)
+   - Active supervision techniques
+   - Incident response protocols
+   - Hygiene practices
+   - Emergency plans and procedures
 
-2. **Child Development**
-   - Physical development
-   - Cognitive development
-   - Social-emotional development
-   - Language development
+2. **Health & Development** (8 questions)
+   - Developmental milestones
+   - Nutrition guidelines
+   - Sleep requirements
+   - Red flags identification
 
-3. **Classroom Management**
-   - Behavior guidance
-   - Environment setup
-   - Transitions
-   - Routines
+3. **Trauma-Informed & Emotional Care** (7 questions)
+   - Co-regulation strategies
+   - Trigger identification
+   - Sensitive responses
+   - Emotional support techniques
 
-4. **Curriculum & Instruction**
-   - Lesson planning
-   - Differentiation
-   - Assessment strategies
-   - Learning activities
+4. **Positive Guidance** (8 questions)
+   - Discipline vs. guidance approaches
+   - Redirection techniques
+   - Empathy-based coaching
+   - Behavior management
 
-5. **Health & Safety**
-   - Safety protocols
-   - Health practices
-   - Emergency procedures
-   - Nutrition
+5. **Curriculum & Learning Through Play** (8 questions)
+   - Developmentally appropriate practices
+   - Emergent curriculum design
+   - Play-based learning
+   - Activity planning
 
-6. **Family Engagement**
-   - Communication
-   - Partnerships
-   - Cultural responsiveness
-   - Conflict resolution
+6. **Family Engagement** (5 questions)
+   - Communication strategies
+   - Inclusion practices
+   - Partnership building
+   - Cultural sensitivity
 
-7. **Professional Development**
-   - Reflective practice
-   - Continuous learning
-   - Ethics
-   - Collaboration
+7. **Assessment & Observation** (5 questions)
+   - Anecdotal note taking
+   - Screening procedures
+   - Documenting development
+   - Progress tracking
+
+8. **Professionalism & Ethics** (4 questions)
+   - Professional boundaries
+   - Reporting requirements
+   - Bias awareness
+   - Confidentiality
+
+9. **Cultural & Individual Inclusion** (4 questions)
+   - Neurodiversity support
+   - Cultural humility
+   - Inclusive routines
+   - Individual accommodations
+
+10. **Real Classroom Scenarios** (6 questions)
+    - Gray-area decision making
+    - Conflict resolution
+    - Practical problem solving
+    - Situational judgment
 
 ## Adaptive Algorithm Design
 
-### Difficulty Levels
-- **Basic** (1): Fundamental concepts, basic knowledge
-- **Intermediate** (2): Applied knowledge, practical scenarios  
-- **Advanced** (3): Complex situations, critical thinking and mastery
+### Difficulty Levels (6 Levels)
+- **Easy** (1): Basic concepts, fundamental knowledge
+- **Easy/Medium** (2): Applied basic knowledge
+- **Medium** (3): Practical scenarios, standard application
+- **Medium/Hard** (4): Complex situations, advanced application
+- **Hard** (5): Critical thinking, expert-level scenarios
+- **Master** (6): Mastery-level, complex problem solving
+
+### Detailed Question Selection Algorithm
+
+The assessment uses a sophisticated algorithm that balances adaptive difficulty with weighted domain coverage:
+
+#### 1. Initialization
+```typescript
+interface AssessmentState {
+  currentDifficulty: number; // Start at 3 (Medium)
+  questionNumber: number; // Current question (1-40)
+  domainProgress: Record<number, {
+    target: number; // Expected questions based on weight
+    actual: number; // Questions actually asked
+    deficit: number; // target - actual
+  }>;
+  recentPerformance: boolean[]; // Last 3 answers for stability
+  usedQuestions: Set<string>; // Prevent repetition
+}
+```
+
+#### 2. Question Selection Process
+For each question (1-40), the algorithm follows this sequence:
+
+**Step 1: Determine Target Domain**
+```typescript
+// Calculate domain deficits
+const domainDeficits = domains.map(domain => ({
+  domainId: domain.id,
+  deficit: domain.target - domain.actual,
+  priority: domain.target - domain.actual > 0 ? 'high' : 'low'
+}));
+
+// Select domain with highest deficit, or random if all balanced
+const targetDomain = domainDeficits
+  .filter(d => d.deficit > 0)
+  .sort((a, b) => b.deficit - a.deficit)[0] 
+  || randomFromBalanced(domainDeficits);
+```
+
+**Step 2: Adjust Difficulty**
+```typescript
+// Difficulty adjustment based on previous answer
+if (previousAnswer !== null) {
+  if (previousAnswer.isCorrect) {
+    // Increase difficulty (max 6)
+    currentDifficulty = Math.min(6, currentDifficulty + 1);
+  } else {
+    // Decrease difficulty (min 1)
+    currentDifficulty = Math.max(1, currentDifficulty - 1);
+  }
+}
+
+// Stability check: if last 3 answers at same difficulty were correct,
+// maintain difficulty for next question to confirm mastery
+if (recentPerformance.length >= 3 && 
+    recentPerformance.slice(-3).every(correct => correct) &&
+    currentDifficulty < 6) {
+  // Stay at current difficulty for confirmation
+}
+```
+
+**Step 3: Question Pool Filtering**
+```typescript
+const availableQuestions = questions.filter(q => 
+  q.domainId === targetDomain.domainId &&
+  q.difficulty === currentDifficulty &&
+  q.isApproved === true &&
+  q.isEnabled === true &&
+  schoolQuestionAvailability[q.id] === true &&
+  !usedQuestions.has(q.id)
+);
+```
+
+**Step 4: Fallback Strategy**
+```typescript
+// If no questions available at target difficulty/domain:
+if (availableQuestions.length === 0) {
+  // Try adjacent difficulty levels (±1)
+  const fallbackDifficulties = [
+    currentDifficulty - 1,
+    currentDifficulty + 1
+  ].filter(d => d >= 1 && d <= 6);
+  
+  for (const fallbackDiff of fallbackDifficulties) {
+    const fallbackQuestions = questions.filter(q => 
+      q.domainId === targetDomain.domainId &&
+      q.difficulty === fallbackDiff &&
+      // ... other filters
+    );
+    if (fallbackQuestions.length > 0) {
+      availableQuestions = fallbackQuestions;
+      currentDifficulty = fallbackDiff;
+      break;
+    }
+  }
+  
+  // If still no questions, try any domain at current difficulty
+  if (availableQuestions.length === 0) {
+    availableQuestions = questions.filter(q => 
+      q.difficulty === currentDifficulty &&
+      // ... other filters
+    );
+  }
+}
+```
+
+**Step 5: Final Selection**
+```typescript
+// Random selection from available pool
+const selectedQuestion = availableQuestions[
+  Math.floor(Math.random() * availableQuestions.length)
+];
+
+// Update tracking
+usedQuestions.add(selectedQuestion.id);
+domainProgress[selectedQuestion.domainId].actual++;
+```
+
+#### 3. Domain Weight Enforcement
+The algorithm ensures proper domain distribution by:
+- **Early Phase (Questions 1-20)**: Prioritize domains with largest deficits
+- **Mid Phase (Questions 21-35)**: Balance remaining deficits while maintaining adaptivity
+- **Final Phase (Questions 36-40)**: Fill any remaining domain gaps, allow some flexibility
+
+#### 4. Performance Tracking
+```typescript
+// After each answer, update performance metrics
+recentPerformance.push(isCorrect);
+if (recentPerformance.length > 3) {
+  recentPerformance.shift(); // Keep only last 3
+}
+
+// Track domain-specific performance
+domainPerformance[domainId] = {
+  questionsAnswered: domainPerformance[domainId].questionsAnswered + 1,
+  correctAnswers: domainPerformance[domainId].correctAnswers + (isCorrect ? 1 : 0),
+  averageDifficulty: calculateRunningAverage(difficulty),
+  score: (correctAnswers / questionsAnswered) * 100
+};
+```
 
 ### Adaptation Rules
-1. **Starting Point**: All assessments begin at Intermediate level (2)
+1. **Starting Point**: All assessments begin at Medium level (3)
 2. **Progression Logic**:
-   - Correct answer → Increase difficulty (if not at level 3)
+   - Correct answer → Increase difficulty (if not at level 6)
    - Incorrect answer → Decrease difficulty (if not at level 1)
-   - Maintain difficulty after 2 consecutive correct at same level
+   - Maintain difficulty after 3 consecutive correct at same level for confirmation
 3. **Question Selection**: 
-   - Rotate through domains to ensure coverage
+   - Follow domain weighting for balanced coverage
    - Select questions at current difficulty level
    - Check platform-level (isEnabled) and school-specific availability
    - Avoid previously answered questions
 4. **Completion Criteria**:
-   - Fixed number of questions (configurable, default 25)
+   - Fixed number of questions (configurable, default 40)
    - Timeout handling: unanswered questions marked as incorrect
-   - Domain coverage: track domains covered, prioritize new domains when coverage is low
+   - Domain coverage: ensure proper weighting distribution
 5. **Timeout Handling**:
-   - Each question has a configurable time limit (default 120 seconds)
+   - Each question has a configurable time limit per school (default 60 seconds)
    - Timed out questions are marked as incorrect and assessment continues
    - Ensures assessment completion even with unresponsive users
 
 ### Points System
-- **Basic questions (1)**: 5 points
-- **Intermediate questions (2)**: 10 points  
-- **Advanced questions (3)**: 15 points
+- **Easy (1)**: 5 points
+- **Easy/Medium (2)**: 8 points
+- **Medium (3)**: 10 points
+- **Medium/Hard (4)**: 13 points
+- **Hard (5)**: 15 points
+- **Master (6)**: 20 points
 
-### Domain Coverage Algorithm
-- Track number of domains covered during assessment
-- If domain coverage is low (< minDomainCoverage per domain), prioritize selecting from uncovered domains
-- If domain coverage is adequate, use normal adaptive selection within current difficulty
-- Simple algorithm that's easy to adjust later
+### Weighted Domain Selection Algorithm
+- Calculate target questions per domain based on question weights
+- Track actual questions asked per domain during assessment
+- Prioritize domains that are under their target allocation
+- Ensure all domains receive at least their minimum allocation
+- Simple algorithm that maintains proper weighting distribution
 
 ## Implementation Plan
 
 ### Phase 1: Database Schema Updates
-1. Create migration for enhanced assessment tables
-2. Update existing schema with new fields
-3. Create indexes for performance optimization
-4. Seed database with curated questions
+1. Create migration for new assessment domains table
+2. Create migration for enhanced assessment tables
+3. Update existing schema with new fields and 6 difficulty levels
+4. Create indexes for performance optimization
+5. Seed database with domain data and curated questions
 
 ### Phase 2: Backend API Development
 1. Assessment session management endpoints
-2. Adaptive question selection service
-3. Answer evaluation and scoring
+2. Weighted adaptive question selection service
+3. Answer evaluation and scoring with 6-level system
 4. Results calculation and storage
 5. Progress tracking utilities
 
 ### Phase 3: Frontend Implementation
 1. Assessment start/welcome screen
-2. Question presentation interface
+2. Question presentation interface with 6-level difficulty
 3. Progress indicators and feedback
 4. Results display and analysis
 5. Dashboard integration
@@ -321,14 +512,14 @@ export const assessments = pgTable("assessments", {
 ### Encouragement Strategy
 - **Visual Prominence**: Use distinctive styling for assessment card
 - **Clear Benefits**: Explain how assessment improves learning experience
-- **Progress Tracking**: Show completion percentage and estimated time
+- **Progress Tracking**: Show completion percentage and estimated time (30-40 minutes)
 - **Gamification**: Award points and badges for completion
 
 ## Technical Considerations
 
 ### Performance
 - Implement question caching for faster loading
-- Use database indexes for efficient question selection
+- Use database indexes for efficient weighted question selection
 - Optimize adaptive algorithm for minimal computation
 
 ### Security
@@ -338,20 +529,20 @@ export const assessments = pgTable("assessments", {
 
 ### Scalability
 - Design for multiple concurrent assessments
-- Efficient question pool management
+- Efficient question pool management with weighting
 - Modular architecture for easy domain expansion
 
 ### Analytics
 - Track assessment completion rates
-- Monitor question difficulty distribution
-- Analyze domain performance patterns
+- Monitor question difficulty distribution across 6 levels
+- Analyze domain performance patterns with weighting
 - Generate insights for content improvement
 
 ## Success Metrics
 
 ### User Engagement
 - Assessment completion rate for new teachers
-- Time to complete assessment
+- Time to complete assessment (target: 30-40 minutes for 40 questions)
 - User satisfaction scores
 - Return engagement after assessment
 
@@ -363,7 +554,7 @@ export const assessments = pgTable("assessments", {
 
 ### Technical Performance
 - Assessment loading time
-- Question selection efficiency
+- Weighted question selection efficiency
 - Database query performance
 - System reliability and uptime
 
@@ -374,6 +565,7 @@ export const assessments = pgTable("assessments", {
 - Collaborative assessment options
 - Peer comparison analytics
 - Adaptive time limits based on question complexity
+- **Per-Domain Difficulty Tracking**: Instead of global difficulty, maintain separate difficulty levels for each domain to provide more granular adaptation and accurate assessment of domain-specific knowledge
 
 ### Integration Opportunities
 - LMS compatibility for external reporting
@@ -385,12 +577,12 @@ export const assessments = pgTable("assessments", {
 
 ### Technical Risks
 - **Database Performance**: Implement proper indexing and query optimization
-- **Question Pool Depletion**: Maintain large, diverse question database
+- **Question Pool Depletion**: Maintain large, diverse question database with proper weighting
 - **Adaptive Algorithm Accuracy**: Continuous testing and refinement
 
 ### User Experience Risks
-- **Assessment Fatigue**: Optimize question count and pacing
-- **Difficulty Frustration**: Provide encouraging feedback and explanations
+- **Assessment Fatigue**: Optimize question count and pacing (40 questions, ~40 minutes)
+- **Difficulty Frustration**: Provide encouraging feedback and explanations across 6 levels
 - **Technical Issues**: Implement robust error handling and recovery
 
 ### Content Risks
