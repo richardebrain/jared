@@ -21,6 +21,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Sparkles } from "lucide-react";
 
 // Form schema for business registration
 const businessSignupSchema = z.object({
@@ -51,6 +53,9 @@ const businessSignupSchema = z.object({
   subscriptionPlan: z.enum(["trial", "monthly", "yearly"], {
     required_error: "Please select a subscription plan.",
   }),
+  
+  // Custom branding add-on
+  customBranding: z.boolean().default(false),
   
   // Owner account information
   firstName: z.string().min(1, {
@@ -88,6 +93,7 @@ export default function BusinessSignup() {
       state: "",
       zipCode: "",
       subscriptionPlan: "trial",
+      customBranding: false,
       firstName: "",
       lastName: "",
       username: "",
@@ -407,6 +413,68 @@ export default function BusinessSignup() {
                       </FormItem>
                     )}
                   />
+                </div>
+
+                {/* Custom Branding Add-on */}
+                <div className="border-2 border-orange-200 rounded-lg p-6 bg-gradient-to-br from-orange-50 to-amber-50">
+                  <div className="flex items-start space-x-4">
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
+                        <Sparkles className="h-6 w-6 text-white" />
+                      </div>
+                    </div>
+                    <div className="flex-grow">
+                      <h3 className="text-lg font-semibold text-orange-800 mb-2">
+                        Premium Custom Branding Package
+                      </h3>
+                      <p className="text-orange-700 mb-4">
+                        Transform your school with a complete custom brand experience designed specifically for your values and vision.
+                      </p>
+                      
+                      <div className="grid md:grid-cols-2 gap-4 mb-4">
+                        <div className="bg-white p-3 rounded-lg border border-orange-200">
+                          <h4 className="font-medium text-orange-800 mb-1">🎵 Custom Core Values Song</h4>
+                          <p className="text-sm text-orange-600">Professional recording tailored to your school's values</p>
+                        </div>
+                        <div className="bg-white p-3 rounded-lg border border-orange-200">
+                          <h4 className="font-medium text-orange-800 mb-1">🎓 Core Values Training</h4>
+                          <p className="text-sm text-orange-600">Specialized training module for your team</p>
+                        </div>
+                        <div className="bg-white p-3 rounded-lg border border-orange-200">
+                          <h4 className="font-medium text-orange-800 mb-1">🎨 Custom Logo Design</h4>
+                          <p className="text-sm text-orange-600">Professional logo reflecting your school's identity</p>
+                        </div>
+                        <div className="bg-white p-3 rounded-lg border border-orange-200">
+                          <h4 className="font-medium text-orange-800 mb-1">🚀 Personalized Onboarding</h4>
+                          <p className="text-sm text-orange-600">Custom training program for your staff</p>
+                        </div>
+                      </div>
+                      
+                      <FormField
+                        control={form.control}
+                        name="customBranding"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                className="border-orange-400 data-[state=checked]:bg-orange-500"
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel className="text-lg font-semibold text-orange-800">
+                                Add Custom Branding Package - $1,999 one-time fee
+                              </FormLabel>
+                              <FormDescription className="text-orange-600">
+                                Complete brand transformation including song, training, logo, and onboarding
+                              </FormDescription>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Administrator Account Section */}
