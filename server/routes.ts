@@ -3667,6 +3667,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch teacher progress data" });
     }
   });
+
+  // Business registration endpoint
+  app.post("/api/auth/register-business", async (req, res) => {
+    try {
+      const {
+        schoolName,
+        contactEmail,
+        contactPhone,
+        address,
+        city,
+        state,
+        zipCode,
+        firstName,
+        lastName,
+        username,
+        password,
+        language = "English",
+        nativeLanguage = "English",
+        timeZone = "UTC-05:00"
+      } = req.body;
+
+      console.log("Business registration attempt for school:", schoolName);
+
+      // Check if school name already exists
+      const existingSchool = await storage.getSchoolByName(schoolName);
+      if (existingSchool) {
+        return res.status(400).json({ message: "A school with this name already exists" });
+      }
+
+      // Check if username already exists
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(password, 12);
+
+      // Create the school first
+      const schoolData = {
+        name: schoolName,
+        contactEmail,
+        contactPhone,
+        address,
+        city,
+        state,
+        zipCode,
+        subscriptionActive: true,
+        subscriptionType: "trial",
+        isFreeAccess: false,
+        teacherCount: 1,
+      };
+
+      const newSchool = await storage.createSchool(schoolData);
+      console.log("School created successfully:", newSchool.name, "(ID:", newSchool.id, ")");
+
+      // Create the school owner/admin account
+      const userData = {
+        username,
+        password: hashedPassword,
+        firstName,
+        lastName,
+        email: contactEmail,
+        language,
+        nativeLanguage,
+        timeZone,
+        schoolId: newSchool.id,
+        isOwner: true,
+        isSchoolAdmin: true,
+        points: 0,
+        bearBucks: 0,
+        level: 1,
+        streak: 0,
+        achievementCount: 0,
+        learningStyle: {
+          visual: 0,
+          auditory: 0,
+          reading: 0,
+          kinesthetic: 0,
+          preferred: null
+        }
+      };
+
+      const newUser = await storage.createUser(userData);
+      console.log("School owner account created successfully:", newUser.username, "(ID:", newUser.id, ")");
+
+      res.status(201).json({
+        message: "School and admin account created successfully",
+        schoolId: newSchool.id,
+        schoolName: newSchool.name,
+        adminId: newUser.id,
+        adminUsername: newUser.username
+      });
+
+    } catch (error) {
+      console.error("Business registration error:", error);
+      res.status(500).json({ message: "Registration failed: " + error.message });
+    }
+  });
   
   // Add a new teacher to a specific school
   app.post("/api/schools/:schoolId/teachers", requireSchoolAdmin, async (req, res) => {
