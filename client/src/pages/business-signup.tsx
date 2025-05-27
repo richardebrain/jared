@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import raisingArizonaLogo from "../assets/images/raising-arizona-logo.jpg";
+import mindfulMorningsLogo from "@assets/mindful-mornings-logo.jpg";
 
 import {
   Form,
@@ -22,7 +22,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Eye, EyeOff } from "lucide-react";
 
 // Form schema for business registration
 const businessSignupSchema = z.object({
@@ -80,6 +80,7 @@ const businessSignupSchema = z.object({
 export default function BusinessSignup() {
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
+  const [showPassword, setShowPassword] = useState(false);
 
   // Create form for business registration
   const form = useForm<z.infer<typeof businessSignupSchema>>({
@@ -169,7 +170,7 @@ export default function BusinessSignup() {
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-4">
               <img 
-                src={raisingArizonaLogo} 
+                src={mindfulMorningsLogo} 
                 alt="MentorMe Logo" 
                 className="h-16 w-auto object-contain"
               />
@@ -533,11 +534,26 @@ export default function BusinessSignup() {
                         <FormItem>
                           <FormLabel>Password *</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="password" 
-                              placeholder="Create a secure password" 
-                              {...field}
-                            />
+                            <div className="relative">
+                              <Input 
+                                type={showPassword ? "text" : "password"} 
+                                placeholder="Create a secure password" 
+                                {...field}
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                onClick={() => setShowPassword(!showPassword)}
+                              >
+                                {showPassword ? (
+                                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                ) : (
+                                  <Eye className="h-4 w-4 text-muted-foreground" />
+                                )}
+                              </Button>
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
