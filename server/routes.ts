@@ -1096,6 +1096,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get teachers for current user's school (for director dashboard)
+  app.get("/api/school-teachers", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const userId = req.session.userId as number;
+      const currentUser = await storage.getUser(userId);
+      
+      if (!currentUser || !currentUser.schoolId) {
+        return res.status(400).json({ message: "User not associated with a school" });
+      }
+
+      // Get all teachers from the same school (excluding the current user if they want)
+      const teachers = await storage.getUsersBySchoolId(currentUser.schoolId);
+      
+      // Filter out admins if needed and return relevant teacher data
+      const teacherData = teachers
+        .filter(teacher => !teacher.isOwner) // Exclude app owners
+        .map(teacher => ({
+          id: teacher.id,
+          username: teacher.username,
+          firstName: teacher.firstName,
+          lastName: teacher.lastName,
+          email: teacher.email,
+          level: teacher.level,
+          points: teacher.points,
+          streak: teacher.streak,
+          lastActive: teacher.lastActive,
+          isSchoolAdmin: teacher.isSchoolAdmin
+        }));
+
+      res.json({
+        schoolId: currentUser.schoolId,
+        teachers: teacherData,
+        totalTeachers: teacherData.length
+      });
+    } catch (error) {
+      console.error("Error fetching school teachers:", error);
+      res.status(500).json({ message: "Failed to fetch school teachers" });
+    }
+  });
+
   // Get all users (for leaderboard)
   app.get("/api/users", async (req, res) => {
     try {
