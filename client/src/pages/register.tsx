@@ -58,6 +58,7 @@ export default function Register() {
   const { data: schools = [], isLoading: schoolsLoading } = useQuery({
     queryKey: ['/api/schools'],
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    enabled: false, // Temporarily disable to fix the issue
   });
 
   // Create form with simplified fields
@@ -280,6 +281,37 @@ export default function Register() {
                         // Allow the field to work with password managers
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="schoolId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>School</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select your school" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {schoolsLoading ? (
+                          <SelectItem value="loading" disabled>Loading schools...</SelectItem>
+                        ) : Array.isArray(schools) && schools.length > 0 ? (
+                          schools.map((school: any) => (
+                            <SelectItem key={school.id} value={school.id.toString()}>
+                              {school.name} {school.isFreeAccess && "(Free)"}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="1">Raising Arizona Preschool (Free)</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
