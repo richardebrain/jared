@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 // Form schema for business registration
 const businessSignupSchema = z.object({
@@ -305,7 +306,7 @@ export default function BusinessSignup() {
                                 id="trial"
                                 className="peer sr-only"
                               />
-                              <Label
+                              <label
                                 htmlFor="trial"
                                 className="flex flex-col items-start space-y-2 rounded-lg border-2 border-gray-200 p-4 cursor-pointer hover:border-blue-300 peer-checked:border-blue-500 peer-checked:bg-blue-50"
                               >
@@ -327,7 +328,7 @@ export default function BusinessSignup() {
                                   <li>• Progress tracking</li>
                                   <li>• Admin dashboard</li>
                                 </ul>
-                              </Label>
+                              </label>
                             </div>
 
                             {/* Monthly Plan */}
@@ -337,21 +338,30 @@ export default function BusinessSignup() {
                                 id="monthly"
                                 className="peer sr-only"
                               />
-                              <Label
+                              <label
                                 htmlFor="monthly"
                                 className="flex flex-col items-start space-y-2 rounded-lg border-2 border-gray-200 p-4 cursor-pointer hover:border-blue-300 peer-checked:border-blue-500 peer-checked:bg-blue-50"
                               >
                                 <div className="flex items-center justify-between w-full">
                                   <span className="font-semibold text-lg">Monthly Plan</span>
-                                  <span className="text-2xl font-bold">$49<span className="text-sm font-normal">/month</span></span>
+                                  <div className="text-right">
+                                    <span className="text-xl font-bold">$89<span className="text-sm font-normal">/month</span></span>
+                                    <p className="text-sm text-gray-600">+ $7 per teacher</p>
+                                  </div>
                                 </div>
                                 <p className="text-sm text-gray-600">
                                   Perfect for getting started with flexible monthly billing.
                                 </p>
+                                <ul className="text-sm text-gray-600 space-y-1">
+                                  <li>• $89 base monthly fee</li>
+                                  <li>• $7 per active teacher account</li>
+                                  <li>• Complete module library</li>
+                                  <li>• Progress tracking & admin dashboard</li>
+                                </ul>
                                 <p className="text-xs text-amber-600 font-medium">
-                                  * Payment processing will be available after trial period
+                                  * You agree to pay $7/month for each active teacher. Update your account when teachers leave.
                                 </p>
-                              </Label>
+                              </label>
                             </div>
 
                             {/* Annual Plan */}
@@ -361,7 +371,7 @@ export default function BusinessSignup() {
                                 id="yearly"
                                 className="peer sr-only"
                               />
-                              <Label
+                              <label
                                 htmlFor="yearly"
                                 className="flex flex-col items-start space-y-2 rounded-lg border-2 border-gray-200 p-4 cursor-pointer hover:border-blue-300 peer-checked:border-blue-500 peer-checked:bg-blue-50"
                               >
@@ -369,21 +379,27 @@ export default function BusinessSignup() {
                                   <div className="flex items-center space-x-2">
                                     <span className="font-semibold text-lg">Annual Plan</span>
                                     <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
-                                      Save 25%
+                                      Save 2 months
                                     </span>
                                   </div>
                                   <div className="text-right">
-                                    <span className="text-2xl font-bold">$39<span className="text-sm font-normal">/month</span></span>
-                                    <p className="text-xs text-gray-500">($468 billed annually)</p>
+                                    <span className="text-xl font-bold">$89<span className="text-sm font-normal">/month</span></span>
+                                    <p className="text-sm text-gray-600">+ $7 per teacher</p>
+                                    <p className="text-xs text-gray-500">($890 billed annually)</p>
                                   </div>
                                 </div>
                                 <p className="text-sm text-gray-600">
-                                  Best value for committed schools. Save $120 per year!
+                                  Best value! Pay for 10 months, get 12 months of service.
                                 </p>
+                                <ul className="text-sm text-gray-600 space-y-1">
+                                  <li>• Save $178 annually (2 months free)</li>
+                                  <li>• $7 per active teacher account</li>
+                                  <li>• Priority support included</li>
+                                </ul>
                                 <p className="text-xs text-amber-600 font-medium">
-                                  * Payment processing will be available after trial period
+                                  * You agree to pay $7/month for each active teacher. Update your account when teachers leave.
                                 </p>
-                              </Label>
+                              </label>
                             </div>
                           </RadioGroup>
                         </FormControl>

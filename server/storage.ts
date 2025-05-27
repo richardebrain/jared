@@ -877,10 +877,7 @@ export class DatabaseStorage implements IStorage {
     this.assessments.set(id, assessment);
     return assessment;
   }
-}
 
-// Create a DatabaseStorage class that implements the IStorage interface
-export class DatabaseStorage implements IStorage {
   // Streak rewards operations
   async getStreakRewardsByUserId(userId: number): Promise<StreakReward[]> {
     const rewards = await db
