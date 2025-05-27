@@ -1,8 +1,18 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
-import axios, { AxiosRequestConfig } from "axios";
+import { QueryClient } from "@tanstack/react-query";
+import axios from "axios";
+
+type AxiosRequestConfig = {
+  method?: string;
+  url?: string;
+  data?: any;
+  params?: any;
+  headers?: any;
+  withCredentials?: boolean;
+  timeout?: number;
+};
 
 // Define a custom default query function that's compatible with TanStack Query v5
-const defaultQueryFn: QueryFunction = async ({ queryKey }) => {
+const defaultQueryFn = async ({ queryKey }: { queryKey: readonly unknown[] }) => {
   if (!queryKey || !queryKey[0] || typeof queryKey[0] !== 'string') {
     throw new Error('Query key must be a string');
   }
