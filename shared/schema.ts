@@ -628,20 +628,69 @@ export const schoolsRelations = relations(schools, ({ many }) => ({
 export const assessmentQuestions = pgTable("assessment_questions", {
   id: text("id").primaryKey(), // Using text ID to support various formats (e.g., "build-1", "csv-123")
   domain: text("domain").notNull(), // core, mindful, build, language, etc.
+  category: text("category").notNull(), // Sub-category within domain
   text: text("text").notNull(), // The question text
-  options: text("options").notNull(), // JSON string of options array
-  correctAnswer: integer("correct_answer").notNull(), // Index of correct option
-  difficulty: text("difficulty").notNull().default("beginner"), // beginner, intermediate, advanced, expert
-  explanation: text("explanation"), // Optional explanation for the answer
+  options: json("options").$type<string[]>().notNull(), // Array of answer options
+  correctAnswer: integer("correct_answer").notNull(), // Index of correct option (0-based)
+  difficulty: integer("difficulty").notNull(), // 1=basic, 2=intermediate, 3=advanced
+  explanation: text("explanation"), // Explanation for correct answer
+  miniLesson: text("mini_lesson"), // Written mini lesson content for this question
+  timeLimit: integer("time_limit"), // Optional time limit in seconds
+  tags: json("tags").$type<string[]>(), // Additional categorization tags
+  createdBy: integer("created_by").references(() => users.id), // User who added the question
+  approvedBy: integer("approved_by").references(() => users.id), // User who approved the question
+  isApproved: boolean("is_approved").default(false), // Whether question is approved for use
+  isEnabled: boolean("is_enabled").default(true), // Platform-level availability control
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const insertAssessmentQuestionSchema = createInsertSchema(assessmentQuestions).omit({
   createdAt: true,
+  updatedAt: true,
 });
 
 export type AssessmentQuestion = typeof assessmentQuestions.$inferSelect;
 export type InsertAssessmentQuestion = z.infer<typeof insertAssessmentQuestionSchema>;
+
+// Assessment responses table for tracking user answers
+export const assessmentResponses = pgTable("assessment_responses", {
+  id: serial("id").primaryKey(),
+  assessmentId: integer("assessment_id").notNull().references(() => assessments.id),
+  questionId: text("question_id").notNull().references(() => assessmentQuestions.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+  selectedAnswer: integer("selected_answer"), // Index of selected option, null if timed out
+  isCorrect: boolean("is_correct").notNull(),
+  pointsEarned: integer("points_earned").default(0),
+  timeSpent: integer("time_spent"), // Seconds spent on question
+  timedOut: boolean("timed_out").default(false), // Whether question timed out
+  difficulty: integer("difficulty").notNull(), // Difficulty level when question was presented (1-3)
+  domain: text("domain").notNull(), // Store domain for failed answer analysis
+  category: text("category").notNull(), // Store category for failed answer analysis
+  answeredAt: timestamp("answered_at").defaultNow(),
+});
+
+// Question availability control for school-level management
+export const questionAvailability = pgTable("question_availability", {
+  id: serial("id").primaryKey(),
+  questionId: text("question_id").notNull().references(() => assessmentQuestions.id),
+  schoolId: integer("school_id").references(() => schools.id), // null for platform-wide
+  isEnabled: boolean("is_enabled").default(true),
+  enabledBy: integer("enabled_by").references(() => users.id),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Assessment configuration
+export const assessmentConfig = pgTable("assessment_config", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id), // null for platform-wide default
+  questionCount: integer("question_count").default(25), // Configurable number of questions
+  timePerQuestion: integer("time_per_question").default(120), // Seconds per question
+  startingDifficulty: integer("starting_difficulty").default(2), // Starting difficulty level
+  minDomainCoverage: integer("min_domain_coverage").default(2), // Minimum questions per domain
+  updatedBy: integer("updated_by").references(() => users.id),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
 // Teacher welcome messages and notifications table
 export const teacherMessages = pgTable("teacher_messages", {
@@ -846,14 +895,10 @@ export const videoQuizCompletions = pgTable("video_quiz_completions", {
   completedAt: timestamp("completed_at").defaultNow().notNull(),
 });
 
-
-
 export const insertVideoQuizCompletionSchema = createInsertSchema(videoQuizCompletions).omit({
   id: true,
   completedAt: true,
 });
-
-
 
 export const videoQuizCompletionsRelations = relations(videoQuizCompletions, ({ one }) => ({
   user: one(users, {
