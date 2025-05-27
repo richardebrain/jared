@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import mindfulMorningsLogo from "@assets/mindful-mornings-logo.jpg";
+// Using text-based MentorMe logo for now
 
 import {
   Form,
@@ -169,11 +169,10 @@ export default function BusinessSignup() {
         <Card>
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-4">
-              <img 
-                src={mindfulMorningsLogo} 
-                alt="MentorMe Logo" 
-                className="h-16 w-auto object-contain"
-              />
+              <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg shadow-lg">
+                <h1 className="text-2xl font-bold tracking-wide">MentorMe</h1>
+                <p className="text-xs text-blue-100 text-center mt-1">Professional Development Platform</p>
+              </div>
             </div>
             <CardTitle className="text-2xl font-bold">Register Your School</CardTitle>
             <CardDescription>
