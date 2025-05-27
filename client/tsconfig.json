@@ -21,7 +21,7 @@
     
     // Advanced checks for later
     // "exactOptionalPropertyTypes": true,
-    "verbatimModuleSyntax": true,     // Better import/export checking ✅ ENABLING
+    // "verbatimModuleSyntax": true,     // Better import/export checking - DISABLED due to build issues
     // "noImplicitOverride": true,
     
     "baseUrl": ".",

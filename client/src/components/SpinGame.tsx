@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { SparklesIcon, Award, Gift, Coins, Star, Trophy, Heart } from "lucide-react";
-import { User } from "@shared/schema";
+import type { User } from "@shared/schema";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ensureUserDefaults } from "@/types/user";
 

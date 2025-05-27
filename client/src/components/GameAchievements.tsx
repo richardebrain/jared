@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Award, Star, Flame, Lock, BookOpen, Calendar } from "lucide-react";
-import { User } from "@shared/schema";
+import type { User } from "@shared/schema";
 
 interface GameAchievementsProps {
   user: User | null;
@@ -42,9 +42,9 @@ export default function GameAchievements({ user }: GameAchievementsProps) {
       name: "Knowledge Seeker",
       description: "Complete 3 training modules",
       icon: <BookOpen className="h-6 w-6" />,
-      progress: user?.modules?.filter(m => m.completed)?.length || 0,
+      progress: 0, // TODO: Fix user modules access
       maxProgress: 3,
-      unlocked: (user?.modules?.filter(m => m.completed)?.length || 0) >= 3,
+      unlocked: false,
       category: "learning",
       color: "bg-blue-500"
     },
@@ -53,9 +53,9 @@ export default function GameAchievements({ user }: GameAchievementsProps) {
       name: "Core Values Champion",
       description: "Complete the CORE training module",
       icon: <Star className="h-6 w-6" />,
-      progress: user?.modules?.some(m => m.moduleId === 33 && m.completed) ? 1 : 0,
+      progress: 0, // TODO: Fix user modules access
       maxProgress: 1,
-      unlocked: user?.modules?.some(m => m.moduleId === 33 && m.completed) || false,
+      unlocked: false,
       category: "values",
       color: "bg-amber-500"
     },
@@ -86,9 +86,9 @@ export default function GameAchievements({ user }: GameAchievementsProps) {
       name: "Self-Aware Educator",
       description: "Complete the teaching assessment",
       icon: <Calendar className="h-6 w-6" />,
-      progress: user?.assessments?.some(a => a.completed) ? 1 : 0,
+      progress: 0, // TODO: Fix user assessments access
       maxProgress: 1,
-      unlocked: user?.assessments?.some(a => a.completed) || false,
+      unlocked: false,
       category: "teaching",
       color: "bg-teal-500"
     }

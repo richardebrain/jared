@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { User, LearningModule, UserProgress } from "@shared/schema";
+import type { User, LearningModule, UserProgress } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import DynamicLessonGenerator from "@/components/DynamicLessonGenerator";

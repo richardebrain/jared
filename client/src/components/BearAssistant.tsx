@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SendHorizonal, Minimize2, Maximize2, HelpCircle } from "lucide-react";
-import { User } from "@shared/schema";
+import type { User } from "@shared/schema";
 import { askEceQuestion } from "@/lib/perplexity";
 
 interface BearAssistantProps {

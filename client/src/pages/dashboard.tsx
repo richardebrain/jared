@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { User } from "@shared/schema";
+import type { User } from "@shared/schema";
 import { Link, useLocation } from "wouter";
 import Header from "@/components/Header";
 import ModuleView from "@/components/ModuleView";

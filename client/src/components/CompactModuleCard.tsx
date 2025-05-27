@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { BookOpen, Play, CheckCircle, Clock } from "lucide-react";
-import { LearningModule, UserProgress } from "@shared/schema";
+import type { LearningModule, UserProgress } from "@shared/schema";
 
 interface CompactModuleCardProps {
   module: LearningModule;
@@ -43,8 +43,8 @@ export function CompactModuleCard({ module, progress, onClick }: CompactModuleCa
         <h3 className="text-sm font-semibold leading-tight line-clamp-2">
           {module.title}
         </h3>
-        {module.isRequired && (
-          <Badge variant="secondary" className="ml-1 text-xs">Required</Badge>
+        {module.featured && (
+          <Badge variant="secondary" className="ml-1 text-xs">Featured</Badge>
         )}
       </div>
       
