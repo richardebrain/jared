@@ -466,9 +466,9 @@ export default function BusinessSignup() {
                               <FormLabel className="text-lg font-semibold text-orange-800">
                                 Add Custom Branding Package - $1,999 one-time fee
                               </FormLabel>
-                              <FormDescription className="text-orange-600">
+                              <p className="text-sm text-orange-600">
                                 Complete brand transformation including song, training, logo, and onboarding
-                              </FormDescription>
+                              </p>
                             </div>
                           </FormItem>
                         )}
