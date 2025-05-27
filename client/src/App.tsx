@@ -121,6 +121,9 @@ function AuthenticatedRouter() {
         <Route path="/register">
           <Register />
         </Route>
+        <Route path="/business-signup">
+          <BusinessSignup />
+        </Route>
         <Route path="/">
           <Redirect to="/login" />
         </Route>

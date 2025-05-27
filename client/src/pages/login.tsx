@@ -165,11 +165,25 @@ export default function Login() {
             <GoogleAuthButton />
           </div>
           
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center space-y-3">
             <p className="text-sm text-muted-foreground">
               Don't have an account?{" "}
               <Link href="/register" className="text-primary hover:underline">
-                Sign up
+                Sign up as a teacher
+              </Link>
+            </p>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">or</span>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Starting a new school?{" "}
+              <Link href="/business-signup" className="text-primary hover:underline font-semibold">
+                Register your school
               </Link>
             </p>
           </div>
