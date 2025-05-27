@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 // Form schema for business registration
 const businessSignupSchema = z.object({
@@ -43,6 +44,11 @@ const businessSignupSchema = z.object({
   }),
   zipCode: z.string().min(5, {
     message: "ZIP code is required.",
+  }),
+  
+  // Subscription plan
+  subscriptionPlan: z.enum(["trial", "monthly", "yearly"], {
+    required_error: "Please select a subscription plan.",
   }),
   
   // Owner account information
@@ -80,6 +86,7 @@ export default function BusinessSignup() {
       city: "",
       state: "",
       zipCode: "",
+      subscriptionPlan: "trial",
       firstName: "",
       lastName: "",
       username: "",

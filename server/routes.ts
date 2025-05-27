@@ -3679,6 +3679,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         city,
         state,
         zipCode,
+        subscriptionPlan = "trial",
         firstName,
         lastName,
         username,
@@ -3705,6 +3706,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Hash the password
       const hashedPassword = await bcrypt.hash(password, 12);
 
+      // Calculate trial end date (30 days from now)
+      const now = new Date();
+      const trialEndDate = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000)); // 30 days
+
+      // Set subscription details based on plan
+      let subscriptionActive = true;
+      let subscriptionType = subscriptionPlan;
+      let subscriptionEndDate = null;
+
+      if (subscriptionPlan === "trial") {
+        subscriptionEndDate = trialEndDate;
+      }
+
       // Create the school first
       const schoolData = {
         name: schoolName,
@@ -3714,8 +3728,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         city,
         state,
         zipCode,
-        subscriptionActive: true,
-        subscriptionType: "trial",
+        subscriptionActive,
+        subscriptionType,
+        subscriptionEndDate,
         isFreeAccess: false,
         teacherCount: 1,
       };
