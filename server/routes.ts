@@ -1140,6 +1140,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all schools (for registration dropdown and admin stats)
+  app.get("/api/schools", async (req, res) => {
+    try {
+      const schools = await storage.getAllSchools();
+      
+      // Return basic school info for registration dropdown
+      const schoolOptions = schools.map(school => ({
+        id: school.id,
+        name: school.name,
+        isFreeAccess: school.isFreeAccess
+      }));
+      
+      res.json(schoolOptions);
+    } catch (error) {
+      console.error("Error fetching schools:", error);
+      res.status(500).json({ message: "Failed to fetch schools" });
+    }
+  });
+
+  // Get school statistics (for system administrator dashboard)
+  app.get("/api/admin/school-stats", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const userId = req.session.userId as number;
+      const currentUser = await storage.getUser(userId);
+      
+      // Only allow system owners to see all school stats
+      if (!currentUser || !currentUser.isOwner) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const schools = await storage.getAllSchools();
+      const allUsers = await storage.getAllUsers();
+      
+      // Calculate statistics for each school
+      const schoolStats = await Promise.all(schools.map(async (school) => {
+        const schoolUsers = allUsers.filter(user => user.schoolId === school.id);
+        const teacherCount = schoolUsers.filter(user => !user.isOwner).length;
+        
+        return {
+          id: school.id,
+          name: school.name,
+          teacherCount,
+          subscriptionActive: school.subscriptionActive,
+          subscriptionType: school.subscriptionType,
+          isFreeAccess: school.isFreeAccess,
+          contactEmail: school.contactEmail,
+          createdAt: school.createdAt
+        };
+      }));
+
+      res.json({
+        totalSchools: schools.length,
+        paidSchools: schools.filter(s => !s.isFreeAccess).length,
+        freeSchools: schools.filter(s => s.isFreeAccess).length,
+        totalTeachers: allUsers.filter(u => !u.isOwner).length,
+        schools: schoolStats
+      });
+    } catch (error) {
+      console.error("Error fetching school statistics:", error);
+      res.status(500).json({ message: "Failed to fetch school statistics" });
+    }
+  });
+
   // Get all users (for leaderboard)
   app.get("/api/users", async (req, res) => {
     try {

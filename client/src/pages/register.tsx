@@ -19,6 +19,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useQuery } from "@tanstack/react-query";
 import GoogleAuthButton from "@/components/GoogleAuthButton";
 
 
@@ -39,6 +41,9 @@ const registerSchema = z.object({
   email: z.string().email({
     message: "Please enter a valid email address.",
   }),
+  schoolId: z.string().min(1, {
+    message: "Please select a school.",
+  }),
   // Using defaults for removed fields to maintain compatibility with backend
   language: z.string().default("English"),
   nativeLanguage: z.string().default("English"),
@@ -49,6 +54,12 @@ export default function Register() {
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
 
+  // Fetch available schools
+  const { data: schools = [], isLoading: schoolsLoading } = useQuery({
+    queryKey: ['/api/schools'],
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+
   // Create form with simplified fields
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
@@ -58,6 +69,7 @@ export default function Register() {
       firstName: "",
       lastName: "",
       email: "",
+      schoolId: "1", // Default to Raising Arizona
       // Default values for removed fields
       language: "English",
       nativeLanguage: "English",
@@ -77,6 +89,7 @@ export default function Register() {
           firstName: data.firstName.trim(),
           lastName: data.lastName.trim(),
           email: data.email.trim(),
+          schoolId: parseInt(data.schoolId), // Convert string to number
         };
         
         console.log("Sending registration data:", { 
