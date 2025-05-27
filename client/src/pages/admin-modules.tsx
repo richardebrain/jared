@@ -92,12 +92,14 @@ const AdminModulesPage = () => {
   const getModuleQuery = useQuery({
     queryKey: ['/api/modules', editingModule?.id],
     enabled: !!editingModule?.id,
-    onSuccess: (moduleData) => {
-      if (moduleData) {
-        setEditingModule(moduleData);
-      }
-    }
   });
+
+  // Handle module data when it's fetched
+  React.useEffect(() => {
+    if (getModuleQuery.data) {
+      setEditingModule(getModuleQuery.data);
+    }
+  }, [getModuleQuery.data]);
   
   // Update module visibility mutation
   const updateVisibilityMutation = useMutation({
@@ -263,7 +265,7 @@ const AdminModulesPage = () => {
   };
   
   // Search/filter modules
-  const filteredModules = modules ? modules.filter((module) => {
+  const filteredModules = (modules && Array.isArray(modules)) ? modules.filter((module: Module) => {
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
     return (
@@ -371,9 +373,9 @@ const AdminModulesPage = () => {
           <div className="rounded-md border">
             <Table>
               <TableCaption>
-                {!modules?.length
+                {!modules || !Array.isArray(modules) || modules.length === 0
                   ? 'No modules found in the system.'
-                  : !filteredModules?.length
+                  : filteredModules.length === 0
                     ? 'No modules match your search criteria.'
                     : `Showing ${filteredModules.length} of ${modules.length} total modules.`
                 }

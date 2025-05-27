@@ -165,27 +165,30 @@ export default function SpinGame({ canSpin = true, onSpinComplete }: SpinGamePro
       if (user) {
         if (reward.type === 'points') {
           // Record reward in database
+          const rewardValue = typeof reward.value === 'number' ? reward.value : 0;
           updateUserReward.mutate({
             userId: user.id,
             rewardType: reward.type,
-            rewardAmount: reward.value,
-            points: user.points + reward.value - spinCost // Also account for the spin cost
+            rewardAmount: rewardValue,
+            points: user.points + rewardValue - spinCost // Also account for the spin cost
           });
         } else if (reward.type === 'bearBucks') {
+          const rewardValue = typeof reward.value === 'number' ? reward.value : 0;
           updateUserReward.mutate({
             userId: user.id,
             rewardType: reward.type,
-            rewardAmount: reward.value,
-            bearBucks: (user.bearBucks || 0) + reward.value,
+            rewardAmount: rewardValue,
+            bearBucks: (user.bearBucks || 0) + rewardValue,
             points: user.points - spinCost // Account for the spin cost
           });
         } else if (reward.type === 'jackpot') {
           // Jackpot gives both points and bear bucks
+          const rewardValue = typeof reward.value === 'number' ? reward.value : 0;
           updateUserReward.mutate({
             userId: user.id,
             rewardType: reward.type,
-            rewardAmount: reward.value,
-            points: user.points + reward.value - spinCost,
+            rewardAmount: rewardValue,
+            points: user.points + rewardValue - spinCost,
             bearBucks: (user.bearBucks || 0) + 10
           });
         } else {

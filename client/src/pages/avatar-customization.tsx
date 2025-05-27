@@ -82,22 +82,21 @@ export default function AvatarCustomizationPage() {
   });
   
   // Fetch active avatar
-  const { data: activeAvatar, isLoading: loadingActiveAvatar } = useQuery({
+  const { data: activeAvatar, isLoading: loadingActiveAvatar, error: activeAvatarError } = useQuery({
     queryKey: ["/api/avatars/user-avatars/active"],
-    onSuccess: (data) => {
-      if (data) {
-        setSelectedAvatar(data);
-        setCustomization(data.components || {});
-      }
-    },
-    onError: () => {
-      // If no active avatar, create one if the user has avatars
-      if (avatarsArray.length > 0) {
-        setSelectedAvatar(avatarsArray[0]);
-        setCustomization(avatarsArray[0].components || {});
-      }
-    }
   });
+
+  // Handle active avatar data when it's fetched
+  useEffect(() => {
+    if (activeAvatar) {
+      setSelectedAvatar(activeAvatar);
+      setCustomization(activeAvatar.components || {});
+    } else if (activeAvatarError && avatarsArray.length > 0) {
+      // If no active avatar, create one if the user has avatars
+      setSelectedAvatar(avatarsArray[0]);
+      setCustomization(avatarsArray[0].components || {});
+    }
+  }, [activeAvatar, activeAvatarError, avatarsArray]);
   
   // Set initial selected category
   useEffect(() => {

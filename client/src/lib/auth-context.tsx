@@ -2,7 +2,8 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from './queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { User } from '@shared/schema';
+import { User as BaseUser } from '@shared/schema';
+import { User, ensureUserDefaults } from '@/types/user';
 import { 
   saveAuthState, 
   clearAuthState, 
@@ -89,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading,
     isError, 
     error 
-  } = useQuery<User>({
+  } = useQuery<BaseUser>({
     queryKey: ['/api/auth/me'],
     retry: (failureCount, error: any) => {
       // Don't retry if we're on a public page and auth failed
@@ -110,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   // Apply data normalization to all users
-  const user = userData ? normalizeUserData(userData) : null;
+  const user = userData ? ensureUserDefaults(userData) : null;
 
   // Mark initial load as complete after first query
   useEffect(() => {

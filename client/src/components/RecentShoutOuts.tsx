@@ -20,25 +20,49 @@ interface RecentShoutOutsProps {
   limit?: number;
 }
 
+interface ShoutOut {
+  id: number;
+  nomineeId: number;
+  nominatorId: number;
+  coreValue: string;
+  description: string;
+  createdAt: string;
+}
+
+interface User {
+  id: number;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+}
+
 const RecentShoutOuts: React.FC<RecentShoutOutsProps> = ({ limit = 3 }) => {
   // Fetch shoutouts
-  const { data: shoutouts, isLoading: shoutoutsLoading, error: shoutoutsError } = useQuery({
+  const { data: shoutouts, isLoading: shoutoutsLoading, error: shoutoutsError } = useQuery<ShoutOut[]>({
     queryKey: ['/api/core-values-shoutouts'],
     refetchOnWindowFocus: false,
     retry: 1,
-    onError: (err) => console.error("Error fetching shoutouts:", err)
   });
 
   // Fetch users to display names
-  const { data: users, isLoading: usersLoading, error: usersError } = useQuery({
+  const { data: users, isLoading: usersLoading, error: usersError } = useQuery<User[]>({
     queryKey: ['/api/users'],
     refetchOnWindowFocus: false,
     retry: 1,
-    onError: (err) => console.error("Error fetching users:", err)
   });
+
+  // Log errors when they occur
+  React.useEffect(() => {
+    if (shoutoutsError) {
+      console.error("Error fetching shoutouts:", shoutoutsError);
+    }
+    if (usersError) {
+      console.error("Error fetching users:", usersError);
+    }
+  }, [shoutoutsError, usersError]);
   
   // Fallback data in case of API errors
-  const mockShoutouts = [
+  const mockShoutouts: ShoutOut[] = [
     {
       id: 1,
       nomineeId: 2,
@@ -65,7 +89,7 @@ const RecentShoutOuts: React.FC<RecentShoutOutsProps> = ({ limit = 3 }) => {
     }
   ];
 
-  const mockUsers = [
+  const mockUsers: User[] = [
     { id: 1, firstName: "Emma", lastName: "Smith", username: "emma" },
     { id: 2, firstName: "Jared", lastName: "Cook", username: "jlcookie20" },
     { id: 3, firstName: "Laura", lastName: "Books", username: "lbooks" },
@@ -105,8 +129,8 @@ const RecentShoutOuts: React.FC<RecentShoutOutsProps> = ({ limit = 3 }) => {
   };
 
   const getInitials = (userId: number) => {
-    if (!users || !Array.isArray(users)) return '?';
-    const user = users.find((u) => u.id === userId);
+    if (!displayUsers || !Array.isArray(displayUsers)) return '?';
+    const user = displayUsers.find((u) => u.id === userId);
     if (!user) return '?';
     const firstName = user.firstName || '';
     const lastName = user.lastName || '';
@@ -145,7 +169,7 @@ const RecentShoutOuts: React.FC<RecentShoutOutsProps> = ({ limit = 3 }) => {
               </div>
             ))}
           </div>
-        ) : !shoutouts || shoutouts.length === 0 ? (
+        ) : !displayShoutouts || displayShoutouts.length === 0 ? (
           <div className="p-4 text-center text-muted-foreground">
             <Star className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
             <p className="text-sm">No shout-outs yet!</p>
@@ -155,11 +179,11 @@ const RecentShoutOuts: React.FC<RecentShoutOutsProps> = ({ limit = 3 }) => {
           </div>
         ) : (
           <div className="space-y-3">
-            {shoutouts.slice(0, limit).map((shoutout) => (
+            {displayShoutouts.slice(0, limit).map((shoutout) => (
               <div key={shoutout.id} className="p-2 border rounded-md hover:bg-accent/5 transition-colors shadow-sm">
                 <div className="flex items-start gap-2">
                   <Avatar className="h-6 w-6">
-                    <AvatarImage src={null} />
+                    <AvatarImage src={undefined} />
                     <AvatarFallback className="bg-primary/10 text-primary text-xs">
                       {getInitials(shoutout.nomineeId)}
                     </AvatarFallback>
