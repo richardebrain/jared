@@ -193,38 +193,242 @@ export interface IStorage {
   checkUserOwnsAvatarItem(userId: number, itemId: number): Promise<boolean>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private learningModules: Map<number, LearningModule>;
-  private userProgress: Map<number, UserProgress>;
-  private meetings: Map<number, Meeting>;
-  private assessments: Map<number, Assessment>;
-  
-  private userIdCounter: number;
-  private moduleIdCounter: number;
-  private progressIdCounter: number;
-  private meetingIdCounter: number;
-  private assessmentIdCounter: number;
-
+export class DatabaseStorage implements IStorage {
   constructor() {
-    this.users = new Map();
-    this.learningModules = new Map();
-    this.userProgress = new Map();
-    this.meetings = new Map();
-    this.assessments = new Map();
-    
-    this.userIdCounter = 1;
-    this.moduleIdCounter = 1;
-    this.progressIdCounter = 1;
-    this.meetingIdCounter = 1;
-    this.assessmentIdCounter = 1;
-    
-    // Initialize with sample modules
-    this.initializeModules();
+    // Database storage doesn't need initialization like in-memory storage
   }
 
-  // Initialize sample learning modules
-  private initializeModules() {
+  // User operations
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async updateUser(id: number, userData: Partial<InsertUser>): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set(userData)
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users);
+  }
+
+  async getUsersBySchoolId(schoolId: number): Promise<User[]> {
+    return await db.select().from(users).where(eq(users.schoolId, schoolId));
+  }
+
+  async updateUserSchool(userId: number, schoolId: number): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ schoolId })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  // School operations
+  async getSchool(id: number): Promise<School | undefined> {
+    const [school] = await db.select().from(schools).where(eq(schools.id, id));
+    return school || undefined;
+  }
+
+  async getSchoolByName(name: string): Promise<School | undefined> {
+    const [school] = await db.select().from(schools).where(eq(schools.name, name));
+    return school || undefined;
+  }
+
+  async getAllSchools(): Promise<School[]> {
+    return await db.select().from(schools);
+  }
+
+  async createSchool(school: InsertSchool): Promise<School> {
+    const [newSchool] = await db
+      .insert(schools)
+      .values(school)
+      .returning();
+    return newSchool;
+  }
+
+  async updateSchool(id: number, schoolData: Partial<InsertSchool>): Promise<School> {
+    const [school] = await db
+      .update(schools)
+      .set(schoolData)
+      .where(eq(schools.id, id))
+      .returning();
+    return school;
+  }
+
+  async incrementSchoolTeacherCount(schoolId: number): Promise<School> {
+    const [school] = await db
+      .update(schools)
+      .set({ teacherCount: sql`${schools.teacherCount} + 1` })
+      .where(eq(schools.id, schoolId))
+      .returning();
+    return school;
+  }
+
+  // Learning modules operations
+  async getAllModules(): Promise<LearningModule[]> {
+    return await db.select().from(learningModules);
+  }
+
+  async getModule(id: number): Promise<LearningModule | undefined> {
+    const [module] = await db.select().from(learningModules).where(eq(learningModules.id, id));
+    return module || undefined;
+  }
+
+  async createModule(module: InsertLearningModule): Promise<LearningModule> {
+    const [newModule] = await db
+      .insert(learningModules)
+      .values(module)
+      .returning();
+    return newModule;
+  }
+
+  async updateModule(id: number, moduleData: Partial<LearningModule>): Promise<LearningModule> {
+    const [module] = await db
+      .update(learningModules)
+      .set(moduleData)
+      .where(eq(learningModules.id, id))
+      .returning();
+    return module;
+  }
+
+  // User progress operations
+  async getUserProgressByUserId(userId: number): Promise<UserProgress[]> {
+    return await db.select().from(userProgress).where(eq(userProgress.userId, userId));
+  }
+
+  async getUserProgressByModuleId(moduleId: number): Promise<UserProgress[]> {
+    return await db.select().from(userProgress).where(eq(userProgress.moduleId, moduleId));
+  }
+
+  async updateUserProgress(progress: InsertUserProgress): Promise<UserProgress> {
+    const [existingProgress] = await db
+      .select()
+      .from(userProgress)
+      .where(
+        and(
+          eq(userProgress.userId, progress.userId),
+          eq(userProgress.moduleId, progress.moduleId)
+        )
+      );
+
+    if (existingProgress) {
+      const [updated] = await db
+        .update(userProgress)
+        .set(progress)
+        .where(eq(userProgress.id, existingProgress.id))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(userProgress)
+        .values(progress)
+        .returning();
+      return created;
+    }
+  }
+
+  async createUserProgress(progress: InsertUserProgress): Promise<UserProgress> {
+    const [newProgress] = await db
+      .insert(userProgress)
+      .values(progress)
+      .returning();
+    return newProgress;
+  }
+
+  async resetUserProgress(userId: number): Promise<boolean> {
+    await db.delete(userProgress).where(eq(userProgress.userId, userId));
+    return true;
+  }
+
+  // Assessment operations
+  async getAssessmentsByUserId(userId: number): Promise<Assessment[]> {
+    return await db.select().from(assessments).where(eq(assessments.userId, userId));
+  }
+
+  async createAssessment(assessment: InsertAssessment): Promise<Assessment> {
+    const [newAssessment] = await db
+      .insert(assessments)
+      .values(assessment)
+      .returning();
+    return newAssessment;
+  }
+
+  // Points and rewards operations
+  async addUserPoints(userId: number, points: number): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        points: sql`${users.points} + ${points}`,
+        lifetimePoints: sql`${users.lifetimePoints} + ${points}`
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async addUserBearBucks(userId: number, amount: number): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ bearBucks: sql`${users.bearBucks} + ${amount}` })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async getUserPointsEarnedToday(userId: number): Promise<number> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const result = await db
+      .select({ total: sql<number>`COALESCE(SUM(${userProgress.pointsEarned}), 0)` })
+      .from(userProgress)
+      .where(
+        and(
+          eq(userProgress.userId, userId),
+          gte(userProgress.lastAccessed, today)
+        )
+      );
+    
+    return result[0]?.total || 0;
+  }
+
+  async checkUserAccessStatus(userId: number): Promise<{hasAccess: boolean, reason?: string}> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      return { hasAccess: false, reason: "User not found" };
+    }
+
+    // For now, all users have access - this can be expanded later for subscription logic
+    return { hasAccess: true };
+  }
+
+  // Initialize sample learning modules (removed from constructor, call manually if needed)
+  private async initializeModules() {
     const moduleData: InsertLearningModule[] = [
       // Core Teaching Modules
       {
