@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { ProtectedRoute, PublicRoute } from "@/components/ProtectedRoute";
 import { useAuth, AuthProvider } from "@/lib/auth-context";
-import AuthDebugger from "@/components/AuthDebugger";
 // Import session utilities for debugging
 import "@/lib/sessionUtils";
 import NotFound from "@/pages/not-found";
