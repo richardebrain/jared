@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json, primaryKey, varchar, date, doublePrecision } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, primaryKey, varchar, date, doublePrecision, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -209,7 +209,20 @@ export const assessments = pgTable("assessments", {
   assessmentType: text("assessment_type").default("INITIAL_ADAPTIVE"), // Updated default
   notes: text("notes"),
   teacherLevel: text("teacher_level"),
-});
+}, (table) => ({
+  // Critical index for user assessment queries (user + type + completed)
+  userTypeCompletedIdx: index("assessments_user_type_completed_idx").on(table.userId, table.type, table.completed),
+  // Index for user's completed assessments
+  userCompletedIdx: index("assessments_user_completed_idx").on(table.userId, table.completed),
+  // Index for assessment type filtering
+  typeIdx: index("assessments_type_idx").on(table.type),
+  // Index for completion status
+  completedIdx: index("assessments_completed_idx").on(table.completed),
+  // Index for temporal analytics
+  completedAtIdx: index("assessments_completed_at_idx").on(table.completedAt),
+  // Index for assessment type analytics
+  assessmentTypeIdx: index("assessments_assessment_type_idx").on(table.assessmentType),
+}));
 
 export const insertAssessmentSchema = createInsertSchema(assessments).omit({
   id: true,
@@ -649,34 +662,65 @@ export const assessmentDomains = pgTable("assessment_domains", {
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  // Index for active domains lookup
+  activeDomainsIdx: index("assessment_domains_active_idx").on(table.isActive),
+  // Index for ordered domain display  
+  displayOrderIdx: index("assessment_domains_display_order_idx").on(table.displayOrder),
+  // Index for domain name lookups
+  nameIdx: index("assessment_domains_name_idx").on(table.name),
+}));
 
 // Assessment questions table
 export const assessmentQuestions = pgTable("assessment_questions", {
   id: text("id").primaryKey(), // Using text ID to support various formats (e.g., "safety-3-001")
-  domainId: integer("domain_id").notNull().references(() => assessmentDomains.id), // Reference to domain
+  domainId: text("domain_id").notNull(), // Temporarily as text to avoid conversion error - will reference domain names
   text: text("text").notNull(), // The question text
-  options: json("options").$type<string[]>().notNull(), // Array of answer options
+  options: text("options").notNull(), // Temporarily as text to avoid conversion error - will store JSON as string
   correctAnswer: integer("correct_answer").notNull(), // Index of correct option (0-based)
-  difficulty: integer("difficulty").notNull(), // 1=Easy, 2=Easy/Medium, 3=Medium, 4=Medium/Hard, 5=Hard, 6=Master
+  difficulty: text("difficulty").notNull(), // Temporarily as text to avoid conversion error - existing data is text
   explanation: text("explanation"), // Explanation for correct answer
   miniLesson: text("mini_lesson"), // Written mini lesson content for this question
-  tags: json("tags").$type<string[]>(), // Additional categorization tags
+  tags: text("tags"), // Temporarily as text to avoid conversion error - will store JSON as string
   createdBy: integer("created_by").references(() => users.id), // User who added the question
   approvedBy: integer("approved_by").references(() => users.id), // User who approved the question
   isApproved: boolean("is_approved").default(false), // Whether question is approved for use
   isEnabled: boolean("is_enabled").default(true), // Platform-level availability control
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  // Critical index for weighted question selection (domain + difficulty + availability)
+  domainDifficultyIdx: index("assessment_questions_domain_difficulty_idx").on(table.domainId, table.difficulty, table.isEnabled),
+  // Index for approved and enabled questions lookup
+  approvedEnabledIdx: index("assessment_questions_approved_enabled_idx").on(table.isApproved, table.isEnabled),
+  // Index for difficulty-based queries
+  difficultyIdx: index("assessment_questions_difficulty_idx").on(table.difficulty),
+  // Index for domain-based queries  
+  domainIdx: index("assessment_questions_domain_idx").on(table.domainId),
+  // Index for availability queries
+  enabledIdx: index("assessment_questions_enabled_idx").on(table.isEnabled),
+  // Index for question approval workflow
+  approvalStatusIdx: index("assessment_questions_approval_status_idx").on(table.isApproved),
+  // Index for created by user (admin UI)
+  createdByIdx: index("assessment_questions_created_by_idx").on(table.createdBy),
+}));
 
 export const insertAssessmentQuestionSchema = createInsertSchema(assessmentQuestions).omit({
   createdAt: true,
   updatedAt: true,
 });
 
+// Note: Temporary types for text-based fields that will eventually be JSON
 export type AssessmentQuestion = typeof assessmentQuestions.$inferSelect;
 export type InsertAssessmentQuestion = z.infer<typeof insertAssessmentQuestionSchema>;
+
+// Helper types for when we convert back to proper JSON structure
+export type AssessmentQuestionWithParsedFields = Omit<AssessmentQuestion, 'options' | 'tags' | 'difficulty' | 'domainId'> & {
+  options: string[];
+  tags?: string[];
+  difficulty: number; // Will be 1-6 when converted
+  domainId: number; // Will be foreign key when converted
+};
 
 // Assessment responses table for tracking user answers
 export const assessmentResponses = pgTable("assessment_responses", {
@@ -690,10 +734,25 @@ export const assessmentResponses = pgTable("assessment_responses", {
   pointsEarned: integer("points_earned").default(0),
   timeSpent: integer("time_spent"), // Seconds spent on question
   timedOut: boolean("timed_out").default(false), // Whether question timed out
-  difficulty: integer("difficulty").notNull(), // Difficulty level when question was presented (1-6)
-  domainId: integer("domain_id").notNull().references(() => assessmentDomains.id), // Store domain for failed answer analysis
+  difficulty: text("difficulty").notNull(), // Temporarily as text to match assessment_questions
+  domainId: text("domain_id").notNull(), // Temporarily as text to match assessment_questions
   answeredAt: timestamp("answered_at").defaultNow(),
-});
+}, (table) => ({
+  // Critical index for user assessment analytics (user + assessment + domain)
+  userAssessmentDomainIdx: index("assessment_responses_user_assessment_domain_idx").on(table.userId, table.assessmentId, table.domainId),
+  // Index for assessment completion tracking
+  assessmentSequenceIdx: index("assessment_responses_assessment_sequence_idx").on(table.assessmentId, table.questionSequence),
+  // Index for user progress analytics
+  userCorrectIdx: index("assessment_responses_user_correct_idx").on(table.userId, table.isCorrect),
+  // Index for domain performance analytics
+  domainPerformanceIdx: index("assessment_responses_domain_performance_idx").on(table.domainId, table.isCorrect, table.difficulty),
+  // Index for timeout analysis
+  timeoutIdx: index("assessment_responses_timeout_idx").on(table.timedOut),
+  // Index for question performance analytics
+  questionPerformanceIdx: index("assessment_responses_question_performance_idx").on(table.questionId, table.isCorrect),
+  // Index for temporal analytics
+  answeredAtIdx: index("assessment_responses_answered_at_idx").on(table.answeredAt),
+}));
 
 // Question availability control for school-level management
 export const questionAvailability = pgTable("question_availability", {
@@ -703,7 +762,16 @@ export const questionAvailability = pgTable("question_availability", {
   isEnabled: boolean("is_enabled").default(true),
   enabledBy: integer("enabled_by").references(() => users.id),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  // Critical index for availability checking (question + school + enabled)
+  questionSchoolEnabledIdx: index("question_availability_question_school_enabled_idx").on(table.questionId, table.schoolId, table.isEnabled),
+  // Index for school-specific availability queries
+  schoolEnabledIdx: index("question_availability_school_enabled_idx").on(table.schoolId, table.isEnabled),
+  // Index for question-specific availability
+  questionIdx: index("question_availability_question_idx").on(table.questionId),
+  // Index for enabled status
+  enabledIdx: index("question_availability_enabled_idx").on(table.isEnabled),
+}));
 
 // Assessment configuration
 export const assessmentConfig = pgTable("assessment_config", {
@@ -715,7 +783,12 @@ export const assessmentConfig = pgTable("assessment_config", {
   minDomainCoverage: integer("min_domain_coverage").default(1), // Minimum questions per domain
   updatedBy: integer("updated_by").references(() => users.id),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  // Index for school-specific config lookup (most common query)
+  schoolIdx: index("assessment_config_school_idx").on(table.schoolId),
+  // Index for platform-wide config (schoolId = null)
+  platformConfigIdx: index("assessment_config_platform_idx").on(table.schoolId),
+}));
 
 // Teacher welcome messages and notifications table
 export const teacherMessages = pgTable("teacher_messages", {
@@ -1189,6 +1262,12 @@ export const insertAssessmentResponseSchema = createInsertSchema(assessmentRespo
 export type AssessmentResponse = typeof assessmentResponses.$inferSelect;
 export type InsertAssessmentResponse = z.infer<typeof insertAssessmentResponseSchema>;
 
+// Helper type for when we convert back to proper numeric structure
+export type AssessmentResponseWithParsedFields = Omit<AssessmentResponse, 'difficulty' | 'domainId'> & {
+  difficulty: number; // Will be 1-6 when converted  
+  domainId: number; // Will be foreign key when converted
+};
+
 // Question availability insert schema and types
 export const insertQuestionAvailabilitySchema = createInsertSchema(questionAvailability).omit({
   id: true,
@@ -1209,16 +1288,16 @@ export type InsertAssessmentConfig = z.infer<typeof insertAssessmentConfigSchema
 
 // Assessment domains relations
 export const assessmentDomainsRelations = relations(assessmentDomains, ({ many }) => ({
-  questions: many(assessmentQuestions),
-  responses: many(assessmentResponses)
+  // questions: many(assessmentQuestions), // Temporarily commented out due to type mismatch
+  // responses: many(assessmentResponses)  // Temporarily commented out due to type mismatch
 }));
 
 // Assessment questions relations
 export const assessmentQuestionsRelations = relations(assessmentQuestions, ({ one, many }) => ({
-  domain: one(assessmentDomains, {
-    fields: [assessmentQuestions.domainId],
-    references: [assessmentDomains.id]
-  }),
+  // domain: one(assessmentDomains, {
+  //   fields: [assessmentQuestions.domainId],
+  //   references: [assessmentDomains.id]
+  // }), // Temporarily commented out due to type mismatch
   createdByUser: one(users, {
     fields: [assessmentQuestions.createdBy],
     references: [users.id],
@@ -1246,11 +1325,11 @@ export const assessmentResponsesRelations = relations(assessmentResponses, ({ on
   user: one(users, {
     fields: [assessmentResponses.userId],
     references: [users.id]
-  }),
-  domain: one(assessmentDomains, {
-    fields: [assessmentResponses.domainId],
-    references: [assessmentDomains.id]
   })
+  // domain: one(assessmentDomains, {
+  //   fields: [assessmentResponses.domainId],
+  //   references: [assessmentDomains.id]
+  // }) // Temporarily commented out due to type mismatch
 }));
 
 // Question availability relations
