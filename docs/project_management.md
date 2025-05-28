@@ -291,7 +291,7 @@ This document serves as the central project management framework for MentorMe, t
        - `POST /api/assessment/session/complete` - Finalizes with domain-specific results
        - `GET /api/assessment/session/abandon` - Handles incomplete sessions gracefully
 
-8. ⬜ [EP-001-08] **Weighted Adaptive Question Selection Service**
+8. 🟦 [EP-001-08] **Weighted Adaptive Question Selection Service**
    - **Description:** Implement the core intelligent question selection algorithm that drives the adaptive assessment experience with weighted domain distribution, 6-level difficulty progression, and comprehensive fallback strategies.
    - **Requirements:**
      - **Weighted Domain Selection**: Calculate target allocation, track progress, prioritize under-represented domains
