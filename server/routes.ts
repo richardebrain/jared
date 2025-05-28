@@ -799,8 +799,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.session = req.session || {};
       }
       
-      // Check password - either demo user or normal validation
-      const passwordValid = isDemoUser || user.password === password;
+      // Check password - either demo user or normal validation with bcrypt
+      const passwordValid = isDemoUser || await bcrypt.compare(password, user.password);
       
       if (!passwordValid) {
         console.log(`Login failed: Password mismatch for user: "${username}"`);
