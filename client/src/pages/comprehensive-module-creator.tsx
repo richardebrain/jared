@@ -110,6 +110,68 @@ export default function ComprehensiveModuleCreator() {
     quizQuestions: []
   });
 
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [isGeneratingContent, setIsGeneratingContent] = useState(false);
+  const [generatedContent, setGeneratedContent] = useState<any>(null);
+
+  // Module templates with AI generation capabilities
+  const moduleTemplates = [
+    {
+      id: 'mini-video',
+      title: 'Mini Video Lessons',
+      description: 'Short, focused video content with key takeaways',
+      icon: Video,
+      color: 'bg-blue-50 border-blue-200',
+      duration: '5-10 minutes',
+      features: ['Video script generation', 'Key points summary', 'Discussion questions', 'Follow-up activities']
+    },
+    {
+      id: 'interactive-scenario',
+      title: 'Interactive Scenarios',
+      description: 'Real-world situations with decision-making branches',
+      icon: Users,
+      color: 'bg-green-50 border-green-200',
+      duration: '10-15 minutes',
+      features: ['Scenario narratives', 'Decision points', 'Outcome explanations', 'Learning objectives']
+    },
+    {
+      id: 'slide-storyboard',
+      title: 'Slide/GIF Storyboards',
+      description: 'Visual learning with animated content and explanations',
+      icon: FileText,
+      color: 'bg-purple-50 border-purple-200',
+      duration: '8-12 minutes',
+      features: ['Slide content', 'Visual descriptions', 'Animation suggestions', 'Presenter notes']
+    },
+    {
+      id: 'quiz-teachback',
+      title: 'Quick Quiz + Teachback',
+      description: 'Knowledge check followed by teaching reinforcement',
+      icon: FileQuestion,
+      color: 'bg-orange-50 border-orange-200',
+      duration: '6-10 minutes',
+      features: ['Quiz questions', 'Answer explanations', 'Teaching strategies', 'Practice scenarios']
+    },
+    {
+      id: 'podcast-audio',
+      title: 'Podcast-Style Audio Nuggets',
+      description: 'Conversational audio content with transcripts',
+      icon: Mic,
+      color: 'bg-pink-50 border-pink-200',
+      duration: '7-12 minutes',
+      features: ['Audio script', 'Conversation flow', 'Key insights', 'Reflection prompts']
+    },
+    {
+      id: 'roleplay-reels',
+      title: 'Roleplay Reels',
+      description: 'Short practice scenarios with role-playing elements',
+      icon: MessageSquare,
+      color: 'bg-indigo-50 border-indigo-200',
+      duration: '5-8 minutes',
+      features: ['Character roles', 'Dialogue scripts', 'Learning outcomes', 'Debrief questions']
+    }
+  ];
+
   // Calculate suggested points based on difficulty and estimated time
   const calculateSuggestedPoints = (difficulty: string, estimatedTime: string) => {
     const basePoints = parseInt(estimatedTime) || 15;
@@ -117,6 +179,123 @@ export default function ComprehensiveModuleCreator() {
     return Math.round(basePoints * difficultyMultiplier);
   };
   
+  // Generate AI content for specific module templates
+  const generateTemplateContent = async (templateId: string) => {
+    if (!newModule.title || !newModule.description) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide a module title and description before generating content.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsGeneratingContent(true);
+    
+    try {
+      let promptText = '';
+      
+      switch (templateId) {
+        case 'mini-video':
+          promptText = `Create a mini video lesson script for "${newModule.title}" in ${newModule.category} for ${newModule.difficulty} level ECE teachers. Include: video script, key takeaways, discussion questions, and follow-up activities.`;
+          break;
+        case 'interactive-scenario':
+          promptText = `Design an interactive scenario for "${newModule.title}" in ${newModule.category} for ${newModule.difficulty} level ECE teachers. Include: realistic scenario, decision points, multiple outcomes, and learning objectives.`;
+          break;
+        case 'slide-storyboard':
+          promptText = `Create a slide storyboard for "${newModule.title}" in ${newModule.category} for ${newModule.difficulty} level ECE teachers. Include: slide content, visual descriptions, animation suggestions, and presenter notes.`;
+          break;
+        case 'quiz-teachback':
+          promptText = `Develop a quiz and teachback session for "${newModule.title}" in ${newModule.category} for ${newModule.difficulty} level ECE teachers. Include: quiz questions, detailed explanations, teaching strategies, and practice scenarios.`;
+          break;
+        case 'podcast-audio':
+          promptText = `Write a podcast-style audio script for "${newModule.title}" in ${newModule.category} for ${newModule.difficulty} level ECE teachers. Include: conversational script, key insights, discussion topics, and reflection prompts.`;
+          break;
+        case 'roleplay-reels':
+          promptText = `Create roleplay scenarios for "${newModule.title}" in ${newModule.category} for ${newModule.difficulty} level ECE teachers. Include: character roles, dialogue scripts, learning outcomes, and debrief questions.`;
+          break;
+      }
+
+      const data = await apiRequest('/api/ai/generate', {
+        method: 'POST',
+        data: { 
+          prompt: promptText,
+          type: 'template-content',
+          templateType: templateId
+        }
+      });
+
+      if (data && data.suggestions) {
+        setGeneratedContent({
+          templateId,
+          content: data.suggestions
+        });
+        
+        toast({
+          title: "AI Content Generated!",
+          description: `Complete ${moduleTemplates.find(t => t.id === templateId)?.title} content has been created for your module.`,
+        });
+      }
+    } catch (error) {
+      console.error('AI content generation error:', error);
+      toast({
+        title: "Content Generation Failed",
+        description: "There was an issue generating the content. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingContent(false);
+    }
+  };
+
+  // Apply generated content to module
+  const applyGeneratedContent = () => {
+    if (!generatedContent) return;
+    
+    // Parse the generated content and add it to sections
+    const contentLines = generatedContent.content.split('\n').filter(Boolean);
+    const newSections = [];
+    
+    let currentSection = { title: '', content: '', videoUrl: '', imageUrl: '' };
+    
+    contentLines.forEach((line, index) => {
+      if (line.includes(':') && line.length < 100) {
+        // This looks like a section title
+        if (currentSection.title || currentSection.content) {
+          newSections.push({...currentSection});
+        }
+        currentSection = { 
+          title: line.replace(':', '').trim(), 
+          content: '', 
+          videoUrl: '', 
+          imageUrl: '' 
+        };
+      } else {
+        // This is content
+        currentSection.content += line + '\n';
+      }
+    });
+    
+    // Add the last section
+    if (currentSection.title || currentSection.content) {
+      newSections.push(currentSection);
+    }
+    
+    // Update the module with generated sections
+    setNewModule(prev => ({
+      ...prev,
+      sections: newSections.length > 0 ? newSections : prev.sections
+    }));
+    
+    setGeneratedContent(null);
+    setSelectedTemplate(null);
+    
+    toast({
+      title: "Content Applied!",
+      description: "The AI-generated content has been added to your module sections.",
+    });
+  };
+
   // Generate AI suggestions for module content
   const generateAiSuggestions = async (type: 'questions' | 'strategies' | 'quiz') => {
     setIsGeneratingIdeas(true);
@@ -532,14 +711,124 @@ export default function ComprehensiveModuleCreator() {
             </div>
           </div>
 
-          {/* AI Creative Suggestion Tools */}
+          {/* AI Module Creator Wizard */}
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-lg border border-purple-200">
+            <h3 className="text-lg font-semibold mb-3 flex items-center">
+              <Sparkles className="h-6 w-6 text-purple-600 mr-2" />
+              AI Module Creator Wizard
+            </h3>
+            <div className="text-sm text-gray-700 mb-4">
+              Choose a template and let AI generate complete, structured content for your module!
+            </div>
+            
+            {/* Template Selection */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+              {moduleTemplates.map((template) => (
+                <Card 
+                  key={template.id} 
+                  className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+                    selectedTemplate === template.id ? 'ring-2 ring-purple-500 bg-purple-50' : template.color
+                  }`}
+                  onClick={() => setSelectedTemplate(template.id)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <template.icon className="h-5 w-5 text-purple-600" />
+                      <h4 className="font-medium text-sm">{template.title}</h4>
+                    </div>
+                    <p className="text-xs text-gray-600 mb-2">{template.description}</p>
+                    <div className="flex items-center text-xs text-gray-500">
+                      <Clock className="h-3 w-3 mr-1" />
+                      {template.duration}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Selected Template Info */}
+            {selectedTemplate && (
+              <div className="bg-white p-4 rounded-lg border border-purple-200 mb-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium flex items-center">
+                    {React.createElement(moduleTemplates.find(t => t.id === selectedTemplate)?.icon || BookOpen, { className: "h-4 w-4 mr-2" })}
+                    {moduleTemplates.find(t => t.id === selectedTemplate)?.title}
+                  </h4>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedTemplate(null)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="text-sm text-gray-600 mb-3">
+                  AI will generate: {moduleTemplates.find(t => t.id === selectedTemplate)?.features.join(', ')}
+                </div>
+                <Button
+                  onClick={() => generateTemplateContent(selectedTemplate)}
+                  disabled={isGeneratingContent || !newModule.title || !newModule.description}
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                >
+                  {isGeneratingContent ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Generating Complete Module Content...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Generate {moduleTemplates.find(t => t.id === selectedTemplate)?.title} Content
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+
+            {/* Generated Content Preview */}
+            {generatedContent && (
+              <div className="bg-white p-4 rounded-lg border border-green-200">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium text-green-800 flex items-center">
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    AI Content Generated!
+                  </h4>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={applyGeneratedContent}
+                      className="text-green-700 border-green-300 hover:bg-green-50"
+                    >
+                      Apply to Module
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setGeneratedContent(null)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="bg-gray-50 p-3 rounded text-sm max-h-40 overflow-y-auto">
+                  <pre className="whitespace-pre-wrap text-gray-700">
+                    {generatedContent.content.substring(0, 500)}
+                    {generatedContent.content.length > 500 && '...'}
+                  </pre>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Additional AI Tools */}
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
             <h3 className="text-md font-medium mb-2 flex items-center">
               <Brain className="h-5 w-5 text-blue-500 mr-2" />
-              AI Creative Tools
+              Additional AI Tools
             </h3>
             <div className="text-sm text-gray-600 mb-3">
-              Need inspiration? Let AI help you generate creative ideas for your module.
+              Need more ideas? Generate specific suggestions for your module.
             </div>
             <div className="flex flex-wrap gap-2">
               <Button

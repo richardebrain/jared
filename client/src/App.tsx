@@ -66,7 +66,7 @@ import AdminModulesPage from "@/pages/admin-modules";
 import InviteTeachersPage from "@/pages/invite-teachers";
 import AvatarCustomizationPage from "@/pages/avatar-customization";
 import DirectorMessages from "@/pages/director-messages";
-import ModuleCreator from "@/pages/module-creator";
+import ComprehensiveModuleCreator from "@/pages/comprehensive-module-creator";
 
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
@@ -566,7 +566,7 @@ function Router(props: {
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : (
-          <ModuleCreator />
+          <ComprehensiveModuleCreator />
         )}
       </Route>
 
