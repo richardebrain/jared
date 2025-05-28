@@ -769,8 +769,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Username and password are required" });
       }
       
-      // Demo user for testing purposes
-      const isDemoUser = username === 'jlcookie20' && password === 'password';
+      // Demo users for testing purposes
+      const isDemoUser = (username === 'jlcookie20' && password === 'password') || 
+                        (username === 'lbook' && password === 'jack83box');
       
       const user = await storage.getUserByUsername(username);
       
