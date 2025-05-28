@@ -223,6 +223,14 @@ export default function Header() {
               {isSchoolAdmin && (
                 <>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/module-creator")}>
+                    <i className="ri-add-box-line mr-2"></i>
+                    Module Creator
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/director-messages")}>
+                    <i className="ri-message-line mr-2"></i>
+                    Director Messages
+                  </DropdownMenuItem>
                   <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation(`/schools/${user?.schoolId}`)}>
                     <i className="ri-school-line mr-2"></i>
                     Director/Admin Panel
