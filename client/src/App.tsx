@@ -18,12 +18,6 @@ import LandingPage from "@/pages/landing";
 import ProgressionMap from "@/pages/progression-map";
 import Assessment from "@/pages/assessment";
 import AssessmentResults from "@/pages/assessment-results";
-import EnhancedAssessmentPage from "@/pages/enhanced-assessment";
-import SimpleAssessmentPage from "@/pages/simple-assessment";
-import AIAssessmentPage from "@/pages/ai-assessment";
-import SimpleAIAssessmentPage from "@/pages/simple-ai-assessment";
-import EnhancedAIAssessmentPage from "@/pages/enhanced-ai-assessment";
-import BasicAIAssessmentPage from "@/pages/basic-ai-assessment";
 import DynamicAssessmentPage from "@/pages/dynamic-assessment";
 import StandaloneAssessment from "@/pages/standalone-assessment";
 import SimpleStandaloneAssessment from "@/pages/simple-standalone-assessment";
@@ -57,7 +51,6 @@ import AdminPage from "@/pages/admin";
 import LessonPlanMakerPage from "@/pages/lesson-plan-maker";
 import CasinoPage from "@/pages/casino";
 import TransitionTimer from "@/pages/transition-timer";
-import TestAssessmentGraph from "@/pages/test-assessment-graph";
 import SchoolDashboard from "@/pages/school-dashboard";
 import ProfilePage from "@/pages/profile";
 import AppOwnerDashboard from "@/pages/app-owner-dashboard";
@@ -579,48 +572,6 @@ function Router(props: {
       <Route path="/transition-timer">
         <ProtectedRoute>
           <TransitionTimer />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/test-assessment-graph">
-        <ProtectedRoute>
-          <TestAssessmentGraph />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/enhanced-assessment">
-        <ProtectedRoute>
-          <EnhancedAssessmentPage />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/simple-assessment">
-        <ProtectedRoute>
-          <SimpleAssessmentPage />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/ai-assessment">
-        <ProtectedRoute>
-          <AIAssessmentPage />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/simple-ai-assessment">
-        <ProtectedRoute>
-          <SimpleAIAssessmentPage />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/enhanced-ai-assessment">
-        <ProtectedRoute>
-          <EnhancedAIAssessmentPage />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/basic-ai-assessment">
-        <ProtectedRoute>
-          <BasicAIAssessmentPage />
         </ProtectedRoute>
       </Route>
 
