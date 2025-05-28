@@ -224,7 +224,7 @@ export default function DirectorMessages() {
                       </Badge>
                       <Badge variant={message.recipientId ? "default" : "secondary"}>
                         {message.recipientId ? (
-                          <><User className="h-3 w-3 mr-1" />{message.recipientName}</>
+                          <><UserIcon className="h-3 w-3 mr-1" />{message.recipientName}</>
                         ) : (
                           <><Users className="h-3 w-3 mr-1" />All Teachers</>
                         )}

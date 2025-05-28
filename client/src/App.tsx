@@ -66,6 +66,7 @@ import AdminModulesPage from "@/pages/admin-modules";
 import InviteTeachersPage from "@/pages/invite-teachers";
 import AvatarCustomizationPage from "@/pages/avatar-customization";
 import DirectorMessages from "@/pages/director-messages";
+import ModuleCreator from "@/pages/module-creator";
 
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
