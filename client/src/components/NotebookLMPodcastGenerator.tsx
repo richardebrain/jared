@@ -281,23 +281,42 @@ export default function NotebookLMPodcastGenerator() {
         </CardContent>
       </Card>
 
-      {/* Content Input */}
+      {/* Content Upload */}
       <Card>
         <CardHeader>
-          <CardTitle>Content & Learning Goals</CardTitle>
+          <CardTitle>📁 Upload Your Content for AI Podcasters</CardTitle>
           <CardDescription>
-            Provide the educational content and key points you want covered
+            Provide your educational materials - the AI will analyze your content and create an engaging conversation between two podcast hosts discussing your topic
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-start space-x-3">
+              <Lightbulb className="h-5 w-5 text-blue-600 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-blue-900">What to Upload for Your Podcast</h4>
+                <ul className="text-sm text-blue-700 mt-2 space-y-1">
+                  <li>• <strong>Training materials</strong> - handouts, guides, or curriculum content</li>
+                  <li>• <strong>Research articles</strong> - studies or best practices you want discussed</li>
+                  <li>• <strong>Classroom strategies</strong> - techniques or methods you use</li>
+                  <li>• <strong>Real scenarios</strong> - challenging situations and how to handle them</li>
+                  <li>• <strong>Policy information</strong> - regulations or procedures to explain</li>
+                </ul>
+                <p className="text-sm text-blue-600 mt-2">
+                  The AI will create natural conversations between podcast hosts who discuss your content in an engaging, educational way.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-2">
-            <Label htmlFor="content">Main Content</Label>
+            <Label htmlFor="content">Your Educational Content</Label>
             <Textarea
               id="content"
-              placeholder="Describe the educational content, key concepts, strategies, or information you want to include in the podcast..."
+              placeholder="Paste your training materials, research findings, classroom strategies, or any educational content you want the podcast hosts to discuss. Be as detailed as possible - the more content you provide, the richer the conversation will be!"
               value={podcastData.content}
               onChange={(e) => setPodcastData(prev => ({ ...prev, content: e.target.value }))}
-              rows={6}
+              rows={8}
             />
           </div>
 

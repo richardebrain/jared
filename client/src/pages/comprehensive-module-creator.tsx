@@ -162,11 +162,11 @@ export default function ComprehensiveModuleCreator() {
     {
       id: 'podcast-audio',
       title: 'Podcast-Style Audio Nuggets',
-      description: 'Conversational audio content with transcripts',
+      description: 'Upload your content and AI creates engaging podcast conversations',
       icon: Mic,
       color: 'bg-pink-50 border-pink-200',
-      duration: '7-12 minutes',
-      features: ['Audio script', 'Conversation flow', 'Key insights', 'Reflection prompts']
+      duration: '3-8 minutes',
+      features: ['Upload your materials', 'AI podcast generation', 'Natural conversations', 'Professional audio script']
     },
     {
       id: 'roleplay-reels',

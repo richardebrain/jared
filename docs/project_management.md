@@ -31,6 +31,14 @@ This document serves as the central project management framework for MentorMe, t
 - Assessment completion triggers appropriate achievements/rewards
 - Data is securely stored for long-term progress tracking
 - 40-question assessment completes in 30-40 minutes with proper domain weighting
+- Teacher role users can complete initial assessment exactly once with comprehensive session management
+- Weighted adaptive question selection ensures proper domain coverage and difficulty progression
+- Answer processing provides accurate scoring and meaningful growth area identification
+
+**Implementation Progress:**
+- ✅ **Foundation Complete (Tasks 1-7)**: Database schema, seed data, session management, API endpoints
+- 🟦 **Core Algorithms (Tasks 8-9)**: Question selection service and answer processing (Defined, ready for implementation)
+- ⬜ **Frontend & Integration (Tasks 10+)**: User interface and complete system integration (Future tasks)
 
 **Key Technical Decisions Made:**
 - **Assessment Structure**: 40 questions (configurable), 6 difficulty levels, 10 weighted domains
@@ -282,6 +290,56 @@ This document serves as the central project management framework for MentorMe, t
        - `POST /api/assessment/session/answer` - Records responses with validation and scoring
        - `POST /api/assessment/session/complete` - Finalizes with domain-specific results
        - `GET /api/assessment/session/abandon` - Handles incomplete sessions gracefully
+
+8. ⬜ [EP-001-08] **Weighted Adaptive Question Selection Service**
+   - **Description:** Implement the core intelligent question selection algorithm that drives the adaptive assessment experience with weighted domain distribution, 6-level difficulty progression, and comprehensive fallback strategies.
+   - **Requirements:**
+     - **Weighted Domain Selection**: Calculate target allocation, track progress, prioritize under-represented domains
+     - **6-Level Adaptive Difficulty**: Start at Medium (3), adjust ±1 based on correctness, maintain bounds (1-6)
+     - **Dual-Level Availability**: Platform and school-level question availability controls
+     - **Question Pool Management**: Pre-filter by availability, validate approval status, optimize performance
+     - **Comprehensive Fallback Strategy**: Adjacent difficulty (±1), cross-domain, any available - never fail
+     - **Performance Requirements**: <2 seconds selection time, 50+ concurrent selections, optimized caching
+   - **Dependencies:** EP-001-07
+   - **Technical Implementation:**
+     - **Core Services**: `QuestionSelectionService.ts`, `DomainWeightingService.ts`, `DifficultyProgressionService.ts`, `QuestionPoolService.ts`
+     - **Algorithm Components**: `WeightedDomainSelector.ts`, `AdaptiveDifficultyManager.ts`, `FallbackStrategy.ts`, `AvailabilityChecker.ts`
+     - **Database Optimizations**: Enhanced indexes for domain+difficulty+availability queries
+     - **Caching Layer**: Pre-cached question pools by domain and difficulty
+     - **Monitoring**: Selection decision logging, fallback usage tracking, performance metrics
+   - **Success Criteria:**
+     - Algorithm selects appropriate questions based on domain weights (±5% variance)
+     - Difficulty progression follows 6-level adaptive rules correctly
+     - Fallback strategy prevents selection failures (0% failure rate)
+     - Question selection completes within 2 seconds (99% of requests)
+     - Domain coverage meets target allocation throughout assessment
+   - **Documentation**: Detailed requirements in `docs/tasks/EP-001-08-weighted-adaptive-question-selection.md`
+   - **Status:** ⬜ **TODO** - Ready for implementation after EP-001-07 completion
+
+9. ⬜ [EP-001-09] **Answer Processing and Evaluation**
+   - **Description:** Implement comprehensive answer processing and evaluation logic that transforms raw assessment responses into meaningful insights with 6-level scoring, domain analysis, and personalized recommendations.
+   - **Requirements:**
+     - **Real-Time Answer Validation**: Format validation, timeout handling, response timing analysis
+     - **6-Level Scoring System**: Points (5,8,10,13,15,20) for difficulty levels 1-6, 0 for incorrect/timeout
+     - **Domain Performance Analysis**: Track accuracy per domain, identify patterns, generate coverage statistics
+     - **Growth Area Identification**: <60% accuracy = growth areas, ≥80% = strengths, map to mini-lessons
+     - **Results Compilation**: Teacher-focused results, personalized summaries, actionable next steps
+     - **Assessment Completion**: Final score calculation, data integrity, completion handling
+   - **Dependencies:** EP-001-07, EP-001-08
+   - **Technical Implementation:**
+     - **Core Services**: `AnswerProcessingService.ts`, `ScoringEngine.ts`, `DomainAnalysisService.ts`, `GrowthAnalysisService.ts`, `ResultsCompilationService.ts`
+     - **Algorithm Components**: `AnswerValidator.ts`, `ScoreCalculator.ts`, `DomainPerformanceCalculator.ts`, `GrowthAreaIdentifier.ts`, `PersonalizationEngine.ts`
+     - **Database Schema**: Enhanced response tracking, results storage, mini-lesson mapping tables
+     - **Performance Requirements**: <500ms answer processing, <2s domain analysis, <5s results compilation
+     - **Quality Standards**: 98%+ test coverage, statistical accuracy validation, comprehensive error handling
+   - **Success Criteria:**
+     - Answer validation handles all input scenarios correctly (100% coverage)
+     - 6-level scoring calculates points accurately with mathematical precision
+     - Domain analysis identifies strengths/growth areas with proper thresholds
+     - Mini-lesson mapping provides relevant personalized recommendations
+     - Results compilation generates clear, actionable teacher summaries
+   - **Documentation**: Detailed requirements in `docs/tasks/EP-001-09-answer-processing-evaluation.md`
+   - **Status:** ⬜ **TODO** - Ready for implementation after EP-001-08 completion
 
 ## Tracking Progress
 
