@@ -158,21 +158,16 @@ export default function Dashboard() {
     }
   }, []);
 
-  // Show welcome dashboard for streak milestones
+  // Show welcome dashboard for streak milestones - only once per login session
   useEffect(() => {
     if (user && user.streak && user.streak >= 7) {
-      // For testing, always show the welcome dashboard for Laura
-      if (user.username === 'lbook') {
+      // Check if we've already shown the welcome this session
+      const sessionKey = `welcomeShown_${user.id}_${user.lastActive}`;
+      const welcomeShownThisSession = sessionStorage.getItem(sessionKey);
+      
+      if (!welcomeShownThisSession) {
         setShowWelcomeDashboard(true);
-      } else {
-        // Check if we've already shown the welcome today for other users
-        const today = new Date().toDateString();
-        const lastWelcomeShown = localStorage.getItem('lastWelcomeShown');
-        
-        if (lastWelcomeShown !== today) {
-          setShowWelcomeDashboard(true);
-          localStorage.setItem('lastWelcomeShown', today);
-        }
+        sessionStorage.setItem(sessionKey, 'true');
       }
     }
   }, [user]);
