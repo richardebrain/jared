@@ -222,6 +222,48 @@ This document serves as the central project management framework for MentorMe, t
      - 📁 **Clean Foundation**: Codebase ready for new adaptive assessment implementation (EP-001-07)
    - **Next Phase Ready**: EP-001-07 - Implement New Adaptive Assessment System
 
+7. 🟦 [EP-001-07] **Assessment Session Management**
+   - **Description:** Implement a robust assessment session management system that controls the creation, validation, and tracking of assessment sessions for Teacher role users, ensuring one-time assessment integrity and comprehensive data persistence.
+   - **Requirements:**
+     - **Role Restriction**: Teacher role users only
+     - **Assessment Type**: Initial assessment (one-time completion)
+     - **Session Model**: Single session completion (no resumption)
+     - **Data Persistence**: Complete assessment journey tracking
+     - **Session Creation & Authorization**: Role validation, one-time enforcement, configuration loading, session initialization
+     - **Session State Management**: Active session tracking, question sequence management, domain coverage tracking, difficulty level tracking, timeout management
+     - **Session Integrity Controls**: Concurrency management, session validation, data consistency, abandonment handling, anti-cheating measures
+   - **Dependencies:** EP-001-03, EP-001-04, EP-001-05, EP-001-06
+   - **Technical Implementation:**
+     - **API Endpoints**: 
+       - `POST /api/assessment/session/start` - Role validation and session creation
+       - `GET /api/assessment/session/status` - Current session state and progress
+       - `POST /api/assessment/session/answer` - Answer submission and next question
+       - `POST /api/assessment/session/complete` - Assessment completion and results
+       - `GET /api/assessment/session/abandon` - Session abandonment handling
+     - **Database Schema Updates**: Enhanced `assessment_sessions`, `assessment_responses`, `assessment_results`, `assessment_session_logs`
+     - **Security & Validation**: JWT token validation, session ownership verification, CSRF protection, input validation, rate limiting
+     - **Business Rules**: One-time assessment policy, session completion rules, domain coverage requirements
+     - **Error Handling**: Session creation errors, session management errors, completion errors
+   - **Success Criteria:**
+     - Teachers can successfully start assessment sessions with proper role validation
+     - Session state is consistently maintained throughout 40-question journey
+     - Complete assessment data is persisted with no data loss
+     - One-time assessment rule is strictly enforced
+     - Session abandonment and completion are handled gracefully
+     - Results are accurately calculated and stored with domain-specific insights
+   - **Technical Notes:**
+     - Use Drizzle for all database interactions
+     - Implement comprehensive session state tracking
+     - Ensure proper role-based access control for Teacher users only
+     - Focus on data integrity and assessment security
+     - Build foundation for subsequent assessment features (EP-001-08, EP-001-09)
+   - **Status Update:** 🟦 **IN PROGRESS** - Starting implementation of assessment session management system
+     - Phase 1: API endpoint structure and route definitions
+     - Phase 2: Session creation and validation logic
+     - Phase 3: Session state management and tracking
+     - Phase 4: Session completion and results processing
+     - Phase 5: Error handling and edge case management
+
 ## Tracking Progress
 
 Weekly status updates will be added below to track overall project progress.
