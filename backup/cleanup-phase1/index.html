@@ -5,6 +5,84 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MentorMe ECE Assessment</title>
   <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+      color: #333;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    .container {
+      max-width: 600px;
+      background-color: white;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #4a6bfa;
+      margin-top: 0;
+      font-size: 2rem;
+    }
+    p {
+      margin-bottom: 1.5rem;
+      font-size: 1.1rem;
+    }
+    .loading-icon {
+      width: 60px;
+      height: 60px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #4a6bfa;
+      border-radius: 50%;
+      margin: 0 auto 20px;
+      animation: spin 1.5s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .button {
+      display: inline-block;
+      background-color: #4a6bfa;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: bold;
+      margin-top: 20px;
+      transition: all 0.3s ease;
+    }
+    .button:hover {
+      background-color: #3a5ae8;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="loading-icon"></div>
+    <h1>MentorMe Assessment</h1>
+    <p>Welcome to the MentorMe ECE Assessment Portal</p>
+    <p>You'll be redirected to the assessment page in a moment...</p>
+    <a href="assessment.html" class="button" id="manual-redirect">Go to Assessment Now</a>
+  </div>
+
+  <script>
+    // Create the assessment content inline so it works anywhere
+    const assessmentContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MentorMe ECE Assessment</title>
+  <style>
     /* Modern, clean styling */
     :root {
       --primary: #4361ee;
@@ -1046,7 +1124,7 @@
     function updateQuestion() {
       const question = currentQuestions[currentQuestionIndex];
       
-      document.getElementById('question-number').textContent = `Question ${currentQuestionIndex + 1} of ${currentQuestions.length}`;
+      document.getElementById('question-number').textContent = \`Question \${currentQuestionIndex + 1} of \${currentQuestions.length}\`;
       document.getElementById('question-text').textContent = question.text;
       
       const answersList = document.getElementById('answers-list');
@@ -1133,7 +1211,7 @@
         
         const percentage = Math.round((correctCount / currentQuestions.length) * 100);
         
-        document.getElementById('results-score').textContent = `${percentage}%`;
+        document.getElementById('results-score').textContent = \`\${percentage}%\`;
         document.getElementById('total-questions').textContent = currentQuestions.length;
         document.getElementById('correct-answers').textContent = correctCount;
         
@@ -1141,9 +1219,9 @@
         const timeDiff = Math.round((endTime - startTime) / 1000); // in seconds
         const minutes = Math.floor(timeDiff / 60);
         const seconds = timeDiff % 60;
-        document.getElementById('completion-time').textContent = `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+        document.getElementById('completion-time').textContent = \`\${minutes}:\${seconds < 10 ? '0' + seconds : seconds}\`;
         
-        document.getElementById('overall-score').textContent = `${percentage}%`;
+        document.getElementById('overall-score').textContent = \`\${percentage}%\`;
         
         let knowledgeLevel = '';
         if (percentage >= 90) {
@@ -1160,7 +1238,7 @@
           document.getElementById('results-message').textContent = 'You have a developing understanding of early childhood education. Keep learning!';
         } else {
           knowledgeLevel = 'Beginner';
-          document.getElementById('results-message').textContent = 'You\'re at the beginning of your early childhood education journey. There\'s room to grow!';
+          document.getElementById('results-message').textContent = 'You\\'re at the beginning of your early childhood education journey. There\\'s room to grow!';
         }
         
         document.getElementById('knowledge-level').textContent = knowledgeLevel;
@@ -1178,20 +1256,20 @@
             { name: 'Family Engagement', score: Math.round(Math.random() * 30 + 70) }
           ];
           
-          const domainScoresHTML = domains.map(domain => `
+          const domainScoresHTML = domains.map(domain => \`
             <div class="breakdown-item">
-              <div class="breakdown-label">${domain.name}</div>
-              <div class="breakdown-value">${domain.score}%</div>
+              <div class="breakdown-label">\${domain.name}</div>
+              <div class="breakdown-value">\${domain.score}%</div>
               <div class="progress-bar">
-                <div class="progress-value" style="width: ${domain.score}%"></div>
+                <div class="progress-value" style="width: \${domain.score}%"></div>
               </div>
             </div>
-          `).join('');
+          \`).join('');
           
-          domainScores.innerHTML = `
+          domainScores.innerHTML = \`
             <h2>Domain Scores</h2>
-            ${domainScoresHTML}
-          `;
+            \${domainScoresHTML}
+          \`;
         } else {
           domainScores.style.display = 'none';
         }
@@ -1216,6 +1294,34 @@
     function hideLoading() {
       document.getElementById('loading-overlay').style.display = 'none';
     }
+  </script>
+</body>
+</html>`;
+
+    // Create a temporary file for assessment
+    function createAssessmentFile() {
+      // Create a new file called assessment.html with assessmentContent
+      const blob = new Blob([assessmentContent], { type: 'text/html' });
+      
+      // Create a download link for the file
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'assessment.html';
+      a.click();
+      
+      // Or redirect to the assessment immediately
+      setTimeout(() => {
+        window.location.href = 'assessment.html';
+      }, 3000);
+    }
+    
+    // Automatically redirect to assessment page 
+    setTimeout(() => {
+      // Create the assessment content in the browser
+      const docElement = document.createElement('html');
+      docElement.innerHTML = assessmentContent;
+      document.documentElement.replaceWith(docElement);
+    }, 2000);
   </script>
 </body>
 </html>
