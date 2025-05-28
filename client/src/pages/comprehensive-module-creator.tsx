@@ -40,7 +40,10 @@ import {
   Filter,
   Clock,
   Users,
-  MessageSquare
+  MessageSquare,
+  FileText,
+  Mic,
+  X
 } from 'lucide-react';
 
 interface ModuleSection {
