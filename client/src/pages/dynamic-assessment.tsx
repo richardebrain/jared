@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import EnhancedAIAssessment from '@/components/EnhancedAIAssessment';
+import EnhancedAssessment from '@/components/EnhancedAssessment';
 import { useToast } from '@/hooks/use-toast';
 import confetti from 'canvas-confetti';
 
@@ -153,7 +153,7 @@ const DynamicAssessmentPage: React.FC = () => {
         )}
 
         {isAssessing && (
-          <EnhancedAIAssessment 
+          <EnhancedAssessment 
             teacherId={demoUser.id}
             teacherName={demoUser.firstName}
             onComplete={handleAssessmentComplete}
@@ -312,7 +312,7 @@ const DynamicAssessmentPage: React.FC = () => {
       )}
 
       {isAssessing && userData && (
-        <EnhancedAIAssessment 
+        <EnhancedAssessment 
           teacherId={userData.id}
           teacherName={userData.firstName || userData.username}
           onComplete={handleAssessmentComplete}
