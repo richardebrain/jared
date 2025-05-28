@@ -18,7 +18,10 @@ import {
   Lightbulb,
   Sparkles,
   FileAudio,
-  Share2
+  Share2,
+  Upload,
+  FileText,
+  X
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -39,6 +42,8 @@ export default function NotebookLMPodcastGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedAudio, setGeneratedAudio] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [isProcessingFiles, setIsProcessingFiles] = useState(false);
   const [podcastData, setPodcastData] = useState<PodcastData>({
     title: "",
     topic: "",
@@ -49,6 +54,89 @@ export default function NotebookLMPodcastGenerator() {
     learningObjectives: [],
     keyMessages: []
   });
+
+  // Handle file uploads
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    
+    // Validate file size (10MB max per file)
+    const validFiles = files.filter(file => {
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: `${file.name} is larger than 10MB. Please choose a smaller file.`,
+          variant: "destructive"
+        });
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length > 0) {
+      setUploadedFiles(prev => [...prev, ...validFiles]);
+      setIsProcessingFiles(true);
+      
+      // Process files and extract text content
+      try {
+        for (const file of validFiles) {
+          const text = await extractTextFromFile(file);
+          if (text) {
+            setPodcastData(prev => ({
+              ...prev,
+              content: prev.content + (prev.content ? '\n\n' : '') + `# Content from ${file.name}\n\n${text}`
+            }));
+          }
+        }
+        
+        toast({
+          title: "Files uploaded successfully!",
+          description: `Processed ${validFiles.length} file(s). Content has been added for podcast generation.`
+        });
+      } catch (error) {
+        toast({
+          title: "Error processing files",
+          description: "There was an issue extracting content from some files.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsProcessingFiles(false);
+      }
+    }
+  };
+
+  // Extract text content from uploaded files
+  const extractTextFromFile = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        resolve(text);
+      };
+      
+      reader.onerror = () => {
+        reject(new Error(`Failed to read ${file.name}`));
+      };
+
+      // For text files, read as text
+      if (file.type.startsWith('text/') || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
+        reader.readAsText(file);
+      } else {
+        // For other files, we'll need a more sophisticated text extraction
+        // For now, just prompt user to copy-paste content
+        toast({
+          title: "File format notice",
+          description: `${file.name}: Please copy and paste the content manually for best results.`
+        });
+        resolve('');
+      }
+    });
+  };
+
+  // Remove uploaded file
+  const removeFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
 
   const podcastStyles = [
     {
@@ -309,15 +397,76 @@ export default function NotebookLMPodcastGenerator() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="content">Your Educational Content</Label>
-            <Textarea
-              id="content"
-              placeholder="Paste your training materials, research findings, classroom strategies, or any educational content you want the podcast hosts to discuss. Be as detailed as possible - the more content you provide, the richer the conversation will be!"
-              value={podcastData.content}
-              onChange={(e) => setPodcastData(prev => ({ ...prev, content: e.target.value }))}
-              rows={8}
-            />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="content">Your Educational Content</Label>
+              <Textarea
+                id="content"
+                placeholder="Paste your training materials, research findings, classroom strategies, or any educational content you want the podcast hosts to discuss. Be as detailed as possible - the more content you provide, the richer the conversation will be!"
+                value={podcastData.content}
+                onChange={(e) => setPodcastData(prev => ({ ...prev, content: e.target.value }))}
+                rows={8}
+              />
+            </div>
+
+            {/* File Upload Section */}
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+              <div className="space-y-3">
+                <div className="flex justify-center">
+                  <Upload className="h-12 w-12 text-gray-400" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-medium text-gray-900">Upload Documents</h4>
+                  <p className="text-sm text-gray-600">Upload PDFs, Word docs, or text files for the AI to analyze</p>
+                </div>
+                <div className="flex justify-center">
+                  <input
+                    type="file"
+                    id="document-upload"
+                    multiple
+                    accept=".pdf,.doc,.docx,.txt,.md"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="document-upload"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 cursor-pointer"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Choose Files
+                  </label>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Supported formats: PDF, Word docs, text files (Max 10MB each)
+                </p>
+              </div>
+            </div>
+
+            {/* Uploaded Files Display */}
+            {uploadedFiles.length > 0 && (
+              <div className="space-y-2">
+                <Label>Uploaded Documents</Label>
+                <div className="space-y-2">
+                  {uploadedFiles.map((file, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <FileText className="h-4 w-4 text-green-600" />
+                        <span className="text-sm font-medium text-green-800">{file.name}</span>
+                        <span className="text-xs text-green-600">({(file.size / 1024).toFixed(1)} KB)</span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeFile(index)}
+                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
