@@ -28,8 +28,8 @@ import sharingAudio2 from "@assets/pass it dont hog it sharing version 2.mp3";
 import welcomeAboardAudio from "@assets/Welcome Aboard.mp3";
 import welcomeAboardAudio2 from "@assets/Welcome Aboard version 2.mp3";
 // Import Spiderman nap songs
-import spidermanNapSongAudio from "../assets/spiderman_takes_naps.mp3";
-import spidermanNapLullabyAudio from "../assets/spiderman_takes_naps_lullaby.mp3";
+import spidermanNapSongAudio from "@assets/🎵 \"Spiderman Takes Naps\".mp3";
+import spidermanNapLullabyAudio from "@assets/🎵 \"Spiderman Takes Naps (Lullaby Editio.mp3";
 
 // Define classroom song categories
 const audioCategories = [
@@ -137,7 +137,7 @@ const classroomSongs = [
   {
     id: 19,
     title: 'Spiderman Takes Naps',
-    file: spidermanNapSongAudio,
+    file: '/attached_assets/🎵 "Spiderman Takes Naps".mp3',
     category: 'rest',
     description: 'Fun superhero-themed naptime song for preschoolers',
     duration: '2:45',
@@ -146,11 +146,29 @@ const classroomSongs = [
   {
     id: 20,
     title: 'Spiderman Takes Naps (Lullaby Edition)',
-    file: spidermanNapLullabyAudio,
+    file: '/attached_assets/🎵 "Spiderman Takes Naps (Lullaby Editio.mp3',
     category: 'rest',
     description: 'Gentle lullaby version of the Spiderman nap song',
     duration: '3:20',
     usageNotes: 'A softer, slower version that works well for creating a peaceful atmosphere during naptime, while still using the superhero theme that children enjoy.'
+  },
+  {
+    id: 21,
+    title: 'Spiderman Takes Naps (Alternative Version)',
+    file: '/attached_assets/🎵 "Spiderman Takes Naps" (2).mp3',
+    category: 'rest',
+    description: 'Another fun version of the superhero naptime song',
+    duration: '2:50',
+    usageNotes: 'A different musical arrangement of the popular Spiderman nap song, perfect for variety during rest time routines.'
+  },
+  {
+    id: 22,
+    title: 'Spiderman Takes Naps (Lullaby Edition 2)',
+    file: '/attached_assets/🎵 "Spiderman Takes Naps (Lullaby Editio (2).mp3',
+    category: 'rest',
+    description: 'Second gentle lullaby version with enhanced calming elements',
+    duration: '3:15',
+    usageNotes: 'An even more soothing version with extended quiet moments, ideal for children who need extra help settling down for rest time.'
   },
   { 
     id: 11, 

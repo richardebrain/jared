@@ -75,7 +75,7 @@ This document serves as the central project management framework for MentorMe, t
      - Comprehensive fallback strategy implemented
      - Performance tracking for mastery confirmation
 
-3. ⬜ [EP-001-03] **Update Database Schema with Assessment Tables**
+3. 🟦 [EP-001-03] **Update Database Schema with Assessment Tables**
    - **Description:** Implement new database schema for assessment system using Drizzle's codebase-first approach with `drizzle-kit push`.
    - **Requirements:**
      - Add `assessmentDomains` table with question weights for 10 ECE domains

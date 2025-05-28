@@ -164,12 +164,25 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
 export const assessments = pgTable("assessments", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
-  type: text("type").default("standard"), // standard, self (for self-assessments)
+  type: text("type").default("initial"), // initial, self, progress (changed from "standard")
   overallScore: integer("overall_score"),
   completed: boolean("completed").default(false),
   results: json("results").$type<Record<string, string>>(),
   
-  // Detailed category scores with levels for all 18 categories
+  // Updated for 6-level adaptive system
+  domainScores: json("domain_scores").$type<Record<string, { 
+    score: number, 
+    maxDifficulty: number, // Changed from string to number (1-6)
+    questionsAnswered: number,
+    correctAnswers: number
+  }>>(),
+  
+  // Adaptive algorithm tracking fields
+  currentDifficulty: integer("current_difficulty").default(3), // Current global difficulty (1-6)
+  difficultyProgression: json("difficulty_progression").$type<number[]>(), // Track difficulty changes throughout assessment
+  domainCoverage: json("domain_coverage").$type<Record<string, number>>(), // Track questions per domain
+  
+  // Legacy field for backward compatibility - keeping for now
   categoryScores: json("category_scores").$type<Array<{
     category: string;
     score: number;
@@ -178,9 +191,6 @@ export const assessments = pgTable("assessments", {
     questionsAnswered: number;
     correctAnswers: number;
   }>>(),
-  
-  // Legacy field for backward compatibility
-  domainScores: json("domain_scores").$type<Record<string, { score: number, maxDifficulty: string }>>(),
   
   strengthAreas: json("strength_areas").$type<string[]>(),
   growthAreas: json("growth_areas").$type<string[]>(),
@@ -196,7 +206,7 @@ export const assessments = pgTable("assessments", {
   }>>(),
   completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow(),
-  assessmentType: text("assessment_type").default("ITERS_ECERS_CLASS"),
+  assessmentType: text("assessment_type").default("INITIAL_ADAPTIVE"), // Updated default
   notes: text("notes"),
   teacherLevel: text("teacher_level"),
 });
@@ -555,11 +565,12 @@ export type InsertUserAvatar = z.infer<typeof insertUserAvatarSchema>;
 export type UserAvatarItem = typeof userAvatarItems.$inferSelect;
 export type InsertUserAvatarItem = z.infer<typeof insertUserAvatarItemSchema>;
 
-export const assessmentsRelations = relations(assessments, ({ one }) => ({
+export const assessmentsRelations = relations(assessments, ({ one, many }) => ({
   user: one(users, {
     fields: [assessments.userId],
     references: [users.id]
-  })
+  }),
+  responses: many(assessmentResponses)
 }));
 
 export const educationalGamesRelations = relations(educationalGames, ({ many }) => ({
@@ -622,6 +633,10 @@ export const spinGameRewardsRelations = relations(spinGameRewards, ({ one }) => 
 // School relations definition
 export const schoolsRelations = relations(schools, ({ many }) => ({
   users: many(users),
+  learningModules: many(learningModules),
+  questionAvailability: many(questionAvailability),
+  assessmentConfig: many(assessmentConfig),
+  teacherMessages: many(teacherMessages)
 }));
 
 // Assessment domains table for weighted question distribution
@@ -733,6 +748,11 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   meetings: many(meetings, { relationName: "host" }),
   guestMeetings: many(meetings, { relationName: "guest" }),
   assessments: many(assessments),
+  assessmentResponses: many(assessmentResponses),
+  createdQuestions: many(assessmentQuestions, { relationName: "questionCreator" }),
+  approvedQuestions: many(assessmentQuestions, { relationName: "questionApprover" }),
+  questionAvailabilityUpdates: many(questionAvailability),
+  assessmentConfigUpdates: many(assessmentConfig),
   userAchievements: many(userAchievements),
   userItems: many(userItems),
   spinGameRewards: many(spinGameRewards),
@@ -1147,5 +1167,116 @@ export const coreValuesShoutOutRelations = relations(coreValuesShoutOuts, ({ one
     fields: [coreValuesShoutOuts.nomineeId],
     references: [users.id],
     relationName: "nominee"
+  })
+}));
+
+// Assessment domains insert schema and types
+export const insertAssessmentDomainSchema = createInsertSchema(assessmentDomains).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type AssessmentDomain = typeof assessmentDomains.$inferSelect;
+export type InsertAssessmentDomain = z.infer<typeof insertAssessmentDomainSchema>;
+
+// Assessment responses insert schema and types
+export const insertAssessmentResponseSchema = createInsertSchema(assessmentResponses).omit({
+  id: true,
+  answeredAt: true,
+});
+
+export type AssessmentResponse = typeof assessmentResponses.$inferSelect;
+export type InsertAssessmentResponse = z.infer<typeof insertAssessmentResponseSchema>;
+
+// Question availability insert schema and types
+export const insertQuestionAvailabilitySchema = createInsertSchema(questionAvailability).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type QuestionAvailability = typeof questionAvailability.$inferSelect;
+export type InsertQuestionAvailability = z.infer<typeof insertQuestionAvailabilitySchema>;
+
+// Assessment config insert schema and types
+export const insertAssessmentConfigSchema = createInsertSchema(assessmentConfig).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type AssessmentConfig = typeof assessmentConfig.$inferSelect;
+export type InsertAssessmentConfig = z.infer<typeof insertAssessmentConfigSchema>;
+
+// Assessment domains relations
+export const assessmentDomainsRelations = relations(assessmentDomains, ({ many }) => ({
+  questions: many(assessmentQuestions),
+  responses: many(assessmentResponses)
+}));
+
+// Assessment questions relations
+export const assessmentQuestionsRelations = relations(assessmentQuestions, ({ one, many }) => ({
+  domain: one(assessmentDomains, {
+    fields: [assessmentQuestions.domainId],
+    references: [assessmentDomains.id]
+  }),
+  createdByUser: one(users, {
+    fields: [assessmentQuestions.createdBy],
+    references: [users.id],
+    relationName: "questionCreator"
+  }),
+  approvedByUser: one(users, {
+    fields: [assessmentQuestions.approvedBy],
+    references: [users.id],
+    relationName: "questionApprover"
+  }),
+  responses: many(assessmentResponses),
+  availability: many(questionAvailability)
+}));
+
+// Assessment responses relations
+export const assessmentResponsesRelations = relations(assessmentResponses, ({ one }) => ({
+  assessment: one(assessments, {
+    fields: [assessmentResponses.assessmentId],
+    references: [assessments.id]
+  }),
+  question: one(assessmentQuestions, {
+    fields: [assessmentResponses.questionId],
+    references: [assessmentQuestions.id]
+  }),
+  user: one(users, {
+    fields: [assessmentResponses.userId],
+    references: [users.id]
+  }),
+  domain: one(assessmentDomains, {
+    fields: [assessmentResponses.domainId],
+    references: [assessmentDomains.id]
+  })
+}));
+
+// Question availability relations
+export const questionAvailabilityRelations = relations(questionAvailability, ({ one }) => ({
+  question: one(assessmentQuestions, {
+    fields: [questionAvailability.questionId],
+    references: [assessmentQuestions.id]
+  }),
+  school: one(schools, {
+    fields: [questionAvailability.schoolId],
+    references: [schools.id]
+  }),
+  enabledByUser: one(users, {
+    fields: [questionAvailability.enabledBy],
+    references: [users.id]
+  })
+}));
+
+// Assessment config relations
+export const assessmentConfigRelations = relations(assessmentConfig, ({ one }) => ({
+  school: one(schools, {
+    fields: [assessmentConfig.schoolId],
+    references: [schools.id]
+  }),
+  updatedByUser: one(users, {
+    fields: [assessmentConfig.updatedBy],
+    references: [users.id]
   })
 }));
