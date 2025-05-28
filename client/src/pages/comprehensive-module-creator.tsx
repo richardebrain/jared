@@ -396,7 +396,7 @@ export default function ComprehensiveModuleCreator() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/modules/management'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
       
       // Reset form
       setNewModule({
@@ -524,7 +524,7 @@ export default function ComprehensiveModuleCreator() {
 
   // Fetch all modules including hidden ones
   const { data: modules, isLoading, error } = useQuery({
-    queryKey: ['/api/modules/management']
+    queryKey: ['/api/modules']
   });
 
   // Update module visibility mutation
@@ -533,7 +533,7 @@ export default function ComprehensiveModuleCreator() {
       return await apiRequest('PATCH', `/api/modules/${moduleId}/visibility`, { visible });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/modules/management'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
       toast({
         title: 'Module Updated',
         description: 'Module visibility has been successfully updated.',
@@ -1068,7 +1068,7 @@ export default function ComprehensiveModuleCreator() {
                 <p className="text-gray-600 mb-4">There was a problem fetching the modules. Please try again later.</p>
                 <Button 
                   variant="outline" 
-                  onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/modules/management'] })}
+                  onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/modules'] })}
                 >
                   Try Again
                 </Button>
