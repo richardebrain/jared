@@ -160,8 +160,8 @@ export default function Dashboard() {
   // Show welcome dashboard for streak milestones - only once per login session
   useEffect(() => {
     if (user && user.streak && user.streak >= 7) {
-      // Check if we've already shown the welcome this session
-      const sessionKey = `welcomeShown_${user.id}_${user.lastActive}`;
+      // Use a simple session key that persists for the browser session only
+      const sessionKey = `welcomeShown_${user.id}`;
       const welcomeShownThisSession = sessionStorage.getItem(sessionKey);
       
       if (!welcomeShownThisSession) {
