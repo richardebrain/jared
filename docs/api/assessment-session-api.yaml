@@ -1,0 +1,920 @@
+openapi: 3.0.3
+info:
+  title: Assessment Session Management API
+  description: |
+    API for managing assessment sessions for Teacher role users in the MentorMe platform.
+    
+    ## Overview
+    This API provides endpoints to create, track, and manage assessment sessions with the following key features:
+    - **Teacher Role Restriction**: Only Teacher users (not admins/school admins/owners) can access these endpoints
+    - **One-Time Assessment Rule**: Each teacher can complete the initial assessment only once
+    - **Session State Management**: Complete tracking of assessment progress and responses
+    - **Data Persistence**: Full journey tracking with question sequences and domain analysis
+    - **6-Level Scoring System**: Points awarded based on difficulty levels (5,8,10,13,15,20)
+    
+    ## Authentication
+    All endpoints require session-based authentication with a valid Teacher role user.
+    
+    ## Assessment Flow
+    1. **Start Session**: `POST /session/start` - Create new assessment session
+    2. **Check Status**: `GET /session/status` - Monitor progress (optional)
+    3. **Submit Answers**: `POST /session/answer` - Submit responses (repeat for each question)
+    4. **Complete Assessment**: `POST /session/complete` - Finalize and get results
+    5. **Abandon Session**: `GET /session/abandon` - Handle incomplete sessions (if needed)
+    
+  version: 1.0.0
+  contact:
+    name: MentorMe API Support
+    email: api@mentorme.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: /api/assessment
+    description: Assessment API base path
+
+security:
+  - sessionAuth: []
+
+tags:
+  - name: Session Management
+    description: Assessment session lifecycle management
+  - name: Response Tracking
+    description: Answer submission and progress tracking
+  - name: Results
+    description: Assessment completion and results
+
+paths:
+  /session/start:
+    post:
+      tags:
+        - Session Management
+      summary: Start New Assessment Session
+      description: |
+        Creates a new assessment session for a Teacher role user.
+        
+        **Key Validations:**
+        - User must have Teacher role (not admin/school admin/owner)
+        - One-time assessment rule enforced (no existing completed assessments)
+        - Loads school-specific or platform-wide configuration
+        - Returns session metadata and domain information
+        
+        **Success Response:**
+        Returns session configuration, domain weights, and initial progress state.
+      operationId: startAssessmentSession
+      security:
+        - sessionAuth: []
+      responses:
+        '201':
+          description: Assessment session started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionStartResponse'
+              example:
+                success: true
+                message: "Assessment session started successfully"
+                session:
+                  assessmentId: 123
+                  userId: 456
+                  type: "initial"
+                  startedAt: "2025-01-15T10:30:00.000Z"
+                  currentDifficulty: 3
+                  config:
+                    questionCount: 40
+                    timePerQuestion: 60
+                    startingDifficulty: 3
+                    minDomainCoverage: 1
+                  domains:
+                    - id: 1
+                      name: "Child Safety & Supervision"
+                      description: "Safety protocols and supervision strategies"
+                      questionWeight: 10
+                      displayOrder: 1
+                  progress:
+                    questionsAnswered: 0
+                    totalQuestions: 40
+                    currentSequence: 1
+                    domainCoverage: {}
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/TeacherRoleRequired'
+        '409':
+          $ref: '#/components/responses/AssessmentAlreadyCompleted'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /session/status:
+    get:
+      tags:
+        - Session Management
+      summary: Get Current Session Status
+      description: |
+        Returns the current state and progress of an active assessment session.
+        
+        **Key Information:**
+        - Session metadata and configuration
+        - Current progress (questions answered, sequence position)
+        - Difficulty progression tracking
+        - Domain coverage statistics
+        
+        **Use Cases:**
+        - Resume interrupted sessions
+        - Display progress indicators
+        - Validate session state before operations
+      operationId: getSessionStatus
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Session status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionStatusResponse'
+              example:
+                success: true
+                session:
+                  assessmentId: 123
+                  userId: 456
+                  type: "initial"
+                  startedAt: "2025-01-15T10:30:00.000Z"
+                  currentDifficulty: 4
+                  difficultyProgression: [3, 3, 4, 4]
+                  domainCoverage: 
+                    "1": 2
+                    "2": 1
+                  progress:
+                    questionsAnswered: 15
+                    totalQuestions: 40
+                    currentSequence: 16
+                    percentComplete: 38
+                  config:
+                    questionCount: 40
+                    timePerQuestion: 60
+                    startingDifficulty: 3
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/TeacherRoleRequired'
+        '404':
+          $ref: '#/components/responses/NoActiveSession'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /session/answer:
+    post:
+      tags:
+        - Response Tracking
+      summary: Submit Assessment Answer
+      description: |
+        Processes an answer submission for the current assessment session.
+        
+        **Key Processing:**
+        - Validates session ownership and active status
+        - Records response with question sequence tracking
+        - Calculates points based on 6-level difficulty system
+        - Handles timeout scenarios
+        - Checks for assessment completion
+        
+        **Scoring System:**
+        - Difficulty 1: 5 points
+        - Difficulty 2: 8 points  
+        - Difficulty 3: 10 points
+        - Difficulty 4: 13 points
+        - Difficulty 5: 15 points
+        - Difficulty 6: 20 points
+        
+        **Response Behavior:**
+        - If assessment incomplete: Returns progress update
+        - If assessment complete: Returns completion status (call /session/complete next)
+      operationId: submitAssessmentAnswer
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnswerSubmissionRequest'
+            example:
+              assessmentId: 123
+              questionId: "safety-3-001"
+              selectedAnswer: 2
+              responseTime: 45
+              timedOut: false
+      responses:
+        '200':
+          description: Answer recorded successfully
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/AnswerResponseContinue'
+                  - $ref: '#/components/schemas/AnswerResponseComplete'
+              examples:
+                continue_assessment:
+                  summary: Assessment continues
+                  value:
+                    success: true
+                    message: "Answer recorded successfully"
+                    response:
+                      questionSequence: 15
+                      isCorrect: true
+                      pointsEarned: 10
+                      timedOut: false
+                    assessment:
+                      completed: false
+                      totalQuestions: 40
+                      questionsAnswered: 15
+                      nextSequence: 16
+                      percentComplete: 38
+                complete_assessment:
+                  summary: Assessment complete
+                  value:
+                    success: true
+                    message: "Answer recorded successfully"
+                    response:
+                      questionSequence: 40
+                      isCorrect: false
+                      pointsEarned: 0
+                      timedOut: true
+                    assessment:
+                      completed: true
+                      totalQuestions: 40
+                      questionsAnswered: 40
+        '400':
+          $ref: '#/components/responses/InvalidRequestData'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/TeacherRoleRequired'
+        '404':
+          $ref: '#/components/responses/SessionOrQuestionNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /session/complete:
+    post:
+      tags:
+        - Results
+      summary: Complete Assessment Session
+      description: |
+        Finalizes the assessment session and calculates comprehensive results.
+        
+        **Results Calculation:**
+        - Domain-specific performance analysis
+        - Strengths identification (≥80% accuracy per domain)
+        - Growth areas identification (<60% accuracy per domain)
+        - Overall score calculation
+        - Incorrect questions tracking for training recommendations
+        
+        **Teacher Results Include:**
+        - Overall score and accuracy rate
+        - Strengths and growth areas only (not detailed analytics)
+        - Personalized summary messages
+        - Next steps recommendations
+        
+        **Data Persistence:**
+        - Updates assessment record with completion status
+        - Stores detailed domain scores and analytics
+        - Preserves all response data for future analysis
+      operationId: completeAssessmentSession
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompleteAssessmentRequest'
+            example:
+              assessmentId: 123
+      responses:
+        '200':
+          description: Assessment completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentCompleteResponse'
+              example:
+                success: true
+                message: "Assessment completed successfully"
+                results:
+                  assessmentId: 123
+                  completed: true
+                  completedAt: "2025-01-15T11:15:00.000Z"
+                  overallScore: 75
+                  totalQuestions: 40
+                  totalCorrect: 30
+                  accuracyRate: 75
+                  strengthAreas: 
+                    - "Child Safety & Supervision"
+                    - "Health & Development"
+                  growthAreas:
+                    - "Trauma-Informed & Emotional Care"
+                    - "Family Engagement"
+                  summary:
+                    message: "Great work! You showed strength in Child Safety & Supervision, Health & Development."
+                    nextSteps: "Consider focusing on: Trauma-Informed & Emotional Care, Family Engagement."
+        '400':
+          $ref: '#/components/responses/InvalidRequestData'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/TeacherRoleRequired'
+        '404':
+          $ref: '#/components/responses/SessionNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /session/abandon:
+    get:
+      tags:
+        - Session Management
+      summary: Abandon Assessment Session
+      description: |
+        Handles abandonment of an incomplete assessment session.
+        
+        **Abandonment Handling:**
+        - Marks session as completed with abandonment status
+        - Preserves partial progress data for analysis
+        - Records question count reached before abandonment
+        - Allows potential future retake (policy dependent)
+        
+        **Use Cases:**
+        - User navigates away from assessment
+        - Technical issues require session termination
+        - Voluntary session abandonment
+        
+        **Data Preservation:**
+        All response data is preserved for potential analysis and debugging.
+      operationId: abandonAssessmentSession
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Assessment session abandoned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionAbandonResponse'
+              example:
+                success: true
+                message: "Assessment session abandoned"
+                details:
+                  assessmentId: 123
+                  questionsAnswered: 15
+                  abandonedAt: "2025-01-15T10:45:00.000Z"
+                  note: "Assessment session has been marked as abandoned. You may be able to take a new assessment in the future."
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/TeacherRoleRequired'
+        '404':
+          $ref: '#/components/responses/NoActiveSession'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: connect.sid
+      description: Session-based authentication using Express sessions
+
+  schemas:
+    # Request Schemas
+    AnswerSubmissionRequest:
+      type: object
+      required:
+        - assessmentId
+        - questionId
+      properties:
+        assessmentId:
+          type: integer
+          description: ID of the active assessment session
+          example: 123
+        questionId:
+          type: string
+          description: Unique identifier of the question being answered
+          example: "safety-3-001"
+        selectedAnswer:
+          type: integer
+          description: Index of the selected answer option (0-based). Required unless timedOut is true.
+          minimum: 0
+          maximum: 4
+          example: 2
+        responseTime:
+          type: integer
+          description: Time spent on the question in seconds
+          minimum: 0
+          example: 45
+        timedOut:
+          type: boolean
+          description: Whether the question timed out without an answer
+          default: false
+          example: false
+
+    CompleteAssessmentRequest:
+      type: object
+      required:
+        - assessmentId
+      properties:
+        assessmentId:
+          type: integer
+          description: ID of the assessment session to complete
+          example: 123
+
+    # Response Schemas
+    SessionStartResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Assessment session started successfully"
+        session:
+          $ref: '#/components/schemas/SessionData'
+
+    SessionStatusResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        session:
+          $ref: '#/components/schemas/SessionData'
+
+    AnswerResponseContinue:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Answer recorded successfully"
+        response:
+          $ref: '#/components/schemas/AnswerResult'
+        assessment:
+          $ref: '#/components/schemas/AssessmentProgressContinue'
+
+    AnswerResponseComplete:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Answer recorded successfully"
+        response:
+          $ref: '#/components/schemas/AnswerResult'
+        assessment:
+          $ref: '#/components/schemas/AssessmentProgressComplete'
+
+    AssessmentCompleteResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Assessment completed successfully"
+        results:
+          $ref: '#/components/schemas/AssessmentResults'
+
+    SessionAbandonResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Assessment session abandoned"
+        details:
+          $ref: '#/components/schemas/AbandonmentDetails'
+
+    # Data Schemas
+    SessionData:
+      type: object
+      properties:
+        assessmentId:
+          type: integer
+          description: Unique identifier for the assessment session
+          example: 123
+        userId:
+          type: integer
+          description: ID of the user taking the assessment
+          example: 456
+        type:
+          type: string
+          description: Type of assessment
+          enum: [initial]
+          example: "initial"
+        startedAt:
+          type: string
+          format: date-time
+          description: When the assessment session was created
+          example: "2025-01-15T10:30:00.000Z"
+        currentDifficulty:
+          type: integer
+          description: Current difficulty level (1-6)
+          minimum: 1
+          maximum: 6
+          example: 3
+        difficultyProgression:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+            maximum: 6
+          description: History of difficulty levels throughout the assessment
+          example: [3, 3, 4, 4, 3]
+        domainCoverage:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Number of questions asked per domain ID
+          example:
+            "1": 5
+            "2": 3
+            "3": 2
+        config:
+          $ref: '#/components/schemas/AssessmentConfig'
+        domains:
+          type: array
+          items:
+            $ref: '#/components/schemas/DomainInfo'
+          description: Available assessment domains (only in start response)
+        progress:
+          $ref: '#/components/schemas/AssessmentProgress'
+
+    AssessmentConfig:
+      type: object
+      properties:
+        questionCount:
+          type: integer
+          description: Total number of questions in the assessment
+          example: 40
+        timePerQuestion:
+          type: integer
+          description: Time limit per question in seconds
+          example: 60
+        startingDifficulty:
+          type: integer
+          description: Initial difficulty level
+          minimum: 1
+          maximum: 6
+          example: 3
+        minDomainCoverage:
+          type: integer
+          description: Minimum questions required per domain
+          example: 1
+
+    DomainInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique domain identifier
+          example: 1
+        name:
+          type: string
+          description: Human-readable domain name
+          example: "Child Safety & Supervision"
+        description:
+          type: string
+          description: Domain description
+          example: "Safety protocols and supervision strategies"
+        questionWeight:
+          type: integer
+          description: Relative weight for question selection
+          example: 10
+        displayOrder:
+          type: integer
+          description: Order for display purposes
+          example: 1
+
+    AssessmentProgress:
+      type: object
+      properties:
+        questionsAnswered:
+          type: integer
+          description: Number of questions completed
+          example: 15
+        totalQuestions:
+          type: integer
+          description: Total questions in the assessment
+          example: 40
+        currentSequence:
+          type: integer
+          description: Next question sequence number
+          example: 16
+        percentComplete:
+          type: integer
+          description: Completion percentage
+          minimum: 0
+          maximum: 100
+          example: 38
+        domainCoverage:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Questions answered per domain
+          example:
+            "1": 5
+            "2": 3
+
+    AnswerResult:
+      type: object
+      properties:
+        questionSequence:
+          type: integer
+          description: Sequence number of the answered question
+          example: 15
+        isCorrect:
+          type: boolean
+          description: Whether the answer was correct
+          example: true
+        pointsEarned:
+          type: integer
+          description: Points earned for this question
+          minimum: 0
+          maximum: 20
+          example: 10
+        timedOut:
+          type: boolean
+          description: Whether the question timed out
+          example: false
+
+    AssessmentProgressContinue:
+      type: object
+      properties:
+        completed:
+          type: boolean
+          enum: [false]
+          example: false
+        totalQuestions:
+          type: integer
+          example: 40
+        questionsAnswered:
+          type: integer
+          example: 15
+        nextSequence:
+          type: integer
+          description: Next question sequence number
+          example: 16
+        percentComplete:
+          type: integer
+          minimum: 0
+          maximum: 99
+          example: 38
+
+    AssessmentProgressComplete:
+      type: object
+      properties:
+        completed:
+          type: boolean
+          enum: [true]
+          example: true
+        totalQuestions:
+          type: integer
+          example: 40
+        questionsAnswered:
+          type: integer
+          example: 40
+
+    AssessmentResults:
+      type: object
+      properties:
+        assessmentId:
+          type: integer
+          example: 123
+        completed:
+          type: boolean
+          enum: [true]
+          example: true
+        completedAt:
+          type: string
+          format: date-time
+          example: "2025-01-15T11:15:00.000Z"
+        overallScore:
+          type: integer
+          description: Overall percentage score
+          minimum: 0
+          maximum: 100
+          example: 75
+        totalQuestions:
+          type: integer
+          example: 40
+        totalCorrect:
+          type: integer
+          example: 30
+        accuracyRate:
+          type: integer
+          description: Percentage of correct answers
+          minimum: 0
+          maximum: 100
+          example: 75
+        strengthAreas:
+          type: array
+          items:
+            type: string
+          description: Domains where user performed well (≥80% accuracy)
+          example: ["Child Safety & Supervision", "Health & Development"]
+        growthAreas:
+          type: array
+          items:
+            type: string
+          description: Domains needing improvement (<60% accuracy)
+          example: ["Trauma-Informed & Emotional Care", "Family Engagement"]
+        summary:
+          $ref: '#/components/schemas/ResultsSummary'
+
+    ResultsSummary:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Personalized completion message
+          example: "Great work! You showed strength in Child Safety & Supervision, Health & Development."
+        nextSteps:
+          type: string
+          description: Recommended focus areas
+          example: "Consider focusing on: Trauma-Informed & Emotional Care, Family Engagement."
+
+    AbandonmentDetails:
+      type: object
+      properties:
+        assessmentId:
+          type: integer
+          example: 123
+        questionsAnswered:
+          type: integer
+          description: Number of questions completed before abandonment
+          example: 15
+        abandonedAt:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:45:00.000Z"
+        note:
+          type: string
+          example: "Assessment session has been marked as abandoned. You may be able to take a new assessment in the future."
+
+    # Error Schemas
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Error message
+        details:
+          type: string
+          description: Additional error details
+        code:
+          type: string
+          description: Error code for client handling
+
+    ValidationError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Invalid request data"
+        details:
+          type: string
+          example: "Assessment ID, question ID, and selected answer are required (unless timed out)."
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+
+  responses:
+    # Success responses are defined inline in paths
+
+    # Error Responses
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: "Unauthorized"
+            details: "Valid session authentication required"
+
+    TeacherRoleRequired:
+      description: Teacher role required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: "Assessment access restricted"
+            details: "Initial assessments are only available for Teacher role users. Administrators should use different assessment tools."
+
+    AssessmentAlreadyCompleted:
+      description: One-time assessment rule violation
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              details:
+                type: string
+              existingAssessment:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  completed:
+                    type: boolean
+                  completedAt:
+                    type: string
+                    format: date-time
+                    nullable: true
+                  createdAt:
+                    type: string
+                    format: date-time
+          example:
+            message: "Assessment already completed"
+            details: "You have already completed your initial assessment. Each teacher can only take the initial assessment once."
+            existingAssessment:
+              id: 122
+              completed: true
+              completedAt: "2025-01-10T14:30:00.000Z"
+              createdAt: "2025-01-10T13:15:00.000Z"
+
+    NoActiveSession:
+      description: No active assessment session found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: "No active assessment session found"
+            details: "You don't have an active assessment session. Please start a new assessment."
+
+    SessionNotFound:
+      description: Assessment session not found or already completed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: "Invalid assessment session"
+            details: "Assessment session not found or already completed."
+
+    SessionOrQuestionNotFound:
+      description: Assessment session or question not found
+      content:
+        application/json:
+          schema:
+            ref: '#/components/schemas/ErrorResponse'
+          examples:
+            session_not_found:
+              summary: Session not found
+              value:
+                message: "Invalid assessment session"
+                details: "Assessment session not found or already completed."
+            question_not_found:
+              summary: Question not found
+              value:
+                message: "Question not found"
+                details: "The specified question could not be found."
+
+    InvalidRequestData:
+      description: Invalid or missing request data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+          example:
+            message: "Invalid request data"
+            details: "Assessment ID, question ID, and selected answer are required (unless timed out)."
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: "Failed to start assessment session"
+            details: "An internal error occurred while creating your assessment session. Please try again." 
