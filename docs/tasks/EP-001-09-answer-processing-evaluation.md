@@ -10,19 +10,19 @@
 
 ### Overview
 
-Implement comprehensive answer processing and evaluation logic that transforms raw assessment responses into meaningful insights. This system handles real-time answer validation, 6-level scoring calculations, domain-specific performance analysis, growth area identification, and compilation of teacher-focused results with personalized recommendations.
+Implement comprehensive answer processing and evaluation logic that transforms raw assessment responses into meaningful insights. This system handles real-time answer validation with **strict timeout enforcement**, 6-level scoring calculations, domain-specific performance analysis, and **direct question-to-mini-lesson mapping** for personalized training recommendations that are immediately actionable.
 
 ### Scope
 
 **In Scope:**
-- Real-time answer validation and processing
+- Real-time answer validation with **strict timeout enforcement** (no late submissions accepted)
 - 6-level difficulty scoring system (5,8,10,13,15,20 points)
-- Domain-specific performance calculation and analysis
-- Growth area identification from failed questions by domain
-- Mini-lesson mapping for personalized training recommendations
-- Strengths and weaknesses compilation for teacher results
+- **Primary Focus: Direct question-to-mini-lesson mapping for failed questions**
+- Domain-specific performance calculation and analysis (secondary insights)
+- Automatic timeout response processing for backend timer integration
 - Assessment completion logic and final score calculation
 - Comprehensive data persistence for analysis and reporting
+- Integration with EP-001-08 automatic progression system
 
 **Out of Scope:**
 - Question content validation or creation
@@ -33,14 +33,16 @@ Implement comprehensive answer processing and evaluation logic that transforms r
 
 ### Functional Requirements
 
-#### FR-001: Real-Time Answer Validation
-- **Requirement**: Validate and process assessment answers with comprehensive error handling
+#### FR-001: Real-Time Answer Validation with Strict Timeout Enforcement
+- **Requirement**: Validate and process assessment answers with comprehensive error handling and **absolute timeout enforcement**
 - **Details**:
-  - Validate answer format and content against question structure
-  - Handle multiple choice, true/false, and scenario-based responses
-  - Support timeout scenarios with automatic incorrect marking
-  - Validate response timing and detect anomalies
-  - Ensure answer corresponds to active question in session
+  - **Strict Timing Validation**: Reject any answer submission after question timeout period
+  - **Integration with Backend Timer**: Validate against server-authoritative timer from EP-001-08
+  - **Late Submission Rejection**: Return clear error for submissions after timeout
+  - **Answer Format Validation**: Handle multiple choice, true/false, and scenario-based responses
+  - **Automatic Timeout Processing**: Process timeout scenarios without manual submission
+  - **Response Timing Analysis**: Track and validate response timing and detect anomalies
+  - **Session Consistency**: Ensure answer corresponds to active question in session
 
 #### FR-002: 6-Level Scoring System
 - **Requirement**: Implement sophisticated scoring based on adaptive difficulty levels
@@ -54,39 +56,44 @@ Implement comprehensive answer processing and evaluation logic that transforms r
   - **Incorrect/Timeout**: 0 points regardless of difficulty
   - Track both individual question scores and cumulative totals
 
-#### FR-003: Domain-Specific Performance Analysis
-- **Requirement**: Calculate detailed performance metrics by ECE domain
+#### FR-003: Direct Question-to-Mini-Lesson Mapping (Primary Recommendations)
+- **Requirement**: **Primary focus on direct mapping of failed questions to their specific mini-lessons for immediately actionable recommendations**
+- **Details**:
+  - **One-to-One Mapping**: Each failed question directly maps to specific mini-lessons
+  - **Immediate Actionability**: Recommendations are specific, not just domain-level generalizations
+  - **Priority-Based Ordering**: Order mini-lessons by question difficulty and domain importance
+  - **Personalized Training Path**: Create specific sequence of mini-lessons based on exact questions failed
+  - **Mini-Lesson Metadata**: Include difficulty, estimated time, prerequisites for each recommendation
+  - **Direct Learning Connection**: Failed question content directly relates to mini-lesson content
+
+#### FR-004: Domain-Specific Performance Analysis (Secondary Insights)
+- **Requirement**: Calculate domain-level insights as supplementary information to direct question mapping
 - **Details**:
   - Track correct/incorrect answers per domain
   - Calculate domain-specific accuracy rates
-  - Identify performance patterns across question types
-  - Handle domains with varying question counts appropriately
-  - Generate domain coverage statistics
-
-#### FR-004: Growth Area Identification
-- **Requirement**: Identify specific learning needs from failed questions
-- **Details**:
-  - **Growth Areas**: Domains with <60% accuracy rate
   - **Strength Areas**: Domains with ≥80% accuracy rate
+  - **Growth Areas**: Domains with <60% accuracy rate  
   - **Neutral Areas**: Domains with 60-79% accuracy rate
-  - Map failed questions to their associated mini-lessons
-  - Prioritize growth areas based on domain importance and failure rate
-  - Generate personalized training recommendations
+  - Generate domain coverage statistics as context for main recommendations
+  - Handle domains with varying question counts appropriately
 
-#### FR-005: Results Compilation and Summarization
-- **Requirement**: Compile comprehensive assessment results for teachers
+#### FR-005: Automatic Timeout Response Processing
+- **Requirement**: Seamlessly process timeout responses generated by EP-001-08 automatic progression
 - **Details**:
-  - Calculate overall assessment score and accuracy rate
-  - Generate teacher-appropriate results (strengths and growth areas only)
-  - Create personalized summary messages based on performance
-  - Provide actionable next steps and recommendations
-  - Preserve detailed analytics for administrative access
+  - **Automatic Timeout Recording**: Process timeout responses without frontend interaction
+  - **Score Assignment**: Assign 0 points for timeout responses
+  - **Mini-Lesson Mapping**: Map timed-out questions to their mini-lessons (same as incorrect answers)
+  - **Difficulty Adjustment Data**: Provide data for EP-001-08 difficulty adjustment (timeout = incorrect)
+  - **Progress Tracking**: Update assessment progress for automatic progressions
+  - **Integration Validation**: Ensure consistency with backend timer decisions
 
-#### FR-006: Assessment Completion Logic
-- **Requirement**: Handle assessment finalization with data integrity
+#### FR-006: Assessment Completion Logic with Direct Recommendations
+- **Requirement**: Handle assessment finalization with emphasis on actionable mini-lesson recommendations
 - **Details**:
   - Validate all questions have been answered or timed out
   - Calculate final scores and domain breakdowns
+  - **Generate Primary Recommendations**: List of specific mini-lessons from failed questions
+  - **Prioritize Recommendations**: Order by difficulty, domain importance, and learning path logic
   - Update assessment status to completed
   - Generate completion timestamps and duration tracking
   - Handle incomplete assessments gracefully
@@ -97,33 +104,36 @@ Implement comprehensive answer processing and evaluation logic that transforms r
 - **Requirement**: Answer processing must be real-time with minimal latency
 - **Implementation**:
   - Process answers within 500ms under normal load
+  - Process automatic timeouts within 200ms for EP-001-08 integration
   - Support concurrent answer processing for multiple sessions
   - Optimize database operations for scoring calculations
-  - Cache domain and scoring configurations for performance
+  - Cache mini-lesson mappings for performance
 
-#### TR-002: Data Integrity and Persistence
-- **Requirement**: Ensure complete and accurate data persistence
+#### TR-002: Strict Timing Integration
+- **Requirement**: Perfect integration with EP-001-08 timer management system
+- **Implementation**:
+  - Validate submissions against server-authoritative timer
+  - Reject late submissions with clear error messages
+  - Process automatic timeout notifications from question selection service
+  - Maintain timing consistency across all operations
+  - Handle clock synchronization edge cases
+
+#### TR-003: Data Integrity and Persistence
+- **Requirement**: Ensure complete and accurate data persistence with mini-lesson mapping
 - **Implementation**:
   - Atomic answer recording with rollback capability
   - Consistent scoring calculations across all operations
   - Complete audit trail of assessment responses
+  - **Persistent mini-lesson mapping storage** for long-term recommendations
   - Backup and recovery procedures for assessment data
 
-#### TR-003: Algorithm Accuracy
+#### TR-004: Algorithm Accuracy
 - **Requirement**: Scoring and analysis algorithms must be mathematically correct
 - **Implementation**:
   - Precise floating-point calculations for accuracy rates
   - Consistent rounding rules for score presentation
-  - Validated domain analysis algorithms
+  - Validated mini-lesson mapping algorithms
   - Comprehensive edge case handling
-
-#### TR-004: Error Handling and Monitoring
-- **Requirement**: Robust error handling with comprehensive monitoring
-- **Implementation**:
-  - Graceful handling of invalid answers or system errors
-  - Comprehensive logging of processing decisions
-  - Real-time monitoring of scoring accuracy
-  - Alert system for processing failures
 
 #### TR-005: Security and Privacy
 - **Requirement**: Protect assessment data and ensure appropriate access
@@ -135,158 +145,211 @@ Implement comprehensive answer processing and evaluation logic that transforms r
 
 ### Algorithm Specifications
 
-#### Answer Validation Algorithm
+#### Answer Validation with Timeout Enforcement
 
 ```typescript
 interface AnswerValidator {
   /**
-   * Validate answer submission against question requirements
+   * Validate answer submission with strict timeout enforcement
    * @param answer - Submitted answer data
    * @param question - Question being answered
    * @param session - Assessment session context
-   * @returns Validation result with details
+   * @param submissionTime - Exact time of submission
+   * @returns Validation result with timeout checking
    */
-  validateAnswer(
+  validateAnswerWithTiming(
     answer: AnswerSubmission,
     question: AssessmentQuestion,
-    session: AssessmentSession
+    session: AssessmentSession,
+    submissionTime: Date
   ): ValidationResult;
   
   /**
-   * Handle timeout scenarios
+   * Process automatic timeout from EP-001-08
    * @param question - Question that timed out
    * @param session - Assessment session context
+   * @param timeoutTime - Exact time of timeout
    * @returns Processed timeout response
    */
-  handleTimeout(
+  processAutomaticTimeout(
     question: AssessmentQuestion,
-    session: AssessmentSession
+    session: AssessmentSession,
+    timeoutTime: Date
   ): ProcessedAnswer;
+
+  /**
+   * Validate timing against server-authoritative timer
+   * @param assessmentId - Assessment session ID
+   * @param questionId - Question being answered
+   * @param submissionTime - Time of answer submission
+   * @returns Whether submission is within time limit
+   */
+  validateSubmissionTiming(
+    assessmentId: number,
+    questionId: string,
+    submissionTime: Date
+  ): Promise<TimingValidationResult>;
 }
 
 interface ValidationResult {
   isValid: boolean;
+  isTimedOut: boolean;
+  timeViolation: boolean;
   errors: string[];
   normalizedAnswer: any;
   processingMetadata: {
     responseTime: number;
     wasTimeout: boolean;
+    wasLateSubmission: boolean;
     validationTimestamp: Date;
+    remainingTimeAtSubmission: number;
   };
 }
 ```
 
-#### Scoring Calculation Engine
+#### Direct Mini-Lesson Mapping Engine
 
 ```typescript
-interface ScoringEngine {
+interface MiniLessonMappingEngine {
   /**
-   * Calculate points for individual answer
-   * @param isCorrect - Whether answer was correct
-   * @param difficulty - Question difficulty level (1-6)
-   * @param wasTimeout - Whether question timed out
-   * @returns Points earned for this question
+   * Get direct mini-lesson recommendations for failed questions
+   * @param failedQuestionIds - Specific questions answered incorrectly or timed out
+   * @param userProfile - Teacher profile for personalization
+   * @returns Prioritized list of specific mini-lessons
    */
-  calculateQuestionScore(
-    isCorrect: boolean,
-    difficulty: number,
-    wasTimeout: boolean
-  ): number;
-  
+  getDirectMiniLessonRecommendations(
+    failedQuestionIds: string[],
+    userProfile: TeacherProfile
+  ): Promise<DirectMiniLessonRecommendation[]>;
+
   /**
-   * Calculate domain-specific performance metrics
-   * @param assessmentId - Assessment to analyze
-   * @param domainId - Specific domain to analyze
-   * @returns Domain performance metrics
+   * Map individual question to its specific mini-lessons
+   * @param questionId - Failed question ID
+   * @returns Mini-lessons directly related to this question
    */
-  calculateDomainPerformance(
-    assessmentId: number,
-    domainId: number
-  ): DomainPerformance;
-  
+  mapQuestionToMiniLessons(questionId: string): Promise<MiniLessonMapping[]>;
+
   /**
-   * Calculate overall assessment score
-   * @param assessmentId - Completed assessment
-   * @returns Overall performance metrics
+   * Prioritize mini-lesson recommendations based on learning path logic
+   * @param miniLessons - Raw mini-lesson mappings from failed questions
+   * @param difficultyLevels - Difficulty of each failed question
+   * @param domainImportance - Domain weights for prioritization
+   * @returns Prioritized learning sequence
    */
-  calculateOverallScore(assessmentId: number): OverallPerformance;
+  prioritizeMiniLessons(
+    miniLessons: MiniLessonMapping[],
+    difficultyLevels: Map<string, number>,
+    domainImportance: Map<number, number>
+  ): Promise<PrioritizedLearningPath>;
 }
 
-interface DomainPerformance {
+interface DirectMiniLessonRecommendation {
+  miniLessonId: string;
+  title: string;
+  description: string;
+  estimatedDuration: number; // minutes
+  difficulty: number; // 1-6 matching question difficulty
   domainId: number;
   domainName: string;
-  questionsAnswered: number;
-  correctAnswers: number;
-  accuracyRate: number;
-  totalPoints: number;
-  avgDifficulty: number;
-  performanceCategory: 'strength' | 'growth' | 'neutral';
+  prerequisiteLessons: string[];
+  relatedQuestions: string[]; // Questions that led to this recommendation
+  priority: number; // 1=high, 2=medium, 3=low
+  learningObjectives: string[];
+  directConnection: string; // Explanation of how this connects to failed question(s)
+}
+
+interface PrioritizedLearningPath {
+  totalLessons: number;
+  estimatedTotalTime: number;
+  primaryRecommendations: DirectMiniLessonRecommendation[]; // Top priority
+  secondaryRecommendations: DirectMiniLessonRecommendation[]; // Additional value
+  learningSequence: {
+    immediate: DirectMiniLessonRecommendation[]; // Start here
+    followUp: DirectMiniLessonRecommendation[]; // Complete next
+    advanced: DirectMiniLessonRecommendation[]; // Optional deeper learning
+  };
 }
 ```
 
-#### Growth Area Analysis Engine
+#### Enhanced Results Compilation
 
 ```typescript
-interface GrowthAnalysisEngine {
+interface ResultsCompilationService {
   /**
-   * Identify learning needs from assessment results
+   * Finalize assessment with emphasis on direct mini-lesson recommendations
    * @param assessmentId - Completed assessment
-   * @returns Growth areas with recommendations
+   * @returns Assessment results with specific mini-lesson recommendations
    */
-  identifyGrowthAreas(assessmentId: number): GrowthAnalysis;
+  compileAssessmentResults(assessmentId: number): Promise<EnhancedAssessmentResults>;
   
   /**
-   * Map failed questions to mini-lessons
-   * @param failedQuestionIds - Questions answered incorrectly
-   * @returns Mini-lesson recommendations
+   * Generate teacher-focused summary with actionable next steps
+   * @param assessmentResults - Complete assessment data
+   * @param miniLessonRecommendations - Direct mini-lesson mappings
+   * @returns Teacher-friendly results with specific actions
    */
-  mapQuestionsToMiniLessons(failedQuestionIds: number[]): MiniLessonMapping[];
-  
-  /**
-   * Generate personalized recommendations
-   * @param growthAreas - Identified growth areas
-   * @param userProfile - Teacher profile and preferences
-   * @returns Personalized training plan
-   */
-  generateRecommendations(
-    growthAreas: GrowthArea[],
-    userProfile: TeacherProfile
-  ): PersonalizedRecommendations;
+  generateTeacherSummary(
+    assessmentResults: AssessmentAnalysis,
+    miniLessonRecommendations: DirectMiniLessonRecommendation[]
+  ): Promise<TeacherFocusedResults>;
 }
 
-interface GrowthAnalysis {
-  strengthAreas: DomainPerformance[];
-  growthAreas: DomainPerformance[];
-  neutralAreas: DomainPerformance[];
-  prioritizedRecommendations: MiniLessonMapping[];
-  summary: {
-    overallAccuracy: number;
-    strongestDomain: string;
-    primaryGrowthFocus: string;
-    recommendedNextSteps: string[];
-  };
+interface EnhancedAssessmentResults {
+  // Core assessment metrics
+  overallScore: number;
+  totalQuestions: number;
+  totalCorrect: number;
+  accuracyRate: number;
+  
+  // Primary recommendations (main value)
+  primaryMiniLessons: DirectMiniLessonRecommendation[];
+  learningPath: PrioritizedLearningPath;
+  
+  // Secondary insights (contextual)
+  domainBreakdown: DomainPerformance[];
+  strengthAreas: string[];
+  growthAreas: string[];
+  
+  // Actionable summary
+  personalizedSummary: string;
+  immediateNextSteps: string[];
+  estimatedImprovementTime: number; // Based on mini-lesson durations
 }
 ```
 
 ### Database Schema Requirements
 
-#### Enhanced Response Tracking
+#### Enhanced Mini-Lesson Mapping
 ```sql
--- Add detailed response metadata
+-- Enhanced mini-lesson mapping with detailed metadata
+CREATE TABLE IF NOT EXISTS questionMiniLessonMapping (
+  id SERIAL PRIMARY KEY,
+  questionId VARCHAR(100) REFERENCES assessmentQuestions(id) ON DELETE CASCADE,
+  miniLessonId VARCHAR(100) NOT NULL, -- Reference to learning content system
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  estimatedDuration INTEGER, -- minutes
+  difficulty INTEGER CHECK (difficulty >= 1 AND difficulty <= 6),
+  domainId INTEGER REFERENCES assessmentDomains(id),
+  priority INTEGER DEFAULT 1, -- 1=high, 2=medium, 3=low
+  learningObjectives JSONB,
+  prerequisites JSONB, -- Array of prerequisite mini-lesson IDs
+  directConnection TEXT, -- How this lesson connects to the specific question
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(questionId, miniLessonId)
+);
+
+-- Enhanced response tracking with timing enforcement
 ALTER TABLE assessmentResponses ADD COLUMN IF NOT EXISTS responseMetadata JSONB;
 ALTER TABLE assessmentResponses ADD COLUMN IF NOT EXISTS processingTimestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE assessmentResponses ADD COLUMN IF NOT EXISTS pointsEarned INTEGER DEFAULT 0;
 ALTER TABLE assessmentResponses ADD COLUMN IF NOT EXISTS wasTimeout BOOLEAN DEFAULT FALSE;
+ALTER TABLE assessmentResponses ADD COLUMN IF NOT EXISTS wasLateSubmission BOOLEAN DEFAULT FALSE;
+ALTER TABLE assessmentResponses ADD COLUMN IF NOT EXISTS submissionTimingMs INTEGER; -- Response time in milliseconds
+ALTER TABLE assessmentResponses ADD COLUMN IF NOT EXISTS remainingTimeAtSubmission INTEGER; -- Remaining time when submitted
 
--- Create indexes for performance analysis queries
-CREATE INDEX idx_responses_assessment_correct ON assessmentResponses(assessmentId, isCorrect);
-CREATE INDEX idx_responses_domain_performance ON assessmentResponses(assessmentId, domainId, isCorrect);
-CREATE INDEX idx_responses_difficulty_score ON assessmentResponses(assessmentId, difficulty, pointsEarned);
-```
-
-#### Assessment Results Storage
-```sql
--- Create table for compiled assessment results
+-- Results storage with mini-lesson focus
 CREATE TABLE IF NOT EXISTS assessmentResults (
   id SERIAL PRIMARY KEY,
   assessmentId INTEGER REFERENCES assessments(id) ON DELETE CASCADE,
@@ -294,69 +357,78 @@ CREATE TABLE IF NOT EXISTS assessmentResults (
   totalQuestions INTEGER NOT NULL,
   totalCorrect INTEGER NOT NULL,
   accuracyRate DECIMAL(5,2) NOT NULL,
+  
+  -- Primary recommendations
+  primaryMiniLessons JSONB NOT NULL, -- Array of DirectMiniLessonRecommendation
+  learningPathData JSONB NOT NULL, -- PrioritizedLearningPath structure
+  estimatedImprovementTime INTEGER, -- Total time for recommended mini-lessons
+  
+  -- Secondary insights
   domainBreakdown JSONB NOT NULL,
   strengthAreas JSONB NOT NULL,
   growthAreas JSONB NOT NULL,
   personalizedSummary TEXT,
-  recommendedNextSteps JSONB,
+  immediateNextSteps JSONB,
+  
   calculatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(assessmentId)
 );
 
+-- Indexes for performance
+CREATE INDEX idx_question_miniLesson_lookup ON questionMiniLessonMapping(questionId);
+CREATE INDEX idx_miniLesson_domain_priority ON questionMiniLessonMapping(domainId, priority);
+CREATE INDEX idx_miniLesson_difficulty ON questionMiniLessonMapping(difficulty);
+CREATE INDEX idx_responses_timing ON assessmentResponses(assessmentId, wasTimeout, wasLateSubmission);
 CREATE INDEX idx_results_assessment ON assessmentResults(assessmentId);
-CREATE INDEX idx_results_performance ON assessmentResults(overallScore, accuracyRate);
-```
-
-#### Mini-Lesson Mapping
-```sql
--- Link questions to mini-lessons for personalized training
-CREATE TABLE IF NOT EXISTS questionMiniLessonMapping (
-  id SERIAL PRIMARY KEY,
-  questionId VARCHAR(100) REFERENCES assessmentQuestions(id) ON DELETE CASCADE,
-  miniLessonId INTEGER, -- Reference to learning content
-  domainId INTEGER REFERENCES assessmentDomains(id),
-  priority INTEGER DEFAULT 1, -- 1=high, 2=medium, 3=low
-  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE(questionId, miniLessonId)
-);
-
-CREATE INDEX idx_question_miniLesson ON questionMiniLessonMapping(questionId);
-CREATE INDEX idx_miniLesson_domain ON questionMiniLessonMapping(domainId, priority);
 ```
 
 ### API Specifications
 
-#### Answer Processing Service Interface
+#### Answer Processing Service Interface with Timeout Integration
 
 ```typescript
 interface AnswerProcessingService {
   /**
-   * Process submitted answer with validation and scoring
+   * Process submitted answer with strict timing validation
    * @param answerSubmission - Raw answer data from frontend
-   * @returns Processed answer with scoring and feedback
+   * @returns Processed answer with validation and mini-lesson mapping
    */
-  processAnswer(answerSubmission: AnswerSubmission): Promise<ProcessedAnswerResult>;
+  processAnswer(answerSubmission: AnswerSubmissionWithTiming): Promise<ProcessedAnswerResult>;
   
   /**
-   * Calculate domain performance for active assessment
-   * @param assessmentId - Assessment to analyze
-   * @returns Real-time domain performance metrics
+   * Process automatic timeout from EP-001-08
+   * @param timeoutNotification - Timeout event from question selection service
+   * @returns Processed timeout result
    */
-  calculateDomainPerformance(assessmentId: number): Promise<DomainPerformanceMap>;
+  processAutomaticTimeout(timeoutNotification: TimeoutNotification): Promise<TimeoutProcessingResult>;
   
   /**
-   * Finalize assessment and generate complete results
+   * Finalize assessment and generate mini-lesson recommendations
    * @param assessmentId - Assessment to finalize
-   * @returns Complete assessment results and recommendations
+   * @returns Complete results with specific mini-lesson recommendations
    */
   finalizeAssessment(assessmentId: number): Promise<FinalAssessmentResults>;
   
   /**
-   * Get mini-lesson recommendations for failed questions
-   * @param failedQuestionIds - Questions answered incorrectly
-   * @returns Personalized mini-lesson recommendations
+   * Get direct mini-lesson recommendations for specific failed questions
+   * @param failedQuestionIds - Questions answered incorrectly or timed out
+   * @param userProfile - Teacher profile for personalization
+   * @returns Prioritized mini-lesson recommendations
    */
-  getMiniLessonRecommendations(failedQuestionIds: number[]): Promise<MiniLessonRecommendation[]>;
+  getDirectMiniLessonRecommendations(
+    failedQuestionIds: string[],
+    userProfile: TeacherProfile
+  ): Promise<DirectMiniLessonRecommendation[]>;
+}
+
+interface AnswerSubmissionWithTiming {
+  assessmentId: number;
+  questionId: string;
+  questionSequence: number;
+  selectedAnswer: any;
+  submissionTime: Date;
+  responseTimeMs: number;
+  frontendTimestamp: Date; // For validation against server time
 }
 
 interface ProcessedAnswerResult {
@@ -365,142 +437,178 @@ interface ProcessedAnswerResult {
   pointsEarned: number;
   difficulty: number;
   domainId: number;
-  feedback?: {
-    explanationNeeded: boolean;
-    relatedMiniLessons: string[];
+  wasValidTiming: boolean;
+  timingDetails: {
+    responseTimeMs: number;
+    remainingTimeAtSubmission: number;
+    wasLateSubmission: boolean;
   };
+  
+  // Direct mini-lesson mapping for failed questions
+  miniLessonRecommendations: DirectMiniLessonRecommendation[];
+  
   assessmentProgress: {
     questionsCompleted: number;
     currentScore: number;
     domainCoverage: DomainCoverageMap;
   };
 }
+
+interface TimeoutProcessingResult {
+  questionId: string;
+  wasTimeout: true;
+  pointsEarned: 0;
+  difficulty: number;
+  domainId: number;
+  
+  // Mini-lessons for timed-out question (same as incorrect)
+  miniLessonRecommendations: DirectMiniLessonRecommendation[];
+  
+  difficultyAdjustmentData: {
+    currentDifficulty: number;
+    suggestedNextDifficulty: number; // difficulty - 1 for timeout
+  };
+}
+
+interface FinalAssessmentResults {
+  assessmentSummary: {
+    overallScore: number;
+    accuracyRate: number;
+    completionTimeMinutes: number;
+  };
+  
+  // Primary value: Specific mini-lesson recommendations
+  primaryRecommendations: {
+    totalMiniLessons: number;
+    estimatedTotalTime: number;
+    immediateActions: DirectMiniLessonRecommendation[];
+    followUpLearning: DirectMiniLessonRecommendation[];
+  };
+  
+  // Secondary insights: Domain-level context
+  secondaryInsights: {
+    strengthAreas: string[];
+    growthAreas: string[];
+    domainBreakdown: DomainPerformance[];
+  };
+  
+  // Teacher-friendly summary
+  teacherSummary: {
+    personalizedMessage: string;
+    keyTakeaways: string[];
+    nextSteps: string[];
+    encouragement: string;
+  };
+}
 ```
 
 ### Implementation Files
 
-#### Core Processing Services
-- `server/services/AnswerProcessingService.ts` - Main answer processing logic
-- `server/services/ScoringEngine.ts` - Scoring calculations and algorithms
-- `server/services/DomainAnalysisService.ts` - Domain performance analysis
-- `server/services/GrowthAnalysisService.ts` - Growth area identification
-- `server/services/ResultsCompilationService.ts` - Final results generation
+#### Core Processing Services with Mini-Lesson Focus
+- `server/services/AnswerProcessingService.ts` - Main answer processing with timeout integration
+- `server/services/ScoringEngine.ts` - 6-level scoring calculations
+- **`server/services/MiniLessonMappingService.ts` - Direct question-to-mini-lesson mapping (primary focus)**
+- `server/services/DomainAnalysisService.ts` - Domain performance analysis (secondary)
+- `server/services/ResultsCompilationService.ts` - Final results with mini-lesson emphasis
+- **`server/services/TimeoutIntegrationService.ts` - Integration with EP-001-08 automatic progression**
 
 #### Algorithm Implementations
-- `server/algorithms/AnswerValidator.ts` - Answer validation logic
+- **`server/algorithms/AnswerTimingValidator.ts` - Strict timeout enforcement and timing validation**
 - `server/algorithms/ScoreCalculator.ts` - 6-level scoring implementation
+- **`server/algorithms/DirectMiniLessonMapper.ts` - Primary mini-lesson mapping algorithm**
 - `server/algorithms/DomainPerformanceCalculator.ts` - Domain-specific analysis
-- `server/algorithms/GrowthAreaIdentifier.ts` - Learning needs analysis
-- `server/algorithms/PersonalizationEngine.ts` - Recommendation generation
+- **`server/algorithms/LearningPathPrioritizer.ts` - Mini-lesson prioritization and sequencing**
+- **`server/algorithms/AutoTimeoutProcessor.ts` - Automatic timeout response processing**
 
 #### Data Access and Utilities
 - `server/repositories/AssessmentResponseRepository.ts` - Response data access
 - `server/repositories/AssessmentResultsRepository.ts` - Results data persistence
+- **`server/repositories/MiniLessonMappingRepository.ts` - Mini-lesson mapping data access**
 - `server/utils/StatisticsCalculator.ts` - Statistical analysis utilities
 - `server/utils/PerformanceMonitor.ts` - Processing performance tracking
+- **`server/utils/TimingUtils.ts` - Timing validation and synchronization utilities**
 
 ### Testing Requirements
 
 #### Unit Test Coverage
-- **Answer Validation**: 100% coverage
-  - Valid answer processing
-  - Invalid answer handling
-  - Timeout scenario processing
-  - Edge case validation
+- **Answer Timing Validation**: 100% coverage
+  - Valid timing processing
+  - Late submission rejection
+  - Automatic timeout processing
+  - Clock synchronization edge cases
+- **Mini-Lesson Mapping**: 100% coverage
+  - Direct question-to-lesson mapping
+  - Prioritization algorithms
+  - Learning path generation
+  - Prerequisite handling
 - **Scoring Engine**: 100% coverage
   - 6-level point calculations
   - Domain performance metrics
   - Overall score calculations
   - Statistical accuracy
-- **Growth Analysis**: 95% coverage
-  - Growth area identification
-  - Mini-lesson mapping
-  - Recommendation generation
-  - Performance categorization
+- **Timeout Integration**: 100% coverage
+  - EP-001-08 integration
+  - Automatic progression handling
+  - Timing consistency validation
 
 #### Integration Test Scenarios
-- **Complete Assessment Flow**: End-to-end processing of 40-question assessment
-- **Concurrent Processing**: Multiple simultaneous answer submissions
-- **Data Consistency**: Verify scoring consistency across sessions
-- **Performance Analysis**: Validate domain breakdown accuracy
+- **Complete Assessment Flow**: End-to-end processing with timeouts and mini-lesson generation
+- **Timeout Scenarios**: Multiple timeouts with automatic progression and mini-lesson mapping
+- **Timing Edge Cases**: Late submissions, clock drift, synchronization issues
+- **Concurrent Processing**: Multiple simultaneous answer submissions with timing validation
+- **Data Consistency**: Verify mini-lesson mapping consistency across sessions
 
 #### Performance Test Requirements
-- **Answer Processing**: < 500ms for individual answer processing
-- **Domain Analysis**: < 2 seconds for complete domain performance calculation
-- **Results Compilation**: < 5 seconds for final assessment results
-- **Concurrent Load**: 100+ simultaneous answer processes
+- **Answer Processing**: < 500ms for individual answer processing with mini-lesson mapping
+- **Timeout Processing**: < 200ms for automatic timeout processing
+- **Mini-Lesson Generation**: < 1 second for complete mini-lesson recommendation generation
+- **Results Compilation**: < 3 seconds for final assessment results with full mini-lesson path
+- **Concurrent Load**: 100+ simultaneous answer processes with timing validation
 
 ### Success Criteria
 
 #### Functional Success
-- ✅ Answer validation handles all input scenarios correctly
+- ✅ **Strict timeout enforcement**: No late submissions accepted, perfect timing validation
+- ✅ **Direct mini-lesson mapping**: Every failed question maps to specific, actionable mini-lessons
 - ✅ 6-level scoring system calculates points accurately
-- ✅ Domain performance analysis identifies strengths and growth areas
-- ✅ Mini-lesson mapping provides relevant recommendations
-- ✅ Results compilation generates teacher-appropriate summaries
+- ✅ **Primary recommendations**: Mini-lesson recommendations are immediately actionable and specific
+- ✅ **Seamless EP-001-08 integration**: Perfect integration with automatic progression system
+- ✅ Assessment completion generates clear, prioritized learning paths
 
 #### Performance Success
-- ✅ Answer processing completes within 500ms
-- ✅ Domain analysis completes within 2 seconds
-- ✅ System handles 100+ concurrent answer submissions
-- ✅ Database operations optimized for real-time processing
+- ✅ Answer processing with mini-lesson mapping completes within 500ms
+- ✅ Automatic timeout processing completes within 200ms
+- ✅ System handles 100+ concurrent answer submissions with timing validation
+- ✅ Mini-lesson recommendation generation is real-time
 
 #### Quality Success
-- ✅ 98%+ unit test coverage achieved
-- ✅ Integration tests pass with realistic data
-- ✅ Statistical accuracy validated against manual calculations
-- ✅ Comprehensive error handling prevents data loss
+- ✅ 100% test coverage for timing validation and mini-lesson mapping
+- ✅ Zero timing inconsistencies between frontend and backend
+- ✅ Mini-lesson recommendations are educationally relevant and actionable
+- ✅ Integration tests validate perfect EP-001-08 coordination
 
 ### Risk Mitigation
 
 #### Technical Risks
-1. **Scoring Accuracy Issues**
-   - **Risk**: Mathematical errors in scoring calculations
-   - **Mitigation**: Comprehensive testing, peer review, manual validation
+1. **Timing Synchronization Issues**
+   - **Risk**: Clock drift between frontend and backend causes timing conflicts
+   - **Mitigation**: Server-authoritative timing, validation mechanisms, recovery procedures
 
-2. **Performance Degradation**
-   - **Risk**: Complex analysis impacts response time
-   - **Mitigation**: Algorithm optimization, caching, performance monitoring
+2. **Mini-Lesson Mapping Quality**
+   - **Risk**: Poor question-to-lesson mapping reduces educational value
+   - **Mitigation**: Expert content review, automated quality checks, feedback loops
 
-3. **Data Consistency Problems**
-   - **Risk**: Concurrent processing causes inconsistent results
-   - **Mitigation**: Atomic operations, proper locking, validation checks
+3. **EP-001-08 Integration Complexity**
+   - **Risk**: Complex integration with automatic progression causes failures
+   - **Mitigation**: Comprehensive integration testing, clear interface contracts, fallback mechanisms
 
 #### Business Risks
-1. **Incorrect Growth Area Identification**
-   - **Risk**: Poor analysis leads to wrong recommendations
-   - **Mitigation**: Algorithm validation, expert review, feedback loops
+1. **Confusing or Irrelevant Recommendations**
+   - **Risk**: Mini-lesson recommendations don't match teacher needs
+   - **Mitigation**: User testing with actual teachers, content validation, iterative improvement
 
-2. **Teacher Confusion with Results**
-   - **Risk**: Results format or content unclear to teachers
-   - **Mitigation**: User testing, clear documentation, iterative improvement
-
-### Dependencies and Integration
-
-#### Internal Dependencies
-- **EP-001-07**: Assessment Session Management for session state and validation
-- **EP-001-08**: Question Selection Service for question metadata and difficulty
-- **Database Schema**: Assessment questions, domains, and response tables
-- **Authentication System**: User session validation and security
-
-#### External Integration Points
-- **Mini-Lesson Content**: Learning content references for recommendations
-- **Teacher Profiles**: User preferences and learning history
-- **Notification System**: Results delivery and recommendation alerts
-- **Analytics Platform**: Performance data for system optimization
-
-### Future Enhancements
-
-#### Phase 2 Improvements
-- **Advanced Analytics**: Comparative performance analysis and benchmarking
-- **Machine Learning**: Predictive modeling for personalized difficulty adjustment
-- **Adaptive Recommendations**: Dynamic mini-lesson selection based on learning progress
-- **Real-time Feedback**: Immediate explanations and guidance during assessment
-
-#### Scalability Considerations
-- **Microservice Architecture**: Extract as independent processing service
-- **Stream Processing**: Real-time data pipelines for large-scale analytics
-- **ML Integration**: Machine learning models for advanced pattern recognition
-- **API Versioning**: Support for evolving analysis algorithms
+2. **Timeout Frustration**
+   - **Risk**: Strict timing enforcement frustrates users
+   - **Mitigation**: Clear timing communication, appropriate time limits, user feedback collection
 
 This comprehensive task definition establishes the foundation for sophisticated answer processing that transforms raw assessment data into actionable insights for teacher development and personalized learning recommendations. 
