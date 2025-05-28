@@ -58,7 +58,8 @@ export function WelcomeDashboard({ user, onClose }: WelcomeDashboardProps) {
   const loadDirectorMessages = async () => {
     try {
       const response = await apiRequest("/api/director-messages");
-      setDirectorMessages(response || []);
+      // Ensure we have an array
+      setDirectorMessages(Array.isArray(response) ? response : []);
     } catch (error) {
       // No messages available
       setDirectorMessages([]);

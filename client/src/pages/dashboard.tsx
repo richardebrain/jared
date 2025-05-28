@@ -161,13 +161,18 @@ export default function Dashboard() {
   // Show welcome dashboard for streak milestones
   useEffect(() => {
     if (user && user.streak && user.streak >= 7) {
-      // Check if we've already shown the welcome today
-      const today = new Date().toDateString();
-      const lastWelcomeShown = localStorage.getItem('lastWelcomeShown');
-      
-      if (lastWelcomeShown !== today) {
+      // For testing, always show the welcome dashboard for Laura
+      if (user.username === 'lbook') {
         setShowWelcomeDashboard(true);
-        localStorage.setItem('lastWelcomeShown', today);
+      } else {
+        // Check if we've already shown the welcome today for other users
+        const today = new Date().toDateString();
+        const lastWelcomeShown = localStorage.getItem('lastWelcomeShown');
+        
+        if (lastWelcomeShown !== today) {
+          setShowWelcomeDashboard(true);
+          localStorage.setItem('lastWelcomeShown', today);
+        }
       }
     }
   }, [user]);
