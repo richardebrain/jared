@@ -35,15 +35,15 @@ export function WelcomeDashboard({ user, onClose }: WelcomeDashboardProps) {
       if (user.streak === 7) {
         rewards.push({
           type: "points",
-          amount: 25,
+          amount: 5,
           message: "🎉 7-Day Streak Bonus!"
         });
       }
       
-      if (user.streak % 5 === 0) {
+      if (user.streak % 5 === 0 && user.streak >= 5) {
         rewards.push({
           type: "bear_bucks",
-          amount: 10,
+          amount: 1,
           message: `🔥 ${user.streak}-Day Streak Achievement!`
         });
       }
