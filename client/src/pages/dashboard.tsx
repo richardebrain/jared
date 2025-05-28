@@ -5,6 +5,7 @@ import { Link, useLocation } from "wouter";
 import Header from "@/components/Header";
 import ModuleView from "@/components/ModuleView";
 import { CompactModuleCard } from "@/components/CompactModuleCard";
+import { WelcomeDashboard } from "@/components/WelcomeDashboard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +51,7 @@ export default function Dashboard() {
   const [lastCompletedModule, setLastCompletedModule] = useState<string | null>(null);
   const [showMindfulnessReminder, setShowMindfulnessReminder] = useState(false);
   const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
+  const [showWelcomeDashboard, setShowWelcomeDashboard] = useState(false);
   
   // Handle module selection - navigate to the module page
   useEffect(() => {
@@ -155,6 +157,20 @@ export default function Dashboard() {
       localStorage.removeItem('moduleCompletionState');
     }
   }, []);
+
+  // Show welcome dashboard for streak milestones
+  useEffect(() => {
+    if (user && user.streak && user.streak >= 7) {
+      // Check if we've already shown the welcome today
+      const today = new Date().toDateString();
+      const lastWelcomeShown = localStorage.getItem('lastWelcomeShown');
+      
+      if (lastWelcomeShown !== today) {
+        setShowWelcomeDashboard(true);
+        localStorage.setItem('lastWelcomeShown', today);
+      }
+    }
+  }, [user]);
 
   // Refresh points when coming back from casino page
   useEffect(() => {
@@ -1008,6 +1024,14 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {/* Welcome Dashboard for streak milestones */}
+      {showWelcomeDashboard && user && (
+        <WelcomeDashboard 
+          user={user} 
+          onClose={() => setShowWelcomeDashboard(false)} 
+        />
+      )}
     </div>
   );
 }
