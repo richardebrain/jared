@@ -179,6 +179,7 @@ This document serves as the central project management framework for MentorMe, t
      - Update imports and dependencies
      - Keep JSON question seed data files for migration to new schema
      - Preserve valuable frontend components (AssessmentCelebration.tsx, AssessmentResults.tsx, assessment-results.tsx)
+     - **ADDITIONAL:** Clean up dashboard assessment blocks and update to "Initial Assessment" with coming soon dialog
    - **Dependencies:** EP-001-01
    - **Technical Notes:**
      - **Comprehensive analysis**: Detailed cleanup plan documented in `docs/assessment/codebase_analysis.md`
@@ -189,7 +190,7 @@ This document serves as the central project management framework for MentorMe, t
      - **Current assessment.tsx**: 1066 lines with wrong domains, wrong difficulty levels, needs complete replacement
      - Ensure no breaking changes to existing functionality
      - Update route documentation after cleanup
-   - **Status Update:** ✅ **COMPLETED** - Major assessment codebase cleanup successfully completed
+   - **Status Update:** ✅ **COMPLETED** - Major assessment codebase cleanup and dashboard updates successfully completed
    - **Completion Details:**
      - **Progress Tracking:**
        - ✅ **Phase 1 Complete**: Removed broken HTML files (12+ files), standalone servers, log files
@@ -199,17 +200,26 @@ This document serves as the central project management framework for MentorMe, t
        - ✅ **Phase 5 Complete**: Final import cleanup in App.tsx - removed enhanced-assessment, test-assessment-graph references
        - ✅ **Phase 6 Complete**: Fixed dynamic-assessment.tsx - replaced EnhancedAIAssessment with EnhancedAssessment
        - ✅ **Phase 7 Complete**: Build verification - app builds successfully with no import errors
-     - **⚠️ Critical Issue Resolved**: Two completion attempts were incomplete due to missing import cleanup
-       - **Issue 1**: Missing import cleanup in App.tsx caused initial deploy failure
-       - **Issue 2**: Missing component replacement in dynamic-assessment.tsx caused second build failure  
-     - **✅ Final Resolution**: All references to deleted assessment files removed and replaced. Build verified successful.
+       - ✅ **Phase 8 Complete**: Dashboard cleanup - removed assessment blocks, updated button text, added coming soon dialog
+     - **⚠️ Critical Issues Resolved**: 
+       - **Issue 1**: Missing import cleanup in App.tsx caused initial deploy failure - FIXED
+       - **Issue 2**: Missing component replacement in dynamic-assessment.tsx caused second build failure - FIXED
+       - **Issue 3**: User requested additional dashboard cleanup for remaining assessment references - COMPLETED
+     - **✅ Final Resolution**: All assessment-related cleanup completed including dashboard updates. Build verified successful.
+     - **🧹 Dashboard Updates Completed**:
+       - Removed "Quick Assessment", "AI-Powered Assessment", "Master ECE Assessment", "Teacher Self-Assessment" blocks
+       - Changed "Take Enhanced Assessment" button to "Take Initial Assessment" 
+       - Replaced complex assessment dialog with simple "Coming Soon!" dialog
+       - Removed EnhancedAssessment component imports and dependencies
+       - App builds and deploys successfully
    - **Key Achievements:**
-     - 🧹 **30+ Files Removed**: Eliminated broken HTML, Python backend, duplicate React components
+     - 🧹 **35+ Files Removed**: Eliminated broken HTML, Python backend, duplicate React components, dashboard blocks
      - 🎯 **Node.js Consolidation**: Successfully migrated to single-stack approach
      - 💾 **Data Preservation**: Backed up valuable question data (132KB+ JSON files)
      - 🔗 **Route Simplification**: Cleaned up conflicting routes, preserved core `/assessment` and `/assessment-results`
-     - ✅ **No Breaking Changes**: App still builds and functions correctly
-     - 📁 **Clean Foundation**: Codebase ready for new adaptive assessment implementation
+     - 📱 **Dashboard Modernization**: Streamlined dashboard experience with proper "Initial Assessment" placeholder
+     - ✅ **No Breaking Changes**: App builds, deploys, and functions correctly
+     - 📁 **Clean Foundation**: Codebase ready for new adaptive assessment implementation (EP-001-07)
    - **Next Phase Ready**: EP-001-07 - Implement New Adaptive Assessment System
 
 ## Tracking Progress
