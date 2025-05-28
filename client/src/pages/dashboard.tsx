@@ -157,14 +157,15 @@ export default function Dashboard() {
     }
   }, []);
 
-  // Show welcome dashboard for streak milestones - only once per login session
+  // Show welcome dashboard for streak milestones - once per login session but shows current streak
   useEffect(() => {
-    if (user && user.streak && user.streak >= 7) {
-      // Use a simple session key that persists for the browser session only
-      const sessionKey = `welcomeShown_${user.id}`;
-      const welcomeShownThisSession = sessionStorage.getItem(sessionKey);
+    if (user && user.streak && user.streak >= 5) {
+      // Create a session key that includes today's date so it shows daily but not on every page navigation
+      const today = new Date().toDateString();
+      const sessionKey = `welcomeShown_${user.id}_${today}`;
+      const welcomeShownToday = sessionStorage.getItem(sessionKey);
       
-      if (!welcomeShownThisSession) {
+      if (!welcomeShownToday) {
         setShowWelcomeDashboard(true);
         sessionStorage.setItem(sessionKey, 'true');
       }
