@@ -43,8 +43,11 @@ import {
   MessageSquare,
   FileText,
   Mic,
-  X
+  X,
+  ChevronRight,
+  Wand2
 } from 'lucide-react';
+import StepByStepModuleBuilder from '@/components/StepByStepModuleBuilder';
 
 interface ModuleSection {
   title: string;
@@ -116,6 +119,7 @@ export default function ComprehensiveModuleCreator() {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [isGeneratingContent, setIsGeneratingContent] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<any>(null);
+  const [useStepByStep, setUseStepByStep] = useState(false);
 
   // Module templates with AI generation capabilities
   const moduleTemplates = [
