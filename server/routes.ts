@@ -4007,8 +4007,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         contactEmail, 
         contactPhone, 
         adminPassword,
-        planType 
+        planType,
+        // Also accept 'password' field from business signup form
+        password: userFormPassword
       } = req.body;
+      
+      // Use adminPassword if provided, otherwise use password from user form
+      const actualAdminPassword = adminPassword || userFormPassword;
       
       // If this is coming from the simple form, it will be JSON
       const contentType = req.headers['content-type'] || '';
@@ -4020,7 +4025,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Validate required fields
-      if (!schoolName || !contactEmail || !adminPassword) {
+      if (!schoolName || !contactEmail || !actualAdminPassword) {
         return res.status(400).json({ 
           message: "Missing required fields", 
           details: "School name, contact email, and admin password are required" 
@@ -4046,7 +4051,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Hash admin password for security
       const saltRounds = 10;
-      const hashedPassword = await bcrypt.hash(adminPassword, saltRounds);
+      const hashedPassword = await bcrypt.hash(actualAdminPassword, saltRounds);
       
       // Determine subscription details based on plan type
       let subscriptionDetails = {
