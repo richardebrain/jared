@@ -769,9 +769,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Username and password are required" });
       }
       
-      // Demo users for testing purposes
-      const isDemoUser = (username === 'jlcookie20' && password === 'password') || 
-                        (username === 'lbook' && password === 'jack83box');
+      // Demo user for testing purposes
+      const isDemoUser = username === 'jlcookie20' && password === 'password';
       
       const user = await storage.getUserByUsername(username);
       
@@ -800,8 +799,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.session = req.session || {};
       }
       
+      // Debug logging for authentication
+      console.log(`Login attempt debug for user: ${username}`);
+      console.log(`User found in database: ${user ? 'YES' : 'NO'}`);
+      console.log(`Is demo user: ${isDemoUser}`);
+      console.log(`Stored password hash: ${user.password}`);
+      console.log(`Password provided length: ${password.length}`);
+      
       // Check password - either demo user or normal validation with bcrypt
-      const passwordValid = isDemoUser || await bcrypt.compare(password, user.password);
+      let passwordValid = false;
+      
+      if (isDemoUser) {
+        passwordValid = true;
+        console.log(`Demo user authentication: SUCCESS`);
+      } else {
+        try {
+          passwordValid = await bcrypt.compare(password, user.password);
+          console.log(`Bcrypt comparison result: ${passwordValid}`);
+        } catch (error) {
+          console.error(`Bcrypt comparison error:`, error);
+          passwordValid = false;
+        }
+      }
       
       if (!passwordValid) {
         console.log(`Login failed: Password mismatch for user: "${username}"`);
