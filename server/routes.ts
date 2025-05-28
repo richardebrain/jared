@@ -754,10 +754,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/auth/login", async (req, res) => {
+    console.log("=== LOGIN ROUTE HIT ===");
+    console.log("Request body:", req.body);
+    
     try {
       // Extract and trim credentials for consistency
       const username = req.body.username?.trim();
       const password = req.body.password?.trim();
+      
+      console.log(`Username: "${username}", Password length: ${password?.length}`);
       
       console.log(`Login attempt for username: "${username}"`);
       
