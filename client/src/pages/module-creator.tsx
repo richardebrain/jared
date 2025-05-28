@@ -150,6 +150,12 @@ export default function ModuleCreator({}: ModuleCreatorProps) {
   });
 
   const [isGeneratingContent, setIsGeneratingContent] = useState(false);
+  const [isGeneratingIdeas, setIsGeneratingIdeas] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState({
+    questions: [],
+    strategies: [],
+    quizQuestions: []
+  });
 
   // Default value for a new section when adding
   const defaultNewSection = {
@@ -249,15 +255,114 @@ export default function ModuleCreator({}: ModuleCreatorProps) {
   };
 
   const generateContentWithAI = async () => {
-    setIsGeneratingContent(true);
-    // Simulate AI generation - we'll connect to the actual AI later
-    setTimeout(() => {
-      setIsGeneratingContent(false);
+    if (!moduleData.title || !moduleData.description) {
       toast({
-        title: 'Content Generated!',
-        description: 'AI has generated engaging content for your module.',
+        title: 'Missing Information',
+        description: 'Please fill in the title and description before generating AI content.',
+        variant: 'destructive',
       });
-    }, 2000);
+      return;
+    }
+
+    setIsGeneratingContent(true);
+    
+    try {
+      const promptText = `Generate engaging content for a module titled "${moduleData.title}" in the category of "${moduleData.category}". The module description is: "${moduleData.description}". This should be suitable for ${moduleData.difficulty} level ECE teachers.`;
+      
+      const data = await apiRequest('POST', '/api/ai/generate', { 
+        prompt: promptText,
+        type: 'content'
+      });
+      
+      if (data && data.suggestions) {
+        setModuleData(prev => ({
+          ...prev,
+          aiGeneratedContent: data.suggestions
+        }));
+        
+        toast({
+          title: 'AI Content Generated!',
+          description: 'AI has created engaging content for your module. Check the AI suggestions section below.',
+        });
+      }
+    } catch (error) {
+      console.error('AI generation error:', error);
+      toast({
+        title: 'AI Generation Failed',
+        description: 'There was an issue generating AI content. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGeneratingContent(false);
+    }
+  };
+
+  // Generate AI suggestions for different types
+  const generateAiSuggestions = async (type: 'questions' | 'strategies' | 'quiz') => {
+    if (!moduleData.title || !moduleData.description) {
+      toast({
+        title: 'Missing Information',
+        description: 'Please fill in the title and description before generating AI suggestions.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsGeneratingIdeas(true);
+    
+    try {
+      let promptText = '';
+      if (type === 'questions') {
+        promptText = `Generate 3 creative assessment questions for a module about "${moduleData.title}" in the category of "${moduleData.category}". The questions should be suitable for ${moduleData.difficulty} level ECE teachers.`;
+      } else if (type === 'strategies') {
+        promptText = `Suggest 3 creative teaching strategies for a module about "${moduleData.title}" in the category of "${moduleData.category}". The strategies should be suitable for ${moduleData.difficulty} level ECE teachers.`;
+      } else if (type === 'quiz') {
+        promptText = `Generate quiz questions specifically for a module titled "${moduleData.title}" in the category of "${moduleData.category}" for ${moduleData.difficulty} level ECE teachers. The content should directly relate to ${moduleData.title}.`;
+      }
+      
+      const data = await apiRequest('POST', '/api/ai/generate', { 
+        prompt: promptText,
+        type
+      });
+      
+      if (type === 'quiz') {
+        if (data && data.quizQuestions && Array.isArray(data.quizQuestions)) {
+          setAiSuggestions(prev => ({
+            ...prev,
+            quizQuestions: data.quizQuestions
+          }));
+          
+          toast({
+            title: 'Quiz Questions Generated',
+            description: `${data.quizQuestions.length} multiple-choice quiz questions have been created for your module.`,
+          });
+        }
+      } else {
+        if (data && data.suggestions) {
+          const suggestionsText = data.suggestions;
+          let suggestionsArray = suggestionsText.split('\n').filter(Boolean);
+          
+          setAiSuggestions(prev => ({
+            ...prev,
+            [type]: suggestionsArray
+          }));
+          
+          toast({
+            title: 'AI Suggestions Generated',
+            description: `Creative ${type} have been generated for your module.`,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('AI generation error:', error);
+      toast({
+        title: 'AI Generation Failed',
+        description: 'There was an issue generating AI suggestions. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGeneratingIdeas(false);
+    }
   };
 
   const saveNewModule = () => {
