@@ -89,7 +89,7 @@ export default function DirectorMessages() {
     const messageData = {
       title: newMessage.title,
       content: newMessage.content,
-      recipientId: newMessage.recipientId ? parseInt(newMessage.recipientId) : null,
+      recipientId: newMessage.recipientId && newMessage.recipientId !== "all" ? parseInt(newMessage.recipientId) : null,
       loginDuration: newMessage.loginDuration
     };
 
@@ -145,7 +145,7 @@ export default function DirectorMessages() {
                 <SelectValue placeholder="Select recipient..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">
+                <SelectItem value="all">
                   <div className="flex items-center space-x-2">
                     <Users className="h-4 w-4" />
                     <span>All Teachers in School</span>
