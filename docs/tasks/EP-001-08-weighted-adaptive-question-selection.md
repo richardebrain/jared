@@ -10,16 +10,18 @@
 
 ### Overview
 
-Implement the core intelligent question selection algorithm that drives the adaptive assessment experience. This service manages the complex logic of selecting the most appropriate next question based on weighted domain distribution, 6-level difficulty progression, dual-level availability controls, and comprehensive fallback strategies.
+Implement the core intelligent question selection algorithm that drives the adaptive assessment experience. This service manages the complex logic of selecting the most appropriate next question based on weighted domain distribution, 6-level difficulty progression, dual-level availability controls, comprehensive fallback strategies, and **automatic timer-driven progression** to ensure assessments always complete regardless of frontend connectivity.
 
 ### Scope
 
 **In Scope:**
 - Weighted domain selection algorithm with target allocation tracking
 - 6-level adaptive difficulty progression (levels 1-6)
+- **Backend timer management with automatic question progression**
+- **Frontend synchronization recovery for out-of-sync scenarios**
 - Dual-level availability checking (platform + school level)
 - Question pool management with approval status validation
-- Timeout handling with configurable timePerQuestion settings
+- **Timeout enforcement with automatic progression to next question**
 - Comprehensive fallback strategy implementation
 - Performance optimization for real-time question selection
 - Algorithm testing and validation framework
@@ -50,7 +52,26 @@ Implement the core intelligent question selection algorithm that drives the adap
   - Maintain difficulty bounds (1-6, no overflow/underflow)
   - Track difficulty progression throughout assessment
 
-#### FR-003: Dual-Level Availability Control
+#### FR-003: Backend Timer Management and Automatic Progression
+- **Requirement**: Maintain server-side timers that automatically progress assessments regardless of frontend state
+- **Details**:
+  - **Always Ticking Clock**: Server maintains authoritative timer for each active assessment
+  - **Automatic Question Progression**: After timeout, automatically select and present next question
+  - **No Late Answers**: Reject any answer submissions after question timeout has occurred
+  - **Assessment Completion**: Continue automatic progression until all questions are completed via timeout
+  - **Timer Persistence**: Maintain timer state across server restarts and frontend disconnections
+  - **Concurrent Timer Management**: Handle multiple simultaneous assessment timers efficiently
+
+#### FR-004: Frontend Synchronization Recovery
+- **Requirement**: Provide mechanism for frontend to recover current assessment state when out of sync
+- **Details**:
+  - **Current Question Endpoint**: API to retrieve currently active question and remaining time
+  - **Progress Synchronization**: Return current question sequence, domain coverage, difficulty level
+  - **Timer Synchronization**: Provide exact remaining time for current question
+  - **State Validation**: Verify frontend and backend are synchronized on same question
+  - **Recovery Handling**: Handle scenarios where frontend missed question transitions
+
+#### FR-005: Dual-Level Availability Control
 - **Requirement**: Respect both platform and school-level question availability settings
 - **Details**:
   - Check platform-level enabled/disabled status
@@ -59,7 +80,7 @@ Implement the core intelligent question selection algorithm that drives the adap
   - Validate question approval status before selection
   - Log availability issues for debugging
 
-#### FR-004: Question Pool Management
+#### FR-006: Question Pool Management
 - **Requirement**: Efficiently manage question pools with approval and availability validation
 - **Details**:
   - Pre-filter questions by availability status
@@ -68,7 +89,7 @@ Implement the core intelligent question selection algorithm that drives the adap
   - Track question usage across concurrent sessions
   - Optimize database queries for performance
 
-#### FR-005: Comprehensive Fallback Strategy
+#### FR-007: Comprehensive Fallback Strategy
 - **Requirement**: Implement robust fallback mechanisms to ensure algorithm never fails
 - **Details**:
   - Try adjacent difficulty levels (±1) within same domain
@@ -77,13 +98,14 @@ Implement the core intelligent question selection algorithm that drives the adap
   - Log fallback usage for analysis and optimization
   - Ensure graceful degradation without assessment failure
 
-#### FR-006: Timeout Handling Integration
-- **Requirement**: Support configurable timeout settings for question presentation
+#### FR-008: Timeout Integration with Question Selection
+- **Requirement**: Seamlessly integrate timeout handling with question selection for continuous flow
 - **Details**:
-  - Respect timePerQuestion configuration (default 60 seconds)
-  - Handle school-level timeout overrides
-  - Support disabled timeouts (timePerQuestion = null)
-  - No impact on question selection logic (handled by frontend/session)
+  - **Automatic Next Question**: When timeout occurs, immediately select next question
+  - **No Frontend Dependency**: Selection continues even without frontend interaction
+  - **Timeout Response Recording**: Automatically record timeout as incorrect answer
+  - **Continuous Assessment Flow**: Ensure assessment never stalls due to timeouts
+  - **Timer Reset**: Start new timer immediately when next question is selected
 
 ### Technical Requirements
 
@@ -198,6 +220,138 @@ interface FallbackStrategy {
 4. **Expanded**: Any domain, any difficulty
 5. **Emergency**: Log error, but provide any available question
 
+#### Backend Timer Management System
+
+```typescript
+interface TimerManagementService {
+  /**
+   * Start assessment timer for new session
+   * @param assessmentId - Assessment session ID
+   * @param timePerQuestion - Configured time limit per question
+   * @returns Timer initialization result
+   */
+  startAssessmentTimer(assessmentId: number, timePerQuestion: number): Promise<TimerStart>;
+
+  /**
+   * Get current timer status for assessment
+   * @param assessmentId - Assessment session ID
+   * @returns Current timer state and remaining time
+   */
+  getCurrentTimerStatus(assessmentId: number): Promise<TimerStatus>;
+
+  /**
+   * Handle automatic question progression on timeout
+   * @param assessmentId - Assessment session that timed out
+   * @returns Next question selected automatically
+   */
+  handleAutomaticProgression(assessmentId: number): Promise<AutoProgressionResult>;
+
+  /**
+   * Validate if answer submission is within time limit
+   * @param assessmentId - Assessment session ID
+   * @param submissionTime - When answer was submitted
+   * @returns Whether submission is valid (not late)
+   */
+  validateSubmissionTiming(assessmentId: number, submissionTime: Date): Promise<boolean>;
+}
+
+interface TimerStatus {
+  assessmentId: number;
+  currentQuestionId: string;
+  questionStartTime: Date;
+  timePerQuestion: number;
+  remainingTime: number; // milliseconds remaining
+  isActive: boolean;
+  nextAutoProgressionTime: Date;
+}
+```
+
+#### Frontend Synchronization Recovery
+
+```typescript
+interface SynchronizationService {
+  /**
+   * Get current assessment state for frontend sync recovery
+   * @param assessmentId - Assessment session ID
+   * @returns Complete current state including active question and timing
+   */
+  getCurrentAssessmentState(assessmentId: number): Promise<AssessmentSyncState>;
+
+  /**
+   * Validate frontend is synchronized with backend state
+   * @param assessmentId - Assessment session ID
+   * @param frontendQuestionId - Question ID frontend thinks is current
+   * @returns Synchronization validation result
+   */
+  validateFrontendSync(
+    assessmentId: number, 
+    frontendQuestionId: string
+  ): Promise<SyncValidationResult>;
+
+  /**
+   * Handle frontend reconnection and state recovery
+   * @param assessmentId - Assessment session ID
+   * @returns Recovery information for frontend to catch up
+   */
+  handleFrontendReconnection(assessmentId: number): Promise<ReconnectionRecovery>;
+}
+
+interface AssessmentSyncState {
+  assessmentId: number;
+  currentQuestion: AssessmentQuestion;
+  questionSequence: number;
+  remainingTime: number;
+  domainCoverage: Map<number, number>;
+  currentDifficulty: number;
+  questionsCompleted: number;
+  totalQuestions: number;
+  isComplete: boolean;
+  serverTimestamp: Date;
+}
+```
+
+#### Automatic Progression Algorithm
+
+```typescript
+interface AutoProgressionManager {
+  /**
+   * Execute automatic progression when question times out
+   * @param assessmentId - Assessment session
+   * @returns Result of automatic progression
+   */
+  executeAutoProgression(assessmentId: number): Promise<ProgressionResult>;
+
+  /**
+   * Schedule next automatic progression
+   * @param assessmentId - Assessment session
+   * @param nextQuestionId - Question that was just presented
+   * @param timePerQuestion - Time limit for the question
+   * @returns Scheduled progression handle
+   */
+  scheduleNextProgression(
+    assessmentId: number,
+    nextQuestionId: string,
+    timePerQuestion: number
+  ): Promise<ScheduledProgression>;
+
+  /**
+   * Cancel scheduled progression (when answer received in time)
+   * @param assessmentId - Assessment session
+   * @returns Cancellation result
+   */
+  cancelScheduledProgression(assessmentId: number): Promise<boolean>;
+}
+
+interface ProgressionResult {
+  wasTimeout: boolean;
+  timeoutQuestionId: string;
+  nextQuestion: AssessmentQuestion | null; // null if assessment complete
+  difficultyAdjustment: number;
+  domainCoverageUpdate: Map<number, number>;
+  assessmentComplete: boolean;
+}
+```
+
 ### Database Schema Requirements
 
 #### New Indexes Required
@@ -222,22 +376,38 @@ ALTER TABLE assessmentConfig ADD COLUMN IF NOT EXISTS maxDifficultyJump INTEGER 
 
 ### API Specifications
 
-#### Question Selection Service Interface
+#### Question Selection Service Interface with Timer Integration
 
 ```typescript
 interface QuestionSelectionService {
   /**
-   * Select next question for assessment session
+   * Select next question for assessment session with timer management
    * @param assessmentId - Active assessment session ID
    * @param currentDifficulty - Current difficulty level (1-6)
    * @param domainCoverage - Current questions per domain
-   * @returns Selected question with metadata
+   * @param isAutoProgression - Whether this is automatic progression due to timeout
+   * @returns Selected question with timer initialization
    */
   selectNextQuestion(
     assessmentId: number,
     currentDifficulty: number,
-    domainCoverage: Map<number, number>
-  ): Promise<SelectedQuestion>;
+    domainCoverage: Map<number, number>,
+    isAutoProgression?: boolean
+  ): Promise<SelectedQuestionWithTimer>;
+
+  /**
+   * Get current question for synchronization recovery
+   * @param assessmentId - Assessment session ID
+   * @returns Current question state with timing information
+   */
+  getCurrentQuestion(assessmentId: number): Promise<CurrentQuestionState>;
+
+  /**
+   * Handle automatic progression to next question on timeout
+   * @param assessmentId - Assessment session that timed out
+   * @returns Automatic progression result
+   */
+  handleTimeout(assessmentId: number): Promise<TimeoutHandlingResult>;
 
   /**
    * Get available question pool statistics
@@ -254,7 +424,7 @@ interface QuestionSelectionService {
   validateConfiguration(config: AssessmentConfig): ValidationResult;
 }
 
-interface SelectedQuestion {
+interface SelectedQuestionWithTimer {
   question: AssessmentQuestion;
   selectionReason: string;
   fallbackLevel: number; // 0 = primary, 1+ = fallback depth
@@ -263,27 +433,50 @@ interface SelectedQuestion {
     current: number;
     priority: number;
   };
+  timerInfo: {
+    questionStartTime: Date;
+    timePerQuestion: number;
+    autoProgressionScheduled: Date;
+    timerId: string;
+  };
+}
+
+interface CurrentQuestionState {
+  question: AssessmentQuestion;
+  questionSequence: number;
+  startTime: Date;
+  remainingTime: number;
+  timePerQuestion: number;
+  domainCoverage: Map<number, number>;
+  currentDifficulty: number;
+  isTimedOut: boolean;
+  serverTimestamp: Date;
 }
 ```
 
 ### Implementation Files
 
-#### Core Service Files
-- `server/services/QuestionSelectionService.ts` - Main selection algorithm
-- `server/services/DomainWeightingService.ts` - Domain allocation logic
-- `server/services/DifficultyProgressionService.ts` - Difficulty management
-- `server/services/QuestionPoolService.ts` - Question availability management
+#### Core Service Files with Timer Management
+- `server/services/QuestionSelectionService.ts` - Main selection algorithm with timer integration
+- `server/services/DomainWeightingService.ts` - Domain allocation logic  
+- `server/services/DifficultyProgressionService.ts` - 6-level difficulty management
+- `server/services/QuestionPoolService.ts` - Availability and pool management
+- **`server/services/AssessmentTimerService.ts` - Backend timer management and automatic progression**
+- **`server/services/SynchronizationService.ts` - Frontend sync recovery and state management**
 
 #### Algorithm Components
 - `server/algorithms/WeightedDomainSelector.ts` - Domain selection algorithm
-- `server/algorithms/AdaptiveDifficultyManager.ts` - Difficulty progression
+- `server/algorithms/AdaptiveDifficultyManager.ts` - Difficulty progression rules
 - `server/algorithms/FallbackStrategy.ts` - Comprehensive fallback logic
 - `server/algorithms/AvailabilityChecker.ts` - Dual-level availability validation
+- **`server/algorithms/AutoProgressionManager.ts` - Automatic timeout progression logic**
+- **`server/algorithms/TimerManager.ts` - Server-side timer implementation**
 
 #### Configuration and Utilities
 - `server/config/QuestionSelectionConfig.ts` - Algorithm configuration
 - `server/utils/AlgorithmLogger.ts` - Selection decision logging
 - `server/utils/PerformanceMonitor.ts` - Algorithm performance tracking
+- **`server/utils/TimerUtils.ts` - Timer calculation and validation utilities**
 
 ### Testing Requirements
 
@@ -300,18 +493,32 @@ interface SelectedQuestion {
   - All fallback levels
   - Emergency scenarios
   - Logging verification
+- **Timer Management**: 100% coverage
+  - Automatic progression logic
+  - Timeout handling
+  - Timer synchronization
+  - Late submission rejection
+- **Synchronization Recovery**: 95% coverage
+  - Frontend sync validation
+  - State recovery scenarios
+  - Reconnection handling
 
 #### Integration Test Scenarios
 - **Full Assessment Flow**: Complete 40-question assessment with realistic question pool
-- **Concurrent Sessions**: Multiple users with overlapping question selections
+- **Timeout Scenarios**: Multiple timeouts with automatic progression
+- **Frontend Disconnection**: Test sync recovery after frontend reconnection
+- **Concurrent Sessions**: Multiple users with overlapping question selections and timers
 - **Configuration Changes**: Runtime configuration updates
 - **Availability Changes**: School-level availability modifications
 
 #### Performance Test Requirements
 - **Selection Speed**: < 2 seconds for 99% of requests
-- **Memory Usage**: < 100MB for question pool caching
+- **Timer Management**: Support 100+ concurrent assessment timers
+- **Automatic Progression**: < 1 second response time for timeout handling
+- **Sync Recovery**: < 500ms response time for current state requests
+- **Memory Usage**: < 100MB for question pool caching + timer management
 - **Database Load**: < 5 queries per selection on average
-- **Concurrent Load**: 50 simultaneous question selections
+- **Concurrent Load**: 50 simultaneous question selections with active timers
 
 ### Success Criteria
 
@@ -338,15 +545,19 @@ interface SelectedQuestion {
 
 #### Technical Risks
 1. **Performance Degradation**
-   - **Risk**: Complex algorithm impacts response time
-   - **Mitigation**: Pre-cached question pools, optimized indexing, performance monitoring
+   - **Risk**: Complex algorithm + timer management impacts response time
+   - **Mitigation**: Pre-cached question pools, optimized indexing, performance monitoring, efficient timer implementation
 
 2. **Algorithm Failures**
    - **Risk**: Edge cases cause selection failures
    - **Mitigation**: Comprehensive fallback strategy, extensive testing, graceful degradation
 
-3. **Data Consistency Issues**
-   - **Risk**: Concurrent access causes inconsistent selections
+3. **Timer Synchronization Issues**
+   - **Risk**: Timer drift or inconsistency between frontend and backend
+   - **Mitigation**: Server-authoritative timing, clock synchronization validation, recovery mechanisms
+
+4. **Data Consistency Issues**
+   - **Risk**: Concurrent access causes inconsistent selections or timer conflicts
    - **Mitigation**: Thread-safe implementations, atomic operations, proper locking
 
 #### Business Risks
@@ -357,6 +568,10 @@ interface SelectedQuestion {
 2. **Difficulty Progression Issues**
    - **Risk**: Too aggressive or conservative difficulty changes
    - **Mitigation**: Configurable progression rules, A/B testing capability
+
+3. **Assessment Interruption**
+   - **Risk**: Users lose progress due to disconnection or timing issues
+   - **Mitigation**: Robust state recovery, automatic progression, comprehensive logging
 
 ### Dependencies and Integration
 
