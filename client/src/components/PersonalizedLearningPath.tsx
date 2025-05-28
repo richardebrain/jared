@@ -4,7 +4,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLocation } from 'wouter';
 import { BookOpen, Star, ArrowUpRight, Award, Calendar, Timer, Zap, AlertCircle } from 'lucide-react';
-import EnhancedAssessment from './EnhancedAssessment';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface AssessmentScore {
   category: string;
@@ -118,7 +124,7 @@ const getModuleTypeIcon = (level: string) => {
 
 const PersonalizedLearningPath: React.FC<PersonalizedLearningPathProps> = ({ assessments, user, modules }) => {
   const [, setLocation] = useLocation();
-  const [showEnhancedAssessment, setShowEnhancedAssessment] = useState(false);
+  const [showComingSoonDialog, setShowComingSoonDialog] = useState(false);
 
   // Get the most recent assessment
   const latestAssessment = assessments && assessments.length > 0 
@@ -131,13 +137,24 @@ const PersonalizedLearningPath: React.FC<PersonalizedLearningPathProps> = ({ ass
   if (!latestAssessment) {
     return (
       <>
-        {user && (
-          <EnhancedAssessment 
-            userId={user.id} 
-            open={showEnhancedAssessment} 
-            onOpenChange={setShowEnhancedAssessment} 
-          />
-        )}
+        <Dialog open={showComingSoonDialog} onOpenChange={setShowComingSoonDialog}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Initial Assessment - Coming Soon!</DialogTitle>
+              <DialogDescription>
+                We're working hard to bring you an amazing new adaptive assessment experience. 
+                The new Initial Assessment will provide personalized learning paths based on your 
+                specific strengths and growth areas.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-center py-4">
+              <div className="text-center">
+                <Star className="h-12 w-12 text-yellow-500 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Stay tuned for updates!</p>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -146,8 +163,8 @@ const PersonalizedLearningPath: React.FC<PersonalizedLearningPathProps> = ({ ass
               <p className="text-muted-foreground mb-6 max-w-md">
                 Complete an assessment to receive your personalized learning path based on your specific strengths and growth areas.
               </p>
-              <Button onClick={() => setShowEnhancedAssessment(true)}>
-                Take Enhanced Assessment
+              <Button onClick={() => setShowComingSoonDialog(true)}>
+                Take Initial Assessment
               </Button>
             </div>
           </CardContent>
@@ -168,13 +185,24 @@ const PersonalizedLearningPath: React.FC<PersonalizedLearningPathProps> = ({ ass
   if (sortedScores.length === 0) {
     return (
       <>
-        {user && (
-          <EnhancedAssessment 
-            userId={user.id} 
-            open={showEnhancedAssessment} 
-            onOpenChange={setShowEnhancedAssessment} 
-          />
-        )}
+        <Dialog open={showComingSoonDialog} onOpenChange={setShowComingSoonDialog}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Initial Assessment - Coming Soon!</DialogTitle>
+              <DialogDescription>
+                We're working hard to bring you an amazing new adaptive assessment experience. 
+                The new Initial Assessment will provide personalized learning paths based on your 
+                specific strengths and growth areas.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-center py-4">
+              <div className="text-center">
+                <Star className="h-12 w-12 text-yellow-500 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Stay tuned for updates!</p>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -183,8 +211,8 @@ const PersonalizedLearningPath: React.FC<PersonalizedLearningPathProps> = ({ ass
               <p className="text-muted-foreground mb-6 max-w-md">
                 Your assessment needs to be completed to generate personalized learning recommendations.
               </p>
-              <Button onClick={() => setShowEnhancedAssessment(true)}>
-                Take Enhanced Assessment
+              <Button onClick={() => setShowComingSoonDialog(true)}>
+                Take Initial Assessment
               </Button>
             </div>
           </CardContent>
@@ -211,13 +239,24 @@ const PersonalizedLearningPath: React.FC<PersonalizedLearningPathProps> = ({ ass
 
   return (
     <>
-      {user && (
-        <EnhancedAssessment 
-          userId={user.id} 
-          open={showEnhancedAssessment} 
-          onOpenChange={setShowEnhancedAssessment} 
-        />
-      )}
+      <Dialog open={showComingSoonDialog} onOpenChange={setShowComingSoonDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Initial Assessment - Coming Soon!</DialogTitle>
+            <DialogDescription>
+              We're working hard to bring you an amazing new adaptive assessment experience. 
+              The new Initial Assessment will provide personalized learning paths based on your 
+              specific strengths and growth areas.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center py-4">
+            <div className="text-center">
+              <Star className="h-12 w-12 text-yellow-500 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">Stay tuned for updates!</p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
       <Card className="mb-6">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
