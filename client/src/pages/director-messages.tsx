@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { MessageCircle, Send, Users, User, Clock } from "lucide-react";
+import { MessageCircle, Send, Users, User as UserIcon, Clock } from "lucide-react";
 import type { User } from "@shared/schema";
 
 interface DirectorMessage {
@@ -154,7 +154,7 @@ export default function DirectorMessages() {
                 {teachers?.map((teacher: User) => (
                   <SelectItem key={teacher.id} value={teacher.id.toString()}>
                     <div className="flex items-center space-x-2">
-                      <User className="h-4 w-4" />
+                      <UserIcon className="h-4 w-4" />
                       <span>{teacher.firstName} {teacher.lastName}</span>
                     </div>
                   </SelectItem>
