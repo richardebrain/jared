@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, Trophy, Zap, ArrowRight, RefreshCw } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { playSuccessSound, playWrongSound, playCelebrationSound } from '@/lib/soundEffects';
 
 interface QuizQuestion {
   question: string;
@@ -54,12 +55,18 @@ export function GamefiedQuiz({ title, questions, onComplete, onClose }: Gamefied
       setScore(score + 1);
       setTotalPoints(totalPoints + pointsEarned);
       
+      // Play success sound for correct answer and points earned
+      playSuccessSound();
+      
       toast({
         title: "Correct! 🎉",
         description: `You earned ${pointsEarned} points!`,
         className: "bg-green-50 border-green-200",
       });
     } else {
+      // Play wrong answer sound
+      playWrongSound();
+      
       toast({
         title: "Not quite right",
         description: "Don't worry, keep learning!",

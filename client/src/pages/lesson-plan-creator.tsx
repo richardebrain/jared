@@ -566,7 +566,7 @@ export default function LessonPlanCreator() {
                     <SelectValue placeholder="Filter by area..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Areas</SelectItem>
+                    <SelectItem value="all">All Areas</SelectItem>
                     {standardAreas.map(area => (
                       <SelectItem key={area} value={area}>{area}</SelectItem>
                     ))}
