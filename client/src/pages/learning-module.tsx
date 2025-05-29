@@ -130,7 +130,18 @@ export default function LearningModulePage() {
     queryKey: ["/api/progress"],
   });
   
-  // Get module-specific lessons
+  // Get module sections from content
+  const moduleSections = useMemo(() => {
+    if (!module?.content) return [];
+    try {
+      const parsed = JSON.parse(module.content);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }, [module?.content]);
+
+  // Get module-specific lessons (fallback for older modules)
   const moduleLessons = useMemo(() => {
     return moduleId ? getModuleLessons(moduleId) : [];
   }, [moduleId]);
@@ -303,7 +314,58 @@ export default function LearningModulePage() {
                   </TabsList>
                   
                   <TabsContent value="content">
-                    {currentLesson ? (
+                    {moduleSections.length > 0 ? (
+                      <div className="space-y-6">
+                        {moduleSections.map((section: any, index: number) => (
+                          <div key={index} className="bg-card p-4 rounded-lg">
+                            <h3 className="text-xl font-heading font-bold mb-4">
+                              {section.title}
+                            </h3>
+                            
+                            {/* Video Section */}
+                            {section.type === 'video' && section.videoUrl && (
+                              <div className="mb-6">
+                                <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                                  <iframe
+                                    src={section.videoUrl.replace('watch?v=', 'embed/')}
+                                    title={section.title}
+                                    className="w-full h-full"
+                                    frameBorder="0"
+                                    allowFullScreen
+                                  />
+                                </div>
+                                {section.content && (
+                                  <div className="mt-4 text-gray-700">
+                                    {section.content}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            
+                            {/* Quiz Section */}
+                            {section.type === 'quiz' && (
+                              <div className="mb-6">
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                  <h4 className="font-semibold text-blue-800 mb-3">Quiz Questions</h4>
+                                  <div className="whitespace-pre-line text-gray-700">
+                                    {section.content}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Text Section */}
+                            {section.type === 'text' && (
+                              <div className="mb-6">
+                                <div className="whitespace-pre-line text-gray-700">
+                                  {section.content}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : currentLesson ? (
                       <div>
                         <div className="bg-card p-4 rounded-lg mb-6">
                           <h3 className="text-xl font-heading font-bold mb-2">
