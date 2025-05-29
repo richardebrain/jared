@@ -14,7 +14,7 @@ import { CelebrationOverlay } from '@/components/CelebrationOverlay';
 import { cn } from '@/lib/utils';
 import { Spinner } from '@/components/ui/spinner';
 import { VideoResources } from '@/components/VideoResources';
-import { InteractiveQuiz } from '@/components/InteractiveQuiz';
+// import { InteractiveQuiz } from '@/components/InteractiveQuiz';
 import { MemoryMatchGame } from '@/components/MemoryMatchGame';
 
 export default function MicroModuleView() {
