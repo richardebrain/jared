@@ -36,6 +36,10 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
+// TODO: Replace with proper authentication system
+// This is a temporary solution for local development only
+const TEMP_ADMIN_PASSWORD = "BIGSURF55";
+
 interface Question {
   id: string;
   domainId: string;
@@ -80,7 +84,7 @@ export function QuestionManagement() {
 
   // Build query parameters
   const queryParams = {
-    admin_password: "BIGSURF55", // Required for admin access
+    admin_password: TEMP_ADMIN_PASSWORD, // Required for admin access
     page,
     limit,
     ...(search && { search }),
@@ -98,14 +102,14 @@ export function QuestionManagement() {
 
   // Fetch domains for filter dropdown
   const { data: domains } = useQuery({
-    queryKey: ["/api/admin/domains", { admin_password: "BIGSURF55" }],
+    queryKey: ["/api/admin/domains", { admin_password: TEMP_ADMIN_PASSWORD }],
     retry: false,
   });
 
   // Delete question mutation
   const deleteQuestionMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest(`/api/admin/questions/${id}?admin_password=BIGSURF55`, {
+      return await apiRequest(`/api/admin/questions/${id}?admin_password=${TEMP_ADMIN_PASSWORD}`, {
         method: "DELETE",
       });
     },
@@ -129,7 +133,7 @@ export function QuestionManagement() {
   // Approve/unapprove question mutation
   const approvalMutation = useMutation({
     mutationFn: async ({ id, approve }: { id: string; approve: boolean }) => {
-      return await apiRequest(`/api/admin/questions/${id}/approve?admin_password=BIGSURF55`, {
+      return await apiRequest(`/api/admin/questions/${id}/approve?admin_password=${TEMP_ADMIN_PASSWORD}`, {
         method: "POST",
         data: { isApproved: approve },
       });
@@ -154,7 +158,7 @@ export function QuestionManagement() {
   // Enable/disable question mutation
   const enableMutation = useMutation({
     mutationFn: async ({ id, enable }: { id: string; enable: boolean }) => {
-      return await apiRequest(`/api/admin/questions/${id}/availability?admin_password=BIGSURF55`, {
+      return await apiRequest(`/api/admin/questions/${id}/availability?admin_password=${TEMP_ADMIN_PASSWORD}`, {
         method: "PUT",
         data: { isEnabled: enable },
       });
