@@ -78,6 +78,8 @@ export function GamefiedQuiz({ title, questions, onComplete, onClose }: Gamefied
   const handleNextQuestion = () => {
     if (isLastQuestion) {
       setIsComplete(true);
+      // Play celebration sound when quiz is completed
+      playCelebrationSound();
       onComplete(score, totalPoints);
     } else {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
