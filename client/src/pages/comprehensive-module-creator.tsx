@@ -627,7 +627,23 @@ Create a natural conversation between two podcast hosts discussing this specific
         sections: processedSections
       };
 
-      createModuleMutation.mutate(moduleData);
+      await createModuleMutation.mutateAsync(moduleData);
+      
+      // Force refresh the module list
+      await queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
+      
+      // Reset the form
+      setNewModule({
+        title: '',
+        description: '',
+        category: '',
+        difficulty: '',
+        estimatedTime: '',
+        customPoints: '',
+        shareWithCommunity: false,
+        sections: []
+      });
+      
     } catch (error) {
       console.error('Module creation error:', error);
       toast({
@@ -635,6 +651,7 @@ Create a natural conversation between two podcast hosts discussing this specific
         description: "There was an issue creating your module. Please try again.",
         variant: "destructive",
       });
+    } finally {
       setIsCreatingModule(false);
     }
   };
@@ -1370,6 +1387,19 @@ Create a natural conversation between two podcast hosts discussing this specific
             </div>
           ) : (
             <div className="space-y-4">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm text-gray-600">
+                  {filteredModules.length} module{filteredModules.length !== 1 ? 's' : ''} found
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/modules'] })}
+                  className="text-blue-600 hover:bg-blue-50"
+                >
+                  Refresh List
+                </Button>
+              </div>
               {filteredModules.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="text-gray-500">No modules found. Create your first module to get started!</p>
