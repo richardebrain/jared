@@ -145,6 +145,31 @@ export default function LearningModulePage() {
     }
   }, [module?.content]);
 
+  // Extract quiz sections for gamified display
+  const quizSections = useMemo(() => {
+    return moduleSections.filter(section => section.type === 'quiz');
+  }, [moduleSections]);
+
+  const [currentQuizIndex, setCurrentQuizIndex] = useState<number | null>(null);
+  const [quizCompleted, setQuizCompleted] = useState<boolean[]>([]);
+
+  // Handle quiz completion
+  const handleQuizComplete = (score: number, totalPoints: number) => {
+    toast({
+      title: "Quiz Complete!",
+      description: `You scored ${score} points and earned ${totalPoints} total points!`,
+    });
+    
+    // Mark quiz as completed
+    if (currentQuizIndex !== null) {
+      const newCompleted = [...quizCompleted];
+      newCompleted[currentQuizIndex] = true;
+      setQuizCompleted(newCompleted);
+    }
+    
+    setCurrentQuizIndex(null);
+  };
+
   // Get module-specific lessons (fallback for older modules)
   const moduleLessons = useMemo(() => {
     return moduleId ? getModuleLessons(moduleId) : [];
@@ -269,6 +294,55 @@ export default function LearningModulePage() {
   
   // Current lesson
   const currentLesson = moduleLessons.find(lesson => lesson.id === currentLessonId);
+
+  // If currently taking a quiz, show the gamified quiz component
+  if (currentQuizIndex !== null && quizSections[currentQuizIndex]) {
+    const quizSection = quizSections[currentQuizIndex];
+    
+    // Parse quiz questions from the section content
+    let quizQuestions = [];
+    try {
+      if (typeof quizSection.content === 'string') {
+        // Try to parse JSON if it's a string
+        const parsed = JSON.parse(quizSection.content);
+        quizQuestions = parsed.questions || [];
+      } else if (quizSection.content && quizSection.content.questions) {
+        // Direct object access
+        quizQuestions = quizSection.content.questions;
+      }
+    } catch {
+      // Fallback quiz questions if parsing fails
+      quizQuestions = [
+        {
+          question: "What is the main goal of this training module?",
+          options: [
+            "To complete required training hours",
+            "To improve teaching skills and knowledge",
+            "To earn points and rewards",
+            "To pass the assessment"
+          ],
+          correctAnswer: 1,
+          explanation: "The primary goal is to improve your teaching skills and knowledge to better serve children in your care.",
+          points: 15
+        }
+      ];
+    }
+    
+    return (
+      <div className="min-h-screen bg-neutral-100">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <GamefiedQuiz
+            title={quizSection.title || "Module Quiz"}
+            questions={quizQuestions}
+            onComplete={handleQuizComplete}
+            onClose={() => setCurrentQuizIndex(null)}
+          />
+        </main>
+        <ChatbotSupport />
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen bg-neutral-100">
@@ -573,6 +647,43 @@ export default function LearningModulePage() {
                       
                       <h3 className="text-xl font-heading font-bold mb-4">Module Content</h3>
                       <p className="mb-4">This module contains the following lessons:</p>
+                      
+                      {/* Display quiz sections as interactive gamified elements */}
+                      {quizSections.length > 0 && (
+                        <div className="mb-6">
+                          <h4 className="font-semibold mb-3 flex items-center">
+                            <i className="ri-questionnaire-line text-primary mr-2"></i>
+                            Interactive Quizzes
+                          </h4>
+                          <div className="space-y-3">
+                            {quizSections.map((quizSection, index) => (
+                              <div key={index} className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <h5 className="font-medium text-gray-900">{quizSection.title || `Quiz ${index + 1}`}</h5>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                      Test your knowledge with this interactive gamified quiz
+                                    </p>
+                                  </div>
+                                  <Button
+                                    onClick={() => setCurrentQuizIndex(index)}
+                                    className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+                                    size="sm"
+                                  >
+                                    {quizCompleted[index] ? "Retake Quiz" : "Start Quiz"}
+                                  </Button>
+                                </div>
+                                {quizCompleted[index] && (
+                                  <div className="mt-2 flex items-center text-green-600 text-sm">
+                                    <i className="ri-check-line mr-1"></i>
+                                    Completed
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       
                       <div className="space-y-3 mb-6">
                         {moduleLessons.map((lesson, index) => {
