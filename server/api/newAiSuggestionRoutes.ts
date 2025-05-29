@@ -310,7 +310,26 @@ Create a realistic preschool scenario with multiple decision points where teache
           });
         } catch (aiError) {
           console.error('AI scenario generation failed:', aiError);
-          // Create a specific scenario for the topic
+          
+          // Try again with a simpler AI prompt as backup
+          try {
+            const backupResponse = await openai.chat.completions.create({
+              model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+              messages: [{
+                role: "user",
+                content: `Create a realistic preschool classroom scenario about "${moduleTopic}" with 3 decision points where teachers choose between good and bad approaches. Include specific character names, ages, classroom setting, and clear outcomes for each choice. Make it practical for ${difficultyLevel} level ECE teachers.`
+              }],
+              temperature: 0.8,
+            });
+
+            return res.json({
+              suggestions: backupResponse.choices[0].message.content
+            });
+          } catch (backupError) {
+            console.error('Backup AI generation also failed:', backupError);
+          }
+          
+          // Only use specific hardcoded scenarios as last resort for critical topics
           let fallbackScenario = '';
           
           if (moduleTopic.toLowerCase().includes('biting')) {
@@ -545,15 +564,21 @@ Generate questions and scenarios that directly relate to their specific content 
             specificContent = quizResponse.choices[0].message.content;
           } catch (aiError) {
             console.error('AI quiz generation failed:', aiError);
-            specificContent = `# ${moduleTopic} - Quiz & Teachback Session
-
-## 📋 Quick Knowledge Check
-Questions will be generated based on your specific content about ${moduleTopic}.
-
-## 🎓 Teachback Challenge
-Practice scenarios will be created from your module materials.
-
-*Note: AI content generation temporarily unavailable. Please try again.*`;
+            // Try simpler backup AI approach
+            try {
+              const backupQuiz = await openai.chat.completions.create({
+                model: "gpt-4o",
+                messages: [{
+                  role: "user",
+                  content: `Create 5 multiple choice questions about "${moduleTopic}" for preschool teachers. Include a practical scenario they need to explain to a colleague. Make it specific to real classroom situations.`
+                }],
+                temperature: 0.7,
+              });
+              specificContent = backupQuiz.choices[0].message.content;
+            } catch (backupError) {
+              console.error('Backup quiz generation failed:', backupError);
+              specificContent = `# ${moduleTopic} - Quiz & Teachback Session\n\nAI content generation is currently unavailable. Please try again later or contact support.`;
+            }
           }
         } else if (prompt.includes('slide') || prompt.includes('storyboard')) {
           // Generate AI-powered slide/storyboard content
