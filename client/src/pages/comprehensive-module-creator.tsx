@@ -216,7 +216,15 @@ export default function ComprehensiveModuleCreator() {
           promptText = `Develop a quiz and teachback session for "${newModule.title}" in ${newModule.category} for ${newModule.difficulty} level ECE teachers. Include: quiz questions, detailed explanations, teaching strategies, and practice scenarios.`;
           break;
         case 'podcast-audio':
-          promptText = `Write a podcast-style audio script for "${newModule.title}" in ${newModule.category} for ${newModule.difficulty} level ECE teachers. Include: conversational script, key insights, discussion topics, and reflection prompts.`;
+          promptText = `Write a podcast-style audio script about "${newModule.title}" for ${newModule.difficulty} level ECE teachers. 
+
+Module Description: ${newModule.description}
+
+Category: ${newModule.category}
+
+Content to discuss: ${newModule.sections.map(section => `${section.title}: ${section.content}`).join('\n\n')}
+
+Create a natural conversation between two podcast hosts discussing this specific content. Include: conversational script, key insights from the provided content, discussion topics, and reflection prompts.`;
           break;
         case 'roleplay-reels':
           promptText = `Create roleplay scenarios for "${newModule.title}" in ${newModule.category} for ${newModule.difficulty} level ECE teachers. Include: character roles, dialogue scripts, learning outcomes, and debrief questions.`;
