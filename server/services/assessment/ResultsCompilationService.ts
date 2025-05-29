@@ -53,8 +53,8 @@ export class ResultsCompilationService {
       domainAnalysis
     );
     
-    // Create learning path data
-    const learningPathData = this.createLearningPath(processedRecommendations, domainAnalysis);
+    // Note: Learning path creation is now handled by LearningPathService (EP-001-10)
+    // This provides enhanced domain-grouped learning paths stored in separate table
     
     // Calculate overall metrics
     const overallScore = this.calculateOverallScore(domainAnalysis.overallStats);
@@ -72,7 +72,6 @@ export class ResultsCompilationService {
       strengthAreas: domainAnalysis.strengthAreas,
       growthAreas: domainAnalysis.growthAreas,
       primaryMiniLessons: processedRecommendations.slice(0, 5), // Top 5 recommendations
-      learningPathData,
       personalizedSummary,
       immediateNextSteps,
       estimatedImprovementTime: this.calculateEstimatedImprovementTime(processedRecommendations),
@@ -97,7 +96,6 @@ export class ResultsCompilationService {
       strengthAreas: results.strengthAreas,
       growthAreas: results.growthAreas,
       primaryMiniLessons: results.primaryMiniLessons,
-      learningPathData: results.learningPathData,
       personalizedSummary: results.personalizedSummary,
       immediateNextSteps: results.immediateNextSteps,
       estimatedImprovementTime: results.estimatedImprovementTime
@@ -215,31 +213,6 @@ export class ResultsCompilationService {
   }
   
   /**
-   * Create structured learning path
-   */
-  private createLearningPath(
-    recommendations: DirectMiniLessonRecommendation[],
-    domainAnalysis: DomainAnalysisResult
-  ): LearningPathData {
-    
-    const immediate = recommendations.slice(0, 3);
-    const followUp = recommendations.slice(3, 6);
-    const advanced = recommendations.slice(6, 10);
-    
-    return {
-      totalLessons: recommendations.length,
-      estimatedTotalTime: this.calculateEstimatedImprovementTime(recommendations),
-      primaryRecommendations: immediate,
-      secondaryRecommendations: followUp,
-      learningSequence: {
-        immediate,
-        followUp,
-        advanced
-      }
-    };
-  }
-  
-  /**
    * Calculate overall score from domain statistics
    */
   private calculateOverallScore(overallStats: any): number {
@@ -268,7 +241,6 @@ export interface CompiledAssessmentResults {
   strengthAreas: string[];
   growthAreas: string[];
   primaryMiniLessons: DirectMiniLessonRecommendation[];
-  learningPathData: LearningPathData;
   personalizedSummary: string;
   immediateNextSteps: string[];
   estimatedImprovementTime: number;
@@ -277,18 +249,6 @@ export interface CompiledAssessmentResults {
 
 export interface ProcessedMiniLessonRecommendation extends DirectMiniLessonRecommendation {
   // Same as DirectMiniLessonRecommendation but processed/prioritized
-}
-
-export interface LearningPathData {
-  totalLessons: number;
-  estimatedTotalTime: number;
-  primaryRecommendations: DirectMiniLessonRecommendation[];
-  secondaryRecommendations: DirectMiniLessonRecommendation[];
-  learningSequence: {
-    immediate: DirectMiniLessonRecommendation[];
-    followUp: DirectMiniLessonRecommendation[];
-    advanced: DirectMiniLessonRecommendation[];
-  };
 }
 
 // Import DirectMiniLessonRecommendation from AnswerProcessingService

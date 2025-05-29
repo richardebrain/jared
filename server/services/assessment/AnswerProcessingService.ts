@@ -17,6 +17,7 @@ import { ScoringEngine } from '../../algorithms/assessment/ScoringEngine';
 import { AnswerTimingValidator, type TimingValidationResult, type AnswerFormatValidationResult } from '../../algorithms/assessment/AnswerTimingValidator';
 import { DomainAnalysisService } from './DomainAnalysisService';
 import { ResultsCompilationService } from './ResultsCompilationService';
+import { LearningPathService } from './LearningPathService';
 
 /**
  * Interface for answer submission with timing validation
@@ -110,6 +111,7 @@ export class AnswerProcessingService {
   private timingValidator: AnswerTimingValidator;
   private domainAnalysisService: DomainAnalysisService;
   private resultsCompilationService: ResultsCompilationService;
+  private learningPathService: LearningPathService;
 
   constructor() {
     this.timerService = new AssessmentTimerService();
@@ -117,6 +119,7 @@ export class AnswerProcessingService {
     this.timingValidator = new AnswerTimingValidator();
     this.domainAnalysisService = new DomainAnalysisService();
     this.resultsCompilationService = new ResultsCompilationService();
+    this.learningPathService = new LearningPathService();
   }
 
   /**
@@ -589,10 +592,21 @@ export class AnswerProcessingService {
    */
   async completeAssessment(assessmentId: number): Promise<AssessmentCompletionResult> {
     try {
-      // Get all failed questions for mini-lesson recommendations
+      console.log(`Completing assessment ${assessmentId} with enhanced learning path generation`);
+
+      // Get assessment data to extract userId
+      const assessment = await this.loadAssessmentData(assessmentId);
+
+      // Generate enhanced learning path using EP-001-10 service
+      const learningPathResult = await this.learningPathService.generateLearningPath(
+        assessmentId, 
+        assessment.userId
+      );
+
+      // Get all failed questions for backward compatibility with existing mini-lesson recommendations
       const failedQuestions = await this.getFailedQuestions(assessmentId);
       
-      // Generate mini-lesson recommendations for failed questions
+      // Generate mini-lesson recommendations for failed questions (legacy format)
       const miniLessonRecommendations: DirectMiniLessonRecommendation[] = [];
       
       for (const question of failedQuestions) {
@@ -600,7 +614,7 @@ export class AnswerProcessingService {
         miniLessonRecommendations.push(...recommendations);
       }
       
-      // Compile comprehensive results
+      // Compile comprehensive results (without legacy learning path creation)
       const compiledResults = await this.resultsCompilationService.compileAssessmentResults(
         assessmentId, 
         miniLessonRecommendations
@@ -611,15 +625,21 @@ export class AnswerProcessingService {
       
       // Mark assessment as completed
       await this.markAssessmentCompleted(assessmentId);
+
+      console.log(`Assessment ${assessmentId} completed successfully. Learning path: ${learningPathResult.success ? 'Generated' : 'Failed'}`);
       
       return {
         success: true,
         assessmentId,
-        results: compiledResults,
-        message: 'Assessment completed successfully with comprehensive analysis'
+        results: {
+          ...compiledResults,
+          enhancedLearningPath: learningPathResult // Include new learning path data
+        },
+        message: `Assessment completed successfully with ${learningPathResult.success ? 'enhanced' : 'standard'} learning path`
       };
       
     } catch (error) {
+      console.error(`Assessment completion failed for ${assessmentId}:`, error);
       return {
         success: false,
         assessmentId,

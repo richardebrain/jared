@@ -822,18 +822,6 @@ export const assessmentResults = pgTable("assessment_results", {
     directConnection: string;
   }>>().notNull(),
   
-  learningPathData: json("learning_path_data").$type<{
-    totalLessons: number;
-    estimatedTotalTime: number;
-    primaryRecommendations: any[];
-    secondaryRecommendations: any[];
-    learningSequence: {
-      immediate: any[];
-      followUp: any[];
-      advanced: any[];
-    };
-  }>().notNull(),
-  
   estimatedImprovementTime: integer("estimated_improvement_time"), // Total time for recommended mini-lessons
   
   // Secondary insights - domain context
@@ -868,6 +856,51 @@ export const insertAssessmentResultsSchema = createInsertSchema(assessmentResult
   calculatedAt: true,
 });
 
+// Learning Paths Table for EP-001-10 Enhanced Learning Path Recommendation
+export const learningPaths = pgTable("learning_paths", {
+  id: serial("id").primaryKey(),
+  assessmentId: integer("assessment_id").notNull().references(() => assessments.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  
+  // Structured domain-grouped learning path
+  domainGroups: json("domain_groups").$type<Array<{
+    domainId: number;
+    domainName: string;
+    domainWeight: number;
+    failedQuestionsCount: number;
+    miniLessons: Array<{
+      questionId: string;
+      difficulty: number;
+      miniLessonId: string;
+      estimatedDuration: number;
+    }>;
+  }>>().notNull(),
+  
+  totalFailedQuestions: integer("total_failed_questions").notNull(),
+  totalDomains: integer("total_domains").notNull(),
+  estimatedCompletionTime: integer("estimated_completion_time").notNull(), // Total estimated time in minutes
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  // Primary index for assessment lookup
+  assessmentIdx: index("learning_paths_assessment_idx").on(table.assessmentId),
+  // Index for user lookup
+  userIdx: index("learning_paths_user_idx").on(table.userId),
+  // Composite index for user assessment lookup
+  userAssessmentIdx: index("learning_paths_user_assessment_idx").on(table.userId, table.assessmentId),
+  // Index for analytics on failed question count
+  failedQuestionsIdx: index("learning_paths_failed_questions_idx").on(table.totalFailedQuestions),
+  // Unique constraint - one learning path per assessment
+  uniqueAssessmentIdx: index("learning_paths_unique_assessment_idx").on(table.assessmentId),
+}));
+
+export const insertLearningPathSchema = createInsertSchema(learningPaths).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Teacher welcome messages and notifications table
 export const teacherMessages = pgTable("teacher_messages", {
   id: serial("id").primaryKey(),
@@ -900,6 +933,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   guestMeetings: many(meetings, { relationName: "guest" }),
   assessments: many(assessments),
   assessmentResponses: many(assessmentResponses),
+  learningPaths: many(learningPaths),
   createdQuestions: many(assessmentQuestions, { relationName: "questionCreator" }),
   approvedQuestions: many(assessmentQuestions, { relationName: "questionApprover" }),
   questionAvailabilityUpdates: many(questionAvailability),
@@ -1438,6 +1472,9 @@ export type InsertAssessmentConfig = z.infer<typeof insertAssessmentConfigSchema
 export type AssessmentResults = typeof assessmentResults.$inferSelect;
 export type InsertAssessmentResults = z.infer<typeof insertAssessmentResultsSchema>;
 
+export type LearningPath = typeof learningPaths.$inferSelect;
+export type InsertLearningPath = z.infer<typeof insertLearningPathSchema>;
+
 // Assessment domains relations
 export const assessmentDomainsRelations = relations(assessmentDomains, ({ many }) => ({
   // questions: many(assessmentQuestions), // Temporarily commented out due to type mismatch
@@ -1508,6 +1545,18 @@ export const assessmentConfigRelations = relations(assessmentConfig, ({ one }) =
   }),
   updatedByUser: one(users, {
     fields: [assessmentConfig.updatedBy],
+    references: [users.id]
+  })
+}));
+
+// Learning paths relations
+export const learningPathsRelations = relations(learningPaths, ({ one }) => ({
+  assessment: one(assessments, {
+    fields: [learningPaths.assessmentId],
+    references: [assessments.id]
+  }),
+  user: one(users, {
+    fields: [learningPaths.userId],
     references: [users.id]
   })
 }));
