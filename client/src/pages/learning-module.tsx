@@ -114,6 +114,7 @@ export default function LearningModulePage() {
   // Current lesson state
   const [currentLessonId, setCurrentLessonId] = useState<number | null>(null);
   const [currentProgress, setCurrentProgress] = useState(0);
+  const [completedSections, setCompletedSections] = useState<Set<number>>(new Set());
   
   // Get module data
   const { data: module, isLoading: isModuleLoading } = useQuery<LearningModuleType>({
@@ -167,9 +168,31 @@ export default function LearningModulePage() {
       const newCompleted = [...quizCompleted];
       newCompleted[currentQuizIndex] = true;
       setQuizCompleted(newCompleted);
+      
+      // Find the section index for this quiz and mark it completed
+      const quizSection = quizSections[currentQuizIndex];
+      const sectionIndex = moduleSections.findIndex(section => section === quizSection);
+      if (sectionIndex !== -1) {
+        markSectionCompleted(sectionIndex);
+      }
     }
     
     setCurrentQuizIndex(null);
+  };
+
+  // Calculate progress based on completed sections
+  const calculateProgress = () => {
+    if (moduleSections.length === 0) return 0;
+    return Math.round((completedSections.size / moduleSections.length) * 100);
+  };
+
+  // Update progress when sections are completed
+  const markSectionCompleted = (sectionIndex: number) => {
+    setCompletedSections(prev => {
+      const newSet = new Set(prev);
+      newSet.add(sectionIndex);
+      return newSet;
+    });
   };
 
   // Handle scenario matching
@@ -225,6 +248,11 @@ export default function LearningModulePage() {
         totalCount: scenarioCount
       }
     }));
+
+    // Mark section as completed if all correct
+    if (isAllCorrect) {
+      markSectionCompleted(sectionIndex);
+    }
 
     toast({
       title: isAllCorrect ? "Perfect Match!" : "Good Try!",
@@ -445,9 +473,9 @@ export default function LearningModulePage() {
                 <div className="mb-6">
                   <div className="flex justify-between mb-2 text-sm">
                     <span>Your progress</span>
-                    <span className="font-semibold">{currentProgress}%</span>
+                    <span className="font-semibold">{calculateProgress()}%</span>
                   </div>
-                  <Progress value={currentProgress} />
+                  <Progress value={calculateProgress()} />
                 </div>
                 
                 <Tabs defaultValue="content">
@@ -1059,11 +1087,11 @@ export default function LearningModulePage() {
                         stroke="hsl(var(--primary))" 
                         strokeWidth="12" 
                         strokeDasharray="339.292" 
-                        strokeDashoffset={339.292 * (1 - currentProgress / 100)} 
+                        strokeDashoffset={339.292 * (1 - calculateProgress() / 100)} 
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-2xl font-bold">{currentProgress}%</span>
+                      <span className="text-2xl font-bold">{calculateProgress()}%</span>
                     </div>
                   </div>
                   
