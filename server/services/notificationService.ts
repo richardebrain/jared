@@ -3,7 +3,7 @@ import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { logger } from "../logger";
 import { storage } from "../storage";
-import * as sgMail from "@sendgrid/mail";
+import sgMail from "@sendgrid/mail";
 
 // Set up SendGrid if API key is available
 if (process.env.SENDGRID_API_KEY) {
