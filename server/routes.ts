@@ -4744,6 +4744,86 @@ Continue for all 5 questions...
     }
   });
 
+  // AI-powered lesson plan generation
+  app.post("/api/generate-lesson-plan", requireAuth, async (req, res) => {
+    try {
+      const { title, description, ageGroup, duration } = req.body;
+      
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({ 
+          message: "OpenAI API key not configured. Please provide your OpenAI API key to use AI-powered lesson plan generation." 
+        });
+      }
+
+      // Get available standards for alignment
+      const allStandards = await storage.getAllEarlyLearningStandards();
+      
+      // Create a comprehensive prompt for AI to generate a complete lesson plan
+      const prompt = `Create a comprehensive early childhood education lesson plan with the following details:
+
+Title: ${title}
+Description: ${description}
+Age Group: ${ageGroup}
+Duration: ${duration} minutes
+
+Please generate a complete lesson plan including:
+1. Learning objectives (3-5 specific, measurable objectives)
+2. Materials needed (comprehensive list of supplies and resources)
+3. Activities (2-4 engaging activities with detailed instructions)
+4. Assessment methods
+5. Additional notes for teachers
+
+Available Arizona Early Learning Standards for reference:
+${allStandards.slice(0, 20).map((s: any) => `${s.standardCode}: ${s.standardText}`).join('\n')}
+
+Respond with a JSON object in this exact format:
+{
+  "objectives": ["objective 1", "objective 2", "objective 3"],
+  "materials": ["material 1", "material 2", "material 3"],
+  "activities": [
+    {
+      "name": "Activity Name",
+      "description": "Brief description",
+      "duration": 15,
+      "instructions": ["step 1", "step 2", "step 3"]
+    }
+  ],
+  "assessment": "How to assess student learning and engagement",
+  "notes": "Additional teaching tips and considerations",
+  "suggestedStandards": [standardId1, standardId2]
+}
+
+Make sure all content is age-appropriate for ${ageGroup} children and fits within the ${duration}-minute timeframe.`;
+
+      const openai = new (require('openai')).OpenAI({
+        apiKey: process.env.OPENAI_API_KEY
+      });
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [{ role: "user", content: prompt }],
+        response_format: { type: "json_object" }
+      });
+
+      const aiResponse = JSON.parse(response.choices[0].message.content);
+      
+      // Structure the response for the frontend
+      const lessonPlan = {
+        objectives: aiResponse.objectives || [],
+        materials: aiResponse.materials || [],
+        activities: aiResponse.activities || [],
+        assessment: aiResponse.assessment || "",
+        notes: aiResponse.notes || "",
+        standardsReferenced: aiResponse.suggestedStandards || []
+      };
+
+      res.json({ lessonPlan });
+    } catch (error) {
+      console.error("Error generating lesson plan:", error);
+      res.status(500).json({ message: "Failed to generate lesson plan with AI" });
+    }
+  });
+
   // AI-powered standards suggestions
   app.post("/api/suggest-standards", requireAuth, async (req, res) => {
     try {

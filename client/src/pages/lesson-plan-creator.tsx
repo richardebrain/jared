@@ -73,6 +73,8 @@ export default function LessonPlanCreator() {
   const [standardsSearch, setStandardsSearch] = useState("");
   const [selectedStandardArea, setSelectedStandardArea] = useState("");
   const [showStandardsSuggestions, setShowStandardsSuggestions] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [showStandardsAlignment, setShowStandardsAlignment] = useState(false);
 
   // Fetch Arizona Early Learning Standards
   const { data: standards = [] } = useQuery({
@@ -86,6 +88,43 @@ export default function LessonPlanCreator() {
       const response = await apiRequest("GET", `/api/early-learning-standards?${params}`);
       return response.json();
     }
+  });
+
+  // AI-powered lesson plan generation
+  const generateLessonPlanMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", "/api/generate-lesson-plan", {
+        title: lessonPlan.title,
+        description: lessonPlan.description,
+        ageGroup: lessonPlan.ageGroup,
+        duration: lessonPlan.duration
+      });
+    },
+    onSuccess: async (response) => {
+      const data = await response.json();
+      if (data.lessonPlan) {
+        setLessonPlan(prev => ({
+          ...prev,
+          ...data.lessonPlan,
+          title: prev.title, // Keep original title
+          description: prev.description, // Keep original description
+          ageGroup: prev.ageGroup, // Keep original age group
+          duration: prev.duration // Keep original duration
+        }));
+        setShowStandardsAlignment(true);
+        toast({
+          title: "Lesson Plan Generated",
+          description: "AI has created a comprehensive lesson plan. Review and align with standards below.",
+        });
+      }
+    },
+    onError: () => {
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate lesson plan. Please check your OpenAI API key configuration.",
+        variant: "destructive",
+      });
+    },
   });
 
   // AI-powered standards suggestions
@@ -337,6 +376,30 @@ export default function LessonPlanCreator() {
                     onChange={(e) => setLessonPlan(prev => ({ ...prev, duration: parseInt(e.target.value) || 30 }))}
                   />
                 </div>
+              </div>
+
+              {/* AI Generation Button */}
+              <div className="border-t pt-4">
+                <Button
+                  onClick={() => generateLessonPlanMutation.mutate()}
+                  disabled={!lessonPlan.title.trim() || !lessonPlan.description.trim() || generateLessonPlanMutation.isPending}
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                >
+                  {generateLessonPlanMutation.isPending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      AI is creating your lesson plan...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Generate Complete Lesson Plan with AI
+                    </>
+                  )}
+                </Button>
+                <p className="text-xs text-gray-600 mt-2 text-center">
+                  AI will create objectives, materials, activities, and suggest aligned standards
+                </p>
               </div>
             </CardContent>
           </Card>

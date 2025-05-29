@@ -2276,6 +2276,94 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(learningModules.id, moduleId));
   }
+
+  // Lesson plan operations
+  async getLessonPlan(id: number): Promise<LessonPlan | undefined> {
+    const [lessonPlan] = await db
+      .select()
+      .from(lessonPlans)
+      .where(eq(lessonPlans.id, id));
+    return lessonPlan || undefined;
+  }
+
+  async getLessonPlansByUserId(userId: number): Promise<LessonPlan[]> {
+    return await db
+      .select()
+      .from(lessonPlans)
+      .where(eq(lessonPlans.createdBy, userId))
+      .orderBy(desc(lessonPlans.createdAt));
+  }
+
+  async createLessonPlan(lessonPlan: InsertLessonPlan): Promise<LessonPlan> {
+    const [newLessonPlan] = await db
+      .insert(lessonPlans)
+      .values(lessonPlan)
+      .returning();
+    return newLessonPlan;
+  }
+
+  async updateLessonPlan(id: number, lessonPlanData: Partial<InsertLessonPlan>): Promise<LessonPlan> {
+    const [updatedLessonPlan] = await db
+      .update(lessonPlans)
+      .set(lessonPlanData)
+      .where(eq(lessonPlans.id, id))
+      .returning();
+    return updatedLessonPlan;
+  }
+
+  async deleteLessonPlan(id: number): Promise<void> {
+    await db
+      .delete(lessonPlans)
+      .where(eq(lessonPlans.id, id));
+  }
+
+  // Early Learning Standards operations
+  async getAllEarlyLearningStandards(): Promise<EarlyLearningStandard[]> {
+    return await db
+      .select()
+      .from(earlyLearningStandards)
+      .orderBy(earlyLearningStandards.standardArea, earlyLearningStandards.standardCode);
+  }
+
+  async getEarlyLearningStandards(filters: {
+    standardArea?: string;
+    ageGroup?: string;
+    search?: string;
+  }): Promise<EarlyLearningStandard[]> {
+    let query = db.select().from(earlyLearningStandards);
+    const conditions = [];
+
+    if (filters.standardArea) {
+      conditions.push(eq(earlyLearningStandards.standardArea, filters.standardArea));
+    }
+
+    if (filters.ageGroup) {
+      conditions.push(eq(earlyLearningStandards.ageGroup, filters.ageGroup));
+    }
+
+    if (filters.search) {
+      conditions.push(
+        or(
+          sql`${earlyLearningStandards.standardText} ILIKE ${'%' + filters.search + '%'}`,
+          sql`${earlyLearningStandards.standardCode} ILIKE ${'%' + filters.search + '%'}`
+        )
+      );
+    }
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    return await query.orderBy(earlyLearningStandards.standardArea, earlyLearningStandards.standardCode);
+  }
+
+  async getEarlyLearningStandard(id: number): Promise<EarlyLearningStandard | undefined> {
+    const [standard] = await db
+      .select()
+      .from(earlyLearningStandards)
+      .where(eq(earlyLearningStandards.id, id));
+    return standard || undefined;
+  }
 }
 
 // Export a new instance of DatabaseStorage
