@@ -151,7 +151,7 @@ export default function DirectorMessages() {
                     <span>All Teachers in School</span>
                   </div>
                 </SelectItem>
-                {teachers?.map((teacher: User) => (
+                {teachers?.teachers && Array.isArray(teachers.teachers) && teachers.teachers.map((teacher: User) => (
                   <SelectItem key={teacher.id} value={teacher.id.toString()}>
                     <div className="flex items-center space-x-2">
                       <UserIcon className="h-4 w-4" />
