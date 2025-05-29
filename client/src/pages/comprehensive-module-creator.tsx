@@ -290,40 +290,102 @@ Create a natural conversation between two podcast hosts discussing this specific
   const applyGeneratedContent = () => {
     if (!generatedContent) return;
     
-    // Parse the generated content and add it to sections
-    const contentLines = generatedContent.content.split('\n').filter(Boolean);
-    const newSections = [];
+    const { templateId, content } = generatedContent;
     
-    let currentSection = { title: '', content: '', videoUrl: '', imageUrl: '' };
-    
-    contentLines.forEach((line, index) => {
-      if (line.includes(':') && line.length < 100) {
-        // This looks like a section title
-        if (currentSection.title || currentSection.content) {
-          newSections.push({...currentSection});
+    // Handle different template types with proper formatting
+    if (templateId === 'quiz-teachback') {
+      // Create a quiz section
+      const newSection = {
+        title: 'Knowledge Check Quiz',
+        content: content,
+        videoUrl: '',
+        imageUrl: '',
+        type: 'quiz' as const
+      };
+      
+      setNewModule(prev => ({
+        ...prev,
+        sections: [...prev.sections, newSection]
+      }));
+    } else if (templateId === 'interactive-scenario') {
+      // Create a scenario match section
+      const newSection = {
+        title: 'Interactive Scenario',
+        content: content,
+        videoUrl: '',
+        imageUrl: '',
+        type: 'scenario-match' as const
+      };
+      
+      setNewModule(prev => ({
+        ...prev,
+        sections: [...prev.sections, newSection]
+      }));
+    } else if (templateId === 'podcast-audio') {
+      // Create a podcast section
+      const newSection = {
+        title: 'Podcast Discussion',
+        content: content,
+        videoUrl: '',
+        imageUrl: '',
+        type: 'podcast' as const
+      };
+      
+      setNewModule(prev => ({
+        ...prev,
+        sections: [...prev.sections, newSection]
+      }));
+    } else if (templateId === 'slide-storyboard') {
+      // Create a slide section
+      const newSection = {
+        title: 'Slide Presentation',
+        content: content,
+        videoUrl: '',
+        imageUrl: '',
+        type: 'slide' as const
+      };
+      
+      setNewModule(prev => ({
+        ...prev,
+        sections: [...prev.sections, newSection]
+      }));
+    } else {
+      // For other templates, parse as regular text sections
+      const contentLines = content.split('\n').filter(Boolean);
+      const newSections = [];
+      
+      let currentSection = { title: '', content: '', videoUrl: '', imageUrl: '', type: 'text' as const };
+      
+      contentLines.forEach((line, index) => {
+        if (line.includes(':') && line.length < 100) {
+          // This looks like a section title
+          if (currentSection.title || currentSection.content) {
+            newSections.push({...currentSection});
+          }
+          currentSection = { 
+            title: line.replace(':', '').trim(), 
+            content: '', 
+            videoUrl: '', 
+            imageUrl: '',
+            type: 'text' as const
+          };
+        } else {
+          // This is content
+          currentSection.content += line + '\n';
         }
-        currentSection = { 
-          title: line.replace(':', '').trim(), 
-          content: '', 
-          videoUrl: '', 
-          imageUrl: '' 
-        };
-      } else {
-        // This is content
-        currentSection.content += line + '\n';
+      });
+      
+      // Add the last section
+      if (currentSection.title || currentSection.content) {
+        newSections.push(currentSection);
       }
-    });
-    
-    // Add the last section
-    if (currentSection.title || currentSection.content) {
-      newSections.push(currentSection);
+      
+      // Update the module with generated sections
+      setNewModule(prev => ({
+        ...prev,
+        sections: newSections.length > 0 ? newSections : prev.sections
+      }));
     }
-    
-    // Update the module with generated sections
-    setNewModule(prev => ({
-      ...prev,
-      sections: newSections.length > 0 ? newSections : prev.sections
-    }));
     
     setGeneratedContent(null);
     setSelectedTemplate(null);
