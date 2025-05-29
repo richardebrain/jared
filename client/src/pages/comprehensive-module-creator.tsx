@@ -554,7 +554,7 @@ Create a natural conversation between two podcast hosts discussing this specific
   });
   
   // Handle module creation
-  const handleCreateModule = () => {
+  const handleCreateModule = async () => {
     if (!newModule.title.trim()) {
       toast({
         title: "Validation Error",
@@ -573,20 +573,70 @@ Create a natural conversation between two podcast hosts discussing this specific
       return;
     }
 
-    // Calculate points
-    const suggestedPoints = calculateSuggestedPoints(newModule.difficulty, newModule.estimatedTime);
-    const finalPoints = newModule.customPoints ? parseInt(newModule.customPoints) : suggestedPoints;
-
-    const moduleData = {
-      ...newModule,
-      pointValue: finalPoints,
-      sections: newModule.sections.filter(section => 
-        section.title.trim() || section.content.trim() || section.videoUrl.trim()
-      )
-    };
-
     setIsCreatingModule(true);
-    createModuleMutation.mutate(moduleData);
+
+    try {
+      // Process video sections that need quiz generation
+      const processedSections = [];
+      
+      for (const section of newModule.sections) {
+        if (section.title.trim() || section.content.trim() || section.videoUrl.trim()) {
+          processedSections.push(section);
+          
+          // Generate quiz questions if requested for video sections
+          if (section.type === 'video' && section.generateVideoQuestions && section.videoUrl) {
+            try {
+              toast({
+                title: "Generating Video Quiz",
+                description: "AI is analyzing the video content to create quiz questions...",
+              });
+              
+              const response = await apiRequest('POST', '/api/ai/generate-video-quiz', {
+                videoUrl: section.videoUrl,
+                description: section.content || section.title
+              });
+              
+              // Add the generated quiz as a new section
+              processedSections.push({
+                title: `${section.title} - Quiz Questions`,
+                content: response.questions,
+                videoUrl: '',
+                imageUrl: '',
+                type: 'quiz'
+              });
+              
+            } catch (error) {
+              console.error('Video quiz generation failed:', error);
+              toast({
+                title: "Video Quiz Generation Failed",
+                description: "Could not generate quiz questions from the video. The module will be created without them.",
+                variant: "destructive",
+              });
+            }
+          }
+        }
+      }
+
+      // Calculate points
+      const suggestedPoints = calculateSuggestedPoints(newModule.difficulty, newModule.estimatedTime);
+      const finalPoints = newModule.customPoints ? parseInt(newModule.customPoints) : suggestedPoints;
+
+      const moduleData = {
+        ...newModule,
+        pointValue: finalPoints,
+        sections: processedSections
+      };
+
+      createModuleMutation.mutate(moduleData);
+    } catch (error) {
+      console.error('Module creation error:', error);
+      toast({
+        title: "Creation Failed",
+        description: "There was an issue creating your module. Please try again.",
+        variant: "destructive",
+      });
+      setIsCreatingModule(false);
+    }
   };
 
   // Add section to module
@@ -1228,9 +1278,21 @@ Create a natural conversation between two podcast hosts discussing this specific
                           placeholder="https://youtube.com/watch?v=..."
                         />
                       </div>
+                      <div className="flex items-center space-x-2 p-3 bg-blue-50 rounded-lg">
+                        <input
+                          type="checkbox"
+                          id={`generateQuestions-${index}`}
+                          checked={section.generateVideoQuestions || false}
+                          onChange={(e) => updateSection(index, 'generateVideoQuestions', e.target.checked)}
+                          className="rounded"
+                        />
+                        <Label htmlFor={`generateQuestions-${index}`} className="text-sm text-blue-700 cursor-pointer">
+                          🤖 Generate quiz questions automatically from this video content
+                        </Label>
+                      </div>
                       <div className="p-4 bg-red-50 rounded-lg">
                         <p className="text-sm text-red-700">
-                          🎥 Add your video URL above. AI can generate discussion questions and follow-up activities.
+                          🎥 Add your video URL above. When you check the box, AI will analyze the video and create relevant quiz questions.
                         </p>
                       </div>
                     </div>

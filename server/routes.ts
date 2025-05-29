@@ -141,6 +141,92 @@ async function ensureDefaultSchoolExists() {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Generate quiz questions from video content
+  app.post('/api/ai/generate-video-quiz', async (req, res) => {
+    try {
+      const { videoUrl, description } = req.body;
+      
+      if (!videoUrl) {
+        return res.status(400).json({ error: 'Video URL is required' });
+      }
+      
+      // Extract video ID from URL (YouTube)
+      const videoId = extractVideoId(videoUrl);
+      if (!videoId) {
+        return res.status(400).json({ error: 'Invalid YouTube video URL' });
+      }
+      
+      // Generate quiz questions based on video content
+      const prompt = `
+Create 5 multiple-choice quiz questions about the educational video content. 
+Video URL: ${videoUrl}
+Context: ${description}
+
+Based on typical early childhood education video content, generate relevant quiz questions that would test understanding of key concepts, practical applications, and important takeaways.
+
+Format as:
+1. Question text here?
+   A) Option 1
+   B) Option 2  
+   C) Option 3
+   D) Option 4
+   
+   Correct Answer: B
+   Explanation: Brief explanation of why this is correct.
+
+Continue for all 5 questions...
+`;
+
+      const openai = new (await import('openai')).default({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system", 
+            content: "You are an expert early childhood education instructor creating assessment questions."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        max_tokens: 1500,
+        temperature: 0.7
+      });
+
+      const questions = response.choices[0]?.message?.content || '';
+      
+      res.json({ questions });
+      
+    } catch (error) {
+      console.error('Video quiz generation error:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate quiz questions from video',
+        details: error.message 
+      });
+    }
+  });
+
+  // Helper function to extract YouTube video ID
+  function extractVideoId(url: string): string | null {
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+      /youtube\.com\/v\/([^&\n?#]+)/
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) {
+        return match[1];
+      }
+    }
+    
+    return null;
+  }
   // Initialize default data
   await ensureDefaultSchoolExists();
   // Create an HTTP server for the Express app (needed for WebSockets)
