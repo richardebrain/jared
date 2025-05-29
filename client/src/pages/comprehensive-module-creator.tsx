@@ -882,14 +882,23 @@ Create a natural conversation between two podcast hosts discussing this specific
           <h1 className="text-3xl font-bold">Module Creator</h1>
           <p className="text-gray-600 mt-2">Create and manage custom learning modules with AI assistance</p>
         </div>
-        <Button 
-          variant="outline" 
-          onClick={() => navigate('/admin')}
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Admin
-        </Button>
+        <div className="flex gap-3">
+          <Button 
+            onClick={() => navigate('/module-wizard')}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+          >
+            <Wand2 className="h-4 w-4" />
+            Easy Wizard
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/admin')}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Admin
+          </Button>
+        </div>
       </div>
 
       {/* Module Creation Form */}
