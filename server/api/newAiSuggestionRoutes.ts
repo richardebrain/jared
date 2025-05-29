@@ -763,4 +763,96 @@ The response should sound natural and genuine, not overly formal.`
   }
 });
 
+// Module wizard section generation
+router.post('/generate-section', async (req, res) => {
+  try {
+    const { prompt, sectionType } = req.body;
+    
+    if (!prompt) {
+      return res.status(400).json({ error: 'Prompt is required' });
+    }
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert early childhood education content creator. Generate practical, engaging training content for preschool teachers. Focus on actionable strategies and real-world applications. Format your response in HTML suitable for display."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      max_tokens: 800,
+      temperature: 0.7
+    });
+
+    const content = response.choices[0].message.content;
+    
+    // Extract title from content or generate one
+    const titleMatch = content?.match(/<h[1-6][^>]*>(.*?)<\/h[1-6]>/i);
+    const title = titleMatch ? titleMatch[1] : `Learning Section`;
+    
+    res.json({
+      title,
+      content,
+      html: content
+    });
+    
+  } catch (error) {
+    console.error('Section generation error:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate section content',
+      title: 'Generated Section',
+      content: '<p>Section content will be generated here. Please try again or edit manually.</p>'
+    });
+  }
+});
+
+// Module wizard quiz generation
+router.post('/generate-quiz', async (req, res) => {
+  try {
+    const { prompt, questionCount = 5 } = req.body;
+    
+    if (!prompt) {
+      return res.status(400).json({ error: 'Prompt is required' });
+    }
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert at creating educational assessments for early childhood educators. Create ${questionCount} multiple choice questions that test practical understanding. Format as JSON with this structure: {"questions": [{"question": "...", "options": ["A", "B", "C", "D"], "correctAnswer": "A", "explanation": "..."}]}`
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      max_tokens: 1000,
+      temperature: 0.7,
+      response_format: { type: "json_object" }
+    });
+
+    const content = response.choices[0].message.content;
+    const quizData = JSON.parse(content || '{"questions": []}');
+    
+    res.json(quizData);
+    
+  } catch (error) {
+    console.error('Quiz generation error:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate quiz',
+      questions: Array.from({length: questionCount}, (_, i) => ({
+        question: `Question ${i + 1} will be generated here`,
+        options: ["Option A", "Option B", "Option C", "Option D"],
+        correctAnswer: "A",
+        explanation: "Explanation will be provided"
+      }))
+    });
+  }
+});
+
 export default router;
