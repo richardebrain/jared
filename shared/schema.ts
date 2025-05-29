@@ -737,6 +737,10 @@ export const assessmentResponses = pgTable("assessment_responses", {
   difficulty: text("difficulty").notNull(), // Temporarily as text to match assessment_questions
   domainId: text("domain_id").notNull(), // Temporarily as text to match assessment_questions
   answeredAt: timestamp("answered_at").defaultNow(),
+  
+  // New EP-001-09 columns for enhanced answer processing
+  wasLateSubmission: boolean("was_late_submission").default(false), // User submitted after timer expired
+  processingTimestamp: timestamp("processing_timestamp").defaultNow(), // When answer was processed
 }, (table) => ({
   // Critical index for user assessment analytics (user + assessment + domain)
   userAssessmentDomainIdx: index("assessment_responses_user_assessment_domain_idx").on(table.userId, table.assessmentId, table.domainId),
@@ -752,6 +756,10 @@ export const assessmentResponses = pgTable("assessment_responses", {
   questionPerformanceIdx: index("assessment_responses_question_performance_idx").on(table.questionId, table.isCorrect),
   // Index for temporal analytics
   answeredAtIdx: index("assessment_responses_answered_at_idx").on(table.answeredAt),
+  
+  // New EP-001-09 indexes for timing analysis
+  timingAnalysisIdx: index("assessment_responses_timing_analysis_idx").on(table.timedOut, table.wasLateSubmission),
+  processingTimestampIdx: index("assessment_responses_processing_timestamp_idx").on(table.processingTimestamp),
 }));
 
 // Question availability control for school-level management
@@ -789,6 +797,76 @@ export const assessmentConfig = pgTable("assessment_config", {
   // Index for platform-wide config (schoolId = null)
   platformConfigIdx: index("assessment_config_platform_idx").on(table.schoolId),
 }));
+
+// Assessment Results Table with Mini-Lesson Focus
+export const assessmentResults = pgTable("assessment_results", {
+  id: serial("id").primaryKey(),
+  assessmentId: integer("assessment_id").notNull().references(() => assessments.id, { onDelete: "cascade" }),
+  overallScore: integer("overall_score").notNull(),
+  totalQuestions: integer("total_questions").notNull(),
+  totalCorrect: integer("total_correct").notNull(),
+  accuracyRate: doublePrecision("accuracy_rate").notNull(), // Percentage (0-100)
+  
+  // Primary recommendations - mini-lesson focus
+  primaryMiniLessons: json("primary_mini_lessons").$type<Array<{
+    miniLessonId: string;
+    title: string;
+    description: string;
+    estimatedDuration: number;
+    difficulty: number;
+    domainId: number;
+    domainName: string;
+    priority: number;
+    learningObjectives: string[];
+    relatedQuestions: string[];
+    directConnection: string;
+  }>>().notNull(),
+  
+  learningPathData: json("learning_path_data").$type<{
+    totalLessons: number;
+    estimatedTotalTime: number;
+    primaryRecommendations: any[];
+    secondaryRecommendations: any[];
+    learningSequence: {
+      immediate: any[];
+      followUp: any[];
+      advanced: any[];
+    };
+  }>().notNull(),
+  
+  estimatedImprovementTime: integer("estimated_improvement_time"), // Total time for recommended mini-lessons
+  
+  // Secondary insights - domain context
+  domainBreakdown: json("domain_breakdown").$type<Array<{
+    domainId: number;
+    domainName: string;
+    totalQuestions: number;
+    correctAnswers: number;
+    accuracyRate: number;
+    strengthLevel: 'strength' | 'neutral' | 'growth';
+  }>>().notNull(),
+  
+  strengthAreas: json("strength_areas").$type<string[]>().notNull(),
+  growthAreas: json("growth_areas").$type<string[]>().notNull(),
+  personalizedSummary: text("personalized_summary"),
+  immediateNextSteps: json("immediate_next_steps").$type<string[]>(),
+  
+  calculatedAt: timestamp("calculated_at").defaultNow(),
+}, (table) => ({
+  // Primary index for assessment lookup
+  assessmentIdx: index("assessment_results_assessment_idx").on(table.assessmentId),
+  // Index for performance analytics
+  scoreIdx: index("assessment_results_score_idx").on(table.overallScore),
+  // Index for accuracy rate queries
+  accuracyIdx: index("assessment_results_accuracy_idx").on(table.accuracyRate),
+  // Unique constraint - one result per assessment
+  uniqueAssessmentIdx: index("assessment_results_unique_assessment_idx").on(table.assessmentId),
+}));
+
+export const insertAssessmentResultsSchema = createInsertSchema(assessmentResults).omit({
+  id: true,
+  calculatedAt: true,
+});
 
 // Teacher welcome messages and notifications table
 export const teacherMessages = pgTable("teacher_messages", {
@@ -1356,6 +1434,9 @@ export const insertAssessmentConfigSchema = createInsertSchema(assessmentConfig)
 
 export type AssessmentConfig = typeof assessmentConfig.$inferSelect;
 export type InsertAssessmentConfig = z.infer<typeof insertAssessmentConfigSchema>;
+
+export type AssessmentResults = typeof assessmentResults.$inferSelect;
+export type InsertAssessmentResults = z.infer<typeof insertAssessmentResultsSchema>;
 
 // Assessment domains relations
 export const assessmentDomainsRelations = relations(assessmentDomains, ({ many }) => ({
