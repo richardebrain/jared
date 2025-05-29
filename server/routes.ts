@@ -1491,6 +1491,74 @@ Continue for all 5 questions...
     }
   });
   
+  // Create new learning module
+  app.post("/api/modules", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      const { 
+        title, 
+        description, 
+        category, 
+        difficulty, 
+        estimatedTime, 
+        customPoints, 
+        shareWithCommunity, 
+        sections 
+      } = req.body;
+
+      // Validate required fields
+      if (!title || !description || !sections || sections.length === 0) {
+        return res.status(400).json({ 
+          message: "Missing required fields: title, description, and at least one section are required" 
+        });
+      }
+
+      // Calculate points (custom or based on estimated time)
+      const pointValue = customPoints ? parseInt(customPoints) : Math.max(5, Math.ceil(parseInt(estimatedTime) / 3));
+
+      // Create module data
+      const moduleData = {
+        title,
+        description,
+        category,
+        difficulty,
+        duration: parseInt(estimatedTime),
+        pointValue,
+        content: JSON.stringify(sections),
+        schoolId: user.schoolId,
+        createdBy: userId,
+        isVisible: true,
+        featured: false,
+        imageUrl: null,
+        quiz: null
+      };
+
+      // Insert into database
+      const [newModule] = await db.insert(learningModules).values(moduleData).returning();
+
+      console.log("Successfully created module:", newModule.id, "titled:", title);
+
+      res.status(201).json({
+        success: true,
+        module: newModule,
+        message: "Module created successfully"
+      });
+      
+    } catch (error) {
+      console.error("Error creating module:", error);
+      res.status(500).json({ 
+        message: "Failed to create module",
+        error: error.message 
+      });
+    }
+  });
+
   // Endpoint to update the Child Development Milestones module content
   app.post("/api/modules/update-child-development", requireAuth, requirePaidAccess, async (req, res) => {
     try {
