@@ -20,6 +20,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { Separator } from "@/components/ui/separator";
+import { GamefiedQuiz } from "@/components/GamefiedQuiz";
 
 // Define module-specific lessons
 const getModuleLessons = (moduleId: number) => {

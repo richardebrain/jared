@@ -211,7 +211,7 @@ export default function DirectorMessages() {
           <CardTitle>Previous Messages</CardTitle>
         </CardHeader>
         <CardContent>
-          {messages && messages.length > 0 ? (
+          {messages && Array.isArray(messages) && messages.length > 0 ? (
             <div className="space-y-4">
               {messages.map((message: DirectorMessage) => (
                 <div key={message.id} className="border rounded-lg p-4">
