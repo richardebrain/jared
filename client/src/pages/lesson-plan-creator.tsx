@@ -387,7 +387,7 @@ ${new Date().toLocaleDateString()}
         </div>
         <Button
           variant="outline"
-          onClick={() => navigate("/")}
+          onClick={() => setLocation("/")}
           className="flex items-center space-x-2"
         >
           <Home className="h-4 w-4" />
@@ -771,7 +771,7 @@ ${new Date().toLocaleDateString()}
             </Button>
             <Button 
               variant="outline" 
-              onClick={() => navigate("/lesson-plans")}
+              onClick={() => setLocation("/lesson-plans")}
               className="w-full"
             >
               Cancel
