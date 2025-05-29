@@ -244,15 +244,15 @@ export default function LessonPlanDisplay({ lessonPlan, standards = [] }: Lesson
 
       {/* Additional Notes */}
       {lessonPlan.notes && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
+        <Card className="bg-white shadow-lg border-0 border-l-4 border-l-yellow-500">
+          <CardHeader className="bg-yellow-50">
+            <CardTitle className="flex items-center space-x-2 text-yellow-800">
               <StickyNote className="h-5 w-5 text-yellow-600" />
               <span>Additional Notes</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-gray-700 bg-yellow-50 p-4 rounded-lg">
+          <CardContent className="pt-6">
+            <div className="bg-yellow-25 p-4 rounded-lg border-l-3 border-l-yellow-300">
               {formatContent(lessonPlan.notes)}
             </div>
           </CardContent>
