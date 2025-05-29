@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { BookOpen, Plus, X, Sparkles, Search, Target, Download, FileText } from "lucide-react";
+import { BookOpen, Plus, X, Sparkles, Search, Target, Download, FileText, Home, ArrowLeft } from "lucide-react";
 
 interface LessonPlan {
   title: string;
@@ -380,9 +380,19 @@ ${new Date().toLocaleDateString()}
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center space-x-2 mb-6">
-        <BookOpen className="h-6 w-6 text-blue-600" />
-        <h1 className="text-2xl font-bold">Create Lesson Plan</h1>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-2">
+          <BookOpen className="h-6 w-6 text-blue-600" />
+          <h1 className="text-2xl font-bold">Create Lesson Plan</h1>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => navigate("/")}
+          className="flex items-center space-x-2"
+        >
+          <Home className="h-4 w-4" />
+          <span>Back to Home</span>
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
