@@ -18,6 +18,7 @@ import {
   Link2,
   BookOpen,
   Brain,
+  Eye,
   Sparkles,
   Lightbulb,
   Loader2,
@@ -1334,6 +1335,15 @@ Create a natural conversation between two podcast hosts discussing this specific
                       </div>
                     </div>
                     <div className="flex items-center space-x-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate(`/learning-module/${module.id}`)}
+                        className="text-blue-600 hover:bg-blue-50"
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        Preview
+                      </Button>
                       <div className="flex items-center space-x-2">
                         {module.is_visible ? (
                           <Badge variant="default" className="bg-green-500">
