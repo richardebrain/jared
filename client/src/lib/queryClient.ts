@@ -90,7 +90,7 @@ export async function apiRequest<T = any>(
     const url = configOrUrl;
     
     // Use longer timeout for AI content generation
-    const timeout = url.includes('/api/ai/') ? 60000 : 10000;
+    const timeout = url.includes('/api/ai/') || url.includes('/generate-lesson-plan') ? 60000 : 10000;
     finalConfig = {
       method: method as any,
       url,
