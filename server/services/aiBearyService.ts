@@ -46,6 +46,11 @@ Respond as AI Beary with helpful, practical advice for preschool teachers.`;
         };
       }
 
+      // Check if OpenAI API key is available
+      if (!process.env.OPENAI_API_KEY) {
+        return this.getFallbackResponse(userQuery, moduleContext);
+      }
+
       // Generate context-aware response
       const contextPrompt = moduleContext 
         ? `The teacher is currently working on: ${moduleContext}. Please provide relevant guidance related to this topic when appropriate.`
@@ -58,7 +63,8 @@ Respond as AI Beary with helpful, practical advice for preschool teachers.`;
           { role: "user", content: userQuery }
         ],
         max_tokens: 500,
-        temperature: 0.7
+        temperature: 0.7,
+        timeout: 25000 // 25 second timeout
       });
 
       const aiResponse = response.choices[0].message.content || "I'm having trouble processing that question right now. Could you try rephrasing it?";
@@ -74,12 +80,48 @@ Respond as AI Beary with helpful, practical advice for preschool teachers.`;
 
     } catch (error) {
       console.error('AI Beary service error:', error);
-      return {
-        message: "🐻 **AI Beary says:** I'm having a little technical hiccup right now! While I get back on track, feel free to reach out to your director for immediate guidance. I'll be back to help soon!",
-        isAppropriate: true,
-        category: 'general'
-      };
+      
+      // Provide more specific error handling
+      if (error.code === 'insufficient_quota' || error.status === 429) {
+        return {
+          message: "🐻 **AI Beary says:** I'm experiencing high demand right now! Please try again in a few minutes, or reach out to your director for immediate guidance.",
+          isAppropriate: true,
+          category: 'general'
+        };
+      }
+      
+      // Fallback to helpful ECE responses when AI is unavailable
+      return this.getFallbackResponse(userQuery, moduleContext);
     }
+  }
+
+  private static getFallbackResponse(userQuery: string, moduleContext?: string): BearyResponse {
+    const category = this.categorizeQuery(userQuery);
+    let message = "🐻 **AI Beary says:** ";
+    
+    switch (category) {
+      case 'classroom_management':
+        message += "Great question about classroom management! Here are some key strategies: establish clear routines, use positive reinforcement, create visual schedules, and maintain consistent expectations. Remember that young children thrive with structure and predictability.";
+        break;
+      case 'child_development':
+        message += "Child development is fascinating! Each child develops at their own pace, but we can support them by providing age-appropriate activities, following their interests, and celebrating small milestones. Observation is key to understanding where each child is in their development.";
+        break;
+      case 'curriculum':
+        message += "When planning curriculum, think about hands-on experiences that engage multiple senses. Include plenty of play-based learning, incorporate children's interests, and remember that repetition helps young learners master concepts.";
+        break;
+      default:
+        message += "That's a thoughtful question! While I'd love to give you a detailed response right now, I'm having some technical difficulties. Please reach out to your director or fellow teachers for guidance on this topic.";
+    }
+    
+    if (moduleContext) {
+      message += ` Since you're working on "${moduleContext}", consider how this relates to your current learning objectives.`;
+    }
+    
+    return {
+      message,
+      isAppropriate: true,
+      category
+    };
   }
 
   private static async checkContentAppropriateness(query: string): Promise<boolean> {

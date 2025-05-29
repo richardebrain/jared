@@ -25,10 +25,27 @@ export function AIBearyModal({ moduleTitle, trigger }: AIBearyModalProps) {
     setResponse(null);
 
     try {
-      const apiResponse = await apiRequest("POST", "/api/ai-beary/chat", {
-        query: query.trim(),
-        moduleContext: moduleTitle
+      // Create a custom request with longer timeout for AI processing
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      
+      const apiResponse = await fetch('/api/ai-beary/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: query.trim(),
+          moduleContext: moduleTitle
+        }),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
+      
+      if (!apiResponse.ok) {
+        throw new Error(`AI service responded with status: ${apiResponse.status}`);
+      }
       
       const result = await apiResponse.json();
       
@@ -40,7 +57,11 @@ export function AIBearyModal({ moduleTitle, trigger }: AIBearyModalProps) {
       setResponse(formattedMessage);
     } catch (error) {
       console.error('AI Beary error:', error);
-      setResponse("🐻 I'm having some technical difficulties right now! Please try again in a moment, or reach out to your director for immediate assistance.");
+      if (error.name === 'AbortError') {
+        setResponse("🐻 I'm taking a bit longer to think about your question than usual. This might be a complex topic! Please try asking a more specific question, or reach out to your director for immediate guidance.");
+      } else {
+        setResponse("🐻 I'm having some technical difficulties right now! This could be a temporary issue with my AI processing. Please try again in a moment, or reach out to your director for immediate assistance.");
+      }
     } finally {
       setIsLoading(false);
     }
