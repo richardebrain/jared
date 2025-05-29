@@ -382,7 +382,77 @@ This document serves as the central project management framework for MentorMe, t
      - Mini-lesson mapping provides relevant personalized recommendations
      - Results compilation generates clear, actionable teacher summaries
    - **Documentation**: Detailed requirements in `docs/tasks/EP-001-09-answer-processing-evaluation.md`
-   - **Status:** ⬜ **TODO** - Ready for implementation after EP-001-08 completion
+   - **Status Update:** ✅ **COMPLETED**
+
+10. ⬜ [EP-001-10] **Enhanced Learning Path Recommendation**
+   - **Description:** Replace basic learning path creation with sophisticated domain-based grouping and prioritization system that organizes failed question mini-lessons by domain importance and difficulty progression for optimal learning sequences.
+   - **Requirements:**
+     - **Failed Question Extraction**: Identify all questions with incorrect answers AND timeouts from assessment responses
+     - **Domain-Based Grouping**: Group failed questions by their domain assignment using `assessmentQuestions.domainId`
+     - **Domain Weight Prioritization**: Sort domain groups by `assessmentDomains.weight` (highest importance first)
+     - **Difficulty-Based Ordering**: Within each domain group, sort mini-lessons by question difficulty (lowest to highest for progressive learning)
+     - **Structured Storage**: Store grouped learning path in new dedicated `learningPaths` table with JSON structure
+     - **Automatic Generation**: Called automatically after every assessment completion via `AnswerProcessingService.completeAssessment()`
+     - **Future-Proof Updates**: Handle assessment retakes by updating existing learning path (upsert operation)
+     - **Reference-Based Content**: Store question IDs for mini-lesson references, not full text content
+     - **Complete Coverage**: Include ALL failed questions without artificial limits
+   - **Dependencies:** EP-001-09
+   - **Technical Implementation:**
+     - **New Service**: `LearningPathService.ts` with methods for generation, storage, and retrieval
+     - **Database Schema Changes**: 
+       - Add new `learningPaths` table with structured JSON for domain groups
+       - Remove `learningPathData` field from existing `assessmentResults` table
+     - **Integration Points**: 
+       - Replace `ResultsCompilationService.createLearningPath()` logic
+       - Call from `AnswerProcessingService.completeAssessment()` after results compilation
+     - **Data Structure**:
+       ```typescript
+       learningPaths: {
+         id: string;
+         assessmentId: number;
+         userId: number;
+         domainGroups: JSON; // Structured domain-grouped learning path
+         totalFailedQuestions: number;
+         totalDomains: number;
+         estimatedCompletionTime: number;
+         createdAt: Date;
+         updatedAt: Date;
+       }
+       
+       // JSON structure for domainGroups:
+       {
+         domainGroups: [
+           {
+             domainId: number;
+             domainName: string;
+             domainWeight: number;
+             failedQuestionsCount: number;
+             miniLessons: [
+               {
+                 questionId: string;
+                 difficulty: number;
+                 miniLessonId: string; // Reference to question's mini-lesson
+                 estimatedDuration: number;
+               }
+               // ... sorted by difficulty ascending
+             ]
+           }
+           // ... sorted by domain weight descending
+         ]
+       }
+       ```
+     - **Performance Requirements**: <1s learning path generation, efficient domain/difficulty sorting
+   - **Success Criteria:**
+     - Failed questions correctly identified (incorrect + timeout responses)
+     - Domain grouping accurately reflects question domain assignments
+     - Domain groups sorted by weight in descending order (most important first)
+     - Mini-lessons within domains sorted by difficulty ascending (easy to hard progression)
+     - Learning paths automatically generated after every assessment completion
+     - Structured data stored in dedicated table for future UI presentation
+     - Assessment retakes properly update existing learning paths
+     - All failed questions included without artificial truncation
+   - **Documentation**: Detailed requirements in `docs/tasks/EP-001-10-enhanced-learning-path.md`
+   - **Status:** ⬜ **TODO** - Ready for implementation after EP-001-09 completion
 
 ## Tracking Progress
 
