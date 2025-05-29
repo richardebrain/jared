@@ -10,7 +10,7 @@ import { checkAndNotifyExpiringCredentials } from "./services/notificationServic
 import connectPgSimple from "connect-pg-simple";
 import { updateChildDevelopmentModule } from "./updateChildDevelopmentModule";
 import { eq, sql } from "drizzle-orm";
-import { users, eduTokSnippets, eduTokUserInteractions, videoQuizCompletions } from "@shared/schema";
+import { users, eduTokSnippets, eduTokUserInteractions, videoQuizCompletions, learningModules, insertLearningModuleSchema } from "@shared/schema";
 import { registerWelcomeMessageRoutes } from "./welcomeMessageRoutes";
 import { registerModuleManagementRoutes } from "./module-management/moduleRoutes";
 import { registerModuleRoutes } from "./registerModuleRoutes";
@@ -1539,8 +1539,20 @@ Continue for all 5 questions...
         quiz: null
       };
 
-      // Insert into database
-      const [newModule] = await db.insert(learningModules).values(moduleData).returning();
+      // Insert into database using SQL to avoid schema issues
+      const result = await db.execute(sql`
+        INSERT INTO learning_modules (
+          title, description, category, difficulty, duration, point_value, 
+          content, school_id, is_visible, featured, image_url, quiz
+        ) VALUES (
+          ${moduleData.title}, ${moduleData.description}, ${moduleData.category}, 
+          ${moduleData.difficulty}, ${moduleData.duration}, ${moduleData.pointValue},
+          ${moduleData.content}, ${moduleData.schoolId}, ${moduleData.isVisible}, 
+          ${moduleData.featured}, ${moduleData.imageUrl}, ${moduleData.quiz}
+        ) RETURNING *
+      `);
+      
+      const newModule = result.rows[0];
 
       console.log("Successfully created module:", newModule.id, "titled:", title);
 

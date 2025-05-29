@@ -120,6 +120,7 @@ export default function ComprehensiveModuleCreator() {
   
   const [isCreatingModule, setIsCreatingModule] = useState(false);
   const [isGeneratingIdeas, setIsGeneratingIdeas] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<{
     questions: string[];
     strategies: string[];
