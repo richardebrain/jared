@@ -199,6 +199,12 @@ export default function ComprehensiveModuleCreator() {
 
     setIsGeneratingContent(true);
     
+    // Show encouraging message while AI generates content
+    toast({
+      title: "🤖 AI is thinking...",
+      description: "Creating the best personalized content for your module. This may take up to a minute for the highest quality results.",
+    });
+    
     try {
       let promptText = '';
       
