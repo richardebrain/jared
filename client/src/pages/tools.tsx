@@ -90,11 +90,55 @@ export default function ToolsPage() {
     },
     {
       id: "lesson-plan",
-      title: "Lesson Plan Maker",
-      description: "Create engaging, age-appropriate lesson plans",
+      title: "Lesson Plan Tools",
+      description: "Create engaging, age-appropriate lesson plans with basic or advanced features",
       icon: <ClipboardCheck className="h-6 w-6" />,
       component: (
-        <LessonPlanMaker />
+        <div className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <Card className="border-2 hover:border-primary/50 transition-colors">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <ClipboardCheck className="h-5 w-5 text-primary" />
+                  Basic Lesson Plan
+                </CardTitle>
+                <CardDescription>
+                  Quick and simple lesson plan creation with essential elements
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Perfect for everyday lesson planning with core activities, objectives, and materials.
+                </p>
+                <div className="space-y-4">
+                  <LessonPlanMaker />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 hover:border-primary/50 transition-colors">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <GraduationCap className="h-5 w-5 text-primary" />
+                  Advanced Lesson Plan
+                </CardTitle>
+                <CardDescription>
+                  Comprehensive lesson planning with Arizona Early Learning Standards integration
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Create detailed lesson plans with standards alignment, enhanced formatting, and professional presentation.
+                </p>
+                <Link href="/lesson-plan-creator">
+                  <Button className="w-full">
+                    Open Advanced Creator
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       )
     },
     {
