@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { storage } from "../storage";
-import { checkAuth } from "../middleware/auth";
+import { requireAuth } from "../middleware/auth";
 import { InsertAssessment } from "@shared/schema";
 
 const router = Router();
@@ -9,7 +9,7 @@ const router = Router();
  * Submit a teacher self-assessment
  * Adds the assessment results to the user's profile and learning path
  */
-router.post("/self-assessment", checkAuth, async (req, res) => {
+router.post("/self-assessment", requireAuth, async (req, res) => {
   try {
     const { userId, results, strengthAreas, growthAreas, notes } = req.body;
     
@@ -140,7 +140,7 @@ router.post("/self-assessment", checkAuth, async (req, res) => {
 /**
  * Get a user's latest self-assessment
  */
-router.get("/self-assessment/:userId", checkAuth, async (req, res) => {
+router.get("/self-assessment/:userId", requireAuth, async (req, res) => {
   try {
     const userId = parseInt(req.params.userId);
     

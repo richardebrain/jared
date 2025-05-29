@@ -3,7 +3,7 @@ import { db } from "../db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { checkAuth } from "../middleware/auth";
+import { requireAuth } from "../middleware/auth";
 import { logger } from "../logger";
 import { storage } from "../storage";
 import { sendCredentialExpirationNotification } from "../services/notificationService";
@@ -11,7 +11,7 @@ import { sendCredentialExpirationNotification } from "../services/notificationSe
 const router = express.Router();
 
 // Authentication middleware
-router.use(checkAuth);
+router.use(requireAuth);
 
 // Validate credential update schema
 const updateCredentialSchema = z.object({

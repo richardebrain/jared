@@ -633,6 +633,12 @@ function Router(props: {
         </ProtectedRoute>
       </Route>
 
+      <Route path="/email-demo">
+        <ProtectedRoute adminOnly={true}>
+          <EmailServiceDemo />
+        </ProtectedRoute>
+      </Route>
+
       <Route path="/transition-timer">
         <ProtectedRoute>
           <TransitionTimer />
