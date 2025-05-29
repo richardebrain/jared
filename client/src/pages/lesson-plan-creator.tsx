@@ -1,0 +1,640 @@
+import { useState } from "react";
+import { useNavigate } from "wouter";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { BookOpen, Plus, X, Sparkles, Search, Target } from "lucide-react";
+
+interface LessonPlan {
+  title: string;
+  description: string;
+  ageGroup: string;
+  duration: number;
+  objectives: string[];
+  materials: string[];
+  activities: Array<{
+    name: string;
+    description: string;
+    duration: number;
+    instructions: string[];
+  }>;
+  assessment: string;
+  notes: string;
+  standardsReferenced: number[];
+  isPublic: boolean;
+}
+
+interface EarlyLearningStandard {
+  id: number;
+  standardArea: string;
+  strand: string;
+  standardCode: string;
+  ageGroup: string;
+  standardText: string;
+  description?: string;
+  keywords?: string[];
+}
+
+interface StandardSuggestion {
+  standardId: number;
+  reasoning: string;
+}
+
+export default function LessonPlanCreator() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const [lessonPlan, setLessonPlan] = useState<LessonPlan>({
+    title: "",
+    description: "",
+    ageGroup: "3-5 years",
+    duration: 30,
+    objectives: [""],
+    materials: [""],
+    activities: [{
+      name: "",
+      description: "",
+      duration: 15,
+      instructions: [""]
+    }],
+    assessment: "",
+    notes: "",
+    standardsReferenced: [],
+    isPublic: false
+  });
+
+  const [standardsSearch, setStandardsSearch] = useState("");
+  const [selectedStandardArea, setSelectedStandardArea] = useState("");
+  const [showStandardsSuggestions, setShowStandardsSuggestions] = useState(false);
+
+  // Fetch Arizona Early Learning Standards
+  const { data: standards = [] } = useQuery({
+    queryKey: ["/api/early-learning-standards", selectedStandardArea, lessonPlan.ageGroup, standardsSearch],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (selectedStandardArea) params.append("standardArea", selectedStandardArea);
+      if (lessonPlan.ageGroup) params.append("ageGroup", lessonPlan.ageGroup);
+      if (standardsSearch) params.append("search", standardsSearch);
+      
+      const response = await apiRequest("GET", `/api/early-learning-standards?${params}`);
+      return response.json();
+    }
+  });
+
+  // AI-powered standards suggestions
+  const standardsSuggestionMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", "/api/suggest-standards", {
+        lessonTitle: lessonPlan.title,
+        description: lessonPlan.description,
+        ageGroup: lessonPlan.ageGroup,
+        activities: lessonPlan.activities
+      });
+    },
+    onSuccess: async (response) => {
+      const data = await response.json();
+      if (data.suggestions) {
+        const suggestionIds = data.suggestions.map((s: StandardSuggestion) => s.standardId);
+        setLessonPlan(prev => ({
+          ...prev,
+          standardsReferenced: [...new Set([...prev.standardsReferenced, ...suggestionIds])]
+        }));
+        toast({
+          title: "Standards Suggested",
+          description: `Added ${data.suggestions.length} relevant standards to your lesson plan.`,
+        });
+      }
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to get AI suggestions for standards.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Create lesson plan mutation
+  const createLessonPlanMutation = useMutation({
+    mutationFn: async (planData: LessonPlan) => {
+      return await apiRequest("POST", "/api/lesson-plans", planData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Lesson Plan Created",
+        description: "Your lesson plan has been saved successfully!",
+      });
+      navigate("/lesson-plans");
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create lesson plan. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const addObjective = () => {
+    setLessonPlan(prev => ({
+      ...prev,
+      objectives: [...prev.objectives, ""]
+    }));
+  };
+
+  const removeObjective = (index: number) => {
+    setLessonPlan(prev => ({
+      ...prev,
+      objectives: prev.objectives.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateObjective = (index: number, value: string) => {
+    setLessonPlan(prev => ({
+      ...prev,
+      objectives: prev.objectives.map((obj, i) => i === index ? value : obj)
+    }));
+  };
+
+  const addMaterial = () => {
+    setLessonPlan(prev => ({
+      ...prev,
+      materials: [...prev.materials, ""]
+    }));
+  };
+
+  const removeMaterial = (index: number) => {
+    setLessonPlan(prev => ({
+      ...prev,
+      materials: prev.materials.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateMaterial = (index: number, value: string) => {
+    setLessonPlan(prev => ({
+      ...prev,
+      materials: prev.materials.map((mat, i) => i === index ? value : mat)
+    }));
+  };
+
+  const addActivity = () => {
+    setLessonPlan(prev => ({
+      ...prev,
+      activities: [...prev.activities, {
+        name: "",
+        description: "",
+        duration: 15,
+        instructions: [""]
+      }]
+    }));
+  };
+
+  const removeActivity = (index: number) => {
+    setLessonPlan(prev => ({
+      ...prev,
+      activities: prev.activities.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateActivity = (index: number, field: string, value: any) => {
+    setLessonPlan(prev => ({
+      ...prev,
+      activities: prev.activities.map((act, i) => 
+        i === index ? { ...act, [field]: value } : act
+      )
+    }));
+  };
+
+  const addInstruction = (activityIndex: number) => {
+    setLessonPlan(prev => ({
+      ...prev,
+      activities: prev.activities.map((act, i) => 
+        i === activityIndex 
+          ? { ...act, instructions: [...act.instructions, ""] }
+          : act
+      )
+    }));
+  };
+
+  const removeInstruction = (activityIndex: number, instructionIndex: number) => {
+    setLessonPlan(prev => ({
+      ...prev,
+      activities: prev.activities.map((act, i) => 
+        i === activityIndex 
+          ? { ...act, instructions: act.instructions.filter((_, j) => j !== instructionIndex) }
+          : act
+      )
+    }));
+  };
+
+  const updateInstruction = (activityIndex: number, instructionIndex: number, value: string) => {
+    setLessonPlan(prev => ({
+      ...prev,
+      activities: prev.activities.map((act, i) => 
+        i === activityIndex 
+          ? { 
+              ...act, 
+              instructions: act.instructions.map((inst, j) => j === instructionIndex ? value : inst)
+            }
+          : act
+      )
+    }));
+  };
+
+  const toggleStandard = (standardId: number) => {
+    setLessonPlan(prev => ({
+      ...prev,
+      standardsReferenced: prev.standardsReferenced.includes(standardId)
+        ? prev.standardsReferenced.filter(id => id !== standardId)
+        : [...prev.standardsReferenced, standardId]
+    }));
+  };
+
+  const selectedStandards = standards.filter((s: EarlyLearningStandard) => 
+    lessonPlan.standardsReferenced.includes(s.id)
+  );
+
+  const standardAreas = [...new Set(standards.map((s: EarlyLearningStandard) => s.standardArea))];
+
+  const handleSubmit = () => {
+    if (!lessonPlan.title.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide a lesson title.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createLessonPlanMutation.mutate(lessonPlan);
+  };
+
+  return (
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex items-center space-x-2 mb-6">
+        <BookOpen className="h-6 w-6 text-blue-600" />
+        <h1 className="text-2xl font-bold">Create Lesson Plan</h1>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Lesson Plan Form */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Basic Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Basic Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Lesson Title *</label>
+                <Input
+                  placeholder="Enter lesson title..."
+                  value={lessonPlan.title}
+                  onChange={(e) => setLessonPlan(prev => ({ ...prev, title: e.target.value }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Description</label>
+                <Textarea
+                  placeholder="Describe the lesson objectives and what children will learn..."
+                  value={lessonPlan.description}
+                  onChange={(e) => setLessonPlan(prev => ({ ...prev, description: e.target.value }))}
+                  rows={3}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Age Group</label>
+                  <Select
+                    value={lessonPlan.ageGroup}
+                    onValueChange={(value) => setLessonPlan(prev => ({ ...prev, ageGroup: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="3-5 years">3-5 years</SelectItem>
+                      <SelectItem value="2-3 years">2-3 years</SelectItem>
+                      <SelectItem value="4-6 years">4-6 years</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Duration (minutes)</label>
+                  <Input
+                    type="number"
+                    value={lessonPlan.duration}
+                    onChange={(e) => setLessonPlan(prev => ({ ...prev, duration: parseInt(e.target.value) || 30 }))}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Learning Objectives */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Learning Objectives</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {lessonPlan.objectives.map((objective, index) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <Input
+                    placeholder="What will children learn or be able to do?"
+                    value={objective}
+                    onChange={(e) => updateObjective(index, e.target.value)}
+                  />
+                  {lessonPlan.objectives.length > 1 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removeObjective(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <Button variant="outline" onClick={addObjective}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Objective
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Materials */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Materials Needed</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {lessonPlan.materials.map((material, index) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <Input
+                    placeholder="List materials and supplies needed..."
+                    value={material}
+                    onChange={(e) => updateMaterial(index, e.target.value)}
+                  />
+                  {lessonPlan.materials.length > 1 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removeMaterial(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <Button variant="outline" onClick={addMaterial}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Material
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Activities */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Activities</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {lessonPlan.activities.map((activity, actIndex) => (
+                <div key={actIndex} className="border rounded-lg p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium">Activity {actIndex + 1}</h4>
+                    {lessonPlan.activities.length > 1 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeActivity(actIndex)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Activity Name</label>
+                      <Input
+                        placeholder="Name of the activity"
+                        value={activity.name}
+                        onChange={(e) => updateActivity(actIndex, "name", e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Duration (minutes)</label>
+                      <Input
+                        type="number"
+                        value={activity.duration}
+                        onChange={(e) => updateActivity(actIndex, "duration", parseInt(e.target.value) || 15)}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Description</label>
+                    <Textarea
+                      placeholder="Describe what happens in this activity..."
+                      value={activity.description}
+                      onChange={(e) => updateActivity(actIndex, "description", e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Step-by-Step Instructions</label>
+                    {activity.instructions.map((instruction, instIndex) => (
+                      <div key={instIndex} className="flex items-center space-x-2 mb-2">
+                        <span className="text-sm text-gray-500 min-w-[20px]">{instIndex + 1}.</span>
+                        <Input
+                          placeholder="Instruction step..."
+                          value={instruction}
+                          onChange={(e) => updateInstruction(actIndex, instIndex, e.target.value)}
+                        />
+                        {activity.instructions.length > 1 && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeInstruction(actIndex, instIndex)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addInstruction(actIndex)}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Step
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              <Button variant="outline" onClick={addActivity}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Activity
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Assessment and Notes */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Assessment & Notes</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Assessment Strategy</label>
+                <Textarea
+                  placeholder="How will you assess if children met the learning objectives?"
+                  value={lessonPlan.assessment}
+                  onChange={(e) => setLessonPlan(prev => ({ ...prev, assessment: e.target.value }))}
+                  rows={3}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Additional Notes</label>
+                <Textarea
+                  placeholder="Any additional notes, modifications, or extensions..."
+                  value={lessonPlan.notes}
+                  onChange={(e) => setLessonPlan(prev => ({ ...prev, notes: e.target.value }))}
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="isPublic"
+                  checked={lessonPlan.isPublic}
+                  onCheckedChange={(checked) => setLessonPlan(prev => ({ ...prev, isPublic: !!checked }))}
+                />
+                <label htmlFor="isPublic" className="text-sm">
+                  Share this lesson plan with other teachers
+                </label>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Arizona Early Learning Standards Sidebar */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Arizona Standards</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => standardsSuggestionMutation.mutate()}
+                  disabled={standardsSuggestionMutation.isPending || !lessonPlan.title.trim()}
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  AI Suggest
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Standards Search */}
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Search className="h-4 w-4 text-gray-500" />
+                  <Input
+                    placeholder="Search standards..."
+                    value={standardsSearch}
+                    onChange={(e) => setStandardsSearch(e.target.value)}
+                  />
+                </div>
+                
+                <Select value={selectedStandardArea} onValueChange={setSelectedStandardArea}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by area..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Areas</SelectItem>
+                    {standardAreas.map(area => (
+                      <SelectItem key={area} value={area}>{area}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Selected Standards */}
+              {selectedStandards.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm">Selected Standards:</h4>
+                  <div className="space-y-2">
+                    {selectedStandards.map((standard: EarlyLearningStandard) => (
+                      <Badge key={standard.id} variant="secondary" className="text-xs">
+                        {standard.standardCode}: {standard.standardArea}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Available Standards */}
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                <h4 className="font-medium text-sm">Available Standards:</h4>
+                {standards.map((standard: EarlyLearningStandard) => (
+                  <div key={standard.id} className="p-2 border rounded-lg">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <Checkbox
+                            checked={lessonPlan.standardsReferenced.includes(standard.id)}
+                            onCheckedChange={() => toggleStandard(standard.id)}
+                          />
+                          <Badge variant="outline" className="text-xs">
+                            {standard.standardCode}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-gray-600 mb-1">
+                          {standard.standardArea} - {standard.strand}
+                        </p>
+                        <p className="text-xs">{standard.standardText}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Action Buttons */}
+          <div className="space-y-2">
+            <Button 
+              onClick={handleSubmit}
+              disabled={createLessonPlanMutation.isPending}
+              className="w-full"
+            >
+              {createLessonPlanMutation.isPending ? "Creating..." : "Create Lesson Plan"}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate("/lesson-plans")}
+              className="w-full"
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

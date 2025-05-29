@@ -1262,6 +1262,77 @@ export const insertAssessmentResponseSchema = createInsertSchema(assessmentRespo
 export type AssessmentResponse = typeof assessmentResponses.$inferSelect;
 export type InsertAssessmentResponse = z.infer<typeof insertAssessmentResponseSchema>;
 
+// Arizona Early Learning Standards table
+export const earlyLearningStandards = pgTable("early_learning_standards", {
+  id: serial("id").primaryKey(),
+  standardArea: text("standard_area").notNull(), // e.g., "Social Emotional", "Language and Literacy"
+  strand: text("strand").notNull(), // e.g., "Self-Awareness and Emotional Skills"
+  standardCode: text("standard_code").notNull().unique(), // e.g., "SE.1.1"
+  ageGroup: text("age_group").notNull(), // e.g., "3-5 years"
+  standardText: text("standard_text").notNull(),
+  description: text("description"),
+  keywords: text("keywords").array(), // For search functionality
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  // Index for searching by area and strand
+  areaStrandIdx: index("standards_area_strand_idx").on(table.standardArea, table.strand),
+  // Index for age group filtering
+  ageGroupIdx: index("standards_age_group_idx").on(table.ageGroup),
+  // Index for keyword searches
+  keywordsIdx: index("standards_keywords_idx").on(table.keywords),
+}));
+
+export const insertEarlyLearningStandardSchema = createInsertSchema(earlyLearningStandards).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type EarlyLearningStandard = typeof earlyLearningStandards.$inferSelect;
+export type InsertEarlyLearningStandard = z.infer<typeof insertEarlyLearningStandardSchema>;
+
+// Lesson plans table
+export const lessonPlans = pgTable("lesson_plans", {
+  id: serial("id").primaryKey(),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  schoolId: integer("school_id").references(() => schools.id),
+  title: text("title").notNull(),
+  description: text("description"),
+  ageGroup: text("age_group").notNull(),
+  duration: integer("duration"), // in minutes
+  objectives: text("objectives").array(),
+  materials: text("materials").array(),
+  activities: json("activities").$type<{
+    name: string;
+    description: string;
+    duration: number;
+    instructions: string[];
+  }[]>(),
+  assessment: text("assessment"),
+  notes: text("notes"),
+  standardsReferenced: integer("standards_referenced").array(), // References to earlyLearningStandards.id
+  isPublic: boolean("is_public").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  // Index for user's lesson plans
+  createdByIdx: index("lesson_plans_created_by_idx").on(table.createdBy),
+  // Index for school filtering
+  schoolIdx: index("lesson_plans_school_idx").on(table.schoolId),
+  // Index for age group filtering
+  ageGroupIdx: index("lesson_plans_age_group_idx").on(table.ageGroup),
+  // Index for public lesson plans
+  publicIdx: index("lesson_plans_public_idx").on(table.isPublic),
+}));
+
+export const insertLessonPlanSchema = createInsertSchema(lessonPlans).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type LessonPlan = typeof lessonPlans.$inferSelect;
+export type InsertLessonPlan = z.infer<typeof insertLessonPlanSchema>;
+
 // Helper type for when we convert back to proper numeric structure
 export type AssessmentResponseWithParsedFields = Omit<AssessmentResponse, 'difficulty' | 'domainId'> & {
   difficulty: number; // Will be 1-6 when converted  
