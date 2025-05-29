@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { MessageCircle, Send, Users, User as UserIcon, Clock } from "lucide-react";
+import { MessageCircle, Send, Users, User as UserIcon, Clock, BookOpen, Target } from "lucide-react";
 import type { User } from "@shared/schema";
 
 interface DirectorMessage {
@@ -32,6 +33,13 @@ export default function DirectorMessages() {
     loginDuration: 3
   });
 
+  const [trainingAssignment, setTrainingAssignment] = useState({
+    moduleId: "",
+    teacherIds: [] as string[],
+    dueDate: "",
+    message: ""
+  });
+
   // Fetch current user
   const { data: user } = useQuery({
     queryKey: ["/api/auth/me"],
@@ -46,6 +54,12 @@ export default function DirectorMessages() {
   // Fetch existing messages
   const { data: messages } = useQuery({
     queryKey: ["/api/director-messages/sent"],
+    enabled: !!user,
+  });
+
+  // Fetch available modules for training assignments
+  const { data: modules } = useQuery({
+    queryKey: ["/api/modules"],
     enabled: !!user,
   });
 
@@ -76,6 +90,32 @@ export default function DirectorMessages() {
     },
   });
 
+  // Assign training mutation
+  const assignTrainingMutation = useMutation({
+    mutationFn: async (assignmentData: any) => {
+      return apiRequest("POST", "/api/training-assignments", assignmentData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Training Assigned",
+        description: "Training has been assigned successfully!",
+      });
+      setTrainingAssignment({
+        moduleId: "",
+        teacherIds: [],
+        dueDate: "",
+        message: ""
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to assign training. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSendMessage = () => {
     if (!newMessage.title.trim() || !newMessage.content.trim()) {
       toast({
@@ -96,6 +136,26 @@ export default function DirectorMessages() {
     sendMessageMutation.mutate(messageData);
   };
 
+  const handleAssignTraining = () => {
+    if (!trainingAssignment.moduleId || trainingAssignment.teacherIds.length === 0) {
+      toast({
+        title: "Missing Information",
+        description: "Please select a training module and at least one teacher.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const assignmentData = {
+      moduleId: parseInt(trainingAssignment.moduleId),
+      teacherIds: trainingAssignment.teacherIds.map(id => parseInt(id)),
+      dueDate: trainingAssignment.dueDate || null,
+      message: trainingAssignment.message || null,
+    };
+
+    assignTrainingMutation.mutate(assignmentData);
+  };
+
   if (!user || (!user.isSchoolAdmin && !user.isOwner && !user.isAdmin)) {
     return (
       <div className="container mx-auto p-6">
@@ -114,11 +174,24 @@ export default function DirectorMessages() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center space-x-2 mb-6">
         <MessageCircle className="h-6 w-6 text-blue-600" />
-        <h1 className="text-2xl font-bold">Director Messages</h1>
+        <h1 className="text-2xl font-bold">Director Communication Hub</h1>
       </div>
 
-      {/* Send New Message */}
-      <Card>
+      <Tabs defaultValue="messages" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="messages" className="flex items-center space-x-2">
+            <MessageCircle className="h-4 w-4" />
+            <span>Messages</span>
+          </TabsTrigger>
+          <TabsTrigger value="training" className="flex items-center space-x-2">
+            <Target className="h-4 w-4" />
+            <span>Assign Training</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="messages">
+          {/* Send New Message */}
+          <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Send className="h-5 w-5" />
