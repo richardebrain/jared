@@ -46,7 +46,7 @@ const wizardSteps: WizardStep[] = [
 ];
 
 export default function ModuleWizard() {
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   
   const [currentStep, setCurrentStep] = useState(1);
@@ -245,7 +245,7 @@ export default function ModuleWizard() {
         description: "Your training module has been published successfully."
       });
       
-      navigate(`/learning-module/${result.moduleId}`);
+      setLocation(`/learning-module/${result.moduleId}`);
       
     } catch (error) {
       console.error('Module creation error:', error);
@@ -588,7 +588,7 @@ export default function ModuleWizard() {
           <div className="flex gap-2">
             <Button 
               variant="outline" 
-              onClick={() => navigate('/comprehensive-module-creator')}
+              onClick={() => setLocation('/comprehensive-module-creator')}
             >
               Advanced Creator
             </Button>
