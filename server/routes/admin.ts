@@ -5,12 +5,18 @@ import { z } from 'zod';
 const router = Router();
 const questionService = new QuestionManagementService();
 
-// Middleware for admin authentication (simplified for now - should use proper role checking)
+// Middleware for admin authentication (matching existing pattern)
 const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
-  if (!req.session.userId) {
-    return res.status(401).json({ error: 'Authentication required' });
+  // Check for admin password directly (matching existing admin routes pattern)
+  const adminPassword = req.query.admin_password;
+  console.log("Admin password received:", adminPassword);
+  
+  if (adminPassword !== "BIGSURF55") {
+    console.log("Admin password incorrect, access denied");
+    return res.status(403).json({ message: "Forbidden: Admin access required. Password incorrect." });
   }
-  // TODO: Add proper admin role checking here
+  
+  console.log("Admin password correct, proceeding");
   next();
 };
 
