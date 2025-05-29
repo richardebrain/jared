@@ -1522,33 +1522,16 @@ Continue for all 5 questions...
       // Calculate points (custom or based on estimated time)
       const pointValue = customPoints ? parseInt(customPoints) : Math.max(5, Math.ceil(parseInt(estimatedTime) / 3));
 
-      // Create module data
-      const moduleData = {
-        title,
-        description,
-        category,
-        difficulty,
-        duration: parseInt(estimatedTime),
-        pointValue,
-        content: JSON.stringify(sections),
-        schoolId: user.schoolId,
-        createdBy: userId,
-        isVisible: true,
-        featured: false,
-        imageUrl: null,
-        quiz: null
-      };
-
-      // Insert into database using SQL to avoid schema issues
+      // Insert into database using SQL
       const result = await db.execute(sql`
         INSERT INTO learning_modules (
           title, description, category, difficulty, duration, point_value, 
           content, school_id, is_visible, featured, image_url, quiz
         ) VALUES (
-          ${moduleData.title}, ${moduleData.description}, ${moduleData.category}, 
-          ${moduleData.difficulty}, ${moduleData.duration}, ${moduleData.pointValue},
-          ${moduleData.content}, ${moduleData.schoolId}, ${moduleData.isVisible}, 
-          ${moduleData.featured}, ${moduleData.imageUrl}, ${moduleData.quiz}
+          ${title}, ${description}, ${category}, 
+          ${difficulty}, ${parseInt(estimatedTime)}, ${pointValue},
+          ${JSON.stringify(sections)}, ${user.schoolId}, ${true}, 
+          ${false}, ${null}, ${null}
         ) RETURNING *
       `);
       
