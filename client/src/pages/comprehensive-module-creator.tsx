@@ -1219,18 +1219,43 @@ Create a natural conversation between two podcast hosts discussing this specific
                   {/* Scenario Match Template */}
                   {section.type === 'scenario-match' && (
                     <div className="space-y-4">
-                      <div>
-                        <Label>Scenario Description</Label>
-                        <Textarea
-                          value={section.content}
-                          onChange={(e) => updateSection(index, 'content', e.target.value)}
-                          placeholder="Describe the scenario teachers will encounter..."
-                          rows={3}
-                        />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-blue-600 font-semibold">Scenarios (Left Column)</Label>
+                          <Textarea
+                            value={section.content?.scenarios || ''}
+                            onChange={(e) => {
+                              const currentContent = section.content || {};
+                              updateSection(index, 'content', {
+                                ...currentContent,
+                                scenarios: e.target.value
+                              });
+                            }}
+                            placeholder="Enter scenarios, one per line:&#10;&#10;A child is having a meltdown during circle time&#10;Two children are fighting over a toy&#10;A shy child won't participate in group activities"
+                            rows={6}
+                            className="font-mono text-sm"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-green-600 font-semibold">Response Options (Right Column)</Label>
+                          <Textarea
+                            value={section.content?.responses || ''}
+                            onChange={(e) => {
+                              const currentContent = section.content || {};
+                              updateSection(index, 'content', {
+                                ...currentContent,
+                                responses: e.target.value
+                              });
+                            }}
+                            placeholder="Enter response options, one per line:&#10;&#10;Offer a calm-down corner with sensory tools&#10;Implement a sharing timer system&#10;Use gentle encouragement and offer choices"
+                            rows={6}
+                            className="font-mono text-sm"
+                          />
+                        </div>
                       </div>
                       <div className="p-4 bg-green-50 rounded-lg">
                         <p className="text-sm text-green-700">
-                          🎯 This will create interactive scenarios where teachers match situations with appropriate responses.
+                          🎯 AI will create an interactive matching game where teachers drag scenarios to their best response options. Each line becomes a separate item to match.
                         </p>
                       </div>
                     </div>
