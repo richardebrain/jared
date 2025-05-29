@@ -1175,31 +1175,7 @@ export default function LearningModulePage() {
                     <p className="text-sm mb-4">
                       I'm AI Beary, your teaching assistant! Ask me anything about this module, classroom strategies, or early childhood education.
                     </p>
-                    <Button 
-                      className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700"
-                      onClick={async () => {
-                        const chatInput = prompt("What would you like to ask AI Beary about this module?");
-                        if (chatInput) {
-                          try {
-                            const response = await apiRequest("POST", "/api/ai-beary/chat", {
-                              query: chatInput,
-                              moduleContext: module?.title
-                            });
-                            
-                            const result = await response.json();
-                            
-                            // Create a more user-friendly display
-                            const formattedMessage = result.message.replace(/\*\*(.*?)\*\*/g, '$1');
-                            alert(formattedMessage);
-                          } catch (error) {
-                            console.error('AI Beary error:', error);
-                            alert("🐻 AI Beary says: I'm having some technical difficulties right now! Please try again in a moment, or reach out to your director for immediate assistance.");
-                          }
-                        }
-                      }}
-                    >
-                      Ask AI Beary
-                    </Button>
+                    <AIBearyModal moduleTitle={module?.title} />
                   </div>
                 </div>
                 
