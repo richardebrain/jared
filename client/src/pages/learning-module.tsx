@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import InteractiveQuiz from "../components/InteractiveQuiz";
 import { Separator } from "@/components/ui/separator";
 
 // Define module-specific lessons
@@ -130,6 +131,47 @@ export default function LearningModulePage() {
     queryKey: ["/api/progress"],
   });
   
+  // Parse quiz content into interactive format
+  const parseQuizContent = (content: string) => {
+    const lines = content.split('\n').filter(line => line.trim());
+    const questions = [];
+    let currentQuestion = null;
+    
+    for (const line of lines) {
+      if (line.match(/^\d+\./)) {
+        // New question
+        if (currentQuestion) questions.push(currentQuestion);
+        currentQuestion = {
+          question: line.replace(/^\d+\.\s*/, ''),
+          options: [],
+          correctAnswer: 0,
+          explanation: ''
+        };
+      } else if (line.match(/^\s*[A-D]\)/)) {
+        // Answer option
+        if (currentQuestion) {
+          currentQuestion.options.push(line.replace(/^\s*[A-D]\)\s*/, ''));
+        }
+      } else if (line.includes('Correct Answer:')) {
+        // Correct answer
+        if (currentQuestion) {
+          const answer = line.match(/Correct Answer:\s*([A-D])/)?.[1];
+          if (answer) {
+            currentQuestion.correctAnswer = answer.charCodeAt(0) - 65; // A=0, B=1, C=2, D=3
+          }
+        }
+      } else if (line.includes('Explanation:')) {
+        // Explanation
+        if (currentQuestion) {
+          currentQuestion.explanation = line.replace(/^\s*Explanation:\s*/, '');
+        }
+      }
+    }
+    
+    if (currentQuestion) questions.push(currentQuestion);
+    return questions;
+  };
+
   // Get module sections from content
   const moduleSections = useMemo(() => {
     if (!module?.content) return [];
@@ -345,12 +387,18 @@ export default function LearningModulePage() {
                             {/* Quiz Section */}
                             {section.type === 'quiz' && (
                               <div className="mb-6">
-                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                  <h4 className="font-semibold text-blue-800 mb-3">Quiz Questions</h4>
-                                  <div className="whitespace-pre-line text-gray-700">
-                                    {section.content}
-                                  </div>
-                                </div>
+                                <InteractiveQuiz
+                                  title={section.title}
+                                  questions={parseQuizContent(section.content)}
+                                  onComplete={(score) => {
+                                    // Award points based on score
+                                    const points = Math.max(1, Math.floor(score / 10));
+                                    toast({
+                                      title: "Quiz Complete!",
+                                      description: `You earned ${points} points for completing this quiz!`,
+                                    });
+                                  }}
+                                />
                               </div>
                             )}
                             

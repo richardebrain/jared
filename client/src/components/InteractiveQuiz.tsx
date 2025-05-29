@@ -1,273 +1,188 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Lightbulb, CheckCircle, XCircle, ArrowRight, Award, HelpCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import ConfettiExplosion from 'react-confetti-explosion';
-import { Badge } from '@/components/ui/badge';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { CheckCircle, XCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface QuizQuestion {
   question: string;
   options: string[];
   correctAnswer: number;
   explanation?: string;
-  correctExplanation?: string;  // Specific explanation for correct answers
-  incorrectExplanation?: string; // Specific explanation for incorrect answers
 }
 
 interface InteractiveQuizProps {
-  questions: QuizQuestion[] | QuizQuestion;
-  onComplete?: (score: number) => void;
+  title: string;
+  questions: QuizQuestion[];
+  onComplete: (score: number) => void;
 }
 
-export function InteractiveQuiz({ questions, onComplete }: InteractiveQuizProps) {
-  // Convert single question to array for consistent handling
-  const questionArray = Array.isArray(questions) ? questions : [questions];
-  
+function InteractiveQuiz({ title, questions, onComplete }: InteractiveQuizProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<(number | null)[]>(Array(questionArray.length).fill(null));
-  const [showExplanations, setShowExplanations] = useState<boolean[]>(Array(questionArray.length).fill(false));
-  const [isCorrectAnswers, setIsCorrectAnswers] = useState<boolean[]>(Array(questionArray.length).fill(false));
-  const [completedQuestions, setCompletedQuestions] = useState<boolean[]>(Array(questionArray.length).fill(false));
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [quizCompleted, setQuizCompleted] = useState(false);
-  const [score, setScore] = useState(0);
-  
-  const currentQuestion = questionArray[currentQuestionIndex];
-  const selectedAnswer = selectedAnswers[currentQuestionIndex];
-  const showExplanation = showExplanations[currentQuestionIndex];
-  const isCorrect = isCorrectAnswers[currentQuestionIndex];
-  const hasCompletedQuestion = completedQuestions[currentQuestionIndex];
-  
-  const handleAnswerSelect = (index: number) => {
-    if (hasCompletedQuestion) return;
-    
-    const newSelectedAnswers = [...selectedAnswers];
-    newSelectedAnswers[currentQuestionIndex] = index;
-    setSelectedAnswers(newSelectedAnswers);
-  };
-  
-  const handleCheckAnswer = () => {
-    if (selectedAnswer === null) return;
-    
-    const correct = selectedAnswer === currentQuestion.correctAnswer;
-    
-    // Update the state arrays
-    const newIsCorrectAnswers = [...isCorrectAnswers];
-    newIsCorrectAnswers[currentQuestionIndex] = correct;
-    setIsCorrectAnswers(newIsCorrectAnswers);
-    
-    const newShowExplanations = [...showExplanations];
-    newShowExplanations[currentQuestionIndex] = true;
-    setShowExplanations(newShowExplanations);
-    
-    const newCompletedQuestions = [...completedQuestions];
-    newCompletedQuestions[currentQuestionIndex] = true;
-    setCompletedQuestions(newCompletedQuestions);
-    
-    // Update score if answer is correct
-    if (correct) {
-      setScore(prevScore => prevScore + 1);
-    }
-    
-    // Check if all questions are completed
-    const allCompleted = newCompletedQuestions.every(completed => completed);
-    if (allCompleted) {
-      setQuizCompleted(true);
-      setShowConfetti(true);
-      
-      // Call onComplete with final score if provided
-      if (onComplete) {
-        const finalScore = newIsCorrectAnswers.filter(correct => correct).length;
-        onComplete(finalScore);
-      }
-    }
-  };
-  
-  const handleTryAgain = () => {
-    const newSelectedAnswers = [...selectedAnswers];
-    newSelectedAnswers[currentQuestionIndex] = null;
-    setSelectedAnswers(newSelectedAnswers);
-    
-    const newShowExplanations = [...showExplanations];
-    newShowExplanations[currentQuestionIndex] = false;
-    setShowExplanations(newShowExplanations);
-    
-    const newCompletedQuestions = [...completedQuestions];
-    newCompletedQuestions[currentQuestionIndex] = false;
-    setCompletedQuestions(newCompletedQuestions);
-  };
-  
-  const goToNextQuestion = () => {
-    if (currentQuestionIndex < questionArray.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    }
-  };
-  
-  const goToPreviousQuestion = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-    }
-  };
-  
-  const getExplanationText = () => {
-    if (isCorrect && currentQuestion.correctExplanation) {
-      return currentQuestion.correctExplanation;
-    } else if (!isCorrect && currentQuestion.incorrectExplanation) {
-      return currentQuestion.incorrectExplanation;
-    } else {
-      return currentQuestion.explanation || "Let's learn more about this concept.";
-    }
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [showExplanation, setShowExplanation] = useState(false);
+  const [answers, setAnswers] = useState<number[]>([]);
+  const [isComplete, setIsComplete] = useState(false);
+  const { toast } = useToast();
+
+  const currentQuestion = questions[currentQuestionIndex];
+  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+
+  const handleAnswerSelect = (answerIndex: number) => {
+    if (showExplanation) return;
+    setSelectedAnswer(answerIndex);
   };
 
-  return (
-    <Card className="border-t-4 border-t-primary shadow-md">
-      <CardHeader className="bg-muted/50 pb-2">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-lg font-medium flex items-center">
-            <Lightbulb className="h-5 w-5 mr-2 text-amber-500" />
-            Quick Knowledge Check
+  const handleSubmitAnswer = () => {
+    if (selectedAnswer === null) return;
+
+    const newAnswers = [...answers, selectedAnswer];
+    setAnswers(newAnswers);
+    setShowExplanation(true);
+
+    // Auto-advance after showing explanation
+    setTimeout(() => {
+      if (currentQuestionIndex < questions.length - 1) {
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+        setSelectedAnswer(null);
+        setShowExplanation(false);
+      } else {
+        // Quiz complete
+        const correctCount = newAnswers.reduce((count, answer, index) => {
+          return count + (answer === questions[index].correctAnswer ? 1 : 0);
+        }, 0);
+        
+        const score = Math.round((correctCount / questions.length) * 100);
+        setIsComplete(true);
+        onComplete(score);
+        
+        toast({
+          title: "Quiz Complete!",
+          description: `You scored ${score}% (${correctCount}/${questions.length} correct)`,
+        });
+      }
+    }, 3000);
+  };
+
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return 'text-green-600';
+    if (score >= 60) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  if (isComplete) {
+    const correctCount = answers.reduce((count, answer, index) => {
+      return count + (answer === questions[index].correctAnswer ? 1 : 0);
+    }, 0);
+    const score = Math.round((correctCount / questions.length) * 100);
+
+    return (
+      <Card className="border-green-200 bg-green-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-green-800">
+            <CheckCircle className="h-6 w-6" />
+            Quiz Complete!
           </CardTitle>
-          
-          {questionArray.length > 1 && (
-            <Badge variant="outline" className="ml-auto">
-              Question {currentQuestionIndex + 1} of {questionArray.length}
-            </Badge>
-          )}
+        </CardHeader>
+        <CardContent>
+          <div className="text-center space-y-4">
+            <div className={`text-3xl font-bold ${getScoreColor(score)}`}>
+              {score}%
+            </div>
+            <div className="text-gray-700">
+              You answered {correctCount} out of {questions.length} questions correctly.
+            </div>
+            <div className="text-sm text-gray-600">
+              Points earned: {Math.max(1, Math.floor(score / 10))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="border-blue-200">
+      <CardHeader>
+        <CardTitle className="text-blue-800">{title}</CardTitle>
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm text-gray-600">
+            <span>Question {currentQuestionIndex + 1} of {questions.length}</span>
+            <span>{Math.round(progress)}% complete</span>
+          </div>
+          <Progress value={progress} className="h-2" />
         </div>
       </CardHeader>
-      
-      <CardContent className="pt-4">
-        <div className="space-y-4">
-          <div className="font-medium text-lg">{currentQuestion.question}</div>
+      <CardContent className="space-y-6">
+        <div>
+          <h3 className="text-lg font-semibold mb-4">{currentQuestion.question}</h3>
           
-          <div className="space-y-2">
-            {currentQuestion.options.map((option, index) => (
-              <div 
-                key={index}
-                className={cn(
-                  "p-3 border rounded-md cursor-pointer transition-all flex items-center",
-                  selectedAnswer === index && !hasCompletedQuestion ? "border-primary bg-primary/5" : "",
-                  hasCompletedQuestion && index === currentQuestion.correctAnswer ? "border-green-500 bg-green-50" : "",
-                  hasCompletedQuestion && selectedAnswer === index && index !== currentQuestion.correctAnswer ? "border-red-500 bg-red-50" : "",
-                  hasCompletedQuestion ? "cursor-default" : "hover:border-primary/50"
-                )}
-                onClick={() => handleAnswerSelect(index)}
-              >
-                <div className="flex-1">
-                  {option}
-                </div>
-                {hasCompletedQuestion && index === currentQuestion.correctAnswer && (
-                  <CheckCircle className="h-5 w-5 text-green-500 ml-2 flex-shrink-0" />
-                )}
-                {hasCompletedQuestion && selectedAnswer === index && index !== currentQuestion.correctAnswer && (
-                  <XCircle className="h-5 w-5 text-red-500 ml-2 flex-shrink-0" />
-                )}
-              </div>
-            ))}
-          </div>
-          
-          {showExplanation && (
-            <div className={cn(
-              "mt-4 p-4 rounded-md",
-              isCorrect ? "bg-green-50 border border-green-200" : "bg-amber-50 border border-amber-200"
-            )}>
-              <div className="font-medium flex items-center mb-2">
-                {isCorrect ? (
-                  <>
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                    <span className="text-green-700">Great job! 🎉</span>
-                  </>
-                ) : (
-                  <>
-                    <HelpCircle className="h-5 w-5 text-amber-500 mr-2" />
-                    <span className="text-amber-700">Let's learn why</span>
-                  </>
-                )}
-              </div>
+          <div className="space-y-3">
+            {currentQuestion.options.map((option, index) => {
+              const isSelected = selectedAnswer === index;
+              const isCorrect = index === currentQuestion.correctAnswer;
+              const showResult = showExplanation;
               
-              <div className="space-y-2">
-                <p className="text-sm">{getExplanationText()}</p>
-                
-                {!isCorrect && (
-                  <p className="text-sm text-amber-700 font-medium mt-2">
-                    The correct answer is: {currentQuestion.options[currentQuestion.correctAnswer]}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-          
-          {showConfetti && quizCompleted && (
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-              <ConfettiExplosion particleCount={150} force={0.8} duration={2500} />
-            </div>
-          )}
-        </div>
-      </CardContent>
-      
-      <CardFooter className="flex justify-between pt-4 pb-4">
-        <div className="flex space-x-2 w-full">
-          {questionArray.length > 1 && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={goToPreviousQuestion}
-              disabled={currentQuestionIndex === 0}
-              className="flex-shrink-0"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-          )}
-          
-          {!hasCompletedQuestion ? (
-            <Button 
-              onClick={handleCheckAnswer}
-              disabled={selectedAnswer === null}
-              className="flex-grow"
-            >
-              Check Answer <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          ) : !isCorrect ? (
-            <Button 
-              onClick={handleTryAgain}
-              variant="outline"
-              className="flex-grow"
-            >
-              Try Again
-            </Button>
-          ) : (
-            <div className="flex-grow flex items-center justify-center bg-green-100 text-green-800 p-2 rounded-md">
-              <Award className="h-5 w-5 mr-2" />
-              You got it right!
-            </div>
-          )}
-          
-          {questionArray.length > 1 && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={goToNextQuestion}
-              disabled={currentQuestionIndex === questionArray.length - 1}
-              className="flex-shrink-0"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      </CardFooter>
-      
-      {quizCompleted && (
-        <div className="p-4 bg-blue-50 border-t border-blue-200">
-          <div className="text-center">
-            <h3 className="font-bold text-lg text-blue-700">Quiz Complete!</h3>
-            <p className="text-blue-600">
-              You scored {score} out of {questionArray.length}
-              {score === questionArray.length ? " - Perfect!" : ""}
-            </p>
+              let buttonClass = "w-full text-left p-4 border rounded-lg transition-colors ";
+              
+              if (showResult) {
+                if (isCorrect) {
+                  buttonClass += "border-green-500 bg-green-50 text-green-800";
+                } else if (isSelected && !isCorrect) {
+                  buttonClass += "border-red-500 bg-red-50 text-red-800";
+                } else {
+                  buttonClass += "border-gray-200 bg-gray-50 text-gray-600";
+                }
+              } else if (isSelected) {
+                buttonClass += "border-blue-500 bg-blue-50 text-blue-800";
+              } else {
+                buttonClass += "border-gray-200 hover:border-gray-300 hover:bg-gray-50";
+              }
+
+              return (
+                <button
+                  key={index}
+                  onClick={() => handleAnswerSelect(index)}
+                  className={buttonClass}
+                  disabled={showExplanation}
+                >
+                  <div className="flex items-center justify-between">
+                    <span>{option}</span>
+                    {showResult && isCorrect && <CheckCircle className="h-5 w-5 text-green-600" />}
+                    {showResult && isSelected && !isCorrect && <XCircle className="h-5 w-5 text-red-600" />}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
-      )}
+
+        {showExplanation && currentQuestion.explanation && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 className="font-semibold text-blue-800 mb-2">Explanation:</h4>
+            <p className="text-blue-700">{currentQuestion.explanation}</p>
+          </div>
+        )}
+
+        {!showExplanation && (
+          <Button 
+            onClick={handleSubmitAnswer}
+            disabled={selectedAnswer === null}
+            className="w-full"
+          >
+            Submit Answer
+          </Button>
+        )}
+
+        {showExplanation && currentQuestionIndex < questions.length - 1 && (
+          <div className="text-center text-sm text-gray-600">
+            Next question in 3 seconds...
+          </div>
+        )}
+      </CardContent>
     </Card>
   );
 }
+
+export default InteractiveQuiz;
