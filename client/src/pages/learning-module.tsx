@@ -152,6 +152,8 @@ export default function LearningModulePage() {
 
   const [currentQuizIndex, setCurrentQuizIndex] = useState<number | null>(null);
   const [quizCompleted, setQuizCompleted] = useState<boolean[]>([]);
+  const [scenarioMatches, setScenarioMatches] = useState<{[sectionIndex: number]: {[scenarioIndex: number]: number | null}}>({});
+  const [matchResults, setMatchResults] = useState<{[sectionIndex: number]: {isCorrect: boolean, explanations: string[], correctCount: number, totalCount: number}}>({});
 
   // Handle quiz completion
   const handleQuizComplete = (score: number, totalPoints: number) => {
@@ -168,6 +170,69 @@ export default function LearningModulePage() {
     }
     
     setCurrentQuizIndex(null);
+  };
+
+  // Handle scenario matching
+  const handleScenarioSelect = (sectionIndex: number, scenarioIndex: number, responseIndex: number) => {
+    setScenarioMatches(prev => ({
+      ...prev,
+      [sectionIndex]: {
+        ...prev[sectionIndex],
+        [scenarioIndex]: responseIndex
+      }
+    }));
+  };
+
+  const checkMatches = (sectionIndex: number, scenarios: string[], responses: string[]) => {
+    const sectionMatches = scenarioMatches[sectionIndex] || {};
+    const scenarioCount = scenarios.length;
+    const allMatched = Object.keys(sectionMatches).length === scenarioCount && 
+                      Object.values(sectionMatches).every(match => match !== null);
+    
+    if (!allMatched) {
+      toast({
+        title: "Incomplete Matching",
+        description: "Please match all scenarios with responses before checking your answers.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Generate explanations for each match
+    const explanations: string[] = [];
+    let correctCount = 0;
+
+    // For demonstration, consider matches correct if they're in order
+    // In practice, you'd have predefined correct answers and explanations
+    Object.entries(sectionMatches).forEach(([scenarioIdx, responseIdx]) => {
+      const isCorrect = parseInt(scenarioIdx) === responseIdx;
+      if (isCorrect) {
+        correctCount++;
+        explanations.push(`Scenario ${parseInt(scenarioIdx) + 1} → Response ${String.fromCharCode(65 + responseIdx!)} ✓ This is the developmentally appropriate response that follows evidence-based practices.`);
+      } else {
+        explanations.push(`Scenario ${parseInt(scenarioIdx) + 1} → Response ${String.fromCharCode(65 + responseIdx!)} ✗ Consider a response that is more developmentally appropriate and builds on positive guidance strategies.`);
+      }
+    });
+
+    const isAllCorrect = correctCount === scenarioCount;
+    
+    setMatchResults(prev => ({
+      ...prev,
+      [sectionIndex]: {
+        isCorrect: isAllCorrect,
+        explanations,
+        correctCount,
+        totalCount: scenarioCount
+      }
+    }));
+
+    toast({
+      title: isAllCorrect ? "Perfect Match!" : "Good Try!",
+      description: isAllCorrect 
+        ? "You matched all scenarios correctly! Great understanding of classroom management."
+        : `You got ${correctCount} out of ${scenarioCount} correct. Review the explanations below.`,
+      variant: isAllCorrect ? "default" : "destructive"
+    });
   };
 
   // Get module-specific lessons (fallback for older modules)
@@ -395,7 +460,7 @@ export default function LearningModulePage() {
                     {moduleSections.length > 0 ? (
                       <div className="space-y-6">
                         {moduleSections.map((section: any, index: number) => (
-                          <div key={index} className="bg-card p-4 rounded-lg">
+                          <div key={index} className="bg-card p-4 rounded-lg" data-section-index={index}>
                             <h3 className="text-xl font-heading font-bold mb-4">
                               {section.title}
                             </h3>
@@ -453,28 +518,201 @@ export default function LearningModulePage() {
                                     }
                                     
                                     return contentData?.scenarios && contentData?.responses ? (
-                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                          <h5 className="font-medium text-blue-700 mb-3">Classroom Scenarios</h5>
-                                          <div className="space-y-2">
-                                            {contentData.scenarios.split('\n').filter((s: string) => s.trim()).map((scenario: string, idx: number) => (
-                                              <div key={idx} className="bg-blue-50 p-3 rounded border border-blue-200">
-                                                <span className="font-semibold text-blue-600">{idx + 1}.</span> {scenario.trim()}
-                                              </div>
-                                            ))}
+                                      <div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                          <div>
+                                            <h5 className="font-medium text-blue-700 mb-3">Classroom Scenarios</h5>
+                                            <div className="space-y-2">
+                                              {contentData.scenarios.split('\n').filter((s: string) => s.trim()).map((scenario: string, idx: number) => (
+                                                <div key={idx} className="bg-blue-50 p-3 rounded border border-blue-200">
+                                                  <div className="flex items-start justify-between">
+                                                    <div className="flex-1">
+                                                      <span className="font-semibold text-blue-600">{idx + 1}.</span> {scenario.trim()}
+                                                    </div>
+                                                    <div className="ml-3 text-sm text-gray-500">
+                                                      {scenarioMatches[index]?.[idx] !== undefined ? (
+                                                        <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                                                          → {String.fromCharCode(65 + scenarioMatches[index][idx])}
+                                                        </span>
+                                                      ) : (
+                                                        <span className="text-gray-400">Select →</span>
+                                                      )}
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                          
+                                          <div>
+                                            <h5 className="font-medium text-green-700 mb-3">Teacher Responses</h5>
+                                            <div className="space-y-2">
+                                              {contentData.responses.split('\n').filter((r: string) => r.trim()).map((response: string, idx: number) => (
+                                                <button
+                                                  key={idx}
+                                                  onClick={() => {
+                                                    // Clear any previous results when making new selections
+                                                    setMatchResults(prev => ({
+                                                      ...prev,
+                                                      [index]: undefined
+                                                    }));
+
+                                                    // Find which scenario is currently being matched
+                                                    const scenarioCount = contentData.scenarios.split('\n').filter((s: string) => s.trim()).length;
+                                                    const sectionMatches = scenarioMatches[index] || {};
+                                                    
+                                                    // Find next unmatched scenario or allow re-selection
+                                                    let targetScenario = 0;
+                                                    for (let i = 0; i < scenarioCount; i++) {
+                                                      if (sectionMatches[i] === undefined) {
+                                                        targetScenario = i;
+                                                        break;
+                                                      }
+                                                    }
+                                                    
+                                                    // If all are matched, select the first one for re-matching
+                                                    if (Object.keys(sectionMatches).length === scenarioCount) {
+                                                      targetScenario = 0;
+                                                    }
+                                                    
+                                                    handleScenarioSelect(index, targetScenario, idx);
+                                                  }}
+                                                  className="w-full text-left bg-green-50 p-3 rounded border border-green-200 hover:bg-green-100 transition-colors"
+                                                >
+                                                  <span className="font-semibold text-green-600">{String.fromCharCode(65 + idx)}.</span> {response.trim()}
+                                                </button>
+                                              ))}
+                                            </div>
                                           </div>
                                         </div>
                                         
-                                        <div>
-                                          <h5 className="font-medium text-green-700 mb-3">Teacher Responses</h5>
-                                          <div className="space-y-2">
-                                            {contentData.responses.split('\n').filter((r: string) => r.trim()).map((response: string, idx: number) => (
-                                              <div key={idx} className="bg-green-50 p-3 rounded border border-green-200">
-                                                <span className="font-semibold text-green-600">{String.fromCharCode(65 + idx)}.</span> {response.trim()}
-                                              </div>
-                                            ))}
+                                        <div className="flex items-center justify-between">
+                                          <div className="text-sm text-gray-600">
+                                            {(() => {
+                                              const sectionMatches = scenarioMatches[index] || {};
+                                              const scenarioCount = contentData.scenarios.split('\n').filter((s: string) => s.trim()).length;
+                                              const matchedCount = Object.keys(sectionMatches).length;
+                                              return `${matchedCount}/${scenarioCount} scenarios matched`;
+                                            })()}
+                                          </div>
+                                          
+                                          <div className="flex gap-2">
+                                            {matchResults[index] && (
+                                              <Button
+                                                onClick={() => {
+                                                  setScenarioMatches(prev => ({
+                                                    ...prev,
+                                                    [index]: {}
+                                                  }));
+                                                  setMatchResults(prev => ({
+                                                    ...prev,
+                                                    [index]: undefined
+                                                  }));
+                                                }}
+                                                variant="outline"
+                                                size="sm"
+                                              >
+                                                Change Answers
+                                              </Button>
+                                            )}
+                                            
+                                            <Button
+                                              onClick={() => {
+                                                const scenarios = contentData.scenarios.split('\n').filter((s: string) => s.trim());
+                                                const responses = contentData.responses.split('\n').filter((r: string) => r.trim());
+                                                checkMatches(index, scenarios, responses);
+                                              }}
+                                              className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white"
+                                              disabled={matchResults[index]?.isCorrect}
+                                            >
+                                              {matchResults[index]?.isCorrect ? "Completed" : "Check Answers"}
+                                            </Button>
                                           </div>
                                         </div>
+                                        
+                                        {matchResults[index] && (
+                                          <div className={`mt-4 p-4 rounded-lg border ${
+                                            matchResults[index].isCorrect 
+                                              ? 'bg-green-50 border-green-200' 
+                                              : 'bg-orange-50 border-orange-200'
+                                          }`}>
+                                            <div className="flex items-center justify-between mb-3">
+                                              <div className="flex items-center">
+                                                <span className="mr-2 text-lg">
+                                                  {matchResults[index].isCorrect ? '🎉' : '📚'}
+                                                </span>
+                                                <div>
+                                                  <h6 className={`font-semibold ${
+                                                    matchResults[index].isCorrect ? 'text-green-800' : 'text-orange-800'
+                                                  }`}>
+                                                    {matchResults[index].isCorrect 
+                                                      ? 'Perfect Understanding!' 
+                                                      : `${matchResults[index].correctCount}/${matchResults[index].totalCount} Correct`
+                                                    }
+                                                  </h6>
+                                                  <p className={`text-sm ${
+                                                    matchResults[index].isCorrect ? 'text-green-700' : 'text-orange-700'
+                                                  }`}>
+                                                    {matchResults[index].isCorrect 
+                                                      ? 'You understand these classroom management strategies!'
+                                                      : 'Review the explanations below to improve your understanding.'
+                                                    }
+                                                  </p>
+                                                </div>
+                                              </div>
+                                              
+                                              {matchResults[index].isCorrect && (
+                                                <Button
+                                                  onClick={() => {
+                                                    // Find next section or complete module
+                                                    const currentIndex = moduleSections.findIndex((_, idx) => idx === index);
+                                                    const nextSection = moduleSections[currentIndex + 1];
+                                                    
+                                                    if (nextSection) {
+                                                      // Scroll to next section
+                                                      setTimeout(() => {
+                                                        const nextElement = document.querySelector(`[data-section-index="${currentIndex + 1}"]`);
+                                                        if (nextElement) {
+                                                          nextElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                                        }
+                                                      }, 500);
+                                                      
+                                                      toast({
+                                                        title: "Great Job!",
+                                                        description: "Moving to the next section of the module.",
+                                                      });
+                                                    } else {
+                                                      // Complete module
+                                                      toast({
+                                                        title: "Module Complete!",
+                                                        description: "You've finished all sections. Well done!",
+                                                      });
+                                                    }
+                                                  }}
+                                                  className="bg-green-600 hover:bg-green-700 text-white"
+                                                  size="sm"
+                                                >
+                                                  {moduleSections.findIndex((_, idx) => idx === index) < moduleSections.length - 1 ? "Next Section" : "Complete Module"}
+                                                </Button>
+                                              )}
+                                            </div>
+                                            
+                                            <div className="space-y-2">
+                                              {matchResults[index].explanations.map((explanation, expIdx) => (
+                                                <div 
+                                                  key={expIdx} 
+                                                  className={`p-2 rounded text-sm ${
+                                                    explanation.includes('✓') 
+                                                      ? 'bg-green-100 text-green-800 border border-green-200' 
+                                                      : 'bg-red-100 text-red-800 border border-red-200'
+                                                  }`}
+                                                >
+                                                  {explanation}
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        )}
                                       </div>
                                     ) : (
                                       <div className="text-gray-600">
