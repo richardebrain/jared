@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import OpenAI from 'openai';
+import fs from 'fs';
+import path from 'path';
 import { 
   generateAITeachingStrategies,
   generateAIAssessmentQuestions,
@@ -15,6 +17,65 @@ const openai = new OpenAI({
 });
 
 const router = Router();
+
+// Audio generation function using OpenAI's text-to-speech
+async function generatePodcastAudio(scriptContent: string, topicName: string) {
+  // Extract dialogue from the script for audio generation
+  const dialogueMatches = scriptContent.match(/\*\*(Sarah|Mike):\*\* "(.*?)"/g) || [];
+  const segments: { speaker: string; text: string }[] = [];
+  
+  dialogueMatches.forEach(match => {
+    const speakerMatch = match.match(/\*\*(Sarah|Mike):\*\*/);
+    const textMatch = match.match(/"(.*?)"/);
+    
+    if (speakerMatch && textMatch) {
+      segments.push({
+        speaker: speakerMatch[1],
+        text: textMatch[1]
+      });
+    }
+  });
+
+  // Create audio files for each speaker
+  const audioFiles: string[] = [];
+  const timestamp = Date.now();
+  
+  for (let i = 0; i < segments.length; i++) {
+    const segment = segments[i];
+    const voice = segment.speaker === 'Sarah' ? 'nova' : 'onyx'; // Different voices for hosts
+    
+    try {
+      const mp3 = await openai.audio.speech.create({
+        model: "tts-1",
+        voice: voice,
+        input: segment.text,
+      });
+
+      const buffer = Buffer.from(await mp3.arrayBuffer());
+      const filename = `podcast_${topicName}_${timestamp}_segment_${i}.mp3`;
+      const filepath = path.join('uploads', filename);
+      
+      // Ensure uploads directory exists
+      if (!fs.existsSync('uploads')) {
+        fs.mkdirSync('uploads', { recursive: true });
+      }
+      
+      fs.writeFileSync(filepath, buffer);
+      audioFiles.push(filename);
+    } catch (error) {
+      console.error(`Error generating audio for segment ${i}:`, error);
+    }
+  }
+
+  // For now, return the first audio file (we could combine them later)
+  const primaryAudioFile = audioFiles[0];
+  
+  return {
+    audioUrl: `/uploads/${primaryAudioFile}`,
+    filename: primaryAudioFile,
+    segments: audioFiles
+  };
+}
 
 /**
  * AI suggestion generation endpoint for module creator
@@ -185,9 +246,20 @@ router.post('/generate', async (req, res) => {
 - Trust the process and your professional instincts
 `;
         
-        return res.json({
-          suggestions: podcastContent
-        });
+        // Also generate actual audio using OpenAI's text-to-speech
+        try {
+          const audioResponse = await generatePodcastAudio(podcastContent, moduleTopic);
+          return res.json({
+            suggestions: podcastContent,
+            audioUrl: audioResponse.audioUrl,
+            audioFile: audioResponse.filename
+          });
+        } catch (audioError) {
+          console.log('Audio generation failed, returning script only:', audioError);
+          return res.json({
+            suggestions: podcastContent
+          });
+        }
       } else {
         // Handle other template types with generic content generation
         const genericContent = `
