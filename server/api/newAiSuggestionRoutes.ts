@@ -802,11 +802,27 @@ router.post('/generate-section', async (req, res) => {
     
   } catch (error) {
     console.error('Section generation error:', error);
-    res.status(500).json({ 
-      error: 'Failed to generate section content',
-      title: 'Generated Section',
-      content: '<p>Section content will be generated here. Please try again or edit manually.</p>'
-    });
+    
+    // Check if it's an API key issue
+    if (error.status === 401) {
+      res.status(500).json({ 
+        error: 'OpenAI API authentication failed. Please check your API key configuration.',
+        title: 'Authentication Error',
+        content: '<p>Unable to generate content due to API authentication issues.</p>'
+      });
+    } else if (error.status === 429) {
+      res.status(500).json({ 
+        error: 'OpenAI API rate limit exceeded. Please try again in a moment.',
+        title: 'Rate Limit Error',
+        content: '<p>API rate limit exceeded. Please wait a moment and try again.</p>'
+      });
+    } else {
+      res.status(500).json({ 
+        error: `Failed to generate section content: ${error.message || 'Unknown error'}`,
+        title: 'Generated Section',
+        content: '<p>Section content will be generated here. Please try again or edit manually.</p>'
+      });
+    }
   }
 });
 

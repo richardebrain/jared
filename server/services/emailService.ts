@@ -47,7 +47,7 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
 
     const msg: sgMail.MailDataRequired = {
       to: options.to,
-      from: options.from || "noreply@mentorme.app",
+      from: options.from || "jared@mentormeprek.com",
       subject: options.subject,
       text: options.text,
       html: options.html,
