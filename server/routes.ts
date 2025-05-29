@@ -4700,6 +4700,128 @@ Continue for all 5 questions...
     }
   });
 
+  // Lesson Plans API endpoints
+  app.get("/api/lesson-plans", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const lessonPlans = await storage.getLessonPlansByUserId(userId);
+      res.json(lessonPlans);
+    } catch (error) {
+      console.error("Error fetching lesson plans:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/lesson-plans/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const lessonPlan = await storage.getLessonPlan(id);
+      
+      if (!lessonPlan) {
+        return res.status(404).json({ message: "Lesson plan not found" });
+      }
+      
+      res.json(lessonPlan);
+    } catch (error) {
+      console.error("Error fetching lesson plan:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/lesson-plans", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const lessonPlanData = {
+        ...req.body,
+        createdBy: userId
+      };
+      
+      const lessonPlan = await storage.createLessonPlan(lessonPlanData);
+      res.status(201).json(lessonPlan);
+    } catch (error) {
+      console.error("Error creating lesson plan:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // AI-powered standards suggestions
+  app.post("/api/suggest-standards", requireAuth, async (req, res) => {
+    try {
+      const { lessonTitle, description, ageGroup, activities } = req.body;
+      
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({ 
+          message: "OpenAI API key not configured. Please provide your OpenAI API key to use AI suggestions." 
+        });
+      }
+
+      // Get all available standards for matching
+      const allStandards = await storage.getAllEarlyLearningStandards();
+      
+      // Create a prompt for AI to suggest relevant standards
+      const prompt = `Given the following lesson plan details, suggest which Arizona Early Learning Standards would be most relevant:
+
+Lesson Title: ${lessonTitle}
+Description: ${description}
+Age Group: ${ageGroup}
+Activities: ${activities.map((a: any) => `${a.name}: ${a.description}`).join(', ')}
+
+Available Standards:
+${allStandards.map((s: any) => `ID: ${s.id}, Area: ${s.standardArea}, Code: ${s.standardCode}, Text: ${s.standardText}`).join('\n')}
+
+Please respond with a JSON array of suggestions in this format:
+[{"standardId": number, "reasoning": "why this standard is relevant"}]
+
+Select the 3-5 most relevant standards.`;
+
+      const openai = new (require('openai')).OpenAI({
+        apiKey: process.env.OPENAI_API_KEY
+      });
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: prompt }],
+        response_format: { type: "json_object" }
+      });
+
+      const aiResponse = JSON.parse(response.choices[0].message.content);
+      const suggestions = aiResponse.suggestions || aiResponse;
+
+      res.json({ suggestions });
+    } catch (error) {
+      console.error("Error getting AI standards suggestions:", error);
+      res.status(500).json({ message: "Failed to get AI suggestions" });
+    }
+  });
+
+  // Get Early Learning Standards
+  app.get("/api/early-learning-standards", async (req, res) => {
+    try {
+      const { standardArea, ageGroup, search } = req.query;
+      const standards = await storage.getEarlyLearningStandards({
+        standardArea: standardArea as string,
+        ageGroup: ageGroup as string,
+        search: search as string
+      });
+      
+      res.json(standards);
+    } catch (error) {
+      console.error("Error fetching early learning standards:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Get Arizona Standards (alias for compatibility)
+  app.get("/api/arizona-standards", async (req, res) => {
+    try {
+      const standards = await storage.getAllEarlyLearningStandards();
+      res.json(standards);
+    } catch (error) {
+      console.error("Error fetching Arizona standards:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Serve uploaded audio files
   app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 

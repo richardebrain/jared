@@ -23,7 +23,9 @@ import {
   avatarItems, type AvatarItem, type InsertAvatarItem,
   userAvatars, type UserAvatar, type InsertUserAvatar,
   userAvatarItems, type UserAvatarItem, type InsertUserAvatarItem,
-  streakRewards, type StreakReward, type InsertStreakReward
+  streakRewards, type StreakReward, type InsertStreakReward,
+  lessonPlans, type LessonPlan, type InsertLessonPlan,
+  earlyLearningStandards, type EarlyLearningStandard, type InsertEarlyLearningStandard
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, lt, or, sql } from "drizzle-orm";
@@ -191,6 +193,22 @@ export interface IStorage {
   getUserAvatarItems(userId: number): Promise<UserAvatarItem[]>;
   purchaseAvatarItem(userId: number, itemId: number): Promise<UserAvatarItem>;
   checkUserOwnsAvatarItem(userId: number, itemId: number): Promise<boolean>;
+  
+  // Lesson plan operations
+  getLessonPlan(id: number): Promise<LessonPlan | undefined>;
+  getLessonPlansByUserId(userId: number): Promise<LessonPlan[]>;
+  createLessonPlan(lessonPlan: InsertLessonPlan): Promise<LessonPlan>;
+  updateLessonPlan(id: number, lessonPlanData: Partial<InsertLessonPlan>): Promise<LessonPlan>;
+  deleteLessonPlan(id: number): Promise<void>;
+  
+  // Early Learning Standards operations
+  getAllEarlyLearningStandards(): Promise<EarlyLearningStandard[]>;
+  getEarlyLearningStandards(filters: {
+    standardArea?: string;
+    ageGroup?: string;
+    search?: string;
+  }): Promise<EarlyLearningStandard[]>;
+  getEarlyLearningStandard(id: number): Promise<EarlyLearningStandard | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
