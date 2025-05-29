@@ -355,7 +355,6 @@ export default function LearningModulePage() {
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
           </div>
         </main>
-        <ChatbotSupport />
       </div>
     );
   }
@@ -381,7 +380,6 @@ export default function LearningModulePage() {
             </CardFooter>
           </Card>
         </main>
-        <ChatbotSupport />
       </div>
     );
   }
@@ -433,7 +431,6 @@ export default function LearningModulePage() {
             onClose={() => setCurrentQuizIndex(null)}
           />
         </main>
-        <ChatbotSupport />
       </div>
     );
   }
