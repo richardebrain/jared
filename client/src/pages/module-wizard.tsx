@@ -100,18 +100,23 @@ export default function ModuleWizard() {
         This should be educational content for early childhood educators. Make it practical and engaging.
         Provide the content in HTML format suitable for display.`;
         
-        const response = await apiRequest("POST", "/api/ai-suggestions/generate-section", {
-          prompt: sectionPrompt,
-          sectionType: 'text'
+        const result = await apiRequest("/api/ai-suggestions/generate-section", {
+          method: "POST",
+          data: {
+            prompt: sectionPrompt,
+            sectionType: 'text',
+            moduleTitle: config.title,
+            moduleDescription: config.description
+          }
         });
         
-        const result = await response.json();
+        console.log('AI Section Result:', result);
         
         sections.push({
           id: i,
           title: `Section ${i}: ${result.title || `Part ${i}`}`,
           type: 'text',
-          content: result.content || result.html || 'Content generated successfully',
+          content: result.content || result.html || `<p>Generated content for ${config.title}</p>`,
           isGenerated: true
         });
         

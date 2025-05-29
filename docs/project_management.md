@@ -554,3 +554,276 @@ Weekly status updates will be added below to track overall project progress.
 5. **Task Completion:**
    - When all tasks in an epic are complete, update the epic status to 🟢
    - Document any lessons learned or future considerations
+
+### 🔴 [EP-002] Admin UI for Question Management System
+
+**Description:** Create a comprehensive Admin UI system for managing assessment questions, their answers, mini-lessons, and associated educational content. This system will enable content managers to perform CRUD operations on questions, manage domain assignments, control availability at platform and school levels, and integrate with AI-generated content workflows.
+
+**Business Value:** Enables efficient content management for the assessment system, allowing for rapid scaling of question pools, quality control through approval workflows, and school-specific customization. Critical for maintaining educational quality and system growth.
+
+**Success Criteria:**
+- Content managers can create, read, update, and delete questions through an intuitive interface
+- Question approval workflow with role-based access controls implemented
+- Platform-level and school-level availability controls functional
+- Domain assignment and difficulty level management working correctly
+- Mini-lesson content can be managed and linked to questions
+- AI-generated content can be imported via copy-paste workflow with validation
+- Bulk operations support for efficient content management
+- Question pool analytics and reporting available
+- System handles all question fields including explanations, tags, and educational metadata
+
+**Implementation Approach:**
+- **Phase 1**: Core CRUD Backend APIs and Basic Frontend Interface
+- **Phase 2**: Advanced Features (Approval Workflow, Bulk Operations, AI Integration)
+- **Phase 3**: Analytics, Reporting, and Advanced Management Tools
+
+**Dependencies:**
+- EP-001 (Assessment System) - Requires completed database schema and question selection service
+
+**Tasks:**
+
+1. ⬜ [EP-002-01] **Design Admin UI Data Models and API Specification**
+   - **Description:** Define comprehensive data models for question management and create detailed API specification for all CRUD operations.
+   - **Requirements:**
+     - Design TypeScript interfaces for all question management operations
+     - Create detailed OpenAPI 3.0 specification for Admin UI endpoints
+     - Define role-based access control models (admin, content-manager, school-admin)
+     - Specify data validation rules for all question fields
+     - Document API endpoints for questions, domains, mini-lessons, and availability controls
+     - Design response formats including pagination, filtering, and sorting
+     - Plan error handling and validation responses
+   - **Dependencies:** None
+   - **Technical Notes:**
+     - Build on existing `AssessmentQuestion` and related types from shared/schema.ts
+     - Ensure compatibility with EP-001 question selection algorithms
+     - Consider future AI integration requirements in API design
+
+2. ⬜ [EP-002-02] **Implement Backend CRUD API Services**
+   - **Description:** Create comprehensive backend services for question management with full CRUD operations, validation, and business logic.
+   - **Requirements:**
+     - Question CRUD service with validation for all fields (text, options, correctAnswer, difficulty, explanation, miniLesson, tags)
+     - Domain assignment and management service
+     - Question availability control service (platform and school level)
+     - Approval workflow backend logic (isApproved, approvedBy tracking)
+     - Mini-lesson content management service
+     - Database transaction handling for complex operations
+     - Input sanitization and security validation
+     - Comprehensive error handling and logging
+   - **Dependencies:** EP-002-01
+   - **Technical Notes:**
+     - Use existing database schema from shared/schema.ts
+     - Implement proper database indexes for admin queries
+     - Follow established patterns from EP-001 services
+     - Key files to create:
+       - `server/services/admin/QuestionManagementService.ts`
+       - `server/services/admin/DomainManagementService.ts`
+       - `server/services/admin/AvailabilityControlService.ts`
+       - `server/services/admin/ApprovalWorkflowService.ts`
+       - `server/repositories/admin/QuestionRepository.ts`
+
+3. ⬜ [EP-002-03] **Create Admin API Routes and Middleware**
+   - **Description:** Implement RESTful API routes for question management with proper authentication, authorization, and middleware.
+   - **Requirements:**
+     - RESTful endpoints for questions (GET, POST, PUT, DELETE) with pagination and filtering
+     - Domain management endpoints with question count tracking
+     - Availability control endpoints for platform and school-level management
+     - Approval workflow endpoints for content review
+     - Role-based middleware for admin, content-manager, school-admin access
+     - Request validation middleware using Zod schemas
+     - Rate limiting for content modification operations
+     - Audit logging for all administrative actions
+   - **Dependencies:** EP-002-02
+   - **Technical Notes:**
+     - Follow existing route patterns from server/routes.ts
+     - Implement middleware in `server/middleware/admin/`
+     - Use existing authentication system
+     - Key routes structure:
+       ```
+       POST   /api/admin/questions
+       GET    /api/admin/questions?domain=&difficulty=&approved=&page=&limit=
+       PUT    /api/admin/questions/:id
+       DELETE /api/admin/questions/:id
+       POST   /api/admin/questions/:id/approve
+       PUT    /api/admin/questions/:id/availability
+       ```
+
+4. ⬜ [EP-002-04] **Build Core Frontend Components**
+   - **Description:** Create React components for the core Admin UI question management interface with modern, intuitive design.
+   - **Requirements:**
+     - Question list view with filtering, sorting, and pagination
+     - Question detail/edit form with all fields (text, options, correctAnswer, difficulty, explanation, miniLesson, tags)
+     - Question creation form with validation and real-time feedback
+     - Domain assignment interface with visual indicators
+     - Difficulty level selector with 6-level system (Easy to Master)
+     - Mini-lesson content editor with rich text support
+     - Tag management interface with autocomplete
+     - Approval status indicators and workflow controls
+     - Responsive design for desktop and tablet use
+   - **Dependencies:** EP-002-03
+   - **Technical Notes:**
+     - Use existing component patterns from client/src/components/
+     - Implement with React Query for data management
+     - Follow existing design system and styling patterns
+     - Key components to create:
+       - `client/src/pages/admin/QuestionManagement.tsx`
+       - `client/src/components/admin/QuestionList.tsx`
+       - `client/src/components/admin/QuestionForm.tsx`
+       - `client/src/components/admin/QuestionEditor.tsx`
+       - `client/src/components/admin/DomainSelector.tsx`
+       - `client/src/components/admin/MiniLessonEditor.tsx`
+
+5. ⬜ [EP-002-05] **Implement Question Approval Workflow**
+   - **Description:** Create approval workflow system for content review with role-based controls and status tracking.
+   - **Requirements:**
+     - Approval queue interface for content reviewers
+     - Question status tracking (draft, pending, approved, rejected)
+     - Approval action logging with timestamps and user tracking
+     - Bulk approval operations for efficient content review
+     - Rejection feedback system with comments
+     - Approval notification system for content creators
+     - Review history and audit trail
+     - Role-based access (only approvers can approve, creators can view status)
+   - **Dependencies:** EP-002-04
+   - **Technical Notes:**
+     - Extend existing user role system
+     - Implement approval workflow state machine
+     - Add notification system integration
+     - Key files:
+       - `server/services/admin/ApprovalWorkflowService.ts`
+       - `client/src/components/admin/ApprovalQueue.tsx`
+       - `client/src/components/admin/QuestionReview.tsx`
+
+6. ⬜ [EP-002-06] **Build Availability Control Interface**
+   - **Description:** Create interface for managing question availability at platform and school levels with granular controls.
+   - **Requirements:**
+     - Platform-level question enable/disable controls
+     - School-specific availability overrides
+     - Bulk availability operations
+     - Availability impact analysis (showing affected assessments)
+     - School selection interface for availability management
+     - Availability history and change tracking
+     - Visual indicators for availability status
+     - Conflict resolution when platform/school settings differ
+   - **Dependencies:** EP-002-05
+   - **Technical Notes:**
+     - Use existing school management data
+     - Implement efficient bulk operations
+     - Add availability analytics
+     - Key components:
+       - `client/src/components/admin/AvailabilityControl.tsx`
+       - `client/src/components/admin/SchoolAvailabilityManager.tsx`
+       - `client/src/components/admin/BulkAvailabilityEditor.tsx`
+
+7. ⬜ [EP-002-07] **Implement AI Content Integration Workflow**
+   - **Description:** Create copy-paste workflow for AI-generated content with validation, parsing, and batch import capabilities.
+   - **Requirements:**
+     - Copy-paste interface for AI-generated question content
+     - Content parsing and validation for multiple formats (JSON, CSV, structured text)
+     - Field mapping interface for different AI output formats
+     - Batch import with preview and confirmation
+     - Error handling and validation feedback for malformed content
+     - Content transformation utilities for standardization
+     - Import history and rollback capabilities
+     - AI content quality indicators and suggestions
+   - **Dependencies:** EP-002-06
+   - **Technical Notes:**
+     - Support multiple AI output formats
+     - Implement robust parsing and validation
+     - Add content preview before import
+     - Key files:
+       - `server/services/admin/AIContentImportService.ts`
+       - `client/src/components/admin/AIContentImporter.tsx`
+       - `client/src/components/admin/ContentPreview.tsx`
+       - `client/src/utils/contentParsers.ts`
+
+8. ⬜ [EP-002-08] **Create Bulk Operations and Import/Export**
+   - **Description:** Implement bulk operations for efficient content management including import/export, bulk editing, and batch operations.
+   - **Requirements:**
+     - Bulk question import from CSV/JSON with field mapping
+     - Question export functionality with filtering options
+     - Bulk edit operations (domain assignment, difficulty level, tags)
+     - Batch approval/rejection with filtering
+     - Bulk availability changes across multiple questions/schools
+     - Progress tracking for long-running bulk operations
+     - Error reporting and partial success handling
+     - Template generation for import formats
+   - **Dependencies:** EP-002-07
+   - **Technical Notes:**
+     - Implement background job processing for large operations
+     - Add progress tracking and cancellation
+     - Support multiple file formats
+     - Key components:
+       - `server/services/admin/BulkOperationsService.ts`
+       - `client/src/components/admin/BulkImportExport.tsx`
+       - `client/src/components/admin/BulkEditor.tsx`
+
+9. ⬜ [EP-002-09] **Build Analytics and Reporting Dashboard**
+   - **Description:** Create analytics and reporting interface for question pool management and assessment performance insights.
+   - **Requirements:**
+     - Question pool analytics (count by domain, difficulty, approval status)
+     - Usage analytics (questions used in assessments, performance metrics)
+     - Content quality reports (approval rates, error patterns)
+     - Domain coverage analysis with visual indicators
+     - Question performance metrics (correct answer rates, timing data)
+     - Content creator productivity reports
+     - School-specific analytics for question usage
+     - Export capabilities for all reports
+   - **Dependencies:** EP-002-08
+   - **Technical Notes:**
+     - Integrate with assessment data from EP-001
+     - Use charting libraries for visualizations
+     - Implement efficient analytics queries
+     - Key files:
+       - `server/services/admin/AnalyticsService.ts`
+       - `client/src/components/admin/AnalyticsDashboard.tsx`
+       - `client/src/components/admin/QuestionPoolStats.tsx`
+
+10. ⬜ [EP-002-10] **Implement Advanced Search and Filtering**
+    - **Description:** Create advanced search and filtering capabilities for efficient question discovery and management.
+    - **Requirements:**
+      - Full-text search across question text, explanations, and mini-lessons
+      - Advanced filtering by multiple criteria (domain, difficulty, tags, approval status, creator, date range)
+      - Saved search functionality for frequently used queries
+      - Search result highlighting and relevance scoring
+      - Filter presets for common use cases
+      - Search analytics and popular queries tracking
+      - Export search results functionality
+      - Performance optimization for large question pools
+    - **Dependencies:** EP-002-09
+    - **Technical Notes:**
+      - Implement database full-text search or integration with search service
+      - Add proper indexing for search performance
+      - Use debouncing for real-time search
+      - Key components:
+        - `server/services/admin/SearchService.ts`
+        - `client/src/components/admin/AdvancedSearch.tsx`
+        - `client/src/components/admin/SearchFilters.tsx`
+
+11. ⬜ [EP-002-11] **Testing and Quality Assurance**
+    - **Description:** Comprehensive testing suite for Admin UI functionality including unit tests, integration tests, and end-to-end testing.
+    - **Requirements:**
+      - Unit tests for all service classes and utilities (95% coverage target)
+      - Integration tests for API endpoints with database operations
+      - Frontend component testing with React Testing Library
+      - End-to-end testing for complete workflows (create, approve, publish question)
+      - Performance testing for bulk operations and large question pools
+      - Security testing for authorization and input validation
+      - Accessibility testing for admin interface compliance
+      - Cross-browser testing for admin interface
+    - **Dependencies:** EP-002-10
+    - **Technical Notes:**
+      - Use existing testing infrastructure
+      - Add admin-specific test utilities
+      - Mock external dependencies appropriately
+      - Test files structure:
+        - `tests/admin/services/` - Service unit tests
+        - `tests/admin/api/` - API integration tests
+        - `tests/admin/components/` - Frontend component tests
+        - `tests/admin/e2e/` - End-to-end workflow tests
+
+**Status Updates:**
+
+**Week of [Current Date]**
+- Epic created with comprehensive task breakdown
+- Ready to begin EP-002-01 (Design phase)
+- Dependencies on EP-001 completion confirmed
