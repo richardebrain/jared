@@ -20,10 +20,11 @@ const defaultQueryFn = async ({ queryKey }: { queryKey: readonly unknown[] }) =>
   const path = queryKey[0] as string;
   
   try {
-    // Normal API request
+    // Normal API request - use longer timeout for AI content generation
+    const timeout = path.includes('/api/ai/') ? 60000 : 10000; // 60s for AI, 10s for others
     const response = await axios.get(path, {
       withCredentials: true, // Important for cookies/sessions
-      timeout: 10000, // 10 second timeout to prevent hanging requests
+      timeout: timeout,
     });
     
     return response.data;
@@ -88,23 +89,27 @@ export async function apiRequest<T = any>(
     const method = urlOrMethod.toUpperCase();
     const url = configOrUrl;
     
+    // Use longer timeout for AI content generation
+    const timeout = url.includes('/api/ai/') ? 60000 : 10000;
     finalConfig = {
       method: method as any,
       url,
       data,
       withCredentials: true,
-      timeout: 10000,
+      timeout: timeout,
     };
   } else {
     // New format: apiRequest("/api/endpoint", { method: "POST", data: {...} })
     const url = urlOrMethod;
     const config = (configOrUrl as AxiosRequestConfig) || {};
     
+    // Use longer timeout for AI content generation
+    const timeout = url.includes('/api/ai/') ? 60000 : 10000;
     finalConfig = {
       url,
       ...config,
       withCredentials: true,
-      timeout: 10000,
+      timeout: timeout,
     };
   }
 
