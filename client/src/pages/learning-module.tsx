@@ -432,6 +432,71 @@ export default function LearningModulePage() {
                               </div>
                             )}
                             
+                            {/* Scenario Match Section */}
+                            {section.type === 'scenario-match' && (
+                              <div className="mb-6">
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                                  <h4 className="font-semibold text-green-800 mb-4 flex items-center">
+                                    <span className="mr-2">🎯</span>
+                                    Interactive Scenario Matching
+                                  </h4>
+                                  
+                                  {(() => {
+                                    // Parse content if it's stored as JSON string
+                                    let contentData = section.content;
+                                    if (typeof section.content === 'string') {
+                                      try {
+                                        contentData = JSON.parse(section.content);
+                                      } catch (e) {
+                                        contentData = { scenarios: '', responses: '' };
+                                      }
+                                    }
+                                    
+                                    return contentData?.scenarios && contentData?.responses ? (
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                          <h5 className="font-medium text-blue-700 mb-3">Classroom Scenarios</h5>
+                                          <div className="space-y-2">
+                                            {contentData.scenarios.split('\n').filter((s: string) => s.trim()).map((scenario: string, idx: number) => (
+                                              <div key={idx} className="bg-blue-50 p-3 rounded border border-blue-200">
+                                                <span className="font-semibold text-blue-600">{idx + 1}.</span> {scenario.trim()}
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                        
+                                        <div>
+                                          <h5 className="font-medium text-green-700 mb-3">Teacher Responses</h5>
+                                          <div className="space-y-2">
+                                            {contentData.responses.split('\n').filter((r: string) => r.trim()).map((response: string, idx: number) => (
+                                              <div key={idx} className="bg-green-50 p-3 rounded border border-green-200">
+                                                <span className="font-semibold text-green-600">{String.fromCharCode(65 + idx)}.</span> {response.trim()}
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="text-gray-600">
+                                        <p>Match classroom scenarios with appropriate teacher responses.</p>
+                                        <div className="mt-4 text-sm">
+                                          {typeof section.content === 'string' ? section.content : 'Interactive scenario matching activity'}
+                                        </div>
+                                      </div>
+                                    );
+                                  })()}
+                                  
+                                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                                    <p className="text-sm text-yellow-700">
+                                      <span className="font-semibold">💡 Instructions:</span> 
+                                      Review each scenario and identify which response would be most appropriate. 
+                                      Consider developmental appropriateness and evidence-based practices.
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
                             {/* Text Section */}
                             {section.type === 'text' && (
                               <div className="mb-6">

@@ -655,8 +655,24 @@ Create a natural conversation between two podcast hosts discussing this specific
       const processedSections = [];
       
       for (const section of newModule.sections) {
-        if (section.title.trim() || section.content.trim() || section.videoUrl.trim()) {
-          processedSections.push(section);
+        // Check if section has meaningful content based on its type
+        const hasContent = section.title.trim() || 
+          (typeof section.content === 'string' && section.content.trim()) ||
+          (typeof section.content === 'object' && section.content && 
+           (section.content.scenarios || section.content.responses)) ||
+          section.videoUrl.trim();
+          
+        if (hasContent) {
+          // Ensure content is properly serialized for scenario-match sections
+          let processedContent = section.content;
+          if (section.type === 'scenario-match' && typeof section.content === 'object') {
+            processedContent = JSON.stringify(section.content);
+          }
+          
+          processedSections.push({
+            ...section,
+            content: processedContent
+          });
           
           // Generate quiz questions if requested for video sections
           if (section.type === 'video' && section.generateVideoQuestions && section.videoUrl) {
