@@ -54,6 +54,22 @@ interface ModuleSection {
   content: string;
   videoUrl: string;
   imageUrl: string;
+  type: 'text' | 'quiz' | 'scenario-match' | 'podcast' | 'slide' | 'video';
+  questions?: Array<{
+    question: string;
+    answers: string[];
+    correctAnswer: number;
+  }>;
+  scenarios?: Array<{
+    scenario: string;
+    response: string;
+  }>;
+  audioUrl?: string;
+  slides?: Array<{
+    title: string;
+    content: string;
+    imageUrl?: string;
+  }>;
 }
 
 interface Module {
@@ -95,7 +111,8 @@ export default function ComprehensiveModuleCreator() {
         title: 'Introduction',
         content: '',
         videoUrl: '',
-        imageUrl: ''
+        imageUrl: '',
+        type: 'text' as const
       }
     ]
   });
@@ -517,7 +534,8 @@ Create a natural conversation between two podcast hosts discussing this specific
         title: '',
         content: '',
         videoUrl: '',
-        imageUrl: ''
+        imageUrl: '',
+        type: 'text' as const
       }]
     }));
   };
@@ -983,44 +1001,177 @@ Create a natural conversation between two podcast hosts discussing this specific
                 </div>
                 
                 <div className="space-y-4">
-                  <div>
-                    <Label>Section Title</Label>
-                    <Input
-                      value={section.title}
-                      onChange={(e) => updateSection(index, 'title', e.target.value)}
-                      placeholder="Enter section title"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label>Content</Label>
-                    <Textarea
-                      value={section.content}
-                      onChange={(e) => updateSection(index, 'content', e.target.value)}
-                      placeholder="Enter section content..."
-                      rows={4}
-                    />
-                  </div>
-                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label>Video URL (optional)</Label>
+                      <Label>Section Title</Label>
                       <Input
-                        value={section.videoUrl}
-                        onChange={(e) => updateSection(index, 'videoUrl', e.target.value)}
-                        placeholder="https://youtube.com/watch?v=..."
+                        value={section.title}
+                        onChange={(e) => updateSection(index, 'title', e.target.value)}
+                        placeholder="Enter section title"
                       />
                     </div>
                     
                     <div>
-                      <Label>Image URL (optional)</Label>
-                      <Input
-                        value={section.imageUrl}
-                        onChange={(e) => updateSection(index, 'imageUrl', e.target.value)}
-                        placeholder="https://example.com/image.jpg"
-                      />
+                      <Label>Section Type</Label>
+                      <Select
+                        value={section.type}
+                        onValueChange={(value) => updateSection(index, 'type', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose section type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="text">📝 Text Content</SelectItem>
+                          <SelectItem value="quiz">❓ Quiz</SelectItem>
+                          <SelectItem value="scenario-match">🎯 Scenario Match</SelectItem>
+                          <SelectItem value="podcast">🎧 Audio/Podcast</SelectItem>
+                          <SelectItem value="slide">📊 Slides</SelectItem>
+                          <SelectItem value="video">🎥 Video</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
+
+                  {/* Text Content Template */}
+                  {section.type === 'text' && (
+                    <>
+                      <div>
+                        <Label>Content</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="Enter section content..."
+                          rows={4}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label>Video URL (optional)</Label>
+                          <Input
+                            value={section.videoUrl}
+                            onChange={(e) => updateSection(index, 'videoUrl', e.target.value)}
+                            placeholder="https://youtube.com/watch?v=..."
+                          />
+                        </div>
+                        <div>
+                          <Label>Image URL (optional)</Label>
+                          <Input
+                            value={section.imageUrl}
+                            onChange={(e) => updateSection(index, 'imageUrl', e.target.value)}
+                            placeholder="https://example.com/image.jpg"
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Quiz Template */}
+                  {section.type === 'quiz' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Quiz Instructions</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="Instructions for this quiz section..."
+                          rows={2}
+                        />
+                      </div>
+                      <div className="p-4 bg-blue-50 rounded-lg">
+                        <p className="text-sm text-blue-700">
+                          💡 Quiz questions will be generated using AI when you create the module, or you can add them manually later.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Scenario Match Template */}
+                  {section.type === 'scenario-match' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Scenario Description</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="Describe the scenario teachers will encounter..."
+                          rows={3}
+                        />
+                      </div>
+                      <div className="p-4 bg-green-50 rounded-lg">
+                        <p className="text-sm text-green-700">
+                          🎯 This will create interactive scenarios where teachers match situations with appropriate responses.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Podcast Template */}
+                  {section.type === 'podcast' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Podcast Description</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="What topics should this podcast episode cover..."
+                          rows={3}
+                        />
+                      </div>
+                      <div className="p-4 bg-purple-50 rounded-lg">
+                        <p className="text-sm text-purple-700">
+                          🎧 AI will generate a conversational podcast script and audio file for this section.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Slide Template */}
+                  {section.type === 'slide' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Slide Content Overview</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="Outline the key points for this slide presentation..."
+                          rows={3}
+                        />
+                      </div>
+                      <div className="p-4 bg-orange-50 rounded-lg">
+                        <p className="text-sm text-orange-700">
+                          📊 AI will create a complete slide deck with presenter notes and visual suggestions.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Video Template */}
+                  {section.type === 'video' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Video Description</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="Describe what this video should demonstrate..."
+                          rows={2}
+                        />
+                      </div>
+                      <div>
+                        <Label>Video URL</Label>
+                        <Input
+                          value={section.videoUrl}
+                          onChange={(e) => updateSection(index, 'videoUrl', e.target.value)}
+                          placeholder="https://youtube.com/watch?v=..."
+                        />
+                      </div>
+                      <div className="p-4 bg-red-50 rounded-lg">
+                        <p className="text-sm text-red-700">
+                          🎥 Add your video URL above. AI can generate discussion questions and follow-up activities.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </Card>
             ))}
