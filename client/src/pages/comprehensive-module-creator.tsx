@@ -155,7 +155,21 @@ export default function ComprehensiveModuleCreator() {
     
     try {
       const response = await apiRequest("POST", "/api/ai-suggestions", {
-        prompt: "scenario match content",
+        prompt: `Create scenario matching content for ECE module "${newModule.title}". 
+        
+Module Context: ${newModule.description}
+Difficulty Level: ${newModule.difficulty}
+
+Generate 4-6 realistic classroom scenarios specifically related to "${newModule.title}" and corresponding appropriate teacher responses for matching. Focus on practical situations teachers encounter when working with this topic.
+
+Format the response as:
+SCENARIOS:
+[List realistic scenarios, one per line]
+
+RESPONSES:
+[List appropriate teacher responses, one per line]
+
+Make sure scenarios directly relate to the module topic and description provided.`,
         moduleTopic: newModule.title,
         moduleDescription: newModule.description,
         difficultyLevel: newModule.difficulty,
@@ -165,26 +179,48 @@ export default function ComprehensiveModuleCreator() {
       if (response.ok) {
         const data = await response.json();
         
-        // Use fallback content since we want realistic examples
-        updateSection(sectionIndex, 'content', {
-          scenarios: `A child is having a meltdown during circle time
-Two children are fighting over a toy in dramatic play area
-A shy child won't participate in group activities
-Child spills paint during art activity and starts to cry
-New child cries every morning at drop-off
-A toddler bites another child during snack time`,
-          responses: `Offer a calm-down corner with sensory tools
-Implement a sharing timer system and teach turn-taking
-Use gentle encouragement and offer activity choices
-Stay calm, offer help: 'Accidents happen, let's clean up together'
-Establish a consistent goodbye routine with comfort items
-Address both children's needs immediately and safely`
-        });
-        
-        toast({
-          title: "Scenarios Generated",
-          description: "Realistic classroom scenarios and responses have been created for matching.",
-        });
+        // Parse the AI response to extract scenarios and responses
+        if (data.content) {
+          let scenarios = '';
+          let responses = '';
+          
+          try {
+            // Try to parse JSON first
+            const parsed = JSON.parse(data.content);
+            if (parsed.scenarios && parsed.responses) {
+              scenarios = Array.isArray(parsed.scenarios) ? parsed.scenarios.join('\n') : parsed.scenarios;
+              responses = Array.isArray(parsed.responses) ? parsed.responses.join('\n') : parsed.responses;
+            }
+          } catch {
+            // If not JSON, try to extract from text
+            const content = data.content;
+            const scenarioMatch = content.match(/scenarios?:?\s*\n(.*?)(?=responses?:?|$)/is);
+            const responseMatch = content.match(/responses?:?\s*\n(.*?)$/is);
+            
+            if (scenarioMatch && responseMatch) {
+              scenarios = scenarioMatch[1].trim();
+              responses = responseMatch[1].trim();
+            } else {
+              // Split content roughly in half if structure unclear
+              const lines = content.split('\n').filter(line => line.trim());
+              const midpoint = Math.ceil(lines.length / 2);
+              scenarios = lines.slice(0, midpoint).join('\n');
+              responses = lines.slice(midpoint).join('\n');
+            }
+          }
+          
+          updateSection(sectionIndex, 'content', {
+            scenarios: scenarios || `Scenarios related to ${newModule.title} will be generated here`,
+            responses: responses || `Appropriate responses for ${newModule.title} scenarios will be generated here`
+          });
+          
+          toast({
+            title: "Scenarios Generated",
+            description: `AI-generated scenarios and responses for ${newModule.title} have been created.`,
+          });
+        } else {
+          throw new Error('No content in AI response');
+        }
       } else {
         throw new Error('Content generation failed');
       }
