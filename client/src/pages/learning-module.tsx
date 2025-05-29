@@ -5,7 +5,7 @@ import { LearningModule as LearningModuleType, UserProgress } from "@shared/sche
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import Header from "@/components/Header";
-import ChatbotSupport from "@/components/ChatbotSupport";
+
 
 import {
   Card,
@@ -766,8 +766,43 @@ export default function LearningModulePage() {
                             {/* Text Section */}
                             {section.type === 'text' && (
                               <div className="mb-6">
-                                <div className="whitespace-pre-line text-gray-700">
+                                <div className="whitespace-pre-line text-gray-700 mb-4">
                                   {section.content}
+                                </div>
+                                <div className="flex justify-between items-center">
+                                  {completedSections.has(index) ? (
+                                    <span className="text-green-600 font-medium flex items-center">
+                                      <span className="mr-2">✓</span>
+                                      Section Complete
+                                    </span>
+                                  ) : (
+                                    <Button
+                                      onClick={() => markSectionCompleted(index)}
+                                      variant="outline"
+                                      size="sm"
+                                      className="border-green-600 text-green-600 hover:bg-green-50"
+                                    >
+                                      Mark as Complete
+                                    </Button>
+                                  )}
+                                  
+                                  {completedSections.has(index) && index < moduleSections.length - 1 && (
+                                    <Button
+                                      onClick={() => {
+                                        // Scroll to next section
+                                        setTimeout(() => {
+                                          const nextElement = document.querySelector(`[data-section-index="${index + 1}"]`);
+                                          if (nextElement) {
+                                            nextElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                          }
+                                        }, 500);
+                                      }}
+                                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                                      size="sm"
+                                    >
+                                      Next Section
+                                    </Button>
+                                  )}
                                 </div>
                               </div>
                             )}
@@ -1103,13 +1138,13 @@ export default function LearningModulePage() {
                 <div className="space-y-3">
                   <div>
                     <div className="flex justify-between mb-1 text-sm">
-                      <span>Lessons Completed</span>
+                      <span>Sections Completed</span>
                       <span className="font-semibold">
-                        {Math.floor((moduleLessons.length * currentProgress) / 100)}/{moduleLessons.length}
+                        {completedSections.size}/{moduleSections.length}
                       </span>
                     </div>
                     <Progress 
-                      value={(Math.floor((moduleLessons.length * currentProgress) / 100) / moduleLessons.length) * 100} 
+                      value={moduleSections.length > 0 ? (completedSections.size / moduleSections.length) * 100 : 0} 
                     />
                   </div>
                   
@@ -1128,22 +1163,28 @@ export default function LearningModulePage() {
             
             <Card>
               <CardHeader>
-                <CardTitle>Need Help?</CardTitle>
+                <CardTitle>Meet AI Beary</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-start">
                   <div className="mr-3 mt-1">
-                    <i className="ri-customer-service-2-line text-xl text-primary"></i>
+                    <span className="text-2xl">🐻</span>
                   </div>
                   <div>
                     <p className="text-sm mb-4">
-                      If you're stuck or have questions about this module, our support team is ready to help.
+                      I'm AI Beary, your teaching assistant! Ask me anything about this module, classroom strategies, or early childhood education.
                     </p>
                     <Button 
-                      className="w-full"
-                      onClick={() => document.getElementById('chatbot')?.classList.remove('hidden')}
+                      className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700"
+                      onClick={() => {
+                        const chatInput = prompt("What would you like to ask AI Beary about this module?");
+                        if (chatInput) {
+                          // For now, show a friendly response - later this will connect to AI
+                          alert(`AI Beary says: "That's a great question! I'm here to help you with ${module?.title || 'your learning'}. While I'm getting smarter every day, please reach out to your director for specific guidance about this topic."`);
+                        }
+                      }}
                     >
-                      Chat with Support
+                      Ask AI Beary
                     </Button>
                   </div>
                 </div>
@@ -1176,8 +1217,6 @@ export default function LearningModulePage() {
           </div>
         </div>
       </main>
-      
-      <ChatbotSupport />
     </div>
   );
 }
