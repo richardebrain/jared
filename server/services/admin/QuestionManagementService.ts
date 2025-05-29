@@ -1,4 +1,4 @@
-import { db } from '../../db';
+import { db } from '../db';
 import { 
   assessmentQuestions, 
   assessmentDomains,
@@ -10,7 +10,7 @@ import {
   type InsertAssessmentQuestion,
   type InsertQuestionAvailability
 } from '@shared/schema';
-import { eq, and, or, like, desc, asc, count, sql } from 'drizzle-orm';
+import { eq, and, or, like, desc, asc, count, sql, SQL } from 'drizzle-orm';
 import { z } from 'zod';
 
 // Input validation schemas
@@ -39,16 +39,16 @@ export const CreateQuestionSchema = z.object({
 export const UpdateQuestionSchema = CreateQuestionSchema.partial().omit({ id: true });
 
 export const QuestionFiltersSchema = z.object({
+  page: z.number().min(1).default(1),
+  limit: z.number().min(1).max(100).default(20),
+  sortBy: z.string().default('createdAt'),
+  sortOrder: z.enum(['asc', 'desc']).default('desc'),
   domainId: z.string().optional(),
   difficulty: z.string().optional(),
   isApproved: z.boolean().optional(),
   isEnabled: z.boolean().optional(),
   createdBy: z.number().optional(),
   search: z.string().optional(),
-  page: z.number().min(1).default(1),
-  limit: z.number().min(1).max(100).default(20),
-  sortBy: z.enum(['createdAt', 'updatedAt', 'text', 'difficulty', 'domainId']).default('createdAt'),
-  sortOrder: z.enum(['asc', 'desc']).default('desc'),
 });
 
 export type QuestionFilters = z.infer<typeof QuestionFiltersSchema>;
@@ -82,7 +82,7 @@ export class QuestionManagementService {
       const offset = (page - 1) * limit;
 
       // Build where conditions
-      const whereConditions = [];
+      const whereConditions: (SQL | undefined)[] = [];
       
       if (searchFilters.domainId) {
         whereConditions.push(eq(assessmentQuestions.domainId, searchFilters.domainId));
@@ -115,11 +115,14 @@ export class QuestionManagementService {
         );
       }
 
-      const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
+      const whereClause = whereConditions.length > 0 ? and(...whereConditions.filter(Boolean)) : undefined;
 
-      // Build order by clause
-      const orderByColumn = assessmentQuestions[sortBy as keyof typeof assessmentQuestions];
-      const orderBy = sortOrder === 'asc' ? asc(orderByColumn) : desc(orderByColumn);
+      // Build order by clause - ensure the column exists
+      const validSortColumns = ['createdAt', 'updatedAt', 'difficulty', 'isApproved', 'isEnabled'] as const;
+      const sortColumn = validSortColumns.includes(sortBy as any) ? sortBy : 'createdAt';
+      const orderBy = sortOrder === 'asc' 
+        ? asc(assessmentQuestions[sortColumn]) 
+        : desc(assessmentQuestions[sortColumn]);
 
       // Get total count for pagination
       const [countResult] = await db
@@ -150,7 +153,8 @@ export class QuestionManagementService {
           updatedAt: assessmentQuestions.updatedAt,
           // Metadata fields
           domainName: assessmentDomains.name,
-          createdByName: users.name,
+          createdByFirstName: users.firstName,
+          createdByLastName: users.lastName,
         })
         .from(assessmentQuestions)
         .leftJoin(assessmentDomains, eq(assessmentQuestions.domainId, assessmentDomains.name))
@@ -160,8 +164,16 @@ export class QuestionManagementService {
         .limit(limit)
         .offset(offset);
 
+      // Transform the results to include derived fields
+      const transformedQuestions: QuestionWithMetadata[] = questions.map(q => ({
+        ...q,
+        createdByName: q.createdByFirstName && q.createdByLastName 
+          ? `${q.createdByFirstName} ${q.createdByLastName}` 
+          : undefined,
+      }));
+
       return {
-        questions: questions as QuestionWithMetadata[],
+        questions: transformedQuestions,
         pagination: {
           page,
           limit,
@@ -200,14 +212,25 @@ export class QuestionManagementService {
           updatedAt: assessmentQuestions.updatedAt,
           // Metadata fields
           domainName: assessmentDomains.name,
-          createdByName: users.name,
+          createdByFirstName: users.firstName,
+          createdByLastName: users.lastName,
         })
         .from(assessmentQuestions)
         .leftJoin(assessmentDomains, eq(assessmentQuestions.domainId, assessmentDomains.name))
         .leftJoin(users, eq(assessmentQuestions.createdBy, users.id))
         .where(eq(assessmentQuestions.id, id));
 
-      return question as QuestionWithMetadata || null;
+      if (!question) return null;
+
+      // Transform the result to include derived fields
+      const transformedQuestion: QuestionWithMetadata = {
+        ...question,
+        createdByName: question.createdByFirstName && question.createdByLastName 
+          ? `${question.createdByFirstName} ${question.createdByLastName}` 
+          : undefined,
+      };
+
+      return transformedQuestion;
     } catch (error) {
       console.error('Error getting question by ID:', error);
       throw new Error('Failed to retrieve question');

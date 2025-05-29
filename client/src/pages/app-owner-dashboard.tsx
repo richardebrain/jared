@@ -39,6 +39,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { QuestionManagement } from "@/components/admin/QuestionManagement";
 
 export default function AppOwnerDashboard() {
   const { toast } = useToast();
@@ -199,11 +200,12 @@ export default function AppOwnerDashboard() {
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="schools">Schools</TabsTrigger>
           <TabsTrigger value="plans">Payment Plans</TabsTrigger>
           <TabsTrigger value="owners">App Owners</TabsTrigger>
+          <TabsTrigger value="assessments">Assessments</TabsTrigger>
         </TabsList>
         
         {/* Overview Tab */}
@@ -778,6 +780,11 @@ export default function AppOwnerDashboard() {
               </Table>
             </CardContent>
           </Card>
+        </TabsContent>
+        
+        {/* Assessments Tab */}
+        <TabsContent value="assessments">
+          <QuestionManagement />
         </TabsContent>
       </Tabs>
     </div>
