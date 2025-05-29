@@ -318,6 +318,99 @@ export default function DirectorMessages() {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="training">
+          {/* Assign Training */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <BookOpen className="h-5 w-5" />
+                <span>Assign Training to Teachers</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Select Training Module</label>
+                <Select
+                  value={trainingAssignment.moduleId}
+                  onValueChange={(value) => setTrainingAssignment({ ...trainingAssignment, moduleId: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a training module..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {modules && Array.isArray(modules) && modules.map((module: any) => (
+                      <SelectItem key={module.id} value={module.id.toString()}>
+                        <div className="flex items-center space-x-2">
+                          <BookOpen className="h-4 w-4" />
+                          <span>{module.title}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Select Teachers</label>
+                <div className="space-y-2">
+                  {teachers?.teachers && Array.isArray(teachers.teachers) && teachers.teachers.map((teacher: User) => (
+                    <label key={teacher.id} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={trainingAssignment.teacherIds.includes(teacher.id.toString())}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setTrainingAssignment({
+                              ...trainingAssignment,
+                              teacherIds: [...trainingAssignment.teacherIds, teacher.id.toString()]
+                            });
+                          } else {
+                            setTrainingAssignment({
+                              ...trainingAssignment,
+                              teacherIds: trainingAssignment.teacherIds.filter(id => id !== teacher.id.toString())
+                            });
+                          }
+                        }}
+                        className="rounded"
+                      />
+                      <span>{teacher.firstName} {teacher.lastName}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Due Date (Optional)</label>
+                <Input
+                  type="date"
+                  value={trainingAssignment.dueDate}
+                  onChange={(e) => setTrainingAssignment({ ...trainingAssignment, dueDate: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Additional Message (Optional)</label>
+                <Textarea
+                  placeholder="Add any additional instructions or context for this training assignment..."
+                  value={trainingAssignment.message}
+                  onChange={(e) => setTrainingAssignment({ ...trainingAssignment, message: e.target.value })}
+                  rows={3}
+                />
+              </div>
+
+              <Button 
+                onClick={handleAssignTraining}
+                disabled={assignTrainingMutation.isPending}
+                className="w-full"
+              >
+                {assignTrainingMutation.isPending ? "Assigning Training..." : "Assign Training"}
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
