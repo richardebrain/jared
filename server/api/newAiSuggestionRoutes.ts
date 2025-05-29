@@ -261,200 +261,293 @@ router.post('/generate', async (req, res) => {
           });
         }
       } else if (type === 'template-content' && prompt.includes('interactive scenario')) {
-        // Generate Interactive Scenarios with decision points
-        const scenarioContent = `# ${moduleTopic} - Interactive Scenario
+        // Generate AI-powered Interactive Scenarios based on teacher's content
+        try {
+          const aiResponse = await openai.chat.completions.create({
+            model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+            messages: [{
+              role: "system",
+              content: `You are an expert early childhood education curriculum designer. Create an interactive training scenario that helps teachers practice evidence-based responses to real classroom situations.
+
+REQUIREMENTS:
+- Create a realistic preschool scenario (ages 3-5) related to the topic: ${moduleTopic}
+- Include 3 decision points where teachers choose between different responses
+- For each decision point, provide 3 options: one excellent, one poor, one mediocre
+- Show immediate outcomes for each choice
+- Clearly mark the best choice and explain why using ECE research
+- Include follow-up reflection questions
+- Make it practical and immediately applicable
+
+STRUCTURE:
+1. Learning Objectives (4 specific, measurable goals)
+2. The Scenario (realistic classroom setting and situation)
+3. Three Decision Points with options and outcomes
+4. Why These Choices Matter (research-based explanations)
+5. Key Takeaways (actionable strategies)
+6. Reflection Questions (promote deeper thinking)
+
+TONE: Professional but engaging, supportive of teacher growth, grounded in child development theory.`
+            },
+            {
+              role: "user", 
+              content: `Create an interactive scenario for "${moduleTopic}" for ${difficultyLevel} level teachers. 
+
+Context from teacher's module:
+${moduleDescription}
+
+${sectionContent}
+
+Make this scenario directly relevant to the specific content the teacher has provided, not generic.`
+            }],
+            temperature: 0.7,
+          });
+
+          const scenarioContent = aiResponse.choices[0].message.content;
+          
+          return res.json({
+            suggestions: scenarioContent
+          });
+        } catch (aiError) {
+          console.error('AI scenario generation failed:', aiError);
+          // Fallback to template-based scenario
+          const fallbackScenario = `# ${moduleTopic} - Interactive Scenario
 
 ## 🎯 Learning Objectives
 By the end of this scenario, you will be able to:
-- Identify appropriate responses to challenging classroom situations
-- Apply evidence-based strategies for ${category} 
-- Make informed decisions that support children's development
+- Apply ${moduleTopic} strategies in real classroom situations
+- Choose appropriate responses based on child development principles
 - Reflect on the impact of different teaching approaches
+- Build confidence in handling challenging moments
 
-## 📖 The Scenario
+## 📖 Realistic Classroom Scenario
+[AI-generated scenario would appear here based on your specific content]
 
-**Setting:** It's 10:30 AM in your preschool classroom. You have 16 children ages 3-5 engaged in various learning centers.
+## 🤔 Decision Points
+[Multiple choice situations with outcomes would be generated based on your ${moduleTopic} content]
 
-**The Situation:** 
-Emma (age 4) has been building a tall block tower for the past 15 minutes. She's very focused and proud of her work. Suddenly, Tyler (age 3) runs past and accidentally knocks over her tower. Emma immediately starts crying loudly and yells "Tyler is mean! He broke my castle!" Tyler looks shocked and starts to tear up too.
+## 💡 Research-Based Explanations
+[Evidence-based reasoning for best practices would be provided]
 
-Several other children stop their activities to watch. The situation is escalating quickly.
+*Note: AI content generation temporarily unavailable. Please try again or contact support.*`;
 
-## 🤔 Decision Point 1: Your Immediate Response
-
-**What do you do first?**
-
-### Option A: Address Emma's Emotions First
-*"Emma, I can see you're really upset. That tower took a lot of work. Let's take some deep breaths together."*
-
-**Outcome:** Emma begins to calm down, but Tyler is still standing there looking confused and upset.
-
-### Option B: Focus on Problem-Solving
-*"Accidents happen! Emma and Tyler, let's work together to rebuild that tower even better!"*
-
-**Outcome:** Emma gets more upset because you didn't acknowledge her feelings. She shouts "NO!" and throws blocks.
-
-### Option C: Separate the Children
-*"Emma, you need to use your inside voice. Tyler, come sit in the quiet corner for a few minutes."*
-
-**Outcome:** Both children become more distressed. Tyler cries harder thinking he's in trouble, and Emma feels her feelings weren't heard.
-
-**✅ Best Choice: Option A** - Acknowledging emotions first helps children feel heard and valued.
-
-## 🤔 Decision Point 2: Helping Both Children
-
-**After Emma has calmed down slightly, how do you help both children?**
-
-### Option A: Facilitate Understanding
-*"Tyler, come here. Emma, can you tell Tyler how you felt when your tower fell down? Tyler, it was an accident, but how can we help Emma feel better?"*
-
-**Outcome:** Both children engage in problem-solving. Tyler offers to help rebuild, and Emma accepts.
-
-### Option B: Give a Mini-Lesson
-*"Class, everyone stop and listen. This is why we have a rule about walking feet in the classroom."*
-
-**Outcome:** The teaching moment interrupts the natural resolution process and makes both children feel like they're in trouble.
-
-### Option C: Distract and Redirect
-*"Look everyone! Let's all do jumping jacks and then have snack time!"*
-
-**Outcome:** The conflict isn't resolved, and children don't learn how to handle similar situations in the future.
-
-**✅ Best Choice: Option A** - Children learn empathy, communication, and problem-solving skills.
-
-## 🤔 Decision Point 3: Follow-Up Learning
-
-**How do you extend this learning opportunity?**
-
-### Option A: Individual Reflection
-*Talk privately with each child later about what happened and how they felt.*
-
-**Outcome:** Good individual processing, but misses the community learning opportunity.
-
-### Option B: Group Discussion
-*During circle time, discuss "What do we do when accidents happen?" without naming specific children.*
-
-**Outcome:** All children learn strategies for handling similar situations and build classroom community.
-
-### Option C: Move On
-*The situation is resolved, so no follow-up is needed.*
-
-**Outcome:** Missed opportunity to reinforce learning and build emotional intelligence skills.
-
-**✅ Best Choice: Option B** - Builds community problem-solving skills and emotional intelligence.
-
-## 🧠 Why These Choices Matter
-
-**Emotional Validation:** Children need to feel heard before they can learn. When we acknowledge feelings first, we build trust and emotional safety.
-
-**Teaching Moments:** Conflicts are opportunities to practice social-emotional skills in real, meaningful contexts.
-
-**Community Building:** When children learn to solve problems together, they develop empathy and cooperation skills that last a lifetime.
-
-## 💡 Key Takeaways
-- Always validate feelings before problem-solving
-- Use conflicts as learning opportunities, not just problems to fix
-- Help children develop their own problem-solving skills rather than solving for them
-- Follow up to reinforce learning and build community
-
-## 🤝 Try This Next Time
-When similar situations arise, remember the "Feel, Think, Act" approach:
-1. **Feel:** "I can see you're upset..."
-2. **Think:** "What do you think we could do about this?"
-3. **Act:** Support children in implementing their solutions
-
-## 📝 Reflection Questions
-- How might your response change based on the children's developmental levels?
-- What environmental factors could help prevent similar conflicts?
-- How can you support both the "victim" and the "aggressor" in conflicts?
-- What role does your own emotional regulation play in these moments?`;
-
-        return res.json({
-          suggestions: scenarioContent
-        });
+          return res.json({
+            suggestions: fallbackScenario
+          });
+        }
       } else {
         // Handle other template types with specific content generation
         let specificContent = '';
         
         if (prompt.includes('mini video lesson')) {
-          specificContent = `# ${moduleTopic} - Mini Video Lesson Script
+          // Generate AI-powered mini video lesson scripts
+          try {
+            const videoResponse = await openai.chat.completions.create({
+              model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+              messages: [{
+                role: "system",
+                content: `You are an expert early childhood education video content creator. Create a 3-minute video lesson script that's engaging, practical, and immediately actionable for preschool teachers.
+
+REQUIREMENTS:
+- 3-minute total duration with specific timing breakdowns
+- Energetic, supportive tone that builds teacher confidence
+- 3 specific, research-based strategies teachers can use immediately
+- Visual cues and directions for video production
+- Clear call-to-action and follow-up activities
+- Focus on practical implementation, not theory
+
+STRUCTURE:
+1. Hook (0-15 seconds) - Grab attention with energy and promise
+2. Main Content (15 seconds - 2:30 minutes) - 3 key strategies with examples
+3. Challenge (2:30-2:45 minutes) - Specific action for teachers to try
+4. Wrap-up (2:45-3:00 minutes) - Encouragement and next steps
+
+Make it specific to the teacher's content, not generic advice.`
+              },
+              {
+                role: "user",
+                content: `Create a mini video lesson script for "${moduleTopic}" for ${difficultyLevel} level teachers.
+
+Teacher's Content:
+${req.body.moduleDescription || ''}
+
+${req.body.sectionContent || ''}
+
+Make this directly applicable to their specific content and classroom situations.`
+              }],
+              temperature: 0.7,
+            });
+
+            specificContent = videoResponse.choices[0].message.content;
+          } catch (aiError) {
+            console.error('AI video script generation failed:', aiError);
+            specificContent = `# ${moduleTopic} - Mini Video Lesson Script
 
 ## 🎬 Video Hook (0-15 seconds)
 *[Energetic music, teacher waving]*
-"Hey there, amazing educators! Ready to transform your ${category} skills in just 3 minutes? Let's dive in!"
+"Hey there, amazing educators! Ready to transform your ${moduleTopic} skills in just 3 minutes? Let's dive in!"
 
 ## 📚 Main Teaching Points (15 seconds - 2 minutes)
 *[Visual: classroom scenes, bullet points on screen]*
+- Evidence-based strategies for ${moduleTopic}
+- Practical tips for immediate implementation
+- Real classroom examples and adaptations
 
-**Key Strategy #1:** [Evidence-based approach for ${moduleTopic}]
-- Quick tip that teachers can implement immediately
-- Visual example from real preschool setting
-
-**Key Strategy #2:** [Practical application]
-- Step-by-step process teachers can follow
-- Common mistake to avoid
-
-**Key Strategy #3:** [Student engagement technique]
-- How to make this work with different developmental levels
-- Adaptation ideas for diverse learners
-
-## ⚡ Action Challenge (2-2:30 minutes)
-*[Call-to-action screen with timer]*
-"Your challenge: Try ONE of these strategies in your classroom this week and notice what happens!"
-
-## 🎯 Wrap-Up (2:30-3 minutes)
-*[Encouraging teacher on screen]*
-"Remember, small changes make big impacts. You've got this! Share your wins in the comments below."
-
-## 🔗 Follow-Up Activities
-- Practice worksheet with scenario examples
-- Reflection journal prompts
-- Quick self-assessment checklist`;
+*Note: AI content generation temporarily unavailable. Please try again.*`;
+          }
         } else if (prompt.includes('quiz and teachback')) {
-          specificContent = `# ${moduleTopic} - Quiz & Teachback Session
+          // Generate AI-powered quiz and teachback sessions
+          try {
+            const quizResponse = await openai.chat.completions.create({
+              model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+              messages: [{
+                role: "system",
+                content: `You are an expert early childhood education assessment designer. Create engaging quiz questions and teachback challenges that help teachers practice and demonstrate their understanding.
 
-## 📋 Quick Knowledge Check (5 questions)
+REQUIREMENTS:
+- 5 multiple choice questions directly related to the teacher's content
+- Questions should test practical application, not just knowledge recall
+- Each answer should include research-based explanations
+- Create a realistic teachback scenario that teachers can practice
+- Include a detailed self-assessment checklist
+- Focus on real classroom situations and evidence-based practices
 
-**Question 1:** What is the most important first step when addressing ${moduleTopic} situations?
-a) Set clear rules
-b) Validate children's feelings
-c) Remove the child from the situation
-d) Call the parents
+STRUCTURE:
+1. Knowledge Check (5 targeted questions with explanations)
+2. Teachback Challenge (realistic scenario to explain/practice)
+3. Self-Assessment Checklist (specific skills to demonstrate)
+4. Next Steps (action planning for implementation)
 
-**Answer: B** - Research shows that emotional validation must come before problem-solving for effective learning.
+Make questions specific to the teacher's actual content and learning objectives.`
+              },
+              {
+                role: "user",
+                content: `Create a quiz and teachback session for "${moduleTopic}" for ${difficultyLevel} level teachers.
 
-**Question 2:** Which developmental factor is most important to consider with ${moduleTopic}?
-a) Age of the child
-b) Time of day
-c) Individual temperament and experiences
-d) Classroom size
+Teacher's Content:
+${req.body.moduleDescription || ''}
 
-**Answer: C** - Every child brings unique experiences and temperament that affect their responses.
+${req.body.sectionContent || ''}
 
-[Continue with 3 more targeted questions...]
+Generate questions and scenarios that directly relate to their specific content and teaching context.`
+              }],
+              temperature: 0.7,
+            });
+
+            specificContent = quizResponse.choices[0].message.content;
+          } catch (aiError) {
+            console.error('AI quiz generation failed:', aiError);
+            specificContent = `# ${moduleTopic} - Quiz & Teachback Session
+
+## 📋 Quick Knowledge Check
+Questions will be generated based on your specific content about ${moduleTopic}.
 
 ## 🎓 Teachback Challenge
+Practice scenarios will be created from your module materials.
 
-**Your Task:** Explain to a colleague (or practice out loud) how you would handle this situation:
+*Note: AI content generation temporarily unavailable. Please try again.*`;
+          }
+        } else if (prompt.includes('slide') || prompt.includes('storyboard')) {
+          // Generate AI-powered slide/storyboard content
+          try {
+            const storyboardResponse = await openai.chat.completions.create({
+              model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+              messages: [{
+                role: "system",
+                content: `You are an expert early childhood education visual content designer. Create detailed storyboard content that teachers can easily turn into slides, presentations, or visual materials.
 
-*"A 4-year-old child is consistently having meltdowns during transition times, affecting the whole class dynamic."*
+REQUIREMENTS:
+- 8-12 slides/frames with specific visual descriptions
+- Each slide should have clear visual elements, text, and teaching notes
+- Include engaging activities and interactive elements
+- Provide specific directions for creating visuals (photos, drawings, etc.)
+- Make content developmentally appropriate for preschool ages
+- Include extension activities and discussion prompts
 
-**Include in your explanation:**
-- What you would observe first
-- How you would respond in the moment
-- What long-term strategies you would implement
-- How you would communicate with parents
+STRUCTURE:
+1. Title Slide (attention-grabbing opening)
+2. Learning Objectives (child-friendly goals)
+3-8. Main Content Slides (key concepts with visuals)
+9-10. Interactive Activities (hands-on engagement)
+11. Reflection/Assessment (checking understanding)
+12. Next Steps (extending learning)
 
-## ✅ Self-Assessment Checklist
-After your teachback, check if you included:
-□ Acknowledged the child's developmental needs
-□ Mentioned specific, actionable strategies
-□ Considered environmental factors
-□ Planned for parent communication
-□ Showed understanding of underlying causes
+Focus on visual storytelling and hands-on engagement.`
+              },
+              {
+                role: "user",
+                content: `Create a slide/storyboard sequence for "${moduleTopic}" for ${difficultyLevel} level teachers.
 
-## 🚀 Next Steps
-Based on your teachback, identify one area to focus on improving in your practice.`;
+Teacher's Content:
+${req.body.moduleDescription || ''}
+
+${req.body.sectionContent || ''}
+
+Create visual content that brings their specific material to life for preschool children.`
+              }],
+              temperature: 0.7,
+            });
+
+            specificContent = storyboardResponse.choices[0].message.content;
+          } catch (aiError) {
+            console.error('AI storyboard generation failed:', aiError);
+            specificContent = `# ${moduleTopic} - Visual Storyboard
+
+## 🎨 Slide Sequence
+Visual storyboard will be generated based on your ${moduleTopic} content.
+
+*Note: AI content generation temporarily unavailable. Please try again.*`;
+          }
+        } else if (prompt.includes('roleplay')) {
+          // Generate AI-powered roleplay scenarios
+          try {
+            const roleplayResponse = await openai.chat.completions.create({
+              model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+              messages: [{
+                role: "system",
+                content: `You are an expert early childhood education drama and roleplay specialist. Create engaging roleplay scenarios that help teachers practice real classroom situations.
+
+REQUIREMENTS:
+- 3-4 different roleplay scenarios with specific roles and scripts
+- Include both teacher-child and teacher-parent interaction scenarios
+- Provide multiple response options and coaching tips
+- Make scenarios realistic and based on common classroom challenges
+- Include debrief questions and learning objectives
+- Focus on building confidence and practical skills
+
+STRUCTURE:
+1. Scenario Setup (context and roles)
+2. Initial Scripts (starting dialogue for each role)
+3. Decision Points (multiple response options)
+4. Coaching Tips (what to focus on during practice)
+5. Debrief Questions (reflection after roleplay)
+6. Variations (adapting for different situations)
+
+Make scenarios directly relevant to the teacher's specific content and challenges.`
+              },
+              {
+                role: "user",
+                content: `Create roleplay scenarios for "${moduleTopic}" for ${difficultyLevel} level teachers.
+
+Teacher's Content:
+${req.body.moduleDescription || ''}
+
+${req.body.sectionContent || ''}
+
+Generate realistic practice scenarios that help them apply their specific learning in safe roleplay situations.`
+              }],
+              temperature: 0.7,
+            });
+
+            specificContent = roleplayResponse.choices[0].message.content;
+          } catch (aiError) {
+            console.error('AI roleplay generation failed:', aiError);
+            specificContent = `# ${moduleTopic} - Roleplay Scenarios
+
+## 🎭 Practice Scenarios
+Roleplay activities will be generated based on your ${moduleTopic} content.
+
+*Note: AI content generation temporarily unavailable. Please try again.*`;
+          }
         } else {
           // Default content for other types
           specificContent = `# ${moduleTopic} Module Content

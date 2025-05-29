@@ -4551,6 +4551,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Serve uploaded audio files
+  app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
   // Return server for use in tests and closing
   return httpServer;
 }
