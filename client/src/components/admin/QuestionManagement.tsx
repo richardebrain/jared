@@ -94,10 +94,16 @@ export function QuestionManagement() {
     ...(enabledFilter !== "" && { isEnabled: enabledFilter === "true" }),
   };
 
+  // Debug: Log the query parameters
+  console.log("QuestionManagement queryParams:", queryParams);
+
   // Fetch questions
   const { data: questionsData, isLoading: isLoadingQuestions, error } = useQuery({
     queryKey: ["/api/admin/questions", queryParams],
     retry: false,
+    onError: (error) => {
+      console.error("Questions query error:", error);
+    },
   });
 
   // Fetch domains for filter dropdown
