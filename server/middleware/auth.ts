@@ -1,42 +1,23 @@
+import { Request, Response, NextFunction } from "express";
+import { storage } from "../storage";
 
-import type { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import { db } from '../db';
-import { users } from '@shared/schema';
-import { eq } from 'drizzle-orm';
-
-export interface AuthenticatedRequest extends Request {
-  user?: any;
-}
-
-export const checkAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+export const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  
   try {
-    // Check for session-based auth first
-    if ((req as any).session?.userId) {
-      const user = await db.select().from(users).where(eq(users.id, (req as any).session.userId));
-      if (user?.length) {
-        req.user = user[0];
-        return next();
-      }
-    }
-
-    // Check for JWT token in Authorization header
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
-      return res.status(401).json({ message: 'Authentication required' });
-    }
-
-    const decoded = jwt.verify(token, process.env.SESSION_SECRET as string) as { userId: number };
-    const user = await db.select().from(users).where(eq(users.id, decoded.userId));
+    const userId = req.session.userId;
+    const user = await storage.getUser(userId);
     
-    if (!user?.length) {
-      return res.status(401).json({ message: 'User not found' });
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
     }
-
-    req.user = user[0];
+    
+    // User is authenticated, proceed to next middleware
     next();
   } catch (error) {
-    console.error('Auth error:', error);
-    return res.status(401).json({ message: 'Invalid or expired token' });
+    console.error("Auth middleware error:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };

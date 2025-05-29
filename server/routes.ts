@@ -33,6 +33,7 @@ import communityModulesRoutes from "./api/communityModulesRoutes";
 import selfAssessmentRoutes from "./api/selfAssessmentRoutes";
 import teacherInvitationRoutes from "./api/teacherInvitationRoutes";
 import avatarRoutes from "./api/avatarRoutes";
+import emailRoutes from "./api/emailRoutes";
 import { AIBearyService } from "./services/aiBearyService";
 
 // For ESM __dirname equivalent
@@ -248,6 +249,9 @@ Continue for all 5 questions...
   
   // Register self-assessment routes
   app.use("/api", selfAssessmentRoutes);
+  
+  // Register email service routes
+  app.use("/api/email", emailRoutes);
   
   const httpServer = createServer(app);
   

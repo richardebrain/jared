@@ -63,6 +63,7 @@ import AvatarCustomizationPage from "@/pages/avatar-customization";
 import DirectorMessages from "@/pages/director-messages";
 import ComprehensiveModuleCreator from "@/pages/comprehensive-module-creator";
 import ModuleWizard from "@/pages/module-wizard";
+import EmailServiceDemo from "@/pages/EmailServiceDemo";
 
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
