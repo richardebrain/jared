@@ -100,15 +100,59 @@ export function QuestionManagement() {
   // Fetch questions
   const { data: questionsData, isLoading: isLoadingQuestions, error } = useQuery({
     queryKey: ["/api/admin/questions", queryParams],
-    retry: false,
-    onError: (error) => {
-      console.error("Questions query error:", error);
+    queryFn: async () => {
+      try {
+        // Construct URL with query parameters
+        const url = new URL("/api/admin/questions", window.location.origin);
+        Object.entries(queryParams).forEach(([key, value]) => {
+          if (value !== undefined) {
+            url.searchParams.append(key, String(value));
+          }
+        });
+        
+        console.log("Fetching questions from URL:", url.toString());
+        const response = await fetch(url.toString());
+        
+        if (!response.ok) {
+          console.error("Questions fetch failed:", response.status, response.statusText);
+          const errorBody = await response.text();
+          console.error("Error details:", errorBody);
+          throw new Error(`Questions fetch failed: ${response.status} - ${errorBody}`);
+        }
+        
+        const data = await response.json();
+        console.log("Questions fetched successfully:", data);
+        return data;
+      } catch (err) {
+        console.error("Exception in questions fetch:", err);
+        throw err;
+      }
     },
+    retry: false,
   });
 
   // Fetch domains for filter dropdown
   const { data: domains } = useQuery({
     queryKey: ["/api/admin/domains", { admin_password: TEMP_ADMIN_PASSWORD }],
+    queryFn: async () => {
+      try {
+        const url = `/api/admin/domains?admin_password=${TEMP_ADMIN_PASSWORD}`;
+        console.log("Fetching domains from URL:", url);
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          console.error("Domains fetch failed:", response.status, response.statusText);
+          throw new Error(`Domains fetch failed: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log("Domains fetched successfully:", data);
+        return data;
+      } catch (err) {
+        console.error("Exception in domains fetch:", err);
+        throw err;
+      }
+    },
     retry: false,
   });
 
