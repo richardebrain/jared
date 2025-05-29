@@ -34,6 +34,7 @@ import selfAssessmentRoutes from "./api/selfAssessmentRoutes";
 import teacherInvitationRoutes from "./api/teacherInvitationRoutes";
 import avatarRoutes from "./api/avatarRoutes";
 import emailRoutes from "./api/emailRoutes";
+import adminRoutes from "./routes/admin";
 import { AIBearyService } from "./services/aiBearyService";
 
 // For ESM __dirname equivalent
@@ -253,6 +254,9 @@ Continue for all 5 questions...
   
   // Register email service routes
   app.use("/api/email", emailRoutes);
+  
+  // Register admin routes for question management
+  app.use("/api/admin", adminRoutes);
   
   const httpServer = createServer(app);
   
