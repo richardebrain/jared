@@ -100,8 +100,7 @@ export default function LessonPlanCreator() {
         duration: lessonPlan.duration
       });
     },
-    onSuccess: async (response) => {
-      const data = await response.json();
+    onSuccess: (data) => {
       if (data.lessonPlan) {
         setLessonPlan(prev => ({
           ...prev,
