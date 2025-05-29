@@ -270,13 +270,14 @@ router.post('/generate', async (req, res) => {
               content: `You are an expert early childhood education curriculum designer. Create an interactive training scenario that helps teachers practice evidence-based responses to real classroom situations.
 
 REQUIREMENTS:
-- Create a realistic preschool scenario (ages 3-5) related to the topic: ${moduleTopic}
+- Create a realistic preschool scenario (ages 3-5) about: ${moduleTopic}
 - Include 3 decision points where teachers choose between different responses
 - For each decision point, provide 3 options: one excellent, one poor, one mediocre
 - Show immediate outcomes for each choice
 - Clearly mark the best choice and explain why using ECE research
 - Include follow-up reflection questions
 - Make it practical and immediately applicable
+- Focus on evidence-based practices and developmentally appropriate responses
 
 STRUCTURE:
 1. Learning Objectives (4 specific, measurable goals)
@@ -290,14 +291,14 @@ TONE: Professional but engaging, supportive of teacher growth, grounded in child
             },
             {
               role: "user", 
-              content: `Create an interactive scenario for "${moduleTopic}" for ${difficultyLevel} level teachers. 
+              content: `Create an interactive scenario about "${moduleTopic}" for ${difficultyLevel} level ECE teachers. 
 
 Context from teacher's module:
-${moduleDescription}
+${req.body.moduleDescription || 'General early childhood education content'}
 
-${sectionContent}
+${req.body.sectionContent || 'Focus on evidence-based practices and developmentally appropriate responses'}
 
-Make this scenario directly relevant to the specific content the teacher has provided, not generic.`
+Create a realistic preschool scenario with multiple decision points where teachers choose between good and bad approaches. Make it practical and immediately applicable to classroom situations.`
             }],
             temperature: 0.7,
           });
@@ -309,8 +310,118 @@ Make this scenario directly relevant to the specific content the teacher has pro
           });
         } catch (aiError) {
           console.error('AI scenario generation failed:', aiError);
-          // Fallback to template-based scenario
-          const fallbackScenario = `# ${moduleTopic} - Interactive Scenario
+          // Create a specific scenario for the topic
+          let fallbackScenario = '';
+          
+          if (moduleTopic.toLowerCase().includes('biting')) {
+            fallbackScenario = `# Handling Biting Incidents - Interactive Scenario
+
+## 🎯 Learning Objectives
+By the end of this scenario, you will be able to:
+- Respond immediately and appropriately to biting incidents
+- Support both the child who bit and the child who was bitten
+- Implement prevention strategies based on understanding biting triggers
+- Communicate effectively with parents about biting incidents
+
+## 📖 The Scenario
+
+**Setting:** It's 10:15 AM during free play time in your 3-year-old classroom. You have 12 children engaged in various activities.
+
+**The Situation:** 
+Maya (3 years old) has been playing with blocks near the dramatic play area. Jayden (also 3) approaches and tries to take a block from Maya's tower. Maya immediately bites Jayden on the shoulder. Jayden screams and starts crying. Several other children look over, and one starts crying too because they're scared.
+
+## 🤔 Decision Point 1: Your Immediate Response
+
+**What do you do first?**
+
+### Option A: Focus on the Victim First
+*Rush to Jayden, check the bite mark, comfort him, and get an ice pack while saying "Maya, we don't bite friends. That hurt Jayden."*
+
+**Outcome:** ✅ Jayden feels supported and safe. Maya understands her action caused harm but doesn't feel abandoned.
+
+### Option B: Discipline the Biter Immediately
+*Immediately tell Maya "NO! Biting is bad! You need to sit in time-out right now!" and put her in the quiet corner.*
+
+**Outcome:** ❌ Maya becomes more upset and doesn't learn alternative behaviors. Jayden still needs care and comfort.
+
+### Option C: Separate and Lecture Both Children
+*Pull both children aside and say "We need to talk about sharing and using our words instead of our teeth."*
+
+**Outcome:** ⚠️ Addresses the behavior but doesn't prioritize the injured child's immediate needs or emotional state.
+
+**✅ Best Choice: Option A** - Always attend to the injured child first while briefly acknowledging the biter's behavior.
+
+## 🤔 Decision Point 2: Supporting Both Children
+
+**After caring for Jayden's immediate needs, how do you help both children?**
+
+### Option A: Facilitate Problem-Solving
+*Bring Maya over and say "Maya, look at Jayden. He's crying because the bite hurt. When you want a toy, you can say 'Can I have that?' Let's practice together."*
+
+**Outcome:** ✅ Maya learns alternative communication skills and sees the impact of her actions. Both children learn problem-solving.
+
+### Option B: Make Maya Apologize
+*Tell Maya "You need to say sorry to Jayden right now and give him a hug."*
+
+**Outcome:** ❌ Forced apologies don't teach genuine empathy and may increase Maya's frustration.
+
+### Option C: Remove Maya from the Activity
+*Tell Maya "Since you bit, you can't play with toys for the rest of free time. You need to sit with me."*
+
+**Outcome:** ⚠️ This is punishment without learning and doesn't address the underlying need or skill deficit.
+
+**✅ Best Choice: Option A** - Focus on teaching skills and natural consequences rather than punishment.
+
+## 🤔 Decision Point 3: Prevention and Follow-Up
+
+**What steps do you take to prevent future biting incidents?**
+
+### Option A: Increase Supervision and Teach Alternatives
+*Shadow Maya during transitions and high-stress times, teach her to say "I'm mad" or "Help me," and create visual cues for problem-solving.*
+
+**Outcome:** ✅ Addresses root causes and builds Maya's communication toolkit for future situations.
+
+### Option B: Remove Maya from Group Activities
+*Keep Maya separated from other children during play times until the biting stops completely.*
+
+**Outcome:** ❌ Isolation prevents social skill development and may increase challenging behaviors.
+
+### Option C: Create a Behavior Chart
+*Make a sticker chart where Maya gets rewards for "no biting" days.*
+
+**Outcome:** ⚠️ External rewards don't build internal motivation and may not address underlying triggers.
+
+**✅ Best Choice: Option A** - Prevention through skill-building and environmental modifications.
+
+## 🧠 Why These Choices Matter
+
+**Safety First:** The injured child's physical and emotional needs take priority in any incident.
+
+**Teaching Moments:** Biting is often a communication issue - children need alternative ways to express needs and frustrations.
+
+**Development Understanding:** 3-year-olds are still developing language skills and emotional regulation. They need support, not shame.
+
+**Prevention Focus:** Understanding triggers (transitions, frustration, tiredness) helps prevent future incidents.
+
+## 💡 Key Takeaways
+- Always care for the injured child first while briefly addressing the biter
+- Biting is usually communication - teach alternatives like "Help me," "I'm mad," or "My turn"
+- Shadow children who bite during high-risk times (transitions, when tired/hungry)
+- Document incidents objectively and communicate with parents about strategies
+
+## 🤝 Try This Next Time
+Use the "STOP-LOOK-LISTEN" approach:
+1. **STOP:** The unsafe behavior immediately
+2. **LOOK:** Check on the injured child and assess the situation  
+3. **LISTEN:** To what the child who bit was trying to communicate
+
+## 📝 Reflection Questions
+- What might have triggered Maya's biting? (frustration, language barriers, tiredness?)
+- How can you modify the environment to reduce biting triggers?
+- What communication tools can you teach children as alternatives to biting?
+- How will you communicate this incident to both sets of parents?`;
+          } else {
+            fallbackScenario = `# ${moduleTopic} - Interactive Scenario
 
 ## 🎯 Learning Objectives
 By the end of this scenario, you will be able to:
@@ -320,15 +431,13 @@ By the end of this scenario, you will be able to:
 - Build confidence in handling challenging moments
 
 ## 📖 Realistic Classroom Scenario
-[AI-generated scenario would appear here based on your specific content]
+Create a realistic scenario about ${moduleTopic} for your specific classroom context.
 
 ## 🤔 Decision Points
-[Multiple choice situations with outcomes would be generated based on your ${moduleTopic} content]
+Practice making decisions between different approaches for handling ${moduleTopic} situations.
 
-## 💡 Research-Based Explanations
-[Evidence-based reasoning for best practices would be provided]
-
-*Note: AI content generation temporarily unavailable. Please try again or contact support.*`;
+*Note: Try the AI-powered scenario generator for more detailed content.*`;
+          }
 
           return res.json({
             suggestions: fallbackScenario
