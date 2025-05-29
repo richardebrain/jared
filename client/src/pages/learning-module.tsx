@@ -21,6 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { Separator } from "@/components/ui/separator";
 import { GamefiedQuiz } from "@/components/GamefiedQuiz";
+import { AIBearyModal } from "@/components/AIBearyModal";
 
 // Define module-specific lessons
 const getModuleLessons = (moduleId: number) => {
@@ -1176,11 +1177,24 @@ export default function LearningModulePage() {
                     </p>
                     <Button 
                       className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700"
-                      onClick={() => {
+                      onClick={async () => {
                         const chatInput = prompt("What would you like to ask AI Beary about this module?");
                         if (chatInput) {
-                          // For now, show a friendly response - later this will connect to AI
-                          alert(`AI Beary says: "That's a great question! I'm here to help you with ${module?.title || 'your learning'}. While I'm getting smarter every day, please reach out to your director for specific guidance about this topic."`);
+                          try {
+                            const response = await apiRequest("POST", "/api/ai-beary/chat", {
+                              query: chatInput,
+                              moduleContext: module?.title
+                            });
+                            
+                            const result = await response.json();
+                            
+                            // Create a more user-friendly display
+                            const formattedMessage = result.message.replace(/\*\*(.*?)\*\*/g, '$1');
+                            alert(formattedMessage);
+                          } catch (error) {
+                            console.error('AI Beary error:', error);
+                            alert("🐻 AI Beary says: I'm having some technical difficulties right now! Please try again in a moment, or reach out to your director for immediate assistance.");
+                          }
                         }
                       }}
                     >

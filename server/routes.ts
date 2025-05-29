@@ -33,6 +33,7 @@ import communityModulesRoutes from "./api/communityModulesRoutes";
 import selfAssessmentRoutes from "./api/selfAssessmentRoutes";
 import teacherInvitationRoutes from "./api/teacherInvitationRoutes";
 import avatarRoutes from "./api/avatarRoutes";
+import { AIBearyService } from "./services/aiBearyService";
 
 // For ESM __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -2888,6 +2889,27 @@ Continue for all 5 questions...
     }
   });
   
+  // AI Beary assistant route
+  app.post("/api/ai-beary/chat", requireAuth, async (req, res) => {
+    try {
+      const { query, moduleContext } = req.body;
+      
+      if (!query || typeof query !== 'string') {
+        return res.status(400).json({ message: "Query is required" });
+      }
+      
+      const response = await AIBearyService.processQuery(query, moduleContext);
+      res.status(200).json(response);
+    } catch (error) {
+      console.error("AI Beary service error:", error);
+      res.status(500).json({ 
+        message: "AI Beary is having technical difficulties. Please try again later.",
+        isAppropriate: true,
+        category: 'general'
+      });
+    }
+  });
+
   // Core Values Shout Outs routes
   app.get("/api/core-values-shoutouts", async (req, res) => {
     try {
