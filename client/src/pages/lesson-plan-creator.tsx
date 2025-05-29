@@ -93,11 +93,15 @@ export default function LessonPlanCreator() {
   // AI-powered lesson plan generation
   const generateLessonPlanMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("POST", "/api/generate-lesson-plan", {
-        title: lessonPlan.title,
-        description: lessonPlan.description,
-        ageGroup: lessonPlan.ageGroup,
-        duration: lessonPlan.duration
+      return await apiRequest("/api/generate-lesson-plan", {
+        method: "POST",
+        timeout: 30000, // 30 second timeout for AI requests
+        data: {
+          title: lessonPlan.title,
+          description: lessonPlan.description,
+          ageGroup: lessonPlan.ageGroup,
+          duration: lessonPlan.duration
+        }
       });
     },
     onSuccess: async (response) => {

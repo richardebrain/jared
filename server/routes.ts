@@ -4755,6 +4755,9 @@ Continue for all 5 questions...
         });
       }
 
+      console.log("Starting AI lesson plan generation for:", title);
+      console.log("OpenAI API key available:", !!process.env.OPENAI_API_KEY);
+
       // Get available standards for alignment
       const allStandards = await storage.getAllEarlyLearningStandards();
       
