@@ -49,6 +49,8 @@ import BearyAIPage from "@/pages/beary-ai";
 import GamesPage from "@/pages/games";
 import AdminPage from "@/pages/admin";
 import LessonPlanMakerPage from "@/pages/lesson-plan-maker";
+import LessonPlanCreator from "@/pages/lesson-plan-creator";
+import LessonPlanViewer from "@/pages/lesson-plan-viewer";
 import CasinoPage from "@/pages/casino";
 import TransitionTimer from "@/pages/transition-timer";
 import SchoolDashboard from "@/pages/school-dashboard";
@@ -528,6 +530,30 @@ function Router(props: {
           </div>
         ) : (
           <LessonPlanMakerPage />
+        )}
+      </Route>
+
+      <Route path="/lesson-plan-creator">
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <LessonPlanCreator />
+        )}
+      </Route>
+
+      <Route path="/lesson-plan/:id">
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <LessonPlanViewer />
         )}
       </Route>
 

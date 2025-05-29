@@ -48,7 +48,7 @@ interface StandardSuggestion {
 }
 
 export default function LessonPlanCreator() {
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
 
   const [lessonPlan, setLessonPlan] = useState<LessonPlan>({
