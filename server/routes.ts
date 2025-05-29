@@ -237,6 +237,7 @@ Continue for all 5 questions...
   
   // Register AI suggestion routes
   app.use("/api/ai", aiSuggestionRoutes);
+  app.use("/api/ai-suggestions", aiSuggestionRoutes);
   
   // Register personalized mini-lessons routes
   app.use("/api", personalizedModuleRoutes);
