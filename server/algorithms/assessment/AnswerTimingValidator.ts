@@ -1,3 +1,5 @@
+import { AssessmentTimerService } from '../../services/assessment/AssessmentTimerService';
+
 /**
  * Answer Timing Validator for EP-001-09
  * 
@@ -5,6 +7,11 @@
  * with integration to EP-001-08 timer services.
  */
 export class AnswerTimingValidator {
+  private timerService: AssessmentTimerService;
+
+  constructor() {
+    this.timerService = new AssessmentTimerService();
+  }
   
   /**
    * Validate answer submission timing
@@ -16,7 +23,7 @@ export class AnswerTimingValidator {
     timePerQuestion: number
   ): Promise<TimingValidationResult> {
     
-    // Get the question start time from timer service
+    // Get the question start time from EP-001-08 timer service
     const questionStartTime = await this.getQuestionStartTime(assessmentId, questionId);
     
     if (!questionStartTime) {
@@ -26,7 +33,7 @@ export class AnswerTimingValidator {
         wasLateSubmission: true,
         timeSpent: 0,
         remainingTime: 0,
-        errorMessage: 'Question start time not found'
+        errorMessage: 'Question start time not found - no active timer'
       };
     }
     
@@ -48,7 +55,7 @@ export class AnswerTimingValidator {
   }
   
   /**
-   * Check if question has timed out
+   * Check if question has timed out using timer service
    */
   async hasQuestionTimedOut(
     assessmentId: number,
@@ -68,17 +75,50 @@ export class AnswerTimingValidator {
   }
   
   /**
-   * Get question start time from timer service
+   * Get question start time from EP-001-08 timer service
    */
   private async getQuestionStartTime(assessmentId: number, questionId: string): Promise<Date | null> {
-    // This would integrate with the TimerService from EP-001-08
-    // For now, we'll return a placeholder implementation
-    
-    // TODO: Integrate with actual timer service implementation
-    // return await TimerService.getQuestionStartTime(assessmentId, questionId);
-    
-    // Placeholder: assume question started 30 seconds ago
-    return new Date(Date.now() - 30000);
+    try {
+      // Get current timer status from EP-001-08 AssessmentTimerService
+      const timerStatus = await this.timerService.getCurrentTimerStatus(assessmentId);
+      
+      if (!timerStatus || !timerStatus.isActive) {
+        console.warn(`No active timer found for assessment ${assessmentId}, question ${questionId}`);
+        return null;
+      }
+
+      // Return the question start time from the active timer
+      return timerStatus.questionStartTime;
+      
+    } catch (error) {
+      console.error(`Error getting question start time for assessment ${assessmentId}:`, error);
+      return null;
+    }
+  }
+  
+  /**
+   * Validate submission against EP-001-08 timer service
+   */
+  async validateWithTimerService(
+    assessmentId: number,
+    submissionTime: Date
+  ): Promise<{ isValid: boolean; reason?: string }> {
+    try {
+      // Use the timer service's built-in validation
+      const isValid = await this.timerService.validateSubmissionTiming(assessmentId, submissionTime);
+      
+      return {
+        isValid,
+        reason: isValid ? undefined : 'Submission received after timer expiration'
+      };
+      
+    } catch (error) {
+      console.error(`Error validating submission timing:`, error);
+      return {
+        isValid: false,
+        reason: `Timer validation error: ${error.message}`
+      };
+    }
   }
   
   /**

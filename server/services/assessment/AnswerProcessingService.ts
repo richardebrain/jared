@@ -128,15 +128,17 @@ export class AnswerProcessingService {
     try {
       console.log(`Processing answer for assessment ${answerSubmission.assessmentId}, question ${answerSubmission.questionId}`);
 
-      // Step 1: Validate timing against server-authoritative timer
-      const timingValidation = await this.timingValidator.validateSubmissionTiming(
+      // Step 1: Comprehensive timing validation using both validators
+      const config = await this.getAssessmentConfig(answerSubmission.assessmentId);
+      const timingValidation = await this.validateTimingComprehensive(
         answerSubmission.assessmentId,
         answerSubmission.questionId,
-        answerSubmission.submissionTime
+        answerSubmission.submissionTime,
+        config.timePerQuestion
       );
 
       // Step 2: Reject late submissions with clear error
-      if (timingValidation.isLateSubmission) {
+      if (timingValidation.wasLateSubmission) {
         console.log(`Late submission rejected for question ${answerSubmission.questionId}`);
         throw new Error(`Answer submission rejected: Question timer has expired. Remaining time: ${timingValidation.remainingTime}ms`);
       }
@@ -166,7 +168,7 @@ export class AnswerProcessingService {
         timedOut: false,
         difficulty: question.difficulty,
         domainId: question.domainId,
-        wasLateSubmission: false,
+        wasLateSubmission: timingValidation.wasLateSubmission,
         processingTimestamp: new Date()
       });
 
@@ -182,12 +184,12 @@ export class AnswerProcessingService {
         pointsEarned,
         difficulty: this.parseDifficulty(question.difficulty),
         domainId: question.domainId,
-        wasValidTiming: true,
-        wasLateSubmission: false,
+        wasValidTiming: timingValidation.isValid,
+        wasLateSubmission: timingValidation.wasLateSubmission,
         timingDetails: {
           responseTimeMs: answerSubmission.responseTimeMs,
           remainingTimeAtSubmission: timingValidation.remainingTime,
-          submissionValid: true
+          submissionValid: timingValidation.isValid
         },
         miniLessonRecommendations,
         assessmentProgress
@@ -202,6 +204,64 @@ export class AnswerProcessingService {
       }
       
       throw error;
+    }
+  }
+
+  /**
+   * Comprehensive timing validation using both EP-001-08 timer service and timing validator
+   */
+  private async validateTimingComprehensive(
+    assessmentId: number,
+    questionId: string,
+    submissionTime: Date,
+    timePerQuestion: number
+  ): Promise<TimingValidationResult> {
+    try {
+      // Primary validation using enhanced AnswerTimingValidator (with EP-001-08 integration)
+      const primaryValidation = await this.timingValidator.validateSubmissionTiming(
+        assessmentId,
+        questionId,
+        submissionTime,
+        timePerQuestion
+      );
+
+      // Secondary validation using direct timer service
+      const timerServiceValidation = await this.timingValidator.validateWithTimerService(
+        assessmentId,
+        submissionTime
+      );
+
+      // If both validators agree, use the primary result
+      if (primaryValidation.isValid === timerServiceValidation.isValid) {
+        return primaryValidation;
+      }
+
+      // If validators disagree, use the more restrictive (safer) result
+      console.warn(`Timing validation mismatch for assessment ${assessmentId}: primary=${primaryValidation.isValid}, timer=${timerServiceValidation.isValid}`);
+      
+      if (!primaryValidation.isValid || !timerServiceValidation.isValid) {
+        return {
+          ...primaryValidation,
+          isValid: false,
+          wasLateSubmission: true,
+          errorMessage: `Timing validation conflict - using restrictive validation: ${timerServiceValidation.reason || primaryValidation.errorMessage}`
+        };
+      }
+
+      return primaryValidation;
+
+    } catch (error) {
+      console.error('Error in comprehensive timing validation:', error);
+      
+      // Fallback to restrictive validation on error
+      return {
+        isValid: false,
+        wasTimeout: true,
+        wasLateSubmission: true,
+        timeSpent: 0,
+        remainingTime: 0,
+        errorMessage: `Timing validation error: ${error.message}`
+      };
     }
   }
 
@@ -390,14 +450,66 @@ export class AnswerProcessingService {
   }
 
   /**
-   * Get assessment configuration
+   * Get assessment configuration with proper database loading
    */
   private async getAssessmentConfig(assessmentId: number): Promise<{ questionCount: number; timePerQuestion: number }> {
-    // This would load from the assessment config - simplified for now
-    return {
-      questionCount: 40,
-      timePerQuestion: 60
-    };
+    try {
+      // Get the assessment to find the user and their school
+      const assessment = await this.loadAssessmentData(assessmentId);
+      
+      // Get user data to find schoolId
+      const user = await db.select()
+        .from(users)
+        .where(eq(users.id, assessment.userId))
+        .limit(1);
+
+      if (!user || user.length === 0) {
+        throw new Error(`User not found for assessment ${assessmentId}`);
+      }
+
+      const schoolId = user[0].schoolId;
+
+      // First try to get school-specific config
+      if (schoolId) {
+        const schoolConfig = await db.select()
+          .from(assessmentConfig)
+          .where(eq(assessmentConfig.schoolId, schoolId))
+          .limit(1);
+
+        if (schoolConfig && schoolConfig.length > 0) {
+          return {
+            questionCount: schoolConfig[0].questionCount || 40,
+            timePerQuestion: schoolConfig[0].timePerQuestion || 60
+          };
+        }
+      }
+
+      // Fall back to platform-wide config (schoolId = null)
+      const platformConfig = await db.select()
+        .from(assessmentConfig)
+        .where(sql`${assessmentConfig.schoolId} IS NULL`)
+        .limit(1);
+
+      if (platformConfig && platformConfig.length > 0) {
+        return {
+          questionCount: platformConfig[0].questionCount || 40,
+          timePerQuestion: platformConfig[0].timePerQuestion || 60
+        };
+      }
+
+      // If no config exists, return default values
+      return {
+        questionCount: 40,
+        timePerQuestion: 60
+      };
+    } catch (error) {
+      console.error('Error loading assessment configuration:', error);
+      // Return default config on error
+      return {
+        questionCount: 40,
+        timePerQuestion: 60
+      };
+    }
   }
 
   /**
