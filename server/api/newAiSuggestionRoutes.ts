@@ -10,6 +10,7 @@ import {
   generateAssessmentQuestions, 
   generateQuizQuestions 
 } from './dynamicAiSuggestions';
+import { videoResourcesData } from '../../shared/videoResources';
 
 // Initialize OpenAI for teacher tools
 const openai = new OpenAI({
@@ -17,6 +18,68 @@ const openai = new OpenAI({
 });
 
 const router = Router();
+
+// Helper function to find relevant videos from the library
+function findRelevantVideos(topic: string, category?: string, maxResults: number = 3) {
+  const topicLower = topic.toLowerCase();
+  const categoryLower = category?.toLowerCase() || '';
+  
+  // Filter videos by relevance to topic and category
+  const relevantVideos = videoResourcesData.filter(video => {
+    const titleMatch = video.title.toLowerCase().includes(topicLower);
+    const descMatch = video.description.toLowerCase().includes(topicLower);
+    const categoryMatch = video.category.some(cat => 
+      cat.toLowerCase().includes(categoryLower) || 
+      cat.toLowerCase().includes(topicLower)
+    );
+    const tagMatch = video.tags.some(tag => 
+      tag.toLowerCase().includes(topicLower) ||
+      tag.toLowerCase().includes(categoryLower)
+    );
+    
+    return titleMatch || descMatch || categoryMatch || tagMatch;
+  });
+  
+  // Sort by relevance (title matches first, then description, then tags)
+  relevantVideos.sort((a, b) => {
+    const aScore = (a.title.toLowerCase().includes(topicLower) ? 3 : 0) +
+                   (a.description.toLowerCase().includes(topicLower) ? 2 : 0) +
+                   (a.category.some(cat => cat.toLowerCase().includes(topicLower)) ? 1 : 0);
+    const bScore = (b.title.toLowerCase().includes(topicLower) ? 3 : 0) +
+                   (b.description.toLowerCase().includes(topicLower) ? 2 : 0) +
+                   (b.category.some(cat => cat.toLowerCase().includes(topicLower)) ? 1 : 0);
+    return bScore - aScore;
+  });
+  
+  return relevantVideos.slice(0, maxResults);
+}
+
+// Helper function to extract topic from prompt
+function extractTopicFromPrompt(prompt: string): string {
+  // Look for common patterns in prompts
+  const topicPatterns = [
+    /about (.+?) for/i,
+    /on (.+?) that/i,
+    /regarding (.+?) to/i,
+    /covering (.+?) in/i,
+    /focused on (.+?)$/i,
+    /teaching (.+?) to/i,
+    /(.+?) training/i,
+    /(.+?) strategies/i,
+    /(.+?) techniques/i
+  ];
+  
+  for (const pattern of topicPatterns) {
+    const match = prompt.match(pattern);
+    if (match && match[1]) {
+      return match[1].trim();
+    }
+  }
+  
+  // Fallback: use first few words if no pattern matches
+  const words = prompt.split(' ').slice(0, 3).join(' ');
+  return words || 'early childhood education';
+}
 
 // Audio generation function using OpenAI's text-to-speech
 async function generatePodcastAudio(scriptContent: string, topicName: string) {
@@ -766,10 +829,27 @@ The response should sound natural and genuine, not overly formal.`
 // Module wizard section generation
 router.post('/generate-section', async (req, res) => {
   try {
-    const { prompt, sectionType } = req.body;
+    const { prompt, sectionType, moduleTitle, moduleDescription } = req.body;
     
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });
+    }
+
+    // Find relevant videos from the library
+    const topic = moduleTitle || extractTopicFromPrompt(prompt);
+    const relevantVideos = findRelevantVideos(topic, sectionType, 2);
+    
+    // Create video suggestions for the AI to include
+    let videoContext = '';
+    if (relevantVideos.length > 0) {
+      videoContext = `\n\nSuggested videos from the library to include in your content:
+${relevantVideos.map(video => 
+  `- "${video.title}" (${video.duration} min) - ${video.description}
+    YouTube ID: ${video.youtubeId}
+    Categories: ${video.category.join(', ')}`
+).join('\n')}
+
+Please reference these specific videos in your content using their YouTube IDs to embed them.`;
     }
 
     const response = await openai.chat.completions.create({
@@ -777,14 +857,22 @@ router.post('/generate-section', async (req, res) => {
       messages: [
         {
           role: "system",
-          content: "You are an expert early childhood education content creator. Generate practical, engaging training content for preschool teachers. Focus on actionable strategies and real-world applications. Format your response in HTML suitable for display."
+          content: `You are an expert early childhood education content creator. Generate practical, engaging training content for preschool teachers. Focus on actionable strategies and real-world applications. Format your response in HTML suitable for display.
+
+When relevant videos are provided, include them as embedded YouTube videos using this format:
+<div class="video-container">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/[VIDEO_ID]" frameborder="0" allowfullscreen></iframe>
+  <p class="video-description">[Video Title] - [Brief explanation of how it relates to the content]</p>
+</div>
+
+Always use the exact YouTube IDs provided in the video suggestions.`
         },
         {
           role: "user",
-          content: prompt
+          content: prompt + videoContext
         }
       ],
-      max_tokens: 800,
+      max_tokens: 1000,
       temperature: 0.7
     });
 
@@ -797,7 +885,8 @@ router.post('/generate-section', async (req, res) => {
     res.json({
       title,
       content,
-      html: content
+      html: content,
+      suggestedVideos: relevantVideos
     });
     
   } catch (error) {
