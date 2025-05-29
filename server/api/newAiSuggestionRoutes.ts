@@ -260,10 +260,204 @@ router.post('/generate', async (req, res) => {
             suggestions: podcastContent
           });
         }
+      } else if (type === 'template-content' && prompt.includes('interactive scenario')) {
+        // Generate Interactive Scenarios with decision points
+        const scenarioContent = `# ${moduleTopic} - Interactive Scenario
+
+## 🎯 Learning Objectives
+By the end of this scenario, you will be able to:
+- Identify appropriate responses to challenging classroom situations
+- Apply evidence-based strategies for ${category} 
+- Make informed decisions that support children's development
+- Reflect on the impact of different teaching approaches
+
+## 📖 The Scenario
+
+**Setting:** It's 10:30 AM in your preschool classroom. You have 16 children ages 3-5 engaged in various learning centers.
+
+**The Situation:** 
+Emma (age 4) has been building a tall block tower for the past 15 minutes. She's very focused and proud of her work. Suddenly, Tyler (age 3) runs past and accidentally knocks over her tower. Emma immediately starts crying loudly and yells "Tyler is mean! He broke my castle!" Tyler looks shocked and starts to tear up too.
+
+Several other children stop their activities to watch. The situation is escalating quickly.
+
+## 🤔 Decision Point 1: Your Immediate Response
+
+**What do you do first?**
+
+### Option A: Address Emma's Emotions First
+*"Emma, I can see you're really upset. That tower took a lot of work. Let's take some deep breaths together."*
+
+**Outcome:** Emma begins to calm down, but Tyler is still standing there looking confused and upset.
+
+### Option B: Focus on Problem-Solving
+*"Accidents happen! Emma and Tyler, let's work together to rebuild that tower even better!"*
+
+**Outcome:** Emma gets more upset because you didn't acknowledge her feelings. She shouts "NO!" and throws blocks.
+
+### Option C: Separate the Children
+*"Emma, you need to use your inside voice. Tyler, come sit in the quiet corner for a few minutes."*
+
+**Outcome:** Both children become more distressed. Tyler cries harder thinking he's in trouble, and Emma feels her feelings weren't heard.
+
+**✅ Best Choice: Option A** - Acknowledging emotions first helps children feel heard and valued.
+
+## 🤔 Decision Point 2: Helping Both Children
+
+**After Emma has calmed down slightly, how do you help both children?**
+
+### Option A: Facilitate Understanding
+*"Tyler, come here. Emma, can you tell Tyler how you felt when your tower fell down? Tyler, it was an accident, but how can we help Emma feel better?"*
+
+**Outcome:** Both children engage in problem-solving. Tyler offers to help rebuild, and Emma accepts.
+
+### Option B: Give a Mini-Lesson
+*"Class, everyone stop and listen. This is why we have a rule about walking feet in the classroom."*
+
+**Outcome:** The teaching moment interrupts the natural resolution process and makes both children feel like they're in trouble.
+
+### Option C: Distract and Redirect
+*"Look everyone! Let's all do jumping jacks and then have snack time!"*
+
+**Outcome:** The conflict isn't resolved, and children don't learn how to handle similar situations in the future.
+
+**✅ Best Choice: Option A** - Children learn empathy, communication, and problem-solving skills.
+
+## 🤔 Decision Point 3: Follow-Up Learning
+
+**How do you extend this learning opportunity?**
+
+### Option A: Individual Reflection
+*Talk privately with each child later about what happened and how they felt.*
+
+**Outcome:** Good individual processing, but misses the community learning opportunity.
+
+### Option B: Group Discussion
+*During circle time, discuss "What do we do when accidents happen?" without naming specific children.*
+
+**Outcome:** All children learn strategies for handling similar situations and build classroom community.
+
+### Option C: Move On
+*The situation is resolved, so no follow-up is needed.*
+
+**Outcome:** Missed opportunity to reinforce learning and build emotional intelligence skills.
+
+**✅ Best Choice: Option B** - Builds community problem-solving skills and emotional intelligence.
+
+## 🧠 Why These Choices Matter
+
+**Emotional Validation:** Children need to feel heard before they can learn. When we acknowledge feelings first, we build trust and emotional safety.
+
+**Teaching Moments:** Conflicts are opportunities to practice social-emotional skills in real, meaningful contexts.
+
+**Community Building:** When children learn to solve problems together, they develop empathy and cooperation skills that last a lifetime.
+
+## 💡 Key Takeaways
+- Always validate feelings before problem-solving
+- Use conflicts as learning opportunities, not just problems to fix
+- Help children develop their own problem-solving skills rather than solving for them
+- Follow up to reinforce learning and build community
+
+## 🤝 Try This Next Time
+When similar situations arise, remember the "Feel, Think, Act" approach:
+1. **Feel:** "I can see you're upset..."
+2. **Think:** "What do you think we could do about this?"
+3. **Act:** Support children in implementing their solutions
+
+## 📝 Reflection Questions
+- How might your response change based on the children's developmental levels?
+- What environmental factors could help prevent similar conflicts?
+- How can you support both the "victim" and the "aggressor" in conflicts?
+- What role does your own emotional regulation play in these moments?`;
+
+        return res.json({
+          suggestions: scenarioContent
+        });
       } else {
-        // Handle other template types with generic content generation
-        const genericContent = `
-# ${moduleTopic} Module Content
+        // Handle other template types with specific content generation
+        let specificContent = '';
+        
+        if (prompt.includes('mini video lesson')) {
+          specificContent = `# ${moduleTopic} - Mini Video Lesson Script
+
+## 🎬 Video Hook (0-15 seconds)
+*[Energetic music, teacher waving]*
+"Hey there, amazing educators! Ready to transform your ${category} skills in just 3 minutes? Let's dive in!"
+
+## 📚 Main Teaching Points (15 seconds - 2 minutes)
+*[Visual: classroom scenes, bullet points on screen]*
+
+**Key Strategy #1:** [Evidence-based approach for ${moduleTopic}]
+- Quick tip that teachers can implement immediately
+- Visual example from real preschool setting
+
+**Key Strategy #2:** [Practical application]
+- Step-by-step process teachers can follow
+- Common mistake to avoid
+
+**Key Strategy #3:** [Student engagement technique]
+- How to make this work with different developmental levels
+- Adaptation ideas for diverse learners
+
+## ⚡ Action Challenge (2-2:30 minutes)
+*[Call-to-action screen with timer]*
+"Your challenge: Try ONE of these strategies in your classroom this week and notice what happens!"
+
+## 🎯 Wrap-Up (2:30-3 minutes)
+*[Encouraging teacher on screen]*
+"Remember, small changes make big impacts. You've got this! Share your wins in the comments below."
+
+## 🔗 Follow-Up Activities
+- Practice worksheet with scenario examples
+- Reflection journal prompts
+- Quick self-assessment checklist`;
+        } else if (prompt.includes('quiz and teachback')) {
+          specificContent = `# ${moduleTopic} - Quiz & Teachback Session
+
+## 📋 Quick Knowledge Check (5 questions)
+
+**Question 1:** What is the most important first step when addressing ${moduleTopic} situations?
+a) Set clear rules
+b) Validate children's feelings
+c) Remove the child from the situation
+d) Call the parents
+
+**Answer: B** - Research shows that emotional validation must come before problem-solving for effective learning.
+
+**Question 2:** Which developmental factor is most important to consider with ${moduleTopic}?
+a) Age of the child
+b) Time of day
+c) Individual temperament and experiences
+d) Classroom size
+
+**Answer: C** - Every child brings unique experiences and temperament that affect their responses.
+
+[Continue with 3 more targeted questions...]
+
+## 🎓 Teachback Challenge
+
+**Your Task:** Explain to a colleague (or practice out loud) how you would handle this situation:
+
+*"A 4-year-old child is consistently having meltdowns during transition times, affecting the whole class dynamic."*
+
+**Include in your explanation:**
+- What you would observe first
+- How you would respond in the moment
+- What long-term strategies you would implement
+- How you would communicate with parents
+
+## ✅ Self-Assessment Checklist
+After your teachback, check if you included:
+□ Acknowledged the child's developmental needs
+□ Mentioned specific, actionable strategies
+□ Considered environmental factors
+□ Planned for parent communication
+□ Showed understanding of underlying causes
+
+## 🚀 Next Steps
+Based on your teachback, identify one area to focus on improving in your practice.`;
+        } else {
+          // Default content for other types
+          specificContent = `# ${moduleTopic} Module Content
 
 ## Introduction
 This module focuses on ${moduleTopic} for ${difficultyLevel} level early childhood educators.
@@ -280,11 +474,11 @@ Comprehensive content about ${moduleTopic} tailored for ${difficultyLevel} educa
 Hands-on activities and scenarios that help educators practice and implement ${moduleTopic} concepts in their daily work with children.
 
 ## Reflection and Assessment
-Questions and prompts to help educators reflect on their learning and plan next steps for implementing ${moduleTopic} strategies.
-`;
+Questions and prompts to help educators reflect on their learning and plan next steps for implementing ${moduleTopic} strategies.`;
+        }
         
         return res.json({
-          suggestions: genericContent
+          suggestions: specificContent
         });
       }
     } else {
