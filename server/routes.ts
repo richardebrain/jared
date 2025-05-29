@@ -4795,7 +4795,8 @@ Respond with a JSON object in this exact format:
 
 Make sure all content is age-appropriate for ${ageGroup} children and fits within the ${duration}-minute timeframe.`;
 
-      const openai = new (require('openai')).OpenAI({
+      const { OpenAI } = await import('openai');
+      const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY
       });
 
@@ -4854,7 +4855,8 @@ Please respond with a JSON array of suggestions in this format:
 
 Select the 3-5 most relevant standards.`;
 
-      const openai = new (require('openai')).OpenAI({
+      const { OpenAI } = await import('openai');
+      const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY
       });
 
