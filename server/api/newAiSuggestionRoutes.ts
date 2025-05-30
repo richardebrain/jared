@@ -11,6 +11,7 @@ import {
   generateQuizQuestions 
 } from './dynamicAiSuggestions';
 import { videoResourcesData } from '../../shared/videoResources';
+import { expandedVideoResources, findVideosByTopic } from '../../shared/expandedVideoResources';
 
 // Initialize OpenAI for teacher tools
 const openai = new OpenAI({
@@ -19,37 +20,35 @@ const openai = new OpenAI({
 
 const router = Router();
 
-// Helper function to find relevant videos from the library
+// Helper function to find relevant videos from the comprehensive library
 function findRelevantVideos(topic: string, category?: string, maxResults: number = 3) {
   const topicLower = topic.toLowerCase();
   const categoryLower = category?.toLowerCase() || '';
   
-  // Filter videos by relevance to topic and category
-  const relevantVideos = videoResourcesData.filter(video => {
-    const titleMatch = video.title.toLowerCase().includes(topicLower);
-    const descMatch = video.description.toLowerCase().includes(topicLower);
-    const categoryMatch = video.category.some(cat => 
-      cat.toLowerCase().includes(categoryLower) || 
-      cat.toLowerCase().includes(topicLower)
-    );
-    const tagMatch = video.tags.some(tag => 
-      tag.toLowerCase().includes(topicLower) ||
-      tag.toLowerCase().includes(categoryLower)
-    );
-    
-    return titleMatch || descMatch || categoryMatch || tagMatch;
-  });
+  // First try to find videos from the expanded CSV library
+  let relevantVideos = findVideosByTopic(topic).slice(0, maxResults);
   
-  // Sort by relevance (title matches first, then description, then tags)
-  relevantVideos.sort((a, b) => {
-    const aScore = (a.title.toLowerCase().includes(topicLower) ? 3 : 0) +
-                   (a.description.toLowerCase().includes(topicLower) ? 2 : 0) +
-                   (a.category.some(cat => cat.toLowerCase().includes(topicLower)) ? 1 : 0);
-    const bScore = (b.title.toLowerCase().includes(topicLower) ? 3 : 0) +
-                   (b.description.toLowerCase().includes(topicLower) ? 2 : 0) +
-                   (b.category.some(cat => cat.toLowerCase().includes(topicLower)) ? 1 : 0);
-    return bScore - aScore;
-  });
+  // If not enough videos found, supplement with original library
+  if (relevantVideos.length < maxResults) {
+    const originalVideos = videoResourcesData.filter(video => {
+      const titleMatch = video.title.toLowerCase().includes(topicLower);
+      const descMatch = video.description.toLowerCase().includes(topicLower);
+      const categoryMatch = video.category.some(cat => 
+        cat.toLowerCase().includes(categoryLower) || 
+        cat.toLowerCase().includes(topicLower)
+      );
+      const tagMatch = video.tags.some(tag => 
+        tag.toLowerCase().includes(topicLower) ||
+        tag.toLowerCase().includes(categoryLower)
+      );
+      
+      return titleMatch || descMatch || categoryMatch || tagMatch;
+    });
+    
+    // Add original videos to fill up to maxResults
+    const needed = maxResults - relevantVideos.length;
+    relevantVideos = [...relevantVideos, ...originalVideos.slice(0, needed)];
+  }
   
   return relevantVideos.slice(0, maxResults);
 }
