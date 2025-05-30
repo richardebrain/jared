@@ -52,25 +52,10 @@ export default function Dashboard() {
   const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
   const [showWelcomeDashboard, setShowWelcomeDashboard] = useState(false);
   
-  // Show welcome dashboard when user first logs in
-  useEffect(() => {
-    if (user && user.streak && user.streak >= 1) {
-      // Always show for demo purposes - you can adjust this logic later
-      setShowWelcomeDashboard(true);
-    }
-  }, [user]);
-  
-  // Handle module selection - navigate to the module page
-  useEffect(() => {
-    if (selectedModuleId) {
-      setLocation(`/modules/${selectedModuleId}`);
-    }
-  }, [selectedModuleId, setLocation]);
-  
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Fetch authenticated user
+  // Fetch authenticated user - MOVED UP before useEffects
   const { data: user } = useQuery({
     queryKey: ["/api/auth/me"],
     refetchOnWindowFocus: true,
@@ -109,7 +94,22 @@ export default function Dashboard() {
   const { data: users,isLoading:teachLoading } = useQuery({
     queryKey: ["/api/users"],
   });
-
+  
+  // Show welcome dashboard when user first logs in
+  useEffect(() => {
+    if (user && user.streak && user.streak >= 1) {
+      // Always show for demo purposes - you can adjust this logic later
+      setShowWelcomeDashboard(true);
+    }
+  }, [user]);
+  
+  // Handle module selection - navigate to the module page
+  useEffect(() => {
+    if (selectedModuleId) {
+      setLocation(`/modules/${selectedModuleId}`);
+    }
+  }, [selectedModuleId, setLocation]);
+  
   // Check if the user has completed the Core Values module (ID: 33)
   const hasCoreValuesComplete = useMemo(() => {
     if (!userProgress) return false;
