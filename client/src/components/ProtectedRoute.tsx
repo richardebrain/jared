@@ -61,12 +61,21 @@ export function PublicRoute({
 }: PublicRouteProps): JSX.Element {
   const { isAuthenticated, isLoading } = useAuth();
   
+  // Check for force login parameter to bypass auto-login
+  const urlParams = new URLSearchParams(window.location.search);
+  const forceLogin = urlParams.get('force') === 'true';
+  
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
+  }
+  
+  // If force login is enabled, always show the login page
+  if (forceLogin) {
+    return <>{children}</>;
   }
   
   if (redirectAuthenticated && isAuthenticated) {
