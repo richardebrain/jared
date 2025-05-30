@@ -665,6 +665,7 @@ Weekly status updates will be added below to track overall project progress.
        - ✅ Integration with EP-002-01 backend API endpoints
        - 🚧 Question create/edit forms (placeholder dialogs ready for next phase)
      - **Authentication:** Verified user has platform owner privileges before showing tab
+     - **✅ Authentication Issue Resolved (December 2024)**: Fixed admin authentication mismatch between frontend password expectations and backend session validation. EP-002-01 middleware now properly validates admin password (`BIGSURF55`) as expected by frontend. This resolves the "Forbidden: Admin access required. Password incorrect." errors reported for Assessments tab functionality. Long-term JWT authentication solution planned in EP-003.
 
 3. ⬜ [EP-002-03] **Question Approval Workflow**
    - **Description:** Implement approval workflow system for content review using existing schema fields with role-based controls.
@@ -714,3 +715,239 @@ Weekly status updates will be added below to track overall project progress.
 - Removed advanced features to separate planning phase
 - Ready to begin EP-002-01 (Backend CRUD API)
 - Using existing schema without modifications
+
+### 🔴 [EP-003] JWT Authentication & Authorization System
+
+**Description:** Replace the current password-based admin authentication with a modern JWT (JSON Web Token) authentication system that provides secure, role-based access control across the entire application. This epic addresses security vulnerabilities in the current hardcoded password approach and implements industry-standard authentication practices.
+
+**Business Value:** 
+- **Security**: Eliminates hardcoded passwords visible in frontend code and network requests
+- **Scalability**: Enables fine-grained role-based permissions for different user types
+- **User Experience**: Provides seamless authentication across multiple sessions and devices
+- **Maintainability**: Centralizes authentication logic and simplifies admin access management
+- **Compliance**: Meets security standards for educational software and data protection
+
+**Current Authentication Problems:**
+- Hardcoded admin password (`BIGSURF55`) exposed in frontend code
+- No token expiration or refresh mechanism
+- Inconsistent admin authentication patterns across endpoints
+- Frontend admin passwords visible in browser network requests
+- No differentiation between admin access levels (Platform Owner vs School Admin vs Content Manager)
+
+**Success Criteria:**
+- JWT tokens securely generated and validated for all protected routes
+- Role-based access control implemented with proper permission scoping
+- Admin access controlled through secure token authentication, not hardcoded passwords
+- Token refresh mechanism implemented for seamless user experience
+- All existing functionality maintained while improving security
+- Session management integrated with JWT for hybrid approach
+- Comprehensive authentication middleware covering all admin endpoints
+
+**Implementation Approach:**
+- **Phase 1**: Core JWT Infrastructure (Tasks 1-2)
+- **Phase 2**: Role-Based Access Control (Tasks 3-4)
+- **Phase 3**: Frontend Integration & Migration (Tasks 5-6)
+- **Phase 4**: Security Hardening (Task 7)
+
+**Dependencies:**
+- EP-002 (Admin UI System) - Admin interface must work with new authentication
+
+**Tasks:**
+
+1. ⬜ [EP-003-01] **JWT Token Infrastructure & Middleware**
+   - **Description:** Implement core JWT token generation, validation, and middleware infrastructure for secure authentication across the application.
+   - **Requirements:**
+     - **JWT Token Service**: Generate, sign, and validate JWT tokens with proper payload structure
+     - **Token Middleware**: Express middleware for validating JWT tokens on protected routes
+     - **Token Configuration**: Secure secret management, expiration times, refresh logic
+     - **Hybrid Authentication**: Support both session-based and JWT-based authentication during transition
+     - **Token Payload Structure**: Include user ID, roles, permissions, school association, expiration
+     - **Security Features**: Token blacklisting for logout, secure token storage options
+     - **Error Handling**: Proper error responses for invalid, expired, or malformed tokens
+   - **Dependencies:** None
+   - **Technical Implementation:**
+     - Create `server/services/auth/JWTService.ts` for token operations
+     - Create `server/middleware/jwt.ts` for JWT validation middleware  
+     - Update environment variables for JWT secrets and configuration
+     - Implement token refresh endpoint `/api/auth/refresh`
+     - Add JWT validation to existing auth endpoints
+   - **Token Structure:**
+     ```typescript
+     interface JWTPayload {
+       userId: number;
+       username: string;
+       roles: string[]; // ['teacher', 'admin', 'school_admin', 'owner']
+       schoolId?: number;
+       permissions: string[]; // ['admin:questions', 'admin:users', 'owner:schools']
+       iat: number; // issued at
+       exp: number; // expires at
+     }
+     ```
+   - **Success Criteria:**
+     - JWT tokens generated with proper signing and validation
+     - Middleware successfully validates tokens and extracts user data
+     - Token refresh mechanism working for session continuity
+     - Hybrid authentication supports both session and JWT during transition
+
+2. ⬜ [EP-003-02] **Role-Based Permission System**
+   - **Description:** Design and implement a comprehensive role-based access control (RBAC) system that defines permissions for different user types and integrates with JWT tokens.
+   - **Requirements:**
+     - **Role Definitions**: Define clear roles with specific permission sets
+       - `teacher`: Basic user access, assessments, modules
+       - `school_admin`: School-level administration, teacher management  
+       - `content_admin`: Question management, content approval
+       - `platform_admin`: Platform-wide administration
+       - `owner`: Full platform access, subscription management
+     - **Permission System**: Granular permissions for different operations
+       - `admin:questions:read/write/delete` - Question management
+       - `admin:users:read/write` - User management
+       - `admin:schools:read/write` - School management
+       - `owner:billing` - Subscription and billing access
+     - **Permission Middleware**: Express middleware for checking specific permissions
+     - **Database Schema**: Store user roles and permissions (if needed beyond current flags)
+     - **Role Assignment**: Interface for assigning roles to users
+   - **Dependencies:** EP-003-01
+   - **Technical Implementation:**
+     - Create `server/services/auth/PermissionService.ts` for permission logic
+     - Create `server/middleware/permissions.ts` for permission-based route protection
+     - Define permission constants in `shared/permissions.ts`
+     - Update user authentication to include role/permission checking
+     - Create utility functions for role-based UI rendering
+   - **Permission Structure:**
+     ```typescript
+     const PERMISSIONS = {
+       QUESTIONS: {
+         READ: 'admin:questions:read',
+         WRITE: 'admin:questions:write', 
+         DELETE: 'admin:questions:delete',
+         APPROVE: 'admin:questions:approve'
+       },
+       USERS: {
+         READ: 'admin:users:read',
+         WRITE: 'admin:users:write',
+         DELETE: 'admin:users:delete'
+       },
+       SCHOOLS: {
+         READ: 'admin:schools:read',
+         WRITE: 'admin:schools:write'
+       }
+     };
+     ```
+
+3. ⬜ [EP-003-03] **Admin Login & Token Management Interface**
+   - **Description:** Create secure admin login interface that generates JWT tokens and replaces hardcoded password authentication.
+   - **Requirements:**
+     - **Admin Login Page**: Dedicated admin authentication interface separate from user login
+     - **Multi-Factor Authentication**: Optional 2FA for admin accounts
+     - **Token Management**: Interface for viewing active tokens, revoking sessions
+     - **Role Assignment UI**: Interface for owners to assign roles to users
+     - **Security Dashboard**: View login attempts, active sessions, security events
+     - **Password Requirements**: Strong password enforcement for admin accounts
+   - **Dependencies:** EP-003-02
+   - **Technical Implementation:**
+     - Create `client/src/pages/AdminLogin.tsx` for admin authentication
+     - Create `client/src/components/auth/TokenManager.tsx` for session management
+     - Create `client/src/components/admin/RoleManager.tsx` for role assignment
+     - Update routing to protect admin routes with JWT middleware
+     - Implement logout functionality that blacklists tokens
+   - **UI Requirements:**
+     - Modern, secure-looking admin login interface
+     - Clear role indicators in admin interfaces
+     - Token expiration warnings and refresh prompts
+     - Session management tools for security oversight
+
+4. ⬜ [EP-003-04] **Migrate Admin Endpoints to JWT**
+   - **Description:** Migrate all existing admin endpoints from password-based authentication to JWT token validation while maintaining backward compatibility.
+   - **Requirements:**
+     - **Endpoint Migration**: Update all `/api/admin/*` routes to use JWT middleware
+     - **Permission Integration**: Apply appropriate permission checks to each endpoint
+     - **Backward Compatibility**: Maintain session-based auth during transition period
+     - **API Documentation**: Update endpoint documentation with new authentication requirements
+     - **Testing**: Comprehensive testing of all admin endpoints with new authentication
+   - **Dependencies:** EP-003-03
+   - **Technical Implementation:**
+     - Update `server/routes/admin.ts` to use JWT middleware instead of password checks
+     - Apply permission middleware to specific endpoints based on operation type
+     - Update `server/routes.ts` admin endpoints to use new authentication
+     - Create migration scripts if needed for existing admin sessions
+     - Update API client to include JWT tokens in requests
+   - **Migration Strategy:**
+     - Phase 1: Add JWT validation alongside existing password auth
+     - Phase 2: Switch frontend to use JWT tokens
+     - Phase 3: Remove password-based authentication
+     - Phase 4: Cleanup and security audit
+
+5. ⬜ [EP-003-05] **Frontend JWT Integration**
+   - **Description:** Update frontend authentication context and API clients to use JWT tokens instead of hardcoded admin passwords.
+   - **Requirements:**
+     - **Authentication Context**: Update React auth context to handle JWT tokens
+     - **Token Storage**: Secure token storage (httpOnly cookies or secure localStorage)
+     - **API Client Updates**: Modify API requests to include JWT Authorization headers
+     - **Auto-Refresh**: Implement automatic token refresh before expiration
+     - **Route Protection**: Update protected routes to check JWT validity and permissions
+     - **Error Handling**: Handle token expiration, refresh failures, permission denied scenarios
+   - **Dependencies:** EP-003-04
+   - **Technical Implementation:**
+     - Update `client/src/lib/auth-context.tsx` for JWT management
+     - Update `client/src/lib/queryClient.ts` to include Authorization headers
+     - Create `client/src/services/tokenService.ts` for token management
+     - Update all admin components to remove hardcoded password usage
+     - Implement token refresh interceptors for API calls
+   - **Security Considerations:**
+     - Secure token storage options evaluation
+     - XSS protection for token handling
+     - CSRF protection for authenticated requests
+     - Automatic logout on token tampering detection
+
+6. ⬜ [EP-003-06] **Authentication UI/UX Enhancement**
+   - **Description:** Enhance the user experience around authentication with modern UI patterns, clear role indicators, and seamless session management.
+   - **Requirements:**
+     - **Unified Login Experience**: Streamline login flow for different user types
+     - **Role-Based Navigation**: Show/hide UI elements based on user permissions
+     - **Session Status Indicators**: Clear indicators of authentication status and role
+     - **Permission Feedback**: Clear messaging when users lack permissions for actions
+     - **Security Indicators**: Show secure session indicators, last login time
+     - **Mobile Responsiveness**: Ensure authentication works well on mobile devices
+   - **Dependencies:** EP-003-05
+   - **Technical Implementation:**
+     - Update navigation components to show role-based options
+     - Create permission-aware component wrappers
+     - Add authentication status indicators to main layout
+     - Implement graceful permission error handling
+     - Create responsive authentication layouts
+   - **UX Improvements:**
+     - Clear visual distinction between user types in interface
+     - Smooth transitions between authenticated and unauthenticated states
+     - Helpful error messages for authentication failures
+     - Intuitive role switching for users with multiple roles
+
+7. ⬜ [EP-003-07] **Security Hardening & Audit**
+   - **Description:** Implement security best practices, conduct security audit, and ensure the authentication system meets industry standards for educational software.
+   - **Requirements:**
+     - **Security Audit**: Comprehensive review of authentication implementation
+     - **Penetration Testing**: Test for common authentication vulnerabilities
+     - **Rate Limiting**: Implement rate limiting on authentication endpoints
+     - **Security Headers**: Add appropriate security headers for authentication
+     - **Logging & Monitoring**: Comprehensive logging of authentication events
+     - **Documentation**: Security documentation and deployment guidelines
+   - **Dependencies:** EP-003-06
+   - **Security Measures:**
+     - JWT secret rotation capability
+     - Brute force protection on login endpoints
+     - Session fixation protection
+     - XSS and CSRF protection verification
+     - SQL injection protection for auth queries
+     - Secure password storage verification
+   - **Compliance Considerations:**
+     - COPPA compliance for educational software
+     - GDPR compliance for user data handling
+     - Industry best practices for authentication
+     - Security documentation for deployment
+
+**Status Updates:**
+
+**Week of December 2024**
+- Epic created in response to authentication security issues in EP-002
+- Current system uses hardcoded passwords visible in frontend code
+- Need to implement proper JWT authentication for production security
+- Priority: High - Security vulnerability needs addressing before production deployment

@@ -12,22 +12,30 @@ const questionService = new QuestionManagementService();
 // This is a temporary solution for local development only
 const TEMP_ADMIN_PASSWORD = "BIGSURF55";
 
-// Middleware for admin authentication (simplified for messaging)
+// Middleware for admin authentication (now checks password like other admin endpoints)
 const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
-  console.log('Admin middleware - Session check:', {
+  console.log('Admin middleware - Session and password check:', {
     hasSession: !!req.session,
     userId: req.session?.userId,
-    sessionId: req.sessionID
+    sessionId: req.sessionID,
+    hasAdminPassword: !!req.query.admin_password || !!req.body.admin_password
   });
   
-  // For messaging endpoints, just check if user is logged in
-  // In production, you'd want proper admin role checking
-  if (!req.session || !req.session.userId) {
-    console.log("Authentication failed - no session or userId");
-    return res.status(401).json({ message: "Unauthorized: Please log in" });
+  // Check for admin password (query or body)
+  const adminPassword = req.query.admin_password || req.body.admin_password;
+  
+  if (adminPassword === TEMP_ADMIN_PASSWORD) {
+    console.log("Admin password correct, proceeding");
+    return next(); // Allow access with correct password
   }
   
-  console.log("User authenticated:", req.session.userId);
+  // Fallback to session-based authentication for logged-in users
+  if (!req.session || !req.session.userId) {
+    console.log("Authentication failed - no session or userId and no admin password");
+    return res.status(403).json({ message: "Forbidden: Admin access required. Password incorrect." });
+  }
+  
+  console.log("User authenticated via session:", req.session.userId);
   next();
 };
 
