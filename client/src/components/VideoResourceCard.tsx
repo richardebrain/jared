@@ -320,74 +320,77 @@ Category: ${video.category.join(', ')}
         </div>
       </CardContent>
       
-      <CardFooter className={`${compactMode ? 'p-3 pt-0' : 'p-4 pt-0'} flex justify-between items-center`}>
-        <div className="flex items-center text-sm">
-          <BookOpen className="h-3 w-3 mr-1 text-muted-foreground" />
-          <span className="text-muted-foreground">{video.source}</span>
+      <CardFooter className={`${compactMode ? 'p-3 pt-0' : 'p-4 pt-0'} flex flex-col gap-3`}>
+        {/* First row: Source and action buttons */}
+        <div className="flex justify-between items-center w-full">
+          <div className="flex items-center text-sm">
+            <BookOpen className="h-3 w-3 mr-1 text-muted-foreground" />
+            <span className="text-muted-foreground">{video.source}</span>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {!videoError && (
+              <>
+                {quizCompleted ? (
+                  <div className="flex items-center text-amber-500">
+                    <Award className="h-4 w-4 mr-1" />
+                    <span className="text-xs">{pointsEarned} pts</span>
+                  </div>
+                ) : isWatched || videoCompleted ? (
+                  <Dialog open={showQuiz} onOpenChange={setShowQuiz}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        size="sm"
+                        variant="outline"
+                        className="flex items-center gap-1"
+                        onClick={() => setShowQuiz(true)}
+                      >
+                        <CheckCircle2 className="h-3 w-3 text-green-500" />
+                        <span>Quiz</span>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+                      <VideoQuiz 
+                        videoId={video.id}
+                        videoTitle={video.title}
+                        onComplete={handleQuizComplete}
+                        onClose={() => setShowQuiz(false)}
+                      />
+                    </DialogContent>
+                  </Dialog>
+                ) : (
+                  <CheckCircle2 className="h-4 w-4 text-muted-foreground/40" />
+                )}
+              </>
+            )}
+            
+            {!videoError && (
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="flex items-center gap-1"
+                onClick={() => window.open(`https://www.youtube.com/watch?v=${video.youtubeId}`, '_blank')}
+              >
+                <ExternalLink className="h-3 w-3" />
+                <span>Open</span>
+              </Button>
+            )}
+            
+            {videoError && (
+              <Button
+                size="sm"
+                variant="destructive"
+                className="flex items-center gap-1"
+              >
+                <X className="h-3 w-3" />
+                <span>Unavailable</span>
+              </Button>
+            )}
+          </div>
         </div>
         
-        <div className="flex items-center gap-2">
-          {!videoError && (
-            <>
-              {quizCompleted ? (
-                <div className="flex items-center text-amber-500">
-                  <Award className="h-4 w-4 mr-1" />
-                  <span className="text-xs">{pointsEarned} pts</span>
-                </div>
-              ) : isWatched || videoCompleted ? (
-                <Dialog open={showQuiz} onOpenChange={setShowQuiz}>
-                  <DialogTrigger asChild>
-                    <Button 
-                      size="sm"
-                      variant="outline"
-                      className="flex items-center gap-1"
-                      onClick={() => setShowQuiz(true)}
-                    >
-                      <CheckCircle2 className="h-3 w-3 text-green-500" />
-                      <span>Quiz</span>
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-                    <VideoQuiz 
-                      videoId={video.id}
-                      videoTitle={video.title}
-                      onComplete={handleQuizComplete}
-                      onClose={() => setShowQuiz(false)}
-                    />
-                  </DialogContent>
-                </Dialog>
-              ) : (
-                <CheckCircle2 className="h-4 w-4 text-muted-foreground/40" />
-              )}
-            </>
-          )}
-          
-          {!videoError && (
-            <Button 
-              size="sm" 
-              variant="outline" 
-              className="flex items-center gap-1"
-              onClick={() => window.open(`https://www.youtube.com/watch?v=${video.youtubeId}`, '_blank')}
-            >
-              <ExternalLink className="h-3 w-3" />
-              <span>Open</span>
-            </Button>
-          )}
-          
-          {videoError && (
-            <Button
-              size="sm"
-              variant="destructive"
-              className="flex items-center gap-1"
-            >
-              <X className="h-3 w-3" />
-              <span>Unavailable</span>
-            </Button>
-          )}
-        </div>
-        
-        {/* Video Rating Component */}
-        <div className="mt-3 pt-3 border-t">
+        {/* Second row: Video Rating Component */}
+        <div className="w-full pt-2 border-t">
           <VideoRating videoId={video.id} compact={true} />
         </div>
       </CardFooter>
