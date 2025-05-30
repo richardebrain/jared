@@ -25,6 +25,7 @@ import MysteryBox from '@/components/MysteryBox';
 import DailyChallenge from '@/components/DailyChallenge';
 import PacHealGame from '@/components/games/PacHealGameWorking';
 import BounceAwayBlocks from '@/components/games/BounceAwayBlocks';
+import GameTokenMachine from '@/components/games/GameTokenMachine';
 import { useToast } from "@/hooks/use-toast";
 import { 
   LuckySlots, 
@@ -165,8 +166,9 @@ export default function GamesPage() {
         <StreakRewardsSummary streakCount={user?.streak || 0} className="mb-6" />
         
         <Tabs defaultValue="educational" className="space-y-6" onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-3 w-full max-w-2xl mx-auto h-12">
+          <TabsList className="grid grid-cols-4 w-full max-w-3xl mx-auto h-12">
             <TabsTrigger value="educational" className="text-sm font-medium">Educational Games</TabsTrigger>
+            <TabsTrigger value="puzzle" className="text-sm font-medium">Teaching Puzzles</TabsTrigger>
             <TabsTrigger value="slots" className="text-sm font-medium">Lucky Games</TabsTrigger>
             <TabsTrigger value="daily" className="text-sm font-medium">Daily Challenge</TabsTrigger>
           </TabsList>
@@ -350,49 +352,13 @@ export default function GamesPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-8">
-              <Card className="border-2 border-red-200 bg-gradient-to-br from-red-50 to-pink-50">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-red-100 rounded-full">
-                        <Heart className="h-6 w-6 text-red-600" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-xl text-red-800">Pac-Heal Adventure</CardTitle>
-                        <CardDescription className="text-red-600">
-                          Navigate a maze and transform negative emotions into positive affirmations
-                        </CardDescription>
-                      </div>
-                    </div>
-                    <Badge className="bg-red-500 text-white">Featured</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <PacHealGame />
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-green-100 rounded-full">
-                        <Trophy className="h-6 w-6 text-green-600" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-xl text-green-800">Bounce-Away Blocks 2.0</CardTitle>
-                        <CardDescription className="text-green-600">
-                          Master CDA competencies through an exciting brick-breaking adventure
-                        </CardDescription>
-                      </div>
-                    </div>
-                    <Badge className="bg-green-500 text-white">Play Now!</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <BounceAwayBlocks />
-                </CardContent>
-              </Card>
+              <GameTokenMachine 
+                userPoints={user?.points || 0} 
+                onPointsUpdate={(newPoints) => {
+                  // Update user points in local state if needed
+                  console.log('Points updated:', newPoints);
+                }} 
+              />
 
               <Card className="border border-gray-200 bg-gray-50">
                 <CardHeader>
@@ -498,6 +464,127 @@ export default function GamesPage() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Teaching Puzzles Tab */}
+          <TabsContent value="puzzle" className="space-y-8">
+            <div className="text-center space-y-4 mb-8">
+              <div className="flex items-center justify-center space-x-2">
+                <Puzzle className="h-8 w-8 text-purple-500" />
+                <h2 className="text-2xl font-bold text-gray-800">Teaching Puzzles</h2>
+              </div>
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                Challenge your problem-solving skills with educational puzzles designed to reinforce teaching concepts and strategies.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Word Search */}
+              <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-purple-100 rounded-full">
+                        <Search className="h-6 w-6 text-purple-600" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg text-purple-800">ECE Word Search</CardTitle>
+                        <CardDescription className="text-purple-600">
+                          Find hidden early childhood education terms
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <Badge className="bg-purple-500 text-white">Puzzle</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8">
+                    <Search className="h-16 w-16 mx-auto mb-4 text-purple-500" />
+                    <h3 className="text-lg font-bold text-purple-800 mb-2">Coming Soon!</h3>
+                    <p className="text-purple-600 mb-4">
+                      Search for CDA competency terms in this challenging word puzzle
+                    </p>
+                    <Badge className="bg-purple-600 text-white px-4 py-2">
+                      In Development
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Crossword */}
+              <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-blue-100 rounded-full">
+                        <Grid3X3 className="h-6 w-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg text-blue-800">Teaching Crossword</CardTitle>
+                        <CardDescription className="text-blue-600">
+                          Test your knowledge with education-themed clues
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <Badge className="bg-blue-500 text-white">Puzzle</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8">
+                    <Grid3X3 className="h-16 w-16 mx-auto mb-4 text-blue-500" />
+                    <h3 className="text-lg font-bold text-blue-800 mb-2">Coming Soon!</h3>
+                    <p className="text-blue-600 mb-4">
+                      Solve clues related to child development and teaching strategies
+                    </p>
+                    <Badge className="bg-blue-600 text-white px-4 py-2">
+                      In Development
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Memory Match */}
+              <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-green-100 rounded-full">
+                        <Brain className="h-6 w-6 text-green-600" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg text-green-800">Memory Match</CardTitle>
+                        <CardDescription className="text-green-600">
+                          Match teaching concepts with their definitions
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <Badge className="bg-green-500 text-white">Puzzle</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8">
+                    <Brain className="h-16 w-16 mx-auto mb-4 text-green-500" />
+                    <h3 className="text-lg font-bold text-green-800 mb-2">Coming Soon!</h3>
+                    <p className="text-green-600 mb-4">
+                      Improve memory while learning developmental milestones
+                    </p>
+                    <Badge className="bg-green-600 text-white px-4 py-2">
+                      In Development
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+              <h4 className="font-semibold text-purple-800 mb-2">Teaching Puzzle Benefits:</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-purple-700">
+                <div>• Reinforce learning through play</div>
+                <div>• Improve problem-solving skills</div>
+                <div>• Practice recall of key concepts</div>
+                <div>• Build confidence in subject knowledge</div>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

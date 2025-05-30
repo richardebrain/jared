@@ -310,6 +310,11 @@ export default function BounceAwayBlocks() {
     }
   };
 
+  // Load user points on component mount
+  useEffect(() => {
+    fetchUserPoints();
+  }, []);
+
   // Cost to play game
   const playGame = async () => {
     if (gameState.userPoints < 1) {
