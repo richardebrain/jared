@@ -338,6 +338,16 @@ export default function PreschoolDash() {
                 lives: prev.lives - 1
               }));
               setShowTip({ message: `${item.label} - ${item.points} points!`, type: 'negative' });
+              
+              // Show explanation for why this practice isn't recommended
+              const obstacleConfig = OBSTACLES.find(o => o.subtype === item.subtype);
+              if (obstacleConfig && obstacleConfig.explanation) {
+                setShowExplanation({
+                  title: `Why avoid "${item.label}"?`,
+                  explanation: obstacleConfig.explanation
+                });
+                setTimeout(() => setShowExplanation(null), 6000); // Show for 6 seconds
+              }
             }
           } else if (item.type === 'powerup') {
             const powerupConfig = POWERUPS.find(p => p.subtype === item.subtype);
@@ -594,6 +604,25 @@ export default function PreschoolDash() {
               showTip.type === 'positive' ? 'bg-green-500' : 'bg-red-500'
             }`}>
               {showTip.message}
+            </div>
+          )}
+          
+          {/* Explanation Overlay */}
+          {showExplanation && (
+            <div className="absolute top-16 left-4 right-4 bg-blue-600 text-white p-4 rounded-lg shadow-lg border-2 border-blue-400">
+              <div className="flex items-start space-x-2">
+                <div className="text-yellow-300 text-lg">💡</div>
+                <div className="flex-1">
+                  <h4 className="font-bold text-yellow-300 mb-2">{showExplanation.title}</h4>
+                  <p className="text-sm leading-relaxed">{showExplanation.explanation}</p>
+                </div>
+                <button 
+                  onClick={() => setShowExplanation(null)}
+                  className="text-white hover:text-yellow-300 text-lg font-bold"
+                >
+                  ×
+                </button>
+              </div>
             </div>
           )}
         </CardContent>
