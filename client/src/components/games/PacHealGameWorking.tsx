@@ -367,86 +367,124 @@ export default function PacHealGame() {
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Heart className="h-6 w-6 text-red-500" />
-          Pac-Heal: Emotional Regulation Adventure
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {gameState === 'menu' && (
-          <div className="text-center space-y-6">
-            <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-8 rounded-lg">
-              <Gamepad2 className="h-16 w-16 mx-auto text-blue-500 mb-4" />
-              <h3 className="text-xl font-semibold text-blue-700 mb-4">Ready to Transform Negative Energy?</h3>
-              <p className="text-gray-600 mb-6">
-                Navigate the classroom and collect negative emotions to transform them into positive affirmations. 
-                Answer ECE quiz questions when you encounter challenging situations!
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 mb-6">
-                <div className="bg-white p-4 rounded-lg shadow-sm">
-                  <h4 className="font-semibold text-blue-700 mb-2">How to Play:</h4>
-                  <ul className="text-left space-y-1">
-                    <li>• Use arrow keys or WASD to move</li>
-                    <li>• Collect negative emotions (dots)</li>
-                    <li>• Answer quiz questions correctly</li>
-                    <li>• Avoid losing all your lives</li>
-                  </ul>
-                </div>
-                <div className="bg-white p-4 rounded-lg shadow-sm">
-                  <h4 className="font-semibold text-blue-700 mb-2">You'll Learn:</h4>
-                  <ul className="text-left space-y-1">
-                    <li>• Therapeutic responses to behaviors</li>
-                    <li>• Emotional regulation techniques</li>
-                    <li>• Child development principles</li>
-                    <li>• Classroom management skills</li>
-                  </ul>
-                </div>
-              </div>
-              <Button onClick={startGame} className="bg-blue-500 hover:bg-blue-600">
-                <Gamepad2 className="h-4 w-4 mr-2" />
-                Start Game
-              </Button>
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+      <Card className="w-full max-w-5xl mx-auto bg-white/95 backdrop-blur-sm shadow-2xl border-0">
+        <CardHeader className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-t-lg">
+          <CardTitle className="flex items-center gap-3 text-2xl">
+            <div className="bg-white/20 p-2 rounded-full">
+              <Heart className="h-8 w-8 text-pink-200" />
             </div>
-          </div>
-        )}
+            Pac-Heal: Emotional Regulation Adventure
+            <Badge className="ml-auto bg-yellow-400 text-purple-900 font-bold">
+              Educational Game
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-8">
+          {gameState === 'menu' && (
+            <div className="text-center space-y-8">
+              <div className="bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 p-10 rounded-2xl border-2 border-purple-200 shadow-lg">
+                <div className="bg-gradient-to-r from-purple-500 to-blue-500 p-4 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+                  <Gamepad2 className="h-10 w-10 text-white" />
+                </div>
+                <h3 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-6">
+                  Ready to Transform Negative Energy?
+                </h3>
+                <p className="text-gray-700 mb-8 text-lg leading-relaxed max-w-2xl mx-auto">
+                  Navigate the classroom and collect negative emotions to transform them into positive affirmations. 
+                  Answer ECE quiz questions when you encounter challenging situations!
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  <div className="bg-white p-6 rounded-xl shadow-md border border-purple-100 hover:shadow-lg transition-shadow">
+                    <div className="bg-purple-100 p-3 rounded-full w-12 h-12 mx-auto mb-4 flex items-center justify-center">
+                      <Star className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <h4 className="font-bold text-purple-700 mb-3 text-lg">How to Play:</h4>
+                    <ul className="text-left space-y-2 text-gray-600">
+                      <li className="flex items-center"><span className="text-purple-500 mr-2">•</span> Use arrow keys or WASD to move</li>
+                      <li className="flex items-center"><span className="text-purple-500 mr-2">•</span> Collect negative emotions (colorful dots)</li>
+                      <li className="flex items-center"><span className="text-purple-500 mr-2">•</span> Answer quiz questions correctly</li>
+                      <li className="flex items-center"><span className="text-purple-500 mr-2">•</span> Avoid losing all your lives</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-white p-6 rounded-xl shadow-md border border-blue-100 hover:shadow-lg transition-shadow">
+                    <div className="bg-blue-100 p-3 rounded-full w-12 h-12 mx-auto mb-4 flex items-center justify-center">
+                      <Trophy className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <h4 className="font-bold text-blue-700 mb-3 text-lg">You'll Learn:</h4>
+                    <ul className="text-left space-y-2 text-gray-600">
+                      <li className="flex items-center"><span className="text-blue-500 mr-2">•</span> Therapeutic responses to behaviors</li>
+                      <li className="flex items-center"><span className="text-blue-500 mr-2">•</span> Emotional regulation techniques</li>
+                      <li className="flex items-center"><span className="text-blue-500 mr-2">•</span> Child development principles</li>
+                      <li className="flex items-center"><span className="text-blue-500 mr-2">•</span> Classroom management skills</li>
+                    </ul>
+                  </div>
+                </div>
+                
+                <Button 
+                  onClick={startGame} 
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-4 text-lg font-bold rounded-full shadow-lg transform hover:scale-105 transition-all duration-200"
+                >
+                  <Gamepad2 className="h-6 w-6 mr-3" />
+                  Start Your Adventure
+                  <Star className="h-6 w-6 ml-3" />
+                </Button>
+              </div>
+            </div>
+          )}
 
         {gameState === 'playing' && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {/* Game Stats */}
-            <div className="flex justify-between items-center bg-gray-100 p-3 rounded-lg">
-              <div className="flex space-x-4">
-                <Badge variant="outline">Score: {score}</Badge>
-                <Badge variant="outline">Lives: {lives}</Badge>
-                <Badge variant="outline">Level: {currentLevel}</Badge>
+            <div className="bg-gradient-to-r from-purple-100 to-blue-100 p-4 rounded-xl border border-purple-200 shadow-sm">
+              <div className="flex justify-between items-center">
+                <div className="flex space-x-4">
+                  <Badge className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white font-bold px-3 py-1">
+                    Score: {score}
+                  </Badge>
+                  <Badge className="bg-gradient-to-r from-red-400 to-pink-400 text-white font-bold px-3 py-1">
+                    <Heart className="h-3 w-3 mr-1" />
+                    Lives: {lives}
+                  </Badge>
+                  <Badge className="bg-gradient-to-r from-purple-400 to-blue-400 text-white font-bold px-3 py-1">
+                    <Trophy className="h-3 w-3 mr-1" />
+                    Level: {currentLevel}
+                  </Badge>
+                </div>
+                <div className="text-sm text-gray-600 font-medium">
+                  Transform negative emotions into positive energy!
+                </div>
               </div>
             </div>
 
             {/* Game Board */}
-            <div className="relative bg-black rounded-lg p-2 mx-auto overflow-hidden" 
-                 style={{ 
-                   width: BOARD_WIDTH * CELL_SIZE + 16,
-                   height: BOARD_HEIGHT * CELL_SIZE + 16
-                 }}>
-              
-              {/* Render Maze Walls */}
-              {MAZE.map((row, y) => 
-                row.map((cell, x) => (
-                  cell === 1 && (
-                    <div
-                      key={`wall-${x}-${y}`}
-                      className="absolute bg-blue-600"
-                      style={{
-                        left: x * CELL_SIZE + 8,
-                        top: y * CELL_SIZE + 8,
-                        width: CELL_SIZE,
-                        height: CELL_SIZE
-                      }}
-                    />
-                  )
-                ))
-              )}
+            <div className="bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 p-4 rounded-2xl shadow-2xl mx-auto border-4 border-purple-300">
+              <div className="relative bg-gradient-to-br from-gray-900 to-black rounded-xl p-2 mx-auto overflow-hidden border-2 border-purple-400" 
+                   style={{ 
+                     width: BOARD_WIDTH * CELL_SIZE + 16,
+                     height: BOARD_HEIGHT * CELL_SIZE + 16
+                   }}>
+                
+                {/* Render Maze Walls */}
+                {MAZE.map((row, y) => 
+                  row.map((cell, x) => (
+                    cell === 1 && (
+                      <div
+                        key={`wall-${x}-${y}`}
+                        className="absolute bg-gradient-to-br from-blue-500 to-purple-600 border border-blue-300 shadow-sm"
+                        style={{
+                          left: x * CELL_SIZE + 8,
+                          top: y * CELL_SIZE + 8,
+                          width: CELL_SIZE,
+                          height: CELL_SIZE,
+                          borderRadius: '2px'
+                        }}
+                      />
+                    )
+                  ))
+                )}
               
               {/* Player (Teacher Character) */}
               <div 
@@ -551,6 +589,7 @@ export default function PacHealGame() {
                 </div>
               </div>
             )}
+            </div>
           </div>
         )}
 
@@ -638,7 +677,8 @@ export default function PacHealGame() {
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
