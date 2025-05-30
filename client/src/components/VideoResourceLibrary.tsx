@@ -37,11 +37,50 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { VideoResource, videoResourcesData } from '@shared/videoResources';
+import { csvVideoLibrary, CSVVideoResource } from '@shared/csvVideoLibrary';
 import '../lib/videoValidator'; // Import the validator for global use
 import VideoResourceCard from '@/components/VideoResourceCard';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from "@/components/ui/progress";
+
+// Convert CSV videos to VideoResource format
+function convertCSVToVideoResource(csvVideo: CSVVideoResource): VideoResource {
+  return {
+    id: csvVideo.id,
+    title: csvVideo.title,
+    description: csvVideo.description,
+    youtubeId: csvVideo.youtubeId,
+    category: csvVideo.category,
+    tags: csvVideo.tags,
+    duration: csvVideo.duration,
+    source: csvVideo.source,
+    expertLevel: csvVideo.expertLevel,
+    dateAdded: csvVideo.dateAdded,
+    featured: csvVideo.featured,
+    quiz: {
+      questions: [
+        {
+          question: `What is the main focus of "${csvVideo.title}"?`,
+          options: [
+            "General teaching strategies",
+            "Professional development and best practices",
+            "Classroom management only",
+            "Administrative procedures"
+          ],
+          correctAnswer: 1,
+          explanation: "This video focuses on professional development and evidence-based practices in early childhood education."
+        }
+      ]
+    }
+  };
+}
+
+// Combine all video resources
+const allVideoResources: VideoResource[] = [
+  ...videoResourcesData,
+  ...csvVideoLibrary.map(convertCSVToVideoResource)
+];
 
 // Component for the Video Resource Library
 interface VideoResourceLibraryProps {
@@ -53,7 +92,7 @@ export function VideoResourceLibrary({
   showFilters = true, 
   compactMode = false 
 }: VideoResourceLibraryProps) {
-  const [filteredVideos, setFilteredVideos] = useState<VideoResource[]>(videoResourcesData);
+  const [filteredVideos, setFilteredVideos] = useState<VideoResource[]>(allVideoResources);
   const [activeFilter, setActiveFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -104,7 +143,7 @@ export function VideoResourceLibrary({
   // Expose videos data globally for the validation utility
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      window.videoResourcesData = videoResourcesData;
+      window.videoResourcesData = allVideoResources;
       
       // Log instructions for validation in dev mode
       console.info(
@@ -169,7 +208,7 @@ export function VideoResourceLibrary({
     level: string, 
     tab: string
   ) => {
-    let results = videoResourcesData;
+    let results = allVideoResources;
     
     // Filter by search query
     if (query) {
@@ -209,7 +248,7 @@ export function VideoResourceLibrary({
 
   // All unique categories from the video data
   const categories = Array.from(
-    new Set(videoResourcesData.flatMap(video => video.category))
+    new Set(allVideoResources.flatMap(video => video.category))
   ).sort();
 
   return (
