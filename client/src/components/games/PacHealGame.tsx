@@ -22,6 +22,15 @@ interface BadFeeling {
   position: Position;
   type: 'fear' | 'shame' | 'anger' | 'worry';
   eaten: boolean;
+  powerUp?: boolean;
+}
+
+interface QuizQuestion {
+  id: number;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
 }
 
 interface RoutinePellet {
@@ -72,11 +81,107 @@ const ROUTINE_QUIZZES: Record<string, { question: string; answer: string }> = {
 
 const POSITIVE_PHRASES = [
   "I see you're upset",
-  "You seem frustrated",
+  "You seem frustrated", 
   "Help me understand",
   "Let's solve this together",
   "I notice you need space"
 ];
+
+const ECE_QUIZ_QUESTIONS: QuizQuestion[] = [
+  {
+    id: 1,
+    question: "What is the most effective way to handle a child's tantrum?",
+    options: [
+      "Ignore the child completely until they stop",
+      "Stay calm, validate their feelings, and offer comfort",
+      "Give them what they want to stop the behavior",
+      "Remove them from the situation immediately"
+    ],
+    correctAnswer: 1,
+    explanation: "Staying calm and validating feelings helps children learn emotional regulation while feeling supported."
+  },
+  {
+    id: 2,
+    question: "Which strategy best supports a shy child in group activities?",
+    options: [
+      "Force them to participate to build confidence",
+      "Let them sit out all activities",
+      "Gradually encourage participation with support",
+      "Put them with the most outgoing children"
+    ],
+    correctAnswer: 2,
+    explanation: "Gradual encouragement with support respects the child's temperament while building confidence."
+  },
+  {
+    id: 3,
+    question: "What is the best approach for teaching emotional vocabulary to preschoolers?",
+    options: [
+      "Use feeling faces and books during calm moments",
+      "Only discuss emotions when children are upset",
+      "Avoid labeling emotions to prevent drama",
+      "Tell children to 'use their words' when upset"
+    ],
+    correctAnswer: 0,
+    explanation: "Teaching emotional vocabulary during calm moments helps children better express themselves when emotions are high."
+  },
+  {
+    id: 4,
+    question: "How should you respond when a child bites another child?",
+    options: [
+      "Bite them back so they understand how it feels",
+      "Focus attention on the hurt child first, then address the biter calmly",
+      "Put the biting child in timeout immediately",
+      "Tell the biting child they are bad"
+    ],
+    correctAnswer: 1,
+    explanation: "Attending to the hurt child first prevents giving the biter attention for negative behavior, then address the behavior calmly."
+  },
+  {
+    id: 5,
+    question: "What helps children develop self-regulation skills?",
+    options: [
+      "Strict rules with immediate consequences",
+      "Teaching breathing techniques and providing calm-down spaces",
+      "Avoiding any situations that might upset them",
+      "Telling them to control themselves"
+    ],
+    correctAnswer: 1,
+    explanation: "Teaching concrete techniques like breathing and providing safe spaces helps children develop internal regulation skills."
+  }
+];
+
+// Sound effects functions
+const playSound = (type: 'collect' | 'powerup' | 'ghost' | 'quiz' | 'success') => {
+  try {
+    const audio = new Audio();
+    switch(type) {
+      case 'collect':
+        // Mario coin sound effect
+        audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DwuWkdBzuBl+/T3jMFIGzQ8oA'; 
+        break;
+      case 'powerup':
+        // Power up sound
+        audio.src = 'data:audio/wav;base64,UklGRq4BAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YYoBAAC4uLi4uLi4QEBAQEBAQDAwMDAwMDA=';
+        break;
+      case 'ghost':
+        // Ghost collision sound
+        audio.src = 'data:audio/wav;base64,UklGRl4BAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YToBAADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA=';
+        break;
+      case 'quiz':
+        // Quiz notification
+        audio.src = 'data:audio/wav;base64,UklGRmABAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YTwBAADBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHB=';
+        break;
+      case 'success':
+        // Success sound
+        audio.src = 'data:audio/wav;base64,UklGRkgBAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YSQBAADDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PD=';
+        break;
+    }
+    audio.volume = 0.3;
+    audio.play().catch(() => {}); // Ignore errors if sound fails
+  } catch (error) {
+    // Silently fail if audio is not supported
+  }
+};
 
 const MAZE_SIZE = 15;
 const CELL_SIZE = 40;
@@ -123,6 +228,9 @@ export default function PacHealGame() {
   const [collectedAffirmations, setCollectedAffirmations] = useState<string[]>([]);
   const [currentQuiz, setCurrentQuiz] = useState<{ question: string; answer: string } | null>(null);
   const [showQuizAnswer, setShowQuizAnswer] = useState(false);
+  const [eceQuiz, setEceQuiz] = useState<QuizQuestion | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [quizResult, setQuizResult] = useState<'correct' | 'incorrect' | null>(null);
   const gameLoopRef = useRef<number>();
 
   // Initialize level
@@ -141,11 +249,13 @@ export default function PacHealGame() {
         for (let x = 1; x < MAZE_SIZE - 1; x++) {
           if (MAZE_LAYOUT[y][x] === 0 && Math.random() < 0.3) {
             const types: Array<'fear' | 'shame' | 'anger' | 'worry'> = ['fear', 'shame', 'anger', 'worry'];
+            const isPowerUp = Math.random() < 0.2; // 20% chance for power-up
             feelings.push({
               id: id++,
               position: { x, y },
               type: types[Math.floor(Math.random() * types.length)],
-              eaten: false
+              eaten: false,
+              powerUp: isPowerUp
             });
           }
         }
@@ -342,15 +452,22 @@ export default function PacHealGame() {
               feeling.position.x === playerPos.x && 
               feeling.position.y === playerPos.y) {
             
-            setScore(s => s + 100);
+            if (feeling.powerUp) {
+              // Power-up collected
+              playSound('powerup');
+              setScore(s => s + 300);
+              setPowerUpActive(true);
+              setPowerUpTimer(200); // 200 * 200ms = 40 seconds
+              setGhosts(prev => prev.map(ghost => ({ ...ghost, type: 'helper' })));
+            } else {
+              // Regular emotional pellet
+              playSound('collect');
+              setScore(s => s + 100);
+            }
             
             // Add affirmation
             const affirmation = AFFIRMATIONS[feeling.type];
             setCollectedAffirmations(prev => [...prev, affirmation.message]);
-            
-            // Activate power-up with positive phrases
-            setPowerUpActive(true);
-            setPowerUpTimer(100);
             setGhosts(prev => prev.map(ghost => ({ ...ghost, type: 'helper' })));
             
             return { ...feeling, eaten: true };

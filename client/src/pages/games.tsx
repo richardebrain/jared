@@ -104,14 +104,8 @@ export default function GamesPage() {
           <TabsContent value="play" className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
-                <SpinWheel />
-              </div>
-              <div>
                 <ScratchCard />
               </div>
-            </div>
-            
-            <div className="grid grid-cols-1 gap-8">
               <div>
                 <MysteryBox />
               </div>
