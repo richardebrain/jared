@@ -8,6 +8,11 @@ import connectPgSimple from "connect-pg-simple";
 import bcrypt from "bcrypt";
 import { eq } from "drizzle-orm";
 import { users } from "@shared/schema";
+import { WebSocketServer } from 'ws';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import { registerRoutes } from './routes.js';
 
 const app = express();
 app.use(express.json());
@@ -199,6 +204,9 @@ app.post('/api/games/save-score', (req, res) => {
 app.get('/api/games/leaderboard', (req, res) => {
   res.json([]);
 });
+
+// Register all comprehensive routes from routes.ts
+await registerRoutes(app);
 
 // Error handling middleware
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {

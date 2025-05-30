@@ -52,24 +52,55 @@ export default function AppOwnerDashboard() {
   // Fetch app metrics
   const { data: metrics, isLoading: isLoadingMetrics } = useQuery({
     queryKey: ["/api/owner/metrics"],
+    queryFn: async () => {
+      const response = await fetch("/api/owner/metrics?admin_password=BIGSURF55");
+      if (!response.ok) {
+        throw new Error(`Failed to fetch metrics: ${response.status}`);
+      }
+      return response.json();
+    },
     retry: false,
   });
 
   // Fetch all schools
   const { data: schools, isLoading: isLoadingSchools } = useQuery({
     queryKey: ["/api/owner/schools"],
+    queryFn: async () => {
+      const response = await fetch("/api/owner/schools?admin_password=BIGSURF55");
+      if (!response.ok) {
+        throw new Error(`Failed to fetch schools: ${response.status}`);
+      }
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
     retry: false,
   });
 
   // Fetch all payment plans
   const { data: paymentPlans, isLoading: isLoadingPaymentPlans } = useQuery({
     queryKey: ["/api/owner/payment-plans"],
+    queryFn: async () => {
+      const response = await fetch("/api/owner/payment-plans?admin_password=BIGSURF55");
+      if (!response.ok) {
+        throw new Error(`Failed to fetch payment plans: ${response.status}`);
+      }
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
     retry: false,
   });
 
   // Fetch all users
   const { data: allUsers, isLoading: isLoadingUsers } = useQuery({
     queryKey: ["/api/admin/users"],
+    queryFn: async () => {
+      const response = await fetch("/api/admin/users?admin_password=BIGSURF55");
+      if (!response.ok) {
+        throw new Error(`Failed to fetch users: ${response.status}`);
+      }
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
     retry: false,
   });
 
