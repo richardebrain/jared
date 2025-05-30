@@ -187,7 +187,7 @@ const sampleQuestions: QuizQuestion[] = [
 ];
 
 export default function PacHealGame() {
-  const [gameState, setGameState] = useState<'menu' | 'playing' | 'gameOver' | 'quiz'>('menu');
+  const [gameState, setGameState] = useState<'menu' | 'playing' | 'gameOver' | 'quiz' | 'ghostHit'>('menu');
   const [currentLevel, setCurrentLevel] = useState(1);
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
@@ -201,6 +201,7 @@ export default function PacHealGame() {
   const [isInvulnerable, setIsInvulnerable] = useState(false);
   const [pointsEarned, setPointsEarned] = useState(0);
   const [showPointAnimation, setShowPointAnimation] = useState(false);
+  const [hitByGhost, setHitByGhost] = useState<Ghost | null>(null);
   const gameRef = useRef<HTMLDivElement>(null);
 
   const affirmations = [

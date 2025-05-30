@@ -1,0 +1,54 @@
+Game Concept: “Preschool Dash”
+An endless‐runner in the spirit of Temple Run or Subway Surfers—only you’re a preschool teacher sprinting down Early Learning Lane, collecting best‐practice power‐ups and dodging common classroom pitfalls. Each collectible and obstacle is clearly labeled, so as you play, you’re literally “running through” key ECE dos and don’ts!
+
+1. Theme & Setting
+Hero: A cheerful teacher avatar (selectable hair/skin tones, outfits)
+
+Environment: A bright, cartoon “Preschool Parkway” lined with mini-schools, playgrounds, and thematic landmarks (Reading Roundabout, Snack Shack, Nap Nook).
+
+Tone: Playful, colorful, upbeat soundtrack with occasional classroom sound-bytes (giggles, chimes).
+
+2. Core Mechanics
+Swipe Left/Right: Shift lanes to collect or dodge.
+
+Swipe Up: Jump over floor hazards.
+
+Swipe Down: Slide under low obstacles.
+
+Tap: Activate a one‐time Power-Up (e.g. “Compassion Shield”).
+
+3. Collectibles & Obstacles
+Type	Label/Text	Gameplay Effect	Learning Moment
+Praise Coins	“Specific Praise”	+10 points	Teaches naming exact behaviors (“Great sharing!”)
+Choice Gems	“Offer Choice”	+15 points	Reinforces giving kids autonomy (“Red or blue?”)
+Story Stars	“Read Aloud”	+20 points	Encourages daily read-aloud routines
+Ignore Bombs	“Yelling ‘No’”	−10 points AND brief slow-down	Highlights why “No” without explanation backfires
+Missed Cues	“Missed Name Call”	Stuns you 1 s	Reminds to greet each child by name
+Tantrum Traps	“Ignoring Emotions”	Knock-back to last checkpoint	Shows need to validate feelings before redirection
+
+4. Power-Ups & Special Items
+Compassion Shield (“Empathy Booster”): 10 s invincibility against obstacles.
+
+Time-Out Turbo: 5 s speed boost, collects doubles points.
+
+Reflection Beacon: Pauses action; shows a 10 s micro-lesson video on any recent obstacle you hit.
+
+5. Progression & Levels
+Skill Tiers: Every 1,000 pts you “level up,” unlocking new districts (e.g. “STEAM Square,” “Outdoor Oasis”) and fresh obstacle/collectible sets tied to those domains.
+
+Daily Missions: “Collect 20 Praise Coins” or “Dodge 15 Yelling ‘No’ bombs” to earn badges.
+
+Leaderboards: Compare high scores with peers, share strategies.
+
+6. UI Layout
+Top Bar: Score counter, current level, “Empathy Shield” icon with timer.
+
+Bottom Lane View: Three‐lane view of Preschool Parkway, with signage (“Snack Time Ahead”) to foreshadow upcoming elements.
+
+Pop-Ups: Flash-card style tooltips when you first collect each new item/obstacle.
+
+7. Feedback & Reinforcement
+Instant Feedback: A quick “+Specific Praise!” or “Oops—Yelling ‘No’ slows you down!” graphic and voice-over.
+
+End-Run Summary: Breakdown of what you collected, obstacles hit, and a “Learning Recap” with links to 1–2 minute training videos on key concepts.
+
