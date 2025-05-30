@@ -37,31 +37,31 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { VideoResource, videoResourcesData } from '@shared/videoResources';
-import { csvVideoLibrary, CSVVideoResource } from '@shared/csvVideoLibrary';
+import { professionalVideoLibrary, ProfessionalVideo } from '@shared/professionalVideoLibrary';
 import '../lib/videoValidator'; // Import the validator for global use
 import VideoResourceCard from '@/components/VideoResourceCard';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from "@/components/ui/progress";
 
-// Convert CSV videos to VideoResource format with unique IDs
-function convertCSVToVideoResource(csvVideo: CSVVideoResource, index: number): VideoResource {
+// Convert professional videos to VideoResource format
+function convertProfessionalToVideoResource(profVideo: ProfessionalVideo): VideoResource {
   return {
-    id: `prof-dev-${index + 1}`, // Use unique professional development IDs
-    title: csvVideo.title,
-    description: csvVideo.description,
-    youtubeId: csvVideo.youtubeId,
-    category: csvVideo.category,
-    tags: csvVideo.tags,
-    duration: csvVideo.duration,
-    source: csvVideo.source,
-    expertLevel: csvVideo.expertLevel,
-    dateAdded: csvVideo.dateAdded,
-    featured: csvVideo.featured,
+    id: profVideo.id,
+    title: profVideo.title,
+    description: profVideo.description,
+    youtubeId: profVideo.youtubeId,
+    category: profVideo.category,
+    tags: profVideo.tags,
+    duration: profVideo.duration,
+    source: profVideo.source,
+    expertLevel: profVideo.expertLevel,
+    dateAdded: profVideo.dateAdded,
+    featured: profVideo.featured,
     quiz: {
       questions: [
         {
-          question: `What is the main focus of "${csvVideo.title}"?`,
+          question: `What is the main focus of "${profVideo.title}"?`,
           options: [
             "General teaching strategies",
             "Professional development and best practices",
@@ -79,7 +79,7 @@ function convertCSVToVideoResource(csvVideo: CSVVideoResource, index: number): V
 // Combine all video resources
 const allVideoResources: VideoResource[] = [
   ...videoResourcesData,
-  ...csvVideoLibrary.map((csvVideo, index) => convertCSVToVideoResource(csvVideo, index))
+  ...professionalVideoLibrary.map(convertProfessionalToVideoResource)
 ];
 
 // Component for the Video Resource Library
