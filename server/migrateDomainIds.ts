@@ -180,8 +180,7 @@ async function main() {
   }
 }
 
-if (require.main === module) {
-  main();
-}
+// Execute if this is the main module
+main();
 
 export { analyzeDomainIdData, createDomainIdMapping, performMigration }; 

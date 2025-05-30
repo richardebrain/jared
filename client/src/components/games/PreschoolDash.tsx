@@ -78,10 +78,38 @@ const COLLECTIBLES = [
 ];
 
 const OBSTACLES = [
-  { subtype: 'yelling', label: 'Yelling No', points: -10, color: '#ef4444', icon: '🚫' },
-  { subtype: 'missed_cue', label: 'Missed Name Call', points: -5, color: '#f97316', icon: '😔' },
-  { subtype: 'ignore_emotion', label: 'Ignoring Emotions', points: -15, color: '#dc2626', icon: '💔' },
-  { subtype: 'rushed', label: 'Rushing Transitions', points: -8, color: '#b91c1c', icon: '⚡' }
+  { 
+    subtype: 'yelling', 
+    label: 'Yelling No', 
+    points: -10, 
+    color: '#ef4444', 
+    icon: '🚫',
+    explanation: 'Yelling "No" without explanation confuses children and doesn\'t teach them why the behavior is inappropriate. Instead, use calm, specific guidance like "Please use gentle hands with friends."'
+  },
+  { 
+    subtype: 'missed_cue', 
+    label: 'Missed Name Call', 
+    points: -5, 
+    color: '#f97316', 
+    icon: '😔',
+    explanation: 'Missing name calls makes children feel invisible and disconnected. Greeting each child by name builds strong relationships and shows you value their presence in the classroom.'
+  },
+  { 
+    subtype: 'ignore_emotion', 
+    label: 'Ignoring Emotions', 
+    points: -15, 
+    color: '#dc2626', 
+    icon: '💔',
+    explanation: 'Ignoring children\'s emotions teaches them their feelings don\'t matter. Instead, acknowledge their feelings first: "I see you\'re upset" before redirecting behavior.'
+  },
+  { 
+    subtype: 'rushed', 
+    label: 'Rushing Transitions', 
+    points: -8, 
+    color: '#b91c1c', 
+    icon: '⚡',
+    explanation: 'Rushing transitions creates anxiety and behavioral problems. Give children warnings ("5 more minutes") and clear expectations to help them feel secure during changes.'
+  }
 ];
 
 const POWERUPS = [
@@ -117,6 +145,7 @@ export default function PreschoolDash() {
   const [gameItems, setGameItems] = useState<GameItem[]>([]);
   const [activePowerUps, setActivePowerUps] = useState<PowerUp[]>([]);
   const [showTip, setShowTip] = useState<{ message: string; type: 'positive' | 'negative' } | null>(null);
+  const [showExplanation, setShowExplanation] = useState<{ title: string; explanation: string } | null>(null);
   const [lastItemGenerated, setLastItemGenerated] = useState(0);
 
   // Initialize game
@@ -273,9 +302,9 @@ export default function PreschoolDash() {
         items.push(generateGameItem(gameStats.distance));
       }
       
-      // Move items down and remove off-screen items
+      // Move items down and remove off-screen items (slower for better readability)
       items = items
-        .map(item => ({ ...item, y: item.y + player.speed * 2 }))
+        .map(item => ({ ...item, y: item.y + player.speed * 1.2 }))
         .filter(item => item.y < GAME_HEIGHT + 50);
       
       return items;
