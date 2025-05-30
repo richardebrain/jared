@@ -498,42 +498,44 @@ export default function PacHealGame() {
               ))}
             </div>
 
-            {/* Mobile Controls */}
-            <div className="flex flex-col items-center space-y-2 md:hidden">
+            {/* Mobile Controls - Always Visible */}
+            <div className="flex flex-col items-center space-y-3 mt-4">
+              <div className="text-sm text-gray-600 mb-2">Use arrow keys or buttons below to move:</div>
               <Button
                 variant="outline"
-                size="sm"
+                size="lg"
                 onClick={() => movePlayer('up')}
-                className="w-16 h-12"
+                className="w-16 h-16 bg-blue-50 hover:bg-blue-100 border-2 border-blue-300"
               >
-                <ArrowUp className="h-4 w-4" />
+                <ArrowUp className="h-6 w-6 text-blue-600" />
               </Button>
-              <div className="flex space-x-2">
+              <div className="flex space-x-3">
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="lg"
                   onClick={() => movePlayer('left')}
-                  className="w-16 h-12"
+                  className="w-16 h-16 bg-blue-50 hover:bg-blue-100 border-2 border-blue-300"
                 >
-                  <ArrowLeft className="h-4 w-4" />
+                  <ArrowLeft className="h-6 w-6 text-blue-600" />
                 </Button>
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="lg"
                   onClick={() => movePlayer('down')}
-                  className="w-16 h-12"
+                  className="w-16 h-16 bg-blue-50 hover:bg-blue-100 border-2 border-blue-300"
                 >
-                  <ArrowDown className="h-4 w-4" />
+                  <ArrowDown className="h-6 w-6 text-blue-600" />
                 </Button>
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="lg"
                   onClick={() => movePlayer('right')}
-                  className="w-16 h-12"
+                  className="w-16 h-16 bg-blue-50 hover:bg-blue-100 border-2 border-blue-300"
                 >
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-6 w-6 text-blue-600" />
                 </Button>
               </div>
+              <div className="text-xs text-gray-500">Desktop: Use WASD or Arrow Keys</div>
             </div>
 
             {/* Collected Affirmations */}
