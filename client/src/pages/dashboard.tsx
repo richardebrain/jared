@@ -606,22 +606,16 @@ export default function Dashboard() {
                 </Card>
               </div>
               
-              {/* Leaderboard - Takes 1/4 of the width */}
-              <div className="lg:col-span-1">
-                <SimpleLeaderboard
-                  teachers={(users as any[]) || []}
-                  userId={user?.id as number}
-                  isLoading={teachLoading}
-                />
-              </div>
             </div>
 
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Main Content - Left 2/3 */}
               <div className="lg:col-span-2 space-y-6">
-                {/* Bear Bucks and Points Progress Bar */}
-              <div className="bg-white rounded-xl shadow-md p-4 mt-4">
+                {/* Bear Bucks and Points Progress Bar with Leaderboard */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-2">
+                    <div className="bg-white rounded-xl shadow-md p-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Points */}
                   <div className="flex items-center">
@@ -704,7 +698,18 @@ export default function Dashboard() {
                 </div>
                 
                 {/* Custom animations are added through global CSS instead */}
-              </div>
+                    </div>
+                  </div>
+                  
+                  {/* Leaderboard positioned next to progress */}
+                  <div className="lg:col-span-1">
+                    <SimpleLeaderboard
+                      teachers={(users as any[]) || []}
+                      userId={user?.id as number}
+                      isLoading={teachLoading}
+                    />
+                  </div>
+                </div>
               
               {/* Required Modules Section */}
               <div className="space-y-4">
