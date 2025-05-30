@@ -17,8 +17,8 @@ import { z } from 'zod';
 export const CreateQuestionSchema = z.object({
   domainId: z.string().min(1, "Domain ID is required"),
   text: z.string().min(10, "Question text must be at least 10 characters"),
-  options: z.array(z.string().min(1, "Option cannot be empty")).min(2, "At least 2 options required").max(6, "Maximum 6 options allowed"),
-  correctAnswer: z.number().min(0, "Correct answer index must be 0 or greater"),
+  options: z.array(z.string().min(1, "Option cannot be empty")).length(4, "Exactly 4 options required (A, B, C, D)"),
+  correctAnswer: z.number().min(0).max(3, "Correct answer must be 0-3 (A-D)"),
   difficulty: z.string().min(1, "Difficulty is required"),
   explanation: z.string().optional(),
   miniLesson: z.string().optional(),
@@ -202,6 +202,7 @@ export class QuestionManagementService {
         createdByName: q.createdByFirstName && q.createdByLastName 
           ? `${q.createdByFirstName} ${q.createdByLastName}` 
           : undefined,
+        domainName: q.domainName || undefined,
       }));
 
       return {
@@ -260,6 +261,7 @@ export class QuestionManagementService {
         createdByName: question.createdByFirstName && question.createdByLastName 
           ? `${question.createdByFirstName} ${question.createdByLastName}` 
           : undefined,
+        domainName: question.domainName || undefined,
       };
 
       return transformedQuestion;

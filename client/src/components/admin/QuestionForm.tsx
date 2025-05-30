@@ -45,8 +45,8 @@ const TEMP_ADMIN_PASSWORD = "BIGSURF55";
 const QuestionFormSchema = z.object({
   domainId: z.string().min(1, "Domain is required"),
   text: z.string().min(10, "Question text must be at least 10 characters").max(500, "Question text must be less than 500 characters"),
-  options: z.array(z.string().min(1, "Option cannot be empty")).min(2, "At least 2 options required").max(6, "Maximum 6 options allowed"),
-  correctAnswer: z.number().min(0, "Must select a correct answer"),
+  options: z.array(z.string().min(1, "Option cannot be empty")).length(4, "Exactly 4 options required (A, B, C, D)"),
+  correctAnswer: z.number().min(0).max(3, "Correct answer must be A, B, C, or D"),
   difficulty: z.string().min(1, "Difficulty is required"),
   explanation: z.string().optional(),
   miniLesson: z.string().optional(),
@@ -98,7 +98,7 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
     defaultValues: {
       domainId: "",
       text: "",
-      options: ["", ""],
+      options: ["", "", "", ""], // Always 4 options
       correctAnswer: 0,
       difficulty: "3",
       explanation: "",
@@ -118,11 +118,18 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
         ? (question.tags ? question.tags.split(',').map(t => t.trim()).filter(Boolean) : [])
         : question.tags || [];
 
+      // Ensure exactly 4 options
+      const normalizedOptions = [...parsedOptions];
+      while (normalizedOptions.length < 4) {
+        normalizedOptions.push("");
+      }
+      normalizedOptions.length = 4; // Trim if more than 4
+
       form.reset({
         domainId: question.domainId,
         text: question.text,
-        options: parsedOptions,
-        correctAnswer: question.correctAnswer,
+        options: normalizedOptions,
+        correctAnswer: Math.min(question.correctAnswer, 3), // Ensure valid range
         difficulty: question.difficulty.toString(),
         explanation: question.explanation || "",
         miniLesson: question.miniLesson || "",
@@ -132,7 +139,7 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
       form.reset({
         domainId: "",
         text: "",
-        options: ["", ""],
+        options: ["", "", "", ""], // Always 4 options
         correctAnswer: 0,
         difficulty: "3",
         explanation: "",
@@ -211,11 +218,21 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
   });
 
   const onSubmit = (data: QuestionFormData) => {
-    // Validate correct answer is within options range
-    if (data.correctAnswer >= data.options.length) {
+    // Validate that all 4 options are filled
+    if (data.options.some(option => !option.trim())) {
       toast({
         title: "Validation Error",
-        description: "Correct answer index is out of range for provided options",
+        description: "All 4 answer options must be provided",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate correct answer is within valid range (0-3)
+    if (data.correctAnswer < 0 || data.correctAnswer > 3) {
+      toast({
+        title: "Validation Error",
+        description: "Correct answer must be A, B, C, or D",
         variant: "destructive",
       });
       return;
@@ -225,27 +242,6 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
       createMutation.mutate(data);
     } else {
       updateMutation.mutate(data);
-    }
-  };
-
-  const addOption = () => {
-    const currentOptions = form.getValues("options");
-    if (currentOptions.length < 6) {
-      form.setValue("options", [...currentOptions, ""]);
-    }
-  };
-
-  const removeOption = (index: number) => {
-    const currentOptions = form.getValues("options");
-    if (currentOptions.length > 2) {
-      const newOptions = currentOptions.filter((_, i) => i !== index);
-      form.setValue("options", newOptions);
-      
-      // Adjust correct answer if necessary
-      const currentCorrect = form.getValues("correctAnswer");
-      if (currentCorrect >= newOptions.length) {
-        form.setValue("correctAnswer", Math.max(0, newOptions.length - 1));
-      }
     }
   };
 
@@ -433,33 +429,11 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
                               placeholder={`Option ${String.fromCharCode(65 + index)}`}
                               className="flex-1"
                             />
-                            {field.value.length > 2 && (
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => removeOption(index)}
-                              >
-                                <Minus className="h-4 w-4" />
-                              </Button>
-                            )}
                           </div>
                         ))}
-                        {field.value.length < 6 && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={addOption}
-                            className="w-full"
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Option
-                          </Button>
-                        )}
                       </div>
                       <FormDescription>
-                        Add 2-6 multiple choice options
+                        Add 4 multiple choice options (A, B, C, D)
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

@@ -667,7 +667,7 @@ Weekly status updates will be added below to track overall project progress.
        - ✅ **Complete Question CRUD Interface:**
          - ✅ Full question creation form with comprehensive validation
          - ✅ Question editing with pre-populated data and proper updates
-         - ✅ Dynamic multiple choice options (2-6 options with A/B/C/D labels)
+         - ✅ Dynamic multiple choice options (exactly 4 options with A/B/C/D labels)
          - ✅ Difficulty level selection with 6-level system (Very Easy to Master)
          - ✅ Domain selection dropdown populated from API
          - ✅ Rich text areas for explanations and mini-lessons

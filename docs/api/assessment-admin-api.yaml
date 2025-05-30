@@ -196,23 +196,19 @@ paths:
                   type: array
                   items:
                     type: string
-                  minItems: 2
-                  maxItems: 6
-                  description: Multiple choice options (2-6 options)
-                  example: [
-                    "Maintaining visual contact with all children",
-                    "Ensuring all equipment is sanitized",
-                    "Having first aid supplies nearby",
-                    "Checking weather conditions"
-                  ]
+                  minItems: 4
+                  maxItems: 4
+                  description: Multiple choice options (exactly 4 required - A, B, C, D)
+                  example: ["Call the police immediately", "Ignore the behavior", "Approach the person directly", "Report to a supervisor or authority figure"]
                 correctAnswer:
                   type: integer
+                  description: Index of the correct answer (0=A, 1=B, 2=C, 3=D)
                   minimum: 0
-                  description: Index of correct answer (0-based)
-                  example: 0
+                  maximum: 3
+                  example: 3
                 difficulty:
                   type: string
-                  enum: ["1", "2", "3", "4", "5", "6"]
+                  enum: ["1", "2", "3", "4", "5"]
                   description: |
                     Difficulty level:
                     - 1: Very Easy
@@ -220,7 +216,6 @@ paths:
                     - 3: Medium
                     - 4: Hard
                     - 5: Very Hard
-                    - 6: Master
                   example: "3"
                 explanation:
                   type: string
@@ -1149,95 +1144,90 @@ components:
       properties:
         domainId:
           type: string
-          description: Domain name (must exist in assessment_domains)
-          example: "Child Safety & Supervision"
+          description: ID of the assessment domain
+          example: "child-safety"
         text:
           type: string
+          description: The question text
           minLength: 10
           maxLength: 500
-          description: Question text
-          example: "What is the most important factor when supervising children during outdoor play?"
+          example: "What should you do if you see someone acting suspiciously around children?"
         options:
           type: array
           items:
             type: string
-          minItems: 2
-          maxItems: 6
-          description: Multiple choice options (2-6 options)
-          example: [
-            "Maintaining visual contact with all children",
-            "Ensuring all equipment is sanitized", 
-            "Having first aid supplies nearby",
-            "Checking weather conditions"
-          ]
+          description: Multiple choice options (exactly 4 required - A, B, C, D)
+          minItems: 4
+          maxItems: 4
+          example: ["Call the police immediately", "Ignore the behavior", "Approach the person directly", "Report to a supervisor or authority figure"]
         correctAnswer:
           type: integer
+          description: Index of the correct answer (0=A, 1=B, 2=C, 3=D)
           minimum: 0
-          description: Index of correct answer (0-based)
-          example: 0
+          maximum: 3
+          example: 3
         difficulty:
           type: string
-          enum: ["1", "2", "3", "4", "5", "6"]
-          description: |
-            Difficulty level:
-            - 1: Very Easy
-            - 2: Easy
-            - 3: Medium  
-            - 4: Hard
-            - 5: Very Hard
-            - 6: Master
+          description: Question difficulty level
+          enum: ["1", "2", "3", "4", "5"]
           example: "3"
         explanation:
           type: string
-          description: Explanation for the correct answer (optional)
-          example: "Visual supervision is the primary safety measure for outdoor play, allowing immediate response to potential hazards."
+          description: Optional explanation of the correct answer
+          example: "Reporting to appropriate authorities ensures proper handling while maintaining safety protocols."
         miniLesson:
           type: string
-          description: Educational content for incorrect answers (optional)
-          example: "Effective outdoor supervision requires positioning yourself to see all children while scanning for potential hazards..."
+          description: Optional mini-lesson content
+          example: "Child safety protocols require immediate escalation to trained professionals."
         tags:
           type: string
-          description: Comma-separated tags for categorization (optional)
-          example: "supervision, outdoor play, safety"
+          description: Optional comma-separated tags
+          example: "safety,reporting,protocols"
 
     UpdateQuestionRequest:
       type: object
       properties:
+        domainId:
+          type: string
+          description: ID of the assessment domain
+          example: "child-safety"
         text:
           type: string
+          description: The question text
           minLength: 10
           maxLength: 500
-          description: Updated question text
+          example: "What should you do if you see someone acting suspiciously around children?"
         options:
           type: array
           items:
             type: string
-          minItems: 2
-          maxItems: 6
-          description: Updated answer options
+          description: Multiple choice options (exactly 4 required - A, B, C, D)
+          minItems: 4
+          maxItems: 4
+          example: ["Call the police immediately", "Ignore the behavior", "Approach the person directly", "Report to a supervisor or authority figure"]
         correctAnswer:
           type: integer
+          description: Index of the correct answer (0=A, 1=B, 2=C, 3=D)
           minimum: 0
-          description: Updated correct answer index
+          maximum: 3
+          example: 3
         difficulty:
-          type: integer
-          minimum: 1
-          maximum: 6
-          description: Updated difficulty level
+          type: string
+          description: Question difficulty level
+          enum: ["1", "2", "3", "4", "5"]
+          example: "3"
         explanation:
           type: string
-          nullable: true
-          description: Updated explanation
+          description: Optional explanation of the correct answer
+          example: "Reporting to appropriate authorities ensures proper handling while maintaining safety protocols."
         miniLesson:
           type: string
-          nullable: true
-          description: Updated educational content
+          description: Optional mini-lesson content
+          example: "Child safety protocols require immediate escalation to trained professionals."
         tags:
-          type: array
-          items:
-            type: string
-          nullable: true
-          description: Updated tags
+          type: string
+          description: Optional comma-separated tags
+          example: "safety,reporting,protocols"
 
     PaginatedQuestionsResponse:
       type: object
