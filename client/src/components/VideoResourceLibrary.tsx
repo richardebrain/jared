@@ -40,6 +40,7 @@ import { VideoResource, videoResourcesData } from '@shared/videoResources';
 import { enhancedProfessionalVideoLibrary, featuredProfessionalVideos, EnhancedProfessionalVideo } from '@shared/enhancedProfessionalVideoLibrary';
 import '../lib/videoValidator'; // Import the validator for global use
 import VideoResourceCard from '@/components/VideoResourceCard';
+import { VideoRating } from '@/components/VideoRating';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from "@/components/ui/progress";

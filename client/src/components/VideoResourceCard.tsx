@@ -24,6 +24,7 @@ import {
 import { VideoResource } from '@shared/videoResources';
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import VideoQuiz from "@/components/VideoQuiz";
+import { VideoRating } from '@/components/VideoRating';
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from '@/lib/queryClient';
 import { queryClient } from '@/lib/queryClient';
@@ -383,6 +384,11 @@ Category: ${video.category.join(', ')}
               <span>Unavailable</span>
             </Button>
           )}
+        </div>
+        
+        {/* Video Rating Component */}
+        <div className="mt-3 pt-3 border-t">
+          <VideoRating videoId={video.id} compact={true} />
         </div>
       </CardFooter>
     </Card>

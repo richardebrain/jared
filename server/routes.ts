@@ -4458,6 +4458,83 @@ Continue for all 5 questions...
     }
   });
 
+  // Video Rating API routes
+  app.get("/api/videos/:videoId/ratings", requireAuth, async (req, res) => {
+    try {
+      const { videoId } = req.params;
+      const ratings = await storage.getVideoRatings(videoId);
+      const averageRating = await storage.getVideoAverageRating(videoId);
+      
+      res.json({
+        ratings,
+        averageRating: averageRating.avgRating,
+        totalRatings: averageRating.totalRatings
+      });
+    } catch (error) {
+      console.error("Error fetching video ratings:", error);
+      res.status(500).json({ message: "Failed to fetch video ratings" });
+    }
+  });
+
+  app.get("/api/videos/:videoId/rating", requireAuth, async (req, res) => {
+    try {
+      const { videoId } = req.params;
+      const userId = req.session.userId!;
+      
+      const rating = await storage.getVideoRating(userId, videoId);
+      res.json(rating || null);
+    } catch (error) {
+      console.error("Error fetching user video rating:", error);
+      res.status(500).json({ message: "Failed to fetch video rating" });
+    }
+  });
+
+  app.post("/api/videos/:videoId/rating", requireAuth, async (req, res) => {
+    try {
+      const { videoId } = req.params;
+      const userId = req.session.userId!;
+      const { rating, review } = req.body;
+
+      if (!rating || rating < 1 || rating > 5) {
+        return res.status(400).json({ message: "Rating must be between 1 and 5" });
+      }
+
+      const newRating = await storage.createVideoRating({
+        userId,
+        videoId,
+        rating,
+        review: review || null
+      });
+
+      res.json(newRating);
+    } catch (error) {
+      console.error("Error creating video rating:", error);
+      res.status(500).json({ message: "Failed to create video rating" });
+    }
+  });
+
+  app.put("/api/videos/:videoId/rating", requireAuth, async (req, res) => {
+    try {
+      const { videoId } = req.params;
+      const userId = req.session.userId!;
+      const { rating, review } = req.body;
+
+      if (!rating || rating < 1 || rating > 5) {
+        return res.status(400).json({ message: "Rating must be between 1 and 5" });
+      }
+
+      const updatedRating = await storage.updateVideoRating(userId, videoId, {
+        rating,
+        review: review || null
+      });
+
+      res.json(updatedRating);
+    } catch (error) {
+      console.error("Error updating video rating:", error);
+      res.status(500).json({ message: "Failed to update video rating" });
+    }
+  });
+
   // EduTok Feed API - Get TikTok-style short video feed
   app.get("/api/edutok/feed", requireAuth, async (req, res) => {
     try {
