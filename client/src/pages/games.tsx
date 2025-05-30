@@ -251,7 +251,6 @@ export default function GamesPage() {
               </Card>
             ) : (
               <div className="space-y-6">
-                <StreakRewardsSummary />
                 <DailyRewards />
                 <StreakProtection />
               </div>
