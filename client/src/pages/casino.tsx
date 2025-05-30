@@ -169,22 +169,24 @@ export default function CasinoPage() {
       <Header />
       
       <div className="bg-gradient-to-r from-purple-100 to-indigo-100 p-6 rounded-lg">
-        <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="flex items-center mb-4 md:mb-0">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-red-600 bg-clip-text text-transparent mr-4">
+        {/* Header with more space */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-red-600 bg-clip-text text-transparent">
               Teacher Rewards
             </h1>
             <Link to="/dashboard">
-              <Button variant="outline">
+              <Button variant="outline" size="sm">
                 Back to Dashboard
               </Button>
             </Link>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-4">
+          {/* Action buttons with improved spacing */}
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             {/* Bonus Games Button - Core Values Style */}
             <div 
-              className={`group relative overflow-hidden transform hover:scale-105 transition-all ${hasCompletedActivity && !dailyGameUsed ? 'bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500' : 'bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700 opacity-90'} text-white font-bold py-3 px-6 rounded-xl ${hasCompletedActivity && !dailyGameUsed ? 'shadow-[0_5px_0_rgb(76,29,149)] hover:shadow-[0_3px_0_rgb(76,29,149)] active:shadow-[0_0px_0_rgb(76,29,149)] active:translate-y-1' : ''} border-2 ${hasCompletedActivity && !dailyGameUsed ? 'border-purple-200' : 'border-gray-400'} cursor-pointer`}
+              className={`group relative overflow-hidden transform hover:scale-105 transition-all ${hasCompletedActivity && !dailyGameUsed ? 'bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500' : 'bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700 opacity-90'} text-white font-bold py-4 px-8 rounded-xl ${hasCompletedActivity && !dailyGameUsed ? 'shadow-[0_5px_0_rgb(76,29,149)] hover:shadow-[0_3px_0_rgb(76,29,149)] active:shadow-[0_0px_0_rgb(76,29,149)] active:translate-y-1' : ''} border-2 ${hasCompletedActivity && !dailyGameUsed ? 'border-purple-200' : 'border-gray-400'} cursor-pointer min-w-[180px]`}
               onClick={() => hasCompletedActivity && !dailyGameUsed && setActiveTab("games")}
             >
               {/* Pixel-art style decorations */}
@@ -224,7 +226,7 @@ export default function CasinoPage() {
             
             {/* Rewards History Button - Core Values Style */}
             <div 
-              className="group relative overflow-hidden transform hover:scale-105 transition-all bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white font-bold py-3 px-6 rounded-xl shadow-[0_5px_0_rgb(194,65,12)] hover:shadow-[0_3px_0_rgb(194,65,12)] active:shadow-[0_0px_0_rgb(194,65,12)] active:translate-y-1 border-2 border-orange-200 cursor-pointer"
+              className="group relative overflow-hidden transform hover:scale-105 transition-all bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white font-bold py-4 px-8 rounded-xl shadow-[0_5px_0_rgb(194,65,12)] hover:shadow-[0_3px_0_rgb(194,65,12)] active:shadow-[0_0px_0_rgb(194,65,12)] active:translate-y-1 border-2 border-orange-200 cursor-pointer min-w-[180px]"
               onClick={() => setActiveTab("rewards")}
             >
               {/* Pixel-art style decorations */}
