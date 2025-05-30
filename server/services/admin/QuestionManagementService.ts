@@ -306,9 +306,7 @@ export class QuestionManagementService {
           options: JSON.stringify(validatedData.options), // Convert array to JSON string
           correctAnswer: validatedData.correctAnswer,
           difficulty: validatedData.difficulty,
-          explanation: validatedData.explanation || null,
-          miniLesson: validatedData.miniLesson || null,
-          tags: validatedData.tags || null,
+          miniLesson: validatedData.miniLesson,
           createdBy,
           isApproved: false, // New questions need approval
           isEnabled: true, // Enabled by default, but not approved
@@ -383,9 +381,7 @@ export class QuestionManagementService {
       if (validatedData.options !== undefined) updateFields.options = JSON.stringify(validatedData.options);
       if (validatedData.correctAnswer !== undefined) updateFields.correctAnswer = validatedData.correctAnswer;
       if (validatedData.difficulty !== undefined) updateFields.difficulty = validatedData.difficulty;
-      if (validatedData.explanation !== undefined) updateFields.explanation = validatedData.explanation;
       if (validatedData.miniLesson !== undefined) updateFields.miniLesson = validatedData.miniLesson;
-      if (validatedData.tags !== undefined) updateFields.tags = validatedData.tags;
       if (validatedData.domainId !== undefined) updateFields.domainId = validatedData.domainId;
 
       // Update the question

@@ -48,9 +48,7 @@ const QuestionFormSchema = z.object({
   options: z.array(z.string().min(1, "Option cannot be empty")).length(4, "Exactly 4 options required (A, B, C, D)"),
   correctAnswer: z.number().min(0).max(3, "Correct answer must be A, B, C, or D"),
   difficulty: z.string().min(1, "Difficulty is required"),
-  explanation: z.string().optional(),
-  miniLesson: z.string().optional(),
-  tags: z.array(z.string()).optional(),
+  miniLesson: z.string().min(1, "Mini Lesson is required"),
 });
 
 type QuestionFormData = z.infer<typeof QuestionFormSchema>;
@@ -62,9 +60,7 @@ interface Question {
   options: string | string[];
   correctAnswer: number;
   difficulty: string;
-  explanation?: string;
   miniLesson?: string;
-  tags?: string | string[];
   isApproved: boolean;
   isEnabled: boolean;
   createdAt: Date;
@@ -80,7 +76,6 @@ interface QuestionFormProps {
 
 export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormProps) {
   const { toast } = useToast();
-  const [tagInput, setTagInput] = useState("");
 
   // Fetch domains for the dropdown
   const { data: domains, isLoading: isLoadingDomains } = useQuery({
@@ -101,9 +96,7 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
       options: ["", "", "", ""], // Always 4 options
       correctAnswer: 0,
       difficulty: "3",
-      explanation: "",
       miniLesson: "",
-      tags: [],
     },
   });
 
@@ -114,9 +107,6 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
       const parsedOptions = typeof question.options === 'string' 
         ? JSON.parse(question.options) 
         : question.options;
-      const parsedTags = typeof question.tags === 'string' 
-        ? (question.tags ? question.tags.split(',').map(t => t.trim()).filter(Boolean) : [])
-        : question.tags || [];
 
       // Ensure exactly 4 options
       const normalizedOptions = [...parsedOptions];
@@ -131,9 +121,7 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
         options: normalizedOptions,
         correctAnswer: Math.min(question.correctAnswer, 3), // Ensure valid range
         difficulty: question.difficulty.toString(),
-        explanation: question.explanation || "",
         miniLesson: question.miniLesson || "",
-        tags: parsedTags,
       });
     } else if (isOpen && mode === "create") {
       form.reset({
@@ -142,9 +130,7 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
         options: ["", "", "", ""], // Always 4 options
         correctAnswer: 0,
         difficulty: "3",
-        explanation: "",
         miniLesson: "",
-        tags: [],
       });
     }
   }, [isOpen, question, mode, form]);
@@ -156,7 +142,6 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
         admin_password: TEMP_ADMIN_PASSWORD,
         ...data,
         options: data.options, // Send as array, backend will handle JSON conversion
-        tags: data.tags?.join(", ") || "",
       };
       return await apiRequest(`/api/admin/questions`, {
         method: "POST",
@@ -190,9 +175,7 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
         options: JSON.stringify(data.options),
         correctAnswer: data.correctAnswer,
         difficulty: data.difficulty,
-        explanation: data.explanation,
         miniLesson: data.miniLesson,
-        tags: data.tags?.join(", ") || "",
       };
       return await apiRequest(`/api/admin/questions/${question?.id}?admin_password=${TEMP_ADMIN_PASSWORD}`, {
         method: "PUT",
@@ -245,26 +228,9 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
     }
   };
 
-  const addTag = () => {
-    if (tagInput.trim()) {
-      const currentTags = form.getValues("tags") || [];
-      const newTag = tagInput.trim();
-      if (!currentTags.includes(newTag)) {
-        form.setValue("tags", [...currentTags, newTag]);
-      }
-      setTagInput("");
-    }
-  };
-
-  const removeTag = (index: number) => {
-    const currentTags = form.getValues("tags") || [];
-    form.setValue("tags", currentTags.filter((_, i) => i !== index));
-  };
-
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      addTag();
     }
   };
 
@@ -484,31 +450,10 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
               <CardContent className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="explanation"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Explanation (Optional)</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Explain why this is the correct answer..."
-                          className="min-h-[80px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Provide an explanation for the correct answer
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
                   name="miniLesson"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Mini-Lesson (Optional)</FormLabel>
+                      <FormLabel>Mini-Lesson (Required)</FormLabel>
                       <FormControl>
                         <Textarea 
                           placeholder="Provide educational content related to this topic..."
@@ -518,61 +463,6 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
                       </FormControl>
                       <FormDescription>
                         Educational content for users who get this question wrong
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-
-            {/* Tags */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Tag className="h-4 w-4" />
-                  Tags
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="tags"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Question Tags (Optional)</FormLabel>
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <Input
-                            placeholder="Add a tag..."
-                            value={tagInput}
-                            onChange={(e) => setTagInput(e.target.value)}
-                            onKeyPress={handleKeyPress}
-                            className="flex-1"
-                          />
-                          <Button type="button" onClick={addTag} size="sm">
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        {field.value && field.value.length > 0 && (
-                          <div className="flex flex-wrap gap-2">
-                            {field.value.map((tag, index) => (
-                              <Badge key={index} variant="secondary" className="gap-1">
-                                {tag}
-                                <button
-                                  type="button"
-                                  onClick={() => removeTag(index)}
-                                  className="ml-1 hover:bg-destructive hover:text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center text-xs"
-                                >
-                                  ×
-                                </button>
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <FormDescription>
-                        Add relevant tags for categorization and search
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

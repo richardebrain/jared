@@ -252,7 +252,7 @@ export default function GamesPage() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-6">
+              <div className="max-w-4xl mx-auto space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <LuckySlots onClose={() => {}} />
                   <ScratchCard />
@@ -263,12 +263,14 @@ export default function GamesPage() {
           </TabsContent>
           
           <TabsContent value="daily" className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <ScratchCard />
-              </div>
-              <div>
-                <MysteryBox />
+            <div className="max-w-4xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <ScratchCard />
+                </div>
+                <div>
+                  <MysteryBox />
+                </div>
               </div>
             </div>
             
