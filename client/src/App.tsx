@@ -69,6 +69,7 @@ import AdminTeachersPage from "@/pages/admin-teachers";
 import AdminAssignModulesPage from "@/pages/admin-assign-modules";
 import AdminMessagingPage from "@/pages/admin-messaging";
 import AdminBearBucksPage from "@/pages/admin-bear-bucks";
+import AdminMeetingCreator from "@/pages/admin-meeting-creator";
 import MessagesPage from "@/pages/messages";
 
 // Create a wrapper component that uses AuthProvider internally
@@ -666,6 +667,18 @@ function Router(props: {
           </div>
         ) : (
           <AdminBearBucksPage />
+        )}
+      </Route>
+
+      <Route path="/admin-meeting-creator">
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <AdminMeetingCreator />
         )}
       </Route>
 

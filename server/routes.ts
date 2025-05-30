@@ -5057,6 +5057,142 @@ Select the 3-5 most relevant standards.`;
     }
   });
 
+  // AI Meeting Agenda Generator
+  app.post('/api/ai/generate-meeting-agenda', requireAuth, async (req, res) => {
+    try {
+      const { 
+        meetingType, 
+        duration, 
+        attendeeCount, 
+        primaryFocus, 
+        specificTopics, 
+        challenges, 
+        goals, 
+        previousMeetingNotes 
+      } = req.body;
+
+      // Import OpenAI dynamically
+      const { default: OpenAI } = await import('openai');
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+      const prompt = `You are an expert early childhood education director creating an engaging staff meeting agenda. Generate a comprehensive, fun, and productive meeting plan.
+
+Meeting Details:
+- Type: ${meetingType}
+- Duration: ${duration} minutes
+- Attendees: ${attendeeCount}
+- Primary Focus: ${primaryFocus}
+- Specific Topics: ${specificTopics || 'None specified'}
+- Current Challenges: ${challenges || 'None specified'}
+- Upcoming Goals: ${goals || 'None specified'}
+- Previous Meeting Follow-up: ${previousMeetingNotes || 'None specified'}
+
+Create a JSON response with the following structure:
+{
+  "title": "Engaging meeting title",
+  "date": "Today's date",
+  "duration": "${duration} minutes",
+  "attendees": ["Director", "Lead Teachers", "Assistant Teachers"],
+  "objectives": ["3-4 clear meeting objectives"],
+  "icebreakers": [
+    {
+      "name": "Ice breaker name",
+      "description": "How to do it",
+      "timeNeeded": "5 minutes",
+      "materials": ["list of materials needed"],
+      "instructions": "Step by step instructions"
+    }
+  ],
+  "agenda": [
+    {
+      "item": "Agenda item name",
+      "timeAllocation": "X minutes", 
+      "presenter": "Who presents",
+      "description": "What happens in this section",
+      "activity": "Any interactive activity for this section"
+    }
+  ],
+  "discussionTopics": [
+    {
+      "topic": "Discussion topic",
+      "purpose": "Why discuss this",
+      "timeLimit": "X minutes",
+      "facilitationTips": "How to guide the discussion"
+    }
+  ],
+  "activities": [
+    {
+      "name": "Activity name",
+      "type": "quiz/game/discussion/roleplay",
+      "description": "What the activity involves",
+      "timeNeeded": "X minutes",
+      "materials": ["Materials needed"],
+      "instructions": "How to facilitate",
+      "learningGoal": "What participants will gain"
+    }
+  ],
+  "handouts": [
+    {
+      "title": "Handout title",
+      "type": "checklist/worksheet/reference/quiz",
+      "content": "Detailed content of the handout",
+      "purpose": "Why this handout is useful"
+    }
+  ],
+  "actionItems": [
+    {
+      "task": "Specific action item",
+      "assignee": "Who is responsible",
+      "deadline": "When it's due",
+      "priority": "High/Medium/Low"
+    }
+  ],
+  "followUpPlanning": "Next steps and follow-up plan",
+  "energizers": [
+    {
+      "name": "Quick energizer activity",
+      "when": "When to use it (if energy drops)",
+      "howTo": "Quick instructions",
+      "timeNeeded": "2-3 minutes"
+    }
+  ],
+  "takeaways": [
+    "Key points staff should remember",
+    "Resources to explore further",
+    "Motivation or inspiration to end on"
+  ]
+}
+
+Make the meeting engaging, interactive, and focused on early childhood education best practices. Include practical activities that build team cohesion and professional development. Ensure ice breakers are appropriate for professional settings and help build connections among staff.`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [{ role: "user", content: prompt }],
+        response_format: { type: "json_object" },
+        temperature: 0.8,
+        max_tokens: 4000
+      });
+
+      const agendaData = JSON.parse(response.choices[0].message.content || '{}');
+      
+      // Add current date
+      agendaData.date = new Date().toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+
+      res.json({ success: true, data: agendaData });
+    } catch (error) {
+      console.error('Error generating meeting agenda:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to generate meeting agenda. Please try again.' 
+      });
+    }
+  });
+
   // Serve uploaded audio files
   app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 

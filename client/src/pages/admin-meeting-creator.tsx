@@ -34,16 +34,40 @@ interface MeetingAgenda {
   duration: string;
   attendees: string[];
   objectives: string[];
+  icebreakers: {
+    name: string;
+    description: string;
+    timeNeeded: string;
+    materials: string[];
+    instructions: string;
+  }[];
   agenda: {
     item: string;
     timeAllocation: string;
     presenter: string;
     description: string;
+    activity?: string;
   }[];
   discussionTopics: {
     topic: string;
     purpose: string;
     timeLimit: string;
+    facilitationTips?: string;
+  }[];
+  activities: {
+    name: string;
+    type: string;
+    description: string;
+    timeNeeded: string;
+    materials: string[];
+    instructions: string;
+    learningGoal: string;
+  }[];
+  handouts: {
+    title: string;
+    type: string;
+    content: string;
+    purpose: string;
   }[];
   actionItems: {
     task: string;
@@ -51,8 +75,14 @@ interface MeetingAgenda {
     deadline: string;
     priority: 'High' | 'Medium' | 'Low';
   }[];
-  resources: string[];
   followUpPlanning: string;
+  energizers: {
+    name: string;
+    when: string;
+    howTo: string;
+    timeNeeded: string;
+  }[];
+  takeaways: string[];
 }
 
 export default function AdminMeetingCreator() {
@@ -73,7 +103,7 @@ export default function AdminMeetingCreator() {
     mutationFn: async (data: typeof formData) => {
       const response = await apiRequest('/api/ai/generate-meeting-agenda', {
         method: 'POST',
-        body: JSON.stringify(data)
+        data: data
       });
       return response.data;
     },
@@ -371,6 +401,34 @@ ${agenda.followUpPlanning}
 
                 <Separator />
 
+                {/* Ice Breakers */}
+                {generatedAgenda.icebreakers && generatedAgenda.icebreakers.length > 0 && (
+                  <>
+                    <div>
+                      <h3 className="font-semibold flex items-center gap-2 mb-3">
+                        <Sparkles className="h-4 w-4 text-pink-600" />
+                        Ice Breaker Activities
+                      </h3>
+                      <div className="space-y-3">
+                        {generatedAgenda.icebreakers.map((icebreaker, index) => (
+                          <div key={index} className="border rounded-lg p-3 bg-pink-50">
+                            <div className="flex justify-between items-start mb-2">
+                              <h4 className="font-medium text-pink-800">{icebreaker.name}</h4>
+                              <Badge variant="outline" className="text-pink-600">{icebreaker.timeNeeded}</Badge>
+                            </div>
+                            <p className="text-sm text-gray-700 mb-2">{icebreaker.description}</p>
+                            <div className="text-xs space-y-1">
+                              <p><strong>Materials:</strong> {icebreaker.materials.join(', ')}</p>
+                              <p><strong>Instructions:</strong> {icebreaker.instructions}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <Separator />
+                  </>
+                )}
+
                 {/* Discussion Topics */}
                 <div>
                   <h3 className="font-semibold flex items-center gap-2 mb-3">
@@ -379,16 +437,81 @@ ${agenda.followUpPlanning}
                   </h3>
                   <div className="space-y-2">
                     {generatedAgenda.discussionTopics.map((topic, index) => (
-                      <div key={index} className="flex justify-between items-start p-2 bg-yellow-50 rounded">
-                        <div>
+                      <div key={index} className="flex justify-between items-start p-3 bg-yellow-50 rounded">
+                        <div className="flex-1">
                           <p className="font-medium text-sm">{topic.topic}</p>
-                          <p className="text-xs text-muted-foreground">{topic.purpose}</p>
+                          <p className="text-xs text-muted-foreground mb-1">{topic.purpose}</p>
+                          {topic.facilitationTips && (
+                            <p className="text-xs text-yellow-700"><strong>Facilitation Tips:</strong> {topic.facilitationTips}</p>
+                          )}
                         </div>
                         <Badge variant="secondary" className="text-xs">{topic.timeLimit}</Badge>
                       </div>
                     ))}
                   </div>
                 </div>
+
+                <Separator />
+
+                {/* Interactive Activities */}
+                {generatedAgenda.activities && generatedAgenda.activities.length > 0 && (
+                  <>
+                    <div>
+                      <h3 className="font-semibold flex items-center gap-2 mb-3">
+                        <Zap className="h-4 w-4 text-orange-600" />
+                        Interactive Activities
+                      </h3>
+                      <div className="space-y-3">
+                        {generatedAgenda.activities.map((activity, index) => (
+                          <div key={index} className="border rounded-lg p-3 bg-orange-50">
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <h4 className="font-medium text-orange-800">{activity.name}</h4>
+                                <Badge variant="outline" className="text-xs mt-1">{activity.type}</Badge>
+                              </div>
+                              <Badge variant="outline" className="text-orange-600">{activity.timeNeeded}</Badge>
+                            </div>
+                            <p className="text-sm text-gray-700 mb-2">{activity.description}</p>
+                            <div className="text-xs space-y-1">
+                              <p><strong>Materials:</strong> {activity.materials.join(', ')}</p>
+                              <p><strong>Learning Goal:</strong> {activity.learningGoal}</p>
+                              <p><strong>Instructions:</strong> {activity.instructions}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <Separator />
+                  </>
+                )}
+
+                {/* Handouts */}
+                {generatedAgenda.handouts && generatedAgenda.handouts.length > 0 && (
+                  <>
+                    <div>
+                      <h3 className="font-semibold flex items-center gap-2 mb-3">
+                        <FileText className="h-4 w-4 text-slate-600" />
+                        Handouts & Resources
+                      </h3>
+                      <div className="space-y-3">
+                        {generatedAgenda.handouts.map((handout, index) => (
+                          <div key={index} className="border rounded-lg p-3 bg-slate-50">
+                            <div className="flex justify-between items-start mb-2">
+                              <h4 className="font-medium text-slate-800">{handout.title}</h4>
+                              <Badge variant="outline" className="text-slate-600">{handout.type}</Badge>
+                            </div>
+                            <p className="text-sm text-gray-700 mb-2">{handout.purpose}</p>
+                            <div className="bg-white p-2 rounded border text-xs">
+                              <strong>Content Preview:</strong>
+                              <div className="mt-1 whitespace-pre-line">{handout.content.substring(0, 200)}...</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <Separator />
+                  </>
+                )}
 
                 <Separator />
 
@@ -431,6 +554,54 @@ ${agenda.followUpPlanning}
                     <p className="text-sm">{generatedAgenda.followUpPlanning}</p>
                   </div>
                 </div>
+
+                {/* Energizers */}
+                {generatedAgenda.energizers && generatedAgenda.energizers.length > 0 && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h3 className="font-semibold flex items-center gap-2 mb-3">
+                        <Zap className="h-4 w-4 text-emerald-600" />
+                        Quick Energizers
+                      </h3>
+                      <div className="space-y-2">
+                        {generatedAgenda.energizers.map((energizer, index) => (
+                          <div key={index} className="border rounded-lg p-3 bg-emerald-50">
+                            <div className="flex justify-between items-start mb-1">
+                              <h4 className="font-medium text-emerald-800 text-sm">{energizer.name}</h4>
+                              <Badge variant="outline" className="text-emerald-600 text-xs">{energizer.timeNeeded}</Badge>
+                            </div>
+                            <p className="text-xs text-emerald-700 mb-1"><strong>When to use:</strong> {energizer.when}</p>
+                            <p className="text-xs text-gray-700">{energizer.howTo}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Key Takeaways */}
+                {generatedAgenda.takeaways && generatedAgenda.takeaways.length > 0 && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h3 className="font-semibold flex items-center gap-2 mb-3">
+                        <Award className="h-4 w-4 text-gold-600" />
+                        Key Takeaways
+                      </h3>
+                      <div className="bg-gradient-to-r from-amber-50 to-yellow-50 p-4 rounded-lg border border-amber-200">
+                        <ul className="space-y-2">
+                          {generatedAgenda.takeaways.map((takeaway, index) => (
+                            <li key={index} className="flex items-start gap-2">
+                              <div className="w-2 h-2 rounded-full bg-amber-500 mt-2 flex-shrink-0"></div>
+                              <span className="text-sm text-amber-800">{takeaway}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           ) : (
