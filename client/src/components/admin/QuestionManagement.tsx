@@ -20,7 +20,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Table,
@@ -35,6 +34,7 @@ import {
   ChevronLeft, ChevronRight, AlertCircle, BookOpen, Eye, EyeOff 
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { QuestionForm } from "./QuestionForm";
 
 // TODO: Replace with proper authentication system
 // This is a temporary solution for local development only
@@ -81,6 +81,7 @@ export function QuestionManagement() {
   const [enabledFilter, setEnabledFilter] = useState("all");
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [deletingQuestion, setDeletingQuestion] = useState<Question | null>(null);
 
   // Build query parameters
   const queryParams = {
@@ -97,79 +98,40 @@ export function QuestionManagement() {
   // Debug: Log the query parameters
   console.log("QuestionManagement queryParams:", queryParams);
 
-  // Fetch questions
-  const { data: questionsData, isLoading: isLoadingQuestions, error } = useQuery({
+  // Fetch questions with pagination and filters
+  const { 
+    data: questionsData, 
+    isLoading: isLoadingQuestions, 
+    error 
+  } = useQuery<PaginatedQuestions>({
     queryKey: ["/api/admin/questions", queryParams],
     queryFn: async () => {
-      try {
-        // Construct URL with query parameters
-        const url = new URL("/api/admin/questions", window.location.origin);
-        Object.entries(queryParams).forEach(([key, value]) => {
-          if (value !== undefined) {
-            url.searchParams.append(key, String(value));
-          }
-        });
-        
-        console.log("Fetching questions from URL:", url.toString());
-        const response = await fetch(url.toString());
-        
-        if (!response.ok) {
-          console.error("Questions fetch failed:", response.status, response.statusText);
-          const errorBody = await response.text();
-          console.error("Error details:", errorBody);
-          throw new Error(`Questions fetch failed: ${response.status} - ${errorBody}`);
+      const params = new URLSearchParams();
+      Object.entries(queryParams).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          params.append(key, value.toString());
         }
-        
-        const data = await response.json();
-        console.log("Questions fetched successfully:", data);
-        return data;
-      } catch (err) {
-        console.error("Exception in questions fetch:", err);
-        throw err;
-      }
+      });
+      
+      const response = await apiRequest(`/api/admin/questions?${params.toString()}`);
+      return response.data || { questions: [], pagination: { page: 1, limit: 20, total: 0, pages: 0 } };
     },
     retry: false,
   });
 
-  // Fetch domains for filter dropdown
+  // Fetch domains for filtering
   const { data: domains } = useQuery({
-    queryKey: ["/api/admin/domains", { admin_password: TEMP_ADMIN_PASSWORD }],
+    queryKey: ["/api/admin/domains"],
     queryFn: async () => {
-      try {
-        const url = `/api/admin/domains?admin_password=${TEMP_ADMIN_PASSWORD}`;
-        console.log("Fetching domains from URL:", url);
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-          console.error("Domains fetch failed:", response.status, response.statusText);
-          throw new Error(`Domains fetch failed: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        console.log("Domains fetched successfully:", result);
-        
-        // Handle the API response structure {success: true, data: domains}
-        // Return the data array or empty array as fallback
-        if (result.success && Array.isArray(result.data)) {
-          return result.data;
-        } else if (Array.isArray(result)) {
-          return result;
-        } else {
-          console.warn("Unexpected domains response format:", result);
-          return [];
-        }
-      } catch (err) {
-        console.error("Exception in domains fetch:", err);
-        return []; // Return empty array on error to prevent map errors
-      }
+      const response = await apiRequest(`/api/admin/domains?admin_password=${TEMP_ADMIN_PASSWORD}`);
+      return response.data || [];
     },
-    retry: false,
   });
 
   // Delete question mutation
   const deleteQuestionMutation = useMutation({
-    mutationFn: async (id: string) => {
-      return await apiRequest(`/api/admin/questions/${id}?admin_password=${TEMP_ADMIN_PASSWORD}`, {
+    mutationFn: async (questionId: string) => {
+      return await apiRequest(`/api/admin/questions/${questionId}?admin_password=${TEMP_ADMIN_PASSWORD}`, {
         method: "DELETE",
       });
     },
@@ -180,13 +142,15 @@ export function QuestionManagement() {
         variant: "default",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/questions"] });
+      setDeletingQuestion(null);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to delete question",
+        description: error.message || "Failed to delete question",
         variant: "destructive",
       });
+      setDeletingQuestion(null);
     },
   });
 
@@ -241,8 +205,12 @@ export function QuestionManagement() {
   });
 
   const handleDelete = (question: Question) => {
-    if (confirm(`Are you sure you want to delete the question: "${question.text.substring(0, 50)}..."?`)) {
-      deleteQuestionMutation.mutate(question.id);
+    setDeletingQuestion(question);
+  };
+
+  const confirmDelete = () => {
+    if (deletingQuestion) {
+      deleteQuestionMutation.mutate(deletingQuestion.id);
     }
   };
 
@@ -564,41 +532,53 @@ export function QuestionManagement() {
         </CardContent>
       </Card>
 
-      {/* TODO: Add QuestionForm dialog for create and edit */}
-      {/* Placeholder dialogs */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create New Question</DialogTitle>
-            <DialogDescription>Question creation form coming soon</DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <p className="text-muted-foreground">
-              Full question creation and editing interface will be implemented in the next phase.
-            </p>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Question Form Dialogs */}
+      <QuestionForm 
+        isOpen={showCreateDialog}
+        onClose={() => setShowCreateDialog(false)}
+        mode="create"
+      />
 
-      <Dialog open={!!editingQuestion} onOpenChange={() => setEditingQuestion(null)}>
+      <QuestionForm 
+        isOpen={!!editingQuestion}
+        onClose={() => setEditingQuestion(null)}
+        question={editingQuestion}
+        mode="edit"
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deletingQuestion} onOpenChange={() => setDeletingQuestion(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Question</DialogTitle>
-            <DialogDescription>Question editing form coming soon</DialogDescription>
+            <DialogTitle>Delete Question</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this question? This action cannot be undone.
+            </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <p className="text-muted-foreground">
-              Full question editing interface will be implemented in the next phase.
-            </p>
-          </div>
+          {deletingQuestion && (
+            <div className="py-4">
+              <div className="p-4 bg-muted rounded-lg">
+                <div className="font-medium mb-2">Question: {deletingQuestion.id}</div>
+                <div className="text-sm text-muted-foreground line-clamp-3">
+                  {deletingQuestion.text}
+                </div>
+              </div>
+            </div>
+          )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingQuestion(null)}>
-              Close
+            <Button 
+              variant="outline" 
+              onClick={() => setDeletingQuestion(null)}
+              disabled={deleteQuestionMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={confirmDelete}
+              disabled={deleteQuestionMutation.isPending}
+            >
+              {deleteQuestionMutation.isPending ? "Deleting..." : "Delete Question"}
             </Button>
           </DialogFooter>
         </DialogContent>
