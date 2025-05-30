@@ -15,7 +15,10 @@ import {
   Mail,
   Target,
   Award,
-  Clock
+  Clock,
+  ArrowLeft,
+  Sparkles,
+  Zap
 } from 'lucide-react';
 import { Link } from 'wouter';
 
@@ -175,85 +178,73 @@ export default function DirectorToolkit() {
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
-      {/* Header */}
+      {/* Header with Back Button */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Director Toolkit</h1>
-        <p className="text-muted-foreground text-lg">
-          Comprehensive administrative tools to manage your preschool's professional development program
-        </p>
-      </div>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Tools</p>
-                <p className="text-2xl font-bold">{directorTools.length}</p>
-              </div>
-              <Settings className="h-8 w-8 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex items-center gap-4 mb-4">
+          <Link href="/dashboard">
+            <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Dashboard
+            </Button>
+          </Link>
+        </div>
         
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Categories</p>
-                <p className="text-2xl font-bold">{Object.keys(categoryLabels).length}</p>
-              </div>
-              <BarChart3 className="h-8 w-8 text-muted-foreground" />
+        <div className="text-center mb-6">
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full">
+              <Sparkles className="h-8 w-8 text-white" />
             </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Quick Access</p>
-                <p className="text-2xl font-bold">24/7</p>
-              </div>
-              <Clock className="h-8 w-8 text-muted-foreground" />
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Director Toolkit
+            </h1>
+            <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full">
+              <Zap className="h-8 w-8 text-white" />
             </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Support</p>
-                <p className="text-2xl font-bold">Full</p>
-              </div>
-              <Award className="h-8 w-8 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            Your command center for managing and growing your team's professional development journey
+          </p>
+        </div>
       </div>
 
       {/* Category Filter */}
-      <div className="mb-6">
-        <div className="flex flex-wrap gap-2">
+      <div className="mb-8">
+        <div className="text-center mb-4">
+          <h2 className="text-xl font-semibold mb-2">Choose Your Mission</h2>
+          <p className="text-sm text-muted-foreground">Select a category to view specialized tools</p>
+        </div>
+        <div className="flex flex-wrap justify-center gap-3">
           <Button
             variant={selectedCategory === 'all' ? 'default' : 'outline'}
-            size="sm"
+            size="lg"
+            className={`relative ${selectedCategory === 'all' ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700' : ''}`}
             onClick={() => setSelectedCategory('all')}
           >
+            <Sparkles className="h-4 w-4 mr-2" />
             All Tools
+            <Badge variant="secondary" className="ml-2">{directorTools.length}</Badge>
           </Button>
-          {Object.entries(categoryLabels).map(([key, label]) => (
-            <Button
-              key={key}
-              variant={selectedCategory === key ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setSelectedCategory(key)}
-            >
-              {label} ({toolsByCategory[key]?.length || 0})
-            </Button>
-          ))}
+          {Object.entries(categoryLabels).map(([key, label]) => {
+            const categoryEmojis = {
+              staff: '👥',
+              content: '📚',
+              communication: '💬',
+              analytics: '📊'
+            };
+            return (
+              <Button
+                key={key}
+                variant={selectedCategory === key ? 'default' : 'outline'}
+                size="lg"
+                className={`relative ${selectedCategory === key ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700' : ''}`}
+                onClick={() => setSelectedCategory(key)}
+              >
+                <span className="mr-2">{categoryEmojis[key as keyof typeof categoryEmojis]}</span>
+                {label}
+                <Badge variant="secondary" className="ml-2">{toolsByCategory[key]?.length || 0}</Badge>
+              </Button>
+            );
+          })}
         </div>
       </div>
 
@@ -292,18 +283,33 @@ export default function DirectorToolkit() {
 function ToolCard({ tool }: { tool: ToolkitTool }) {
   const IconComponent = tool.icon;
   
+  const categoryGradients = {
+    staff: 'from-blue-500 to-cyan-500',
+    content: 'from-green-500 to-emerald-500',
+    communication: 'from-purple-500 to-violet-500',
+    analytics: 'from-orange-500 to-red-500'
+  };
+  
   return (
-    <Card className={`hover:shadow-md transition-shadow cursor-pointer ${categoryColors[tool.category]}`}>
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
+    <Card className="group hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 hover:border-primary/20 bg-gradient-to-br from-white to-gray-50">
+      <CardHeader className="pb-3 relative overflow-hidden">
+        {/* Animated background effect */}
+        <div className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-br ${categoryGradients[tool.category]} opacity-10 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-500`} />
+        
+        <div className="flex items-start justify-between relative z-10">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-white rounded-lg">
-              <IconComponent className="h-5 w-5 text-primary" />
+            <div className={`p-3 rounded-xl bg-gradient-to-br ${categoryGradients[tool.category]} shadow-lg group-hover:shadow-xl transition-shadow duration-300`}>
+              <IconComponent className="h-6 w-6 text-white" />
             </div>
             <div className="flex-1">
-              <CardTitle className="text-lg">{tool.title}</CardTitle>
+              <CardTitle className="text-lg font-bold group-hover:text-primary transition-colors">
+                {tool.title}
+              </CardTitle>
               {tool.badge && (
-                <Badge variant={tool.badgeVariant} className="mt-1">
+                <Badge 
+                  variant={tool.badgeVariant} 
+                  className="mt-2 shadow-sm animate-pulse"
+                >
                   {tool.badge}
                 </Badge>
               )}
@@ -312,14 +318,17 @@ function ToolCard({ tool }: { tool: ToolkitTool }) {
         </div>
       </CardHeader>
       
-      <CardContent className="pt-0">
-        <CardDescription className="text-sm mb-4">
+      <CardContent className="pt-0 relative z-10">
+        <CardDescription className="text-sm mb-4 leading-relaxed">
           {tool.description}
         </CardDescription>
         
         <Link href={tool.route}>
-          <Button className="w-full" size="sm">
-            Open Tool
+          <Button 
+            className={`w-full shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r ${categoryGradients[tool.category]} hover:opacity-90 border-0 font-semibold`}
+            size="sm"
+          >
+            Launch Tool ✨
           </Button>
         </Link>
       </CardContent>
