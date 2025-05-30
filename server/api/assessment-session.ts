@@ -390,12 +390,25 @@ router.get('/status', requireTeacherRole, async (req: Request, res: Response) =>
           console.log(`Selected question: ${selectedQuestion.id}`);
           
           // Get domain name for the question
-          const domain = await db.select()
-            .from(assessmentDomains)
-            .where(eq(assessmentDomains.id, parseInt(selectedQuestion.domainId)))
-            .limit(1);
+          let domainName = 'Unknown Domain';
+          const domainIdAsNumber = parseInt(selectedQuestion.domainId);
           
-          const domainName = domain.length > 0 ? domain[0].name : 'Unknown Domain';
+          if (!isNaN(domainIdAsNumber)) {
+            try {
+              const domain = await db.select()
+                .from(assessmentDomains)
+                .where(eq(assessmentDomains.id, domainIdAsNumber))
+                .limit(1);
+              
+              domainName = domain.length > 0 ? domain[0].name : 'Unknown Domain';
+            } catch (domainError) {
+              console.error('Error fetching domain:', domainError);
+              domainName = `Domain ${selectedQuestion.domainId}`;
+            }
+          } else {
+            console.log(`Domain ID '${selectedQuestion.domainId}' is not a valid number, using as-is`);
+            domainName = `Domain ${selectedQuestion.domainId}`;
+          }
           
           currentQuestion = {
             id: selectedQuestion.id,
@@ -428,12 +441,25 @@ router.get('/status', requireTeacherRole, async (req: Request, res: Response) =>
             const selectedQuestion = fallbackQuestions[0];
             console.log(`Using fallback question: ${selectedQuestion.id}`);
             
-            const domain = await db.select()
-              .from(assessmentDomains)
-              .where(eq(assessmentDomains.id, parseInt(selectedQuestion.domainId)))
-              .limit(1);
+            let domainName = 'Unknown Domain';
+            const domainIdAsNumber = parseInt(selectedQuestion.domainId);
             
-            const domainName = domain.length > 0 ? domain[0].name : 'Unknown Domain';
+            if (!isNaN(domainIdAsNumber)) {
+              try {
+                const domain = await db.select()
+                  .from(assessmentDomains)
+                  .where(eq(assessmentDomains.id, domainIdAsNumber))
+                  .limit(1);
+                
+                domainName = domain.length > 0 ? domain[0].name : 'Unknown Domain';
+              } catch (domainError) {
+                console.error('Error fetching domain in fallback:', domainError);
+                domainName = `Domain ${selectedQuestion.domainId}`;
+              }
+            } else {
+              console.log(`Fallback - Domain ID '${selectedQuestion.domainId}' is not a valid number, using as-is`);
+              domainName = `Domain ${selectedQuestion.domainId}`;
+            }
             
             currentQuestion = {
               id: selectedQuestion.id,
