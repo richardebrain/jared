@@ -88,7 +88,7 @@ const directorTools: ToolkitTool[] = [
     title: 'Video Library Manager',
     description: 'Manage video resources, add custom content, and organize collections',
     icon: FileText,
-    route: '/admin/video-library',
+    route: '/video-resources',
     category: 'content'
   },
   
