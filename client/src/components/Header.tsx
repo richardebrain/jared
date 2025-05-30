@@ -79,8 +79,8 @@ export default function Header() {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
   
-  const userInitials = user 
-    ? `${user?.firstName.charAt(0)}${user?.lastName.charAt(0)}` 
+  const userInitials = user && user.firstName && user.lastName
+    ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}` 
     : "U";
   
   return (
