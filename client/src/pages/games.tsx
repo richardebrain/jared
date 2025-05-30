@@ -133,7 +133,7 @@ export default function GamesPage() {
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white">
       <Header />
 
-      <div className="container py-10">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="flex flex-col md:flex-row justify-between items-start mb-8">
           <div>
             <h1 className="text-3xl font-bold mb-2">Teacher Rewards</h1>
@@ -162,11 +162,11 @@ export default function GamesPage() {
         {/* Streak Rewards Summary */}
         <StreakRewardsSummary streakCount={user?.streak || 0} className="mb-6" />
         
-        <Tabs defaultValue="educational" className="space-y-4" onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-3 w-full max-w-4xl mx-auto">
-            <TabsTrigger value="educational">Educational Games</TabsTrigger>
-            <TabsTrigger value="slots">Lucky Games</TabsTrigger>
-            <TabsTrigger value="daily">Daily Challenge</TabsTrigger>
+        <Tabs defaultValue="educational" className="space-y-6" onValueChange={setActiveTab}>
+          <TabsList className="grid grid-cols-3 w-full max-w-2xl mx-auto h-12">
+            <TabsTrigger value="educational" className="text-sm font-medium">Educational Games</TabsTrigger>
+            <TabsTrigger value="slots" className="text-sm font-medium">Lucky Games</TabsTrigger>
+            <TabsTrigger value="daily" className="text-sm font-medium">Daily Challenge</TabsTrigger>
           </TabsList>
           
           {/* Educational Games Tab */}
@@ -192,7 +192,7 @@ export default function GamesPage() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-6">
+              <div className="max-w-4xl mx-auto space-y-6">
                 <Card className="overflow-hidden">
                   <CardHeader>
                     <CardTitle className="flex items-center">
@@ -203,7 +203,7 @@ export default function GamesPage() {
                       Learn emotional regulation and classroom management through an engaging Pac-Man style game with ECE quiz challenges.
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="px-6 py-4">
                     <PacHealGame />
                   </CardContent>
                 </Card>

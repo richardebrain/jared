@@ -20,9 +20,7 @@ export const CreateQuestionSchema = z.object({
   options: z.array(z.string().min(1, "Option cannot be empty")).length(4, "Exactly 4 options required (A, B, C, D)"),
   correctAnswer: z.number().min(0).max(3, "Correct answer must be 0-3 (A-D)"),
   difficulty: z.string().min(1, "Difficulty is required"),
-  explanation: z.string().optional(),
-  miniLesson: z.string().optional(),
-  tags: z.string().optional(),
+  miniLesson: z.string().min(1, "Mini Lesson is required"),
 });
 
 export const UpdateQuestionSchema = CreateQuestionSchema.partial();
