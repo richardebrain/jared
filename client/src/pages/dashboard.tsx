@@ -52,6 +52,14 @@ export default function Dashboard() {
   const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
   const [showWelcomeDashboard, setShowWelcomeDashboard] = useState(false);
   
+  // Show welcome dashboard when user first logs in
+  useEffect(() => {
+    if (user && user.streak && user.streak >= 1) {
+      // Always show for demo purposes - you can adjust this logic later
+      setShowWelcomeDashboard(true);
+    }
+  }, [user]);
+  
   // Handle module selection - navigate to the module page
   useEffect(() => {
     if (selectedModuleId) {
@@ -505,6 +513,13 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
+      
+      {showWelcomeDashboard && user && (
+        <WelcomeDashboard 
+          user={user}
+          onClose={() => setShowWelcomeDashboard(false)}
+        />
+      )}
       
       {showAchievement && (
         <AchievementPopup 
