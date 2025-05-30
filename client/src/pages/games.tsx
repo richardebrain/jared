@@ -56,7 +56,10 @@ import {
   RefreshCw,
   Flame,
   Medal,
-  Puzzle
+  Puzzle,
+  Search,
+  Grid3X3,
+  Brain
 } from 'lucide-react';
 
 export default function GamesPage() {
