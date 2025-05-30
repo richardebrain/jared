@@ -44,10 +44,10 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from "@/components/ui/progress";
 
-// Convert CSV videos to VideoResource format
-function convertCSVToVideoResource(csvVideo: CSVVideoResource): VideoResource {
+// Convert CSV videos to VideoResource format with unique IDs
+function convertCSVToVideoResource(csvVideo: CSVVideoResource, index: number): VideoResource {
   return {
-    id: csvVideo.id,
+    id: `prof-dev-${index + 1}`, // Use unique professional development IDs
     title: csvVideo.title,
     description: csvVideo.description,
     youtubeId: csvVideo.youtubeId,
@@ -79,7 +79,7 @@ function convertCSVToVideoResource(csvVideo: CSVVideoResource): VideoResource {
 // Combine all video resources
 const allVideoResources: VideoResource[] = [
   ...videoResourcesData,
-  ...csvVideoLibrary.map(convertCSVToVideoResource)
+  ...csvVideoLibrary.map((csvVideo, index) => convertCSVToVideoResource(csvVideo, index))
 ];
 
 // Component for the Video Resource Library
