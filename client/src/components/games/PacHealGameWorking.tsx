@@ -33,9 +33,33 @@ interface QuizQuestion {
   explanation: string;
 }
 
-const BOARD_WIDTH = 15;
-const BOARD_HEIGHT = 12;
-const CELL_SIZE = 24;
+const BOARD_WIDTH = 19;
+const BOARD_HEIGHT = 15;
+const CELL_SIZE = 20;
+
+// Simple maze layout (1 = wall, 0 = path)
+const MAZE = [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+  [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,0,1],
+  [1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
+  [1,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,1],
+  [0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0],
+  [1,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,1],
+  [1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
+  [1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1],
+  [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+];
+
+const isWall = (x: number, y: number): boolean => {
+  if (x < 0 || x >= BOARD_WIDTH || y < 0 || y >= BOARD_HEIGHT) return true;
+  return MAZE[y][x] === 1;
+};
 
 const sampleQuestions: QuizQuestion[] = [
   {
@@ -92,34 +116,38 @@ export default function PacHealGame() {
     setLives(3);
     setCollectedAffirmations([]);
     
-    // Generate bad feelings (dots to collect)
+    // Generate bad feelings (dots to collect) only on open paths
     const feelings: BadFeeling[] = [];
-    for (let i = 0; i < 20; i++) {
-      feelings.push({
-        id: i,
-        position: {
-          x: Math.floor(Math.random() * (BOARD_WIDTH - 2)) + 1,
-          y: Math.floor(Math.random() * (BOARD_HEIGHT - 2)) + 1
-        },
-        type: ['fear', 'shame', 'anger', 'worry'][Math.floor(Math.random() * 4)] as any,
-        eaten: false,
-        powerUp: i % 8 === 0 // Every 8th feeling is a power-up
-      });
+    let feelingId = 0;
+    for (let y = 1; y < BOARD_HEIGHT - 1; y++) {
+      for (let x = 1; x < BOARD_WIDTH - 1; x++) {
+        if (!isWall(x, y) && !(x === 1 && y === 1)) { // Don't place on player start position
+          if (Math.random() < 0.3) { // 30% chance to place a feeling
+            feelings.push({
+              id: feelingId++,
+              position: { x, y },
+              type: ['fear', 'shame', 'anger', 'worry'][Math.floor(Math.random() * 4)] as any,
+              eaten: false,
+              powerUp: feelingId % 10 === 0 // Every 10th feeling is a power-up
+            });
+          }
+        }
+      }
     }
     setBadFeelings(feelings);
 
-    // Generate ghosts
+    // Generate ghosts in open areas
     const gameGhosts: Ghost[] = [
       {
         id: 1,
-        position: { x: BOARD_WIDTH - 2, y: 1 },
+        position: { x: 17, y: 1 },
         direction: { x: -1, y: 0 },
         type: 'freeze',
         emotion: 'Overwhelm'
       },
       {
         id: 2,
-        position: { x: BOARD_WIDTH - 2, y: BOARD_HEIGHT - 2 },
+        position: { x: 17, y: 13 },
         direction: { x: 0, y: -1 },
         type: 'freeze',
         emotion: 'Stress'
@@ -139,22 +167,30 @@ export default function PacHealGame() {
         case 'ArrowUp':
         case 'w':
         case 'W':
-          newPos.y = Math.max(0, newPos.y - 1);
+          if (!isWall(newPos.x, newPos.y - 1)) {
+            newPos.y = newPos.y - 1;
+          }
           break;
         case 'ArrowDown':
         case 's':
         case 'S':
-          newPos.y = Math.min(BOARD_HEIGHT - 1, newPos.y + 1);
+          if (!isWall(newPos.x, newPos.y + 1)) {
+            newPos.y = newPos.y + 1;
+          }
           break;
         case 'ArrowLeft':
         case 'a':
         case 'A':
-          newPos.x = Math.max(0, newPos.x - 1);
+          if (!isWall(newPos.x - 1, newPos.y)) {
+            newPos.x = newPos.x - 1;
+          }
           break;
         case 'ArrowRight':
         case 'd':
         case 'D':
-          newPos.x = Math.min(BOARD_WIDTH - 1, newPos.x + 1);
+          if (!isWall(newPos.x + 1, newPos.y)) {
+            newPos.x = newPos.x + 1;
+          }
           break;
       }
       
@@ -202,32 +238,36 @@ export default function PacHealGame() {
     return () => clearInterval(gameLoop);
   }, [gameState]);
 
-  // Separate effect for collision detection
+  // Check collisions when player moves
   useEffect(() => {
     if (gameState !== 'playing') return;
 
     // Check collisions with bad feelings
-    setBadFeelings(prevFeelings => 
-      prevFeelings.map(feeling => {
-        if (!feeling.eaten && 
-            feeling.position.x === playerPos.x && 
-            feeling.position.y === playerPos.y) {
-          
-          setScore(prev => prev + (feeling.powerUp ? 20 : 10));
-          
-          if (feeling.powerUp) {
-            const randomAffirmation = affirmations[Math.floor(Math.random() * affirmations.length)];
-            setCollectedAffirmations(prev => [...prev, randomAffirmation]);
-          }
-          
-          return { ...feeling, eaten: true };
-        }
-        return feeling;
-      })
+    const collectedFeeling = badFeelings.find(feeling => 
+      !feeling.eaten && 
+      feeling.position.x === playerPos.x && 
+      feeling.position.y === playerPos.y
     );
 
+    if (collectedFeeling) {
+      setBadFeelings(prevFeelings => 
+        prevFeelings.map(feeling => 
+          feeling.id === collectedFeeling.id 
+            ? { ...feeling, eaten: true }
+            : feeling
+        )
+      );
+      
+      setScore(prev => prev + (collectedFeeling.powerUp ? 20 : 10));
+      
+      if (collectedFeeling.powerUp) {
+        const randomAffirmation = affirmations[Math.floor(Math.random() * affirmations.length)];
+        setCollectedAffirmations(prev => [...prev, randomAffirmation]);
+      }
+    }
+
     // Check collisions with ghosts
-    const ghostCollision = ghosts.some(ghost => 
+    const ghostCollision = ghosts.find(ghost => 
       ghost.position.x === playerPos.x && ghost.position.y === playerPos.y
     );
     
@@ -239,10 +279,10 @@ export default function PacHealGame() {
 
     // Check win condition
     const remainingFeelings = badFeelings.filter(f => !f.eaten).length;
-    if (remainingFeelings === 0) {
+    if (remainingFeelings === 0 && badFeelings.length > 0) {
       setGameState('gameOver');
     }
-  }, [playerPos, gameState, ghosts, badFeelings]);
+  }, [playerPos, badFeelings]);
 
   const startGame = () => {
     initializeGame();
@@ -291,16 +331,24 @@ export default function PacHealGame() {
     
     switch (direction) {
       case 'up':
-        newPos.y = Math.max(0, newPos.y - 1);
+        if (!isWall(newPos.x, newPos.y - 1)) {
+          newPos.y = newPos.y - 1;
+        }
         break;
       case 'down':
-        newPos.y = Math.min(BOARD_HEIGHT - 1, newPos.y + 1);
+        if (!isWall(newPos.x, newPos.y + 1)) {
+          newPos.y = newPos.y + 1;
+        }
         break;
       case 'left':
-        newPos.x = Math.max(0, newPos.x - 1);
+        if (!isWall(newPos.x - 1, newPos.y)) {
+          newPos.x = newPos.x - 1;
+        }
         break;
       case 'right':
-        newPos.x = Math.min(BOARD_WIDTH - 1, newPos.x + 1);
+        if (!isWall(newPos.x + 1, newPos.y)) {
+          newPos.x = newPos.x + 1;
+        }
         break;
     }
     
@@ -376,37 +424,61 @@ export default function PacHealGame() {
             </div>
 
             {/* Game Board */}
-            <div className="relative bg-black rounded-lg p-4 mx-auto overflow-hidden" 
+            <div className="relative bg-black rounded-lg p-2 mx-auto overflow-hidden" 
                  style={{ 
-                   width: Math.min(BOARD_WIDTH * CELL_SIZE + 32, window.innerWidth - 40),
-                   height: BOARD_HEIGHT * CELL_SIZE + 32
+                   width: BOARD_WIDTH * CELL_SIZE + 16,
+                   height: BOARD_HEIGHT * CELL_SIZE + 16
                  }}>
               
-              {/* Player */}
+              {/* Render Maze Walls */}
+              {MAZE.map((row, y) => 
+                row.map((cell, x) => (
+                  cell === 1 && (
+                    <div
+                      key={`wall-${x}-${y}`}
+                      className="absolute bg-blue-600"
+                      style={{
+                        left: x * CELL_SIZE + 8,
+                        top: y * CELL_SIZE + 8,
+                        width: CELL_SIZE,
+                        height: CELL_SIZE
+                      }}
+                    />
+                  )
+                ))
+              )}
+              
+              {/* Player (Teacher Character) */}
               <div 
-                className="absolute bg-yellow-400 rounded-full transition-all duration-100"
+                className="absolute bg-purple-500 rounded-lg flex items-center justify-center text-white font-bold transition-all duration-100"
                 style={{
-                  left: playerPos.x * CELL_SIZE + 16,
-                  top: playerPos.y * CELL_SIZE + 16,
-                  width: CELL_SIZE - 4,
-                  height: CELL_SIZE - 4
+                  left: playerPos.x * CELL_SIZE + 8,
+                  top: playerPos.y * CELL_SIZE + 8,
+                  width: CELL_SIZE,
+                  height: CELL_SIZE,
+                  fontSize: '12px'
                 }}
-              />
+              >
+                👩‍🏫
+              </div>
 
-              {/* Bad Feelings */}
+              {/* Bad Feelings (Dots to Collect) */}
               {badFeelings.filter(f => !f.eaten).map(feeling => (
                 <div
                   key={feeling.id}
-                  className="absolute rounded-full"
+                  className="absolute rounded-full flex items-center justify-center"
                   style={{
-                    left: feeling.position.x * CELL_SIZE + 16 + CELL_SIZE/4,
-                    top: feeling.position.y * CELL_SIZE + 16 + CELL_SIZE/4,
-                    width: feeling.powerUp ? CELL_SIZE/2 : CELL_SIZE/3,
-                    height: feeling.powerUp ? CELL_SIZE/2 : CELL_SIZE/3,
+                    left: feeling.position.x * CELL_SIZE + 8 + (feeling.powerUp ? 2 : 6),
+                    top: feeling.position.y * CELL_SIZE + 8 + (feeling.powerUp ? 2 : 6),
+                    width: feeling.powerUp ? CELL_SIZE - 4 : CELL_SIZE - 12,
+                    height: feeling.powerUp ? CELL_SIZE - 4 : CELL_SIZE - 12,
                     backgroundColor: getFeelingColor(feeling.type, feeling.powerUp),
-                    boxShadow: feeling.powerUp ? '0 0 10px #FFD700' : 'none'
+                    boxShadow: feeling.powerUp ? '0 0 8px #FFD700' : 'none',
+                    fontSize: feeling.powerUp ? '10px' : '8px'
                   }}
-                />
+                >
+                  {feeling.powerUp ? '⭐' : '•'}
+                </div>
               ))}
 
               {/* Ghosts */}
@@ -415,10 +487,10 @@ export default function PacHealGame() {
                   key={ghost.id}
                   className="absolute rounded-lg bg-red-500 flex items-center justify-center text-white text-xs font-bold"
                   style={{
-                    left: ghost.position.x * CELL_SIZE + 16,
-                    top: ghost.position.y * CELL_SIZE + 16,
-                    width: CELL_SIZE - 2,
-                    height: CELL_SIZE - 2
+                    left: ghost.position.x * CELL_SIZE + 8,
+                    top: ghost.position.y * CELL_SIZE + 8,
+                    width: CELL_SIZE,
+                    height: CELL_SIZE
                   }}
                 >
                   👻
