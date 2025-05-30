@@ -76,16 +76,16 @@ function convertEnhancedToVideoResource(enhancedVideo: EnhancedProfessionalVideo
   };
 }
 
-// Featured videos for fast loading (recommended approach)
-const featuredVideoResources: VideoResource[] = [
-  ...videoResourcesData,
-  ...featuredProfessionalVideos.map(convertEnhancedToVideoResource)
-];
-
-// Complete collection (load on demand)
+// Complete collection (all 482+ videos)
 const completeVideoResources: VideoResource[] = [
   ...videoResourcesData,
   ...enhancedProfessionalVideoLibrary.map(convertEnhancedToVideoResource)
+];
+
+// Featured videos for fast loading (top 40 videos)
+const featuredVideoResources: VideoResource[] = [
+  ...videoResourcesData.slice(0, 20), // Top 20 from base collection
+  ...featuredProfessionalVideos.slice(0, 20).map(convertEnhancedToVideoResource) // Top 20 from professional collection
 ];
 
 // Component for the Video Resource Library
@@ -293,22 +293,26 @@ export function VideoResourceLibrary({
               <h3 className="text-sm font-medium mb-1">Library View</h3>
               <p className="text-xs text-muted-foreground">
                 {showComplete 
-                  ? `Complete collection: ${completeVideoResources.length} videos (includes external platforms)`
-                  : `Featured collection: ${featuredVideoResources.length} videos (fast loading)`
+                  ? `Complete Collection: ${completeVideoResources.length} videos (all platforms)`
+                  : `Featured Collection: ${featuredVideoResources.length} videos (recommended)`
                 }
               </p>
             </div>
             <Button
-              variant={showComplete ? "default" : "outline"}
+              variant={showComplete ? "outline" : "default"}
               size="sm"
               onClick={() => {
-                setShowComplete(!showComplete);
-                const newVideoSet = !showComplete ? completeVideoResources : featuredVideoResources;
+                const newShowComplete = !showComplete;
+                setShowComplete(newShowComplete);
+                const newVideoSet = newShowComplete ? completeVideoResources : featuredVideoResources;
                 setFilteredVideos(newVideoSet);
-                filterVideos(searchQuery, selectedCategory, selectedExpertLevel, activeFilter);
+                // Re-apply current filters to the new video set
+                setTimeout(() => {
+                  filterVideos(searchQuery, selectedCategory, selectedExpertLevel, activeFilter);
+                }, 0);
               }}
             >
-              {showComplete ? "Show Featured Only" : "Show All Videos"}
+              {showComplete ? "Featured" : "All Videos"}
             </Button>
           </div>
           
