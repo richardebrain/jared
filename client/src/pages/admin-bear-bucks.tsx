@@ -153,9 +153,17 @@ export default function AdminBearBucksPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Coins className="h-8 w-8 text-amber-600" />
-            <h1 className="text-3xl font-bold text-gray-800">Bear Bucks Management</h1>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Coins className="h-8 w-8 text-amber-600" />
+              <h1 className="text-3xl font-bold text-gray-800">Bear Bucks Management</h1>
+            </div>
+            <Link href="/director-toolkit">
+              <Button variant="outline" className="flex items-center gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Back to Dashboard
+              </Button>
+            </Link>
           </div>
           <p className="text-gray-600">Award Bear Bucks to recognize and motivate your team</p>
         </div>
