@@ -24,6 +24,7 @@ import ScratchCard from '@/components/ScratchCard';
 import MysteryBox from '@/components/MysteryBox';
 import DailyChallenge from '@/components/DailyChallenge';
 import PacHealGame from '@/components/games/PacHealGameWorking';
+import BounceAwayBlocks from '@/components/games/BounceAwayBlocks';
 import { useToast } from "@/hooks/use-toast";
 import { 
   LuckySlots, 
@@ -385,51 +386,11 @@ export default function GamesPage() {
                         </CardDescription>
                       </div>
                     </div>
-                    <Badge className="bg-green-500 text-white">New Game!</Badge>
+                    <Badge className="bg-green-500 text-white">Play Now!</Badge>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <div className="bg-white/70 p-4 rounded-lg border border-green-200">
-                      <h4 className="font-semibold text-green-800 mb-2">🎮 How to Play</h4>
-                      <p className="text-sm text-gray-700 mb-3">
-                        Control your Teacher Paddle to launch Knowledge Balls at CDA concept bricks. 
-                        Break bricks to learn definitions, earn power-ups, and master early childhood education!
-                      </p>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                        <div className="bg-green-50 p-3 rounded border">
-                          <strong className="text-green-700">🏥 Level 1: Health & Safety</strong>
-                          <p className="text-gray-600 mt-1">Master handwashing, first aid, and sanitation concepts</p>
-                        </div>
-                        <div className="bg-blue-50 p-3 rounded border">
-                          <strong className="text-blue-700">📚 Level 2: Classroom Management</strong>
-                          <p className="text-gray-600 mt-1">Learn transitions, routines, and positive reinforcement</p>
-                        </div>
-                        <div className="bg-purple-50 p-3 rounded border">
-                          <strong className="text-purple-700">🎯 Level 3: Curriculum & Instruction</strong>
-                          <p className="text-gray-600 mt-1">Practice DAP, scaffolding, and lesson planning</p>
-                        </div>
-                        <div className="bg-orange-50 p-3 rounded border">
-                          <strong className="text-orange-700">👶 Level 4: Child Development</strong>
-                          <p className="text-gray-600 mt-1">Understand attachment, motor skills, and observation</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-center p-6 bg-green-100 rounded-lg border-2 border-green-300">
-                      <div className="text-center">
-                        <Trophy className="h-16 w-16 mx-auto mb-4 text-green-600" />
-                        <h3 className="text-lg font-bold text-green-800 mb-2">Game Coming Soon!</h3>
-                        <p className="text-green-700 mb-4">
-                          This exciting CDA training game is currently in development
-                        </p>
-                        <Badge className="bg-green-600 text-white px-4 py-2">
-                          Launching Q2 2025
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
+                  <BounceAwayBlocks />
                 </CardContent>
               </Card>
 
