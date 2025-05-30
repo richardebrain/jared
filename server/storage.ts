@@ -1543,6 +1543,16 @@ export class DatabaseStorage implements IStorage {
   async getProgressByUserId(userId: number): Promise<UserProgress[]> {
     return this.getUserProgressByUserId(userId);
   }
+
+  // Get all user progress for statistics
+  async getAllUserProgress(): Promise<UserProgress[]> {
+    return await db.select().from(userProgress);
+  }
+
+  // Get all video ratings for statistics
+  async getAllVideoRatings(): Promise<VideoRating[]> {
+    return await db.select().from(videoRatings);
+  }
   
   async getMeetingsByUserId(userId: number): Promise<Meeting[]> {
     return await db

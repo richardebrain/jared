@@ -59,42 +59,55 @@ export default function AdminVideoLibraryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  // Initialize videos with mock stats
+  // Initialize videos with real stats from database
   useEffect(() => {
-    const initializeVideos = () => {
-      const enhancedVideos = enhancedProfessionalVideoLibrary.map(video => ({
-        id: video.id,
-        title: video.title,
-        description: video.description,
-        url: `https://www.youtube.com/watch?v=${video.youtubeId}`,
-        category: Array.isArray(video.category) ? video.category[0] || 'general' : 'general',
-        subcategory: Array.isArray(video.category) ? video.category[1] || '' : '',
-        tags: video.tags,
-        duration: video.duration,
-        difficulty: video.expertLevel,
-        year: video.year?.toString() || '2024',
-        citation: video.citation || '',
-        featured: video.featured || false
-      }));
+    const initializeVideos = async () => {
+      try {
+        // Fetch video statistics from the API
+        const statsResponse = await fetch('/api/videos/stats');
+        const videoStats = statsResponse.ok ? await statsResponse.json() : {};
 
-      const allVideos = [
-        ...videoResourcesData,
-        ...enhancedVideos
-      ];
+        const enhancedVideos = enhancedProfessionalVideoLibrary.map(video => ({
+          id: video.id,
+          title: video.title,
+          description: video.description,
+          url: `https://www.youtube.com/watch?v=${video.youtubeId}`,
+          category: Array.isArray(video.category) ? video.category[0] || 'general' : 'general',
+          subcategory: Array.isArray(video.category) ? video.category[1] || '' : '',
+          tags: video.tags,
+          duration: video.duration,
+          difficulty: video.expertLevel,
+          year: video.year?.toString() || '2024',
+          citation: video.citation || '',
+          featured: video.featured || false
+        }));
 
-      const videosWithStats: VideoWithStats[] = allVideos.map(video => ({
-        ...video,
-        stats: {
-          totalViews: Math.floor(Math.random() * 500) + 10,
-          completions: Math.floor(Math.random() * 200) + 5,
-          avgRating: Math.round((Math.random() * 2 + 3) * 10) / 10,
-          isVisible: Math.random() > 0.1 // 90% visible by default
-        }
-      }));
+        const allVideos = [
+          ...videoResourcesData,
+          ...enhancedVideos
+        ];
 
-      setVideos(videosWithStats);
-      setFilteredVideos(videosWithStats);
-      setIsLoading(false);
+        const videosWithStats: VideoWithStats[] = allVideos.map(video => {
+          const stats = videoStats[video.id] || {
+            totalViews: 0,
+            completions: 0,
+            avgRating: 0,
+            isVisible: true
+          };
+          
+          return {
+            ...video,
+            stats
+          };
+        });
+
+        setVideos(videosWithStats);
+        setFilteredVideos(videosWithStats);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Failed to fetch video stats:', error);
+        setIsLoading(false);
+      }
     };
 
     initializeVideos();

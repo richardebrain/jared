@@ -4551,6 +4551,67 @@ Continue for all 5 questions...
     }
   });
 
+  // Get video statistics for admin dashboard
+  app.get("/api/videos/stats", requireAuth, async (req, res) => {
+    try {
+      const allRatings = await storage.getAllVideoRatings();
+      const allProgress = await storage.getAllUserProgress();
+      
+      const videoStats: Record<string, any> = {};
+      
+      // Calculate ratings statistics
+      const ratingsByVideo = allRatings.reduce((acc, rating) => {
+        if (!acc[rating.videoId]) {
+          acc[rating.videoId] = [];
+        }
+        acc[rating.videoId].push(rating.rating);
+        return acc;
+      }, {} as Record<string, number[]>);
+      
+      // Calculate view and completion statistics
+      const progressByVideo = allProgress.reduce((acc, progress) => {
+        if (!acc[progress.moduleId]) {
+          acc[progress.moduleId] = {
+            views: 0,
+            completions: 0
+          };
+        }
+        acc[progress.moduleId].views++;
+        if (progress.completed) {
+          acc[progress.moduleId].completions++;
+        }
+        return acc;
+      }, {} as Record<string, { views: number; completions: number }>);
+      
+      // Combine all video IDs from both sources
+      const allVideoIds = new Set([
+        ...Object.keys(ratingsByVideo),
+        ...Object.keys(progressByVideo)
+      ]);
+      
+      for (const videoId of allVideoIds) {
+        const ratings = ratingsByVideo[videoId] || [];
+        const progress = progressByVideo[videoId] || { views: 0, completions: 0 };
+        
+        const avgRating = ratings.length > 0 
+          ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length
+          : 0;
+        
+        videoStats[videoId] = {
+          totalViews: progress.views,
+          completions: progress.completions,
+          avgRating: Number(avgRating.toFixed(1)),
+          isVisible: true
+        };
+      }
+      
+      res.json(videoStats);
+    } catch (error) {
+      console.error("Error fetching video stats:", error);
+      res.status(500).json({ message: "Failed to fetch video statistics" });
+    }
+  });
+
   // EduTok Feed API - Get TikTok-style short video feed
   app.get("/api/edutok/feed", requireAuth, async (req, res) => {
     try {
