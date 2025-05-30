@@ -18,6 +18,7 @@ import { registerQuestionImportRoutes } from "./api-routes/question-import";
 import { registerAssessmentRoutes } from "./registerAssessmentRoutes";
 import * as notebookLmPlugin from "./notebookLmPlugin";
 import credentialRoutes from "./api/credentialRoutes";
+import videoGenerationRoutes from "./routes/videoGeneration";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -248,6 +249,9 @@ Continue for all 5 questions...
   
   // Register community modules routes
   app.use("/api/community-modules", communityModulesRoutes);
+  
+  // Register video generation routes
+  app.use("/api/video", videoGenerationRoutes);
   
   // Register self-assessment routes
   app.use("/api", selfAssessmentRoutes);

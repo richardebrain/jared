@@ -143,6 +143,100 @@ export default function ComprehensiveModuleCreator() {
   const [generatingVideo, setGeneratingVideo] = useState<number | null>(null);
   const [videoGenerationStatus, setVideoGenerationStatus] = useState<{[key: number]: string}>({});
 
+  // Generate AI video using Veo API
+  const generateAiVideo = async (sectionIndex: number) => {
+    if (!newModule.title || !newModule.description) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in the module title and description first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setGeneratingVideo(sectionIndex);
+    setVideoGenerationStatus(prev => ({ ...prev, [sectionIndex]: 'starting' }));
+
+    try {
+      const section = newModule.sections[sectionIndex];
+      
+      toast({
+        title: "Generating Video",
+        description: "AI is creating a custom training video for your module...",
+      });
+
+      const response = await apiRequest('POST', '/api/video/generate', {
+        moduleTitle: newModule.title,
+        content: `${newModule.description}\n\nSection: ${section.title}\n${section.content}`,
+        targetAudience: 'Early childhood educators',
+        duration: 120, // 2 minutes
+        style: 'professional'
+      });
+
+      if (response.success) {
+        setVideoGenerationStatus(prev => ({ ...prev, [sectionIndex]: 'processing' }));
+        
+        // Poll for video completion
+        const checkStatus = async () => {
+          try {
+            const statusResponse = await apiRequest('GET', `/api/video/status/${response.videoId}`);
+            
+            if (statusResponse.status === 'completed' && statusResponse.videoUrl) {
+              // Update the section with the generated video URL
+              const updatedSections = [...newModule.sections];
+              updatedSections[sectionIndex] = {
+                ...updatedSections[sectionIndex],
+                videoUrl: statusResponse.videoUrl
+              };
+              
+              setNewModule(prev => ({
+                ...prev,
+                sections: updatedSections
+              }));
+
+              setVideoGenerationStatus(prev => ({ ...prev, [sectionIndex]: 'completed' }));
+              setGeneratingVideo(null);
+
+              toast({
+                title: "Video Generated Successfully",
+                description: "Your custom training video is ready and has been added to the module section.",
+              });
+            } else if (statusResponse.status === 'failed') {
+              throw new Error('Video generation failed');
+            } else {
+              // Still processing, check again in 10 seconds
+              setTimeout(checkStatus, 10000);
+            }
+          } catch (error) {
+            console.error('Status check error:', error);
+            setVideoGenerationStatus(prev => ({ ...prev, [sectionIndex]: 'failed' }));
+            setGeneratingVideo(null);
+            toast({
+              title: "Video Generation Failed",
+              description: "There was an error generating your video. Please try again.",
+              variant: "destructive",
+            });
+          }
+        };
+
+        // Start status checking after a short delay
+        setTimeout(checkStatus, 5000);
+        
+      } else {
+        throw new Error('Failed to start video generation');
+      }
+    } catch (error) {
+      console.error('Video generation error:', error);
+      setGeneratingVideo(null);
+      setVideoGenerationStatus(prev => ({ ...prev, [sectionIndex]: 'failed' }));
+      toast({
+        title: "Video Generation Failed",
+        description: "There was an error generating your video. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const generateScenarioMatchContent = async (sectionIndex: number) => {
     if (!newModule.title || !newModule.description) {
       toast({
@@ -1471,11 +1565,51 @@ Create a natural conversation between two podcast hosts discussing this specific
                       </div>
                       <div>
                         <Label>Video URL</Label>
-                        <Input
-                          value={section.videoUrl}
-                          onChange={(e) => updateSection(index, 'videoUrl', e.target.value)}
-                          placeholder="https://youtube.com/watch?v=..."
-                        />
+                        <div className="space-y-3">
+                          <Input
+                            value={section.videoUrl}
+                            onChange={(e) => updateSection(index, 'videoUrl', e.target.value)}
+                            placeholder="https://youtube.com/watch?v=... or generate with AI"
+                          />
+                          
+                          {/* AI Video Generation */}
+                          <div className="flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+                            <div className="flex-1">
+                              <div className="text-sm font-medium text-purple-800">AI Video Generation</div>
+                              <div className="text-xs text-purple-600">Create a custom training video with Veo AI</div>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => generateAiVideo(index)}
+                              disabled={generatingVideo === index || !newModule.title || !newModule.description}
+                              className="ml-3 border-purple-300 text-purple-700 hover:bg-purple-100"
+                            >
+                              {generatingVideo === index ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  {videoGenerationStatus[index] === 'starting' && 'Starting...'}
+                                  {videoGenerationStatus[index] === 'processing' && 'Creating...'}
+                                </>
+                              ) : (
+                                <>
+                                  <Video className="h-4 w-4 mr-2" />
+                                  Generate Video
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                          
+                          {videoGenerationStatus[index] && (
+                            <div className="text-xs text-gray-600 p-2 bg-gray-50 rounded">
+                              Status: {videoGenerationStatus[index] === 'starting' && 'Initializing video generation...'}
+                              {videoGenerationStatus[index] === 'processing' && 'AI is creating your video (this may take 2-3 minutes)...'}
+                              {videoGenerationStatus[index] === 'completed' && 'Video generated and added successfully!'}
+                              {videoGenerationStatus[index] === 'failed' && 'Generation failed. Please try again.'}
+                            </div>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center space-x-2 p-3 bg-blue-50 rounded-lg">
                         <input
