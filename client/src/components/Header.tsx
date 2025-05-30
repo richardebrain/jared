@@ -37,29 +37,32 @@ export default function Header() {
   console.log(isAdmin,isSchoolAdmin,isOwner,'isAdmin,isSchoolAdmin,isOwner from header')
   console.log(user,'user from header')
   const performLogout = async () => {
+    console.log("Starting logout process...");
+    
+    // Immediately clear all client-side data
+    localStorage.clear();
+    sessionStorage.clear();
+    queryClient.clear();
+    
     try {
-      // Immediately clear all client-side data
-      localStorage.clear();
-      sessionStorage.clear();
-      queryClient.clear();
-      
-      // Call server endpoints
+      // Call server endpoints to clear session
       await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
       await fetch("/api/auth/clear-session", { method: "GET", credentials: "include" });
-      
-      // Show success message
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out.",
-      });
-      
+      console.log("Server logout completed");
     } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
-      // Always redirect regardless of API success/failure
-      // Force a complete page reload to ensure clean state
-      window.location.href = "/login";
+      console.error("Server logout error:", error);
     }
+    
+    // Show success message
+    toast({
+      title: "Logged out",
+      description: "Redirecting to login page...",
+    });
+    
+    // Force complete navigation to login page
+    setTimeout(() => {
+      window.location.replace("/login");
+    }, 500);
   };
 
   const handleLogout = () => {
