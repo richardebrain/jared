@@ -2860,6 +2860,50 @@ Continue for all 5 questions...
     }
   });
   
+  // API endpoint for updating user points (deductions and additions)
+  app.post("/api/auth/update-points", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const { points, pointsToAdd } = req.body;
+      
+      // Support both "points" and "pointsToAdd" parameters for compatibility
+      const pointsChange = points !== undefined ? points : pointsToAdd;
+      
+      if (pointsChange === undefined || isNaN(pointsChange)) {
+        return res.status(400).json({ 
+          message: "Points value is required and must be a number" 
+        });
+      }
+      
+      // Get current user
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Calculate new points total
+      const newPoints = Math.max(0, (user.points || 0) + pointsChange);
+      
+      // Update user points
+      const updatedUser = await storage.updateUser(userId, { points: newPoints });
+      
+      console.log(`User ${userId} points updated: ${user.points} → ${newPoints} (change: ${pointsChange})`);
+      
+      res.status(200).json({
+        success: true,
+        points: newPoints,
+        pointsChanged: pointsChange,
+        user: updatedUser
+      });
+    } catch (error) {
+      console.error("Error updating user points:", error);
+      res.status(500).json({ 
+        message: "Failed to update points",
+        error: error.message 
+      });
+    }
+  });
+
   // Dedicated API endpoint for bonus game rewards
   app.post("/api/rewards/points", requireAuth, async (req, res) => {
     try {
