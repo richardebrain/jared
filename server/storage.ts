@@ -275,6 +275,11 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getUserById(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
   // School operations
   async getSchool(id: number): Promise<School | undefined> {
     const [school] = await db.select().from(schools).where(eq(schools.id, id));
@@ -305,6 +310,11 @@ export class DatabaseStorage implements IStorage {
       .where(eq(schools.id, id))
       .returning();
     return school;
+  }
+
+  async getSchoolById(id: number): Promise<School | undefined> {
+    const [school] = await db.select().from(schools).where(eq(schools.id, id));
+    return school || undefined;
   }
 
   async incrementSchoolTeacherCount(schoolId: number): Promise<School> {
