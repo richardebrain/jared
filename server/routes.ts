@@ -626,6 +626,12 @@ Continue for all 5 questions...
   
   // Login reset endpoint (helps with debugging stuck sessions)
   // This endpoint allows any user to reset their session when they encounter login issues
+  
+  // SKIP AUTH ENDPOINTS - they are already defined in server/index.ts
+  // Registering them here would override the working versions
+  const skipAuthEndpoints = true;
+  
+  if (!skipAuthEndpoints) {
   app.post("/api/auth/reset-session", async (req, res) => {
     try {
       // Clear the current session
@@ -646,6 +652,7 @@ Continue for all 5 questions...
       res.status(500).json({ message: "Failed to reset session" });
     }
   });
+  }
 
   // Middleware to check if user's school has a valid subscription
   const requirePaidAccess = async (req: Request, res: Response, next: NextFunction) => {
@@ -674,6 +681,7 @@ Continue for all 5 questions...
   };
   
   // User routes
+  if (!skipAuthEndpoints) {
   app.post("/api/auth/register", async (req, res) => {
     try {
       // Extract and trim all input fields for consistency
@@ -852,7 +860,9 @@ Continue for all 5 questions...
       res.status(500).json({ message: "Internal server error" });
     }
   });
+  }
 
+  if (!skipAuthEndpoints) {
   app.post("/api/auth/login", async (req, res) => {
     console.log("=== LOGIN ROUTE HIT ===");
     console.log("Request body:", req.body);
@@ -1112,7 +1122,9 @@ Continue for all 5 questions...
       });
     }
   });
+  }
 
+  if (!skipAuthEndpoints) {
   app.post("/api/auth/logout", (req, res) => {
     console.log(`Logout attempt - Session ID: ${req.session.id}`);
     console.log(`Logout attempt - User ID: ${req.session.userId || 'none'}`);
@@ -1138,8 +1150,10 @@ Continue for all 5 questions...
       });
     });
   });
+  }
   
   // Clear session route - for use on fresh deployment to ensure no auto-login
+  if (!skipAuthEndpoints) {
   app.get("/api/auth/clear-session", (req, res) => {
     console.log(`Clear session attempt - Session ID: ${req.session?.id || 'none'}`);
     
@@ -1171,6 +1185,7 @@ Continue for all 5 questions...
       });
     }
   });
+  }
   
   app.get("/api/auth/me", async (req, res) => {
     console.log('GET /api/auth/me - Session ID:', req.session.id);
