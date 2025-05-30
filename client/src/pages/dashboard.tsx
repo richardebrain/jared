@@ -604,6 +604,15 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
               
+              {/* Leaderboard Section - Back at the top */}
+              <div className="mt-4">
+                <SimpleLeaderboard
+                  teachers={(users as any[]) || []}
+                  userId={user?.id as number}
+                  isLoading={teachLoading}
+                />
+              </div>
+
               {/* Bear Bucks and Points Progress Bar */}
               <div className="bg-white rounded-xl shadow-md p-4 mt-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -820,17 +829,10 @@ export default function Dashboard() {
             
             {/* Sidebar - Right 1/3 */}
             <div className="space-y-6">
-              {/* Leaderboard - At the top */}
-              <SimpleLeaderboard
-                teachers={(users as any[]) || []}
-                userId={user?.id as number}
-                isLoading={teachLoading}
-              />
-              
-              {/* Core Values Shout Outs - Second position */}
+              {/* Core Values Shout Outs - Top position */}
               <RecentShoutOuts limit={3} />
               
-              {/* Newsletter - Third position */}
+              {/* Newsletter - Second position */}
               <MonthlyNewsletter />
               
               {/* User Stats Card */}
