@@ -766,16 +766,17 @@ export default function PacHealGame() {
             )}
 
             {/* Game Board */}
-            <div className="w-full flex justify-center p-4">
+            <div className="w-full overflow-x-auto px-4">
               <div 
-                className="relative border-4 border-blue-800 bg-black rounded-lg shadow-2xl max-w-full"
+                className="relative mx-auto border-4 border-blue-800 bg-black rounded-lg shadow-2xl"
                 style={{ 
                   width: MAZE_SIZE * CELL_SIZE, 
-                  height: MAZE_SIZE * CELL_SIZE
+                  height: MAZE_SIZE * CELL_SIZE,
+                  minWidth: '300px'
                 }}
               >
-              {/* Maze walls */}
-              {MAZE_LAYOUT.map((row, y) =>
+                {/* Maze walls */}
+                {MAZE_LAYOUT.map((row, y) =>
                 row.map((cell, x) => (
                   cell === 1 && (
                     <div
@@ -930,6 +931,8 @@ export default function PacHealGame() {
                 </div>
               </div>
             )}
+              </div>
+            </div>
           </div>
         )}
 

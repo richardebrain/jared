@@ -253,7 +253,7 @@ export default function GamesPage() {
               <div className="space-y-6">
                 <StreakRewardsSummary />
                 <DailyRewards />
-                <StreakProtection />
+                <StreakProtection streakCount={user?.streak || 0} />
               </div>
             )}
           </TabsContent>
@@ -283,7 +283,7 @@ export default function GamesPage() {
             ) : (
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <LuckySlots />
+                  <LuckySlots onClose={() => {}} />
                   <ScratchCard />
                 </div>
                 <MysteryBox />
