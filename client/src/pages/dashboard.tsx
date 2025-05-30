@@ -521,12 +521,11 @@ export default function Dashboard() {
             <p>Please wait while we retrieve your information.</p>
           </div>
         ) : (
-          <div className="space-y-6">
-            {/* Top Row: Welcome Card and Leaderboard Side by Side */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {/* Welcome Section - Takes 3/4 of the width */}
-              <div className="lg:col-span-3">
-                <Card className="bg-white shadow-md overflow-hidden h-full">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Main Content - Left 2/3 */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Welcome Section */}
+              <Card className="bg-white shadow-md overflow-hidden">
                 <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
                   <h1 className="text-2xl font-bold text-white">
                     Welcome back, {user?.firstName}!
@@ -603,19 +602,10 @@ export default function Dashboard() {
                     )}
                   </div>
                 </CardContent>
-                </Card>
-              </div>
+              </Card>
               
-            </div>
-
-            {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Main Content - Left 2/3 */}
-              <div className="lg:col-span-2 space-y-6">
-                {/* Bear Bucks and Points Progress Bar with Leaderboard */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2">
-                    <div className="bg-white rounded-xl shadow-md p-4">
+              {/* Bear Bucks and Points Progress Bar */}
+              <div className="bg-white rounded-xl shadow-md p-4 mt-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Points */}
                   <div className="flex items-center">
@@ -698,20 +688,7 @@ export default function Dashboard() {
                 </div>
                 
                 {/* Custom animations are added through global CSS instead */}
-                    </div>
-                  </div>
-                  
-                  {/* Leaderboard positioned next to progress */}
-                  <div className="lg:col-span-1 space-y-4">
-                    <SimpleLeaderboard
-                      teachers={(users as any[]) || []}
-                      userId={user?.id as number}
-                      isLoading={teachLoading}
-                    />
-                    {/* Core Values Shout Outs below leaderboard */}
-                    <RecentShoutOuts limit={3} />
-                  </div>
-                </div>
+              </div>
               
               {/* Required Modules Section */}
               <div className="space-y-4">
@@ -808,7 +785,11 @@ export default function Dashboard() {
                   )}
                 </div>
                 
-
+                {/* Recent Shout-Outs and Newsletter Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <RecentShoutOuts limit={3} />
+                  <MonthlyNewsletter />
+                </div>
               </div>
               
               {/* Modules For Your Growth */}
@@ -843,8 +824,12 @@ export default function Dashboard() {
             
             {/* Sidebar - Right 1/3 */}
             <div className="space-y-6">
-              {/* Newsletter - Top position */}
-              <MonthlyNewsletter />
+              {/* Leaderboard - Now at the top */}
+              <SimpleLeaderboard
+                teachers={(users as any[]) || []}
+                userId={user?.id as number}
+                isLoading={teachLoading}
+              />
               
               {/* User Stats Card */}
               <Card className="bg-white shadow-md">
@@ -892,11 +877,15 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
               
+              {/* Core Values Shoutouts section removed to avoid duplication */}
+              
               {/* Bear Assistant */}
               <BearAssistant />
               
               {/* Community Modules */}
               <CommunityModules limit={3} />
+              
+
               
               {/* Media Section */}
               <MediaSidebar />
@@ -906,18 +895,17 @@ export default function Dashboard() {
                 <AdminTools />
               )}
             </div>
-            </div>
           </div>
         )}
-
-        {/* Welcome Dashboard for streak milestones */}
-        {showWelcomeDashboard && user && (
-          <WelcomeDashboard 
-            user={user} 
-            onClose={() => setShowWelcomeDashboard(false)} 
-          />
-        )}
       </div>
+
+      {/* Welcome Dashboard for streak milestones */}
+      {showWelcomeDashboard && user && (
+        <WelcomeDashboard 
+          user={user} 
+          onClose={() => setShowWelcomeDashboard(false)} 
+        />
+      )}
     </div>
   );
 }
