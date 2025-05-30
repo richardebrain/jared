@@ -3382,6 +3382,105 @@ Continue for all 5 questions...
       res.status(500).json({ message: "Internal server error" });
     }
   });
+
+  // Bear Bucks Management Routes for Admins
+  app.post("/api/admin/bear-bucks/award", async (req, res) => {
+    try {
+      if (!req.session?.userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const adminUser = await storage.getUser(req.session.userId);
+      if (!adminUser?.isAdmin && !adminUser?.isSchoolAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { recipientId, amount, reason, category } = req.body;
+
+      if (!recipientId || !amount || !reason || amount <= 0) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Get recipient user
+      const recipient = await storage.getUser(recipientId);
+      if (!recipient) {
+        return res.status(404).json({ message: "Recipient not found" });
+      }
+
+      // Update recipient's Bear Bucks
+      const newBearBucks = (recipient.bearBucks || 0) + amount;
+      await storage.updateUser(recipientId, { bearBucks: newBearBucks });
+
+      // Create transaction record
+      await db.execute(sql`
+        INSERT INTO bear_bucks_transactions (
+          recipient_id, sender_id, amount, reason, category, created_at
+        ) VALUES (
+          ${recipientId}, ${req.session.userId}, ${amount}, ${reason}, ${category || 'recognition'}, NOW()
+        )
+      `);
+
+      res.json({ 
+        success: true, 
+        message: `Awarded ${amount} Bear Bucks to ${recipient.firstName}`,
+        newBalance: newBearBucks
+      });
+    } catch (error) {
+      console.error("Error awarding Bear Bucks:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/admin/bear-bucks/transactions", async (req, res) => {
+    try {
+      if (!req.session?.userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const adminUser = await storage.getUser(req.session.userId);
+      if (!adminUser?.isAdmin && !adminUser?.isSchoolAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      // Get recent Bear Bucks transactions
+      const transactions = await db.execute(sql`
+        SELECT 
+          bbt.*,
+          r.first_name as recipient_first_name,
+          r.last_name as recipient_last_name,
+          s.first_name as sender_first_name,
+          s.last_name as sender_last_name
+        FROM bear_bucks_transactions bbt
+        LEFT JOIN users r ON bbt.recipient_id = r.id
+        LEFT JOIN users s ON bbt.sender_id = s.id
+        ORDER BY bbt.created_at DESC
+        LIMIT 50
+      `);
+
+      const formattedTransactions = transactions.rows.map(t => ({
+        id: t.id,
+        recipientId: t.recipient_id,
+        senderId: t.sender_id,
+        amount: t.amount,
+        reason: t.reason,
+        category: t.category,
+        createdAt: t.created_at,
+        recipient: {
+          firstName: t.recipient_first_name,
+          lastName: t.recipient_last_name
+        },
+        sender: {
+          firstName: t.sender_first_name,
+          lastName: t.sender_last_name
+        }
+      }));
+
+      res.json(formattedTransactions);
+    } catch (error) {
+      console.error("Error fetching Bear Bucks transactions:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
   
   // Assessment routes
   app.get("/api/assessments", requireAuth, async (req, res) => {
