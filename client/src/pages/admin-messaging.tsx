@@ -89,11 +89,13 @@ export default function AdminMessagingPage() {
       priority: string;
       messageType: string;
     }) => {
-      const response = await apiRequest('POST', '/api/admin/send-message', messageData);
-      if (!response.ok) {
-        throw new Error('Failed to send message');
+      try {
+        const response = await apiRequest('POST', '/api/admin/send-message', messageData);
+        return response;
+      } catch (error) {
+        console.error('Message send error:', error);
+        throw error;
       }
-      return response.json();
     },
     onSuccess: () => {
       toast({
