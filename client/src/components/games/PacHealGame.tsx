@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Heart, Ghost, Star, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
 
 interface Position {
   x: number;
@@ -213,6 +214,22 @@ const STRATEGY_LABELS = [
   "Courage Court",
   "Peace Plaza"
 ];
+
+// Function to award points to user account
+const awardPoints = async (points: number, reason: string) => {
+  try {
+    await apiRequest('/api/points/award', {
+      method: 'POST',
+      data: { 
+        points, 
+        reason,
+        gameType: 'pac-heal'
+      }
+    });
+  } catch (error) {
+    console.error('Failed to award points:', error);
+  }
+};
 
 export default function PacHealGame() {
   const [playerPos, setPlayerPos] = useState<Position>({ x: 1, y: 1 });
@@ -477,6 +494,8 @@ export default function PacHealGame() {
         
         // Check level complete condition
         if (updated.every(feeling => feeling.eaten)) {
+          setScore(s => s + 500); // Level 1 completion bonus
+          awardPoints(5, 'Pac-Heal Level 1 Completion'); // Award 5 points to user account
           setGameState('levelComplete');
         }
         
@@ -513,6 +532,8 @@ export default function PacHealGame() {
         
         // Check level complete condition
         if (updated.every(pellet => pellet.eaten)) {
+          setScore(s => s + 1000); // Level 2 completion bonus
+          awardPoints(10, 'Pac-Heal Level 2 Completion'); // Award 10 points to user account
           setGameState('won');
         }
         
@@ -964,6 +985,157 @@ export default function PacHealGame() {
               <Button onClick={resetGame} variant="outline">
                 Back to Menu
               </Button>
+            </div>
+          </div>
+        )}
+
+        {/* ECE Quiz Modal */}
+        {gameState === 'quiz' && eceQuiz && (
+          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+              <h3 className="text-lg font-bold text-blue-600 mb-4">Teacher Knowledge Quiz</h3>
+              <p className="text-gray-700 mb-4">{eceQuiz.question}</p>
+              
+              <div className="space-y-2 mb-4">
+                {eceQuiz.options.map((option, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedAnswer(index)}
+                    className={`w-full p-3 text-left rounded border ${
+                      selectedAnswer === index 
+                        ? 'bg-blue-100 border-blue-500' 
+                        : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                    }`}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+
+              {quizResult && (
+                <div className={`p-3 rounded mb-4 ${
+                  quizResult === 'correct' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                }`}>
+                  <p className="font-semibold">
+                    {quizResult === 'correct' ? '✓ Correct!' : '✗ Incorrect'}
+                  </p>
+                  <p className="text-sm mt-1">{eceQuiz.explanation}</p>
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                {!quizResult ? (
+                  <Button 
+                    onClick={() => {
+                      if (selectedAnswer !== null) {
+                        const isCorrect = selectedAnswer === eceQuiz.correctAnswer;
+                        setQuizResult(isCorrect ? 'correct' : 'incorrect');
+                        if (isCorrect) {
+                          playSound('success');
+                          setScore(s => s + 200);
+                        } else {
+                          playSound('ghost');
+                          setLives(prev => {
+                            const newLives = prev - 1;
+                            if (newLives <= 0) {
+                              setGameState('gameOver');
+                              return newLives;
+                            }
+                            return newLives;
+                          });
+                        }
+                      }
+                    }}
+                    disabled={selectedAnswer === null}
+                    className="bg-blue-500 hover:bg-blue-600"
+                  >
+                    Submit Answer
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={() => {
+                      setEceQuiz(null);
+                      setSelectedAnswer(null);
+                      setQuizResult(null);
+                      if (quizResult === 'incorrect' && lives <= 1) {
+                        setGameState('gameOver');
+                      } else {
+                        setGameState('playing');
+                        if (quizResult === 'incorrect') {
+                          setPlayerPos({ x: 1, y: 1 }); // Reset position
+                        }
+                      }
+                    }}
+                    className="bg-green-500 hover:bg-green-600"
+                  >
+                    Continue Game
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Game Legend */}
+        {gameState === 'playing' && (
+          <div className="absolute top-4 right-4 bg-white bg-opacity-90 p-3 rounded-lg text-xs">
+            <h4 className="font-bold text-gray-800 mb-2">Game Guide:</h4>
+            <div className="space-y-1 text-gray-700">
+              {currentLevel === 1 ? (
+                <>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <span>Fear (F) - Collect to heal</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                    <span>Shame (S) - Collect to heal</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                    <span>Anger (A) - Collect to heal</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <span>Worry (W) - Collect to heal</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-yellow-300 rounded-full animate-bounce"></div>
+                    <span>Power-up (bouncing)</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span>Circle Time (C)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <span>Snack Time (S)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                    <span>Cleanup (C)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                    <span>Line Up (L)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-pink-500 rounded-full"></div>
+                    <span>Transition (T)</span>
+                  </div>
+                </>
+              )}
+              <div className="flex items-center gap-2 mt-2 pt-2 border-t">
+                <div className="w-3 h-3 bg-gray-700 rounded-full"></div>
+                <span>Problem Ghost - Answer quiz!</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span>Helper Ghost - Bonus points!</span>
+              </div>
             </div>
           </div>
         )}
