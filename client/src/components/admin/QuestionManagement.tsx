@@ -113,8 +113,22 @@ export function QuestionManagement() {
         }
       });
       
+      // Add sorting to show newest questions first
+      params.append('sortBy', 'createdAt');
+      params.append('sortOrder', 'desc');
+      
       const response = await apiRequest(`/api/admin/questions?${params.toString()}`);
-      return response.data || { questions: [], pagination: { page: 1, limit: 20, total: 0, pages: 0 } };
+      
+      // The API returns { success: true, data: [...], pagination: {...} }
+      // but we need { questions: [...], pagination: {...} }
+      if (response.success && response.data) {
+        return {
+          questions: response.data,
+          pagination: response.pagination || { page: 1, limit: 20, total: 0, pages: 0 }
+        };
+      }
+      
+      return { questions: [], pagination: { page: 1, limit: 20, total: 0, pages: 0 } };
     },
     retry: false,
   });
