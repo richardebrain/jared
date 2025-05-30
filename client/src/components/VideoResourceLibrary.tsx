@@ -37,31 +37,31 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { VideoResource, videoResourcesData } from '@shared/videoResources';
-import { professionalVideoLibrary, ProfessionalVideo } from '@shared/professionalVideoLibrary';
+import { enhancedProfessionalVideoLibrary, featuredProfessionalVideos, EnhancedProfessionalVideo } from '@shared/enhancedProfessionalVideoLibrary';
 import '../lib/videoValidator'; // Import the validator for global use
 import VideoResourceCard from '@/components/VideoResourceCard';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from "@/components/ui/progress";
 
-// Convert professional videos to VideoResource format
-function convertProfessionalToVideoResource(profVideo: ProfessionalVideo): VideoResource {
+// Convert enhanced professional videos to VideoResource format
+function convertEnhancedToVideoResource(enhancedVideo: EnhancedProfessionalVideo): VideoResource {
   return {
-    id: profVideo.id,
-    title: profVideo.title,
-    description: profVideo.description,
-    youtubeId: profVideo.youtubeId,
-    category: profVideo.category,
-    tags: profVideo.tags,
-    duration: profVideo.duration,
-    source: profVideo.source,
-    expertLevel: profVideo.expertLevel,
-    dateAdded: profVideo.dateAdded,
-    featured: profVideo.featured,
+    id: enhancedVideo.id,
+    title: enhancedVideo.title,
+    description: enhancedVideo.description,
+    youtubeId: enhancedVideo.youtubeId || '',
+    category: enhancedVideo.category,
+    tags: enhancedVideo.tags,
+    duration: enhancedVideo.duration,
+    source: enhancedVideo.source,
+    expertLevel: enhancedVideo.expertLevel,
+    dateAdded: enhancedVideo.dateAdded,
+    featured: enhancedVideo.featured,
     quiz: {
       questions: [
         {
-          question: `What is the main focus of "${profVideo.title}"?`,
+          question: `What is the main focus of "${enhancedVideo.title}"?`,
           options: [
             "General teaching strategies",
             "Professional development and best practices",
@@ -76,10 +76,16 @@ function convertProfessionalToVideoResource(profVideo: ProfessionalVideo): Video
   };
 }
 
-// Combine all video resources
-const allVideoResources: VideoResource[] = [
+// Featured videos for fast loading (recommended approach)
+const featuredVideoResources: VideoResource[] = [
   ...videoResourcesData,
-  ...professionalVideoLibrary.map(convertProfessionalToVideoResource)
+  ...featuredProfessionalVideos.map(convertEnhancedToVideoResource)
+];
+
+// Complete collection (load on demand)
+const completeVideoResources: VideoResource[] = [
+  ...videoResourcesData,
+  ...enhancedProfessionalVideoLibrary.map(convertEnhancedToVideoResource)
 ];
 
 // Component for the Video Resource Library
@@ -92,7 +98,8 @@ export function VideoResourceLibrary({
   showFilters = true, 
   compactMode = false 
 }: VideoResourceLibraryProps) {
-  const [filteredVideos, setFilteredVideos] = useState<VideoResource[]>(allVideoResources);
+  const [showComplete, setShowComplete] = useState(false);
+  const [filteredVideos, setFilteredVideos] = useState<VideoResource[]>(featuredVideoResources);
   const [activeFilter, setActiveFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -143,7 +150,7 @@ export function VideoResourceLibrary({
   // Expose videos data globally for the validation utility
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      window.videoResourcesData = allVideoResources;
+      window.videoResourcesData = showComplete ? completeVideoResources : featuredVideoResources;
       
       // Log instructions for validation in dev mode
       console.info(
@@ -208,7 +215,7 @@ export function VideoResourceLibrary({
     level: string, 
     tab: string
   ) => {
-    let results = allVideoResources;
+    let results = showComplete ? completeVideoResources : featuredVideoResources;
     
     // Filter by search query
     if (query) {
@@ -247,8 +254,9 @@ export function VideoResourceLibrary({
   };
 
   // All unique categories from the video data
+  const currentVideoSet = showComplete ? completeVideoResources : featuredVideoResources;
   const categories = Array.from(
-    new Set(allVideoResources.flatMap(video => video.category))
+    new Set(currentVideoSet.flatMap(video => video.category))
   ).sort();
 
   return (
