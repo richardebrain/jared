@@ -36,35 +36,16 @@ export default function Header() {
   
   console.log(isAdmin,isSchoolAdmin,isOwner,'isAdmin,isSchoolAdmin,isOwner from header')
   console.log(user,'user from header')
-  const { mutate: logout } = useMutation({
-    mutationFn: async () => {
-      try {
-        // Clear client-side storage first
-        localStorage.clear();
-        sessionStorage.clear();
-        
-        // Call logout endpoint
-        const response = await apiRequest("/api/auth/logout", { method: "POST" });
-        
-        // Also call clear session endpoint to be thorough
-        await fetch("/api/auth/clear-session", { method: "GET", credentials: "include" });
-        
-        return response;
-      } catch (error) {
-        console.error("Logout error:", error);
-        // Even if API calls fail, clear local data
-        localStorage.clear();
-        sessionStorage.clear();
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      // Clear all cached data to force a complete reset
-      queryClient.clear();
-      
-      // Clear any remaining auth data
+  const performLogout = async () => {
+    try {
+      // Immediately clear all client-side data
       localStorage.clear();
       sessionStorage.clear();
+      queryClient.clear();
+      
+      // Call server endpoints
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+      await fetch("/api/auth/clear-session", { method: "GET", credentials: "include" });
       
       // Show success message
       toast({
@@ -72,29 +53,17 @@ export default function Header() {
         description: "You have been successfully logged out.",
       });
       
-      // Force complete page reload to login to ensure clean state
-      setTimeout(() => {
-        window.location.replace("/login");
-      }, 100);
-    },
-    onError: (error: Error) => {
-      console.error("Logout error in mutation:", error);
-      
-      // Even on error, clear local data and redirect
-      localStorage.clear();
-      sessionStorage.clear();
-      queryClient.clear();
-      
-      toast({
-        title: "Logout failed",
-        description: error.message || "There was an error logging out.",
-        variant: "destructive",
-      });
-    },
-  });
-  
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      // Always redirect regardless of API success/failure
+      // Force a complete page reload to ensure clean state
+      window.location.href = "/login";
+    }
+  };
+
   const handleLogout = () => {
-    logout();
+    performLogout();
   };
   
   const toggleMobileMenu = () => {
