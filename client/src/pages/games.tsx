@@ -23,7 +23,7 @@ import SpinWheel from '@/components/SpinWheel';
 import ScratchCard from '@/components/ScratchCard';
 import MysteryBox from '@/components/MysteryBox';
 import DailyChallenge from '@/components/DailyChallenge';
-import PacHealGame from '@/components/games/PacHealGame';
+import PacHealGame from '@/components/games/PacHealGameSimple';
 import { useToast } from "@/hooks/use-toast";
 import { 
   LuckySlots, 
@@ -253,7 +253,7 @@ export default function GamesPage() {
               <div className="space-y-6">
                 <StreakRewardsSummary />
                 <DailyRewards />
-                <StreakProtection streakCount={user?.streak || 0} />
+                <StreakProtection />
               </div>
             )}
           </TabsContent>
