@@ -25,27 +25,74 @@ app.use((req, res, next) => {
 const server = createServer(app);
 
 // Basic API routes for the game to work
+const defaultUser = {
+  id: 1,
+  username: "testuser",
+  firstName: "Test",
+  lastName: "User",
+  points: 100,
+  bearBucks: 10,
+  streak: 5,
+  level: 2
+};
+
+app.get('/api/auth/me', (req, res) => {
+  res.json(defaultUser);
+});
+
 app.get('/api/user/current', (req, res) => {
-  // Return a default user for the game
-  res.json({
-    id: 1,
-    username: "testuser",
-    firstName: "Test",
-    lastName: "User",
-    points: 100,
-    bearBucks: 10,
-    streak: 5,
-    level: 2
-  });
+  res.json(defaultUser);
+});
+
+app.get('/api/games/history', (req, res) => {
+  res.json([]);
+});
+
+app.get('/api/rewards/daily-boxes', (req, res) => {
+  res.json([]);
+});
+
+app.get('/api/streak/silver-box-eligibility', (req, res) => {
+  res.json({ eligible: false });
+});
+
+app.get('/api/progress', (req, res) => {
+  res.json({ completedModules: 0, totalPoints: 100 });
+});
+
+app.get('/api/auth/clear-session', (req, res) => {
+  res.json({ success: true });
+});
+
+app.get('/api/personalized-modules/:id', (req, res) => {
+  res.json([]);
+});
+
+app.get('/api/community-modules/top', (req, res) => {
+  res.json([]);
+});
+
+app.get('/api/core-values-shoutouts', (req, res) => {
+  res.json([]);
+});
+
+app.get('/api/users', (req, res) => {
+  res.json([defaultUser]);
+});
+
+app.get('/api/modules', (req, res) => {
+  res.json([]);
+});
+
+app.get('/api/assessments', (req, res) => {
+  res.json([]);
 });
 
 app.post('/api/games/save-score', (req, res) => {
-  // Accept game scores without saving to database
   res.json({ success: true, message: "Score saved successfully" });
 });
 
 app.get('/api/games/leaderboard', (req, res) => {
-  // Return empty leaderboard for now
   res.json([]);
 });
 
