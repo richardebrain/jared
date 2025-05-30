@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from '@/lib/queryClient';
 import BounceAwayBlocks from './BounceAwayBlocks';
 import PacHealGame from './PacHealGameWorking';
+import PreschoolDash from './PreschoolDash';
 
 interface GameTokenMachineProps {
   userPoints: number;
@@ -24,7 +25,7 @@ interface GameTokenMachineProps {
 
 export default function GameTokenMachine({ userPoints, onPointsUpdate }: GameTokenMachineProps) {
   const { toast } = useToast();
-  const [selectedGame, setSelectedGame] = useState<'bounce' | 'pacheal' | null>(null);
+  const [selectedGame, setSelectedGame] = useState<'bounce' | 'pacheal' | 'dash' | null>(null);
   const [gameStarted, setGameStarted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -50,6 +51,17 @@ export default function GameTokenMachine({ userPoints, onPointsUpdate }: GameTok
       levels: 3,
       maxPoints: 6,
       features: ['Emotional Skills', 'Self-Regulation', 'Mindfulness', 'Calm Techniques']
+    },
+    {
+      id: 'dash',
+      title: 'Preschool Dash',
+      description: 'Sprint through Early Learning Lane collecting best practices',
+      icon: Target,
+      color: 'from-orange-500 to-red-600',
+      borderColor: 'border-orange-300',
+      levels: 'Endless',
+      maxPoints: 'Distance-based',
+      features: ['ECE Best Practices', 'Endless Runner', 'Power-ups', 'Real-time Learning']
     }
   ];
 
@@ -144,6 +156,7 @@ export default function GameTokenMachine({ userPoints, onPointsUpdate }: GameTok
         
         {selectedGame === 'bounce' && <BounceAwayBlocks />}
         {selectedGame === 'pacheal' && <PacHealGame />}
+        {selectedGame === 'dash' && <PreschoolDash />}
       </div>
     );
   }
@@ -181,7 +194,7 @@ export default function GameTokenMachine({ userPoints, onPointsUpdate }: GameTok
                 className={`border-2 ${game.borderColor} bg-gradient-to-br ${game.color} text-white transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer`}
                 onClick={() => {
                   playSound('select');
-                  setSelectedGame(game.id as 'bounce' | 'pacheal');
+                  setSelectedGame(game.id as 'bounce' | 'pacheal' | 'dash');
                 }}
               >
                 <CardHeader>
