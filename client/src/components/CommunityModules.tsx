@@ -17,6 +17,7 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
   const { toast } = useToast();
   const [viewAll, setViewAll] = useState(false);
   const [showAll, setShowAll] = useState(false);
+  const [activeTab, setActiveTab] = useState("topRated");
 
   // For demo purposes - to show UI even when API connection isn't working
   const demoModules = [
@@ -172,8 +173,6 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
   const toggleView = () => {
     setViewAll(!viewAll);
   };
-
-  const [activeTab, setActiveTab] = useState("topRated");
   
   // Helper function to get medal icon based on award place
   const getMedalIcon = (place: number) => {
