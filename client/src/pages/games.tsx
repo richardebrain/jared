@@ -200,48 +200,7 @@ export default function GamesPage() {
               </Card>
             ) : (
               <div className="max-w-4xl mx-auto space-y-6">
-                <Card className="overflow-hidden border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <Puzzle className="h-6 w-6 mr-3 text-blue-500" />
-                        Teaching Puzzle Games
-                      </div>
-                      <Badge className="bg-blue-500 text-white">Coming Soon</Badge>
-                    </CardTitle>
-                    <CardDescription>
-                      Brain-training puzzles designed to enhance problem-solving skills for educators.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="px-6 py-4">
-                    <div className="text-center py-8">
-                      <div className="text-blue-500 mb-4">
-                        <Sparkles className="h-16 w-16 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-blue-700 mb-2">Exciting Puzzles Coming Soon!</h3>
-                        <p className="text-blue-600 mb-6">We're developing engaging puzzle games to help sharpen your teaching skills</p>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div className="bg-white p-4 rounded-lg border border-blue-200">
-                          <strong className="text-blue-600">Classroom Logic Puzzles</strong>
-                          <p className="text-gray-600 mt-1">Solve scenarios using teaching best practices</p>
-                        </div>
-                        <div className="bg-white p-4 rounded-lg border border-blue-200">
-                          <strong className="text-purple-600">Memory Matching</strong>
-                          <p className="text-gray-600 mt-1">Match teaching concepts with practical applications</p>
-                        </div>
-                        <div className="bg-white p-4 rounded-lg border border-blue-200">
-                          <strong className="text-green-600">Pattern Recognition</strong>
-                          <p className="text-gray-600 mt-1">Identify learning patterns in student behavior</p>
-                        </div>
-                        <div className="bg-white p-4 rounded-lg border border-blue-200">
-                          <strong className="text-orange-600">Word Puzzles</strong>
-                          <p className="text-gray-600 mt-1">Build vocabulary for effective communication</p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                
+
                 {isJLCookie && (
                   <Card className="bg-yellow-50 border-yellow-200">
                     <CardHeader>

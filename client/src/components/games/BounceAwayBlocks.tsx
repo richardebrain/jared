@@ -744,6 +744,15 @@ export default function BounceAwayBlocks() {
         </div>
       </div>
 
+      {/* Point Animation Overlay */}
+      {gameState.showPointAnimation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <div className="bg-green-500 text-white px-8 py-4 rounded-full text-2xl font-bold animate-bounce shadow-lg">
+            +{gameState.pointsEarned} Points!
+          </div>
+        </div>
+      )}
+
       {/* Game Canvas */}
       <Card className="relative">
         <CardContent className="p-0">
