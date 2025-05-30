@@ -317,7 +317,8 @@ export default function GamesPage() {
               <GameTokenMachine 
                 userPoints={user?.points || 0} 
                 onPointsUpdate={(newPoints) => {
-                  // Update user points in local state if needed
+                  // Invalidate user data to refresh from server
+                  queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
                   console.log('Points updated:', newPoints);
                 }} 
               />
