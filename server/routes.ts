@@ -3384,13 +3384,10 @@ Continue for all 5 questions...
   });
 
   // Bear Bucks Management Routes for Admins
-  app.post("/api/admin/bear-bucks/award", async (req, res) => {
+  app.post("/api/admin/bear-bucks/award", requireAuth, async (req, res) => {
     try {
-      if (!req.session?.userId) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-
-      const adminUser = await storage.getUser(req.session.userId);
+      const userId = req.session.userId as number;
+      const adminUser = await storage.getUser(userId);
       if (!adminUser?.isAdmin && !adminUser?.isSchoolAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -3416,7 +3413,7 @@ Continue for all 5 questions...
         INSERT INTO bear_bucks_transactions (
           recipient_id, sender_id, amount, reason, category, created_at
         ) VALUES (
-          ${recipientId}, ${req.session.userId}, ${amount}, ${reason}, ${category || 'recognition'}, NOW()
+          ${recipientId}, ${userId}, ${amount}, ${reason}, ${category || 'recognition'}, NOW()
         )
       `);
 
@@ -3431,13 +3428,10 @@ Continue for all 5 questions...
     }
   });
 
-  app.get("/api/admin/bear-bucks/transactions", async (req, res) => {
+  app.get("/api/admin/bear-bucks/transactions", requireAuth, async (req, res) => {
     try {
-      if (!req.session?.userId) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-
-      const adminUser = await storage.getUser(req.session.userId);
+      const userId = req.session.userId as number;
+      const adminUser = await storage.getUser(userId);
       if (!adminUser?.isAdmin && !adminUser?.isSchoolAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
