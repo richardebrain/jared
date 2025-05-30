@@ -378,60 +378,43 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
                   name="options"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Multiple Choice Options</FormLabel>
+                      <FormLabel>Answer Options</FormLabel>
                       <div className="space-y-3">
                         {field.value.map((option, index) => (
                           <div key={index} className="flex items-center gap-2">
-                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
-                              {String.fromCharCode(65 + index)}
+                            <div className="flex items-center gap-2 flex-1">
+                              <div 
+                                className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-semibold cursor-pointer transition-colors ${
+                                  form.watch("correctAnswer") === index 
+                                    ? "bg-green-500 text-white border-green-500" 
+                                    : "bg-gray-100 text-gray-600 border-gray-300 hover:border-green-400"
+                                }`}
+                                onClick={() => form.setValue("correctAnswer", index)}
+                              >
+                                {String.fromCharCode(65 + index)}
+                              </div>
+                              <Input
+                                value={option}
+                                onChange={(e) => {
+                                  const newOptions = [...field.value];
+                                  newOptions[index] = e.target.value;
+                                  field.onChange(newOptions);
+                                }}
+                                placeholder={`Option ${String.fromCharCode(65 + index)}`}
+                                className="flex-1"
+                              />
                             </div>
-                            <Input
-                              value={option}
-                              onChange={(e) => {
-                                const newOptions = [...field.value];
-                                newOptions[index] = e.target.value;
-                                field.onChange(newOptions);
-                              }}
-                              placeholder={`Option ${String.fromCharCode(65 + index)}`}
-                              className="flex-1"
-                            />
                           </div>
                         ))}
                       </div>
                       <FormDescription>
-                        Add 4 multiple choice options (A, B, C, D)
+                        Add 4 multiple choice options (A, B, C, D). Click the letter to mark it as the correct answer.
                       </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="correctAnswer"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Correct Answer</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(parseInt(value))} 
-                        value={field.value.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select the correct answer" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {form.watch("options").map((option, index) => (
-                            <SelectItem key={index} value={index.toString()}>
-                              {String.fromCharCode(65 + index)} - {option || "Empty option"}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        Select which option is the correct answer
-                      </FormDescription>
+                      {form.watch("correctAnswer") !== undefined && (
+                        <div className="text-sm text-green-600 font-medium">
+                          {String.fromCharCode(65 + form.watch("correctAnswer"))} is marked as the correct answer
+                        </div>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}

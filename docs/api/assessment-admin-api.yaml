@@ -178,6 +178,7 @@ paths:
                 - options
                 - correctAnswer
                 - difficulty
+                - miniLesson
               properties:
                 admin_password:
                   type: string
@@ -217,14 +218,11 @@ paths:
                     - 4: Hard
                     - 5: Very Hard
                   example: "3"
-                explanation:
-                  type: string
-                  description: Explanation for the correct answer (optional)
-                  example: "Visual supervision is the primary safety measure for outdoor play, allowing immediate response to potential hazards."
                 miniLesson:
                   type: string
-                  description: Educational content for incorrect answers (optional)
-                  example: "Effective outdoor supervision requires positioning yourself to see all children while scanning for potential hazards..."
+                  description: Required educational content for users who get this question wrong
+                  minLength: 1
+                  example: "Child safety protocols require immediate escalation to trained professionals who can assess the situation and take appropriate action."
                 tags:
                   type: string
                   description: Comma-separated tags for categorization (optional)
@@ -362,9 +360,7 @@ paths:
               $ref: '#/components/schemas/UpdateQuestionRequest'
             example:
               text: "What is the appropriate adult-to-child ratio for toddlers during outdoor play activities?"
-              explanation: "Toddlers require closer supervision due to their developmental stage and increased mobility."
               difficulty: 4
-              tags: ["supervision", "ratios", "outdoor-play", "toddlers"]
       responses:
         '200':
           description: Question updated successfully
@@ -381,10 +377,6 @@ paths:
                   options: ["1:4", "1:6", "1:8", "1:10"]
                   correctAnswer: 0
                   difficulty: 4
-                  explanation: "Toddlers require closer supervision due to their developmental stage and increased mobility."
-                  tags: ["supervision", "ratios", "outdoor-play", "toddlers"]
-                  isApproved: true
-                  isEnabled: true
                   updatedAt: "2025-01-15T11:45:00.000Z"
                 message: "Question updated successfully"
         '400':
@@ -1141,6 +1133,7 @@ components:
         - options
         - correctAnswer
         - difficulty
+        - miniLesson
       properties:
         domainId:
           type: string
@@ -1171,14 +1164,15 @@ components:
           description: Question difficulty level
           enum: ["1", "2", "3", "4", "5"]
           example: "3"
+        miniLesson:
+          type: string
+          description: Required educational content for users who get this question wrong
+          minLength: 1
+          example: "Child safety protocols require immediate escalation to trained professionals who can assess the situation and take appropriate action."
         explanation:
           type: string
           description: Optional explanation of the correct answer
           example: "Reporting to appropriate authorities ensures proper handling while maintaining safety protocols."
-        miniLesson:
-          type: string
-          description: Optional mini-lesson content
-          example: "Child safety protocols require immediate escalation to trained professionals."
         tags:
           type: string
           description: Optional comma-separated tags
@@ -1216,18 +1210,11 @@ components:
           description: Question difficulty level
           enum: ["1", "2", "3", "4", "5"]
           example: "3"
-        explanation:
-          type: string
-          description: Optional explanation of the correct answer
-          example: "Reporting to appropriate authorities ensures proper handling while maintaining safety protocols."
         miniLesson:
           type: string
-          description: Optional mini-lesson content
-          example: "Child safety protocols require immediate escalation to trained professionals."
-        tags:
-          type: string
-          description: Optional comma-separated tags
-          example: "safety,reporting,protocols"
+          description: Required educational content for users who get this question wrong
+          minLength: 1
+          example: "Child safety protocols require immediate escalation to trained professionals who can assess the situation and take appropriate action."
 
     PaginatedQuestionsResponse:
       type: object
