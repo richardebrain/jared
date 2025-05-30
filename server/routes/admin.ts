@@ -14,9 +14,16 @@ const TEMP_ADMIN_PASSWORD = "BIGSURF55";
 
 // Middleware for admin authentication (simplified for messaging)
 const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
+  console.log('Admin middleware - Session check:', {
+    hasSession: !!req.session,
+    userId: req.session?.userId,
+    sessionId: req.sessionID
+  });
+  
   // For messaging endpoints, just check if user is logged in
   // In production, you'd want proper admin role checking
   if (!req.session || !req.session.userId) {
+    console.log("Authentication failed - no session or userId");
     return res.status(401).json({ message: "Unauthorized: Please log in" });
   }
   
