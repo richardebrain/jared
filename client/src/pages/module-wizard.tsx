@@ -163,12 +163,15 @@ export default function ModuleWizard() {
         Generate practical, scenario-based questions that test understanding of the key concepts.
         Format as multiple choice questions with 4 options each.`;
         
-        const quizResponse = await apiRequest("POST", "/api/ai-suggestions/generate-quiz", {
-          prompt: quizPrompt,
-          questionCount: 5
+        const quizResult = await apiRequest("/api/ai-suggestions/generate-section", {
+          method: "POST",
+          data: {
+            prompt: quizPrompt + "\n\nGenerate quiz and teachback session content.",
+            sectionType: 'quiz',
+            moduleTitle: config.title,
+            moduleDescription: config.description
+          }
         });
-        
-        const quizResult = await quizResponse.json();
         
         sections.push({
           id: sections.length + 1,
