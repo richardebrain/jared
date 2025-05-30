@@ -501,13 +501,14 @@ router.get('/messages', async (req: Request, res: Response) => {
         subject: teacherMessages.title,
         content: teacherMessages.content,
         senderName: users.firstName,
-        recipientName: teacherMessages.recipientId, // We'll need to join with recipient info
+        recipientName: 'Teacher', // Simplified for now
         createdAt: teacherMessages.createdAt,
         isRead: teacherMessages.isRead,
         priority: teacherMessages.messageType,
       })
       .from(teacherMessages)
       .innerJoin(users, eq(teacherMessages.senderId, users.id))
+      .where(eq(teacherMessages.senderId, req.session.userId))
       .orderBy(desc(teacherMessages.createdAt))
       .limit(50);
 
