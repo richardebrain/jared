@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { Link } from 'wouter';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { 
   Tabs, 
   TabsContent, 
@@ -23,12 +24,44 @@ import ScratchCard from '@/components/ScratchCard';
 import MysteryBox from '@/components/MysteryBox';
 import DailyChallenge from '@/components/DailyChallenge';
 import PacHealGame from '@/components/games/PacHealGame';
-import { Sparkles, Gift, Package, Star, CircleHelp, Heart, Gamepad2 } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
+import { 
+  LuckySlots, 
+  DailyRewards, 
+  StreakProtection 
+} from "@/components";
+import { StreakRewardsSummary } from "@/components/DailyRewards";
+import { 
+  Sparkles, 
+  Gift, 
+  Package, 
+  Star, 
+  CircleHelp, 
+  Heart, 
+  Gamepad2,
+  Trophy,
+  Coins,
+  Calendar,
+  Clock,
+  History,
+  Ticket,
+  Shield,
+  Cherry,
+  Diamond,
+  Gem,
+  Award,
+  RefreshCcw,
+  RefreshCw,
+  Flame,
+  Medal
+} from 'lucide-react';
 
 export default function GamesPage() {
   const { user, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("play");
   const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [dailyGameUsed, setDailyGameUsed] = useState(false);
   
   // Force a refresh of user data when the page loads
   useEffect(() => {
@@ -51,6 +84,40 @@ export default function GamesPage() {
     queryKey: ["/api/progress"],
     enabled: !!user,
   });
+  
+  // Get completed activities to check if user can access rewards
+  const { data: progress = [] } = useQuery({
+    queryKey: ["/api/progress"],
+  });
+  
+  // Check for special access for admin
+  const isJLCookie = user?.username === 'jlcookie20';
+  
+  // User can access games if they've completed activities OR earned at least 1 point
+  const hasCompletedActivity = 
+    isJLCookie || 
+    (user && user.points && user.points > 0) || 
+    (progress && Array.isArray(progress) && progress.some((p: any) => p.completed));
+  
+  // Function to reset games for jlcookie20
+  const resetBonusGames = () => {
+    if (isJLCookie) {
+      localStorage.removeItem('lastGamePlayedDate');
+      setDailyGameUsed(false);
+      toast({
+        title: "Games Reset!",
+        description: "Your bonus games have been reset. You can play them again!",
+        variant: "default",
+      });
+    }
+  };
+  
+  // Override daily usage restriction for jlcookie20
+  useEffect(() => {
+    if (isJLCookie) {
+      setDailyGameUsed(false);
+    }
+  }, [isJLCookie, user]);
   
   // Calculate user stats
   const completedModules = Array.isArray(userProgress) 
@@ -93,15 +160,139 @@ export default function GamesPage() {
           </div>
         </div>
         
-        <Tabs defaultValue="play" className="space-y-4" onValueChange={setActiveTab}>
+        <Tabs defaultValue="educational" className="space-y-4" onValueChange={setActiveTab}>
           <TabsList className="grid grid-cols-4 w-full max-w-4xl mx-auto">
-            <TabsTrigger value="play">Bonus Games</TabsTrigger>
             <TabsTrigger value="educational">Educational Games</TabsTrigger>
+            <TabsTrigger value="rewards">Streak Rewards</TabsTrigger>
+            <TabsTrigger value="slots">Lucky Games</TabsTrigger>
             <TabsTrigger value="daily">Daily Challenge</TabsTrigger>
-            <TabsTrigger value="rewards">My Items</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="play" className="space-y-8">
+          {/* Educational Games Tab */}
+          <TabsContent value="educational" className="space-y-6">
+            {!hasCompletedActivity ? (
+              <Card className="p-8 text-center">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-center mb-4">
+                    <Package className="h-8 w-8 mr-3 text-amber-500" />
+                    Complete Training to Unlock Games
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-neutral-600 mb-6">
+                    Educational games are unlocked after completing your first training module or earning points.
+                  </p>
+                  <Link to="/modules">
+                    <Button className="bg-amber-500 hover:bg-amber-600 text-white">
+                      <Star className="h-4 w-4 mr-2" />
+                      Start Training
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-6">
+                <Card className="overflow-hidden">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Gamepad2 className="h-6 w-6 mr-3 text-blue-500" />
+                      Pac-Heal: Emotional Regulation Adventure
+                    </CardTitle>
+                    <CardDescription>
+                      Learn emotional regulation and classroom management through an engaging Pac-Man style game with ECE quiz challenges.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <PacHealGame />
+                  </CardContent>
+                </Card>
+                
+                {isJLCookie && (
+                  <Card className="bg-yellow-50 border-yellow-200">
+                    <CardHeader>
+                      <CardTitle className="text-yellow-800">Admin Controls</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <Button 
+                        onClick={resetBonusGames}
+                        variant="outline" 
+                        className="bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200"
+                      >
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Reset All Games
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
+          </TabsContent>
+          
+          {/* Streak Rewards Tab */}
+          <TabsContent value="rewards" className="space-y-6">
+            {!hasCompletedActivity ? (
+              <Card className="p-8 text-center">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-center mb-4">
+                    <Flame className="h-8 w-8 mr-3 text-orange-500" />
+                    Complete Training to Access Rewards
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-neutral-600 mb-6">
+                    Daily streak rewards are unlocked after completing your first training module.
+                  </p>
+                  <Link to="/modules">
+                    <Button className="bg-orange-500 hover:bg-orange-600 text-white">
+                      <Star className="h-4 w-4 mr-2" />
+                      Start Training
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-6">
+                <StreakRewardsSummary />
+                <DailyRewards />
+                <StreakProtection />
+              </div>
+            )}
+          </TabsContent>
+          
+          {/* Lucky Games Tab */}
+          <TabsContent value="slots" className="space-y-6">
+            {!hasCompletedActivity ? (
+              <Card className="p-8 text-center">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-center mb-4">
+                    <Cherry className="h-8 w-8 mr-3 text-red-500" />
+                    Complete Training to Play Games
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-neutral-600 mb-6">
+                    Lucky slots and scratch cards are unlocked after completing training modules.
+                  </p>
+                  <Link to="/modules">
+                    <Button className="bg-red-500 hover:bg-red-600 text-white">
+                      <Star className="h-4 w-4 mr-2" />
+                      Start Training
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <LuckySlots />
+                  <ScratchCard />
+                </div>
+                <MysteryBox />
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="daily" className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
                 <ScratchCard />
