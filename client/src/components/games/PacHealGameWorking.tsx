@@ -297,12 +297,7 @@ export default function PacHealGame() {
         try {
           await apiRequest('/api/auth/update-points', {
             method: 'POST',
-            body: JSON.stringify({ points: 5 }),
-            headers: { 'Content-Type': 'application/json' }
-          });
-          toast({
-            title: "Level Complete!",
-            description: "You earned 5 points for completing this level!",
+            data: { points: 5 }
           });
         } catch (error) {
           console.error('Error updating points:', error);

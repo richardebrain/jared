@@ -77,6 +77,7 @@ interface GameState {
   userPoints: number;
   gameStarted: boolean;
   pointsEarned: number;
+  showPointAnimation: boolean;
 }
 
 const GAME_WIDTH = 800;
@@ -245,7 +246,8 @@ export default function BounceAwayBlocks() {
     currentDefinition: null,
     userPoints: 0,
     gameStarted: false,
-    pointsEarned: 0
+    pointsEarned: 0,
+    showPointAnimation: false
   });
 
   const [paddle, setPaddle] = useState({ x: GAME_WIDTH / 2 - PADDLE_WIDTH / 2, y: GAME_HEIGHT - 40 });
@@ -604,7 +606,27 @@ export default function BounceAwayBlocks() {
     // Check win condition
     if (bricks.length === 0) {
       if (gameState.level < LEVEL_DATA.length) {
-        setGameState(prev => ({ ...prev, level: prev.level + 1 }));
+        // Award 2 points for completing a level
+        setGameState(prev => ({ 
+          ...prev, 
+          level: prev.level + 1,
+          pointsEarned: 2,
+          showPointAnimation: true
+        }));
+        
+        // Award points to user account
+        setTimeout(async () => {
+          try {
+            await apiRequest('/api/auth/update-points', {
+              method: 'POST',
+              data: { points: 2 }
+            });
+          } catch (error) {
+            console.error('Error updating points:', error);
+          }
+          setGameState(prev => ({ ...prev, showPointAnimation: false }));
+        }, 2000);
+        
         initializeLevel(gameState.level + 1);
       } else {
         setGameState(prev => ({ ...prev, victory: true, isPlaying: false }));
