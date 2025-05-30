@@ -27,6 +27,7 @@ interface SessionStatus {
     timePerQuestion: number;
     startingDifficulty: number;
   };
+  currentQuestion?: QuestionData | null;
 }
 
 interface QuestionData {
@@ -114,9 +115,22 @@ export default function AssessmentQuestions() {
         setTimeRemaining(result.session.config.timePerQuestion || 60);
         setQuestionStartTime(new Date());
         
-        // For now, we'll get the question from a separate endpoint
-        // In the real implementation, this would be part of the session status
-        await loadCurrentQuestion(result.session);
+        // Check if we have a current question from the session
+        if (result.session.currentQuestion) {
+          setCurrentQuestion(result.session.currentQuestion);
+          setSelectedAnswer(null);
+        } else {
+          // No current question - assessment might be complete or there's an error
+          if (result.session.progress.questionsAnswered >= result.session.progress.totalQuestions) {
+            toast({
+              title: "Assessment Complete",
+              description: "You have completed all questions. Redirecting to results...",
+            });
+            setLocation('/assessment-results');
+          } else {
+            throw new Error('No current question available');
+          }
+        }
       } else {
         throw new Error('No active assessment session found');
       }
@@ -142,34 +156,6 @@ export default function AssessmentQuestions() {
       setIsLoading(false);
     }
   }, [isAuthenticated, setLocation, toast]);
-
-  // Load the current question (this would normally be included in session status)
-  const loadCurrentQuestion = async (session: SessionStatus) => {
-    try {
-      // For now, simulate getting a question - in real implementation this would come from the session status
-      // or a separate endpoint that gets the current question for the session
-      const mockQuestion: QuestionData = {
-        id: `question-${session.progress.currentSequence}`,
-        text: `Sample question ${session.progress.currentSequence} at difficulty level ${session.currentDifficulty}`,
-        options: [
-          "Option A - Sample answer choice",
-          "Option B - Another answer choice", 
-          "Option C - Third answer choice",
-          "Option D - Fourth answer choice"
-        ],
-        domain: "1",
-        domainName: "Child Safety & Supervision",
-        difficulty: session.currentDifficulty,
-        sequence: session.progress.currentSequence
-      };
-      
-      setCurrentQuestion(mockQuestion);
-      setSelectedAnswer(null);
-    } catch (error: any) {
-      console.error('Error loading current question:', error);
-      setError(error.message);
-    }
-  };
 
   // Submit answer
   const submitAnswer = useCallback(async (answerIndex: number | null, isTimeout: boolean = false) => {
@@ -223,7 +209,7 @@ export default function AssessmentQuestions() {
             title: "Assessment Complete!",
             description: "Congratulations! You've completed all questions. Calculating results...",
           });
-          setLocation('/assessment-completion');
+          setLocation('/assessment-results');
         } else {
           // Update session status and load next question
           setSessionStatus(prev => prev ? {

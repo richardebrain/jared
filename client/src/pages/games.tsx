@@ -363,6 +363,179 @@ export default function GamesPage() {
                 }} 
               />
 
+              {/* Teaching Puzzles Section */}
+              <div className="space-y-6">
+                <div className="text-center space-y-4 mb-8">
+                  <div className="flex items-center justify-center space-x-2">
+                    <Puzzle className="h-8 w-8 text-purple-500" />
+                    <h2 className="text-2xl font-bold text-gray-800">Teaching Puzzles</h2>
+                  </div>
+                  <p className="text-gray-600 max-w-2xl mx-auto">
+                    Challenge your problem-solving skills with educational puzzles designed to reinforce teaching concepts and strategies.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {/* Word Search */}
+                  <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50 overflow-hidden">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 bg-purple-100 rounded-full">
+                            <Search className="h-6 w-6 text-purple-600" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg text-purple-800">ECE Word Search</CardTitle>
+                            <CardDescription className="text-purple-600">
+                              Find hidden terms
+                            </CardDescription>
+                          </div>
+                        </div>
+                        <Badge className="bg-purple-500 text-white">Puzzle</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {/* Word Search Grid Visual */}
+                      <div className="bg-white p-4 rounded-lg border-2 border-purple-100 mb-4">
+                        <div className="grid grid-cols-8 gap-1 text-xs font-mono">
+                          {['S','A','F','E','T','Y','M','N',
+                            'C','D','A','R','E','L','A','O',
+                            'H','E','A','L','T','H','G','I',
+                            'I','V','E','L','O','P','M','E',
+                            'L','E','A','R','N','I','N','G',
+                            'D','L','S','C','A','F','F','O',
+                            'R','O','U','T','I','N','E','S',
+                            'E','P','L','A','Y','B','A','S'].map((letter, i) => (
+                            <div key={i} className={`w-6 h-6 flex items-center justify-center text-purple-700 font-bold ${
+                              [0,1,2,3,4,5].includes(i) ? 'bg-purple-200 rounded' : 
+                              [16,17,18,19,20,21].includes(i) ? 'bg-purple-200 rounded' : 
+                              'bg-gray-50'
+                            }`}>
+                              {letter}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <h3 className="text-lg font-bold text-purple-800 mb-2">Coming Soon!</h3>
+                        <p className="text-purple-600 mb-4 text-sm">
+                          Search for CDA competency terms in challenging word puzzles
+                        </p>
+                        <Badge className="bg-purple-600 text-white px-4 py-2">
+                          In Development
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Crossword */}
+                  <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 overflow-hidden">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 bg-blue-100 rounded-full">
+                            <Grid3X3 className="h-6 w-6 text-blue-600" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg text-blue-800">Teaching Crossword</CardTitle>
+                            <CardDescription className="text-blue-600">
+                              Test your knowledge
+                            </CardDescription>
+                          </div>
+                        </div>
+                        <Badge className="bg-blue-500 text-white">Puzzle</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {/* Crossword Grid Visual */}
+                      <div className="bg-white p-4 rounded-lg border-2 border-blue-100 mb-4">
+                        <div className="grid grid-cols-7 gap-1">
+                          {Array.from({length: 49}, (_, i) => {
+                            const isBlack = [0,1,2,4,5,6,7,8,9,13,20,27,34,35,36,40,41,42,43,44,45,46,47,48].includes(i);
+                            const hasNumber = [3,10,14,17,21,28,31,37,39].includes(i);
+                            const number = hasNumber ? ['1','2','3','4','5','6','7','8','9'][Math.floor(Math.random() * 9)] : '';
+                            return (
+                              <div key={i} className={`w-6 h-6 border ${
+                                isBlack ? 'bg-gray-800' : 'bg-white border-gray-300'
+                              } flex items-center justify-center text-xs font-bold text-blue-700`}>
+                                {hasNumber && <span className="text-[8px]">{number}</span>}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <h3 className="text-lg font-bold text-blue-800 mb-2">Coming Soon!</h3>
+                        <p className="text-blue-600 mb-4 text-sm">
+                          Solve clues related to child development and teaching strategies
+                        </p>
+                        <Badge className="bg-blue-600 text-white px-4 py-2">
+                          In Development
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Memory Match */}
+                  <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 overflow-hidden">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 bg-green-100 rounded-full">
+                            <Brain className="h-6 w-6 text-green-600" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg text-green-800">Memory Match</CardTitle>
+                            <CardDescription className="text-green-600">
+                              Match concepts
+                            </CardDescription>
+                          </div>
+                        </div>
+                        <Badge className="bg-green-500 text-white">Puzzle</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {/* Memory Match Visual */}
+                      <div className="bg-white p-4 rounded-lg border-2 border-green-100 mb-4">
+                        <div className="grid grid-cols-4 gap-2">
+                          {Array.from({length: 16}, (_, i) => {
+                            const isFlipped = [2,5,8,11].includes(i);
+                            const symbols = ['🎓','📚','❤️','🎯'];
+                            const symbol = isFlipped ? symbols[i % 4] : '?';
+                            return (
+                              <div key={i} className={`w-8 h-8 rounded border-2 flex items-center justify-center text-sm font-bold ${
+                                isFlipped ? 'bg-green-100 border-green-300 text-green-700' : 'bg-gray-100 border-gray-300 text-gray-500'
+                              }`}>
+                                {symbol}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <h3 className="text-lg font-bold text-green-800 mb-2">Coming Soon!</h3>
+                        <p className="text-green-600 mb-4 text-sm">
+                          Improve memory while learning developmental milestones
+                        </p>
+                        <Badge className="bg-green-600 text-white px-4 py-2">
+                          In Development
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                  <h4 className="font-semibold text-purple-800 mb-2">Teaching Puzzle Benefits:</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-purple-700">
+                    <div>• Reinforce learning through play</div>
+                    <div>• Improve problem-solving skills</div>
+                    <div>• Practice recall of key concepts</div>
+                    <div>• Build confidence in subject knowledge</div>
+                  </div>
+                </div>
+              </div>
+
               <Card className="border border-gray-200 bg-gray-50">
                 <CardHeader>
                   <div className="flex items-center space-x-3">
@@ -469,126 +642,7 @@ export default function GamesPage() {
             </Card>
           </TabsContent>
 
-          {/* Teaching Puzzles Tab */}
-          <TabsContent value="puzzle" className="space-y-8">
-            <div className="text-center space-y-4 mb-8">
-              <div className="flex items-center justify-center space-x-2">
-                <Puzzle className="h-8 w-8 text-purple-500" />
-                <h2 className="text-2xl font-bold text-gray-800">Teaching Puzzles</h2>
-              </div>
-              <p className="text-gray-600 max-w-2xl mx-auto">
-                Challenge your problem-solving skills with educational puzzles designed to reinforce teaching concepts and strategies.
-              </p>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Word Search */}
-              <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-purple-100 rounded-full">
-                        <Search className="h-6 w-6 text-purple-600" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg text-purple-800">ECE Word Search</CardTitle>
-                        <CardDescription className="text-purple-600">
-                          Find hidden early childhood education terms
-                        </CardDescription>
-                      </div>
-                    </div>
-                    <Badge className="bg-purple-500 text-white">Puzzle</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8">
-                    <Search className="h-16 w-16 mx-auto mb-4 text-purple-500" />
-                    <h3 className="text-lg font-bold text-purple-800 mb-2">Coming Soon!</h3>
-                    <p className="text-purple-600 mb-4">
-                      Search for CDA competency terms in this challenging word puzzle
-                    </p>
-                    <Badge className="bg-purple-600 text-white px-4 py-2">
-                      In Development
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Crossword */}
-              <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-blue-100 rounded-full">
-                        <Grid3X3 className="h-6 w-6 text-blue-600" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg text-blue-800">Teaching Crossword</CardTitle>
-                        <CardDescription className="text-blue-600">
-                          Test your knowledge with education-themed clues
-                        </CardDescription>
-                      </div>
-                    </div>
-                    <Badge className="bg-blue-500 text-white">Puzzle</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8">
-                    <Grid3X3 className="h-16 w-16 mx-auto mb-4 text-blue-500" />
-                    <h3 className="text-lg font-bold text-blue-800 mb-2">Coming Soon!</h3>
-                    <p className="text-blue-600 mb-4">
-                      Solve clues related to child development and teaching strategies
-                    </p>
-                    <Badge className="bg-blue-600 text-white px-4 py-2">
-                      In Development
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Memory Match */}
-              <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-green-100 rounded-full">
-                        <Brain className="h-6 w-6 text-green-600" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg text-green-800">Memory Match</CardTitle>
-                        <CardDescription className="text-green-600">
-                          Match teaching concepts with their definitions
-                        </CardDescription>
-                      </div>
-                    </div>
-                    <Badge className="bg-green-500 text-white">Puzzle</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8">
-                    <Brain className="h-16 w-16 mx-auto mb-4 text-green-500" />
-                    <h3 className="text-lg font-bold text-green-800 mb-2">Coming Soon!</h3>
-                    <p className="text-green-600 mb-4">
-                      Improve memory while learning developmental milestones
-                    </p>
-                    <Badge className="bg-green-600 text-white px-4 py-2">
-                      In Development
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-              <h4 className="font-semibold text-purple-800 mb-2">Teaching Puzzle Benefits:</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-purple-700">
-                <div>• Reinforce learning through play</div>
-                <div>• Improve problem-solving skills</div>
-                <div>• Practice recall of key concepts</div>
-                <div>• Build confidence in subject knowledge</div>
-              </div>
-            </div>
-          </TabsContent>
         </Tabs>
       </div>
     </div>

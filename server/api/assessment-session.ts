@@ -321,6 +321,59 @@ router.get('/status', requireTeacherRole, async (req: Request, res: Response) =>
     const user = req.user as User;
     const config = await loadAssessmentConfig(user.schoolId);
 
+    // Check if assessment is complete
+    const isComplete = questionsAnswered >= (config.questionCount || 40);
+
+    // Get current question if assessment is not complete
+    let currentQuestion: any = null;
+    if (!isComplete) {
+      try {
+        // Get current difficulty and domain coverage
+        const currentDifficulty = assessment.currentDifficulty || config.startingDifficulty || 3;
+        const domainCoverage = assessment.domainCoverage || {};
+        
+        // Select a question based on current difficulty and domain coverage
+        // For now, get any available question from the pool - in production this would use the selection algorithm
+        const availableQuestions = await db.select()
+          .from(assessmentQuestions)
+          .where(and(
+            eq(assessmentQuestions.isApproved, true),
+            eq(assessmentQuestions.isEnabled, true),
+            eq(assessmentQuestions.difficulty, currentDifficulty.toString())
+          ))
+          .limit(10);
+
+        if (availableQuestions && availableQuestions.length > 0) {
+          // For now, pick a random question - in production this would use proper selection
+          const randomIndex = Math.floor(Math.random() * availableQuestions.length);
+          const selectedQuestion = availableQuestions[randomIndex];
+          
+          // Get domain name for the question
+          const domain = await db.select()
+            .from(assessmentDomains)
+            .where(eq(assessmentDomains.id, parseInt(selectedQuestion.domainId)))
+            .limit(1);
+          
+          const domainName = domain.length > 0 ? domain[0].name : 'Unknown Domain';
+          
+          currentQuestion = {
+            id: selectedQuestion.id,
+            text: selectedQuestion.text,
+            options: JSON.parse(selectedQuestion.options),
+            domain: selectedQuestion.domainId,
+            domainName: domainName,
+            difficulty: parseInt(selectedQuestion.difficulty),
+            sequence: currentSequence,
+            explanation: selectedQuestion.explanation,
+            tags: selectedQuestion.tags ? JSON.parse(selectedQuestion.tags) : []
+          };
+        }
+      } catch (questionError) {
+        console.error('Error loading current question:', questionError);
+        // Continue without question - frontend will handle gracefully
+      }
+    }
+
     res.status(200).json({
       success: true,
       session: {
@@ -341,7 +394,8 @@ router.get('/status', requireTeacherRole, async (req: Request, res: Response) =>
           questionCount: config.questionCount || 40,
           timePerQuestion: config.timePerQuestion || 60,
           startingDifficulty: config.startingDifficulty || 3
-        }
+        },
+        currentQuestion: currentQuestion
       }
     });
 
