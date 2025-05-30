@@ -34,7 +34,8 @@ export default function BonusGamesButton({user}:{user:any}) {
       return;
     }
     
-    if (gameHistory && gameHistory.length > 0) {
+    // Ensure gameHistory is an array before using array methods
+    if (gameHistory && Array.isArray(gameHistory) && gameHistory.length > 0) {
       // Check if any game was played today from API data
       const today = new Date();
       today.setHours(0, 0, 0, 0);
