@@ -380,8 +380,9 @@ export default function PreschoolDash() {
     if (gameStats.lives <= 0) {
       setGameState('gameOver');
       
-      // Award points for distance traveled
-      const distancePoints = Math.floor(gameStats.distance / 100);
+      // Award points for distance traveled (capped at 5 points maximum)
+      const basePoints = Math.floor(gameStats.distance / 200); // Reduced from /100 to /200
+      const distancePoints = Math.min(5, basePoints); // Cap at 5 points maximum
       setGameStats(prev => ({ 
         ...prev, 
         pointsEarned: distancePoints,
