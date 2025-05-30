@@ -135,7 +135,7 @@ export function VideoRating({ videoId, showReviews = false, compact = false }: V
       <div className="flex items-center space-x-2">
         <StarDisplay rating={ratingsData?.averageRating || 0} />
         <span className="text-sm text-gray-600">
-          {ratingsData?.averageRating ? ratingsData.averageRating.toFixed(1) : '0.0'}
+          {ratingsData?.averageRating ? Number(ratingsData.averageRating).toFixed(1) : '0.0'}
         </span>
         <span className="text-xs text-gray-500">
           ({ratingsData?.totalRatings || 0})
