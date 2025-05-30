@@ -24,6 +24,17 @@ interface BadFeeling {
   eaten: boolean;
 }
 
+interface RoutinePellet {
+  id: number;
+  position: Position;
+  type: 'circle-time' | 'snack' | 'cleanup' | 'line-up' | 'transition';
+  eaten: boolean;
+  quiz?: {
+    question: string;
+    answer: string;
+  };
+}
+
 interface Affirmation {
   type: string;
   message: string;
@@ -35,6 +46,37 @@ const AFFIRMATIONS: Record<string, Affirmation> = {
   anger: { type: 'calm', message: "I can stay calm and peaceful" },
   worry: { type: 'trust', message: "I trust that things will be okay" }
 };
+
+const ROUTINE_QUIZZES: Record<string, { question: string; answer: string }> = {
+  'line-up': { 
+    question: "What's the face-to-name rule for line-up time?", 
+    answer: "Make eye contact and say each child's name as they line up to ensure connection and attention."
+  },
+  'circle-time': { 
+    question: "How long should circle time last for preschoolers?", 
+    answer: "5-15 minutes maximum, matching their attention span and developmental stage."
+  },
+  'snack': { 
+    question: "What's a key strategy for peaceful snack time?", 
+    answer: "Use consistent routines like hand washing, sitting, and quiet conversation to create structure."
+  },
+  'cleanup': { 
+    question: "How can you make cleanup time engaging?", 
+    answer: "Use songs, timers, and specific job assignments to make cleanup fun and organized."
+  },
+  'transition': { 
+    question: "What helps children during transitions between activities?", 
+    answer: "Give warnings, use visual cues, and maintain consistent routines to reduce anxiety."
+  }
+};
+
+const POSITIVE_PHRASES = [
+  "I see you're upset",
+  "You seem frustrated",
+  "Help me understand",
+  "Let's solve this together",
+  "I notice you need space"
+];
 
 const MAZE_SIZE = 15;
 const CELL_SIZE = 32;
@@ -71,49 +113,95 @@ export default function PacHealGame() {
   const [playerPos, setPlayerPos] = useState<Position>({ x: 1, y: 1 });
   const [ghosts, setGhosts] = useState<Ghost[]>([]);
   const [badFeelings, setBadFeelings] = useState<BadFeeling[]>([]);
+  const [routinePellets, setRoutinePellets] = useState<RoutinePellet[]>([]);
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
   const [powerUpActive, setPowerUpActive] = useState(false);
   const [powerUpTimer, setPowerUpTimer] = useState(0);
-  const [gameState, setGameState] = useState<'menu' | 'playing' | 'paused' | 'gameOver' | 'won'>('menu');
+  const [currentLevel, setCurrentLevel] = useState(1);
+  const [gameState, setGameState] = useState<'menu' | 'playing' | 'paused' | 'gameOver' | 'won' | 'levelComplete' | 'quiz'>('menu');
   const [collectedAffirmations, setCollectedAffirmations] = useState<string[]>([]);
+  const [currentQuiz, setCurrentQuiz] = useState<{ question: string; answer: string } | null>(null);
+  const [showQuizAnswer, setShowQuizAnswer] = useState(false);
   const gameLoopRef = useRef<number>();
+
+  // Initialize level
+  const initializeLevel = useCallback((level: number) => {
+    setPlayerPos({ x: 1, y: 1 });
+    setPowerUpActive(false);
+    setPowerUpTimer(0);
+    setCurrentQuiz(null);
+    setShowQuizAnswer(false);
+    
+    if (level === 1) {
+      // Level 1: Emotional Healing (Bad Feelings)
+      const feelings: BadFeeling[] = [];
+      let id = 0;
+      for (let y = 1; y < MAZE_SIZE - 1; y++) {
+        for (let x = 1; x < MAZE_SIZE - 1; x++) {
+          if (MAZE_LAYOUT[y][x] === 0 && Math.random() < 0.3) {
+            const types: Array<'fear' | 'shame' | 'anger' | 'worry'> = ['fear', 'shame', 'anger', 'worry'];
+            feelings.push({
+              id: id++,
+              position: { x, y },
+              type: types[Math.floor(Math.random() * types.length)],
+              eaten: false
+            });
+          }
+        }
+      }
+      setBadFeelings(feelings);
+      setRoutinePellets([]);
+
+      // Emotional ghosts
+      const initialGhosts: Ghost[] = [
+        { id: 1, position: { x: 7, y: 7 }, direction: { x: 1, y: 0 }, type: 'freeze', emotion: 'overwhelm' },
+        { id: 2, position: { x: 8, y: 7 }, direction: { x: -1, y: 0 }, type: 'freeze', emotion: 'doubt' },
+        { id: 3, position: { x: 7, y: 8 }, direction: { x: 0, y: 1 }, type: 'freeze', emotion: 'stress' },
+      ];
+      setGhosts(initialGhosts);
+    } else if (level === 2) {
+      // Level 2: Routine Mastery (Routine Pellets)
+      const routines: RoutinePellet[] = [];
+      let id = 0;
+      const routineTypes: Array<'circle-time' | 'snack' | 'cleanup' | 'line-up' | 'transition'> = 
+        ['circle-time', 'snack', 'cleanup', 'line-up', 'transition'];
+      
+      for (let y = 1; y < MAZE_SIZE - 1; y++) {
+        for (let x = 1; x < MAZE_SIZE - 1; x++) {
+          if (MAZE_LAYOUT[y][x] === 0 && Math.random() < 0.25) {
+            const routineType = routineTypes[Math.floor(Math.random() * routineTypes.length)];
+            routines.push({
+              id: id++,
+              position: { x, y },
+              type: routineType,
+              eaten: false,
+              quiz: ROUTINE_QUIZZES[routineType]
+            });
+          }
+        }
+      }
+      setRoutinePellets(routines);
+      setBadFeelings([]);
+
+      // Chaos ghosts
+      const chaosGhosts: Ghost[] = [
+        { id: 1, position: { x: 7, y: 7 }, direction: { x: 1, y: 0 }, type: 'freeze', emotion: 'tardiness' },
+        { id: 2, position: { x: 8, y: 7 }, direction: { x: -1, y: 0 }, type: 'freeze', emotion: 'tantrums' },
+        { id: 3, position: { x: 7, y: 8 }, direction: { x: 0, y: 1 }, type: 'freeze', emotion: 'chaos' },
+      ];
+      setGhosts(chaosGhosts);
+    }
+  }, []);
 
   // Initialize game
   const initializeGame = useCallback(() => {
-    setPlayerPos({ x: 1, y: 1 });
     setScore(0);
     setLives(3);
-    setPowerUpActive(false);
-    setPowerUpTimer(0);
+    setCurrentLevel(1);
     setCollectedAffirmations([]);
-    
-    // Place bad feelings randomly on empty spaces
-    const feelings: BadFeeling[] = [];
-    let id = 0;
-    for (let y = 1; y < MAZE_SIZE - 1; y++) {
-      for (let x = 1; x < MAZE_SIZE - 1; x++) {
-        if (MAZE_LAYOUT[y][x] === 0 && Math.random() < 0.3) {
-          const types: Array<'fear' | 'shame' | 'anger' | 'worry'> = ['fear', 'shame', 'anger', 'worry'];
-          feelings.push({
-            id: id++,
-            position: { x, y },
-            type: types[Math.floor(Math.random() * types.length)],
-            eaten: false
-          });
-        }
-      }
-    }
-    setBadFeelings(feelings);
-
-    // Initialize ghosts
-    const initialGhosts: Ghost[] = [
-      { id: 1, position: { x: 7, y: 7 }, direction: { x: 1, y: 0 }, type: 'freeze', emotion: 'overwhelm' },
-      { id: 2, position: { x: 8, y: 7 }, direction: { x: -1, y: 0 }, type: 'freeze', emotion: 'doubt' },
-      { id: 3, position: { x: 7, y: 8 }, direction: { x: 0, y: 1 }, type: 'freeze', emotion: 'stress' },
-    ];
-    setGhosts(initialGhosts);
-  }, []);
+    initializeLevel(1);
+  }, [initializeLevel]);
 
   // Move player
   const movePlayer = useCallback((direction: Position) => {
@@ -246,36 +334,73 @@ export default function PacHealGame() {
   useEffect(() => {
     if (gameState !== 'playing') return;
 
-    // Check bad feelings collision
-    setBadFeelings(prev => {
-      const updated = prev.map(feeling => {
-        if (!feeling.eaten && 
-            feeling.position.x === playerPos.x && 
-            feeling.position.y === playerPos.y) {
-          
-          setScore(s => s + 100);
-          
-          // Add affirmation
-          const affirmation = AFFIRMATIONS[feeling.type];
-          setCollectedAffirmations(prev => [...prev, affirmation.message]);
-          
-          // Activate power-up
-          setPowerUpActive(true);
-          setPowerUpTimer(100); // 20 seconds at 200ms intervals
-          setGhosts(prev => prev.map(ghost => ({ ...ghost, type: 'helper' })));
-          
-          return { ...feeling, eaten: true };
+    // Check bad feelings collision (Level 1)
+    if (currentLevel === 1) {
+      setBadFeelings(prev => {
+        const updated = prev.map(feeling => {
+          if (!feeling.eaten && 
+              feeling.position.x === playerPos.x && 
+              feeling.position.y === playerPos.y) {
+            
+            setScore(s => s + 100);
+            
+            // Add affirmation
+            const affirmation = AFFIRMATIONS[feeling.type];
+            setCollectedAffirmations(prev => [...prev, affirmation.message]);
+            
+            // Activate power-up with positive phrases
+            setPowerUpActive(true);
+            setPowerUpTimer(100);
+            setGhosts(prev => prev.map(ghost => ({ ...ghost, type: 'helper' })));
+            
+            return { ...feeling, eaten: true };
+          }
+          return feeling;
+        });
+        
+        // Check level complete condition
+        if (updated.every(feeling => feeling.eaten)) {
+          setGameState('levelComplete');
         }
-        return feeling;
+        
+        return updated;
       });
-      
-      // Check win condition
-      if (updated.every(feeling => feeling.eaten)) {
-        setGameState('won');
-      }
-      
-      return updated;
-    });
+    }
+
+    // Check routine pellets collision (Level 2)
+    if (currentLevel === 2) {
+      setRoutinePellets(prev => {
+        const updated = prev.map(pellet => {
+          if (!pellet.eaten && 
+              pellet.position.x === playerPos.x && 
+              pellet.position.y === playerPos.y) {
+            
+            setScore(s => s + 150);
+            
+            // Show quiz for this routine
+            if (pellet.quiz) {
+              setCurrentQuiz(pellet.quiz);
+              setGameState('quiz');
+            }
+            
+            // Activate power-up with positive phrases
+            setPowerUpActive(true);
+            setPowerUpTimer(80);
+            setGhosts(prev => prev.map(ghost => ({ ...ghost, type: 'helper' })));
+            
+            return { ...pellet, eaten: true };
+          }
+          return pellet;
+        });
+        
+        // Check level complete condition
+        if (updated.every(pellet => pellet.eaten)) {
+          setGameState('won');
+        }
+        
+        return updated;
+      });
+    }
 
     // Check ghost collision
     const collision = ghosts.some(ghost => 
@@ -309,6 +434,18 @@ export default function PacHealGame() {
     setGameState('playing');
   };
 
+  const nextLevel = () => {
+    setCurrentLevel(2);
+    initializeLevel(2);
+    setGameState('playing');
+  };
+
+  const continueFromQuiz = () => {
+    setCurrentQuiz(null);
+    setShowQuizAnswer(false);
+    setGameState('playing');
+  };
+
   const resetGame = () => {
     setGameState('menu');
   };
@@ -320,6 +457,28 @@ export default function PacHealGame() {
       case 'anger': return 'bg-orange-500';
       case 'worry': return 'bg-yellow-500';
       default: return 'bg-gray-500';
+    }
+  };
+
+  const getRoutineColor = (type: string) => {
+    switch (type) {
+      case 'circle-time': return 'bg-blue-500';
+      case 'snack': return 'bg-green-500';
+      case 'cleanup': return 'bg-yellow-600';
+      case 'line-up': return 'bg-indigo-500';
+      case 'transition': return 'bg-pink-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const getRoutineIcon = (type: string) => {
+    switch (type) {
+      case 'circle-time': return '○';
+      case 'snack': return '🍎';
+      case 'cleanup': return '🧹';
+      case 'line-up': return '→';
+      case 'transition': return '↔';
+      default: return '?';
     }
   };
 
