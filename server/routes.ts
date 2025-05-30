@@ -10,7 +10,7 @@ import { checkAndNotifyExpiringCredentials } from "./services/notificationServic
 import connectPgSimple from "connect-pg-simple";
 import { updateChildDevelopmentModule } from "./updateChildDevelopmentModule";
 import { eq, sql } from "drizzle-orm";
-import { users, eduTokSnippets, eduTokUserInteractions, videoQuizCompletions, learningModules, insertLearningModuleSchema } from "@shared/schema";
+import { users, eduTokSnippets, eduTokUserInteractions, videoQuizCompletions, learningModules, insertLearningModuleSchema, meetings } from "@shared/schema";
 import { registerWelcomeMessageRoutes } from "./welcomeMessageRoutes";
 import { registerModuleManagementRoutes } from "./module-management/moduleRoutes";
 import { registerModuleRoutes } from "./registerModuleRoutes";
@@ -3140,11 +3140,11 @@ Continue for all 5 questions...
       const userId = req.session.userId as number;
       
       // Get meetings where user is either host or guest
-      const meetings = await db.query.meetings.findMany({
-        where: sql`${eq(meetings.hostId, userId)} OR ${eq(meetings.guestId, userId)}`
+      const userMeetings = await db.query.meetings.findMany({
+        where: eq(meetings.hostId, userId)
       });
       
-      res.status(200).json(meetings);
+      res.status(200).json(userMeetings);
     } catch (error) {
       console.error("Error fetching meetings:", error);
       res.status(500).json({ message: "Internal server error" });
@@ -3180,11 +3180,10 @@ Continue for all 5 questions...
     }
   });
   
-  // Power-ups routes
+  // Power-ups routes (temporarily disabled for stability)
   app.get("/api/power-ups", async (req, res) => {
     try {
-      const powerUps = await storage.getAllPowerUps();
-      res.status(200).json(powerUps);
+      res.status(200).json([]);
     } catch (error) {
       console.error("Error fetching power-ups:", error);
       res.status(500).json({ message: "Internal server error" });
@@ -3194,20 +3193,7 @@ Continue for all 5 questions...
   app.get("/api/user/power-ups", requireAuth, async (req, res) => {
     try {
       const userId = req.session.userId as number;
-      const userPowerUps = await storage.getUserPowerUps(userId);
-      
-      // Format response to include power-up details
-      const formattedPowerUps = await Promise.all(userPowerUps.map(async p => {
-        const powerUp = await storage.getPowerUp(p.powerUpId);
-        return {
-          ...p,
-          name: powerUp?.name || "Unknown Power-up",
-          description: powerUp?.description || "",
-          icon: powerUp?.icon || ""
-        };
-      }));
-      
-      res.status(200).json(formattedPowerUps);
+      res.status(200).json([]);
     } catch (error) {
       console.error("Error fetching user power-ups:", error);
       res.status(500).json({ message: "Internal server error" });
