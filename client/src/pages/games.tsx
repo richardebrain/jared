@@ -93,11 +93,10 @@ export default function GamesPage() {
   // Check for special access for admin
   const isJLCookie = user?.username === 'jlcookie20';
   
-  // User can access games if they've completed activities OR earned at least 1 point
+  // User can access games if they have points OR are admin - no training requirement
   const hasCompletedActivity = 
     isJLCookie || 
-    (user && user.points && user.points > 0) || 
-    (progress && Array.isArray(progress) && progress.some((p: any) => p.completed));
+    (user && user.points && user.points >= 0); // Allow access for all users with account
   
   // Function to reset games for jlcookie20
   const resetBonusGames = () => {
