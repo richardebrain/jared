@@ -25,7 +25,8 @@ import {
   userAvatarItems, type UserAvatarItem, type InsertUserAvatarItem,
   streakRewards, type StreakReward, type InsertStreakReward,
   lessonPlans, type LessonPlan, type InsertLessonPlan,
-  earlyLearningStandards, type EarlyLearningStandard, type InsertEarlyLearningStandard
+  earlyLearningStandards, type EarlyLearningStandard, type InsertEarlyLearningStandard,
+  videoRatings, type VideoRating, type InsertVideoRating
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, lt, or, sql } from "drizzle-orm";
@@ -209,6 +210,14 @@ export interface IStorage {
     search?: string;
   }): Promise<EarlyLearningStandard[]>;
   getEarlyLearningStandard(id: number): Promise<EarlyLearningStandard | undefined>;
+  
+  // Video Rating operations
+  getVideoRating(userId: number, videoId: string): Promise<VideoRating | undefined>;
+  getVideoRatings(videoId: string): Promise<VideoRating[]>;
+  getUserVideoRatings(userId: number): Promise<VideoRating[]>;
+  createVideoRating(rating: InsertVideoRating): Promise<VideoRating>;
+  updateVideoRating(userId: number, videoId: string, ratingData: Partial<InsertVideoRating>): Promise<VideoRating>;
+  getVideoAverageRating(videoId: string): Promise<{ avgRating: number; totalRatings: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1988,6 +1997,71 @@ export class DatabaseStorage implements IStorage {
   async createGame(game: InsertEducationalGame): Promise<EducationalGame> {
     const [newGame] = await db.insert(educationalGames).values(game).returning();
     return newGame;
+  }
+
+  // Video Rating operations
+  async getVideoRating(userId: number, videoId: string): Promise<VideoRating | undefined> {
+    const [rating] = await db
+      .select()
+      .from(videoRatings)
+      .where(and(eq(videoRatings.userId, userId), eq(videoRatings.videoId, videoId)));
+    return rating;
+  }
+
+  async getVideoRatings(videoId: string): Promise<VideoRating[]> {
+    return await db
+      .select()
+      .from(videoRatings)
+      .where(eq(videoRatings.videoId, videoId))
+      .orderBy(desc(videoRatings.createdAt));
+  }
+
+  async getUserVideoRatings(userId: number): Promise<VideoRating[]> {
+    return await db
+      .select()
+      .from(videoRatings)
+      .where(eq(videoRatings.userId, userId))
+      .orderBy(desc(videoRatings.createdAt));
+  }
+
+  async createVideoRating(rating: InsertVideoRating): Promise<VideoRating> {
+    const [newRating] = await db
+      .insert(videoRatings)
+      .values(rating)
+      .onConflictDoUpdate({
+        target: [videoRatings.userId, videoRatings.videoId],
+        set: {
+          rating: rating.rating,
+          review: rating.review,
+          updatedAt: new Date()
+        }
+      })
+      .returning();
+    return newRating;
+  }
+
+  async updateVideoRating(userId: number, videoId: string, ratingData: Partial<InsertVideoRating>): Promise<VideoRating> {
+    const [updatedRating] = await db
+      .update(videoRatings)
+      .set({ ...ratingData, updatedAt: new Date() })
+      .where(and(eq(videoRatings.userId, userId), eq(videoRatings.videoId, videoId)))
+      .returning();
+    return updatedRating;
+  }
+
+  async getVideoAverageRating(videoId: string): Promise<{ avgRating: number; totalRatings: number }> {
+    const result = await db
+      .select({
+        avgRating: sql<number>`avg(${videoRatings.rating})`,
+        totalRatings: sql<number>`count(*)`
+      })
+      .from(videoRatings)
+      .where(eq(videoRatings.videoId, videoId));
+
+    return {
+      avgRating: result[0]?.avgRating || 0,
+      totalRatings: result[0]?.totalRatings || 0
+    };
   }
   
   async updateGame(id: number, gameData: Partial<InsertEducationalGame>): Promise<EducationalGame> {

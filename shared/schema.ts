@@ -1038,6 +1038,33 @@ export const insertCommentVoteSchema = createInsertSchema(commentVotes).omit({
   createdAt: true,
 });
 
+// Video ratings table for teacher video ratings
+export const videoRatings = pgTable("video_ratings", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  videoId: text("video_id").notNull(), // References video resources ID
+  rating: integer("rating").notNull(), // 1-5 star rating
+  review: text("review"), // Optional text review
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  // Ensure one rating per user per video
+  userVideoUnique: primaryKey({ columns: [table.userId, table.videoId] }),
+  // Index for video rating lookups
+  videoIdIdx: index("video_ratings_video_id_idx").on(table.videoId),
+  // Index for user rating history
+  userIdIdx: index("video_ratings_user_id_idx").on(table.userId),
+}));
+
+export const insertVideoRatingSchema = createInsertSchema(videoRatings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type VideoRating = typeof videoRatings.$inferSelect;
+export type InsertVideoRating = z.infer<typeof insertVideoRatingSchema>;
+
 // Add relationships
 export const discussionThreadsRelations = relations(discussionThreads, ({ one, many }) => ({
   author: one(users, {
