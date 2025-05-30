@@ -185,9 +185,7 @@ app.get('/api/core-values-shoutouts', (req, res) => {
   res.json([]);
 });
 
-app.get('/api/users', (req, res) => {
-  res.json([defaultUser]);
-});
+// Users route handled in routes.ts
 
 app.get('/api/modules', (req, res) => {
   res.json([]);

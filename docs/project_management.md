@@ -398,98 +398,163 @@ This document serves as the central project management framework for MentorMe, t
      - **Complete Coverage**: Include ALL failed questions without artificial limits
    - **Dependencies:** EP-001-09
    - **Technical Implementation:**
-     - **New Service**: `LearningPathService.ts` with methods for generation, storage, and retrieval
-     - **Database Schema Changes**: 
-       - Add new `learningPaths` table with structured JSON for domain groups
-       - Remove `learningPathData` field from existing `assessmentResults` table
-     - **Integration Points**: 
-       - Replace `ResultsCompilationService.createLearningPath()` logic
-       - Call from `AnswerProcessingService.completeAssessment()` after results compilation
-     - **Data Structure**:
-       ```typescript
-       learningPaths: {
-         id: string;
-         assessmentId: number;
-         userId: number;
-         domainGroups: JSON; // Structured domain-grouped learning path
-         totalFailedQuestions: number;
-         totalDomains: number;
-         estimatedCompletionTime: number;
-         createdAt: Date;
-         updatedAt: Date;
-       }
-       
-       // JSON structure for domainGroups:
-       {
-         domainGroups: [
-           {
-             domainId: number;
-             domainName: string;
-             domainWeight: number;
-             failedQuestionsCount: number;
-             miniLessons: [
-               {
-                 questionId: string;
-                 difficulty: number;
-                 miniLessonId: string; // Reference to question's mini-lesson
-                 estimatedDuration: number;
-               }
-               // ... sorted by difficulty ascending
-             ]
-           }
-           // ... sorted by domain weight descending
-         ]
-       }
-       ```
-     - **Performance Requirements**: <1s learning path generation, efficient domain/difficulty sorting
+     - **Service Creation**: `LearningPathService.ts` with domain grouping logic
+     - **Database Schema**: New `learningPaths` table with JSON domain grouping structure
+     - **Integration**: Call from `AnswerProcessingService.completeAssessment()` automatically
+     - **Weight-Based Prioritization**: Use `assessmentDomains.weight` for sorting domain groups
+     - **Question Resolution**: Join with `assessmentQuestions` for difficulty-based ordering
    - **Success Criteria:**
-     - Failed questions correctly identified (incorrect + timeout responses)
-     - Domain grouping accurately reflects question domain assignments
-     - Domain groups sorted by weight in descending order (most important first)
-     - Mini-lessons within domains sorted by difficulty ascending (easy to hard progression)
-     - Learning paths automatically generated after every assessment completion
-     - Structured data stored in dedicated table for future UI presentation
-     - Assessment retakes properly update existing learning paths
-     - All failed questions included without artificial truncation
-   - **Documentation**: Detailed requirements in `docs/tasks/EP-001-10-enhanced-learning-path.md`
-   - **Status Update:** ✅ **COMPLETED** - Enhanced learning path recommendation system successfully implemented
-     - **Implementation Details:**
-       - ✅ **New Service Created**: `LearningPathService.ts` (327 lines) - Sophisticated domain-based learning path generation
-       - ✅ **Database Schema Updated**: 
-         - Added new `learningPaths` table with structured JSON storage
-         - Removed deprecated `learningPathData` field from `assessmentResults` table
-         - Added proper relations and indexes for performance optimization
-       - ✅ **Integration Completed**:
-         - Updated `AnswerProcessingService.completeAssessment()` to use new service
-         - Replaced `ResultsCompilationService.createLearningPath()` with EP-001-10 logic
-         - Maintained backward compatibility with existing mini-lesson recommendations
-       - ✅ **Advanced Features Delivered**:
-         - **Domain Grouping**: Groups failed questions by domain using assessmentQuestions.domainId
-         - **Weight-Based Sorting**: Domains sorted by assessmentDomains.weight (descending - highest importance first)
-         - **Difficulty Progression**: Mini-lessons within domains sorted by difficulty (ascending - easy to hard)
-         - **Automatic Generation**: Called after every assessment completion automatically
-         - **Retake Handling**: Updates existing learning paths for assessment retakes (upsert operation)
-         - **Reference-Based Storage**: Uses question IDs for mini-lesson references, not full content
-         - **Complete Coverage**: Includes ALL failed questions without artificial limits
-         - **Performance Optimized**: Sub-1-second generation with efficient sorting algorithms
-       - ✅ **Comprehensive Testing**: `LearningPathService.test.ts` (556 lines) - 39 tests covering all scenarios
-         - **Core Functionality**: Learning path generation, domain grouping, difficulty sorting
-         - **Edge Cases**: Perfect assessments, missing domains, invalid data handling
-         - **Storage Operations**: Create new paths, update existing paths, retrieval operations
-         - **Error Handling**: Database errors, missing data, graceful fallbacks
-         - **Complex Scenarios**: Multi-domain assessments with mixed difficulties
-       - ✅ **Database Integration**: Schema changes applied successfully with proper migrations
-     - **Key Achievements:**
-       - 🎯 **Sophisticated Algorithm**: Domain-based grouping with dual-level sorting (weight + difficulty)
-       - 📊 **Structured Storage**: Dedicated learning paths table with optimized JSON structure
-       - 🔄 **Automatic Integration**: Seamless generation after every assessment completion
-       - 🛡️ **Retake Support**: Handles assessment retakes with proper learning path updates
-       - ⚡ **Performance Optimized**: Sub-1-second generation with efficient domain/difficulty sorting
-       - 📈 **Complete Coverage**: Includes all failed questions without artificial truncation
-       - 🧪 **Comprehensive Testing**: 39 tests covering all functionality and edge cases
-       - 🔗 **Future-Ready**: Structured for UI presentation with domain-grouped organization
-     - **Total Implementation**: 883 lines across service implementation and comprehensive test coverage
-     - **Foundation Ready**: Enhanced learning path system ready for UI integration and user presentation
+     - Failed questions are correctly grouped by domain with proper priority ordering
+     - Mini-lessons within each domain are ordered by increasing difficulty
+     - Learning path generation completes within 2 seconds of assessment completion
+     - Domain priority follows assessment weights accurately
+     - Future assessment retakes update existing learning paths correctly
+   - **Status Update:** ✅ **COMPLETED**
+
+11. ⬜ [EP-001-11] **Initial Assessment Initialization and Setup**
+   - **Description:** Create the frontend interface for starting the initial assessment, including teacher eligibility validation, one-time rule enforcement, assessment introduction, and session initialization with proper error handling and user guidance.
+   - **Requirements:**
+     - **Teacher Role Validation**: Verify user has Teacher role (not admin/school admin/owner) before allowing access
+     - **One-Time Assessment Check**: Integrate with `/api/assessment/session/start` to enforce single completion rule
+     - **Assessment Introduction**: Present overview of assessment purpose, structure (40 questions), estimated time (30-40 minutes)
+     - **Informed Consent**: Clear explanation of assessment requirements, no pause/resume capability, commitment needed
+     - **Configuration Display**: Show assessment settings (question count, time per question) from loaded config
+     - **Domain Preview**: Display the 10 ECE domains that will be covered with brief descriptions
+     - **Session Initialization**: Call session start API and handle success/error scenarios gracefully
+     - **Navigation Guards**: Prevent accidental navigation away once assessment starts
+     - **Responsive Design**: Mobile-friendly interface following existing design system
+   - **Dependencies:** EP-001-07 (Assessment Session Management API)
+   - **Technical Implementation:**
+     - **Route**: `/assessment` - Replace existing broken assessment page
+     - **Components**: 
+       - `AssessmentIntroduction.tsx` - Main introduction and start interface
+       - `AssessmentEligibilityCheck.tsx` - Role validation and one-time rule display
+       - `AssessmentOverview.tsx` - Assessment structure and domain preview
+       - `AssessmentCommitment.tsx` - Informed consent and commitment confirmation
+     - **API Integration**: 
+       - `POST /api/assessment/session/start` for session creation
+       - Handle 403 (role), 409 (already completed), and other error responses
+     - **State Management**: Use React state for pre-assessment flow
+     - **Error Handling**: User-friendly error messages for all failure scenarios
+     - **Navigation**: React Router integration with proper guards
+   - **Success Criteria:**
+     - Teachers can successfully access assessment introduction page
+     - Non-teacher roles receive clear restriction message with role explanation
+     - Users who already completed assessment see completion status and results link
+     - Assessment overview clearly communicates time commitment and structure
+     - Domain preview helps users understand assessment scope
+     - Session initialization succeeds and transitions to question interface
+     - All error scenarios display helpful, actionable messages
+     - Interface is fully responsive and accessible
+   - **Dependencies:** EP-001-07
+   - **Technical Notes:**
+     - Replace existing broken `/assessment` route and components
+     - Follow existing design patterns from other MentorMe pages
+     - Ensure proper loading states and error boundaries
+     - Include analytics tracking for assessment starts and abandonment
+
+12. ⬜ [EP-001-12] **Question Fetching and Assessment Progression with Timer**
+   - **Description:** Implement the core assessment experience with question fetching, answer submission, timer management, and progression logic that provides a smooth, engaging interface for the 40-question adaptive assessment journey.
+   - **Requirements:**
+     - **Question Display**: Fetch and display questions from adaptive selection algorithm via session APIs
+     - **Answer Interface**: Radio button selection for multiple choice with clear visual feedback
+     - **Timer Implementation**: 60-second countdown timer per question with visual progress indicator
+     - **Automatic Progression**: Handle timer expiration with automatic submission and next question
+     - **Answer Submission**: Submit responses via `/api/assessment/session/answer` with proper validation
+     - **Progress Tracking**: Visual progress bar showing question sequence (e.g., "Question 15 of 40")
+     - **Domain Indication**: Display current question's domain for context and engagement
+     - **Difficulty Awareness**: Subtle indication of current difficulty level without pressure
+     - **Response Feedback**: Immediate confirmation of answer submission without revealing correctness
+     - **Session Recovery**: Handle network disconnections and sync issues with backend timer authority
+     - **Assessment Completion Detection**: Recognize when all 40 questions are completed
+   - **Dependencies:** EP-001-07, EP-001-08 (Session Management + Question Selection APIs)
+   - **Technical Implementation:**
+     - **Main Component**: `AssessmentQuestion.tsx` - Core question display and interaction
+     - **Timer Component**: `AssessmentTimer.tsx` - Countdown timer with visual progress
+     - **Progress Component**: `AssessmentProgress.tsx` - Overall assessment progress display
+     - **Answer Component**: `AnswerOptions.tsx` - Multiple choice answer selection interface
+     - **Utilities**: 
+       - `AssessmentAPI.ts` - API client for session operations
+       - `TimerService.ts` - Frontend timer management and sync
+       - `ProgressCalculations.ts` - Progress percentage and sequence calculations
+     - **API Integration**:
+       - `GET /api/assessment/session/status` - Current question and progress
+       - `POST /api/assessment/session/answer` - Answer submission and next question
+       - Handle timer synchronization with backend authority
+     - **State Management**: 
+       - Question state, timer state, progress state
+       - Answer selection and submission tracking
+       - Network connectivity and sync status
+     - **Timer Logic**:
+       - 60-second countdown with 5-second warnings
+       - Automatic submission on timeout
+       - Visual countdown with color changes (green → yellow → red)
+       - Pause/resume capability for network recovery
+   - **Success Criteria:**
+     - Questions load smoothly with minimal delay between submissions
+     - Timer functions accurately with proper visual feedback
+     - Answer submission works reliably with network error handling
+     - Progress indicator clearly shows assessment advancement
+     - Automatic progression prevents assessment stalling
+     - Backend timer authority maintains session integrity
+     - Interface remains responsive and engaging throughout 40 questions
+     - Assessment completion is properly detected and transitions to results
+   - **Dependencies:** EP-001-07, EP-001-08
+   - **Technical Notes:**
+     - Implement proper loading states between questions
+     - Handle edge cases: network issues, browser refresh, tab switching
+     - Ensure timer synchronization with backend authoritative timers
+     - Follow accessibility guidelines for timer and progress indicators
+     - Include analytics for question timing and engagement metrics
+
+13. ⬜ [EP-001-13] **Assessment Finalization and Results Display**
+   - **Description:** Complete the assessment experience with finalization processing, celebration interface, and comprehensive results display that provides meaningful insights and next steps for professional development.
+   - **Requirements:**
+     - **Assessment Completion**: Call `/api/assessment/session/complete` to finalize assessment and generate results
+     - **Celebration Page**: Engaging congratulations interface acknowledging assessment completion
+     - **Results Processing**: Display comprehensive assessment results with domain-specific insights
+     - **Score Display**: Overall score, total correct answers, and accuracy percentage with visual charts
+     - **Domain Analysis**: Strength areas (≥80% accuracy) and growth areas (<60% accuracy) with clear categorization
+     - **Personalized Summary**: Teacher-focused messaging with encouragement and actionable next steps
+     - **Learning Path Preview**: Brief overview of recommended professional development focus areas
+     - **Results Navigation**: Save results and provide navigation to detailed results page
+     - **Sharing Options**: Options to download/print results summary for record keeping
+     - **Next Steps Guidance**: Clear direction to learning resources and professional development opportunities
+   - **Dependencies:** EP-001-07, EP-001-09 (Session Management + Answer Processing APIs)
+   - **Technical Implementation:**
+     - **Completion Component**: `AssessmentCompletion.tsx` - Handle assessment finalization
+     - **Celebration Component**: `AssessmentCelebration.tsx` - Congratulations and completion acknowledgment
+     - **Results Component**: `AssessmentResults.tsx` - Comprehensive results display
+     - **Summary Component**: `ResultsSummary.tsx` - Personalized insights and next steps
+     - **Charts Component**: `ResultsCharts.tsx` - Visual representation of scores and domain performance
+     - **Actions Component**: `ResultsActions.tsx` - Download, print, and navigation options
+     - **API Integration**:
+       - `POST /api/assessment/session/complete` - Finalize assessment
+       - Handle results data processing and display
+     - **Data Visualization**:
+       - Score charts (overall, by domain)
+       - Progress indicators for strength/growth areas
+       - Visual domain performance matrix
+     - **Results Storage**: 
+       - Cache results in local state for navigation
+       - Integrate with existing results routing
+   - **Success Criteria:**
+     - Assessment finalization completes successfully with proper data processing
+     - Celebration page provides positive, encouraging completion experience
+     - Results display clearly communicates performance across all domains
+     - Strength and growth areas are visually distinct and actionable
+     - Personalized summary feels relevant and motivating
+     - Charts and visualizations enhance understanding of performance
+     - Navigation to detailed results works seamlessly
+     - Results can be saved/printed for future reference
+   - **Dependencies:** EP-001-07, EP-001-09
+   - **Technical Notes:**
+     - Reuse and enhance existing `AssessmentResults.tsx` component if valuable
+     - Ensure results match the domain structure from seeded assessment data
+     - Follow existing design patterns for results and charts in MentorMe
+     - Include proper error handling for completion failures
+     - Provide fallback content if results processing has issues
+     - Consider results caching for performance and offline access
 
 ## Tracking Progress
 
