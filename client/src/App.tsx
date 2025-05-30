@@ -68,6 +68,7 @@ import DirectorToolkit from "@/pages/director-toolkit";
 import AdminTeachersPage from "@/pages/admin-teachers";
 import AdminAssignModulesPage from "@/pages/admin-assign-modules";
 import AdminMessagingPage from "@/pages/admin-messaging";
+import MessagesPage from "@/pages/messages";
 
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
