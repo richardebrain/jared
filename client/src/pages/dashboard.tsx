@@ -521,11 +521,12 @@ export default function Dashboard() {
             <p>Please wait while we retrieve your information.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Main Content - Left 2/3 */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Welcome Section */}
-              <Card className="bg-white shadow-md overflow-hidden">
+          <div className="space-y-6">
+            {/* Top Row: Welcome Card and Leaderboard Side by Side */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              {/* Welcome Section - Takes 3/4 of the width */}
+              <div className="lg:col-span-3">
+                <Card className="bg-white shadow-md overflow-hidden h-full">
                 <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
                   <h1 className="text-2xl font-bold text-white">
                     Welcome back, {user?.firstName}!
@@ -602,18 +603,24 @@ export default function Dashboard() {
                     )}
                   </div>
                 </CardContent>
-              </Card>
+                </Card>
+              </div>
               
-              {/* Leaderboard Section - Back at the top */}
-              <div className="mt-4">
+              {/* Leaderboard - Takes 1/4 of the width */}
+              <div className="lg:col-span-1">
                 <SimpleLeaderboard
                   teachers={(users as any[]) || []}
                   userId={user?.id as number}
                   isLoading={teachLoading}
                 />
               </div>
+            </div>
 
-              {/* Bear Bucks and Points Progress Bar */}
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Main Content - Left 2/3 */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* Bear Bucks and Points Progress Bar */}
               <div className="bg-white rounded-xl shadow-md p-4 mt-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Points */}
@@ -895,17 +902,18 @@ export default function Dashboard() {
                 <AdminTools />
               )}
             </div>
+            </div>
           </div>
         )}
-      </div>
 
-      {/* Welcome Dashboard for streak milestones */}
-      {showWelcomeDashboard && user && (
-        <WelcomeDashboard 
-          user={user} 
-          onClose={() => setShowWelcomeDashboard(false)} 
-        />
-      )}
+        {/* Welcome Dashboard for streak milestones */}
+        {showWelcomeDashboard && user && (
+          <WelcomeDashboard 
+            user={user} 
+            onClose={() => setShowWelcomeDashboard(false)} 
+          />
+        )}
+      </div>
     </div>
   );
 }
