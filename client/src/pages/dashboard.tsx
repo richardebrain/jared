@@ -95,11 +95,16 @@ export default function Dashboard() {
     queryKey: ["/api/users"],
   });
   
-  // Show welcome dashboard when user first logs in
+  // Show welcome dashboard only once per session
   useEffect(() => {
     if (user && user.streak && user.streak >= 1) {
-      // Always show for demo purposes - you can adjust this logic later
-      setShowWelcomeDashboard(true);
+      const sessionKey = `welcomeShown_${user.id}_${new Date().toDateString()}`;
+      const hasShownToday = sessionStorage.getItem(sessionKey);
+      
+      if (!hasShownToday) {
+        setShowWelcomeDashboard(true);
+        sessionStorage.setItem(sessionKey, 'true');
+      }
     }
   }, [user]);
   

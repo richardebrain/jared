@@ -3215,5 +3215,39 @@ Continue for all 5 questions...
     }
   });
 
+  // Director messages endpoint for welcome screen
+  app.get("/api/director-messages", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      
+      // Fetch messages for the current user from teacher_messages table
+      const messages = await db.execute(sql`
+        SELECT 
+          tm.*,
+          s.first_name as sender_name,
+          s.last_name as sender_last_name
+        FROM teacher_messages tm
+        LEFT JOIN users s ON tm.sender_id = s.id
+        WHERE tm.recipient_id = ${userId} OR tm.recipient_id IS NULL
+        ORDER BY tm.created_at DESC
+        LIMIT 10
+      `);
+
+      // Format the response for the welcome screen
+      const formattedMessages = messages.rows.map(msg => ({
+        id: msg.id,
+        title: msg.title,
+        content: msg.content,
+        createdAt: msg.created_at,
+        senderName: msg.sender_name ? `${msg.sender_name} ${msg.sender_last_name}` : 'Leadership'
+      }));
+
+      res.json(formattedMessages);
+    } catch (error) {
+      console.error("Error fetching director messages:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   return app;
 }
