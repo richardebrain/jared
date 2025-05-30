@@ -325,7 +325,7 @@ export default function BounceAwayBlocks() {
       // Deduct 1 point to play
       await apiRequest('/api/auth/update-points', {
         method: 'POST',
-        body: { pointsToAdd: -1 }
+        data: { pointsToAdd: -1 }
       });
       
       setGameState(prev => ({ 
@@ -369,7 +369,7 @@ export default function BounceAwayBlocks() {
     try {
       await apiRequest('/api/auth/update-points', {
         method: 'POST',
-        body: { pointsToAdd: pointsAwarded }
+        data: { pointsToAdd: pointsAwarded }
       });
       
       setGameState(prev => ({ 
