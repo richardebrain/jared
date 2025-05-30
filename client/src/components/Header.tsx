@@ -39,10 +39,22 @@ export default function Header() {
   const { mutate: logout } = useMutation({
     mutationFn: async () => {
       try {
+        // Clear client-side storage first
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Call logout endpoint
         const response = await apiRequest("/api/auth/logout", { method: "POST" });
+        
+        // Also call clear session endpoint to be thorough
+        await fetch("/api/auth/clear-session", { method: "GET", credentials: "include" });
+        
         return response;
       } catch (error) {
         console.error("Logout error:", error);
+        // Even if API calls fail, clear local data
+        localStorage.clear();
+        sessionStorage.clear();
         throw error;
       }
     },
@@ -50,19 +62,29 @@ export default function Header() {
       // Clear all cached data to force a complete reset
       queryClient.clear();
       
+      // Clear any remaining auth data
+      localStorage.clear();
+      sessionStorage.clear();
+      
       // Show success message
       toast({
         title: "Logged out",
         description: "You have been successfully logged out.",
       });
       
-      // Force redirect to login page with a slight delay to ensure cache is cleared
+      // Force complete page reload to login to ensure clean state
       setTimeout(() => {
-        window.location.href = "/login";
+        window.location.replace("/login");
       }, 100);
     },
     onError: (error: Error) => {
       console.error("Logout error in mutation:", error);
+      
+      // Even on error, clear local data and redirect
+      localStorage.clear();
+      sessionStorage.clear();
+      queryClient.clear();
+      
       toast({
         title: "Logout failed",
         description: error.message || "There was an error logging out.",
