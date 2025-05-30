@@ -113,7 +113,10 @@ export default function AdminVideoLibraryPage() {
     }
 
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(video => video.category === selectedCategory);
+      filtered = filtered.filter(video => {
+        const videoCategory = Array.isArray(video.category) ? video.category[0] : video.category;
+        return videoCategory === selectedCategory;
+      });
     }
 
     if (visibilityFilter !== 'all') {
@@ -140,7 +143,9 @@ export default function AdminVideoLibraryPage() {
   };
 
   const getCategories = () => {
-    const categories = [...new Set(videos.map(v => v.category))];
+    const categories = [...new Set(videos.map(v => {
+      return Array.isArray(v.category) ? v.category[0] : v.category;
+    }).filter(Boolean))];
     return categories.sort();
   };
 
@@ -273,7 +278,7 @@ export default function AdminVideoLibraryPage() {
                     <SelectItem value="all">All Categories</SelectItem>
                     {getCategories().map(category => (
                       <SelectItem key={category} value={category}>
-                        {category.charAt(0).toUpperCase() + category.slice(1)}
+                        {typeof category === 'string' ? category.charAt(0).toUpperCase() + category.slice(1) : 'Unknown'}
                       </SelectItem>
                     ))}
                   </SelectContent>
