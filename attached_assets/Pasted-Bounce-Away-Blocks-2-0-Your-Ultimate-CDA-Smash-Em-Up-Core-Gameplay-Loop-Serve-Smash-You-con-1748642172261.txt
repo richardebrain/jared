@@ -1,0 +1,90 @@
+Bounce-Away Blocks 2.0: Your Ultimate CDA Smash-’Em-Up
+
+🎮 Core Gameplay Loop
+Serve & Smash: You control a “Teacher Paddle” at the bottom of the screen—slide it left/right to launch a bouncy “Knowledge Ball” into a field of labeled bricks.
+
+
+Brick Breaks: Each brick carries a key ECE term (e.g. “Health & Safety,” “Transitions,” “Scaffolding”). When the ball hits a brick, the brick shatters and triggers a pop-up flash-card:
+
+
+Definition Tab: A one-sentence definition appears (“Scaffolding: providing just enough support…”).
+
+
+
+Combo Chains: Smash bricks in rapid succession for combo multipliers—get a ×2, ×3, ×5 score boost the faster you break related terms.
+
+
+
+⚡ Power-Ups & Special Mechanics
+Research Drops: Randomly one of the broken bricks yields a floating orb. Catch it to slow down the ball for 10 seconds and unlock a cda “teacher tip” 
+
+
+Multi-Ball Madness: Earn “Collaboration Credits” by hitting three “Family Engagement” bricks in a row—unleash two extra balls for a brief multi-ball frenzy.
+
+
+Super Paddle Upgrades: As you level up, your paddle gains:
+
+
+Sticky Surface: Briefly hold the ball to aim precisely at tricky bricks.
+
+
+Reflective Edges: Widen your effective paddle width.
+
+
+Power Smash: Charge and release a shockwave that clears an entire row.
+
+
+Locked Bricks: Some high-value concepts (CDA “Professionalism,” “Assessment”) start locked. To open them, you must clear surrounding bricks or catch a special “Key of Knowledge” drop.
+
+
+
+🎯 Level Structure & Progression
+Level 1: Health & Safety
+ Bricks: Handwashing, Diapering, First Aid, Sanitation…
+ Power-Ups emphasize sanitizing your paddle (visual: soap bubbles) to earn a “Clean Break” that automatically clears adjacent bricks.
+
+
+Level 2: Classroom Management
+ Bricks: Transitions, Positive Reinforcement, Routines, Expectations…
+ Research Drops here unlock mini-tutorials on “Behavior Scripts” you’ll need for full control over multi-ball chaos.
+
+
+Level 3: Curriculum & Instruction
+ Bricks: DAP, Scaffolding, Lesson Planning, Assessment…
+ Catch Scaffolding-drop or “Lesson Plan” orbs to expand your paddle into a “Lesson Scaffold” that can support two balls simultaneously.
+
+
+Level 4: Child Development & Observation
+ Bricks: Attachment, Serve-and-Return, Fine Motor, Gross Motor…
+ Multi-ball combos here represent developmental “growth spurts” and award extra “Observation Tokens” for unlocked case-study videos.
+
+
+Level 5: Family & Community
+ Bricks: Family Partnership, Cultural Competency, Community Resources…
+ Special “Bridge-Builder” orbs let you link bricks across the screen, simulating collaboration strategies.
+
+
+Boss Round: Professionalism & Ethics
+ A giant “Ethics Block” sits at the top—its health bar only drops when you apply everything you’ve learned: collecting every Research Drop, mastering combos, and using Power-Smash responsibly to avoid “Unprofessional Penalty” bricks that regenerate faster if you miss.
+
+
+
+🏆 Engagement & Motivation Features
+Badge System: Earn “Safe-Hands” badge for perfect Level 1, “Smooth Transitions” badge for flawless Level 2, up to “Ethics Champion” for the boss.
+
+
+Progress Map: A colorful pathway showing domains conquered and XP earned—teachers see exactly which CDA areas they’ve mastered.
+
+
+Daily Challenges: “Break 50 Health & Safety bricks before breakfast” or “Catch 3 Scaffolding Research Drops” for bonus rewards.
+
+
+Peer Leaderboards: Compare your high scores with fellow teachers—friendly competition fuels review and retention.
+
+
+
+🎨 Visual & Audio Design
+Visuals: Bright classroom-themed backgrounds (sandbox, circle time rug, art station), playful brick-icons (paint palette, stethoscope, paddles, etc.)
+
+
+Audio: Upbeat chiptune remix of classroom sounds—clapping, “great job” jingles, pencil taps—layered beneath a driving arcade rhythm.

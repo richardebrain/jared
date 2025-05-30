@@ -371,6 +371,68 @@ export default function GamesPage() {
                 </CardContent>
               </Card>
 
+              <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-green-100 rounded-full">
+                        <Trophy className="h-6 w-6 text-green-600" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-xl text-green-800">Bounce-Away Blocks 2.0</CardTitle>
+                        <CardDescription className="text-green-600">
+                          Master CDA competencies through an exciting brick-breaking adventure
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <Badge className="bg-green-500 text-white">New Game!</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="bg-white/70 p-4 rounded-lg border border-green-200">
+                      <h4 className="font-semibold text-green-800 mb-2">🎮 How to Play</h4>
+                      <p className="text-sm text-gray-700 mb-3">
+                        Control your Teacher Paddle to launch Knowledge Balls at CDA concept bricks. 
+                        Break bricks to learn definitions, earn power-ups, and master early childhood education!
+                      </p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                        <div className="bg-green-50 p-3 rounded border">
+                          <strong className="text-green-700">🏥 Level 1: Health & Safety</strong>
+                          <p className="text-gray-600 mt-1">Master handwashing, first aid, and sanitation concepts</p>
+                        </div>
+                        <div className="bg-blue-50 p-3 rounded border">
+                          <strong className="text-blue-700">📚 Level 2: Classroom Management</strong>
+                          <p className="text-gray-600 mt-1">Learn transitions, routines, and positive reinforcement</p>
+                        </div>
+                        <div className="bg-purple-50 p-3 rounded border">
+                          <strong className="text-purple-700">🎯 Level 3: Curriculum & Instruction</strong>
+                          <p className="text-gray-600 mt-1">Practice DAP, scaffolding, and lesson planning</p>
+                        </div>
+                        <div className="bg-orange-50 p-3 rounded border">
+                          <strong className="text-orange-700">👶 Level 4: Child Development</strong>
+                          <p className="text-gray-600 mt-1">Understand attachment, motor skills, and observation</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-center p-6 bg-green-100 rounded-lg border-2 border-green-300">
+                      <div className="text-center">
+                        <Trophy className="h-16 w-16 mx-auto mb-4 text-green-600" />
+                        <h3 className="text-lg font-bold text-green-800 mb-2">Game Coming Soon!</h3>
+                        <p className="text-green-700 mb-4">
+                          This exciting CDA training game is currently in development
+                        </p>
+                        <Badge className="bg-green-600 text-white px-4 py-2">
+                          Launching Q2 2025
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               <Card className="border border-gray-200 bg-gray-50">
                 <CardHeader>
                   <div className="flex items-center space-x-3">
@@ -380,33 +442,33 @@ export default function GamesPage() {
                     <div>
                       <CardTitle className="text-lg text-gray-700">More Games Coming Soon!</CardTitle>
                       <CardDescription>
-                        We're developing more educational games to help teach social-emotional learning skills
+                        Additional educational games to enhance your teaching skills
                       </CardDescription>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-8">
+                  <div className="text-center py-6">
                     <div className="text-gray-500 mb-4">
-                      <Sparkles className="h-12 w-12 mx-auto mb-2" />
-                      <p>Stay tuned for exciting new games that will help you learn:</p>
+                      <Sparkles className="h-10 w-10 mx-auto mb-2" />
+                      <p className="text-sm">More exciting games in development:</p>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div className="bg-white p-4 rounded-lg border">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                      <div className="bg-white p-3 rounded-lg border">
                         <strong className="text-blue-600">Mindful Breathing Game</strong>
-                        <p className="text-gray-600 mt-1">Practice calming techniques through interactive breathing exercises</p>
+                        <p className="text-gray-600 mt-1">Interactive calming techniques</p>
                       </div>
-                      <div className="bg-white p-4 rounded-lg border">
+                      <div className="bg-white p-3 rounded-lg border">
                         <strong className="text-green-600">Emotion Detective</strong>
-                        <p className="text-gray-600 mt-1">Learn to identify and understand different emotions in children</p>
+                        <p className="text-gray-600 mt-1">Identify children's emotions</p>
                       </div>
-                      <div className="bg-white p-4 rounded-lg border">
-                        <strong className="text-purple-600">Conflict Resolution Scenarios</strong>
-                        <p className="text-gray-600 mt-1">Practice handling common classroom conflicts</p>
+                      <div className="bg-white p-3 rounded-lg border">
+                        <strong className="text-purple-600">Conflict Resolution</strong>
+                        <p className="text-gray-600 mt-1">Handle classroom conflicts</p>
                       </div>
-                      <div className="bg-white p-4 rounded-lg border">
+                      <div className="bg-white p-3 rounded-lg border">
                         <strong className="text-orange-600">Communication Builder</strong>
-                        <p className="text-gray-600 mt-1">Develop effective communication strategies with children and parents</p>
+                        <p className="text-gray-600 mt-1">Parent & child communication</p>
                       </div>
                     </div>
                   </div>
