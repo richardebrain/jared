@@ -140,6 +140,8 @@ export default function ComprehensiveModuleCreator() {
   const [generatedContent, setGeneratedContent] = useState<any>(null);
   const [useStepByStep, setUseStepByStep] = useState(false);
   const [generatingContent, setGeneratingContent] = useState<number | null>(null);
+  const [generatingVideo, setGeneratingVideo] = useState<number | null>(null);
+  const [videoGenerationStatus, setVideoGenerationStatus] = useState<{[key: number]: string}>({});
 
   const generateScenarioMatchContent = async (sectionIndex: number) => {
     if (!newModule.title || !newModule.description) {
