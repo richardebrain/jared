@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
+import { SoundManager } from "@/lib/sounds";
 
 interface Teacher {
   id: number;
@@ -69,6 +70,9 @@ export default function AdminBearBucksPage() {
       category: string;
     }) => apiRequest('POST', '/api/admin/bear-bucks/award', data),
     onSuccess: () => {
+      // Play coin sound when Bear Bucks are awarded
+      SoundManager.playCoinSound();
+      
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/bear-bucks/transactions'] });
       setIsDialogOpen(false);

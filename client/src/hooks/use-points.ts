@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth-context";
+import { SoundManager } from "@/lib/sounds";
 
 type PointsRewardOptions = {
   redirectAfterSuccess?: boolean;
@@ -43,6 +44,16 @@ export function usePointsReward(options: PointsRewardOptions = {}) {
     },
     
     onSuccess: (data) => {
+      // Play coin sound when points are earned
+      SoundManager.playCoinSound();
+      
+      // Check if user leveled up and play level up sound
+      if (data.levelUp) {
+        setTimeout(() => {
+          SoundManager.playLevelUpSound();
+        }, 500);
+      }
+      
       // Show success message
       toast({
         title: "Points Added!",
