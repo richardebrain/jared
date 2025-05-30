@@ -436,7 +436,8 @@ export default function BounceAwayBlocks() {
       currentDefinition: null,
       userPoints: gameState.userPoints, // Keep current points
       gameStarted: false,
-      pointsEarned: 0
+      pointsEarned: 0,
+      showPointAnimation: false
     });
     setPaddle({ x: GAME_WIDTH / 2 - PADDLE_WIDTH / 2, y: GAME_HEIGHT - 40 });
     setBalls([]);
