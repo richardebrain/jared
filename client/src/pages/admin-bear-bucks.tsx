@@ -261,14 +261,14 @@ export default function AdminBearBucksPage() {
                     </div>
 
                     <div>
-                      <Label>Amount</Label>
+                      <Label>Amount (1-3 Bear Bucks daily limit per teacher)</Label>
                       <Input
                         type="number"
                         min="1"
-                        max="1000"
+                        max="3"
                         value={amount}
                         onChange={(e) => setAmount(parseInt(e.target.value) || 0)}
-                        placeholder="Enter amount..."
+                        placeholder="Enter amount (max 3)..."
                       />
                     </div>
 

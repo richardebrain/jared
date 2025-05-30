@@ -3398,10 +3398,32 @@ Continue for all 5 questions...
         return res.status(400).json({ message: "Missing required fields" });
       }
 
+      // Check daily limit - maximum 3 Bear Bucks per award
+      if (amount > 3) {
+        return res.status(400).json({ message: "Maximum 3 Bear Bucks can be awarded at one time" });
+      }
+
       // Get recipient user
       const recipient = await storage.getUser(recipientId);
       if (!recipient) {
         return res.status(404).json({ message: "Recipient not found" });
+      }
+
+      // Check if teacher has already received Bear Bucks today
+      const today = new Date().toISOString().split('T')[0];
+      const todaysTransactions = await db.execute(sql`
+        SELECT COALESCE(SUM(amount), 0) as daily_total
+        FROM bear_bucks_transactions 
+        WHERE recipient_id = ${recipientId} 
+        AND DATE(created_at) = ${today}
+      `);
+
+      const dailyTotal = Number(todaysTransactions.rows[0]?.daily_total || 0);
+      if (dailyTotal + amount > 3) {
+        const remaining = 3 - dailyTotal;
+        return res.status(400).json({ 
+          message: `Teacher has already received ${dailyTotal} Bear Bucks today. Maximum 3 per day (${remaining} remaining)` 
+        });
       }
 
       // Update recipient's Bear Bucks
