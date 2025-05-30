@@ -242,8 +242,62 @@ export function VideoResourceLibrary({
     }
     
     // Filter by tab (all, featured, bookmarked, watched)
-    if (tab === "featured") {
-      results = results.filter(video => video.featured);
+    if (tab === "all") {
+      // Show complete collection for "All Videos" tab
+      results = completeVideoResources;
+      
+      // Apply search filter to complete collection
+      if (query) {
+        const lowerQuery = query.toLowerCase();
+        results = results.filter(video => 
+          video.title.toLowerCase().includes(lowerQuery) ||
+          video.description.toLowerCase().includes(lowerQuery) ||
+          video.category.some(cat => cat.toLowerCase().includes(lowerQuery)) ||
+          video.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
+        );
+      }
+      
+      // Apply category filter to complete collection
+      if (category !== "all") {
+        results = results.filter(video => 
+          video.category.includes(category)
+        );
+      }
+      
+      // Apply expert level filter to complete collection
+      if (level !== "all") {
+        results = results.filter(video => 
+          video.expertLevel === level
+        );
+      }
+    } else if (tab === "featured") {
+      // Show only featured videos for "Featured" tab  
+      results = featuredVideoResources;
+      
+      // Apply search filter to featured collection
+      if (query) {
+        const lowerQuery = query.toLowerCase();
+        results = results.filter(video => 
+          video.title.toLowerCase().includes(lowerQuery) ||
+          video.description.toLowerCase().includes(lowerQuery) ||
+          video.category.some(cat => cat.toLowerCase().includes(lowerQuery)) ||
+          video.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
+        );
+      }
+      
+      // Apply category filter to featured collection
+      if (category !== "all") {
+        results = results.filter(video => 
+          video.category.includes(category)
+        );
+      }
+      
+      // Apply expert level filter to featured collection
+      if (level !== "all") {
+        results = results.filter(video => 
+          video.expertLevel === level
+        );
+      }
     } else if (tab === "bookmarked") {
       results = results.filter(video => bookmarkedVideos.includes(video.id));
     } else if (tab === "watched") {
