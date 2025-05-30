@@ -771,8 +771,7 @@ export default function PacHealGame() {
                 className="relative mx-auto border-4 border-blue-800 bg-black rounded-lg shadow-2xl"
                 style={{ 
                   width: MAZE_SIZE * CELL_SIZE, 
-                  height: MAZE_SIZE * CELL_SIZE,
-                  minWidth: '300px'
+                  height: MAZE_SIZE * CELL_SIZE
                 }}
               >
                 {/* Maze walls */}
