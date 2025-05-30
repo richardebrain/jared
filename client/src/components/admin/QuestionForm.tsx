@@ -41,9 +41,8 @@ import { Plus, Minus, BookOpen, Target, Tag, HelpCircle, Lightbulb } from "lucid
 // Temporary admin password for API access
 const TEMP_ADMIN_PASSWORD = "BIGSURF55";
 
-// Form validation schema matching backend
+// Form validation schema matching backend - ID now auto-generated
 const QuestionFormSchema = z.object({
-  id: z.string().min(1, "Question ID is required"),
   domainId: z.string().min(1, "Domain is required"),
   text: z.string().min(10, "Question text must be at least 10 characters").max(500, "Question text must be less than 500 characters"),
   options: z.array(z.string().min(1, "Option cannot be empty")).min(2, "At least 2 options required").max(6, "Maximum 6 options allowed"),
@@ -97,7 +96,6 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
   const form = useForm<QuestionFormData>({
     resolver: zodResolver(QuestionFormSchema),
     defaultValues: {
-      id: "",
       domainId: "",
       text: "",
       options: ["", ""],
@@ -121,7 +119,6 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
         : question.tags || [];
 
       form.reset({
-        id: question.id,
         domainId: question.domainId,
         text: question.text,
         options: parsedOptions,
@@ -133,7 +130,6 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
       });
     } else if (isOpen && mode === "create") {
       form.reset({
-        id: "",
         domainId: "",
         text: "",
         options: ["", ""],
@@ -150,19 +146,21 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
   const createMutation = useMutation({
     mutationFn: async (data: QuestionFormData) => {
       const payload = {
+        admin_password: TEMP_ADMIN_PASSWORD,
         ...data,
-        options: JSON.stringify(data.options),
+        options: data.options, // Send as array, backend will handle JSON conversion
         tags: data.tags?.join(", ") || "",
       };
-      return await apiRequest(`/api/admin/questions?admin_password=${TEMP_ADMIN_PASSWORD}`, {
+      return await apiRequest(`/api/admin/questions`, {
         method: "POST",
         data: payload,
       });
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
+      const questionId = response.data?.id || "new question";
       toast({
         title: "Success",
-        description: "Question created successfully",
+        description: `Question created successfully with ID: ${questionId}`,
         variant: "default",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/questions"] });
@@ -298,7 +296,7 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
           </DialogTitle>
           <DialogDescription>
             {mode === "create" 
-              ? "Create a new assessment question with comprehensive details and multiple choice options."
+              ? "Create a new assessment question. A unique ID will be automatically generated based on the domain and difficulty."
               : "Update the question content and configuration. Changes will require re-approval."}
           </DialogDescription>
         </DialogHeader>
@@ -315,27 +313,6 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Question ID</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="e.g., safety-3-001" 
-                            {...field}
-                            disabled={mode === "edit"}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Unique identifier (format: domain-difficulty-sequence)
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
                   <FormField
                     control={form.control}
                     name="domainId"
@@ -364,35 +341,43 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
                       </FormItem>
                     )}
                   />
+
+                  <FormField
+                    control={form.control}
+                    name="difficulty"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Difficulty Level</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select difficulty" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {[1, 2, 3, 4, 5, 6].map((level) => (
+                              <SelectItem key={level} value={level.toString()}>
+                                {getDifficultyLabel(level.toString())}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          Difficulty affects point values in the adaptive assessment system
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
-                <FormField
-                  control={form.control}
-                  name="difficulty"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Difficulty Level</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select difficulty" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {[1, 2, 3, 4, 5, 6].map((level) => (
-                            <SelectItem key={level} value={level.toString()}>
-                              {getDifficultyLabel(level.toString())}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        Difficulty affects point values in the adaptive assessment system
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {mode === "edit" && question && (
+                  <div className="p-3 bg-muted rounded-lg">
+                    <div className="text-sm font-medium text-muted-foreground">Question ID</div>
+                    <div className="text-sm font-mono">{question.id}</div>
+                    <div className="text-xs text-muted-foreground mt-1">IDs cannot be changed after creation</div>
+                  </div>
+                )}
 
                 <FormField
                   control={form.control}

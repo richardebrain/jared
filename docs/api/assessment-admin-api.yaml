@@ -62,223 +62,208 @@ paths:
     get:
       tags:
         - Question Management
-      summary: List Assessment Questions
+      summary: List questions with filtering and pagination
       description: |
-        Retrieves assessment questions with advanced filtering, pagination, and search capabilities.
-        
-        **Key Features:**
-        - Pagination support with configurable page size
-        - Domain-based filtering for targeted question management
-        - Difficulty level filtering (1-6 levels)
-        - Approval status filtering for workflow management
-        - Search functionality across question text and metadata
-        - Complete question metadata including approval status and statistics
-        
-        **Response Format:**
-        Returns paginated list with complete question metadata including domain names, creator information, and performance statistics.
-      operationId: listQuestions
-      security:
-        - sessionAuth: []
-        - adminPassword: []
+        Retrieve paginated list of assessment questions with comprehensive filtering options.
+        Supports search across question text, explanations, and tags.
       parameters:
+        - name: admin_password
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Admin authentication password
         - name: page
           in: query
-          description: Page number for pagination (1-based)
-          required: false
           schema:
             type: integer
             minimum: 1
             default: 1
-          example: 1
+          description: Page number for pagination
         - name: limit
           in: query
-          description: Number of questions per page
-          required: false
           schema:
             type: integer
             minimum: 1
             maximum: 100
             default: 20
-          example: 20
-        - name: domain
-          in: query
-          description: Filter by domain name
-          required: false
-          schema:
-            type: string
-          example: "Child Safety & Supervision"
-        - name: difficulty
-          in: query
-          description: Filter by difficulty level
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 6
-          example: 3
-        - name: isApproved
-          in: query
-          description: Filter by approval status
-          required: false
-          schema:
-            type: boolean
-          example: true
-        - name: isEnabled
-          in: query
-          description: Filter by enabled status
-          required: false
-          schema:
-            type: boolean
-          example: true
+          description: Number of questions per page
         - name: search
           in: query
-          description: Search in question text and explanation
-          required: false
           schema:
             type: string
-          example: "safety protocols"
-        - name: admin_password
+          description: Search across question text, explanations, and tags
+        - name: domainId
           in: query
-          description: Admin password for API access
-          required: false
           schema:
             type: string
-            default: BIGSURF55
+          description: Filter by domain name
+        - name: difficulty
+          in: query
+          schema:
+            type: string
+            enum: ["1", "2", "3", "4", "5", "6"]
+          description: Filter by difficulty level
+        - name: isApproved
+          in: query
+          schema:
+            type: boolean
+          description: Filter by approval status
+        - name: isEnabled
+          in: query
+          schema:
+            type: boolean
+          description: Filter by availability status
+        - name: createdBy
+          in: query
+          schema:
+            type: integer
+          description: Filter by creator user ID
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: ["createdAt", "updatedAt", "difficulty", "isApproved", "isEnabled"]
+            default: "createdAt"
+          description: Sort field
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: ["asc", "desc"]
+            default: "desc"
+          description: Sort direction
       responses:
         '200':
           description: Questions retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedQuestionsResponse'
-              example:
-                success: true
-                data:
-                  questions:
-                    - id: "safety-3-001"
-                      domainId: "Child Safety & Supervision"
-                      text: "What is the appropriate adult-to-child ratio for toddlers during outdoor play?"
-                      options: ["1:4", "1:6", "1:8", "1:10"]
-                      correctAnswer: 0
-                      difficulty: 3
-                      explanation: "Toddlers require closer supervision due to their developmental stage."
-                      miniLesson: "Understanding supervision ratios ensures child safety..."
-                      tags: ["supervision", "ratios", "outdoor-play"]
-                      isApproved: true
-                      isEnabled: true
-                      createdAt: "2025-01-15T10:30:00.000Z"
-                      updatedAt: "2025-01-15T10:30:00.000Z"
-                      domainName: "Child Safety & Supervision"
-                      createdByName: "Admin User"
-                      approvedByName: "Supervisor User"
-                      totalResponses: 145
-                      correctRate: 0.78
-                  pagination:
-                    page: 1
-                    limit: 20
-                    total: 156
-                    pages: 8
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      questions:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/QuestionWithMetadata'
+                      pagination:
+                        $ref: '#/components/schemas/PaginationInfo'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/AdminRequired'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
     post:
       tags:
         - Question Management
-      summary: Create New Question
+      summary: Create new question
       description: |
-        Creates a new assessment question with comprehensive validation and approval workflow.
-        
-        **Creation Process:**
-        - Validates all question data including domain references
-        - Ensures correct answer index is within options range
-        - Checks for unique question ID across system
-        - Sets initial approval status to false (requires review)
-        - Enables question by default but requires approval for use
-        
-        **Validation Rules:**
-        - Question ID must be unique across all questions
-        - Domain ID must reference existing active domain
-        - Options array must contain 2-6 answer choices
-        - Correct answer index must be valid for options array
-        - Difficulty must be between 1-6 (Easy to Master)
-        - Question text must be 10-500 characters
-        
-        **Post-Creation:**
-        Question is created in unapproved state and requires admin approval before appearing in assessments.
-      operationId: createQuestion
-      security:
-        - sessionAuth: []
-        - adminPassword: []
+        Create a new assessment question with auto-generated ID.
+        The question ID will be automatically generated in the format: domain-difficulty-sequence
+        (e.g., "child-safety-3-001" for a medium difficulty question in Child Safety domain).
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateQuestionRequest'
-            example:
-              id: "safety-4-015"
-              domainId: "Child Safety & Supervision"
-              text: "In an emergency evacuation, what is the first priority for early childhood educators?"
-              options: ["Gather personal belongings", "Account for all children", "Call parents", "Lock the building"]
-              correctAnswer: 1
-              difficulty: 4
-              explanation: "Ensuring all children are safely accounted for is the highest priority during any emergency."
-              miniLesson: "Emergency procedures focus on child safety first..."
-              tags: ["emergency", "evacuation", "safety-protocols"]
+              type: object
+              required:
+                - admin_password
+                - domainId
+                - text
+                - options
+                - correctAnswer
+                - difficulty
+              properties:
+                admin_password:
+                  type: string
+                  description: Admin authentication password
+                domainId:
+                  type: string
+                  description: Domain name (must exist in assessment_domains)
+                  example: "Child Safety & Supervision"
+                text:
+                  type: string
+                  minLength: 10
+                  maxLength: 500
+                  description: Question text
+                  example: "What is the most important factor when supervising children during outdoor play?"
+                options:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 2
+                  maxItems: 6
+                  description: Multiple choice options (2-6 options)
+                  example: [
+                    "Maintaining visual contact with all children",
+                    "Ensuring all equipment is sanitized",
+                    "Having first aid supplies nearby",
+                    "Checking weather conditions"
+                  ]
+                correctAnswer:
+                  type: integer
+                  minimum: 0
+                  description: Index of correct answer (0-based)
+                  example: 0
+                difficulty:
+                  type: string
+                  enum: ["1", "2", "3", "4", "5", "6"]
+                  description: |
+                    Difficulty level:
+                    - 1: Very Easy
+                    - 2: Easy  
+                    - 3: Medium
+                    - 4: Hard
+                    - 5: Very Hard
+                    - 6: Master
+                  example: "3"
+                explanation:
+                  type: string
+                  description: Explanation for the correct answer (optional)
+                  example: "Visual supervision is the primary safety measure for outdoor play, allowing immediate response to potential hazards."
+                miniLesson:
+                  type: string
+                  description: Educational content for incorrect answers (optional)
+                  example: "Effective outdoor supervision requires positioning yourself to see all children while scanning for potential hazards..."
+                tags:
+                  type: string
+                  description: Comma-separated tags for categorization (optional)
+                  example: "supervision, outdoor play, safety"
       responses:
         '201':
           description: Question created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/QuestionResponse'
-              example:
-                success: true
-                data:
-                  id: "safety-4-015"
-                  domainId: "Child Safety & Supervision"
-                  text: "In an emergency evacuation, what is the first priority for early childhood educators?"
-                  options: ["Gather personal belongings", "Account for all children", "Call parents", "Lock the building"]
-                  correctAnswer: 1
-                  difficulty: 4
-                  explanation: "Ensuring all children are safely accounted for is the highest priority during any emergency."
-                  miniLesson: "Emergency procedures focus on child safety first..."
-                  tags: ["emergency", "evacuation", "safety-protocols"]
-                  createdBy: 12
-                  isApproved: false
-                  isEnabled: true
-                  createdAt: "2025-01-15T10:30:00.000Z"
-                  updatedAt: "2025-01-15T10:30:00.000Z"
-                message: "Question created successfully"
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Question'
+                  message:
+                    type: string
+                    example: "Question created successfully with ID: child-safety-3-001"
         '400':
-          description: Validation error or invalid data
+          description: Invalid request data
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
-              example:
-                success: false
-                error: "Validation error"
-                details:
-                  - message: "Correct answer index is out of range for provided options"
-                    path: ["correctAnswer"]
-        '409':
-          description: Question ID already exists
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                success: false
-                error: "Question with this ID already exists"
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Validation error: Correct answer index is out of range for provided options"
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/AdminRequired'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -1049,8 +1034,8 @@ components:
       properties:
         id:
           type: string
-          description: Unique question identifier
-          example: "safety-3-001"
+          description: Auto-generated unique question identifier (format: domain-difficulty-sequence)
+          example: "child-safety-3-001"
         domainId:
           type: string
           description: Associated domain name
@@ -1147,66 +1132,73 @@ components:
           description: Percentage of correct responses (0.0-1.0)
           example: 0.78
 
+    QuestionWithMetadata:
+      allOf:
+        - $ref: '#/components/schemas/AssessmentQuestion'
+        - type: object
+          description: Question with additional metadata for admin interface
+
     CreateQuestionRequest:
       type: object
       required:
-        - id
         - domainId
         - text
         - options
         - correctAnswer
         - difficulty
       properties:
-        id:
-          type: string
-          description: Unique question identifier
-          example: "safety-4-015"
         domainId:
           type: string
-          description: Domain name for categorization
+          description: Domain name (must exist in assessment_domains)
           example: "Child Safety & Supervision"
         text:
           type: string
           minLength: 10
           maxLength: 500
           description: Question text
-          example: "In an emergency evacuation, what is the first priority?"
+          example: "What is the most important factor when supervising children during outdoor play?"
         options:
           type: array
           items:
             type: string
           minItems: 2
           maxItems: 6
-          description: Answer options
-          example: ["Gather belongings", "Account for all children", "Call parents", "Lock building"]
+          description: Multiple choice options (2-6 options)
+          example: [
+            "Maintaining visual contact with all children",
+            "Ensuring all equipment is sanitized", 
+            "Having first aid supplies nearby",
+            "Checking weather conditions"
+          ]
         correctAnswer:
           type: integer
           minimum: 0
           description: Index of correct answer (0-based)
-          example: 1
+          example: 0
         difficulty:
-          type: integer
-          minimum: 1
-          maximum: 6
-          description: Difficulty level (1=Easy, 6=Master)
-          example: 4
+          type: string
+          enum: ["1", "2", "3", "4", "5", "6"]
+          description: |
+            Difficulty level:
+            - 1: Very Easy
+            - 2: Easy
+            - 3: Medium  
+            - 4: Hard
+            - 5: Very Hard
+            - 6: Master
+          example: "3"
         explanation:
           type: string
-          nullable: true
-          description: Explanation for correct answer
-          example: "Child safety is always the highest priority during emergencies."
+          description: Explanation for the correct answer (optional)
+          example: "Visual supervision is the primary safety measure for outdoor play, allowing immediate response to potential hazards."
         miniLesson:
           type: string
-          nullable: true
-          description: Educational content for this topic
-          example: "Emergency procedures focus on child safety first..."
+          description: Educational content for incorrect answers (optional)
+          example: "Effective outdoor supervision requires positioning yourself to see all children while scanning for potential hazards..."
         tags:
-          type: array
-          items:
-            type: string
-          nullable: true
-          description: Additional categorization tags
-          example: ["emergency", "evacuation", "safety-protocols"]
+          type: string
+          description: Comma-separated tags for categorization (optional)
+          example: "supervision, outdoor play, safety"
 
     UpdateQuestionRequest:
       type: object

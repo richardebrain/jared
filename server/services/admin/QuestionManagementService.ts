@@ -15,20 +15,9 @@ import { z } from 'zod';
 
 // Input validation schemas
 export const CreateQuestionSchema = z.object({
-  id: z.string().min(1, "Question ID is required"),
   domainId: z.string().min(1, "Domain ID is required"),
   text: z.string().min(10, "Question text must be at least 10 characters"),
-  options: z.string().refine(
-    (val) => {
-      try {
-        const parsed = JSON.parse(val);
-        return Array.isArray(parsed) && parsed.length >= 2 && parsed.length <= 6;
-      } catch {
-        return false;
-      }
-    },
-    "Options must be a valid JSON array with 2-6 items"
-  ),
+  options: z.array(z.string().min(1, "Option cannot be empty")).min(2, "At least 2 options required").max(6, "Maximum 6 options allowed"),
   correctAnswer: z.number().min(0, "Correct answer index must be 0 or greater"),
   difficulty: z.string().min(1, "Difficulty is required"),
   explanation: z.string().optional(),
@@ -36,7 +25,7 @@ export const CreateQuestionSchema = z.object({
   tags: z.string().optional(),
 });
 
-export const UpdateQuestionSchema = CreateQuestionSchema.partial().omit({ id: true });
+export const UpdateQuestionSchema = CreateQuestionSchema.partial();
 
 export const QuestionFiltersSchema = z.object({
   page: z.number().min(1).default(1),
@@ -73,6 +62,49 @@ export interface PaginatedQuestions {
 
 export class QuestionManagementService {
   
+  /**
+   * Generate a unique question ID in format: domain-difficulty-sequence
+   */
+  private async generateQuestionId(domainId: string, difficulty: string): Promise<string> {
+    try {
+      // Normalize domain name for ID (replace spaces with hyphens, lowercase)
+      const domainSlug = domainId.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      
+      // Find the next sequence number for this domain-difficulty combination
+      const existingQuestions = await db
+        .select({ id: assessmentQuestions.id })
+        .from(assessmentQuestions)
+        .where(like(assessmentQuestions.id, `${domainSlug}-${difficulty}-%`))
+        .orderBy(desc(assessmentQuestions.id));
+
+      let nextSequence = 1;
+      if (existingQuestions.length > 0) {
+        // Extract sequence numbers and find the highest
+        const sequences = existingQuestions
+          .map(q => {
+            const parts = q.id.split('-');
+            const seqPart = parts[parts.length - 1];
+            return parseInt(seqPart, 10);
+          })
+          .filter(seq => !isNaN(seq));
+        
+        if (sequences.length > 0) {
+          nextSequence = Math.max(...sequences) + 1;
+        }
+      }
+
+      // Format sequence with leading zeros (3 digits)
+      const sequenceStr = nextSequence.toString().padStart(3, '0');
+      
+      return `${domainSlug}-${difficulty}-${sequenceStr}`;
+    } catch (error) {
+      console.error('Error generating question ID:', error);
+      // Fallback to timestamp-based ID if generation fails
+      const timestamp = Date.now().toString(36);
+      return `question-${timestamp}`;
+    }
+  }
+
   /**
    * Get all questions with filtering, pagination, and metadata
    */
@@ -238,7 +270,7 @@ export class QuestionManagementService {
   }
 
   /**
-   * Create a new question
+   * Create a new question with auto-generated ID
    */
   async createQuestion(questionData: z.infer<typeof CreateQuestionSchema>, createdBy: number): Promise<AssessmentQuestion> {
     try {
@@ -246,15 +278,9 @@ export class QuestionManagementService {
       const validatedData = CreateQuestionSchema.parse(questionData);
 
       // Validate that correct answer index is within options range
-      const options = JSON.parse(validatedData.options);
+      const options = validatedData.options;
       if (validatedData.correctAnswer >= options.length) {
         throw new Error('Correct answer index is out of range for provided options');
-      }
-
-      // Check if question ID already exists
-      const existing = await this.getQuestionById(validatedData.id);
-      if (existing) {
-        throw new Error('Question with this ID already exists');
       }
 
       // Verify domain exists (since we're using domain names as IDs)
@@ -267,11 +293,22 @@ export class QuestionManagementService {
         throw new Error('Invalid domain ID');
       }
 
-      // Create the question
+      // Generate unique question ID
+      const questionId = await this.generateQuestionId(validatedData.domainId, validatedData.difficulty);
+
+      // Create the question with proper data conversion
       const [newQuestion] = await db
         .insert(assessmentQuestions)
         .values({
-          ...validatedData,
+          id: questionId,
+          domainId: validatedData.domainId,
+          text: validatedData.text,
+          options: JSON.stringify(validatedData.options), // Convert array to JSON string
+          correctAnswer: validatedData.correctAnswer,
+          difficulty: validatedData.difficulty,
+          explanation: validatedData.explanation || null,
+          miniLesson: validatedData.miniLesson || null,
+          tags: validatedData.tags || null,
           createdBy,
           isApproved: false, // New questions need approval
           isEnabled: true, // Enabled by default, but not approved
@@ -302,22 +339,24 @@ export class QuestionManagementService {
         throw new Error('Question not found');
       }
 
+      // Parse existing options for validation
+      const existingOptions = JSON.parse(existing.options);
+
       // Validate correct answer if options are being updated
       if (validatedData.options && validatedData.correctAnswer !== undefined) {
-        const options = JSON.parse(validatedData.options);
+        const options = validatedData.options;
         if (validatedData.correctAnswer >= options.length) {
           throw new Error('Correct answer index is out of range for provided options');
         }
       } else if (validatedData.options) {
         // If only options are updated, validate against existing correct answer
-        const options = JSON.parse(validatedData.options);
+        const options = validatedData.options;
         if (existing.correctAnswer >= options.length) {
           throw new Error('Existing correct answer index is out of range for new options');
         }
       } else if (validatedData.correctAnswer !== undefined) {
         // If only correct answer is updated, validate against existing options
-        const options = JSON.parse(existing.options);
-        if (validatedData.correctAnswer >= options.length) {
+        if (validatedData.correctAnswer >= existingOptions.length) {
           throw new Error('Correct answer index is out of range for existing options');
         }
       }
@@ -334,13 +373,25 @@ export class QuestionManagementService {
         }
       }
 
+      // Prepare update data with proper conversions
+      const updateFields: any = {
+        updatedAt: new Date(),
+      };
+
+      // Add fields that are being updated
+      if (validatedData.text !== undefined) updateFields.text = validatedData.text;
+      if (validatedData.options !== undefined) updateFields.options = JSON.stringify(validatedData.options);
+      if (validatedData.correctAnswer !== undefined) updateFields.correctAnswer = validatedData.correctAnswer;
+      if (validatedData.difficulty !== undefined) updateFields.difficulty = validatedData.difficulty;
+      if (validatedData.explanation !== undefined) updateFields.explanation = validatedData.explanation;
+      if (validatedData.miniLesson !== undefined) updateFields.miniLesson = validatedData.miniLesson;
+      if (validatedData.tags !== undefined) updateFields.tags = validatedData.tags;
+      if (validatedData.domainId !== undefined) updateFields.domainId = validatedData.domainId;
+
       // Update the question
       const [updatedQuestion] = await db
         .update(assessmentQuestions)
-        .set({
-          ...validatedData,
-          updatedAt: new Date(),
-        })
+        .set(updateFields)
         .where(eq(assessmentQuestions.id, id))
         .returning();
 
