@@ -23,7 +23,7 @@ import SpinWheel from '@/components/SpinWheel';
 import ScratchCard from '@/components/ScratchCard';
 import MysteryBox from '@/components/MysteryBox';
 import DailyChallenge from '@/components/DailyChallenge';
-import PacHealGame from '@/components/games/PacHealGameSimple';
+import PacHealGame from '@/components/games/PacHealGameWorking';
 import { useToast } from "@/hooks/use-toast";
 import { 
   LuckySlots, 
@@ -239,36 +239,6 @@ export default function GamesPage() {
                     </CardContent>
                   </Card>
                 )}
-              </div>
-            )}
-          </TabsContent>
-          
-          {/* Streak Rewards Tab */}
-          <TabsContent value="rewards" className="space-y-6">
-            {!hasCompletedActivity ? (
-              <Card className="p-8 text-center">
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-center mb-4">
-                    <Flame className="h-8 w-8 mr-3 text-orange-500" />
-                    Complete Training to Access Rewards
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-neutral-600 mb-6">
-                    Daily streak rewards are unlocked after completing your first training module.
-                  </p>
-                  <Link to="/modules">
-                    <Button className="bg-orange-500 hover:bg-orange-600 text-white">
-                      <Star className="h-4 w-4 mr-2" />
-                      Start Training
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-6">
-                <DailyRewards />
-                <StreakProtection />
               </div>
             )}
           </TabsContent>
