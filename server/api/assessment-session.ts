@@ -332,6 +332,43 @@ router.get('/status', requireTeacherRole, async (req: Request, res: Response) =>
         const currentDifficulty = assessment.currentDifficulty || config.startingDifficulty || 3;
         const domainCoverage = assessment.domainCoverage || {};
         
+        console.log(`Fetching question for assessment ${assessment.id}, difficulty: ${currentDifficulty}`);
+        
+        // First, let's check if there are any questions at all
+        const totalQuestions = await db.select({
+          count: sql<number>`count(*)`
+        })
+        .from(assessmentQuestions);
+        
+        console.log(`Total questions in database: ${totalQuestions[0]?.count}`);
+        
+        // Check approved questions
+        const approvedQuestions = await db.select({
+          count: sql<number>`count(*)`
+        })
+        .from(assessmentQuestions)
+        .where(eq(assessmentQuestions.isApproved, true));
+        
+        console.log(`Approved questions: ${approvedQuestions[0]?.count}`);
+        
+        // Check enabled questions  
+        const enabledQuestions = await db.select({
+          count: sql<number>`count(*)`
+        })
+        .from(assessmentQuestions)
+        .where(eq(assessmentQuestions.isEnabled, true));
+        
+        console.log(`Enabled questions: ${enabledQuestions[0]?.count}`);
+        
+        // Check questions at specific difficulty
+        const difficultyQuestions = await db.select({
+          count: sql<number>`count(*)`
+        })
+        .from(assessmentQuestions)
+        .where(eq(assessmentQuestions.difficulty, currentDifficulty.toString()));
+        
+        console.log(`Questions at difficulty ${currentDifficulty}: ${difficultyQuestions[0]?.count}`);
+        
         // Select a question based on current difficulty and domain coverage
         // For now, get any available question from the pool - in production this would use the selection algorithm
         const availableQuestions = await db.select()
@@ -343,10 +380,14 @@ router.get('/status', requireTeacherRole, async (req: Request, res: Response) =>
           ))
           .limit(10);
 
+        console.log(`Found ${availableQuestions.length} available questions matching criteria`);
+
         if (availableQuestions && availableQuestions.length > 0) {
           // For now, pick a random question - in production this would use proper selection
           const randomIndex = Math.floor(Math.random() * availableQuestions.length);
           const selectedQuestion = availableQuestions[randomIndex];
+          
+          console.log(`Selected question: ${selectedQuestion.id}`);
           
           // Get domain name for the question
           const domain = await db.select()
@@ -367,6 +408,45 @@ router.get('/status', requireTeacherRole, async (req: Request, res: Response) =>
             explanation: selectedQuestion.explanation,
             tags: selectedQuestion.tags ? JSON.parse(selectedQuestion.tags) : []
           };
+          
+          console.log(`Successfully created current question object`);
+        } else {
+          console.log(`No questions found matching criteria - trying fallback`);
+          
+          // Fallback: try to get any approved and enabled question
+          const fallbackQuestions = await db.select()
+            .from(assessmentQuestions)
+            .where(and(
+              eq(assessmentQuestions.isApproved, true),
+              eq(assessmentQuestions.isEnabled, true)
+            ))
+            .limit(5);
+            
+          console.log(`Fallback found ${fallbackQuestions.length} questions`);
+          
+          if (fallbackQuestions.length > 0) {
+            const selectedQuestion = fallbackQuestions[0];
+            console.log(`Using fallback question: ${selectedQuestion.id}`);
+            
+            const domain = await db.select()
+              .from(assessmentDomains)
+              .where(eq(assessmentDomains.id, parseInt(selectedQuestion.domainId)))
+              .limit(1);
+            
+            const domainName = domain.length > 0 ? domain[0].name : 'Unknown Domain';
+            
+            currentQuestion = {
+              id: selectedQuestion.id,
+              text: selectedQuestion.text,
+              options: JSON.parse(selectedQuestion.options),
+              domain: selectedQuestion.domainId,
+              domainName: domainName,
+              difficulty: parseInt(selectedQuestion.difficulty),
+              sequence: currentSequence,
+              explanation: selectedQuestion.explanation,
+              tags: selectedQuestion.tags ? JSON.parse(selectedQuestion.tags) : []
+            };
+          }
         }
       } catch (questionError) {
         console.error('Error loading current question:', questionError);
