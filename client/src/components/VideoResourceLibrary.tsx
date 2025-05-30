@@ -287,6 +287,31 @@ export function VideoResourceLibrary({
       
       {showFilters && (
         <>
+          {/* Library Size Toggle */}
+          <div className="mb-4 flex items-center justify-between bg-muted/30 rounded-lg p-4 border border-muted">
+            <div>
+              <h3 className="text-sm font-medium mb-1">Library View</h3>
+              <p className="text-xs text-muted-foreground">
+                {showComplete 
+                  ? `Complete collection: ${completeVideoResources.length} videos (includes external platforms)`
+                  : `Featured collection: ${featuredVideoResources.length} videos (fast loading)`
+                }
+              </p>
+            </div>
+            <Button
+              variant={showComplete ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setShowComplete(!showComplete);
+                const newVideoSet = !showComplete ? completeVideoResources : featuredVideoResources;
+                setFilteredVideos(newVideoSet);
+                filterVideos(searchQuery, selectedCategory, selectedExpertLevel, activeFilter);
+              }}
+            >
+              {showComplete ? "Show Featured Only" : "Show All Videos"}
+            </Button>
+          </div>
+          
           {/* Filter and Search Controls */}
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="flex-1 relative">
