@@ -37,7 +37,7 @@ interface QuizQuestion {
 
 const BOARD_WIDTH = 19;
 const BOARD_HEIGHT = 15;
-const CELL_SIZE = 20;
+const CELL_SIZE = 18;
 
 // Simple maze layout (1 = wall, 0 = path)
 const MAZE = [
@@ -102,6 +102,9 @@ export default function PacHealGame() {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [quizResult, setQuizResult] = useState<'correct' | 'incorrect' | null>(null);
   const [collectedAffirmations, setCollectedAffirmations] = useState<string[]>([]);
+  const [isInvulnerable, setIsInvulnerable] = useState(false);
+  const [pointsEarned, setPointsEarned] = useState(0);
+  const [showPointAnimation, setShowPointAnimation] = useState(false);
   const gameRef = useRef<HTMLDivElement>(null);
 
   const affirmations = [
@@ -268,21 +271,45 @@ export default function PacHealGame() {
       }
     }
 
-    // Check collisions with ghosts
+    // Check collisions with ghosts (with tolerance for better detection)
     const ghostCollision = ghosts.find(ghost => 
-      ghost.position.x === playerPos.x && ghost.position.y === playerPos.y
+      Math.abs(ghost.position.x - playerPos.x) <= 0.5 && 
+      Math.abs(ghost.position.y - playerPos.y) <= 0.5
     );
     
-    if (ghostCollision) {
+    if (ghostCollision && !isInvulnerable) {
       const randomQuiz = sampleQuestions[Math.floor(Math.random() * sampleQuestions.length)];
       setCurrentQuiz(randomQuiz);
       setGameState('quiz');
+      setIsInvulnerable(true);
+      setTimeout(() => setIsInvulnerable(false), 1000);
     }
 
     // Check win condition
     const remainingFeelings = badFeelings.filter(f => !f.eaten).length;
     if (remainingFeelings === 0 && badFeelings.length > 0) {
-      setGameState('gameOver');
+      // Award 5 points for completing a Pac-Heal level
+      setPointsEarned(5);
+      setShowPointAnimation(true);
+      
+      // Award points to user account
+      setTimeout(async () => {
+        try {
+          await apiRequest('/api/auth/update-points', {
+            method: 'POST',
+            body: JSON.stringify({ points: 5 }),
+            headers: { 'Content-Type': 'application/json' }
+          });
+          toast({
+            title: "Level Complete!",
+            description: "You earned 5 points for completing this level!",
+          });
+        } catch (error) {
+          console.error('Error updating points:', error);
+        }
+        setShowPointAnimation(false);
+        setGameState('gameOver');
+      }, 2000);
     }
   }, [playerPos, badFeelings]);
 
@@ -382,7 +409,16 @@ export default function PacHealGame() {
             </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-8">
+        <CardContent className="p-8 relative">
+          {/* Point Animation Overlay */}
+          {showPointAnimation && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
+              <div className="bg-green-500 text-white px-8 py-4 rounded-full text-2xl font-bold animate-bounce shadow-lg">
+                +{pointsEarned} Points!
+              </div>
+            </div>
+          )}
+
           {gameState === 'menu' && (
             <div className="text-center space-y-8">
               <div className="bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 p-10 rounded-2xl border-2 border-purple-200 shadow-lg">
