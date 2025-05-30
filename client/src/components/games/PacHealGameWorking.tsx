@@ -423,9 +423,10 @@ export default function PacHealGame() {
     );
     
     if (ghostCollision && !isInvulnerable) {
+      setHitByGhost(ghostCollision);
       const randomQuiz = sampleQuestions[Math.floor(Math.random() * sampleQuestions.length)];
       setCurrentQuiz(randomQuiz);
-      setGameState('quiz');
+      setGameState('ghostHit');
       setIsInvulnerable(true);
       setTimeout(() => setIsInvulnerable(false), 1000);
     }
@@ -471,16 +472,33 @@ export default function PacHealGame() {
     const isCorrect = selectedAnswer === currentQuiz.correctAnswer;
     setQuizResult(isCorrect ? 'correct' : 'incorrect');
     
-    if (isCorrect) {
-      setScore(prev => prev + 25);
+    if (gameState === 'ghostHit') {
+      // Ghost hit scenario - player can save their life by answering correctly
+      if (isCorrect) {
+        setScore(prev => prev + 25);
+        // Life saved! No penalty
+      } else {
+        setLives(prev => {
+          const newLives = prev - 1;
+          if (newLives <= 0) {
+            setGameState('gameOver');
+          }
+          return newLives;
+        });
+      }
     } else {
-      setLives(prev => {
-        const newLives = prev - 1;
-        if (newLives <= 0) {
-          setGameState('gameOver');
-        }
-        return newLives;
-      });
+      // Regular quiz scenario
+      if (isCorrect) {
+        setScore(prev => prev + 25);
+      } else {
+        setLives(prev => {
+          const newLives = prev - 1;
+          if (newLives <= 0) {
+            setGameState('gameOver');
+          }
+          return newLives;
+        });
+      }
     }
   };
 
@@ -799,6 +817,77 @@ export default function PacHealGame() {
                 }`}>
                   <p className="font-semibold mb-2">
                     {quizResult === 'correct' ? 'Correct! +25 points' : 'Incorrect. -1 life'}
+                  </p>
+                  <p className="text-sm">{currentQuiz.explanation}</p>
+                </div>
+              )}
+
+              <div className="flex justify-center mt-6">
+                {!quizResult ? (
+                  <Button 
+                    onClick={handleQuizAnswer}
+                    disabled={selectedAnswer === null}
+                    className="bg-blue-500 hover:bg-blue-600"
+                  >
+                    Submit Answer
+                  </Button>
+                ) : (
+                  <Button onClick={continueGame} className="bg-green-500 hover:bg-green-600">
+                    Continue Game
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {gameState === 'ghostHit' && hitByGhost && currentQuiz && (
+          <div className="space-y-6">
+            <div className="bg-red-50 border-2 border-red-200 p-6 rounded-lg text-center">
+              <div className="mb-4">
+                <div className="text-6xl mb-2">👻</div>
+                <h3 className="text-2xl font-bold text-red-700 mb-2">
+                  Oh no! You got hit by the {hitByGhost.emotion} Ghost!
+                </h3>
+                <p className="text-red-600 text-lg">
+                  This ghost represents <strong>{hitByGhost.emotion.toLowerCase()}</strong> - a challenging emotion in the classroom.
+                </p>
+              </div>
+              
+              <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-4">
+                <h4 className="font-bold text-yellow-800 mb-2">💡 Save Your Life!</h4>
+                <p className="text-yellow-700">
+                  Answer this ECE question correctly to save a life, or lose a life and continue the game.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 p-6 rounded-lg">
+              <h3 className="text-lg font-semibold text-blue-700 mb-4">Lifesaver Question</h3>
+              <p className="text-gray-700 mb-4">{currentQuiz.question}</p>
+              
+              <div className="space-y-2">
+                {currentQuiz.options.map((option, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedAnswer(index)}
+                    className={`w-full p-3 text-left rounded-lg border transition-colors ${
+                      selectedAnswer === index 
+                        ? 'border-blue-500 bg-blue-100' 
+                        : 'border-gray-200 hover:border-blue-300'
+                    }`}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+
+              {quizResult && (
+                <div className={`mt-4 p-4 rounded-lg ${
+                  quizResult === 'correct' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                }`}>
+                  <p className="font-semibold mb-2">
+                    {quizResult === 'correct' ? '🎉 Correct! Life saved!' : '💔 Incorrect. You lost a life.'}
                   </p>
                   <p className="text-sm">{currentQuiz.explanation}</p>
                 </div>
