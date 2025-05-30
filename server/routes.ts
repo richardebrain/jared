@@ -1350,24 +1350,41 @@ Continue for all 5 questions...
   // Get all users (for leaderboard)
   app.get("/api/users", async (req, res) => {
     try {
-      const allUsers = await storage.getAllUsers();
+      console.log("Fetching all users for leaderboard...");
       
-      if (!allUsers || allUsers.length === 0) {
+      // Try direct database query to bypass any Drizzle mapping issues
+      const rawUsers = await db.select({
+        id: users.id,
+        username: users.username,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        points: users.points,
+        bearBucks: users.bearBucks,
+        streak: users.streak,
+        level: users.level,
+        isAdmin: users.isAdmin,
+        isSchoolAdmin: users.isSchoolAdmin,
+        isOwner: users.isOwner,
+        schoolId: users.schoolId,
+        lastActive: users.lastActive,
+        achievementCount: users.achievementCount,
+        lifetimePoints: users.lifetimePoints
+      }).from(users);
+      
+      console.log("Raw users query returned:", rawUsers.length, "users");
+      
+      if (!rawUsers || rawUsers.length === 0) {
         console.log("No users found in system");
         return res.status(200).json([]);
       }
       
-      const sanitizedUsers = allUsers.map(user => {
-        // Don't return passwords in response
-        const { password, ...userWithoutPassword } = user;
-        return userWithoutPassword;
-      });
-      
-      console.log("Returning users count for leaderboard:", sanitizedUsers.length);
-      res.status(200).json(sanitizedUsers);
+      console.log("Returning users count for leaderboard:", rawUsers.length);
+      res.status(200).json(rawUsers);
     } catch (error) {
       console.error("Error fetching all users:", error);
-      res.status(500).json({ message: "Internal server error" });
+      console.error("Error details:", error.message);
+      res.status(500).json({ message: "Internal server error", details: error.message });
     }
   });
   
