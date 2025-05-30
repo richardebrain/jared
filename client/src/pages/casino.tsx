@@ -248,9 +248,10 @@ export default function CasinoPage() {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
-          {/* Left column - 2/3 width */}
-          <div className="md:col-span-2">
+        {/* Status Messages and Streak Info - Improved Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mt-4">
+          {/* Status Messages - Takes most of the space */}
+          <div className="lg:col-span-3">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-amber-500">
                 <Gift className="h-5 w-5" />
@@ -264,10 +265,10 @@ export default function CasinoPage() {
             </div>
             
             {!hasCompletedActivity && (
-              <Card className="mt-4 border-yellow-200 bg-yellow-50">
-                <CardContent className="pt-6">
-                  <div className="flex items-start space-x-4">
-                    <Calendar className="h-8 w-8 text-yellow-600 flex-shrink-0 mt-1" />
+              <Card className="border-yellow-200 bg-yellow-50">
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-start space-x-3">
+                    <Calendar className="h-6 w-6 text-yellow-600 flex-shrink-0 mt-1" />
                     <div>
                       <h3 className="font-medium text-yellow-800">Complete an activity first</h3>
                       <p className="text-yellow-700 text-sm mt-1">
@@ -280,10 +281,10 @@ export default function CasinoPage() {
             )}
           
             {hasCompletedActivity && dailyGameUsed && (
-              <Card className="mt-4 border-purple-200 bg-purple-50">
-                <CardContent className="pt-6">
-                  <div className="flex items-start space-x-4">
-                    <Clock className="h-8 w-8 text-purple-600 flex-shrink-0 mt-1" />
+              <Card className="border-purple-200 bg-purple-50">
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-start space-x-3">
+                    <Clock className="h-6 w-6 text-purple-600 flex-shrink-0 mt-1" />
                     <div className="flex-1">
                       <h3 className="font-medium text-purple-800">Daily game limit reached</h3>
                       <p className="text-purple-700 text-sm mt-1">
@@ -292,14 +293,14 @@ export default function CasinoPage() {
                       
                       {/* Special reset button only for jlcookie20 */}
                       {isJLCookie && (
-                        <div className="mt-4">
+                        <div className="mt-3">
                           <Button 
                             onClick={resetBonusGames}
-                            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700"
+                            className="bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700"
                             size="sm"
                           >
                             <RefreshCcw className="mr-2 h-4 w-4" />
-                            Reset Bonus Games (Special Access)
+                            Reset Bonus Games
                           </Button>
                         </div>
                       )}
@@ -310,27 +311,29 @@ export default function CasinoPage() {
             )}
           </div>
           
-          {/* Right column - 1/3 width - Streak information */}
-          <div className="md:col-span-1">
-            <Card className="border-blue-200 shadow-md">
-              <CardHeader className="pb-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-lg font-bold">Login Streak</CardTitle>
-                  <Badge className="bg-blue-700 hover:bg-blue-800">
-                    <Flame className="h-3 w-3 mr-1 text-yellow-300" /> ACTIVE
-                  </Badge>
+          {/* Streak Counter - Compact but prominent */}
+          <div className="lg:col-span-1">
+            <Card className="border-blue-200 shadow-md h-full">
+              <CardHeader className="pb-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                <div className="flex flex-col space-y-1">
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-base font-bold">Login Streak</CardTitle>
+                    <Badge className="bg-blue-700 hover:bg-blue-800 text-xs">
+                      <Flame className="h-3 w-3 mr-1 text-yellow-300" /> ACTIVE
+                    </Badge>
+                  </div>
+                  <CardDescription className="text-blue-100 text-xs">
+                    Keep your streak alive!
+                  </CardDescription>
                 </div>
-                <CardDescription className="text-blue-100">
-                  Keep your streak alive for bonus points!
-                </CardDescription>
               </CardHeader>
-              <CardContent className="pt-4">
+              <CardContent className="pt-3 pb-3">
                 <StreakRewardsSummary streakCount={user?.streak || 0} />
                 
-                <div className="mt-3 text-sm text-muted-foreground">
+                <div className="mt-2 text-xs text-muted-foreground">
                   <p className="flex items-center">
-                    <Medal className="h-4 w-4 mr-1 text-amber-500" />
-                    Login daily to earn 2-5 points each day
+                    <Medal className="h-3 w-3 mr-1 text-amber-500" />
+                    Daily login: 2-5 points
                   </p>
                 </div>
               </CardContent>
