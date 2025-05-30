@@ -22,7 +22,8 @@ import SpinWheel from '@/components/SpinWheel';
 import ScratchCard from '@/components/ScratchCard';
 import MysteryBox from '@/components/MysteryBox';
 import DailyChallenge from '@/components/DailyChallenge';
-import { Sparkles, Gift, Package, Star, CircleHelp } from 'lucide-react';
+import PacHealGame from '@/components/games/PacHealGame';
+import { Sparkles, Gift, Package, Star, CircleHelp, Heart, Gamepad2 } from 'lucide-react';
 
 export default function GamesPage() {
   const { user, isLoading } = useAuth();
@@ -93,8 +94,9 @@ export default function GamesPage() {
         </div>
         
         <Tabs defaultValue="play" className="space-y-4" onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-3 w-full max-w-xl mx-auto">
-            <TabsTrigger value="play">Play & Rewards</TabsTrigger>
+          <TabsList className="grid grid-cols-4 w-full max-w-4xl mx-auto">
+            <TabsTrigger value="play">Bonus Games</TabsTrigger>
+            <TabsTrigger value="educational">Educational Games</TabsTrigger>
             <TabsTrigger value="daily">Daily Challenge</TabsTrigger>
             <TabsTrigger value="rewards">My Items</TabsTrigger>
           </TabsList>
@@ -147,6 +149,84 @@ export default function GamesPage() {
                   </ul>
                 </div>
               </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="educational" className="space-y-8">
+            <div className="text-center space-y-4 mb-8">
+              <div className="flex items-center justify-center space-x-2">
+                <Heart className="h-8 w-8 text-red-500" />
+                <h2 className="text-2xl font-bold text-gray-800">Educational Games</h2>
+              </div>
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                Learn important emotional regulation and social skills through fun, interactive games designed specifically for early childhood educators.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-8">
+              <Card className="border-2 border-red-200 bg-gradient-to-br from-red-50 to-pink-50">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-red-100 rounded-full">
+                        <Heart className="h-6 w-6 text-red-600" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-xl text-red-800">Pac-Heal Adventure</CardTitle>
+                        <CardDescription className="text-red-600">
+                          Navigate a maze and transform negative emotions into positive affirmations
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <Badge className="bg-red-500 text-white">Featured</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <PacHealGame />
+                </CardContent>
+              </Card>
+
+              <Card className="border border-gray-200 bg-gray-50">
+                <CardHeader>
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-blue-100 rounded-full">
+                      <Gamepad2 className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg text-gray-700">More Games Coming Soon!</CardTitle>
+                      <CardDescription>
+                        We're developing more educational games to help teach social-emotional learning skills
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8">
+                    <div className="text-gray-500 mb-4">
+                      <Sparkles className="h-12 w-12 mx-auto mb-2" />
+                      <p>Stay tuned for exciting new games that will help you learn:</p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div className="bg-white p-4 rounded-lg border">
+                        <strong className="text-blue-600">Mindful Breathing Game</strong>
+                        <p className="text-gray-600 mt-1">Practice calming techniques through interactive breathing exercises</p>
+                      </div>
+                      <div className="bg-white p-4 rounded-lg border">
+                        <strong className="text-green-600">Emotion Detective</strong>
+                        <p className="text-gray-600 mt-1">Learn to identify and understand different emotions in children</p>
+                      </div>
+                      <div className="bg-white p-4 rounded-lg border">
+                        <strong className="text-purple-600">Conflict Resolution Scenarios</strong>
+                        <p className="text-gray-600 mt-1">Practice handling common classroom conflicts</p>
+                      </div>
+                      <div className="bg-white p-4 rounded-lg border">
+                        <strong className="text-orange-600">Communication Builder</strong>
+                        <p className="text-gray-600 mt-1">Develop effective communication strategies with children and parents</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
           
