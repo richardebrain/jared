@@ -785,11 +785,7 @@ export default function Dashboard() {
                   )}
                 </div>
                 
-                {/* Recent Shout-Outs and Newsletter Section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  <RecentShoutOuts limit={3} />
-                  <MonthlyNewsletter />
-                </div>
+
               </div>
               
               {/* Modules For Your Growth */}
@@ -824,12 +820,18 @@ export default function Dashboard() {
             
             {/* Sidebar - Right 1/3 */}
             <div className="space-y-6">
-              {/* Leaderboard - Now at the top */}
+              {/* Leaderboard - At the top */}
               <SimpleLeaderboard
                 teachers={(users as any[]) || []}
                 userId={user?.id as number}
                 isLoading={teachLoading}
               />
+              
+              {/* Core Values Shout Outs - Second position */}
+              <RecentShoutOuts limit={3} />
+              
+              {/* Newsletter - Third position */}
+              <MonthlyNewsletter />
               
               {/* User Stats Card */}
               <Card className="bg-white shadow-md">
@@ -877,15 +879,11 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
               
-              {/* Core Values Shoutouts section removed to avoid duplication */}
-              
               {/* Bear Assistant */}
               <BearAssistant />
               
               {/* Community Modules */}
               <CommunityModules limit={3} />
-              
-
               
               {/* Media Section */}
               <MediaSidebar />
