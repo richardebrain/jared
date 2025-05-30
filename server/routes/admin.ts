@@ -494,8 +494,27 @@ router.post('/questions/bulk/availability', requireAdmin, async (req: Request, r
  */
 router.get('/messages', async (req: Request, res: Response) => {
   try {
-    console.log('Fetching messages - simplified version');
-    res.json([]);
+    console.log('Fetching recent admin messages...');
+    
+    // Get recent messages from the database
+    const recentMessages = await db
+      .select({
+        id: teacherMessages.id,
+        title: teacherMessages.title,
+        content: teacherMessages.content,
+        messageType: teacherMessages.messageType,
+        important: teacherMessages.important,
+        createdAt: teacherMessages.createdAt,
+        recipientName: users.firstName,
+        recipientUsername: users.username
+      })
+      .from(teacherMessages)
+      .leftJoin(users, eq(teacherMessages.recipientId, users.id))
+      .orderBy(desc(teacherMessages.createdAt))
+      .limit(10);
+
+    console.log(`Found ${recentMessages.length} recent messages`);
+    res.json(recentMessages);
   } catch (error) {
     console.error('Error fetching messages:', error);
     res.status(500).json({ message: 'Failed to fetch messages' });
@@ -520,8 +539,26 @@ router.post('/send-message', async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Subject and content are required' });
     }
 
-    console.log(`Message "${subject}" would be sent to ${teacherIds.length} teacher(s)`);
-    console.log('Message content:', content);
+    // For now, use a default sender ID (we'll implement proper admin auth later)
+    const senderId = 1; // Default admin user
+    const isImportant = priority === 'urgent' || priority === 'high';
+
+    // Insert messages for each selected teacher
+    const messagePromises = teacherIds.map(async (teacherId: number) => {
+      return await db.insert(teacherMessages).values({
+        senderId: senderId,
+        recipientId: teacherId,
+        messageType: messageType || 'announcement',
+        title: subject,
+        content: content,
+        important: isImportant,
+        isRead: false
+      });
+    });
+
+    await Promise.all(messagePromises);
+
+    console.log(`Successfully stored ${teacherIds.length} message(s) in database`);
 
     res.json({ 
       success: true, 

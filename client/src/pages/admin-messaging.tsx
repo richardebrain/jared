@@ -107,6 +107,7 @@ export default function AdminMessagingPage() {
       setMessage('');
       setPriority('normal');
       setMessageType('announcement');
+      // Refresh the messages list
       queryClient.invalidateQueries({ queryKey: ['/api/admin/messages'] });
     },
     onError: () => {
