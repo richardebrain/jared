@@ -24,7 +24,10 @@ import {
   Share,
   Sparkles,
   FileText,
-  Mail
+  Mail,
+  Zap,
+  Award,
+  Eye
 } from 'lucide-react';
 import { Link } from 'wouter';
 
@@ -137,6 +140,131 @@ export default function AdminMeetingCreator() {
       return;
     }
     generateAgenda.mutate(formData);
+  };
+
+  const handleShowSample = () => {
+    // Show a sample agenda while waiting for API configuration
+    const sampleAgenda: MeetingAgenda = {
+      title: "Monthly Staff Development Meeting",
+      date: new Date().toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      }),
+      duration: "90 minutes",
+      attendees: ["Lead Teachers", "Assistant Teachers", "Director", "Special Education Coordinator"],
+      objectives: [
+        "Review and discuss new classroom management strategies",
+        "Share successful teaching techniques from the past month",
+        "Plan upcoming parent engagement activities",
+        "Address any challenges and collaborate on solutions"
+      ],
+      icebreakers: [
+        {
+          name: "Teaching Moment Spotlight",
+          description: "Each participant shares one magical teaching moment from the past month",
+          timeNeeded: "10 minutes",
+          materials: ["None required"],
+          instructions: "Form a circle and have each person share a brief story about a special moment with a child that made them smile or feel proud. Keep stories to 1-2 minutes each."
+        }
+      ],
+      agenda: [
+        {
+          item: "Welcome & Check-in",
+          timeAllocation: "10 minutes",
+          presenter: "Director",
+          description: "Welcome everyone and quick personal check-ins"
+        },
+        {
+          item: "Classroom Success Stories",
+          timeAllocation: "20 minutes", 
+          presenter: "All Staff",
+          description: "Share positive developments and student achievements",
+          activity: "Round-robin sharing with appreciation circle"
+        },
+        {
+          item: "Professional Development Focus",
+          timeAllocation: "30 minutes",
+          presenter: "Lead Teacher",
+          description: "Interactive workshop on positive behavior support strategies"
+        },
+        {
+          item: "Planning & Coordination",
+          timeAllocation: "20 minutes",
+          presenter: "Director",
+          description: "Upcoming events, schedule changes, and action items"
+        }
+      ],
+      discussionTopics: [
+        {
+          topic: "Implementing New Behavior Support Techniques",
+          purpose: "Collaborative problem-solving and skill sharing",
+          timeLimit: "15 minutes",
+          facilitationTips: "Use the parking lot method for complex issues that need follow-up"
+        },
+        {
+          topic: "Parent Communication Strategies", 
+          purpose: "Improve family engagement and partnership",
+          timeLimit: "10 minutes",
+          facilitationTips: "Focus on positive communication examples and templates"
+        }
+      ],
+      activities: [
+        {
+          name: "Behavior Support Strategy Workshop",
+          type: "Interactive Learning",
+          description: "Practice positive behavior support techniques through role-playing and case studies",
+          timeNeeded: "25 minutes",
+          materials: ["Scenario cards", "Behavior support strategy handouts", "Flip chart paper"],
+          instructions: "Break into small groups of 3-4. Each group receives a behavior scenario to work through using the new support strategies. Groups will present their approach to the larger team.",
+          learningGoal: "Increase confidence and consistency in applying positive behavior support across all classrooms"
+        }
+      ],
+      handouts: [
+        {
+          title: "Positive Behavior Support Quick Reference Guide",
+          type: "Reference Sheet", 
+          content: "**Key Strategies:**\n\n1. **Prevention First** - Set clear expectations and routines\n2. **Positive Reinforcement** - Catch children being good\n3. **Redirect & Teach** - Guide toward appropriate behavior\n4. **Stay Calm** - Model emotional regulation\n5. **Consistent Follow-through** - Apply strategies fairly across all children\n\n**Remember:** Every behavior is communication. Our job is to understand what the child is trying to tell us and teach them better ways to express their needs.",
+          purpose: "Quick reference for daily behavior support decisions"
+        }
+      ],
+      actionItems: [
+        {
+          task: "Implement new behavior charts in each classroom",
+          assignee: "All Teachers",
+          deadline: "Next Friday",
+          priority: "High" as const
+        },
+        {
+          task: "Schedule individual coaching sessions with new staff",
+          assignee: "Director",
+          deadline: "Within 2 weeks", 
+          priority: "Medium" as const
+        }
+      ],
+      followUpPlanning: "Next meeting will focus on reviewing the implementation of behavior support strategies and sharing results. We'll also begin planning for the spring parent conference preparations.",
+      energizers: [
+        {
+          name: "Gratitude Popcorn",
+          when: "When energy feels low",
+          howTo: "Anyone can call out something they're grateful for about working with children. Others can 'pop' in with quick additions.",
+          timeNeeded: "2-3 minutes"
+        }
+      ],
+      takeaways: [
+        "Consistent positive behavior support benefits both children and teachers",
+        "Small changes in our approach can lead to big improvements in classroom climate", 
+        "We're all learning together - collaboration makes us stronger",
+        "Every child deserves patience, understanding, and multiple chances to succeed"
+      ]
+    };
+    
+    setGeneratedAgenda(sampleAgenda);
+    toast({
+      title: "Sample agenda loaded",
+      description: "This shows what the AI will generate once the API is configured."
+    });
   };
 
   const copyToClipboard = async () => {
@@ -305,23 +433,34 @@ ${agenda.followUpPlanning}
               />
             </div>
 
-            <Button 
-              onClick={handleGenerate} 
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-              disabled={generateAgenda.isPending}
-            >
-              {generateAgenda.isPending ? (
-                <>
-                  <Sparkles className="h-4 w-4 mr-2 animate-spin" />
-                  Generating Agenda...
-                </>
-              ) : (
-                <>
-                  <Wand2 className="h-4 w-4 mr-2" />
-                  Generate Meeting Agenda
-                </>
-              )}
-            </Button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Button 
+                onClick={handleGenerate} 
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                disabled={generateAgenda.isPending}
+              >
+                {generateAgenda.isPending ? (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="h-4 w-4 mr-2" />
+                    Generate with AI
+                  </>
+                )}
+              </Button>
+              
+              <Button 
+                onClick={handleShowSample} 
+                variant="outline"
+                className="border-blue-200 text-blue-700 hover:bg-blue-50"
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Show Sample
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
