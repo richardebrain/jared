@@ -702,12 +702,14 @@ export default function Dashboard() {
                   </div>
                   
                   {/* Leaderboard positioned next to progress */}
-                  <div className="lg:col-span-1">
+                  <div className="lg:col-span-1 space-y-4">
                     <SimpleLeaderboard
                       teachers={(users as any[]) || []}
                       userId={user?.id as number}
                       isLoading={teachLoading}
                     />
+                    {/* Core Values Shout Outs below leaderboard */}
+                    <RecentShoutOuts limit={3} />
                   </div>
                 </div>
               
@@ -841,10 +843,7 @@ export default function Dashboard() {
             
             {/* Sidebar - Right 1/3 */}
             <div className="space-y-6">
-              {/* Core Values Shout Outs - Top position */}
-              <RecentShoutOuts limit={3} />
-              
-              {/* Newsletter - Second position */}
+              {/* Newsletter - Top position */}
               <MonthlyNewsletter />
               
               {/* User Stats Card */}
