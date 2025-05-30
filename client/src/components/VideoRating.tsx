@@ -24,6 +24,7 @@ interface VideoRating {
   user?: {
     firstName: string;
     lastName: string;
+    school?: string;
   };
 }
 
@@ -256,7 +257,12 @@ export function VideoRating({ videoId, showReviews = false, compact = false }: V
 
       {showReviews && ratingsData?.ratings && ratingsData.ratings.length > 0 && (
         <div className="space-y-3">
-          <h4 className="font-medium">Reviews</h4>
+          <div className="flex items-center justify-between">
+            <h4 className="font-medium">Reviews</h4>
+            <span className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded">
+              Global ratings from all schools
+            </span>
+          </div>
           <div className="space-y-3">
             {ratingsData.ratings.slice(0, 5).map((rating) => (
               <div key={rating.id} className="border-l-2 border-gray-200 pl-4">
@@ -265,6 +271,11 @@ export function VideoRating({ videoId, showReviews = false, compact = false }: V
                   <span className="text-sm font-medium">
                     {rating.user ? `${rating.user.firstName} ${rating.user.lastName}` : 'Anonymous'}
                   </span>
+                  {rating.user?.school && (
+                    <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                      {rating.user.school}
+                    </span>
+                  )}
                   <span className="text-xs text-gray-500">
                     {new Date(rating.createdAt).toLocaleDateString()}
                   </span>

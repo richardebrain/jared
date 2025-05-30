@@ -4465,8 +4465,24 @@ Continue for all 5 questions...
       const ratings = await storage.getVideoRatings(videoId);
       const averageRating = await storage.getVideoAverageRating(videoId);
       
+      // Fetch user information for each rating to show school diversity
+      const ratingsWithUserInfo = await Promise.all(
+        ratings.map(async (rating) => {
+          const user = await storage.getUserById(rating.userId);
+          const school = user?.schoolId ? await storage.getSchoolById(user.schoolId) : null;
+          return {
+            ...rating,
+            user: user ? {
+              firstName: user.firstName,
+              lastName: user.lastName,
+              school: school ? school.name : 'Independent'
+            } : null
+          };
+        })
+      );
+      
       res.json({
-        ratings,
+        ratings: ratingsWithUserInfo,
         averageRating: averageRating.avgRating,
         totalRatings: averageRating.totalRatings
       });
