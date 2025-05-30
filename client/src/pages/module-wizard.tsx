@@ -242,24 +242,32 @@ export default function ModuleWizard() {
         sections: generatedSections,
         estimatedTime: modulePreview.estimatedTime,
         difficulty: config.difficulty,
-        targetAudience: config.targetAudience
+        targetAudience: config.targetAudience,
+        categoryId: 1, // Default category
+        schoolId: 1 // Default to Raising Arizona
       };
       
-      const response = await apiRequest("POST", "/api/ai-suggestions/create-complete-module", moduleData);
-      const result = await response.json();
-      
-      toast({
-        title: "Module Created!",
-        description: "Your training module has been published successfully."
+      const result = await apiRequest("/api/ai-suggestions/create-complete-module", {
+        method: "POST",
+        data: moduleData
       });
       
-      setLocation(`/learning-module/${result.moduleId}`);
+      if (result.moduleId) {
+        toast({
+          title: "Module Created!",
+          description: "Your training module has been published successfully."
+        });
+        
+        setLocation(`/learning-module/${result.moduleId}`);
+      } else {
+        throw new Error("Module creation failed - no module ID returned");
+      }
       
     } catch (error) {
       console.error('Module creation error:', error);
       toast({
         title: "Creation Error",
-        description: "Failed to create the module. Please try again.",
+        description: "Failed to create the module. Please check your content and try again.",
         variant: "destructive"
       });
     }
@@ -460,9 +468,15 @@ export default function ModuleWizard() {
                         </Badge>
                         <span className="font-semibold">{section.title}</span>
                       </div>
-                      <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded max-h-32 overflow-y-auto">
-                        <div dangerouslySetInnerHTML={{ __html: section.content.replace(/```html|```/g, '').substring(0, 300) + '...' }} />
+                      <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded max-h-40 overflow-y-auto">
+                        <div dangerouslySetInnerHTML={{ __html: section.content.replace(/```html|```/g, '').substring(0, 600) + (section.content.length > 600 ? '...' : '') }} />
                       </div>
+                      <details className="mt-2">
+                        <summary className="cursor-pointer text-blue-600 hover:text-blue-800 text-xs">View Full Section</summary>
+                        <div className="text-sm bg-white p-3 rounded border mt-1 max-h-60 overflow-y-auto">
+                          <div dangerouslySetInnerHTML={{ __html: section.content.replace(/```html|```/g, '') }} />
+                        </div>
+                      </details>
                     </div>
                   ))}
                 </div>
@@ -504,11 +518,19 @@ export default function ModuleWizard() {
                             </Badge>
                             <span className="font-medium text-lg">{section.title}</span>
                           </div>
-                          <div className="prose prose-sm max-w-none bg-gray-50 p-4 rounded border max-h-48 overflow-y-auto">
+                          <div className="prose prose-sm max-w-none bg-gray-50 p-4 rounded border max-h-96 overflow-y-auto">
                             <div dangerouslySetInnerHTML={{ 
-                              __html: section.content.replace(/```html|```/g, '').substring(0, 800) + (section.content.length > 800 ? '...' : '')
+                              __html: section.content.replace(/```html|```/g, '').substring(0, 2000) + (section.content.length > 2000 ? '...<br/><em class="text-blue-600">[Click to see full content]</em>' : '')
                             }} />
                           </div>
+                          <details className="mt-2">
+                            <summary className="cursor-pointer text-blue-600 hover:text-blue-800 text-sm">View Full Content</summary>
+                            <div className="prose prose-sm max-w-none bg-white p-4 rounded border mt-2 max-h-80 overflow-y-auto">
+                              <div dangerouslySetInnerHTML={{ 
+                                __html: section.content.replace(/```html|```/g, '')
+                              }} />
+                            </div>
+                          </details>
                         </div>
                       ))}
                     </div>
