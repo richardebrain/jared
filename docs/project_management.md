@@ -491,7 +491,7 @@ This document serves as the central project management framework for MentorMe, t
      - **Total Implementation**: 883 lines across service implementation and comprehensive test coverage
      - **Foundation Ready**: Enhanced learning path system ready for UI integration and user presentation
 
-11. ⬜ [EP-001-11] **Initial Assessment Initialization and Setup**
+11. 🟦 [EP-001-11] **Initial Assessment Initialization and Setup**
    - **Description:** Create the frontend interface for starting the initial assessment, including teacher eligibility validation, one-time rule enforcement, assessment introduction, and session initialization with proper error handling and user guidance.
    - **Requirements:**
      - **Teacher Role Validation**: Verify user has Teacher role (not admin/school admin/owner) before allowing access
@@ -505,9 +505,15 @@ This document serves as the central project management framework for MentorMe, t
      - **Responsive Design**: Mobile-friendly interface following existing design system
    - **Dependencies:** EP-001-07 (Assessment Session Management API)
    - **Technical Implementation:**
-     - **Route**: `/assessment` - Replace existing broken assessment page
+     - **Route**: `/initial-assessment` - New dedicated route for initial assessment
+     - **Dashboard Integration**: 
+       - Update "Take Initial Assessment" button to navigate to `/initial-assessment`
+       - Remove existing "Coming Soon!" modal dialog
+       - Direct navigation to separate page (not modal)
+     - **Route Cleanup**: Remove broken `/assessment` route and associated components
      - **Components**: 
-       - `AssessmentIntroduction.tsx` - Main introduction and start interface
+       - `InitialAssessment.tsx` - Main page component for `/initial-assessment` route
+       - `AssessmentIntroduction.tsx` - Introduction and overview section
        - `AssessmentEligibilityCheck.tsx` - Role validation and one-time rule display
        - `AssessmentOverview.tsx` - Assessment structure and domain preview
        - `AssessmentCommitment.tsx` - Informed consent and commitment confirmation
@@ -518,7 +524,9 @@ This document serves as the central project management framework for MentorMe, t
      - **Error Handling**: User-friendly error messages for all failure scenarios
      - **Navigation**: React Router integration with proper guards
    - **Success Criteria:**
-     - Teachers can successfully access assessment introduction page
+     - Teachers can successfully access assessment introduction via `/initial-assessment` route
+     - Dashboard "Take Initial Assessment" button navigates directly to the new page
+     - "Coming Soon!" modal is completely removed from dashboard
      - Non-teacher roles receive clear restriction message with role explanation
      - Users who already completed assessment see completion status and results link
      - Assessment overview clearly communicates time commitment and structure
@@ -526,12 +534,15 @@ This document serves as the central project management framework for MentorMe, t
      - Session initialization succeeds and transitions to question interface
      - All error scenarios display helpful, actionable messages
      - Interface is fully responsive and accessible
+     - Broken `/assessment` route is removed and replaced
    - **Dependencies:** EP-001-07
    - **Technical Notes:**
-     - Replace existing broken `/assessment` route and components
+     - Create new `/initial-assessment` route in React Router
+     - Update dashboard button click handler to navigate to new route
+     - Remove broken `/assessment` route and components
      - Follow existing design patterns from other MentorMe pages
      - Ensure proper loading states and error boundaries
-     - Include analytics tracking for assessment starts and abandonment
+     - Implement as full page component, not modal dialog
 
 12. ⬜ [EP-001-12] **Question Fetching and Assessment Progression with Timer**
    - **Description:** Implement the core assessment experience with question fetching, answer submission, timer management, and progression logic that provides a smooth, engaging interface for the 40-question adaptive assessment journey.

@@ -2,7 +2,9 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Gamepad2, Trophy, Star, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Heart, Gamepad2, Trophy, Star, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Coins, Sparkles } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from '@/lib/queryClient';
 
 interface Position {
   x: number;

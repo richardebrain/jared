@@ -13,8 +13,12 @@ import {
   Zap,
   Heart,
   Award,
-  Target
+  Target,
+  Coins,
+  Sparkles
 } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from '@/lib/queryClient';
 
 interface GameBrick {
   id: string;
@@ -47,6 +51,18 @@ interface PowerUp {
   active: boolean;
 }
 
+interface Particle {
+  id: string;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  color: string;
+  size: number;
+}
+
 interface GameState {
   level: number;
   score: number;
@@ -58,6 +74,9 @@ interface GameState {
   victory: boolean;
   showDefinition: boolean;
   currentDefinition: { term: string; definition: string; category: string } | null;
+  userPoints: number;
+  gameStarted: boolean;
+  pointsEarned: number;
 }
 
 const GAME_WIDTH = 800;
@@ -151,6 +170,67 @@ const LEVEL_DATA = [
 export default function BounceAwayBlocks() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameLoopRef = useRef<number>();
+  const { toast } = useToast();
+
+  // Sound effects
+  const playSound = (type: 'hit' | 'score' | 'levelup' | 'powerup' | 'gamestart') => {
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      
+      switch (type) {
+        case 'hit':
+          oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+          break;
+        case 'score':
+          oscillator.frequency.setValueAtTime(1200, audioContext.currentTime);
+          break;
+        case 'levelup':
+          oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+          oscillator.frequency.exponentialRampToValueAtTime(1800, audioContext.currentTime + 0.3);
+          break;
+        case 'powerup':
+          oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+          oscillator.frequency.exponentialRampToValueAtTime(1600, audioContext.currentTime + 0.2);
+          break;
+        case 'gamestart':
+          oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+          oscillator.frequency.exponentialRampToValueAtTime(900, audioContext.currentTime + 0.5);
+          break;
+      }
+      
+      gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (e) {
+      // Sound not available
+    }
+  };
+
+  // Create particles
+  const createParticles = (x: number, y: number, color: string, count: number = 5) => {
+    const newParticles: Particle[] = [];
+    for (let i = 0; i < count; i++) {
+      newParticles.push({
+        id: `particle-${Date.now()}-${i}`,
+        x,
+        y,
+        vx: (Math.random() - 0.5) * 8,
+        vy: (Math.random() - 0.5) * 8,
+        life: 60,
+        maxLife: 60,
+        color,
+        size: Math.random() * 4 + 2
+      });
+    }
+    setParticles(prev => [...prev, ...newParticles]);
+  };
   
   const [gameState, setGameState] = useState<GameState>({
     level: 1,
@@ -162,13 +242,17 @@ export default function BounceAwayBlocks() {
     gameOver: false,
     victory: false,
     showDefinition: false,
-    currentDefinition: null
+    currentDefinition: null,
+    userPoints: 0,
+    gameStarted: false,
+    pointsEarned: 0
   });
 
   const [paddle, setPaddle] = useState({ x: GAME_WIDTH / 2 - PADDLE_WIDTH / 2, y: GAME_HEIGHT - 40 });
   const [balls, setBalls] = useState<Ball[]>([]);
   const [bricks, setBricks] = useState<GameBrick[]>([]);
   const [powerUps, setPowerUps] = useState<PowerUp[]>([]);
+  const [particles, setParticles] = useState<Particle[]>([]);
   const [stickyPaddle, setStickyPaddle] = useState(false);
   const [ballAttached, setBallAttached] = useState(true);
 
@@ -216,18 +300,112 @@ export default function BounceAwayBlocks() {
     setStickyPaddle(false);
   }, [paddle.x, paddle.y]);
 
+  // Fetch user points
+  const fetchUserPoints = async () => {
+    try {
+      const response = await apiRequest('/api/auth/me');
+      setGameState(prev => ({ ...prev, userPoints: response.points || 0 }));
+    } catch (error) {
+      console.error('Failed to fetch user points:', error);
+    }
+  };
+
+  // Cost to play game
+  const playGame = async () => {
+    if (gameState.userPoints < 1) {
+      toast({
+        title: "Not enough points!",
+        description: "You need at least 1 point to play this game. Complete modules to earn points!",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Deduct 1 point to play
+      await apiRequest('/api/auth/update-points', {
+        method: 'POST',
+        body: { pointsToAdd: -1 }
+      });
+      
+      setGameState(prev => ({ 
+        ...prev, 
+        userPoints: prev.userPoints - 1,
+        gameStarted: true,
+        isPlaying: true, 
+        gameOver: false, 
+        victory: false 
+      }));
+      
+      initializeLevel(gameState.level);
+      playSound('gamestart');
+      
+      toast({
+        title: "Game Started!",
+        description: "1 point deducted. Complete levels to earn up to 10 points!",
+        variant: "default"
+      });
+      
+      if (ballAttached) {
+        setBalls(prev => prev.map(ball => ({
+          ...ball,
+          dx: (Math.random() - 0.5) * 6,
+          dy: -5
+        })));
+        setBallAttached(false);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to start game. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Award points for completing level
+  const awardLevelPoints = async (levelNum: number) => {
+    const pointsAwarded = levelNum * 2; // 2 points per level
+    try {
+      await apiRequest('/api/auth/update-points', {
+        method: 'POST',
+        body: { pointsToAdd: pointsAwarded }
+      });
+      
+      setGameState(prev => ({ 
+        ...prev, 
+        userPoints: prev.userPoints + pointsAwarded,
+        pointsEarned: prev.pointsEarned + pointsAwarded
+      }));
+      
+      toast({
+        title: `Level ${levelNum} Complete!`,
+        description: `You earned ${pointsAwarded} points!`,
+        variant: "default"
+      });
+      
+      playSound('levelup');
+    } catch (error) {
+      console.error('Failed to award points:', error);
+    }
+  };
+
   // Start game
   const startGame = () => {
-    setGameState(prev => ({ ...prev, isPlaying: true, gameOver: false, victory: false }));
-    initializeLevel(gameState.level);
-    
-    if (ballAttached) {
-      setBalls(prev => prev.map(ball => ({
-        ...ball,
-        dx: (Math.random() - 0.5) * 6,
-        dy: -5
-      })));
-      setBallAttached(false);
+    if (!gameState.gameStarted) {
+      playGame();
+    } else {
+      setGameState(prev => ({ ...prev, isPlaying: true, gameOver: false, victory: false }));
+      initializeLevel(gameState.level);
+      
+      if (ballAttached) {
+        setBalls(prev => prev.map(ball => ({
+          ...ball,
+          dx: (Math.random() - 0.5) * 6,
+          dy: -5
+        })));
+        setBallAttached(false);
+      }
     }
   };
 
@@ -248,14 +426,20 @@ export default function BounceAwayBlocks() {
       gameOver: false,
       victory: false,
       showDefinition: false,
-      currentDefinition: null
+      currentDefinition: null,
+      userPoints: gameState.userPoints, // Keep current points
+      gameStarted: false,
+      pointsEarned: 0
     });
     setPaddle({ x: GAME_WIDTH / 2 - PADDLE_WIDTH / 2, y: GAME_HEIGHT - 40 });
     setBalls([]);
     setBricks([]);
     setPowerUps([]);
+    setParticles([]);
     setBallAttached(true);
   };
+
+
 
   // Mouse movement for paddle
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {

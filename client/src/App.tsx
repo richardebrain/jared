@@ -16,7 +16,7 @@ import Register from "@/pages/register";
 import BusinessSignup from "@/pages/business-signup";
 import LandingPage from "@/pages/landing";
 import ProgressionMap from "@/pages/progression-map";
-import Assessment from "@/pages/assessment";
+import InitialAssessment from "@/pages/initial-assessment";
 import AssessmentResults from "@/pages/assessment-results";
 import DynamicAssessmentPage from "@/pages/dynamic-assessment";
 import StandaloneAssessment from "@/pages/standalone-assessment";
@@ -189,7 +189,7 @@ function Router(props: {
         </ProtectedRoute>
       </Route>
 
-      <Route path="/assessment">
+      <Route path="/initial-assessment">
         {!isAuthenticated && !isLoading ? (
           location !== "/login" ? <Redirect to="/login" /> : <Login />
         ) : isLoading ? (
@@ -197,7 +197,7 @@ function Router(props: {
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : (
-          <Assessment />
+          <InitialAssessment />
         )}
       </Route>
 
