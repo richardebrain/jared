@@ -197,46 +197,52 @@ export default function PacHealGame() {
           };
         })
       );
-
-      // Check collisions with bad feelings
-      setBadFeelings(prevFeelings => 
-        prevFeelings.map(feeling => {
-          if (!feeling.eaten && 
-              feeling.position.x === playerPos.x && 
-              feeling.position.y === playerPos.y) {
-            
-            setScore(prev => prev + (feeling.powerUp ? 20 : 10));
-            
-            if (feeling.powerUp) {
-              const randomAffirmation = affirmations[Math.floor(Math.random() * affirmations.length)];
-              setCollectedAffirmations(prev => [...prev, randomAffirmation]);
-            }
-            
-            return { ...feeling, eaten: true };
-          }
-          return feeling;
-        })
-      );
-
-      // Check collisions with ghosts
-      ghosts.forEach(ghost => {
-        if (ghost.position.x === playerPos.x && ghost.position.y === playerPos.y) {
-          // Trigger quiz instead of losing life immediately
-          const randomQuiz = sampleQuestions[Math.floor(Math.random() * sampleQuestions.length)];
-          setCurrentQuiz(randomQuiz);
-          setGameState('quiz');
-        }
-      });
-
-      // Check win condition
-      const remainingFeelings = badFeelings.filter(f => !f.eaten).length;
-      if (remainingFeelings === 0) {
-        setGameState('gameOver');
-      }
     }, 200);
 
     return () => clearInterval(gameLoop);
-  }, [gameState, playerPos, ghosts, badFeelings]);
+  }, [gameState]);
+
+  // Separate effect for collision detection
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    // Check collisions with bad feelings
+    setBadFeelings(prevFeelings => 
+      prevFeelings.map(feeling => {
+        if (!feeling.eaten && 
+            feeling.position.x === playerPos.x && 
+            feeling.position.y === playerPos.y) {
+          
+          setScore(prev => prev + (feeling.powerUp ? 20 : 10));
+          
+          if (feeling.powerUp) {
+            const randomAffirmation = affirmations[Math.floor(Math.random() * affirmations.length)];
+            setCollectedAffirmations(prev => [...prev, randomAffirmation]);
+          }
+          
+          return { ...feeling, eaten: true };
+        }
+        return feeling;
+      })
+    );
+
+    // Check collisions with ghosts
+    const ghostCollision = ghosts.some(ghost => 
+      ghost.position.x === playerPos.x && ghost.position.y === playerPos.y
+    );
+    
+    if (ghostCollision) {
+      const randomQuiz = sampleQuestions[Math.floor(Math.random() * sampleQuestions.length)];
+      setCurrentQuiz(randomQuiz);
+      setGameState('quiz');
+    }
+
+    // Check win condition
+    const remainingFeelings = badFeelings.filter(f => !f.eaten).length;
+    if (remainingFeelings === 0) {
+      setGameState('gameOver');
+    }
+  }, [playerPos, gameState, ghosts, badFeelings]);
 
   const startGame = () => {
     initializeGame();

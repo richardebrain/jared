@@ -159,22 +159,8 @@ export default function GamesPage() {
           </div>
         </div>
 
-        {/* Streak Counter Display */}
-        <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-4 rounded-lg shadow-lg mb-6">
-          <div className="flex items-center justify-center space-x-6">
-            <div className="flex items-center space-x-2">
-              <Flame className="h-6 w-6" />
-              <span className="text-lg font-semibold">Current Streak</span>
-            </div>
-            <div className="bg-white/20 px-4 py-2 rounded-full">
-              <span className="text-2xl font-bold">{user?.streak || 0} Days</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Star className="h-5 w-5" />
-              <span className="text-sm">Keep it going!</span>
-            </div>
-          </div>
-        </div>
+        {/* Streak Rewards Summary */}
+        <StreakRewardsSummary streakCount={user?.streak || 0} className="mb-6" />
         
         <Tabs defaultValue="educational" className="space-y-4" onValueChange={setActiveTab}>
           <TabsList className="grid grid-cols-3 w-full max-w-4xl mx-auto">
