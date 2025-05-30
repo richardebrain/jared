@@ -40,6 +40,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { QuestionManagement } from "@/components/admin/QuestionManagement";
+import React from "react";
 
 export default function AppOwnerDashboard() {
   const { toast } = useToast();
@@ -391,8 +392,8 @@ export default function AppOwnerDashboard() {
                 </TableHeader>
                 <TableBody>
                   {(Array.isArray(schools) ? schools : []).map((school: any) => (
-                    <>
-                      <TableRow key={school.id} className={expandedSchools.includes(school.id) ? "bg-muted/50" : ""}>
+                    <React.Fragment key={school.id}>
+                      <TableRow className={expandedSchools.includes(school.id) ? "bg-muted/50" : ""}>
                         <TableCell className="font-medium">
                           <div className="flex items-center">
                             <Building className="h-4 w-4 mr-2 text-primary" />
@@ -512,7 +513,7 @@ export default function AppOwnerDashboard() {
                           </TableCell>
                         </TableRow>
                       )}
-                    </>
+                    </React.Fragment>
                   ))}
                   {(!schools || schools.length === 0) && (
                     <TableRow>
