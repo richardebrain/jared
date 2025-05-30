@@ -53,7 +53,8 @@ import {
   RefreshCcw,
   RefreshCw,
   Flame,
-  Medal
+  Medal,
+  Puzzle
 } from 'lucide-react';
 
 export default function GamesPage() {
