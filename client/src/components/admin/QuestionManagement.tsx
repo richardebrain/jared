@@ -75,10 +75,10 @@ export function QuestionManagement() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [search, setSearch] = useState("");
-  const [domainFilter, setDomainFilter] = useState("");
-  const [difficultyFilter, setDifficultyFilter] = useState("");
-  const [approvalFilter, setApprovalFilter] = useState("");
-  const [enabledFilter, setEnabledFilter] = useState("");
+  const [domainFilter, setDomainFilter] = useState("all");
+  const [difficultyFilter, setDifficultyFilter] = useState("all");
+  const [approvalFilter, setApprovalFilter] = useState("all");
+  const [enabledFilter, setEnabledFilter] = useState("all");
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
@@ -88,10 +88,10 @@ export function QuestionManagement() {
     page,
     limit,
     ...(search && { search }),
-    ...(domainFilter && { domainId: domainFilter }),
-    ...(difficultyFilter && { difficulty: difficultyFilter }),
-    ...(approvalFilter !== "" && { isApproved: approvalFilter === "true" }),
-    ...(enabledFilter !== "" && { isEnabled: enabledFilter === "true" }),
+    ...(domainFilter && domainFilter !== "all" && { domainId: domainFilter }),
+    ...(difficultyFilter && difficultyFilter !== "all" && { difficulty: difficultyFilter }),
+    ...(approvalFilter !== "all" && approvalFilter !== "" && { isApproved: approvalFilter === "true" }),
+    ...(enabledFilter !== "all" && enabledFilter !== "" && { isEnabled: enabledFilter === "true" }),
   };
 
   // Debug: Log the query parameters
@@ -354,7 +354,7 @@ export function QuestionManagement() {
                   <SelectValue placeholder="All domains" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All domains</SelectItem>
+                  <SelectItem value="all">All domains</SelectItem>
                   {(domains || []).map((domain: any) => (
                     <SelectItem key={domain.name} value={domain.name}>
                       {domain.name}
@@ -371,7 +371,7 @@ export function QuestionManagement() {
                   <SelectValue placeholder="All levels" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All levels</SelectItem>
+                  <SelectItem value="all">All levels</SelectItem>
                   <SelectItem value="1">Very Easy</SelectItem>
                   <SelectItem value="2">Easy</SelectItem>
                   <SelectItem value="3">Medium</SelectItem>
@@ -389,7 +389,7 @@ export function QuestionManagement() {
                   <SelectValue placeholder="All statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All statuses</SelectItem>
+                  <SelectItem value="all">All statuses</SelectItem>
                   <SelectItem value="true">Approved</SelectItem>
                   <SelectItem value="false">Pending</SelectItem>
                 </SelectContent>
@@ -403,7 +403,7 @@ export function QuestionManagement() {
                   <SelectValue placeholder="All statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All statuses</SelectItem>
+                  <SelectItem value="all">All statuses</SelectItem>
                   <SelectItem value="true">Enabled</SelectItem>
                   <SelectItem value="false">Disabled</SelectItem>
                 </SelectContent>
@@ -443,7 +443,7 @@ export function QuestionManagement() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {questions.map((question) => (
+                  {questions.map((question: Question) => (
                     <TableRow key={question.id}>
                       <TableCell className="max-w-md">
                         <div className="font-medium truncate">{question.text}</div>
