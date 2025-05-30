@@ -79,7 +79,7 @@ const POSITIVE_PHRASES = [
 ];
 
 const MAZE_SIZE = 15;
-const CELL_SIZE = 32;
+const CELL_SIZE = 40;
 
 // Simple maze layout (1 = wall, 0 = path)
 const MAZE_LAYOUT = [
@@ -626,13 +626,10 @@ export default function PacHealGame() {
 
             {/* Game Board */}
             <div 
-              className="relative mx-auto border-2 border-gray-300"
+              className="relative mx-auto border-4 border-blue-800 bg-black rounded-lg shadow-2xl"
               style={{ 
                 width: MAZE_SIZE * CELL_SIZE, 
-                height: MAZE_SIZE * CELL_SIZE,
-                backgroundImage: 'linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%)',
-                backgroundSize: '20px 20px',
-                backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px'
+                height: MAZE_SIZE * CELL_SIZE
               }}
             >
               {/* Maze walls */}
@@ -641,7 +638,7 @@ export default function PacHealGame() {
                   cell === 1 && (
                     <div
                       key={`wall-${x}-${y}`}
-                      className="absolute bg-blue-900"
+                      className="absolute bg-blue-500 border border-blue-300 shadow-inner"
                       style={{
                         left: x * CELL_SIZE,
                         top: y * CELL_SIZE,
@@ -669,17 +666,39 @@ export default function PacHealGame() {
                 </div>
               ))}
 
+              {/* Path dots for collection */}
+              {MAZE_LAYOUT.map((row, y) =>
+                row.map((cell, x) => {
+                  if (cell === 0 && !badFeelings.some(f => f.position.x === x && f.position.y === y && !f.eaten) && 
+                      !routinePellets.some(r => r.position.x === x && r.position.y === y && !r.eaten)) {
+                    return (
+                      <div
+                        key={`dot-${x}-${y}`}
+                        className="absolute bg-yellow-300 rounded-full"
+                        style={{
+                          left: x * CELL_SIZE + CELL_SIZE/2 - 2,
+                          top: y * CELL_SIZE + CELL_SIZE/2 - 2,
+                          width: 4,
+                          height: 4,
+                        }}
+                      />
+                    );
+                  }
+                  return null;
+                })
+              )}
+
               {/* Bad feelings */}
               {badFeelings.map(feeling => (
                 !feeling.eaten && (
                   <div
                     key={`feeling-${feeling.id}`}
-                    className={`absolute rounded-full ${getEmotionColor(feeling.type)} flex items-center justify-center text-white text-xs font-bold`}
+                    className={`absolute rounded-full ${getEmotionColor(feeling.type)} flex items-center justify-center text-white text-xs font-bold shadow-lg`}
                     style={{
-                      left: feeling.position.x * CELL_SIZE + 4,
-                      top: feeling.position.y * CELL_SIZE + 4,
-                      width: CELL_SIZE - 8,
-                      height: CELL_SIZE - 8,
+                      left: feeling.position.x * CELL_SIZE + 6,
+                      top: feeling.position.y * CELL_SIZE + 6,
+                      width: CELL_SIZE - 12,
+                      height: CELL_SIZE - 12,
                     }}
                   >
                     {feeling.type.charAt(0).toUpperCase()}
@@ -705,17 +724,18 @@ export default function PacHealGame() {
                 </div>
               ))}
 
-              {/* Player */}
+              {/* Player - Teacher Character */}
               <div
-                className="absolute bg-yellow-400 rounded-full flex items-center justify-center"
+                className="absolute bg-yellow-200 rounded-full flex items-center justify-center border-3 border-yellow-400 shadow-xl transition-all duration-100 animate-pulse"
                 style={{
                   left: playerPos.x * CELL_SIZE + 2,
                   top: playerPos.y * CELL_SIZE + 2,
                   width: CELL_SIZE - 4,
                   height: CELL_SIZE - 4,
+                  zIndex: 20,
                 }}
               >
-                <Heart className="h-4 w-4 text-red-500" />
+                <span className="text-xl font-bold">👩‍🏫</span>
               </div>
             </div>
 
