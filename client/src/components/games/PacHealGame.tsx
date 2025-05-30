@@ -492,6 +492,7 @@ export default function PacHealGame() {
               pellet.position.x === playerPos.x && 
               pellet.position.y === playerPos.y) {
             
+            playSound('collect');
             setScore(s => s + 150);
             
             // Show quiz for this routine
@@ -530,17 +531,19 @@ export default function PacHealGame() {
       );
 
       if (collidingGhost?.type === 'freeze') {
-        setLives(prev => {
-          const newLives = prev - 1;
-          if (newLives <= 0) {
-            setGameState('gameOver');
-          }
-          return newLives;
-        });
-        // Reset player position
-        setPlayerPos({ x: 1, y: 1 });
+        // Play ghost collision sound
+        playSound('ghost');
+        
+        // Trigger ECE quiz for rescue
+        const randomQuiz = ECE_QUIZ_QUESTIONS[Math.floor(Math.random() * ECE_QUIZ_QUESTIONS.length)];
+        setEceQuiz(randomQuiz);
+        setSelectedAnswer(null);
+        setQuizResult(null);
+        setGameState('quiz');
+        playSound('quiz');
       } else if (collidingGhost?.type === 'helper') {
         // Helpers give bonus points
+        playSound('success');
         setScore(s => s + 200);
       }
     }
@@ -810,7 +813,7 @@ export default function PacHealGame() {
                 !feeling.eaten && (
                   <div
                     key={`feeling-${feeling.id}`}
-                    className={`absolute rounded-full ${getEmotionColor(feeling.type)} flex items-center justify-center text-white text-xs font-bold shadow-lg`}
+                    className={`absolute rounded-full ${getEmotionColor(feeling.type)} flex items-center justify-center text-white text-xs font-bold shadow-lg ${feeling.powerUp ? 'animate-bounce border-4 border-yellow-300' : ''}`}
                     style={{
                       left: feeling.position.x * CELL_SIZE + 6,
                       top: feeling.position.y * CELL_SIZE + 6,
