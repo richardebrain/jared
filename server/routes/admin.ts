@@ -1,6 +1,9 @@
 import { Router, type Request, type Response, NextFunction } from 'express';
 import { QuestionManagementService, QuestionFiltersSchema, CreateQuestionSchema, UpdateQuestionSchema } from '../services/admin/QuestionManagementService';
 import { z } from 'zod';
+import { db } from '../db';
+import { teacherMessages, users, insertTeacherMessageSchema } from '@shared/schema';
+import { eq, desc, and } from 'drizzle-orm';
 
 const router = Router();
 const questionService = new QuestionManagementService();
@@ -478,6 +481,135 @@ router.post('/questions/bulk/availability', requireAdmin, async (req: Request, r
       success: false,
       error: 'Failed to bulk update availability',
     });
+  }
+});
+
+/**
+ * GET /api/admin/messages
+ * Get recent messages sent by admins
+ */
+router.get('/messages', async (req: Request, res: Response) => {
+  try {
+    // Check if user is admin
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const messages = await db
+      .select({
+        id: teacherMessages.id,
+        subject: teacherMessages.title,
+        content: teacherMessages.content,
+        senderName: users.firstName,
+        recipientName: teacherMessages.recipientId, // We'll need to join with recipient info
+        createdAt: teacherMessages.createdAt,
+        isRead: teacherMessages.isRead,
+        priority: teacherMessages.messageType,
+      })
+      .from(teacherMessages)
+      .innerJoin(users, eq(teacherMessages.senderId, users.id))
+      .orderBy(desc(teacherMessages.createdAt))
+      .limit(50);
+
+    res.json(messages);
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+    res.status(500).json({ message: 'Failed to fetch messages' });
+  }
+});
+
+/**
+ * POST /api/admin/send-message
+ * Send message to selected teachers
+ */
+router.post('/send-message', async (req: Request, res: Response) => {
+  try {
+    // Check if user is admin
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const { teacherIds, subject, content, priority, messageType } = req.body;
+
+    if (!teacherIds || !Array.isArray(teacherIds) || teacherIds.length === 0) {
+      return res.status(400).json({ message: 'Teacher IDs are required' });
+    }
+
+    if (!subject || !content) {
+      return res.status(400).json({ message: 'Subject and content are required' });
+    }
+
+    const senderId = req.session.userId;
+
+    // Create messages for each selected teacher
+    const messagesToInsert = teacherIds.map(teacherId => ({
+      senderId,
+      recipientId: teacherId,
+      messageType: messageType || 'announcement',
+      title: subject,
+      content,
+      important: priority === 'urgent' || priority === 'high',
+      isRead: false,
+    }));
+
+    await db.insert(teacherMessages).values(messagesToInsert);
+
+    res.json({ 
+      success: true, 
+      message: `Message sent to ${teacherIds.length} teacher(s)` 
+    });
+  } catch (error) {
+    console.error('Error sending message:', error);
+    res.status(500).json({ message: 'Failed to send message' });
+  }
+});
+
+/**
+ * POST /api/admin/assign-modules
+ * Assign modules to teachers
+ */
+router.post('/assign-modules', async (req: Request, res: Response) => {
+  try {
+    // Check if user is admin
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const { teacherIds, moduleId, deadline, priority } = req.body;
+
+    if (!teacherIds || !Array.isArray(teacherIds) || teacherIds.length === 0) {
+      return res.status(400).json({ message: 'Teacher IDs are required' });
+    }
+
+    if (!moduleId) {
+      return res.status(400).json({ message: 'Module ID is required' });
+    }
+
+    // For now, we'll just send a message about the module assignment
+    // In a full implementation, you'd have a module assignments table
+    const senderId = req.session.userId;
+    const subject = `New Training Module Assigned`;
+    const content = `You have been assigned a new training module. ${deadline ? `Please complete by ${deadline}.` : ''} Priority: ${priority || 'medium'}`;
+
+    const messagesToInsert = teacherIds.map(teacherId => ({
+      senderId,
+      recipientId: teacherId,
+      messageType: 'assignment',
+      title: subject,
+      content,
+      important: priority === 'urgent' || priority === 'high',
+      isRead: false,
+    }));
+
+    await db.insert(teacherMessages).values(messagesToInsert);
+
+    res.json({ 
+      success: true, 
+      message: `Module assigned to ${teacherIds.length} teacher(s)` 
+    });
+  } catch (error) {
+    console.error('Error assigning module:', error);
+    res.status(500).json({ message: 'Failed to assign module' });
   }
 });
 
