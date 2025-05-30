@@ -65,6 +65,7 @@ import ComprehensiveModuleCreator from "@/pages/comprehensive-module-creator";
 import ModuleWizard from "@/pages/module-wizard";
 import EmailServiceDemo from "@/pages/EmailServiceDemo";
 import DirectorToolkit from "@/pages/director-toolkit";
+import AdminTeachersPage from "@/pages/admin-teachers";
 
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
@@ -595,6 +596,12 @@ function Router(props: {
       <Route path="/director-toolkit">
         <ProtectedRoute adminOnly={true}>
           <DirectorToolkit />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/admin/teachers">
+        <ProtectedRoute adminOnly={true}>
+          <AdminTeachersPage />
         </ProtectedRoute>
       </Route>
 
