@@ -4,6 +4,7 @@ import {
   Award, 
   BookOpen, 
   Brain, 
+  Calendar,
   CheckCircle, 
   Clock, 
   Crown, 
@@ -42,6 +43,9 @@ interface LevelRequirement {
   points: number;
   assessmentScore?: number;
   hoursRequired?: number;
+  experienceRequired?: string;
+  directorApproval?: boolean;
+  inPersonAssessment?: boolean;
   modules?: string[];
   icon: LucideIcon;
   color: string;
@@ -97,10 +101,12 @@ export default function ProgressionMap() {
       points: 250,
       assessmentScore: 70,
       hoursRequired: 20,
+      experienceRequired: "6 months",
+      directorApproval: true,
       modules: ["classroom-management", "child-development-basics", "curriculum-planning"],
       icon: Medal,
       color: "bg-purple-500",
-      description: "Qualified teacher capable of independently managing a classroom and implementing curriculum. Requires 1 year of experience.",
+      description: "Qualified teacher capable of independently managing a classroom and implementing curriculum. Requires 6 months of experience and director approval.",
       benefits: [
         "Full classroom leadership",
         "Curriculum development input",
@@ -113,10 +119,12 @@ export default function ProgressionMap() {
       points: 500,
       assessmentScore: 80,
       hoursRequired: 40,
+      experienceRequired: "6 months",
+      directorApproval: true,
       modules: ["advanced-curriculum", "parent-relations", "behavioral-management"],
       icon: Trophy,
       color: "bg-orange-500",
-      description: "Experienced educator who demonstrates excellence in teaching and leadership abilities.",
+      description: "Experienced educator who demonstrates excellence in teaching and leadership abilities. Requires 6 months of experience and director approval.",
       benefits: [
         "Leadership role in curriculum planning",
         "Opportunity to conduct workshops for other teachers",
@@ -129,10 +137,13 @@ export default function ProgressionMap() {
       points: 1000,
       assessmentScore: 90,
       hoursRequired: 60,
+      experienceRequired: "6 months",
+      directorApproval: true,
+      inPersonAssessment: true,
       modules: ["leadership-in-ece", "advanced-child-development", "evaluation-methods"],
       icon: Crown,
       color: "bg-red-500",
-      description: "Highest level of teaching excellence with comprehensive knowledge of early childhood education and exceptional classroom results.",
+      description: "Highest level of teaching excellence with comprehensive knowledge of early childhood education and exceptional classroom results. Requires 6 months of experience, director approval, and passing an in-person 2-part assessment.",
       benefits: [
         "School-wide leadership role",
         "Curriculum development authority",
@@ -427,6 +438,118 @@ export default function ProgressionMap() {
             </Card>
           </div>
           
+          {/* Visual Progression Line */}
+          <Card className="bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
+            <CardHeader>
+              <CardTitle className="text-center text-2xl font-bold text-indigo-700">
+                🎯 Your Progression Journey 🎯
+              </CardTitle>
+              <CardDescription className="text-center text-lg">
+                Track your advancement through the teacher certification levels
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-8">
+              <div className="relative">
+                {/* Progress Line */}
+                <div className="absolute top-8 left-0 right-0 h-2 bg-gray-200 rounded-full">
+                  <div 
+                    className="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-1000"
+                    style={{ 
+                      width: `${(Object.keys(teacherLevels).indexOf(currentLevel) / (Object.keys(teacherLevels).length - 1)) * 100}%` 
+                    }}
+                  />
+                </div>
+                
+                {/* Level Markers */}
+                <div className="flex justify-between items-center relative">
+                  {Object.entries(teacherLevels).map(([level, requirements], index) => {
+                    const isCompleted = getCompletionStatus(level) === "completed";
+                    const isActive = getCompletionStatus(level) === "active";
+                    const isNext = getCompletionStatus(level) === "in-progress";
+                    
+                    return (
+                      <div key={level} className="flex flex-col items-center">
+                        {/* Level Circle */}
+                        <div className={`relative w-16 h-16 rounded-full border-4 flex items-center justify-center transition-all duration-300 ${
+                          isCompleted 
+                            ? "bg-green-500 border-green-600 shadow-lg" 
+                            : isActive
+                            ? "bg-blue-500 border-blue-600 shadow-lg animate-pulse"
+                            : isNext
+                            ? "bg-yellow-400 border-yellow-500 shadow-lg"
+                            : "bg-gray-200 border-gray-300"
+                        }`}>
+                          {React.createElement(requirements.icon, { 
+                            className: `h-6 w-6 ${
+                              isCompleted || isActive ? "text-white" : isNext ? "text-gray-700" : "text-gray-400"
+                            }` 
+                          })}
+                          
+                          {/* Teacher Avatar - only show on current level */}
+                          {isActive && (
+                            <div className="absolute -top-12 animate-bounce">
+                              <div className="w-8 h-8 bg-orange-400 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                                <span className="text-white text-lg">👩‍🏫</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Level Name */}
+                        <div className="mt-3 text-center">
+                          <div className={`font-bold text-sm ${
+                            isCompleted || isActive ? "text-indigo-700" : "text-gray-500"
+                          }`}>
+                            {level.charAt(0).toUpperCase() + level.slice(1)}
+                          </div>
+                          <div className="text-xs text-gray-600 mt-1">
+                            {requirements.points} pts
+                          </div>
+                        </div>
+                        
+                        {/* Status Badge */}
+                        <div className="mt-2">
+                          {isCompleted && (
+                            <Badge className="bg-green-500 text-white text-xs px-2 py-1">
+                              ✅ Complete
+                            </Badge>
+                          )}
+                          {isActive && (
+                            <Badge className="bg-blue-500 text-white text-xs px-2 py-1 animate-pulse">
+                              ⭐ Current
+                            </Badge>
+                          )}
+                          {isNext && (
+                            <Badge className="bg-yellow-500 text-black text-xs px-2 py-1">
+                              🚀 Next
+                            </Badge>
+                          )}
+                          {!isCompleted && !isActive && !isNext && (
+                            <Badge className="bg-gray-300 text-gray-600 text-xs px-2 py-1">
+                              🔒 Locked
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                {/* Progress Text */}
+                <div className="text-center mt-8 p-4 bg-white/50 rounded-lg">
+                  <p className="text-lg font-semibold text-indigo-700">
+                    You are currently a <span className="capitalize bg-yellow-200 px-2 py-1 rounded">{currentLevel} Teacher</span>
+                  </p>
+                  {nextLevel && (
+                    <p className="text-sm text-gray-600 mt-2">
+                      {pointsToNextLevel()} more points needed to reach {nextLevel.charAt(0).toUpperCase() + nextLevel.slice(1)} Teacher level
+                    </p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
           {/* Teacher Levels */}
           <div className="space-y-6">
             <div className="text-center">
@@ -505,6 +628,24 @@ export default function ProgressionMap() {
                           <span className="font-bold text-purple-600">{requirements.hoursRequired}h</span>
                         </div>
                       )}
+                      {requirements.experienceRequired && (
+                        <div className="flex items-center justify-between text-sm bg-white/50 p-2 rounded">
+                          <span className="font-medium">📅 Experience Required:</span>
+                          <span className="font-bold text-orange-600">{requirements.experienceRequired}</span>
+                        </div>
+                      )}
+                      {requirements.directorApproval && (
+                        <div className="flex items-center justify-between text-sm bg-white/50 p-2 rounded">
+                          <span className="font-medium">✅ Director Approval:</span>
+                          <span className="font-bold text-green-600">Required</span>
+                        </div>
+                      )}
+                      {requirements.inPersonAssessment && (
+                        <div className="flex items-center justify-between text-sm bg-white/50 p-2 rounded">
+                          <span className="font-medium">🎯 In-Person Assessment:</span>
+                          <span className="font-bold text-red-600">2-Part Required</span>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -543,7 +684,7 @@ export default function ProgressionMap() {
                   
                   <div>
                     <h4 className="font-bold text-xl mb-4 text-blue-700">📋 Requirements:</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200 text-center">
                         <div className="text-blue-500 mb-2">
                           <TrendingUp className="h-8 w-8 mx-auto" />
@@ -569,6 +710,36 @@ export default function ProgressionMap() {
                           </div>
                           <div className="text-2xl font-bold text-purple-600">{teacherLevels[selectedLevel].hoursRequired}h</div>
                           <div className="text-sm text-purple-700 font-medium">Training Hours</div>
+                        </div>
+                      )}
+                      
+                      {teacherLevels[selectedLevel].experienceRequired && (
+                        <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-xl border border-orange-200 text-center">
+                          <div className="text-orange-500 mb-2">
+                            <Calendar className="h-8 w-8 mx-auto" />
+                          </div>
+                          <div className="text-2xl font-bold text-orange-600">{teacherLevels[selectedLevel].experienceRequired}</div>
+                          <div className="text-sm text-orange-700 font-medium">Experience Required</div>
+                        </div>
+                      )}
+                      
+                      {teacherLevels[selectedLevel].directorApproval && (
+                        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-4 rounded-xl border border-emerald-200 text-center">
+                          <div className="text-emerald-500 mb-2">
+                            <CheckCircle className="h-8 w-8 mx-auto" />
+                          </div>
+                          <div className="text-xl font-bold text-emerald-600">Required</div>
+                          <div className="text-sm text-emerald-700 font-medium">Director Approval</div>
+                        </div>
+                      )}
+                      
+                      {teacherLevels[selectedLevel].inPersonAssessment && (
+                        <div className="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-xl border border-red-200 text-center">
+                          <div className="text-red-500 mb-2">
+                            <Award className="h-8 w-8 mx-auto" />
+                          </div>
+                          <div className="text-xl font-bold text-red-600">2-Part Test</div>
+                          <div className="text-sm text-red-700 font-medium">In-Person Assessment</div>
                         </div>
                       )}
                     </div>
@@ -621,18 +792,9 @@ export default function ProgressionMap() {
             </Card>
           )}
           
-          {/* Bear Assistant and BearBucks Rewards */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <BearAssistant 
-                userName={user?.firstName || user?.username || "Teacher"} 
-                userLevel={currentLevel}
-                userPoints={user?.points || 0}
-              />
-            </div>
-            <div>
-              <BearBucksRewards />
-            </div>
+          {/* BearBucks Rewards */}
+          <div className="max-w-2xl mx-auto">
+            <BearBucksRewards />
           </div>
           
           {/* Motivational Section */}
