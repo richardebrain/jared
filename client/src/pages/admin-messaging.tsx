@@ -72,10 +72,13 @@ export default function AdminMessagingPage() {
   });
 
   // Fetch recent messages
-  const { data: recentMessages = [], isLoading: messagesLoading } = useQuery({
+  const { data: messagesData, isLoading: messagesLoading } = useQuery({
     queryKey: ['/api/admin/messages'],
     staleTime: 1000 * 60 * 2,
   });
+
+  // Ensure recentMessages is always an array
+  const recentMessages = Array.isArray(messagesData) ? messagesData : [];
 
   // Send message mutation
   const sendMessageMutation = useMutation({
