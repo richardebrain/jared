@@ -57,17 +57,39 @@ interface ToolCardProps {
 const ToolCard: React.FC<ToolCardProps> = ({ icon, title, description, onClick, selected }) => {
   return (
     <Card 
-      className={`cursor-pointer transition-all hover:shadow-md hover:scale-[1.02] ${
-        selected ? 'border-primary ring-2 ring-primary/20' : ''
+      className={`cursor-pointer transition-all duration-500 hover:shadow-2xl hover:scale-105 transform relative overflow-hidden bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-sm border-2 ${
+        selected ? 'border-purple-400 ring-4 ring-purple-200 shadow-2xl scale-105' : 'border-purple-200 hover:border-purple-300'
       }`}
       onClick={onClick}
     >
-      <CardContent className="p-6 flex flex-col items-center text-center gap-3">
-        <div className="rounded-full bg-primary/10 p-3 text-primary">
+      {/* Background gradient effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-purple-50/50 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
+      {/* Floating animation circle */}
+      <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full -mr-12 -mt-12 transition-transform duration-700 ${selected ? 'scale-150' : 'group-hover:scale-150'}`}></div>
+      
+      <CardContent className="p-6 flex flex-col items-center text-center gap-4 relative z-10">
+        <div className={`rounded-full p-4 transition-all duration-500 shadow-lg ${
+          selected 
+            ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white rotate-6 scale-110' 
+            : 'bg-gradient-to-br from-blue-500 to-purple-500 text-white hover:rotate-6 hover:scale-110'
+        }`}>
           {icon}
         </div>
-        <h3 className="font-semibold text-lg">{title}</h3>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <div className="space-y-2">
+          <h3 className={`font-bold text-lg transition-colors duration-300 ${
+            selected ? 'text-purple-600' : 'text-gray-800 hover:text-purple-600'
+          }`}>
+            {title}
+          </h3>
+          <p className="text-sm text-gray-600 leading-relaxed">{description}</p>
+        </div>
+        {selected && (
+          <div className="flex items-center gap-1 text-purple-600 font-medium text-sm animate-pulse">
+            <Stars className="h-4 w-4" />
+            Active Tool
+            <Stars className="h-4 w-4" />
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -210,40 +232,78 @@ export default function ToolsPage() {
   const activeTool = tools.find(tool => tool.id === activeTab);
 
   return (
-    <div className="min-h-screen bg-neutral-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-16 left-8 w-28 h-28 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-xl animate-pulse"></div>
+        <div className="absolute top-32 right-16 w-20 h-20 bg-gradient-to-br from-green-400/20 to-blue-400/20 rounded-full blur-xl animate-pulse delay-1000"></div>
+        <div className="absolute bottom-24 left-24 w-36 h-36 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-xl animate-pulse delay-2000"></div>
+        <div className="absolute bottom-16 right-8 w-24 h-24 bg-gradient-to-br from-orange-400/20 to-red-400/20 rounded-full blur-xl animate-pulse delay-500"></div>
+      </div>
+
       <Header />
       
-      <main className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-primary-foreground">
-              <span className="bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
-                Teacher Tools
-              </span>
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              AI-powered resources to enhance your teaching experience
+      <main className="container mx-auto px-4 py-8 relative z-10">
+        <div className="flex items-center justify-between mb-8">
+          <div className="text-center flex-1">
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full shadow-xl animate-bounce">
+                <GraduationCap className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  🛠️ Teacher Toolkit ✨
+                </h1>
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  <div className="h-1 w-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
+                  <Stars className="h-4 w-4 text-purple-500 animate-spin" />
+                  <div className="h-1 w-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
+                </div>
+              </div>
+              <div className="p-3 bg-gradient-to-br from-green-500 to-blue-500 rounded-full shadow-xl animate-bounce delay-300">
+                <Lightbulb className="h-8 w-8 text-white" />
+              </div>
+            </div>
+            <p className="text-lg text-gray-700 max-w-2xl mx-auto bg-white/60 backdrop-blur-sm p-3 rounded-xl border border-purple-200 shadow-lg">
+              🚀 AI-powered resources to enhance your teaching experience and classroom management! 
+              Choose your tool and unlock powerful capabilities! 
             </p>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex gap-3 ml-4">
             <Button 
               variant="outline" 
               size="sm" 
               onClick={() => setViewMode(viewMode === "cards" ? "tabs" : "cards")}
+              className="bg-white/80 backdrop-blur-sm border-purple-200 hover:bg-purple-50 transition-all duration-300 shadow-lg"
             >
-              {viewMode === "cards" ? "Tab View" : "Card View"}
+              {viewMode === "cards" ? "📑 Tab View" : "🎴 Card View"}
             </Button>
             <Link to="/dashboard">
-              <Button variant="outline">Back to Dashboard</Button>
+              <Button 
+                variant="outline" 
+                className="bg-white/80 backdrop-blur-sm border-purple-200 hover:bg-purple-50 transition-all duration-300 shadow-lg"
+              >
+                ← Back to Dashboard
+              </Button>
             </Link>
           </div>
         </div>
         
         {viewMode === "cards" ? (
           <>
-            {/* Card selector view */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+            {/* Enhanced Card selector view */}
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center flex items-center justify-center gap-2">
+                🎯 Choose Your Teaching Tool
+                <Stars className="h-6 w-6 text-purple-500 animate-pulse" />
+              </h2>
+              <p className="text-center text-gray-600 mb-6 bg-white/70 backdrop-blur-sm px-4 py-2 rounded-lg inline-block border border-purple-200 shadow-sm">
+                Click on any tool card to unlock its powerful features
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
               {tools.map(tool => (
                 <ToolCard
                   key={tool.id}
@@ -256,20 +316,31 @@ export default function ToolsPage() {
               ))}
             </div>
             
-            {/* Active tool display */}
-            <Card className="mt-8">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <div className="text-primary">
+            {/* Enhanced Active tool display */}
+            <Card className="mt-8 bg-gradient-to-br from-white/95 to-purple-50/95 backdrop-blur-sm border-2 border-purple-200 shadow-2xl relative overflow-hidden">
+              {/* Background decoration */}
+              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-full -mr-20 -mt-20"></div>
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full -ml-16 -mb-16"></div>
+              
+              <CardHeader className="relative z-10 bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+                <CardTitle className="flex items-center gap-3 text-xl">
+                  <div className="p-2 bg-white/20 rounded-full backdrop-blur-sm">
                     {activeTool?.icon}
                   </div>
-                  {activeTool?.title}
+                  <div>
+                    <span className="flex items-center gap-2">
+                      ✨ {activeTool?.title}
+                      <div className="px-2 py-1 bg-white/20 rounded-full text-xs font-medium backdrop-blur-sm">
+                        ACTIVE
+                      </div>
+                    </span>
+                  </div>
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-purple-100 mt-2">
                   {activeTool?.description}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6 relative z-10">
                 {activeTool?.component}
               </CardContent>
             </Card>
