@@ -119,7 +119,7 @@ export default function PacHealGame() {
   const [powerUpActive, setPowerUpActive] = useState(false);
   const [powerUpTimer, setPowerUpTimer] = useState(0);
   const [currentLevel, setCurrentLevel] = useState(1);
-  const [gameState, setGameState] = useState<'menu' | 'playing' | 'paused' | 'gameOver' | 'won' | 'levelComplete' | 'quiz'>('menu');
+  const [gameState, setGameState] = useState<'welcome' | 'menu' | 'playing' | 'paused' | 'gameOver' | 'won' | 'levelComplete' | 'quiz'>('welcome');
   const [collectedAffirmations, setCollectedAffirmations] = useState<string[]>([]);
   const [currentQuiz, setCurrentQuiz] = useState<{ question: string; answer: string } | null>(null);
   const [showQuizAnswer, setShowQuizAnswer] = useState(false);
@@ -491,13 +491,107 @@ export default function PacHealGame() {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {gameState === 'welcome' && (
+          <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-lg">
+            <div className="text-center space-y-6">
+              {/* Teacher Character */}
+              <div className="flex justify-center items-center mb-6">
+                <div className="bg-white rounded-full p-4 shadow-lg border-4 border-blue-200">
+                  <div className="text-6xl">👩‍🏫</div>
+                </div>
+              </div>
+              
+              {/* Welcome Message */}
+              <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-blue-500">
+                <h2 className="text-2xl font-bold text-blue-700 mb-4">Welcome to Pac-Heal!</h2>
+                <p className="text-lg text-gray-700 mb-4">
+                  Hi there! I'm Ms. Sarah, and I'm excited to guide you through this special training game designed for early childhood educators like you.
+                </p>
+              </div>
+
+              {/* Educational Purpose */}
+              <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-green-500">
+                <h3 className="text-xl font-semibold text-green-700 mb-3">What You'll Learn:</h3>
+                <div className="grid md:grid-cols-2 gap-4 text-left">
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-purple-600">Level 1: Emotional Regulation</h4>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• Transform negative emotions into positive affirmations</li>
+                      <li>• Practice identifying children's emotional states</li>
+                      <li>• Learn therapeutic responses to difficult behaviors</li>
+                    </ul>
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-blue-600">Level 2: Classroom Management</h4>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• Master daily routine transitions</li>
+                      <li>• Practice conflict resolution strategies</li>
+                      <li>• Learn evidence-based classroom techniques</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* How to Play */}
+              <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-orange-500">
+                <h3 className="text-xl font-semibold text-orange-700 mb-3">How to Play:</h3>
+                <div className="grid md:grid-cols-2 gap-4 text-left">
+                  <div className="space-y-2">
+                    <h4 className="font-semibold">Controls:</h4>
+                    <div className="flex items-center gap-2 text-sm">
+                      <div className="flex gap-1">
+                        <ArrowUp className="w-4 h-4" />
+                        <ArrowDown className="w-4 h-4" />
+                        <ArrowLeft className="w-4 h-4" />
+                        <ArrowRight className="w-4 h-4" />
+                      </div>
+                      <span>or WASD to move</span>
+                    </div>
+                    <p className="text-sm text-gray-600">Spacebar to pause</p>
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="font-semibold">Gameplay:</h4>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• Collect emotional pellets to gain wisdom</li>
+                      <li>• Answer quiz questions to progress</li>
+                      <li>• Transform challenges into learning opportunities</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Learning Objectives */}
+              <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-indigo-500">
+                <h3 className="text-xl font-semibold text-indigo-700 mb-3">Training Objectives:</h3>
+                <div className="text-left space-y-2">
+                  <p className="text-sm text-gray-700">
+                    <strong>Emotional Intelligence:</strong> Develop skills to recognize and respond to children's emotional needs with empathy and evidence-based strategies.
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    <strong>Classroom Management:</strong> Practice daily routines and transitions that create a safe, structured learning environment for young children.
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    <strong>Professional Development:</strong> Gain practical knowledge that directly applies to your work with children ages 3-5 in early childhood settings.
+                  </p>
+                </div>
+              </div>
+
+              <Button 
+                onClick={() => setGameState('menu')} 
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg font-semibold rounded-lg shadow-lg transform hover:scale-105 transition-all"
+              >
+                Start Your Training Adventure! 🎮
+              </Button>
+            </div>
+          </div>
+        )}
+
         {gameState === 'menu' && (
           <div className="text-center space-y-4">
-            <div className="text-lg font-semibold">Welcome to Pac-Heal!</div>
+            <div className="text-lg font-semibold">Choose Your Learning Path</div>
             <div className="text-sm text-gray-600 space-y-2">
-              <p>Navigate the maze and collect "bad feelings" to transform them into positive affirmations!</p>
-              <p>Use arrow keys or WASD to move. Spacebar to pause.</p>
-              <p>When you eat bad feelings, you'll power up and turn scary ghosts into helpful friends!</p>
+              <p>Ready to begin your professional development journey?</p>
+              <p>Each level teaches essential skills for early childhood educators.</p>
             </div>
             <Button onClick={startGame} className="bg-blue-500 hover:bg-blue-600">
               Start Healing Journey
