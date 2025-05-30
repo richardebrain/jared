@@ -145,12 +145,22 @@ export function QuestionManagement() {
           throw new Error(`Domains fetch failed: ${response.status}`);
         }
         
-        const data = await response.json();
-        console.log("Domains fetched successfully:", data);
-        return data;
+        const result = await response.json();
+        console.log("Domains fetched successfully:", result);
+        
+        // Handle the API response structure {success: true, data: domains}
+        // Return the data array or empty array as fallback
+        if (result.success && Array.isArray(result.data)) {
+          return result.data;
+        } else if (Array.isArray(result)) {
+          return result;
+        } else {
+          console.warn("Unexpected domains response format:", result);
+          return [];
+        }
       } catch (err) {
         console.error("Exception in domains fetch:", err);
-        throw err;
+        return []; // Return empty array on error to prevent map errors
       }
     },
     retry: false,
@@ -345,7 +355,7 @@ export function QuestionManagement() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">All domains</SelectItem>
-                  {domains?.map((domain: any) => (
+                  {(domains || []).map((domain: any) => (
                     <SelectItem key={domain.name} value={domain.name}>
                       {domain.name}
                     </SelectItem>
