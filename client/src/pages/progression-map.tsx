@@ -150,52 +150,62 @@ export default function ProgressionMap() {
     enabled: !!user,
   });
   
-  // Get modules data
   const { data: modules = [] } = useQuery({
     queryKey: ["/api/modules"],
     enabled: !!user,
   });
   
-  // Determine user's current level and progress to next level
-  const determineUserLevel = () => {
-    if (!user) return { currentLevel: "assistant", nextLevel: "associate", progress: 0 };
+  // Calculate current level and progress
+  const currentLevel = React.useMemo(() => {
+    if (!user) return "assistant";
     
-    const pointsEarned = user.points || 0;
-    const levelKeys = Object.keys(teacherLevels);
+    const userPoints = userData?.points || user.points || 0;
+    const levels = Object.keys(teacherLevels).reverse(); // Start from highest level
     
-    for (let i = levelKeys.length - 1; i >= 0; i--) {
-      if (pointsEarned >= teacherLevels[levelKeys[i]].points) {
-        const currentLevel = levelKeys[i];
-        const nextLevel = i < levelKeys.length - 1 ? levelKeys[i + 1] : null;
-        
-        if (!nextLevel) return { currentLevel, nextLevel: null, progress: 100 };
-        
-        const currentLevelPoints = teacherLevels[currentLevel].points;
-        const nextLevelPoints = teacherLevels[nextLevel].points;
-        const pointsRange = nextLevelPoints - currentLevelPoints;
-        const pointsProgress = pointsEarned - currentLevelPoints;
-        const progress = Math.min(Math.round((pointsProgress / pointsRange) * 100), 99);
-        
-        return { currentLevel, nextLevel, progress };
+    for (const level of levels) {
+      if (userPoints >= teacherLevels[level].points) {
+        return level;
       }
     }
+    return "assistant";
+  }, [user, userData, teacherLevels]);
+  
+  const nextLevel = React.useMemo(() => {
+    const levels = Object.keys(teacherLevels);
+    const currentIndex = levels.indexOf(currentLevel);
+    return currentIndex < levels.length - 1 ? levels[currentIndex + 1] : null;
+  }, [currentLevel, teacherLevels]);
+  
+  const progress = React.useMemo(() => {
+    if (!user || !nextLevel) return 100;
     
-    return { currentLevel: "assistant", nextLevel: "associate", progress: 0 };
-  };
+    const userPoints = userData?.points || user.points || 0;
+    const currentLevelPoints = teacherLevels[currentLevel].points;
+    const nextLevelPoints = teacherLevels[nextLevel].points;
+    
+    const pointsInCurrentLevel = userPoints - currentLevelPoints;
+    const pointsNeededForNextLevel = nextLevelPoints - currentLevelPoints;
+    
+    return Math.min(100, Math.max(0, (pointsInCurrentLevel / pointsNeededForNextLevel) * 100));
+  }, [user, userData, currentLevel, nextLevel, teacherLevels]);
   
-  const { currentLevel, nextLevel, progress } = determineUserLevel();
-  
-  // Calculate stats for the current user
+  // Calculate completed modules count
   const calculateCompletedModules = () => {
-    if (!userProgress || !Array.isArray(userProgress) || userProgress.length === 0) return 0;
-    return userProgress.filter((progress: any) => 
-      progress && (progress.progress === 100 || progress.completed)
-    ).length;
+    if (!userProgress || !Array.isArray(userProgress)) return 0;
+    
+    try {
+      return userProgress.filter((progress: any) => 
+        progress && (progress.progress === 100 || progress.completed)
+      ).length;
+    } catch (error) {
+      console.error("Error calculating completed modules:", error);
+      return 0;
+    }
   };
   
-  const calculateTotalHours = () => {
-    if (!userProgress || !Array.isArray(userProgress) || userProgress.length === 0 || 
-        !modules || !Array.isArray(modules) || modules.length === 0) {
+  // Calculate completed hours based on modules
+  const getCompletedHours = () => {
+    if (!userProgress || !modules || !Array.isArray(userProgress) || !Array.isArray(modules)) {
       return 0;
     }
     
@@ -297,318 +307,402 @@ export default function ProgressionMap() {
   }
   
   return (
-    <div className="min-h-screen bg-neutral-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex flex-col">
       <Header />
       
       <main className="flex-1 container mx-auto p-4 md:p-6">
-        <div className="space-y-6">
+        <div className="space-y-8">
           {/* Header and Current Level Card */}
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Teacher Progression Map</h1>
-            <p className="text-neutral-600 mb-6">
-              Follow your journey from Assistant Teacher to Master Lead Teacher at Raising Arizona Preschool.
+          <div className="text-center space-y-4">
+            <div className="relative">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+                🌟 Teacher Progression Map 🌟
+              </h1>
+              <div className="absolute -top-2 -right-2 text-3xl animate-bounce">🎯</div>
+            </div>
+            <p className="text-lg text-neutral-700 max-w-3xl mx-auto">
+              Embark on your journey from Assistant Teacher to Master Lead Teacher at Raising Arizona Preschool. 
+              Level up your skills, unlock achievements, and become an education champion!
             </p>
+          </div>
             
-            {/* Current level card */}
-            <Card className="mb-6 border-2 border-primary/20">
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle>Your Current Level</CardTitle>
-                  <Badge variant="outline" className="text-xs uppercase">
-                    {currentLevel} Teacher
-                  </Badge>
+          {/* Current level card */}
+          <Card className="relative overflow-hidden bg-gradient-to-r from-blue-500 via-purple-600 to-indigo-600 text-white shadow-2xl transform hover:scale-105 transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 animate-pulse"></div>
+            <CardHeader className="relative z-10 pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-2xl font-bold flex items-center gap-3">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                    {React.createElement(teacherLevels[currentLevel]?.icon || Star, { 
+                      className: "h-6 w-6 text-yellow-300" 
+                    })}
+                  </div>
+                  Your Current Level
+                </CardTitle>
+                <Badge className="bg-yellow-400 text-black text-sm font-bold px-3 py-1 rounded-full shadow-lg">
+                  ⭐ {currentLevel.toUpperCase()} TEACHER ⭐
+                </Badge>
+              </div>
+              <CardDescription className="text-blue-100 text-lg">
+                🎯 {pointsToNextLevel()} points until {nextLevel ? `${nextLevel} Teacher` : "🏆 Maximum level reached!"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="relative z-10">
+              <div className="space-y-6">
+                <div>
+                  <div className="flex items-center justify-between text-white/90 mb-3">
+                    <span className="font-medium">🚀 Progress to next level</span>
+                    <span className="font-bold text-yellow-300 text-lg">{progress}%</span>
+                  </div>
+                  <div className="bg-white/20 rounded-full h-4 overflow-hidden">
+                    <div 
+                      className="bg-gradient-to-r from-yellow-300 to-orange-400 h-full rounded-full transition-all duration-1000 ease-out"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
                 </div>
-                <CardDescription>
-                  {pointsToNextLevel()} points until {nextLevel ? `${nextLevel} Teacher` : "Maximum level reached"}
-                </CardDescription>
+                
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/20 hover:bg-white/20 transition-all duration-300">
+                    <div className="text-yellow-300 mb-2">
+                      <TrendingUp className="h-6 w-6 mx-auto" />
+                    </div>
+                    <div className="text-2xl font-bold text-white">{userData?.points || user?.points || 0}</div>
+                    <div className="text-xs text-blue-100">Current Points</div>
+                  </div>
+                  
+                  <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/20 hover:bg-white/20 transition-all duration-300">
+                    <div className="text-orange-300 mb-2">
+                      <Award className="h-6 w-6 mx-auto" />
+                    </div>
+                    <div className="text-2xl font-bold text-white">{userData?.lifetimePoints || user?.lifetimePoints || 0}</div>
+                    <div className="text-xs text-blue-100">Lifetime Points</div>
+                  </div>
+                  
+                  <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/20 hover:bg-white/20 transition-all duration-300">
+                    <div className="text-green-300 mb-2">
+                      <Clock className="h-6 w-6 mx-auto" />
+                    </div>
+                    <div className="text-2xl font-bold text-white">{getCompletedHours()}</div>
+                    <div className="text-xs text-blue-100">Training Hours</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Achievement Badges Section */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6 text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="h-8 w-8 text-green-600" />
+                </div>
+                <h3 className="text-xl font-bold text-green-700 mb-2">📚 Modules Completed</h3>
+                <div className="text-3xl font-bold text-green-600">{calculateCompletedModules()}</div>
+                <p className="text-sm text-green-600 mt-2">Learning modules successfully finished</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200 hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6 text-center">
+                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Brain className="h-8 w-8 text-orange-600" />
+                </div>
+                <h3 className="text-xl font-bold text-orange-700 mb-2">🎯 Assessment Score</h3>
+                <div className="text-3xl font-bold text-orange-600">{getHighestAssessmentScore()}%</div>
+                <p className="text-sm text-orange-600 mt-2">Your highest assessment result</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200 hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6 text-center">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <BadgeCheck className="h-8 w-8 text-purple-600" />
+                </div>
+                <h3 className="text-xl font-bold text-purple-700 mb-2">🏆 Current Level</h3>
+                <div className="text-2xl font-bold text-purple-600 capitalize">{currentLevel}</div>
+                <p className="text-sm text-purple-600 mt-2">Teacher certification level</p>
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* Teacher Levels */}
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                🏆 Teacher Progression Levels 🏆
+              </h2>
+              <p className="text-lg text-neutral-700">
+                Click on any level to learn more about the requirements and benefits
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Object.entries(teacherLevels).map(([level, requirements]) => (
+                <Card 
+                  key={level}
+                  className={`cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl border-2 ${
+                    getCompletionStatus(level) === "completed" 
+                      ? "border-green-500 bg-gradient-to-br from-green-50 to-emerald-50 shadow-green-200" 
+                      : getCompletionStatus(level) === "active"
+                      ? "border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-blue-200"
+                      : getCompletionStatus(level) === "in-progress"
+                      ? "border-yellow-500 bg-gradient-to-br from-yellow-50 to-orange-50 shadow-yellow-200"
+                      : "border-neutral-300 bg-gradient-to-br from-neutral-50 to-gray-50"
+                  } shadow-lg`}
+                  onClick={() => setSelectedLevel(selectedLevel === level ? null : level)}
+                >
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-3">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${requirements.color} shadow-lg`}>
+                          {React.createElement(requirements.icon, { 
+                            className: "h-6 w-6 text-white" 
+                          })}
+                        </div>
+                        <div>
+                          <div className="font-bold text-lg">{level.charAt(0).toUpperCase() + level.slice(1)}</div>
+                          <div className="text-sm text-neutral-600">Teacher</div>
+                        </div>
+                      </CardTitle>
+                      <Badge 
+                        className={`text-xs font-bold px-3 py-1 ${
+                          getCompletionStatus(level) === "completed" 
+                            ? "bg-green-500 text-white" 
+                            : getCompletionStatus(level) === "active"
+                            ? "bg-blue-500 text-white"
+                            : getCompletionStatus(level) === "in-progress"
+                            ? "bg-yellow-500 text-black"
+                            : "bg-gray-300 text-gray-600"
+                        }`}
+                      >
+                        {getCompletionStatus(level) === "completed" 
+                          ? "✅ Completed" 
+                          : getCompletionStatus(level) === "active"
+                          ? "⭐ Current"
+                          : getCompletionStatus(level) === "in-progress"
+                          ? "🚀 Next"
+                          : "🔒 Locked"}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between text-sm bg-white/50 p-2 rounded">
+                        <span className="font-medium">🎯 Points Required:</span>
+                        <span className="font-bold text-blue-600">{requirements.points}</span>
+                      </div>
+                      {requirements.assessmentScore && (
+                        <div className="flex items-center justify-between text-sm bg-white/50 p-2 rounded">
+                          <span className="font-medium">🧠 Assessment Score:</span>
+                          <span className="font-bold text-green-600">{requirements.assessmentScore}%</span>
+                        </div>
+                      )}
+                      {requirements.hoursRequired && (
+                        <div className="flex items-center justify-between text-sm bg-white/50 p-2 rounded">
+                          <span className="font-medium">⏰ Training Hours:</span>
+                          <span className="font-bold text-purple-600">{requirements.hoursRequired}h</span>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+          
+          {/* Level Details Modal */}
+          {selectedLevel && (
+            <Card className="mt-8 border-2 border-primary shadow-2xl bg-gradient-to-br from-white to-blue-50">
+              <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-t-lg">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-3 text-xl">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center bg-white/20 shadow-lg`}>
+                      {React.createElement(teacherLevels[selectedLevel].icon, { 
+                        className: "h-6 w-6 text-white" 
+                      })}
+                    </div>
+                    {selectedLevel.charAt(0).toUpperCase() + selectedLevel.slice(1)} Teacher Level
+                  </CardTitle>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="text-white hover:bg-white/20"
+                    onClick={() => setSelectedLevel(null)}
+                  >
+                    ✕
+                  </Button>
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+              <CardContent className="p-6">
+                <div className="space-y-6">
+                  <p className="text-lg text-neutral-700 bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+                    {teacherLevels[selectedLevel].description}
+                  </p>
+                  
                   <div>
-                    <div className="flex items-center justify-between text-sm mb-2">
-                      <span>Progress to next level</span>
-                      <span className="font-semibold">{progress}%</span>
-                    </div>
-                    <Progress value={progress} className="h-2" />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-2 text-center mb-4">
-                    <div className="bg-blue-50 p-3 rounded-lg">
-                      <div className="text-blue-500 mb-1">
-                        <TrendingUp className="h-5 w-5 mx-auto" />
+                    <h4 className="font-bold text-xl mb-4 text-blue-700">📋 Requirements:</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200 text-center">
+                        <div className="text-blue-500 mb-2">
+                          <TrendingUp className="h-8 w-8 mx-auto" />
+                        </div>
+                        <div className="text-2xl font-bold text-blue-600">{teacherLevels[selectedLevel].points}</div>
+                        <div className="text-sm text-blue-700 font-medium">Points Required</div>
                       </div>
-                      <div className="text-2xl font-bold">{userData?.points || user?.points || 0}</div>
-                      <div className="text-xs text-neutral-600">Current Points</div>
-                    </div>
-                    
-                    <div className="bg-purple-50 p-3 rounded-lg">
-                      <div className="text-purple-500 mb-1">
-                        <Award className="h-5 w-5 mx-auto" />
-                      </div>
-                      <div className="text-2xl font-bold">{userData?.lifetimePoints || user?.lifetimePoints || 0}</div>
-                      <div className="text-xs text-neutral-600">Lifetime Points</div>
-                    </div>
-                  </div>
-                    
-                  <div className="grid grid-cols-3 gap-2 text-center">
-                    <div className="bg-green-50 p-3 rounded-lg">
-                      <div className="text-green-500 mb-1">
-                        <CheckCircle className="h-5 w-5 mx-auto" />
-                      </div>
-                      <div className="text-2xl font-bold">{calculateCompletedModules()}</div>
-                      <div className="text-xs text-neutral-600">Modules Completed</div>
-                    </div>
-                    
-                    <div className="bg-yellow-50 p-3 rounded-lg">
-                      <div className="text-yellow-500 mb-1">
-                        <Clock className="h-5 w-5 mx-auto" />
-                      </div>
-                      <div className="text-2xl font-bold">{calculateTotalHours()}</div>
-                      <div className="text-xs text-neutral-600">Training Hours</div>
-                    </div>
-                    
-                    <div className="bg-teal-50 p-3 rounded-lg">
-                      <div className="text-teal-500 mb-1">
-                        <Star className="h-5 w-5 mx-auto" />
-                      </div>
-                      <div className="text-2xl font-bold">{user?.level || 1}</div>
-                      <div className="text-xs text-neutral-600">Current Level</div>
+                      
+                      {teacherLevels[selectedLevel].assessmentScore && (
+                        <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl border border-green-200 text-center">
+                          <div className="text-green-500 mb-2">
+                            <Brain className="h-8 w-8 mx-auto" />
+                          </div>
+                          <div className="text-2xl font-bold text-green-600">{teacherLevels[selectedLevel].assessmentScore}%</div>
+                          <div className="text-sm text-green-700 font-medium">Assessment Score</div>
+                        </div>
+                      )}
+                      
+                      {teacherLevels[selectedLevel].hoursRequired && (
+                        <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl border border-purple-200 text-center">
+                          <div className="text-purple-500 mb-2">
+                            <Clock className="h-8 w-8 mx-auto" />
+                          </div>
+                          <div className="text-2xl font-bold text-purple-600">{teacherLevels[selectedLevel].hoursRequired}h</div>
+                          <div className="text-sm text-purple-700 font-medium">Training Hours</div>
+                        </div>
+                      )}
                     </div>
                   </div>
                   
-                  {currentLevel === "senior" && progress >= 80 && (
-                    <div className="bg-red-50 p-4 rounded-lg border border-red-100 text-center">
-                      <h3 className="text-lg font-bold text-red-800 flex items-center justify-center">
-                        <Crown className="h-5 w-5 mr-2" />
-                        Master Teacher Assessment Available!
-                      </h3>
-                      <p className="text-sm text-red-700 mb-2">
-                        You've earned the right to take the 100-question Master Lead Teacher assessment.
-                        Score 90% or higher to achieve our highest teaching rank!
-                      </p>
-                      <Button className="bg-red-600 hover:bg-red-700">
-                        Start Master Assessment
-                      </Button>
+                  {teacherLevels[selectedLevel].modules && (
+                    <div>
+                      <h4 className="font-bold text-xl mb-4 text-green-700">📚 Required Modules:</h4>
+                      <div className="grid grid-cols-1 gap-3">
+                        {teacherLevels[selectedLevel].modules.map((moduleSlug) => (
+                          <div 
+                            key={moduleSlug}
+                            className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
+                              isModuleCompleted(moduleSlug) 
+                                ? "bg-green-50 border-green-300 shadow-green-100" 
+                                : "bg-orange-50 border-orange-300 shadow-orange-100"
+                            }`}
+                          >
+                            <span className="font-medium">{formatModuleName(moduleSlug)}</span>
+                            {isModuleCompleted(moduleSlug) ? (
+                              <div className="flex items-center gap-2">
+                                <CheckCircle className="h-5 w-5 text-green-500" />
+                                <span className="text-green-600 font-bold text-sm">Completed</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-5 w-5 text-orange-500" />
+                                <span className="text-orange-600 font-bold text-sm">Pending</span>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
+                  
+                  <div>
+                    <h4 className="font-bold text-xl mb-4 text-purple-700">🎁 Benefits & Opportunities:</h4>
+                    <div className="grid grid-cols-1 gap-3">
+                      {teacherLevels[selectedLevel].benefits.map((benefit, index) => (
+                        <div key={index} className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                          <CheckCircle className="h-5 w-5 text-purple-500 mt-0.5 flex-shrink-0" />
+                          <span className="text-purple-700 font-medium">{benefit}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
+          {/* Bear Assistant and BearBucks Rewards */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <BearAssistant 
+                userName={user?.firstName || user?.username || "Teacher"} 
+                userLevel={currentLevel}
+                userPoints={user?.points || 0}
+              />
+            </div>
+            <div>
+              <BearBucksRewards />
+            </div>
+          </div>
+          
+          {/* Motivational Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="h-6 w-6 text-yellow-500" />
+                  Your Teaching Journey
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200">
+                  <blockquote className="text-sm italic text-center text-neutral-700">
+                    "Every child deserves a champion – an adult who will never give up on them, 
+                    who understands the power of connection, and insists they become the best they can possibly be."
+                  </blockquote>
+                  <p className="text-xs text-right mt-2 text-neutral-500">- Raising Arizona Preschool Motto</p>
+                </div>
+                
+                <p className="text-sm text-neutral-600">
+                  Your growth as an educator directly impacts the development of the children in your care. 
+                  Each level you achieve represents new skills and knowledge that create better learning 
+                  experiences for our students.
+                </p>
+                
+                <div className="flex items-center p-3 bg-amber-50 rounded-lg border border-amber-100">
+                  <Award className="h-5 w-5 text-amber-500 mr-3 flex-shrink-0" />
+                  <p className="text-xs text-amber-700">
+                    Did you know? Master Lead Teachers at Raising Arizona earn higher compensation 
+                    and receive special recognition throughout the year!
+                  </p>
                 </div>
               </CardContent>
             </Card>
             
-            {/* Level progression visualization */}
-            <div className="relative">
-              <div className="absolute top-1/2 left-0 right-0 h-1 bg-neutral-200 -translate-y-1/2"></div>
-              <div className="relative flex justify-between px-4 py-10">
-                {Object.entries(teacherLevels).map(([level, requirements]) => {
-                  const LevelIcon = requirements.icon;
-                  const isActive = level === currentLevel;
-                  const isCompleted = getCompletionStatus(level) === "completed";
-                  const isLocked = getCompletionStatus(level) === "locked";
-                  
-                  return (
-                    <div 
-                      key={level} 
-                      className="relative flex flex-col items-center cursor-pointer"
-                      onClick={() => setSelectedLevel(level)}
-                    >
-                      <div 
-                        className={`w-12 h-12 rounded-full flex items-center justify-center z-10 transition-all ${
-                          isActive 
-                            ? "ring-4 ring-primary ring-offset-2" 
-                            : isCompleted 
-                              ? "bg-green-100 text-green-600" 
-                              : isLocked 
-                                ? "bg-neutral-200 text-neutral-400" 
-                                : requirements.color + " text-white"
-                        }`}
-                      >
-                        {isCompleted ? <CheckCircle className="h-6 w-6" /> : <LevelIcon className="h-6 w-6" />}
-                      </div>
-                      <div className="absolute -bottom-16 text-center w-24">
-                        <div className={`font-semibold ${isActive ? "text-primary" : isLocked ? "text-neutral-400" : ""}`}>
-                          {level.charAt(0).toUpperCase() + level.slice(1)}
-                        </div>
-                        <div className="text-xs text-neutral-600">
-                          {requirements.points} pts
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            
-            {/* Selected level details */}
-            <div className="mt-24">
-              {selectedLevel && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-2 ${teacherLevels[selectedLevel].color} text-white`}>
-                        {React.createElement(teacherLevels[selectedLevel].icon, { className: "h-5 w-5" })}
-                      </div>
-                      {selectedLevel.charAt(0).toUpperCase() + selectedLevel.slice(1)} Teacher Level
-                    </CardTitle>
-                    <CardDescription>
-                      {teacherLevels[selectedLevel].description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Tabs defaultValue="requirements">
-                      <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="requirements">Requirements</TabsTrigger>
-                        <TabsTrigger value="benefits">Benefits</TabsTrigger>
-                      </TabsList>
-                      <TabsContent value="requirements" className="space-y-4 pt-4">
-                        <div className="space-y-2">
-                          <h3 className="text-sm font-medium">Level Requirements</h3>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div className="flex p-3 bg-neutral-50 rounded-lg border">
-                              <div className="mr-2 mt-1 text-primary">
-                                <TrendingUp className="h-4 w-4" />
-                              </div>
-                              <div>
-                                <div className="font-medium text-sm">Points Required</div>
-                                <div className="text-sm">{teacherLevels[selectedLevel].points} points</div>
-                              </div>
-                            </div>
-                            
-                            {teacherLevels[selectedLevel].assessmentScore && (
-                              <div className="flex p-3 bg-neutral-50 rounded-lg border">
-                                <div className="mr-2 mt-1 text-primary">
-                                  <Brain className="h-4 w-4" />
-                                </div>
-                                <div>
-                                  <div className="font-medium text-sm">Assessment Score</div>
-                                  <div className="text-sm">{teacherLevels[selectedLevel].assessmentScore}% or higher</div>
-                                </div>
-                              </div>
-                            )}
-                            
-                            {teacherLevels[selectedLevel].hoursRequired && (
-                              <div className="flex p-3 bg-neutral-50 rounded-lg border">
-                                <div className="mr-2 mt-1 text-primary">
-                                  <Clock className="h-4 w-4" />
-                                </div>
-                                <div>
-                                  <div className="font-medium text-sm">Training Hours</div>
-                                  <div className="text-sm">{teacherLevels[selectedLevel].hoursRequired} hours minimum</div>
-                                </div>
-                              </div>
-                            )}
-                            
-                            {teacherLevels[selectedLevel].modules && teacherLevels[selectedLevel].modules.length > 0 && (
-                              <div className="flex p-3 bg-neutral-50 rounded-lg border">
-                                <div className="mr-2 mt-1 text-primary">
-                                  <BookOpen className="h-4 w-4" />
-                                </div>
-                                <div>
-                                  <div className="font-medium text-sm">Required Modules</div>
-                                  <div className="text-sm space-y-1 mt-1">
-                                    {teacherLevels[selectedLevel].modules.map(module => (
-                                      <div key={module} className="flex items-center text-xs">
-                                        {isModuleCompleted(module) ? (
-                                          <CheckCircle className="h-3 w-3 text-green-500 mr-1 flex-shrink-0" />
-                                        ) : (
-                                          <div className="h-3 w-3 rounded-full border border-neutral-300 mr-1 flex-shrink-0" />
-                                        )}
-                                        {formatModuleName(module)}
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {selectedLevel === "master" && (
-                          <div className="bg-red-50 p-3 rounded-lg border border-red-100">
-                            <h4 className="font-medium text-red-800 flex items-center">
-                              <Crown className="h-4 w-4 mr-1" />
-                              Master Teacher Assessment
-                            </h4>
-                            <p className="text-sm text-red-700 mt-1">
-                              The final requirement for Master Teacher is passing our comprehensive assessment with a 90% or higher score.
-                            </p>
-                          </div>
-                        )}
-                      </TabsContent>
-                      <TabsContent value="benefits" className="pt-4">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="w-12"></TableHead>
-                              <TableHead>Benefit</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {teacherLevels[selectedLevel].benefits.map((benefit, index) => (
-                              <TableRow key={index}>
-                                <TableCell>
-                                  <Badge className={`${teacherLevels[selectedLevel].color} text-white`}>{index + 1}</Badge>
-                                </TableCell>
-                                <TableCell>{benefit}</TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TabsContent>
-                    </Tabs>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </div>
-
-          {/* Bear Bucks Rewards Section */}
-          <div className="mt-8">
-            <h2 className="text-2xl font-bold mb-4">Bear Bucks Rewards Program</h2>
-            <BearBucksRewards 
-              bearBucks={user?.bearBucks || 0} 
-              points={user?.points || 0}
-            />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-1">
-              <BearAssistant 
-                user={user || undefined} 
-                initiallyMinimized={true}
-              />
-            </div>
-            
-            <div className="md:col-span-2">
-              {/* Motivation card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Why Progress Matters</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="p-3 bg-neutral-50 rounded-lg">
-                    <blockquote className="border-l-4 border-primary pl-3 italic text-neutral-700">
-                      "Every genius that ever was had a Mentor"
-                    </blockquote>
-                    <p className="text-xs text-right mt-2 text-neutral-500">- Raising Arizona Preschool Motto</p>
+            <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="h-6 w-6 text-indigo-500" />
+                  Quick Tips for Success
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs font-bold text-indigo-600">1</span>
                   </div>
-                  
-                  <p className="text-sm text-neutral-600">
-                    Your growth as an educator directly impacts the development of the children in your care. 
-                    Each level you achieve represents new skills and knowledge that create better learning 
-                    experiences for our students.
-                  </p>
-                  
-                  <div className="flex items-center p-3 bg-amber-50 rounded-lg border border-amber-100">
-                    <Award className="h-5 w-5 text-amber-500 mr-3 flex-shrink-0" />
-                    <p className="text-xs text-amber-700">
-                      Did you know? Master Lead Teachers at Raising Arizona earn higher compensation 
-                      and receive special recognition throughout the year!
-                    </p>
+                  <p className="text-sm">Complete training modules regularly to earn points and improve your skills</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs font-bold text-indigo-600">2</span>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                  <p className="text-sm">Take assessments to demonstrate your knowledge and unlock higher levels</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs font-bold text-indigo-600">3</span>
+                  </div>
+                  <p className="text-sm">Participate in school activities and games to earn bonus Bear Bucks</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs font-bold text-indigo-600">4</span>
+                  </div>
+                  <p className="text-sm">Connect with mentors and colleagues to share knowledge and experiences</p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </main>
