@@ -460,8 +460,8 @@ export default function ModuleWizard() {
                         </Badge>
                         <span className="font-semibold">{section.title}</span>
                       </div>
-                      <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                        Content preview generated successfully
+                      <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded max-h-32 overflow-y-auto">
+                        <div dangerouslySetInnerHTML={{ __html: section.content.replace(/```html|```/g, '').substring(0, 300) + '...' }} />
                       </div>
                     </div>
                   ))}
@@ -495,14 +495,19 @@ export default function ModuleWizard() {
                       </div>
                     </div>
                     
-                    <div className="grid gap-3">
+                    <div className="grid gap-4">
                       {generatedSections.map((section) => (
-                        <div key={section.id} className="border rounded p-3">
-                          <div className="flex items-center gap-2 mb-2">
+                        <div key={section.id} className="border rounded-lg p-4 bg-white">
+                          <div className="flex items-center gap-2 mb-3">
                             <Badge variant={section.type === 'quiz' ? 'destructive' : section.type === 'video' ? 'default' : 'secondary'}>
                               {section.type}
                             </Badge>
-                            <span className="font-medium">{section.title}</span>
+                            <span className="font-medium text-lg">{section.title}</span>
+                          </div>
+                          <div className="prose prose-sm max-w-none bg-gray-50 p-4 rounded border max-h-48 overflow-y-auto">
+                            <div dangerouslySetInnerHTML={{ 
+                              __html: section.content.replace(/```html|```/g, '').substring(0, 800) + (section.content.length > 800 ? '...' : '')
+                            }} />
                           </div>
                         </div>
                       ))}
