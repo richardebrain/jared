@@ -539,8 +539,15 @@ router.post('/send-message', async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Subject and content are required' });
     }
 
-    // For now, use a default sender ID (we'll implement proper admin auth later)
-    const senderId = 1; // Default admin user
+    // Use the current logged-in user as the sender
+    // For now, we'll use the first available user ID since auth is simplified
+    const firstUser = await db.select({ id: users.id }).from(users).limit(1);
+    const senderId = firstUser.length > 0 ? firstUser[0].id : null;
+    
+    if (!senderId) {
+      return res.status(500).json({ message: 'No valid sender found' });
+    }
+    
     const isImportant = priority === 'urgent' || priority === 'high';
 
     // Insert messages for each selected teacher
