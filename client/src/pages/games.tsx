@@ -158,11 +158,27 @@ export default function GamesPage() {
             </Badge>
           </div>
         </div>
+
+        {/* Streak Counter Display */}
+        <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-4 rounded-lg shadow-lg mb-6">
+          <div className="flex items-center justify-center space-x-6">
+            <div className="flex items-center space-x-2">
+              <Flame className="h-6 w-6" />
+              <span className="text-lg font-semibold">Current Streak</span>
+            </div>
+            <div className="bg-white/20 px-4 py-2 rounded-full">
+              <span className="text-2xl font-bold">{user?.streak || 0} Days</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Star className="h-5 w-5" />
+              <span className="text-sm">Keep it going!</span>
+            </div>
+          </div>
+        </div>
         
         <Tabs defaultValue="educational" className="space-y-4" onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-4 w-full max-w-4xl mx-auto">
+          <TabsList className="grid grid-cols-3 w-full max-w-4xl mx-auto">
             <TabsTrigger value="educational">Educational Games</TabsTrigger>
-            <TabsTrigger value="rewards">Streak Rewards</TabsTrigger>
             <TabsTrigger value="slots">Lucky Games</TabsTrigger>
             <TabsTrigger value="daily">Daily Challenge</TabsTrigger>
           </TabsList>
