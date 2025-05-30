@@ -87,6 +87,102 @@ const sampleQuestions: QuizQuestion[] = [
     ],
     correctAnswer: 0,
     explanation: "Emotion labeling and coping strategies build emotional intelligence and self-regulation skills."
+  },
+  {
+    id: 3,
+    question: "What is the most effective way to redirect challenging behavior?",
+    options: [
+      "Use punishment immediately",
+      "Offer choices and positive alternatives",
+      "Raise your voice to get attention",
+      "Remove all privileges"
+    ],
+    correctAnswer: 1,
+    explanation: "Offering choices empowers children and teaches decision-making while redirecting behavior positively."
+  },
+  {
+    id: 4,
+    question: "How should you respond when a child bites another child?",
+    options: [
+      "Bite them back to show how it feels",
+      "Stay calm, comfort the hurt child, and address the biter",
+      "Immediately send the biter home",
+      "Yell at the child who bit"
+    ],
+    correctAnswer: 1,
+    explanation: "Staying calm models appropriate behavior while addressing both children's needs in the situation."
+  },
+  {
+    id: 5,
+    question: "What's the best strategy for helping anxious children transition between activities?",
+    options: [
+      "Force them to move quickly",
+      "Give warnings and use visual schedules",
+      "Let them stay in one activity all day",
+      "Make transitions a surprise"
+    ],
+    correctAnswer: 1,
+    explanation: "Warnings and visual cues help anxious children prepare for changes and feel more secure."
+  },
+  {
+    id: 6,
+    question: "When children are arguing over a toy, what should you do first?",
+    options: [
+      "Take the toy away from both children",
+      "Help them problem-solve together",
+      "Give the toy to the oldest child",
+      "Distract them with a different activity"
+    ],
+    correctAnswer: 1,
+    explanation: "Teaching problem-solving skills helps children learn conflict resolution and cooperation."
+  },
+  {
+    id: 7,
+    question: "How can you best support a child who is feeling overwhelmed?",
+    options: [
+      "Tell them there's nothing to worry about",
+      "Create a calm space and teach breathing techniques",
+      "Keep them busy with more activities",
+      "Compare them to calmer children"
+    ],
+    correctAnswer: 1,
+    explanation: "Calm spaces and breathing techniques provide concrete tools for self-regulation."
+  },
+  {
+    id: 8,
+    question: "What's the most important factor in building trust with children?",
+    options: [
+      "Being the authority figure",
+      "Consistency and reliability",
+      "Giving them everything they want",
+      "Being their friend instead of teacher"
+    ],
+    correctAnswer: 1,
+    explanation: "Consistency and reliability help children feel safe and develop secure attachments."
+  },
+  {
+    id: 9,
+    question: "How should you handle a child who refuses to participate in group activities?",
+    options: [
+      "Force them to join immediately",
+      "Respect their choice and offer gentle encouragement",
+      "Exclude them from future activities",
+      "Make participation mandatory with consequences"
+    ],
+    correctAnswer: 1,
+    explanation: "Respecting autonomy while offering support helps children build confidence to participate."
+  },
+  {
+    id: 10,
+    question: "What's the best way to teach emotional vocabulary to young children?",
+    options: [
+      "Only focus on happy and sad",
+      "Use feeling words throughout daily interactions",
+      "Wait until they ask about emotions",
+      "Teach emotions through punishment"
+    ],
+    correctAnswer: 1,
+    explanation: "Regular use of emotion words in context helps children build their emotional vocabulary naturally."
   }
 ];
 
@@ -121,19 +217,46 @@ export default function PacHealGame() {
     setLives(3);
     setCollectedAffirmations([]);
     
-    // Generate bad feelings (dots to collect) only on open paths
+    // Generate bad feelings (dots to collect) only on accessible open paths
     const feelings: BadFeeling[] = [];
     let feelingId = 0;
+    
+    // Helper function to check if a position is accessible from start
+    const isAccessible = (startX: number, startY: number, targetX: number, targetY: number): boolean => {
+      const visited = new Set<string>();
+      const queue = [[startX, startY]];
+      
+      while (queue.length > 0) {
+        const [x, y] = queue.shift()!;
+        const key = `${x},${y}`;
+        
+        if (visited.has(key)) continue;
+        visited.add(key);
+        
+        if (x === targetX && y === targetY) return true;
+        
+        // Check all four directions
+        [[0, 1], [0, -1], [1, 0], [-1, 0]].forEach(([dx, dy]) => {
+          const newX = x + dx;
+          const newY = y + dy;
+          if (!isWall(newX, newY) && !visited.has(`${newX},${newY}`)) {
+            queue.push([newX, newY]);
+          }
+        });
+      }
+      return false;
+    };
+    
     for (let y = 1; y < BOARD_HEIGHT - 1; y++) {
       for (let x = 1; x < BOARD_WIDTH - 1; x++) {
-        if (!isWall(x, y) && !(x === 1 && y === 1)) { // Don't place on player start position
-          if (Math.random() < 0.3) { // 30% chance to place a feeling
+        if (!isWall(x, y) && !(x === 1 && y === 1) && isAccessible(1, 1, x, y)) {
+          if (Math.random() < 0.4) { // 40% chance to place a feeling
             feelings.push({
               id: feelingId++,
               position: { x, y },
               type: ['fear', 'shame', 'anger', 'worry'][Math.floor(Math.random() * 4)] as any,
               eaten: false,
-              powerUp: feelingId % 10 === 0 // Every 10th feeling is a power-up
+              powerUp: feelingId % 8 === 0 // Every 8th feeling is a power-up
             });
           }
         }
@@ -141,7 +264,7 @@ export default function PacHealGame() {
     }
     setBadFeelings(feelings);
 
-    // Generate ghosts in open areas
+    // Generate more ghosts in open areas
     const gameGhosts: Ghost[] = [
       {
         id: 1,
@@ -156,6 +279,27 @@ export default function PacHealGame() {
         direction: { x: 0, y: -1 },
         type: 'freeze',
         emotion: 'Stress'
+      },
+      {
+        id: 3,
+        position: { x: 9, y: 7 },
+        direction: { x: 0, y: 1 },
+        type: 'helper',
+        emotion: 'Frustration'
+      },
+      {
+        id: 4,
+        position: { x: 5, y: 3 },
+        direction: { x: 1, y: 0 },
+        type: 'freeze',
+        emotion: 'Burnout'
+      },
+      {
+        id: 5,
+        position: { x: 13, y: 11 },
+        direction: { x: -1, y: 0 },
+        type: 'helper',
+        emotion: 'Confusion'
       }
     ];
     setGhosts(gameGhosts);
