@@ -17,6 +17,7 @@ import BusinessSignup from "@/pages/business-signup";
 import LandingPage from "@/pages/landing";
 import ProgressionMap from "@/pages/progression-map";
 import InitialAssessment from "@/pages/initial-assessment";
+import AssessmentQuestions from "@/pages/assessment-questions";
 import AssessmentResults from "@/pages/assessment-results";
 import DynamicAssessmentPage from "@/pages/dynamic-assessment";
 import StandaloneAssessment from "@/pages/standalone-assessment";
@@ -198,6 +199,18 @@ function Router(props: {
           </div>
         ) : (
           <InitialAssessment />
+        )}
+      </Route>
+
+      <Route path="/assessment-questions">
+        {!isAuthenticated && !isLoading ? (
+          location !== "/login" ? <Redirect to="/login" /> : <Login />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <AssessmentQuestions />
         )}
       </Route>
 
