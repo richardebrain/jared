@@ -3338,5 +3338,258 @@ export const videoResourcesData: VideoResource[] = [
         }
       ]
     }
+},
+
+// COMPREHENSIVE PROFESSIONAL DEVELOPMENT VIDEOS FROM CSV LIBRARY
+// Assessment Videos - Authentic Educational Content
+{
+  id: "csv-video-001",
+  title: "Developmental Surveillance: What, Why and How",
+  description: "American Academy of Pediatrics Pediatrician, Dr. Shelly Flais discusses developmental surveillance recommendations, tips, and resources available to pediatricians, clinicians, and families.",
+  youtubeId: "sceYLUHhgnU",
+  category: ["assessment", "developmental-monitoring", "professional-development"],
+  tags: ["assessment", "developmental-monitoring", "surveillance", "pediatrics"],
+  duration: 8,
+  source: "American Academy of Pediatrics",
+  expertLevel: "intermediate",
+  dateAdded: "2025-05-30",
+  featured: true,
+  quiz: {
+    questions: [
+      {
+        question: "What is the main purpose of developmental surveillance according to Dr. Flais?",
+        options: [
+          "To diagnose developmental disorders",
+          "To monitor children's growth and development continuously", 
+          "To replace formal developmental screenings",
+          "To assess parental concerns only"
+        ],
+        correctAnswer: 1,
+        explanation: "Developmental surveillance involves continuous monitoring of children's development by healthcare providers and families."
+      },
+      {
+        question: "Who should be involved in developmental surveillance?",
+        options: [
+          "Only pediatricians",
+          "Only parents and families",
+          "Pediatricians, clinicians, and families working together",
+          "Only early childhood educators"
+        ],
+        correctAnswer: 2,
+        explanation: "Effective developmental surveillance requires collaboration between healthcare providers and families."
+      },
+      {
+        question: "How will you apply developmental surveillance concepts in your early childhood setting?",
+        options: [
+          "Document and share developmental observations with families",
+          "Focus only on academic milestones",
+          "Wait for formal assessments to identify concerns",
+          "Avoid discussing development with parents"
+        ],
+        correctAnswer: 0,
+        explanation: "Early childhood educators play a crucial role in observing and documenting children's development to support families."
+      }
+    ]
+  }
+},
+{
+  id: "csv-video-002", 
+  title: "What is Authentic Assessment?",
+  description: "Practitioners and families share their perspective on authentic assessment. Illustrates the primary features and purposes of authentic assessment in a classroom setting.",
+  youtubeId: "TmgrGdXAJJM",
+  category: ["assessment", "authentic-assessment", "classroom-practice"],
+  tags: ["assessment", "authentic-assessment", "classroom", "practitioners"],
+  duration: 3,
+  source: "Colorado Department of Education",
+  expertLevel: "beginner",
+  dateAdded: "2025-05-30",
+  featured: true,
+  quiz: {
+    questions: [
+      {
+        question: "What makes assessment 'authentic' according to the video?",
+        options: [
+          "It uses standardized tests only",
+          "It occurs in real classroom situations during natural activities",
+          "It requires special equipment",
+          "It happens only once per year"
+        ],
+        correctAnswer: 1,
+        explanation: "Authentic assessment takes place during children's natural activities and real classroom experiences."
+      },
+      {
+        question: "Who benefits from authentic assessment practices?",
+        options: [
+          "Only teachers",
+          "Only children", 
+          "Both practitioners and families",
+          "Only administrators"
+        ],
+        correctAnswer: 2,
+        explanation: "Authentic assessment provides valuable information for both educators and families about children's development."
+      },
+      {
+        question: "How can you implement authentic assessment in your classroom?",
+        options: [
+          "Observe children during play and document their learning",
+          "Only use formal testing materials",
+          "Assess children in isolation from their peers",
+          "Focus solely on academic skills"
+        ],
+        correctAnswer: 0,
+        explanation: "Authentic assessment involves observing and documenting children's learning during their natural play and interactions."
+      }
+    ]
+  }
+},
+{
+  id: "csv-video-003",
+  title: "Understanding and Responding to Challenging Behaviors in Young Children",
+  description: "Dr. Katherine Lingras's presentation on responding to challenging behaviors using two-generation and infant mental health frameworks in early childhood settings.",
+  youtubeId: "OaU7V_IEzi4", 
+  category: ["behavior-management", "social-emotional", "mental-health"],
+  tags: ["challenging-behaviors", "mental-health", "self-regulation", "trauma-informed"],
+  duration: 45,
+  source: "UMN Extension",
+  expertLevel: "advanced",
+  dateAdded: "2025-05-30",
+  featured: true,
+  quiz: {
+    questions: [
+      {
+        question: "What does a two-generation approach to challenging behaviors involve?",
+        options: [
+          "Working only with the child",
+          "Supporting both the child and their family/caregivers",
+          "Focusing on peer relationships",
+          "Using only behavioral interventions"
+        ],
+        correctAnswer: 1,
+        explanation: "Two-generation approaches recognize that supporting families and caregivers is essential for helping children with challenging behaviors."
+      },
+      {
+        question: "How does infant mental health framework help in early childhood settings?",
+        options: [
+          "It provides a comprehensive understanding of young children's emotional development",
+          "It focuses only on cognitive development",
+          "It eliminates the need for behavior plans",
+          "It works only with infants under 12 months"
+        ],
+        correctAnswer: 0,
+        explanation: "Infant mental health frameworks help educators understand the emotional and relational aspects of young children's development."
+      },
+      {
+        question: "What is your key takeaway for supporting children with challenging behaviors?",
+        options: [
+          "Understanding the child's needs and building supportive relationships",
+          "Using punishment to eliminate behaviors",
+          "Removing children from group activities",
+          "Focusing only on compliance"
+        ],
+        correctAnswer: 0,
+        explanation: "Effective support involves understanding underlying needs and building trusting, supportive relationships with children and families."
+      }
+    ]
+  }
+},
+{
+  id: "csv-video-004",
+  title: "How Childhood Trauma Affects Health Across a Lifetime", 
+  description: "Dr. Nadine Burke Harris explains how exposure to childhood trauma and adverse childhood experiences impacts brain development, immune system, and hormonal systems.",
+  youtubeId: "95ovIJ3dsNk",
+  category: ["trauma-informed-care", "child-development", "health"],
+  tags: ["trauma", "adverse-childhood-experiences", "brain-development", "health"],
+  duration: 16,
+  source: "TED",
+  expertLevel: "advanced", 
+  dateAdded: "2025-05-30",
+  featured: true,
+  quiz: {
+    questions: [
+      {
+        question: "According to Dr. Burke Harris, how does childhood trauma affect the developing brain?",
+        options: [
+          "It has no lasting effects",
+          "It only affects emotional development",
+          "It can alter brain architecture and stress response systems",
+          "It only impacts academic performance"
+        ],
+        correctAnswer: 2,
+        explanation: "Childhood trauma can fundamentally alter how the brain develops and responds to stress throughout life."
+      },
+      {
+        question: "What are ACEs as described in this presentation?",
+        options: [
+          "Academic achievement scores",
+          "Adverse Childhood Experiences including abuse, neglect, and household dysfunction",
+          "Art and creativity evaluations",
+          "Athletic performance measures"
+        ],
+        correctAnswer: 1,
+        explanation: "ACEs are Adverse Childhood Experiences that can include various forms of trauma and household challenges."
+      },
+      {
+        question: "How can early childhood educators use this knowledge?",
+        options: [
+          "Create trauma-informed, supportive environments for all children",
+          "Diagnose trauma in children",
+          "Remove children from challenging families",
+          "Focus only on academic instruction"
+        ],
+        correctAnswer: 0,
+        explanation: "Educators can apply trauma-informed practices to create safe, supportive environments that help all children thrive."
+      }
+    ]
+  }
+},
+{
+  id: "csv-video-005",
+  title: "Promoting Social Emotional Competence",
+  description: "Foundation for understanding the Pyramid Model as a framework for promoting young children's social and emotional development and preventing challenging behavior.",
+  youtubeId: "zTl7rfcIhvM",
+  category: ["social-emotional-learning", "pyramid-model", "behavior-support"],
+  tags: ["social-emotional", "pyramid-model", "challenging-behavior", "prevention"],
+  duration: 4,
+  source: "Pyramid Model Consortium",
+  expertLevel: "beginner",
+  dateAdded: "2025-05-30", 
+  featured: true,
+  quiz: {
+    questions: [
+      {
+        question: "What is the Pyramid Model designed to promote?",
+        options: [
+          "Only academic learning",
+          "Social and emotional development while preventing challenging behavior",
+          "Physical development only", 
+          "Language development exclusively"
+        ],
+        correctAnswer: 1,
+        explanation: "The Pyramid Model is a comprehensive framework for promoting social-emotional development and preventing challenging behaviors."
+      },
+      {
+        question: "Who can benefit from Pyramid Model practices?",
+        options: [
+          "Only children with challenging behaviors",
+          "All young children in early childhood settings",
+          "Only children with disabilities",
+          "Only preschool-aged children"
+        ],
+        correctAnswer: 1,
+        explanation: "Pyramid Model practices benefit all children by creating supportive environments that promote social-emotional growth."
+      },
+      {
+        question: "How will you implement Pyramid Model concepts in your classroom?",
+        options: [
+          "Build nurturing relationships and teach social-emotional skills to all children",
+          "Use it only when problems arise",
+          "Apply it only during circle time",
+          "Focus exclusively on behavior management"
+        ],
+        correctAnswer: 0,
+        explanation: "Effective implementation involves building relationships and proactively teaching social-emotional skills to support all children's development."
+      }
+    ]
+  }
 }
 ];
