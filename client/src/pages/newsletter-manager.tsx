@@ -452,8 +452,8 @@ export default function NewsletterManager() {
     return (
       <div className="max-w-5xl mx-auto p-6">
         {/* Editor Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
+        <div className="mb-6">
+          <div className="flex items-center gap-4 mb-4">
             <Button 
               variant="outline" 
               size="sm" 
@@ -470,7 +470,7 @@ export default function NewsletterManager() {
               <p className="text-gray-600">Create and customize your school newsletter</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button 
               onClick={generateContentSuggestions} 
               disabled={generatingSuggestions}
@@ -1019,23 +1019,25 @@ export default function NewsletterManager() {
   return (
     <div className="max-w-7xl mx-auto p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
+      <div className="mb-6">
+        <div className="flex items-center gap-4 mb-4">
           <Link href="/director-toolkit">
             <Button variant="outline" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Toolkit
             </Button>
           </Link>
-          <div>
+          <div className="flex-1">
             <h1 className="text-3xl font-bold text-gray-900">Newsletter Manager</h1>
             <p className="text-gray-600">Create and manage school newsletters with rich content</p>
           </div>
         </div>
-        <Button onClick={createNewNewsletter}>
-          <Plus className="h-4 w-4 mr-2" />
-          Create Newsletter
-        </Button>
+        <div className="flex justify-center sm:justify-end">
+          <Button onClick={createNewNewsletter} className="w-full sm:w-auto">
+            <Plus className="h-4 w-4 mr-2" />
+            Create Newsletter
+          </Button>
+        </div>
       </div>
 
       {/* Newsletter List */}

@@ -3535,7 +3535,7 @@ Continue for all 5 questions...
         });
       }
 
-      const OpenAI = require('openai');
+      const { default: OpenAI } = await import('openai');
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
       const prompt = `Generate 6 engaging newsletter content suggestions for a ${schoolType} school in ${currentSeason} (month ${currentMonth}). 
