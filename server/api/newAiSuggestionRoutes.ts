@@ -1043,7 +1043,10 @@ Create an engaging, productive agenda that addresses the specific focus area whi
     });
 
     const content = response.choices[0].message.content;
+    console.log('AI raw response content:', content);
+    
     const agendaData = JSON.parse(content || '{}');
+    console.log('Parsed agenda data:', agendaData);
     
     res.json(agendaData);
     
