@@ -177,16 +177,8 @@ export default function DirectorToolkit() {
   }, {} as Record<string, ToolkitTool[]>);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-xl animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-xl animate-pulse delay-1000"></div>
-        <div className="absolute bottom-32 left-32 w-40 h-40 bg-gradient-to-br from-pink-400/20 to-orange-400/20 rounded-full blur-xl animate-pulse delay-2000"></div>
-        <div className="absolute bottom-20 right-10 w-28 h-28 bg-gradient-to-br from-indigo-400/20 to-blue-400/20 rounded-full blur-xl animate-pulse delay-500"></div>
-      </div>
-
-      <div className="container mx-auto px-4 py-6 max-w-7xl relative z-10">
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Header with Back Button */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
@@ -194,7 +186,7 @@ export default function DirectorToolkit() {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="flex items-center gap-2 bg-white/80 backdrop-blur-sm border-purple-200 hover:bg-purple-50 transition-all duration-300 shadow-lg"
+                className="flex items-center gap-2"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Dashboard
@@ -202,94 +194,49 @@ export default function DirectorToolkit() {
             </Link>
           </div>
           
-          {/* Enhanced Header with Animations */}
-          <div className="text-center mb-6 relative">
-            <div className="flex items-center justify-center gap-4 mb-4">
-              <div className="p-4 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full shadow-xl animate-bounce">
-                <Sparkles className="h-10 w-10 text-white" />
-              </div>
-              <div className="text-center">
-                <h1 className="text-5xl font-extrabold bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 bg-clip-text text-transparent animate-pulse">
-                  🎯 Director Toolkit ⚡
-                </h1>
-                <div className="flex items-center justify-center gap-2 mt-2">
-                  <div className="h-1 w-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
-                  <Sparkles className="h-4 w-4 text-purple-500 animate-spin" />
-                  <div className="h-1 w-16 bg-gradient-to-r from-pink-500 to-indigo-500 rounded-full"></div>
-                </div>
-              </div>
-              <div className="p-4 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full shadow-xl animate-bounce delay-300">
-                <Zap className="h-10 w-10 text-white" />
-              </div>
-            </div>
-            <p className="text-lg text-gray-700 max-w-3xl mx-auto leading-relaxed bg-white/60 backdrop-blur-sm p-4 rounded-xl border border-purple-200 shadow-lg">
-              🚀 Your <span className="font-bold text-purple-600">command center</span> for managing and growing your team's professional development journey! 
-              Choose your mission and unlock powerful administrative tools! ✨
+          {/* Simple Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-900 mb-3">
+              Director Toolkit
+            </h1>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Your administrative dashboard for managing staff, content, and professional development
             </p>
           </div>
         </div>
 
-        {/* Enhanced Category Filter */}
-        <div className="mb-8 relative">
+        {/* Category Filter */}
+        <div className="mb-8">
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-2">
-              🎯 Choose Your Mission
-              <Sparkles className="h-6 w-6 text-purple-500 animate-pulse" />
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">
+              Filter Tools by Category
             </h2>
-            <p className="text-gray-600 bg-white/70 backdrop-blur-sm px-4 py-2 rounded-lg inline-block border border-purple-200 shadow-sm">
-              Select a category to unlock specialized administrative tools
+            <p className="text-gray-600">
+              Select a category to find the tools you need
             </p>
           </div>
           
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex flex-wrap justify-center gap-3">
             <Button
               variant={selectedCategory === 'all' ? 'default' : 'outline'}
-              size="lg"
-              className={`relative overflow-hidden transition-all duration-300 transform hover:scale-105 shadow-lg backdrop-blur-sm ${
-                selectedCategory === 'all' 
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 shadow-xl' 
-                  : 'bg-white/80 border-purple-200 hover:bg-purple-50 hover:border-purple-300'
-              }`}
+              size="default"
               onClick={() => setSelectedCategory('all')}
             >
-              <Sparkles className="h-5 w-5 mr-2" />
-              ✨ All Tools
-              <Badge variant="secondary" className="ml-2 animate-pulse">{directorTools.length}</Badge>
-              {selectedCategory === 'all' && (
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
-              )}
+              All Tools
+              <Badge variant="secondary" className="ml-2">{directorTools.length}</Badge>
             </Button>
             
-            {Object.entries(categoryLabels).map(([key, label]) => {
-              const categoryConfig = {
-                staff: { emoji: '👥', gradient: 'from-blue-600 to-cyan-600', hoverGradient: 'from-blue-700 to-cyan-700' },
-                content: { emoji: '📚', gradient: 'from-green-600 to-emerald-600', hoverGradient: 'from-green-700 to-emerald-700' },
-                communication: { emoji: '💬', gradient: 'from-purple-600 to-violet-600', hoverGradient: 'from-purple-700 to-violet-700' },
-                analytics: { emoji: '📊', gradient: 'from-orange-600 to-red-600', hoverGradient: 'from-orange-700 to-red-700' }
-              };
-              const config = categoryConfig[key as keyof typeof categoryConfig];
-              
-              return (
-                <Button
-                  key={key}
-                  variant={selectedCategory === key ? 'default' : 'outline'}
-                  size="lg"
-                  className={`relative overflow-hidden transition-all duration-300 transform hover:scale-105 shadow-lg backdrop-blur-sm ${
-                    selectedCategory === key 
-                      ? `bg-gradient-to-r ${config.gradient} hover:${config.hoverGradient} text-white border-0 shadow-xl` 
-                      : 'bg-white/80 border-purple-200 hover:bg-purple-50 hover:border-purple-300'
-                  }`}
-                  onClick={() => setSelectedCategory(key)}
-                >
-                  <span className="mr-2 text-lg">{config.emoji}</span>
-                  {label}
-                  <Badge variant="secondary" className="ml-2 animate-pulse">{toolsByCategory[key]?.length || 0}</Badge>
-                  {selectedCategory === key && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
-                  )}
-                </Button>
-              );
-            })}
+            {Object.entries(categoryLabels).map(([key, label]) => (
+              <Button
+                key={key}
+                variant={selectedCategory === key ? 'default' : 'outline'}
+                size="default"
+                onClick={() => setSelectedCategory(key)}
+              >
+                {label}
+                <Badge variant="secondary" className="ml-2">{toolsByCategory[key]?.length || 0}</Badge>
+              </Button>
+            ))}
           </div>
         </div>
 
@@ -299,10 +246,9 @@ export default function DirectorToolkit() {
           <div className="space-y-8">
             {Object.entries(categoryLabels).map(([categoryKey, categoryLabel]) => (
               <div key={categoryKey}>
-                <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 text-gray-800">
-                  <div className="h-8 w-1 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
+                <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b border-gray-200 pb-2">
                   {categoryLabel}
-                  <Badge variant="outline" className="bg-white/80 border-purple-200 text-purple-700 shadow-sm animate-pulse">
+                  <Badge variant="outline" className="ml-2">
                     {toolsByCategory[categoryKey]?.length || 0} tools
                   </Badge>
                 </h2>
