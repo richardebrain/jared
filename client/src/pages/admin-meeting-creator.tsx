@@ -110,14 +110,67 @@ export default function AdminMeetingCreator() {
       });
       return response.data;
     },
-    onSuccess: (agenda) => {
-      setGeneratedAgenda(agenda);
+    onSuccess: (aiAgenda) => {
+      // Convert AI response format to frontend MeetingAgenda format
+      const convertedAgenda: MeetingAgenda = {
+        title: aiAgenda.title || "Staff Meeting",
+        date: new Date().toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }),
+        duration: aiAgenda.totalDuration || formData.duration,
+        attendees: ["Teaching Staff", "Directors", "Administrators"],
+        objectives: aiAgenda.takeaways || ["Improve team collaboration", "Address key challenges", "Plan next steps"],
+        icebreakers: aiAgenda.energizers?.map(energizer => ({
+          name: energizer.name,
+          description: energizer.howTo,
+          timeNeeded: energizer.timeNeeded,
+          materials: ["None required"],
+          instructions: energizer.howTo
+        })) || [],
+        agenda: aiAgenda.agendaItems?.map(item => ({
+          item: item.title,
+          timeAllocation: item.duration,
+          presenter: item.facilitator || "Director",
+          description: item.description
+        })) || [],
+        discussionTopics: aiAgenda.agendaItems?.filter(item => item.type === 'discussion').map(item => ({
+          topic: item.title,
+          purpose: item.description,
+          timeLimit: item.duration,
+          facilitationTips: item.discussionQuestions?.join('; ') || "Encourage participation from all team members"
+        })) || [],
+        activities: aiAgenda.agendaItems?.filter(item => item.type === 'activity').map(item => ({
+          name: item.title,
+          type: "Interactive Learning",
+          description: item.description,
+          timeNeeded: item.duration,
+          materials: item.materials || [],
+          instructions: item.description,
+          learningGoal: "Enhance professional development and team collaboration"
+        })) || [],
+        handouts: [{
+          title: "Meeting Summary",
+          type: "Reference Sheet",
+          content: aiAgenda.overview || "Key points and action items from today's meeting",
+          purpose: "Quick reference for follow-up actions"
+        }],
+        actionItems: aiAgenda.actionItems || [],
+        followUpPlanning: aiAgenda.followUpPlanning || "Next meeting will review progress on action items",
+        energizers: aiAgenda.energizers || [],
+        takeaways: aiAgenda.takeaways || ["Continue supporting each other", "Focus on children's success", "Maintain open communication"]
+      };
+      
+      setGeneratedAgenda(convertedAgenda);
       toast({
         title: "Meeting agenda generated successfully!",
         description: "Your AI-powered staff meeting agenda is ready to use."
       });
     },
     onError: (error) => {
+      console.error('Meeting generation error:', error);
       toast({
         title: "Generation failed",
         description: "There was an error generating your meeting agenda. Please try again.",
