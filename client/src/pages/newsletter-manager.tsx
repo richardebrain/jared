@@ -27,7 +27,9 @@ import {
   MapPin,
   Clock,
   Sparkles,
-  Mail
+  Mail,
+  Upload,
+  X
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
@@ -88,6 +90,13 @@ export default function NewsletterManager() {
     category: string;
   }>>([]);
   const [generatingSuggestions, setGeneratingSuggestions] = useState(false);
+  const [uploadedPhotos, setUploadedPhotos] = useState<Array<{
+    id: string;
+    url: string;
+    file: File;
+    caption?: string;
+  }>>([]);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   // Fetch newsletters for the school
   const { data: newsletters = [], isLoading } = useQuery({
@@ -231,6 +240,91 @@ export default function NewsletterManager() {
     if (month >= 6 && month <= 8) return 'summer';
     if (month >= 9 && month <= 11) return 'fall';
     return 'winter';
+  };
+
+  // Photo upload functionality
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    if (uploadedPhotos.length + files.length > 10) {
+      toast({
+        title: "Upload Limit Reached",
+        description: "You can only upload up to 10 photos total.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setUploadingPhoto(true);
+    
+    try {
+      const newPhotos = Array.from(files).map(file => ({
+        id: `photo-${Date.now()}-${Math.random()}`,
+        url: URL.createObjectURL(file),
+        file,
+        caption: ''
+      }));
+
+      setUploadedPhotos(prev => [...prev, ...newPhotos]);
+      
+      toast({
+        title: "Photos Uploaded",
+        description: `${newPhotos.length} photo(s) added to your library.`
+      });
+    } catch (error) {
+      console.error('Error uploading photos:', error);
+      toast({
+        title: "Upload Failed",
+        description: "Unable to upload photos. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const removePhoto = (photoId: string) => {
+    setUploadedPhotos(prev => {
+      const photoToRemove = prev.find(p => p.id === photoId);
+      if (photoToRemove) {
+        URL.revokeObjectURL(photoToRemove.url);
+      }
+      return prev.filter(p => p.id !== photoId);
+    });
+  };
+
+  const updatePhotoCaption = (photoId: string, caption: string) => {
+    setUploadedPhotos(prev => 
+      prev.map(photo => 
+        photo.id === photoId ? { ...photo, caption } : photo
+      )
+    );
+  };
+
+  const addPhotoToNewsletter = (photo: any) => {
+    if (!selectedNewsletter) return;
+    
+    const section: NewsletterSection = {
+      id: `section-${Date.now()}`,
+      type: 'image',
+      imageUrl: photo.url,
+      title: photo.caption || 'Photo',
+      content: photo.caption || ''
+    };
+    
+    setSelectedNewsletter({
+      ...selectedNewsletter,
+      content: {
+        ...selectedNewsletter.content,
+        sections: [...selectedNewsletter.content.sections, section]
+      }
+    });
+    
+    toast({
+      title: "Photo Added",
+      description: "Photo has been added to your newsletter."
+    });
   };
 
   // Add suggested content to newsletter
@@ -688,6 +782,103 @@ export default function NewsletterManager() {
 
           {/* Settings Sidebar */}
           <div className="space-y-6">
+            {/* Photo Library */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Camera className="h-5 w-5" />
+                  Photo Library
+                </CardTitle>
+                <CardDescription>
+                  Upload up to 10 photos for your newsletter ({uploadedPhotos.length}/10)
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Upload Button */}
+                <div className="flex flex-col gap-2">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    disabled={uploadingPhoto || uploadedPhotos.length >= 10}
+                    className="hidden"
+                    id="photo-upload"
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={() => document.getElementById('photo-upload')?.click()}
+                    disabled={uploadingPhoto || uploadedPhotos.length >= 10}
+                    className="w-full"
+                  >
+                    {uploadingPhoto ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload Photos
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {/* Photo Grid */}
+                {uploadedPhotos.length > 0 && (
+                  <div className="grid grid-cols-2 gap-2">
+                    {uploadedPhotos.map(photo => (
+                      <div key={photo.id} className="relative group">
+                        <img
+                          src={photo.url}
+                          alt="Uploaded photo"
+                          className="w-full h-20 object-cover rounded border"
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded flex items-center justify-center opacity-0 group-hover:opacity-100">
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => addPhotoToNewsletter(photo)}
+                              className="h-8 w-8 p-0"
+                              title="Add to newsletter"
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => removePhoto(photo.id)}
+                              className="h-8 w-8 p-0"
+                              title="Remove photo"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                        {/* Caption Input */}
+                        <input
+                          type="text"
+                          placeholder="Optional caption..."
+                          value={photo.caption}
+                          onChange={(e) => updatePhotoCaption(photo.id, e.target.value)}
+                          className="w-full mt-1 px-2 py-1 text-xs border rounded"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {uploadedPhotos.length === 0 && (
+                  <div className="text-center py-6 text-gray-500">
+                    <Camera className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                    <p className="text-sm">No photos uploaded yet</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Distribution</CardTitle>
