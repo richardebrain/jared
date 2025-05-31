@@ -111,38 +111,44 @@ export default function AdminMeetingCreator() {
       return response.data;
     },
     onSuccess: (aiAgenda) => {
+      console.log('AI agenda response:', aiAgenda);
+      
+      // Handle case where AI response might be wrapped in additional structure
+      const actualAgenda = aiAgenda?.data || aiAgenda;
+      console.log('Processed agenda data:', actualAgenda);
+      
       // Convert AI response format to frontend MeetingAgenda format
       const convertedAgenda: MeetingAgenda = {
-        title: aiAgenda.title || "Staff Meeting",
+        title: actualAgenda.title || "Staff Meeting",
         date: new Date().toLocaleDateString('en-US', { 
           weekday: 'long', 
           year: 'numeric', 
           month: 'long', 
           day: 'numeric' 
         }),
-        duration: aiAgenda.totalDuration || formData.duration,
+        duration: actualAgenda.totalDuration || formData.duration,
         attendees: ["Teaching Staff", "Directors", "Administrators"],
-        objectives: aiAgenda.takeaways || ["Improve team collaboration", "Address key challenges", "Plan next steps"],
-        icebreakers: aiAgenda.energizers?.map(energizer => ({
+        objectives: actualAgenda.takeaways || ["Improve team collaboration", "Address key challenges", "Plan next steps"],
+        icebreakers: actualAgenda.energizers?.map((energizer: any) => ({
           name: energizer.name,
           description: energizer.howTo,
           timeNeeded: energizer.timeNeeded,
           materials: ["None required"],
           instructions: energizer.howTo
         })) || [],
-        agenda: aiAgenda.agendaItems?.map(item => ({
+        agenda: actualAgenda.agendaItems?.map((item: any) => ({
           item: item.title,
           timeAllocation: item.duration,
           presenter: item.facilitator || "Director",
           description: item.description
         })) || [],
-        discussionTopics: aiAgenda.agendaItems?.filter(item => item.type === 'discussion').map(item => ({
+        discussionTopics: actualAgenda.agendaItems?.filter((item: any) => item.type === 'discussion').map((item: any) => ({
           topic: item.title,
           purpose: item.description,
           timeLimit: item.duration,
           facilitationTips: item.discussionQuestions?.join('; ') || "Encourage participation from all team members"
         })) || [],
-        activities: aiAgenda.agendaItems?.filter(item => item.type === 'activity').map(item => ({
+        activities: actualAgenda.agendaItems?.filter((item: any) => item.type === 'activity').map((item: any) => ({
           name: item.title,
           type: "Interactive Learning",
           description: item.description,
@@ -154,13 +160,13 @@ export default function AdminMeetingCreator() {
         handouts: [{
           title: "Meeting Summary",
           type: "Reference Sheet",
-          content: aiAgenda.overview || "Key points and action items from today's meeting",
+          content: actualAgenda.overview || "Key points and action items from today's meeting",
           purpose: "Quick reference for follow-up actions"
         }],
-        actionItems: aiAgenda.actionItems || [],
-        followUpPlanning: aiAgenda.followUpPlanning || "Next meeting will review progress on action items",
-        energizers: aiAgenda.energizers || [],
-        takeaways: aiAgenda.takeaways || ["Continue supporting each other", "Focus on children's success", "Maintain open communication"]
+        actionItems: actualAgenda.actionItems || [],
+        followUpPlanning: actualAgenda.followUpPlanning || "Next meeting will review progress on action items",
+        energizers: actualAgenda.energizers || [],
+        takeaways: actualAgenda.takeaways || ["Continue supporting each other", "Focus on children's success", "Maintain open communication"]
       };
       
       setGeneratedAgenda(convertedAgenda);
