@@ -922,6 +922,52 @@ export const insertTeacherMessageSchema = createInsertSchema(teacherMessages).om
   createdAt: true,
 });
 
+// School newsletters table
+export const newsletters = pgTable("newsletters", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull().references(() => schools.id),
+  authorId: integer("author_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  subtitle: text("subtitle"),
+  content: json("content").$type<{
+    sections: Array<{
+      id: string;
+      type: 'text' | 'image' | 'event' | 'announcement' | 'staff_spotlight';
+      title?: string;
+      content?: string;
+      imageUrl?: string;
+      date?: string;
+      location?: string;
+      metadata?: Record<string, any>;
+    }>;
+  }>(),
+  featuredImage: text("featured_image"),
+  status: text("status").notNull().default("draft"), // draft, published, archived
+  scheduledFor: timestamp("scheduled_for"),
+  publishedAt: timestamp("published_at"),
+  recipientGroups: json("recipient_groups").$type<string[]>().default([]), // teachers, parents, staff, all
+  readCount: integer("read_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertNewsletterSchema = createInsertSchema(newsletters).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Newsletter delivery tracking
+export const newsletterDeliveries = pgTable("newsletter_deliveries", {
+  id: serial("id").primaryKey(),
+  newsletterId: integer("newsletter_id").notNull().references(() => newsletters.id),
+  recipientId: integer("recipient_id").notNull().references(() => users.id),
+  deliveryMethod: text("delivery_method").notNull(), // email, platform, both
+  sentAt: timestamp("sent_at").defaultNow(),
+  openedAt: timestamp("opened_at"),
+  isRead: boolean("is_read").default(false),
+});
+
 // Update user relations to include school relation
 export const usersRelations = relations(users, ({ many, one }) => ({
   school: one(schools, {

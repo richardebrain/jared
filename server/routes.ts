@@ -10,7 +10,7 @@ import { checkAndNotifyExpiringCredentials } from "./services/notificationServic
 import connectPgSimple from "connect-pg-simple";
 import { updateChildDevelopmentModule } from "./updateChildDevelopmentModule";
 import { eq, sql } from "drizzle-orm";
-import { users, eduTokSnippets, eduTokUserInteractions, videoQuizCompletions, learningModules, insertLearningModuleSchema, meetings, teacherMessages } from "@shared/schema";
+import { users, eduTokSnippets, eduTokUserInteractions, videoQuizCompletions, learningModules, insertLearningModuleSchema, meetings, teacherMessages, newsletters, insertNewsletterSchema } from "@shared/schema";
 import { registerWelcomeMessageRoutes } from "./welcomeMessageRoutes";
 import { registerModuleManagementRoutes } from "./module-management/moduleRoutes";
 import { registerModuleRoutes } from "./registerModuleRoutes";
@@ -3403,6 +3403,124 @@ Continue for all 5 questions...
     } catch (error) {
       console.error("Error fetching director messages:", error);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Newsletter Management Routes
+  app.get('/api/admin/newsletters', requireAuth, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.session!.userId!);
+      if (!user || !user.schoolId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      const schoolNewsletters = await db.select()
+        .from(newsletters)
+        .where(eq(newsletters.schoolId, user.schoolId))
+        .orderBy(sql`${newsletters.createdAt} DESC`);
+
+      res.json(schoolNewsletters);
+    } catch (error) {
+      console.error('Error fetching newsletters:', error);
+      res.status(500).json({ error: 'Failed to fetch newsletters' });
+    }
+  });
+
+  app.post('/api/admin/newsletters', requireAuth, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.session!.userId!);
+      if (!user || !user.schoolId || (!user.isAdmin && !user.isSchoolAdmin)) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      const validatedData = insertNewsletterSchema.parse({
+        ...req.body,
+        schoolId: user.schoolId,
+        authorId: user.id
+      });
+
+      const [newNewsletter] = await db.insert(newsletters)
+        .values(validatedData)
+        .returning();
+
+      res.json(newNewsletter);
+    } catch (error) {
+      console.error('Error creating newsletter:', error);
+      res.status(500).json({ error: 'Failed to create newsletter' });
+    }
+  });
+
+  app.put('/api/admin/newsletters/:id', requireAuth, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.session!.userId!);
+      if (!user || !user.schoolId || (!user.isAdmin && !user.isSchoolAdmin)) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      const newsletterId = parseInt(req.params.id);
+      const validatedData = insertNewsletterSchema.parse(req.body);
+
+      const [updatedNewsletter] = await db.update(newsletters)
+        .set({ ...validatedData, updatedAt: sql`NOW()` })
+        .where(eq(newsletters.id, newsletterId))
+        .returning();
+
+      res.json(updatedNewsletter);
+    } catch (error) {
+      console.error('Error updating newsletter:', error);
+      res.status(500).json({ error: 'Failed to update newsletter' });
+    }
+  });
+
+  app.post('/api/admin/newsletters/:id/publish', requireAuth, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.session!.userId!);
+      if (!user || !user.schoolId || (!user.isAdmin && !user.isSchoolAdmin)) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      const newsletterId = parseInt(req.params.id);
+      const { scheduledFor } = req.body;
+
+      const updateData: any = {
+        status: 'published',
+        updatedAt: sql`NOW()`
+      };
+
+      if (scheduledFor) {
+        updateData.scheduledFor = new Date(scheduledFor);
+      } else {
+        updateData.publishedAt = sql`NOW()`;
+      }
+
+      const [publishedNewsletter] = await db.update(newsletters)
+        .set(updateData)
+        .where(eq(newsletters.id, newsletterId))
+        .returning();
+
+      res.json(publishedNewsletter);
+    } catch (error) {
+      console.error('Error publishing newsletter:', error);
+      res.status(500).json({ error: 'Failed to publish newsletter' });
+    }
+  });
+
+  app.delete('/api/admin/newsletters/:id', requireAuth, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.session!.userId!);
+      if (!user || !user.schoolId || (!user.isAdmin && !user.isSchoolAdmin)) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      const newsletterId = parseInt(req.params.id);
+
+      await db.delete(newsletters)
+        .where(eq(newsletters.id, newsletterId));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting newsletter:', error);
+      res.status(500).json({ error: 'Failed to delete newsletter' });
     }
   });
 

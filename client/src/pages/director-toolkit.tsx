@@ -112,11 +112,13 @@ const directorTools: ToolkitTool[] = [
     category: 'communication'
   },
   {
-    id: 'email-campaigns',
-    title: 'Email Campaigns',
-    description: 'Create and send professional development newsletters and updates',
+    id: 'newsletter-manager',
+    title: 'Newsletter Manager',
+    description: 'Create rich newsletters with photos, events, and announcements for your school',
     icon: Mail,
-    route: '/admin/email-campaigns',
+    route: '/newsletter-manager',
+    badge: 'Enhanced',
+    badgeVariant: 'secondary',
     category: 'communication'
   },
   
