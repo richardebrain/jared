@@ -276,33 +276,22 @@ export default function DirectorToolkit() {
 function ToolCard({ tool }: { tool: ToolkitTool }) {
   const IconComponent = tool.icon;
   
-  const categoryGradients = {
-    staff: 'from-blue-500 to-cyan-500',
-    content: 'from-green-500 to-emerald-500',
-    communication: 'from-purple-500 to-violet-500',
-    analytics: 'from-orange-500 to-red-500'
-  };
-  
   return (
-    <Card className="group hover:shadow-2xl hover:scale-105 transition-all duration-500 cursor-pointer border-2 hover:border-purple-300 bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-sm overflow-hidden relative">
-      {/* Animated background effect */}
-      <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${categoryGradients[tool.category]} opacity-10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700`} />
-      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-      
-      <CardHeader className="pb-3 relative z-10">
+    <Card className="hover:shadow-md transition-shadow duration-200 bg-white border border-gray-200">
+      <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
-            <div className={`p-3 rounded-xl bg-gradient-to-br ${categoryGradients[tool.category]} shadow-lg group-hover:shadow-2xl transition-all duration-500 group-hover:rotate-6`}>
-              <IconComponent className="h-6 w-6 text-white" />
+            <div className="p-3 rounded-lg bg-gray-100">
+              <IconComponent className="h-5 w-5 text-gray-700" />
             </div>
             <div className="flex-1">
-              <CardTitle className="text-lg font-bold group-hover:text-purple-600 transition-colors duration-300">
+              <CardTitle className="text-base font-semibold text-gray-900">
                 {tool.title}
               </CardTitle>
               {tool.badge && (
                 <Badge 
                   variant={tool.badgeVariant} 
-                  className="mt-2 shadow-sm animate-pulse bg-gradient-to-r from-yellow-400 to-orange-400 text-white border-0"
+                  className="mt-1"
                 >
                   {tool.badge}
                 </Badge>
@@ -312,18 +301,17 @@ function ToolCard({ tool }: { tool: ToolkitTool }) {
         </div>
       </CardHeader>
       
-      <CardContent className="pt-0 relative z-10">
-        <CardDescription className="text-sm mb-4 leading-relaxed text-gray-600">
+      <CardContent className="pt-0">
+        <CardDescription className="text-sm mb-4 text-gray-600">
           {tool.description}
         </CardDescription>
         
         <Link href={tool.route}>
           <Button 
-            className={`w-full shadow-lg hover:shadow-2xl transition-all duration-500 bg-gradient-to-r ${categoryGradients[tool.category]} hover:opacity-90 border-0 font-semibold text-white transform hover:scale-105 relative overflow-hidden`}
+            className="w-full"
             size="sm"
           >
-            <span className="relative z-10">Launch Tool ✨</span>
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
+            Launch Tool
           </Button>
         </Link>
       </CardContent>
