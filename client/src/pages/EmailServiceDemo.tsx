@@ -121,7 +121,7 @@ export default function EmailServiceDemo() {
 
   const handleSendWelcomeEmail = () => {
     sendWelcomeMutation.mutate({
-      email: "richardebrain20@gmail.com",
+      email: "muzardemoses@gmail.com",
       firstName: "John",
       schoolName: "Raising Arizona Preschool"
     });
@@ -129,7 +129,7 @@ export default function EmailServiceDemo() {
 
   const handleSendInvitation = () => {
     sendInvitationMutation.mutate({
-      email: "richardebrain20@gmail.com",
+      email: "muzardemoses@gmail.com",
       schoolName: "Raising Arizona Preschool",
       inviteUrl: "https://mentorme.app/register?token=sample-token",
       inviterName: "Laura Book"

@@ -980,73 +980,64 @@ Continue for all 5 questions...
       const today = new Date();
       today.setHours(0, 0, 0, 0); // Normalize to start of day for comparison
       
-      // Get the last login date to check if this is a new day
-      let lastLoginDate = user.lastActive ? new Date(user.lastActive) : null;
+      // Calculate streak using daily login tracking
       let streakUpdated = false;
       
-      // Demo user can have their streak reset if needed
-      if (user.username === 'jlcookie20' && !user.streak) {
-        console.log(`Demo user detected: Initializing streak for ${user.username} (ID: ${user.id})`);
-        // Initialize streak to 1 for first login
-        await storage.updateUser(user.id, {
-          streak: 1
-        });
-        user.streak = 1;
-        console.log(`Demo user: Set ${user.username}'s streak to ${user.streak} day`);
-        streakUpdated = true;
-      }
-      
-      if (lastLoginDate) {
-        lastLoginDate.setHours(0, 0, 0, 0); // Normalize to start of day
+      try {
+        // Record today's login in daily_logins table
+        const todayDate = today.toISOString().split('T')[0]; // YYYY-MM-DD format
         
-        // Check if last login was yesterday (for streak continuity)
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
+        // Try to insert today's login (will be ignored if already exists due to UNIQUE constraint)
+        await db.execute(sql`
+          INSERT INTO daily_logins (user_id, login_date) 
+          VALUES (${user.id}, ${todayDate})
+          ON CONFLICT (user_id, login_date) DO NOTHING
+        `);
         
-        // Log dates for debugging
-        console.log(`User ${user.id} - Last login: ${lastLoginDate.toISOString()}, Today: ${today.toISOString()}, Yesterday: ${yesterday.toISOString()}`);
+        // Calculate current streak by counting consecutive days back from today
+        const streakResult = await db.execute(sql`
+          WITH RECURSIVE consecutive_days AS (
+            -- Start with today's login
+            SELECT login_date, 1 as day_count
+            FROM daily_logins
+            WHERE user_id = ${user.id} AND login_date = ${todayDate}
+            
+            UNION ALL
+            
+            -- Recursively find previous consecutive days
+            SELECT dl.login_date, cd.day_count + 1
+            FROM daily_logins dl
+            JOIN consecutive_days cd ON dl.login_date = cd.login_date - INTERVAL '1 day'
+            WHERE dl.user_id = ${user.id}
+          )
+          SELECT MAX(day_count) as current_streak
+          FROM consecutive_days
+        `);
         
-        // Enhanced streak checking logic to properly handle consecutive days
-        // If user logged in before today (yesterday or earlier) and hasn't already logged in today
-        if (lastLoginDate.getTime() < today.getTime()) {
-          // Check if it was yesterday (continue streak) or earlier (reset streak)
-          const daysSinceLastLogin = Math.floor((today.getTime() - lastLoginDate.getTime()) / (1000 * 60 * 60 * 24));
-          console.log(`Days since last login for user ${user.id}: ${daysSinceLastLogin}`);
-          
-          if (daysSinceLastLogin === 1) {
-            // Yesterday - continue streak
-            await storage.updateUser(user.id, {
-              lastActive: new Date(),
-              streak: (user.streak || 0) + 1
-            });
-            streakUpdated = true;
-            console.log(`User ${user.id} login streak continued: ${(user.streak || 0) + 1} days`);
-          } else if (daysSinceLastLogin > 1) {
-            // More than one day - reset streak
-            await storage.updateUser(user.id, {
-              lastActive: new Date(),
-              streak: 1 // Reset to 1 (today)
-            });
-            streakUpdated = true;
-            console.log(`User ${user.id} login streak reset to 1 day (gap of ${daysSinceLastLogin} days)`);
-          }
-        } 
-        // Check if user is logging in on the same day (no streak change)
-        else if (lastLoginDate.getTime() === today.getTime()) {
-          // Same day login - no streak change
+        const currentStreak = streakResult.rows[0]?.current_streak || 0;
+        
+        // Update user's streak if it changed
+        if (currentStreak !== user.streak) {
+          await storage.updateUser(user.id, {
+            lastActive: new Date(),
+            streak: currentStreak
+          });
+          streakUpdated = true;
+          console.log(`User ${user.id} streak updated from ${user.streak || 0} to ${currentStreak} days`);
+        } else {
+          // Just update last active time
           await storage.updateUser(user.id, {
             lastActive: new Date()
           });
-          console.log(`User ${user.id} already logged in today, streak remains: ${user.streak || 0} days`);
+          console.log(`User ${user.id} logged in, streak remains ${currentStreak} days`);
         }
-      } else {
-        // First login ever - start streak at 1
+        
+      } catch (error) {
+        console.error(`Error calculating streak for user ${user.id}:`, error);
+        // Fallback to simple streak logic if database operations fail
         await storage.updateUser(user.id, {
-          lastActive: new Date(),
-          streak: 1
+          lastActive: new Date()
         });
-        streakUpdated = true;
-        console.log(`User ${user.id} first login - streak started at 1 day`);
       }
       
       // If streak was updated, check for achievements or rewards

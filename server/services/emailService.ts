@@ -3,6 +3,7 @@ import { logger } from "../logger";
 
 // Initialize SendGrid
 if (process.env.SENDGRID_API_KEY) {
+
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
   logger.info("SendGrid email service initialized");
 } else {
@@ -44,18 +45,18 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       if (options.text) logger.info(`Text: ${options.text.substring(0, 100)}...`);
       return true;
     }
-console.log(options,'email options==>')
     const msg: sgMail.MailDataRequired = {
       to: options.to,
       from: options.from || "jared@mentormeprek.com",
       subject: options.subject,
       text: options.text,
       html: options.html,
-      replyTo: options.replyTo,
-      attachments: options.attachments,
+      // replyTo: options.replyTo,
+      // attachments: options.attachments,
     };
 
-    await sgMail.send(msg);
+    const res = await sgMail.send(msg);
+    console.log(res,'res -->')
     logger.info(`Email sent successfully to: ${Array.isArray(options.to) ? options.to.join(", ") : options.to}`);
     return true;
 
