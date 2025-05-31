@@ -376,6 +376,26 @@ export default function NewsletterManager() {
             </div>
           </div>
           <div className="flex gap-2">
+            <Button 
+              onClick={generateContentSuggestions} 
+              disabled={generatingSuggestions}
+              variant="outline" 
+              className="flex items-center gap-2"
+            >
+              {generatingSuggestions ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+              Smart Suggestions
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => generatePDF(selectedNewsletter)}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Preview PDF
+            </Button>
             <Button
               variant="outline"
               onClick={() => saveNewsletter.mutate(selectedNewsletter)}
@@ -392,6 +412,92 @@ export default function NewsletterManager() {
             </Button>
           </div>
         </div>
+
+        {/* Smart Content Suggestions Dialog */}
+        <Dialog open={showContentSuggestions} onOpenChange={setShowContentSuggestions}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-blue-600" />
+                Smart Newsletter Content Suggestions
+              </DialogTitle>
+              <DialogDescription>
+                AI-generated content ideas based on current season, educational themes, and preschool activities
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {contentSuggestions.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Sparkles className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p>No suggestions available. Generate some content ideas first.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4">
+                  {contentSuggestions.map((suggestion, index) => (
+                    <Card key={index} className="border hover:shadow-md transition-shadow">
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge variant="secondary" className="text-xs">
+                                {suggestion.category}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs">
+                                {suggestion.type}
+                              </Badge>
+                            </div>
+                            <CardTitle className="text-lg">{suggestion.title}</CardTitle>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              addSuggestedContent(suggestion);
+                              setShowContentSuggestions(false);
+                            }}
+                            className="ml-4"
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Add to Newsletter
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-gray-600 text-sm whitespace-pre-wrap">
+                          {suggestion.content}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="flex justify-between items-center pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={generateContentSuggestions}
+                disabled={generatingSuggestions}
+              >
+                {generatingSuggestions ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Generate New Suggestions
+                  </>
+                )}
+              </Button>
+              
+              <Button variant="outline" onClick={() => setShowContentSuggestions(false)}>
+                Close
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Newsletter Content Editor */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
