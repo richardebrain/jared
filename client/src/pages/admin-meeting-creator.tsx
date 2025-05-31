@@ -104,11 +104,22 @@ export default function AdminMeetingCreator() {
 
   const generateAgenda = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const response = await apiRequest('/api/ai/generate-meeting-agenda', {
+      const response = await fetch('/api/ai/generate-meeting-agenda', {
         method: 'POST',
-        data: data
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(data)
       });
-      return response.data;
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate meeting agenda');
+      }
+      
+      const result = await response.json();
+      console.log('Direct fetch response:', result);
+      return result;
     },
     onSuccess: (aiAgenda) => {
       console.log('AI agenda response:', aiAgenda);
