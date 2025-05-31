@@ -3583,5 +3583,117 @@ Continue for all 5 questions...
     }
   });
 
+  // Newsletter routes
+  app.get('/api/newsletters', async (req, res) => {
+    try {
+      const user = await storage.getUser(req.session.userId!);
+      if (!user || !user.schoolId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const newsletters = await db.select()
+        .from(schema.newsletters)
+        .where(eq(schema.newsletters.schoolId, user.schoolId))
+        .orderBy(desc(schema.newsletters.createdAt));
+
+      res.json(newsletters);
+    } catch (error) {
+      console.error('Error fetching newsletters:', error);
+      res.status(500).json({ error: 'Failed to fetch newsletters' });
+    }
+  });
+
+  app.post('/api/newsletters', async (req, res) => {
+    try {
+      const user = await storage.getUser(req.session.userId!);
+      if (!user || !user.schoolId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const { title, subtitle, content, featuredImage, status, scheduledFor, recipientGroups } = req.body;
+
+      const [newsletter] = await db.insert(schema.newsletters)
+        .values({
+          schoolId: user.schoolId,
+          createdBy: user.id,
+          title,
+          subtitle,
+          content,
+          featuredImage,
+          status: status || 'draft',
+          scheduledFor: scheduledFor ? new Date(scheduledFor) : null,
+          recipientGroups: recipientGroups || ['all'],
+          publishedAt: status === 'published' ? new Date() : null
+        })
+        .returning();
+
+      res.json(newsletter);
+    } catch (error) {
+      console.error('Error creating newsletter:', error);
+      res.status(500).json({ error: 'Failed to create newsletter' });
+    }
+  });
+
+  app.put('/api/newsletters/:id', async (req, res) => {
+    try {
+      const user = await storage.getUser(req.session.userId!);
+      if (!user || !user.schoolId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const newsletterId = parseInt(req.params.id);
+      const { title, subtitle, content, featuredImage, status, scheduledFor, recipientGroups } = req.body;
+
+      const [newsletter] = await db.update(schema.newsletters)
+        .set({
+          title,
+          subtitle,
+          content,
+          featuredImage,
+          status,
+          scheduledFor: scheduledFor ? new Date(scheduledFor) : null,
+          recipientGroups,
+          publishedAt: status === 'published' ? new Date() : null,
+          updatedAt: new Date()
+        })
+        .where(and(
+          eq(schema.newsletters.id, newsletterId),
+          eq(schema.newsletters.schoolId, user.schoolId)
+        ))
+        .returning();
+
+      if (!newsletter) {
+        return res.status(404).json({ error: 'Newsletter not found' });
+      }
+
+      res.json(newsletter);
+    } catch (error) {
+      console.error('Error updating newsletter:', error);
+      res.status(500).json({ error: 'Failed to update newsletter' });
+    }
+  });
+
+  app.delete('/api/newsletters/:id', async (req, res) => {
+    try {
+      const user = await storage.getUser(req.session.userId!);
+      if (!user || !user.schoolId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const newsletterId = parseInt(req.params.id);
+
+      await db.delete(schema.newsletters)
+        .where(and(
+          eq(schema.newsletters.id, newsletterId),
+          eq(schema.newsletters.schoolId, user.schoolId)
+        ));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting newsletter:', error);
+      res.status(500).json({ error: 'Failed to delete newsletter' });
+    }
+  });
+
   return app;
 }

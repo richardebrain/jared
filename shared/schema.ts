@@ -530,6 +530,55 @@ export const insertUserAvatarItemSchema = createInsertSchema(userAvatarItems).om
   purchasedAt: true,
 });
 
+// Newsletter schema
+export const newsletters = pgTable("newsletters", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull().references(() => schools.id),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  subtitle: text("subtitle"),
+  content: json("content").$type<{
+    sections: Array<{
+      id: string;
+      type: 'text' | 'image' | 'event' | 'announcement' | 'staff_spotlight';
+      title?: string;
+      content?: string;
+      imageUrl?: string;
+      date?: string;
+      location?: string;
+      metadata?: Record<string, any>;
+    }>;
+  }>().notNull(),
+  featuredImage: text("featured_image"),
+  status: text("status").notNull().default("draft"), // draft, published, archived
+  scheduledFor: timestamp("scheduled_for"),
+  publishedAt: timestamp("published_at"),
+  recipientGroups: text("recipient_groups").array().notNull().default(["all"]),
+  readCount: integer("read_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertNewsletterSchema = createInsertSchema(newsletters).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const newslettersRelations = relations(newsletters, ({ one }) => ({
+  school: one(schools, {
+    fields: [newsletters.schoolId],
+    references: [schools.id]
+  }),
+  creator: one(users, {
+    fields: [newsletters.createdBy],
+    references: [users.id]
+  })
+}));
+
+export type Newsletter = typeof newsletters.$inferSelect;
+export type InsertNewsletter = z.infer<typeof insertNewsletterSchema>;
+
 export type EducationalGame = typeof educationalGames.$inferSelect;
 export type InsertEducationalGame = z.infer<typeof insertEducationalGameSchema>;
 export type GameCompletion = typeof gameCompletions.$inferSelect;
@@ -922,45 +971,12 @@ export const insertTeacherMessageSchema = createInsertSchema(teacherMessages).om
   createdAt: true,
 });
 
-// School newsletters table
-export const newsletters = pgTable("newsletters", {
-  id: serial("id").primaryKey(),
-  schoolId: integer("school_id").notNull().references(() => schools.id),
-  authorId: integer("author_id").notNull().references(() => users.id),
-  title: text("title").notNull(),
-  subtitle: text("subtitle"),
-  content: json("content").$type<{
-    sections: Array<{
-      id: string;
-      type: 'text' | 'image' | 'event' | 'announcement' | 'staff_spotlight';
-      title?: string;
-      content?: string;
-      imageUrl?: string;
-      date?: string;
-      location?: string;
-      metadata?: Record<string, any>;
-    }>;
-  }>(),
-  featuredImage: text("featured_image"),
-  status: text("status").notNull().default("draft"), // draft, published, archived
-  scheduledFor: timestamp("scheduled_for"),
-  publishedAt: timestamp("published_at"),
-  recipientGroups: json("recipient_groups").$type<string[]>().default([]), // teachers, parents, staff, all
-  readCount: integer("read_count").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
 
-export const insertNewsletterSchema = createInsertSchema(newsletters).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
 
 // Newsletter delivery tracking
 export const newsletterDeliveries = pgTable("newsletter_deliveries", {
   id: serial("id").primaryKey(),
-  newsletterId: integer("newsletter_id").notNull().references(() => newsletters.id),
+  newsletterId: integer("newsletter_id").notNull(),
   recipientId: integer("recipient_id").notNull().references(() => users.id),
   deliveryMethod: text("delivery_method").notNull(), // email, platform, both
   sentAt: timestamp("sent_at").defaultNow(),
