@@ -216,7 +216,9 @@ export default function NewsletterManager() {
       if (!response.ok) throw new Error('Failed to generate suggestions');
       
       const suggestions = await response.json();
-      setContentSuggestions(suggestions);
+      // Ensure suggestions is always an array
+      const suggestionArray = Array.isArray(suggestions) ? suggestions : (suggestions.suggestions || []);
+      setContentSuggestions(suggestionArray);
       setShowContentSuggestions(true);
       
       toast({
