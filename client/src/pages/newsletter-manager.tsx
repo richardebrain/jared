@@ -141,11 +141,44 @@ export default function NewsletterManager() {
     onSuccess: () => {
       toast({
         title: "Newsletter Published",
-        description: "Your newsletter has been sent to all recipients."
+        description: "Your newsletter has been published and will appear on the school dashboard."
       });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/newsletters'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/school-dashboard'] });
     }
   });
+
+  // Generate PDF
+  const generatePDF = async (newsletter: Newsletter) => {
+    try {
+      const response = await fetch(`/api/admin/newsletters/${newsletter.id}/pdf`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to generate PDF');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `newsletter-${newsletter.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: "PDF Generated",
+        description: "Newsletter PDF has been downloaded successfully."
+      });
+    } catch (error) {
+      toast({
+        title: "PDF Generation Failed",
+        description: "There was an error generating the PDF.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const createNewNewsletter = () => {
     const newNewsletter: Newsletter = {

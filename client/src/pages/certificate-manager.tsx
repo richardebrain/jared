@@ -192,6 +192,50 @@ export default function CertificateManager() {
   const missingTeachers = getTeachersByStatus('missing');
   const currentTeachers = getTeachersByStatus('current');
 
+  // Get all expiring certificates with detailed information
+  const getAllExpiringCertificates = () => {
+    const expiringCerts: Array<{
+      teacherId: number;
+      teacherName: string;
+      certificationType: string;
+      certificationLabel: string;
+      daysUntilExpiration: number;
+      isExpired: boolean;
+      expirationDate: string;
+    }> = [];
+    const now = new Date();
+    const thirtyDaysFromNow = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000));
+
+    teachers.forEach((teacher: Teacher) => {
+      const certifications = [
+        { type: 'Fingerprint', date: teacher.fingerprintExpiration, label: 'Fingerprint Clearance' },
+        { type: 'CPR', date: teacher.cprExpiration, label: 'CPR Certification' },
+        { type: 'First Aid', date: teacher.firstAidExpiration, label: 'First Aid Certification' },
+        { type: 'Food Handler', date: teacher.foodHandlerExpiration, label: 'Food Handler Permit' }
+      ];
+
+      certifications.forEach(cert => {
+        if (cert.date) {
+          const expirationDate = new Date(cert.date);
+          if (expirationDate <= thirtyDaysFromNow) {
+            const daysUntilExpiration = Math.ceil((expirationDate - now) / (1000 * 60 * 60 * 24));
+            expiringCerts.push({
+              teacherId: teacher.id,
+              teacherName: `${teacher.firstName} ${teacher.lastName}`,
+              certificationType: cert.type,
+              certificationLabel: cert.label,
+              daysUntilExpiration,
+              isExpired: daysUntilExpiration <= 0,
+              expirationDate: cert.date
+            });
+          }
+        }
+      });
+    });
+
+    return expiringCerts.sort((a, b) => a.daysUntilExpiration - b.daysUntilExpiration);
+  };
+
   const openEditDialog = (teacher: Teacher) => {
     setSelectedTeacher(teacher);
     setEditingCertifications({
