@@ -44,7 +44,7 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       if (options.text) logger.info(`Text: ${options.text.substring(0, 100)}...`);
       return true;
     }
-
+console.log(options,'email options==>')
     const msg: sgMail.MailDataRequired = {
       to: options.to,
       from: options.from || "jared@mentormeprek.com",

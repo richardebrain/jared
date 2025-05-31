@@ -106,7 +106,7 @@ const directorTools: ToolkitTool[] = [
     title: 'Staff Meeting Creator',
     description: 'AI-assisted tool to create engaging staff meeting agendas and materials',
     icon: Calendar,
-    route: '/admin/meeting-creator',
+    route: '/admin-meeting-creator',
     badge: 'New',
     badgeVariant: 'destructive',
     category: 'communication'

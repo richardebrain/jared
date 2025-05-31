@@ -83,11 +83,12 @@ const handleValidationErrors = (req: Request, res: Response) => {
  * Send a custom email
  */
 router.post('/send', requireAuth, emailValidation, async (req: Request, res: Response) => {
+  console.log(req.body,'request body -->')
   const validationError = handleValidationErrors(req, res);
   if (validationError) return;
 
   try {
-    const { to, subject, html, text, from, replyTo, attachments }: EmailOptions = req.body;
+    const { to, subject, html, text, from ='', replyTo, attachments }: EmailOptions = req.body;
     
     const success = await sendEmail({
       to,

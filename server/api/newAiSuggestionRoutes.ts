@@ -959,4 +959,112 @@ router.post('/generate-quiz', async (req, res) => {
   }
 });
 
+// Staff Meeting Agenda Generator endpoint
+router.post('/generate-meeting-agenda', async (req, res) => {
+  try {
+    const { meetingType, duration, primaryFocus, attendees, schoolGoals, recentChallenges, upcomingEvents } = req.body;
+    
+    if (!meetingType || !duration || !primaryFocus) {
+      return res.status(400).json({ 
+        error: 'Meeting type, duration, and primary focus are required' 
+      });
+    }
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert early childhood education director and meeting facilitator. Create comprehensive, engaging staff meeting agendas that promote professional growth, team collaboration, and positive outcomes for children and families.
+
+REQUIREMENTS:
+- Create a detailed agenda structure with time allocations
+- Include interactive elements and energizers to keep engagement high
+- Focus on actionable outcomes and clear next steps
+- Incorporate evidence-based practices and professional development
+- Make meetings productive, positive, and solution-focused
+- Include specific discussion questions and activities
+- Provide clear action items with assigned responsibilities
+
+FORMAT AS JSON with this structure:
+{
+  "title": "Meeting title",
+  "overview": "Brief meeting purpose",
+  "totalDuration": "duration in minutes",
+  "agendaItems": [
+    {
+      "title": "Item title",
+      "duration": "time allocation",
+      "type": "discussion|presentation|activity|break",
+      "description": "detailed description",
+      "facilitator": "who leads this",
+      "materials": ["list of needed materials"],
+      "discussionQuestions": ["key questions to explore"]
+    }
+  ],
+  "actionItems": [
+    {
+      "task": "specific action needed",
+      "assignee": "who is responsible", 
+      "deadline": "when it's due",
+      "priority": "High|Medium|Low"
+    }
+  ],
+  "followUpPlanning": "plans for next meeting",
+  "energizers": [
+    {
+      "name": "energizer name",
+      "when": "when to use it",
+      "howTo": "brief instructions",
+      "timeNeeded": "duration"
+    }
+  ],
+  "takeaways": ["key messages and insights"]
+}`
+        },
+        {
+          role: "user",
+          content: `Create a ${duration}-minute ${meetingType} staff meeting agenda focused on: ${primaryFocus}
+
+Meeting Details:
+- Duration: ${duration} minutes
+- Primary Focus: ${primaryFocus}
+- Attendees: ${attendees || 'Teaching staff and administrators'}
+- School Goals: ${schoolGoals || 'Supporting child development and family engagement'}
+- Recent Challenges: ${recentChallenges || 'Standard classroom management and curriculum implementation'}
+- Upcoming Events: ${upcomingEvents || 'Regular school activities and planning'}
+
+Create an engaging, productive agenda that addresses the specific focus area while maintaining team morale and professional growth. Include interactive elements, clear action items, and practical strategies teachers can implement immediately.`
+        }
+      ],
+      max_tokens: 2000,
+      temperature: 0.7,
+      response_format: { type: "json_object" }
+    });
+
+    const content = response.choices[0].message.content;
+    const agendaData = JSON.parse(content || '{}');
+    
+    res.json(agendaData);
+    
+  } catch (error) {
+    console.error('Meeting agenda generation error:', error);
+    
+    // Check if it's an API key issue
+    if (error.status === 401) {
+      res.status(500).json({ 
+        error: 'OpenAI API authentication failed. Please check your API key configuration.'
+      });
+    } else if (error.status === 429) {
+      res.status(500).json({ 
+        error: 'OpenAI API rate limit exceeded. Please try again in a moment.'
+      });
+    } else {
+      res.status(500).json({ 
+        error: `Failed to generate meeting agenda: ${error.message || 'Unknown error'}`
+      });
+    }
+  }
+});
+
 export default router;

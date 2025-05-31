@@ -36,7 +36,7 @@ export default function EmailServiceDemo() {
     mutationFn: async (data: typeof emailData) => {
       return apiRequest("/api/email/send", {
         method: "POST",
-        body: data,
+        data: data
       });
     },
     onSuccess: () => {
@@ -60,7 +60,7 @@ export default function EmailServiceDemo() {
     mutationFn: async (data: { email: string; firstName: string; schoolName: string }) => {
       return apiRequest("/api/email/welcome", {
         method: "POST",
-        body: data,
+          data: data,
       });
     },
     onSuccess: () => {
@@ -88,7 +88,7 @@ export default function EmailServiceDemo() {
     }) => {
       return apiRequest("/api/email/invitation", {
         method: "POST",
-        body: data,
+          data: data,
       });
     },
     onSuccess: () => {
