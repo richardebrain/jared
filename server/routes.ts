@@ -9,7 +9,7 @@ import session from "express-session";
 import { checkAndNotifyExpiringCredentials } from "./services/notificationService";
 import connectPgSimple from "connect-pg-simple";
 import { updateChildDevelopmentModule } from "./updateChildDevelopmentModule";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and, desc } from "drizzle-orm";
 import { users, eduTokSnippets, eduTokUserInteractions, videoQuizCompletions, learningModules, insertLearningModuleSchema, meetings, teacherMessages, newsletters, insertNewsletterSchema } from "@shared/schema";
 import { registerWelcomeMessageRoutes } from "./welcomeMessageRoutes";
 import { registerModuleManagementRoutes } from "./module-management/moduleRoutes";
@@ -3591,12 +3591,12 @@ Continue for all 5 questions...
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      const newsletters = await db.select()
-        .from(schema.newsletters)
-        .where(eq(schema.newsletters.schoolId, user.schoolId))
-        .orderBy(desc(schema.newsletters.createdAt));
+      const newslettersList = await db.select()
+        .from(newsletters)
+        .where(eq(newsletters.schoolId, user.schoolId))
+        .orderBy(desc(newsletters.createdAt));
 
-      res.json(newsletters);
+      res.json(newslettersList);
     } catch (error) {
       console.error('Error fetching newsletters:', error);
       res.status(500).json({ error: 'Failed to fetch newsletters' });
@@ -3612,7 +3612,7 @@ Continue for all 5 questions...
 
       const { title, subtitle, content, featuredImage, status, scheduledFor, recipientGroups } = req.body;
 
-      const [newsletter] = await db.insert(schema.newsletters)
+      const [newsletter] = await db.insert(newsletters)
         .values({
           schoolId: user.schoolId,
           createdBy: user.id,
@@ -3644,7 +3644,7 @@ Continue for all 5 questions...
       const newsletterId = parseInt(req.params.id);
       const { title, subtitle, content, featuredImage, status, scheduledFor, recipientGroups } = req.body;
 
-      const [newsletter] = await db.update(schema.newsletters)
+      const [newsletter] = await db.update(newsletters)
         .set({
           title,
           subtitle,
@@ -3657,8 +3657,8 @@ Continue for all 5 questions...
           updatedAt: new Date()
         })
         .where(and(
-          eq(schema.newsletters.id, newsletterId),
-          eq(schema.newsletters.schoolId, user.schoolId)
+          eq(newsletters.id, newsletterId),
+          eq(newsletters.schoolId, user.schoolId)
         ))
         .returning();
 
@@ -3682,10 +3682,10 @@ Continue for all 5 questions...
 
       const newsletterId = parseInt(req.params.id);
 
-      await db.delete(schema.newsletters)
+      await db.delete(newsletters)
         .where(and(
-          eq(schema.newsletters.id, newsletterId),
-          eq(schema.newsletters.schoolId, user.schoolId)
+          eq(newsletters.id, newsletterId),
+          eq(newsletters.schoolId, user.schoolId)
         ));
 
       res.json({ success: true });
