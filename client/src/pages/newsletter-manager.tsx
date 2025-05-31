@@ -484,7 +484,7 @@ export default function NewsletterManager() {
               ) : (
                 <Sparkles className="h-4 w-4" />
               )}
-              Smart Suggestions
+              {generatingSuggestions ? "Generating Ideas..." : "Smart Suggestions"}
             </Button>
             <Button
               variant="outline"
@@ -524,10 +524,21 @@ export default function NewsletterManager() {
             </DialogHeader>
             
             <div className="space-y-4">
-              {contentSuggestions.length === 0 ? (
+              {!showContentSuggestions || contentSuggestions.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <Sparkles className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  <p>No suggestions available. Generate some content ideas first.</p>
+                  <p className="mb-4">Click "Generate New Suggestions" to get AI-powered content ideas</p>
+                  <div className="bg-blue-50 p-4 rounded-lg text-left max-w-md mx-auto">
+                    <h4 className="font-medium text-blue-900 mb-2">AI will generate suggestions for:</h4>
+                    <ul className="text-sm text-blue-800 space-y-1">
+                      <li>• Seasonal safety tips (water safety, sun protection)</li>
+                      <li>• Educational activities for current weather</li>
+                      <li>• Family engagement ideas</li>
+                      <li>• Health and wellness reminders</li>
+                      <li>• Community events and celebrations</li>
+                      <li>• Teacher tips for seasonal challenges</li>
+                    </ul>
+                  </div>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-4">

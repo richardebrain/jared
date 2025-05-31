@@ -3538,27 +3538,29 @@ Continue for all 5 questions...
       const { default: OpenAI } = await import('openai');
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-      const prompt = `Generate 6 engaging newsletter content suggestions for a ${schoolType} school in ${currentSeason} (month ${currentMonth}). 
-      
-      Create diverse content including:
-      - Educational activities and learning themes
-      - Seasonal events and celebrations
-      - Parent engagement opportunities
-      - Health and wellness tips
-      - Community building activities
-      - Professional development insights
+      const prompt = `Generate 6 practical and engaging newsletter content suggestions for a ${schoolType} school in ${currentSeason} (month ${currentMonth}). 
 
-      Return as JSON array with this exact structure:
+      Focus on timely, actionable content such as:
+      - Seasonal safety tips (water safety, sun protection, playground safety)
+      - Educational activities for current weather/season
+      - Family engagement ideas for ${currentSeason}
+      - Health and wellness reminders appropriate for the season
+      - Community events and celebrations
+      - Teacher and parent tips for ${currentSeason} challenges
+
+      IMPORTANT: Always generate exactly 6 suggestions even if the topic seems narrow. Be creative and expand on themes.
+
+      Return ONLY a valid JSON array with this exact structure (no additional text):
       [
         {
           "type": "text",
-          "title": "Engaging title",
-          "content": "Detailed content (2-3 paragraphs)",
-          "category": "Educational"
+          "title": "Clear, actionable title",
+          "content": "Detailed, practical content (2-3 paragraphs with specific tips)",
+          "category": "Safety" or "Educational" or "Community" or "Health" or "Events"
         }
       ]
 
-      Make content relevant to early childhood education, current season, and preschool families.`;
+      Make all content immediately useful for preschool families and staff.`;
 
       const response = await openai.chat.completions.create({
         model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
