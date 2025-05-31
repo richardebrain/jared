@@ -3524,5 +3524,64 @@ Continue for all 5 questions...
     }
   });
 
+  // Generate smart newsletter content suggestions
+  app.post('/api/admin/newsletter-suggestions', requireAuth, async (req, res) => {
+    try {
+      const { currentMonth, currentSeason, schoolType } = req.body;
+      
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(400).json({ 
+          error: 'OpenAI API key not configured. Please provide your OpenAI API key to enable smart content suggestions.' 
+        });
+      }
+
+      const OpenAI = require('openai');
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+      const prompt = `Generate 6 engaging newsletter content suggestions for a ${schoolType} school in ${currentSeason} (month ${currentMonth}). 
+      
+      Create diverse content including:
+      - Educational activities and learning themes
+      - Seasonal events and celebrations
+      - Parent engagement opportunities
+      - Health and wellness tips
+      - Community building activities
+      - Professional development insights
+
+      Return as JSON array with this exact structure:
+      [
+        {
+          "type": "text",
+          "title": "Engaging title",
+          "content": "Detailed content (2-3 paragraphs)",
+          "category": "Educational"
+        }
+      ]
+
+      Make content relevant to early childhood education, current season, and preschool families.`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [{ role: "user", content: prompt }],
+        response_format: { type: "json_object" },
+        max_tokens: 2000
+      });
+
+      const result = JSON.parse(response.choices[0].message.content);
+      const suggestions = result.suggestions || result;
+      
+      res.json(suggestions);
+    } catch (error) {
+      console.error('Error generating newsletter suggestions:', error);
+      if (error.message?.includes('API key')) {
+        res.status(400).json({ 
+          error: 'Invalid OpenAI API key. Please check your API key configuration.' 
+        });
+      } else {
+        res.status(500).json({ error: 'Failed to generate content suggestions' });
+      }
+    }
+  });
+
   return app;
 }

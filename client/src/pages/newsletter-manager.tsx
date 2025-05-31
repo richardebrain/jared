@@ -80,6 +80,14 @@ export default function NewsletterManager() {
     title: '',
     content: ''
   });
+  const [showContentSuggestions, setShowContentSuggestions] = useState(false);
+  const [contentSuggestions, setContentSuggestions] = useState<Array<{
+    type: string;
+    title: string;
+    content: string;
+    category: string;
+  }>>([]);
+  const [generatingSuggestions, setGeneratingSuggestions] = useState(false);
 
   // Fetch newsletters for the school
   const { data: newsletters = [], isLoading } = useQuery({
@@ -176,6 +184,78 @@ export default function NewsletterManager() {
         title: "PDF Generation Failed",
         description: "There was an error generating the PDF.",
         variant: "destructive"
+      });
+    }
+  };
+
+  // Generate smart content suggestions using AI
+  const generateContentSuggestions = async () => {
+    setGeneratingSuggestions(true);
+    try {
+      const response = await fetch('/api/admin/newsletter-suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          currentMonth: new Date().getMonth() + 1,
+          currentSeason: getCurrentSeason(),
+          schoolType: 'preschool'
+        })
+      });
+      
+      if (!response.ok) throw new Error('Failed to generate suggestions');
+      
+      const suggestions = await response.json();
+      setContentSuggestions(suggestions);
+      setShowContentSuggestions(true);
+      
+      toast({
+        title: "Content Suggestions Generated",
+        description: "AI has created personalized content suggestions for your newsletter."
+      });
+    } catch (error) {
+      toast({
+        title: "Suggestion Generation Failed",
+        description: "Unable to generate content suggestions. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setGeneratingSuggestions(false);
+    }
+  };
+
+  // Helper function to determine current season
+  const getCurrentSeason = () => {
+    const month = new Date().getMonth() + 1;
+    if (month >= 3 && month <= 5) return 'spring';
+    if (month >= 6 && month <= 8) return 'summer';
+    if (month >= 9 && month <= 11) return 'fall';
+    return 'winter';
+  };
+
+  // Add suggested content to newsletter
+  const addSuggestedContent = (suggestion: any) => {
+    const section: NewsletterSection = {
+      id: Date.now().toString(),
+      type: suggestion.type as any,
+      title: suggestion.title,
+      content: suggestion.content,
+      metadata: { category: suggestion.category }
+    };
+
+    if (selectedNewsletter) {
+      const updatedNewsletter = {
+        ...selectedNewsletter,
+        content: {
+          ...selectedNewsletter.content,
+          sections: [...selectedNewsletter.content.sections, section]
+        }
+      };
+      setSelectedNewsletter(updatedNewsletter);
+      
+      toast({
+        title: "Content Added",
+        description: `"${suggestion.title}" has been added to your newsletter.`
       });
     }
   };
