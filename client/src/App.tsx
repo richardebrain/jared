@@ -72,6 +72,7 @@ import AdminMessagingPage from "@/pages/admin-messaging";
 import AdminBearBucksPage from "@/pages/admin-bear-bucks";
 import AdminMeetingCreator from "@/pages/admin-meeting-creator";
 import AdminVideoLibraryPage from "@/pages/admin-video-library";
+import CertificateManager from "@/pages/certificate-manager";
 import MessagesPage from "@/pages/messages";
 
 // Create a wrapper component that uses AuthProvider internally
@@ -639,6 +640,12 @@ function Router(props: {
       <Route path="/admin/video-library">
         <ProtectedRoute adminOnly={true}>
           <AdminVideoLibraryPage />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/certificate-manager">
+        <ProtectedRoute adminOnly={true}>
+          <CertificateManager />
         </ProtectedRoute>
       </Route>
 

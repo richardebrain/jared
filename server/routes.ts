@@ -10,7 +10,7 @@ import { checkAndNotifyExpiringCredentials } from "./services/notificationServic
 import connectPgSimple from "connect-pg-simple";
 import { updateChildDevelopmentModule } from "./updateChildDevelopmentModule";
 import { eq, sql } from "drizzle-orm";
-import { users, eduTokSnippets, eduTokUserInteractions, videoQuizCompletions, learningModules, insertLearningModuleSchema, meetings } from "@shared/schema";
+import { users, eduTokSnippets, eduTokUserInteractions, videoQuizCompletions, learningModules, insertLearningModuleSchema, meetings, teacherMessages } from "@shared/schema";
 import { registerWelcomeMessageRoutes } from "./welcomeMessageRoutes";
 import { registerModuleManagementRoutes } from "./module-management/moduleRoutes";
 import { registerModuleRoutes } from "./registerModuleRoutes";
@@ -3198,6 +3198,111 @@ Continue for all 5 questions...
     } catch (error) {
       console.error("Error creating shout out:", error);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Certificate Manager routes
+  app.get("/api/admin/school-teachers", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      const user = await storage.getUser(userId);
+      
+      if (!user || (!user.isAdmin && !user.isSchoolAdmin && !user.isOwner)) {
+        return res.status(403).json({ message: "Access denied. Admin privileges required." });
+      }
+      
+      // Get all teachers in the same school
+      const schoolTeachers = await db.query.users.findMany({
+        where: eq(users.schoolId, user.schoolId),
+        columns: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          jobTitle: true,
+          fingerprintExpiration: true,
+          cprExpiration: true,
+          firstAidExpiration: true,
+          foodHandlerExpiration: true
+        }
+      });
+      
+      res.json(schoolTeachers);
+    } catch (error) {
+      console.error("Error fetching school teachers:", error);
+      res.status(500).json({ message: "Failed to fetch school teachers" });
+    }
+  });
+
+  app.post("/api/admin/update-teacher-certifications", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      const user = await storage.getUser(userId);
+      
+      if (!user || (!user.isAdmin && !user.isSchoolAdmin && !user.isOwner)) {
+        return res.status(403).json({ message: "Access denied. Admin privileges required." });
+      }
+      
+      const { teacherId, fingerprintExpiration, cprExpiration, firstAidExpiration, foodHandlerExpiration } = req.body;
+      
+      // Verify the teacher is in the same school
+      const teacher = await storage.getUser(teacherId);
+      if (!teacher || teacher.schoolId !== user.schoolId) {
+        return res.status(403).json({ message: "Cannot update teacher from different school" });
+      }
+      
+      // Update the teacher's certifications
+      await storage.updateUser(teacherId, {
+        fingerprintExpiration: fingerprintExpiration ? new Date(fingerprintExpiration) : null,
+        cprExpiration: cprExpiration ? new Date(cprExpiration) : null,
+        firstAidExpiration: firstAidExpiration ? new Date(firstAidExpiration) : null,
+        foodHandlerExpiration: foodHandlerExpiration ? new Date(foodHandlerExpiration) : null
+      });
+      
+      res.json({ success: true, message: "Certifications updated successfully" });
+    } catch (error) {
+      console.error("Error updating teacher certifications:", error);
+      res.status(500).json({ message: "Failed to update certifications" });
+    }
+  });
+
+  app.post("/api/admin/send-certification-reminder", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      const user = await storage.getUser(userId);
+      
+      if (!user || (!user.isAdmin && !user.isSchoolAdmin && !user.isOwner)) {
+        return res.status(403).json({ message: "Access denied. Admin privileges required." });
+      }
+      
+      const { teacherId, certificationType } = req.body;
+      
+      // Verify the teacher is in the same school
+      const teacher = await storage.getUser(teacherId);
+      if (!teacher || teacher.schoolId !== user.schoolId) {
+        return res.status(403).json({ message: "Cannot send reminder to teacher from different school" });
+      }
+      
+      // Create a teacher message for the certification reminder
+      const reminderMessage = {
+        senderId: userId,
+        recipientId: teacherId,
+        schoolId: user.schoolId,
+        messageType: 'certification_reminder',
+        title: 'Certification Expiration Reminder',
+        content: `Hello ${teacher.firstName},\n\nThis is a friendly reminder that some of your certifications may be expiring soon. Please review your certification status and update any expiring credentials.\n\nIf you have any questions, please contact your director.\n\nBest regards,\n${user.firstName} ${user.lastName}`,
+        important: true
+      };
+      
+      await db.insert(teacherMessages).values(reminderMessage);
+      
+      // Mark teacher as having unread messages
+      await storage.updateUser(teacherId, { hasUnreadMessages: true });
+      
+      res.json({ success: true, message: "Reminder sent successfully" });
+    } catch (error) {
+      console.error("Error sending certification reminder:", error);
+      res.status(500).json({ message: "Failed to send reminder" });
     }
   });
 

@@ -122,12 +122,14 @@ const directorTools: ToolkitTool[] = [
   
   // Analytics & Management
   {
-    id: 'certification-tracker',
-    title: 'Certification Tracker',
-    description: 'Monitor upcoming certification expirations and compliance requirements',
+    id: 'certificate-manager',
+    title: 'Certificate Manager',
+    description: 'Track teacher certifications, get 30-day expiration warnings, and send reminders',
     icon: Award,
-    route: '/admin/certifications',
-    category: 'analytics'
+    route: '/certificate-manager',
+    badge: 'Essential',
+    badgeVariant: 'destructive',
+    category: 'staff'
   },
   {
     id: 'goals-tracker',
