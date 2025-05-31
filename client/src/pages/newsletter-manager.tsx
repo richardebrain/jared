@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,7 +33,6 @@ import {
   X
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { queryClient } from '@/lib/queryClient';
 import { Link } from 'wouter';
 
 interface Newsletter {
@@ -100,10 +99,10 @@ export default function NewsletterManager() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   // Fetch newsletters for the school
-  const { data: newsletters = [], isLoading } = useQuery({
-    queryKey: ['/api/admin/newsletters'],
+  const { data: newsletters = [], isLoading, refetch: refetchNewsletters } = useQuery({
+    queryKey: ['/api/newsletters'],
     queryFn: async () => {
-      const response = await fetch('/api/admin/newsletters', {
+      const response = await fetch('/api/newsletters', {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch newsletters');
@@ -114,7 +113,7 @@ export default function NewsletterManager() {
   // Create or update newsletter
   const saveNewsletter = useMutation({
     mutationFn: async (newsletterData: Partial<Newsletter>) => {
-      const url = newsletterData.id ? `/api/admin/newsletters/${newsletterData.id}` : '/api/admin/newsletters';
+      const url = newsletterData.id ? `/api/newsletters/${newsletterData.id}` : '/api/newsletters';
       const method = newsletterData.id ? 'PUT' : 'POST';
       
       const response = await fetch(url, {
@@ -131,7 +130,8 @@ export default function NewsletterManager() {
         title: "Newsletter Saved",
         description: "Your newsletter has been saved successfully."
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/newsletters'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/newsletters'] });
+      refetchNewsletters();
       setIsEditing(false);
       setSelectedNewsletter(null);
     },
