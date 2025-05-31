@@ -82,20 +82,24 @@ export default function CertificateManager() {
 
   // Send certification reminder
   const sendReminder = useMutation({
-    mutationFn: async ({ teacherId, certificationType }: { teacherId: number, certificationType: string }) => {
+    mutationFn: async ({ teacherId, certificationType, teacherName }: { 
+      teacherId: number, 
+      certificationType: string,
+      teacherName: string 
+    }) => {
       const response = await fetch('/api/admin/send-certification-reminder', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ teacherId, certificationType })
+        body: JSON.stringify({ teacherId, certificationType, teacherName })
       });
       if (!response.ok) throw new Error('Failed to send reminder');
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       toast({
         title: "Reminder Sent",
-        description: "Certification reminder has been sent to the teacher."
+        description: `${variables.certificationType} reminder sent to ${variables.teacherName}.`
       });
     }
   });
