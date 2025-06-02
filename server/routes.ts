@@ -3427,7 +3427,8 @@ Continue for all 5 questions...
     }
   });
 
-  // Credential alerts endpoint
+  // Credential alerts endpoint - works alongside email notification system
+  // This provides real-time alerts in the notification bell while emails serve as backup reminders
   app.get("/api/credential-alerts", requireAuth, async (req, res) => {
     try {
       const userId = req.session.userId as number;
@@ -3452,6 +3453,7 @@ Continue for all 5 questions...
       const now = new Date();
       
       // Check each credential type for expiration within 30 days
+      // This matches the email notification system's thresholds (30, 15, 1 day warnings)
       const credentialTypes = [
         { type: 'Fingerprint Clearance', expiration: user.fingerprint_expiration },
         { type: 'CPR Certification', expiration: user.cpr_expiration },
@@ -3464,14 +3466,15 @@ Continue for all 5 questions...
           const expirationDate = new Date(credential.expiration);
           const daysUntilExpiration = Math.ceil((expirationDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
           
-          // Alert for credentials expiring within 30 days
+          // Alert for credentials expiring within 30 days (same as email system)
           if (daysUntilExpiration <= 30 && daysUntilExpiration >= 0) {
             alerts.push({
               id: `${userId}-${credential.type.toLowerCase().replace(/\s+/g, '-')}`,
               credentialType: credential.type,
               expirationDate: credential.expiration,
               daysUntilExpiration: daysUntilExpiration,
-              dismissed: false // We'll track this in user preferences later
+              dismissed: false, // Future enhancement: track dismissed alerts per user
+              priority: daysUntilExpiration <= 1 ? 'urgent' : daysUntilExpiration <= 15 ? 'high' : 'medium'
             });
           }
         }

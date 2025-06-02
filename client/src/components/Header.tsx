@@ -194,10 +194,22 @@ export default function Header() {
                         className="flex-col items-start p-3"
                       >
                         <div className="flex items-center w-full">
-                          <div className="font-medium text-sm flex-1 text-orange-700">
+                          <div className={`font-medium text-sm flex-1 ${
+                            alert.daysUntilExpiration <= 1 
+                              ? 'text-red-700' 
+                              : alert.daysUntilExpiration <= 15 
+                                ? 'text-orange-700' 
+                                : 'text-yellow-700'
+                          }`}>
                             {alert.credentialType} expires {alert.daysUntilExpiration === 0 ? 'today' : `in ${alert.daysUntilExpiration} days`}
                           </div>
-                          <div className="w-2 h-2 bg-orange-500 rounded-full ml-2"></div>
+                          <div className={`w-2 h-2 rounded-full ml-2 ${
+                            alert.daysUntilExpiration <= 1 
+                              ? 'bg-red-500' 
+                              : alert.daysUntilExpiration <= 15 
+                                ? 'bg-orange-500' 
+                                : 'bg-yellow-500'
+                          }`}></div>
                         </div>
                         <div className="text-xs text-gray-600 mt-1">
                           Expiration: {new Date(alert.expirationDate).toLocaleDateString()}
