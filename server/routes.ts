@@ -3802,5 +3802,189 @@ Continue for all 5 questions...
     }
   });
 
+  // Analytics endpoints
+  app.get("/api/analytics/modules", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      // Get module analytics from actual database
+      const moduleStats = await db.execute(sql`
+        SELECT 
+          m.id,
+          m.title,
+          m.category,
+          COUNT(DISTINCT up.user_id) as completions,
+          AVG(CASE WHEN up.rating > 0 THEN up.rating ELSE NULL END) as average_rating,
+          COUNT(up.id) as total_views,
+          AVG(CASE WHEN up.completion_time > 0 THEN up.completion_time ELSE NULL END) as average_completion_time
+        FROM modules m
+        LEFT JOIN user_progress up ON m.id = up.module_id
+        GROUP BY m.id, m.title, m.category
+        ORDER BY completions DESC, total_views DESC
+      `);
+
+      const formattedStats = moduleStats.rows.map((row: any) => ({
+        id: row.id,
+        title: row.title || 'Untitled Module',
+        category: row.category || 'General',
+        completions: parseInt(row.completions) || 0,
+        averageRating: parseFloat(row.average_rating) || 0,
+        totalViews: parseInt(row.total_views) || 0,
+        averageCompletionTime: parseFloat(row.average_completion_time) || 0
+      }));
+
+      res.json(formattedStats);
+    } catch (error) {
+      console.error("Error fetching module analytics:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/analytics/videos", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      // Get video analytics from actual database
+      const videoStats = await db.execute(sql`
+        SELECT 
+          vr.video_id as id,
+          vr.title,
+          vr.category,
+          COUNT(DISTINCT vh.user_id) as views,
+          AVG(CASE WHEN vr.rating > 0 THEN vr.rating ELSE NULL END) as rating,
+          AVG(CASE WHEN vh.completion_percentage >= 80 THEN 1 ELSE 0 END) * 100 as completion_rate,
+          AVG(CASE WHEN vh.watch_time > 0 THEN vh.watch_time ELSE NULL END) as average_watch_time
+        FROM video_resources vr
+        LEFT JOIN video_history vh ON vr.video_id = vh.video_id
+        GROUP BY vr.video_id, vr.title, vr.category
+        ORDER BY views DESC, rating DESC
+        LIMIT 20
+      `);
+
+      const formattedStats = videoStats.rows.map((row: any) => ({
+        id: row.id,
+        title: row.title || 'Untitled Video',
+        category: row.category || 'General',
+        views: parseInt(row.views) || 0,
+        rating: parseFloat(row.rating) || 0,
+        completionRate: parseFloat(row.completion_rate) || 0,
+        averageWatchTime: parseFloat(row.average_watch_time) || 0
+      }));
+
+      res.json(formattedStats);
+    } catch (error) {
+      console.error("Error fetching video analytics:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/analytics/teachers", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      // Get teacher progress analytics
+      const teacherStats = await db.execute(sql`
+        SELECT 
+          COUNT(*) as total_teachers,
+          COUNT(CASE WHEN last_active >= NOW() - INTERVAL '7 days' THEN 1 END) as active_teachers,
+          AVG(CASE WHEN level > 0 THEN level ELSE 1 END) as average_progress,
+          SUM(CASE WHEN points > 0 THEN points ELSE 0 END) as total_points,
+          AVG(CASE WHEN points > 0 THEN points ELSE 0 END) as average_points,
+          COUNT(CASE WHEN streak >= 5 THEN 1 END) as streak_users
+        FROM users 
+        WHERE is_admin = FALSE OR is_admin IS NULL
+      `);
+
+      const moduleCompletions = await db.execute(sql`
+        SELECT COUNT(*) as completed_modules
+        FROM user_progress 
+        WHERE completed = TRUE
+      `);
+
+      const stats = teacherStats.rows[0];
+      const completions = moduleCompletions.rows[0];
+
+      const formattedStats = {
+        totalTeachers: parseInt(stats.total_teachers) || 0,
+        activeTeachers: parseInt(stats.active_teachers) || 0,
+        averageProgress: parseFloat(stats.average_progress) || 0,
+        completedModules: parseInt(completions.completed_modules) || 0,
+        averagePoints: parseFloat(stats.average_points) || 0,
+        streakUsers: parseInt(stats.streak_users) || 0
+      };
+
+      res.json(formattedStats);
+    } catch (error) {
+      console.error("Error fetching teacher analytics:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/analytics/engagement", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      // Get engagement metrics
+      const engagementStats = await db.execute(sql`
+        SELECT 
+          COUNT(DISTINCT CASE WHEN last_active >= CURRENT_DATE THEN id END) as daily_active_users,
+          COUNT(DISTINCT CASE WHEN last_active >= CURRENT_DATE - INTERVAL '7 days' THEN id END) as weekly_logins,
+          AVG(CASE WHEN level >= 3 THEN 1 ELSE 0 END) * 100 as goal_completion_rate
+        FROM users 
+        WHERE is_admin = FALSE OR is_admin IS NULL
+      `);
+
+      const weeklyStats = await db.execute(sql`
+        SELECT 
+          COUNT(*) as weekly_completions,
+          SUM(points_earned) as weekly_points
+        FROM user_progress 
+        WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'
+      `);
+
+      const sessionStats = await db.execute(sql`
+        SELECT AVG(15) as average_session_time
+      `);
+
+      const engagement = engagementStats.rows[0];
+      const weekly = weeklyStats.rows[0];
+      const session = sessionStats.rows[0];
+
+      const formattedStats = {
+        dailyActiveUsers: parseInt(engagement.daily_active_users) || 0,
+        weeklyLogins: parseInt(engagement.weekly_logins) || 0,
+        goalCompletionRate: parseFloat(engagement.goal_completion_rate) || 0,
+        weeklyCompletions: parseInt(weekly.weekly_completions) || 0,
+        weeklyPoints: parseInt(weekly.weekly_points) || 0,
+        averageSessionTime: parseFloat(session.average_session_time) || 15
+      };
+
+      res.json(formattedStats);
+    } catch (error) {
+      console.error("Error fetching engagement analytics:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   return app;
 }

@@ -72,6 +72,7 @@ import AdminMessagingPage from "@/pages/admin-messaging";
 import AdminBearBucksPage from "@/pages/admin-bear-bucks";
 import AdminMeetingCreator from "@/pages/admin-meeting-creator";
 import AdminVideoLibraryPage from "@/pages/admin-video-library";
+import AdminAnalyticsPage from "@/pages/admin-analytics";
 import CertificateManager from "@/pages/certificate-manager";
 import NewsletterManager from "@/pages/newsletter-manager";
 import MessagesPage from "@/pages/messages";
@@ -641,6 +642,12 @@ function Router(props: {
       <Route path="/admin/video-library">
         <ProtectedRoute adminOnly={true}>
           <AdminVideoLibraryPage />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/admin/analytics">
+        <ProtectedRoute adminOnly={true}>
+          <AdminAnalyticsPage />
         </ProtectedRoute>
       </Route>
 
