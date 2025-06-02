@@ -323,7 +323,7 @@ export default function AdminTeachersPage() {
                     variant="outline" 
                     size="sm" 
                     className="flex-1"
-                    onClick={() => window.open(`/admin-messaging?teacherId=${teacher.id}`, '_blank')}
+                    onClick={() => window.open(`/admin/messaging?teacherId=${teacher.id}`, '_blank')}
                   >
                     <Mail className="h-3 w-3 mr-1" />
                     Message
