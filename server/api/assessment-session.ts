@@ -19,6 +19,7 @@ import type {
   AssessmentDomain,
   User 
 } from '@shared/schema';
+import { QuestionSelectionService } from '../services/assessment/QuestionSelectionService';
 
 // Extend Express Request interface to include user property
 declare global {
@@ -37,6 +38,8 @@ const router = Router();
  * Handles creation, validation, and tracking of assessment sessions for Teacher role users.
  * Ensures one-time assessment integrity and comprehensive data persistence.
  */
+
+const questionSelectionService = new QuestionSelectionService();
 
 // Middleware to require Teacher role users only
 const requireTeacherRole = async (req: Request, res: Response, next: NextFunction) => {
@@ -330,153 +333,113 @@ router.get('/status', requireTeacherRole, async (req: Request, res: Response) =>
       try {
         // Get current difficulty and domain coverage
         const currentDifficulty = assessment.currentDifficulty || config.startingDifficulty || 3;
-        const domainCoverage = assessment.domainCoverage || {};
+        const domainCoverage = new Map(Object.entries(assessment.domainCoverage || {}).map(([k, v]) => [parseInt(k), v as number]));
         
-        console.log(`Fetching question for assessment ${assessment.id}, difficulty: ${currentDifficulty}`);
+        console.log(`Fetching question for assessment ${assessment.id}, difficulty: ${currentDifficulty}, domain coverage:`, domainCoverage);
         
-        // First, let's check if there are any questions at all
-        const totalQuestions = await db.select({
-          count: sql<number>`count(*)`
-        })
-        .from(assessmentQuestions);
-        
-        console.log(`Total questions in database: ${totalQuestions[0]?.count}`);
-        
-        // Check approved questions
-        const approvedQuestions = await db.select({
-          count: sql<number>`count(*)`
-        })
-        .from(assessmentQuestions)
-        .where(eq(assessmentQuestions.isApproved, true));
-        
-        console.log(`Approved questions: ${approvedQuestions[0]?.count}`);
-        
-        // Check enabled questions  
-        const enabledQuestions = await db.select({
-          count: sql<number>`count(*)`
-        })
-        .from(assessmentQuestions)
-        .where(eq(assessmentQuestions.isEnabled, true));
-        
-        console.log(`Enabled questions: ${enabledQuestions[0]?.count}`);
-        
-        // Check questions at specific difficulty
-        const difficultyQuestions = await db.select({
-          count: sql<number>`count(*)`
-        })
-        .from(assessmentQuestions)
-        .where(eq(assessmentQuestions.difficulty, currentDifficulty.toString()));
-        
-        console.log(`Questions at difficulty ${currentDifficulty}: ${difficultyQuestions[0]?.count}`);
-        
-        // Select a question based on current difficulty and domain coverage
-        // For now, get any available question from the pool - in production this would use the selection algorithm
-        const availableQuestions = await db.select()
-          .from(assessmentQuestions)
-          .where(and(
-            eq(assessmentQuestions.isApproved, true),
-            eq(assessmentQuestions.isEnabled, true),
-            eq(assessmentQuestions.difficulty, currentDifficulty.toString())
-          ))
-          .limit(10);
+        // Use the proper QuestionSelectionService to get next question
+        // This service automatically excludes already-used questions and handles fallbacks
+        const selectedQuestionResult = await questionSelectionService.selectNextQuestion(
+          assessment.id,
+          currentDifficulty,
+          domainCoverage,
+          false // not auto progression
+        );
 
-        console.log(`Found ${availableQuestions.length} available questions matching criteria`);
-
-        if (availableQuestions && availableQuestions.length > 0) {
-          // For now, pick a random question - in production this would use proper selection
-          const randomIndex = Math.floor(Math.random() * availableQuestions.length);
-          const selectedQuestion = availableQuestions[randomIndex];
-          
-          console.log(`Selected question: ${selectedQuestion.id}`);
-          
-          // Get domain name for the question
-          let domainName = 'Unknown Domain';
-          const domainIdAsNumber = parseInt(selectedQuestion.domainId);
-          
-          if (!isNaN(domainIdAsNumber)) {
-            try {
-              const domain = await db.select()
-                .from(assessmentDomains)
-                .where(eq(assessmentDomains.id, domainIdAsNumber))
-                .limit(1);
-              
-              domainName = domain.length > 0 ? domain[0].name : 'Unknown Domain';
-            } catch (domainError) {
-              console.error('Error fetching domain:', domainError);
-              domainName = `Domain ${selectedQuestion.domainId}`;
-            }
-          } else {
-            console.log(`Domain ID '${selectedQuestion.domainId}' is not a valid number, using as-is`);
+        const selectedQuestion = selectedQuestionResult.question;
+        
+        console.log(`Selected question using QuestionSelectionService: ${selectedQuestion.id}, fallback level: ${selectedQuestionResult.fallbackLevel}`);
+        
+        // Get domain name for the question
+        let domainName = 'Unknown Domain';
+        const domainIdAsNumber = parseInt(selectedQuestion.domainId);
+        
+        if (!isNaN(domainIdAsNumber)) {
+          try {
+            const domain = await db.select()
+              .from(assessmentDomains)
+              .where(eq(assessmentDomains.id, domainIdAsNumber))
+              .limit(1);
+            
+            domainName = domain.length > 0 ? domain[0].name : 'Unknown Domain';
+          } catch (domainError) {
+            console.error('Error fetching domain:', domainError);
             domainName = `Domain ${selectedQuestion.domainId}`;
           }
-          
-          currentQuestion = {
-            id: selectedQuestion.id,
-            text: selectedQuestion.text,
-            options: JSON.parse(selectedQuestion.options),
-            domain: selectedQuestion.domainId,
-            domainName: domainName,
-            difficulty: parseInt(selectedQuestion.difficulty),
-            sequence: currentSequence,
-            explanation: selectedQuestion.explanation,
-            tags: selectedQuestion.tags ? JSON.parse(selectedQuestion.tags) : []
-          };
-          
-          console.log(`Successfully created current question object`);
         } else {
-          console.log(`No questions found matching criteria - trying fallback`);
-          
-          // Fallback: try to get any approved and enabled question
-          const fallbackQuestions = await db.select()
-            .from(assessmentQuestions)
-            .where(and(
-              eq(assessmentQuestions.isApproved, true),
-              eq(assessmentQuestions.isEnabled, true)
-            ))
-            .limit(5);
-            
-          console.log(`Fallback found ${fallbackQuestions.length} questions`);
-          
-          if (fallbackQuestions.length > 0) {
-            const selectedQuestion = fallbackQuestions[0];
-            console.log(`Using fallback question: ${selectedQuestion.id}`);
-            
-            let domainName = 'Unknown Domain';
-            const domainIdAsNumber = parseInt(selectedQuestion.domainId);
-            
-            if (!isNaN(domainIdAsNumber)) {
-              try {
-                const domain = await db.select()
-                  .from(assessmentDomains)
-                  .where(eq(assessmentDomains.id, domainIdAsNumber))
-                  .limit(1);
-                
-                domainName = domain.length > 0 ? domain[0].name : 'Unknown Domain';
-              } catch (domainError) {
-                console.error('Error fetching domain in fallback:', domainError);
-                domainName = `Domain ${selectedQuestion.domainId}`;
-              }
-            } else {
-              console.log(`Fallback - Domain ID '${selectedQuestion.domainId}' is not a valid number, using as-is`);
-              domainName = `Domain ${selectedQuestion.domainId}`;
-            }
-            
-            currentQuestion = {
-              id: selectedQuestion.id,
-              text: selectedQuestion.text,
-              options: JSON.parse(selectedQuestion.options),
-              domain: selectedQuestion.domainId,
-              domainName: domainName,
-              difficulty: parseInt(selectedQuestion.difficulty),
-              sequence: currentSequence,
-              explanation: selectedQuestion.explanation,
-              tags: selectedQuestion.tags ? JSON.parse(selectedQuestion.tags) : []
-            };
-          }
+          console.log(`Domain ID '${selectedQuestion.domainId}' is not a valid number, using as-is`);
+          domainName = `Domain ${selectedQuestion.domainId}`;
         }
+        
+        currentQuestion = {
+          id: selectedQuestion.id,
+          text: selectedQuestion.text,
+          options: JSON.parse(selectedQuestion.options),
+          domain: selectedQuestion.domainId,
+          domainName: domainName,
+          difficulty: parseInt(selectedQuestion.difficulty),
+          sequence: currentSequence,
+          explanation: selectedQuestion.explanation,
+          tags: selectedQuestion.tags ? JSON.parse(selectedQuestion.tags) : [],
+          selectionReason: selectedQuestionResult.selectionReason,
+          fallbackLevel: selectedQuestionResult.fallbackLevel
+        };
+        
+        console.log(`Successfully created current question object with proper exclusion logic`);
+        
       } catch (questionError) {
-        console.error('Error loading current question:', questionError);
-        // Continue without question - frontend will handle gracefully
+        console.error('Error loading current question with QuestionSelectionService:', questionError);
+        
+        // Check if it's a "question pool exhausted" error
+        if (questionError.message && questionError.message.includes('question pool exhausted')) {
+          // This means we've run out of questions - mark assessment as complete
+          console.log(`Assessment ${assessment.id} has exhausted question pool after ${questionsAnswered} questions`);
+          
+          // Update assessment as completed due to question pool exhaustion
+          await db.update(assessments)
+            .set({
+              completed: true,
+              completedAt: new Date(),
+              results: {
+                status: 'completed_early',
+                reason: 'question_pool_exhausted',
+                questionsAnswered: questionsAnswered.toString(),
+                completedAt: new Date().toISOString()
+              },
+              notes: `Assessment completed early due to question pool exhaustion after ${questionsAnswered} questions`
+            })
+            .where(eq(assessments.id, assessment.id));
+
+          return res.status(200).json({
+            success: true,
+            session: {
+              assessmentId: assessment.id,
+              userId: userId,
+              type: assessment.type,
+              startedAt: assessment.createdAt,
+              currentDifficulty: assessment.currentDifficulty,
+              difficultyProgression: assessment.difficultyProgression,
+              domainCoverage: assessment.domainCoverage,
+              progress: {
+                questionsAnswered: questionsAnswered,
+                totalQuestions: config.questionCount || 40,
+                currentSequence: currentSequence,
+                percentComplete: 100 // Mark as complete
+              },
+              config: {
+                questionCount: config.questionCount || 40,
+                timePerQuestion: config.timePerQuestion || 60,
+                startingDifficulty: config.startingDifficulty || 3
+              },
+              currentQuestion: null,
+              completed: true,
+              completionReason: 'question_pool_exhausted'
+            }
+          });
+        }
+        
+        // For other errors, return error response
+        throw questionError;
       }
     }
 
@@ -601,6 +564,41 @@ router.post('/answer', requireTeacherRole, async (req: Request, res: Response) =
     });
 
     console.log(`Response recorded for assessment ${assessmentId}, question ${currentSequence}: ${isCorrect ? 'correct' : 'incorrect'}`);
+
+    // CRITICAL: Update assessment state after each answer
+    // This ensures the question selection algorithm has current state for next question
+    const assessmentData = assessment[0];
+    
+    // Update difficulty based on correctness (using EP-001-08 difficulty progression)
+    const currentDifficulty = assessmentData.currentDifficulty || 3;
+    let newDifficulty = currentDifficulty;
+    
+    if (isCorrect && !timedOut) {
+      // Increase difficulty for correct answers (max 6)
+      newDifficulty = Math.min(6, currentDifficulty + 1);
+    } else {
+      // Decrease difficulty for incorrect or timed out answers (min 1)
+      newDifficulty = Math.max(1, currentDifficulty - 1);
+    }
+    
+    // Update difficulty progression array
+    const difficultyProgression = [...(assessmentData.difficultyProgression || [currentDifficulty]), newDifficulty];
+    
+    // Update domain coverage
+    const domainCoverage = { ...(assessmentData.domainCoverage || {}) };
+    const domainIdAsString = questionData.domainId.toString();
+    domainCoverage[domainIdAsString] = (domainCoverage[domainIdAsString] || 0) + 1;
+    
+    // Update the assessment record with new state
+    await db.update(assessments)
+      .set({
+        currentDifficulty: newDifficulty,
+        difficultyProgression: difficultyProgression,
+        domainCoverage: domainCoverage
+      })
+      .where(eq(assessments.id, assessmentId));
+
+    console.log(`Assessment ${assessmentId} state updated: difficulty ${currentDifficulty} -> ${newDifficulty}, domain coverage updated for domain ${domainIdAsString}`);
 
     // Check if assessment is complete
     const user = req.user as User;

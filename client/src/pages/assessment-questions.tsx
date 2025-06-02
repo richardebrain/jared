@@ -28,6 +28,8 @@ interface SessionStatus {
     startingDifficulty: number;
   };
   currentQuestion?: QuestionData | null;
+  completed?: boolean;
+  completionReason?: string;
 }
 
 interface QuestionData {
@@ -115,6 +117,16 @@ export default function AssessmentQuestions() {
         setTimeRemaining(result.session.config.timePerQuestion || 60);
         setQuestionStartTime(new Date());
         
+        // Check if assessment was completed due to question pool exhaustion
+        if (result.session.completed && result.session.completionReason === 'question_pool_exhausted') {
+          toast({
+            title: "Assessment Complete",
+            description: `Assessment completed with ${result.session.progress.questionsAnswered} questions. No more unique questions available.`,
+          });
+          setLocation('/assessment-results');
+          return;
+        }
+        
         // Check if we have a current question from the session
         if (result.session.currentQuestion) {
           setCurrentQuestion(result.session.currentQuestion);
@@ -127,8 +139,18 @@ export default function AssessmentQuestions() {
               description: "You have completed all questions. Redirecting to results...",
             });
             setLocation('/assessment-results');
+          } else if (result.session.completed) {
+            // Assessment marked as complete for other reasons
+            const reason = result.session.completionReason === 'question_pool_exhausted' 
+              ? 'No more unique questions available'
+              : 'Assessment completed';
+            toast({
+              title: "Assessment Complete",
+              description: reason,
+            });
+            setLocation('/assessment-results');
           } else {
-            throw new Error('No current question available');
+            throw new Error('No current question available and assessment not marked complete');
           }
         }
       } else {
@@ -138,7 +160,14 @@ export default function AssessmentQuestions() {
       console.error('Error loading session status:', error);
       setError(error.message);
       
-      if (error.message.includes('No active session') || error.message.includes('not found')) {
+      // Handle specific error cases
+      if (error.message.includes('question pool exhausted')) {
+        toast({
+          title: "Assessment Complete",
+          description: "Assessment completed. No more unique questions available in the question pool.",
+        });
+        setLocation('/assessment-results');
+      } else if (error.message.includes('No active session') || error.message.includes('not found')) {
         toast({
           title: "No Active Assessment",
           description: "No active assessment session found. Please start a new assessment.",
