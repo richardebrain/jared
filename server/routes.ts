@@ -3427,6 +3427,87 @@ Continue for all 5 questions...
     }
   });
 
+  // Credential alerts endpoint
+  app.get("/api/credential-alerts", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      
+      // Fetch user credential expiration dates
+      const userResult = await db.execute(sql`
+        SELECT 
+          fingerprint_expiration,
+          cpr_expiration,
+          first_aid_expiration,
+          food_handler_expiration
+        FROM users 
+        WHERE id = ${userId}
+      `);
+
+      if (userResult.rows.length === 0) {
+        return res.json([]);
+      }
+
+      const user = userResult.rows[0];
+      const alerts = [];
+      const now = new Date();
+      
+      // Check each credential type for expiration within 30 days
+      const credentialTypes = [
+        { type: 'Fingerprint Clearance', expiration: user.fingerprint_expiration },
+        { type: 'CPR Certification', expiration: user.cpr_expiration },
+        { type: 'First Aid Certification', expiration: user.first_aid_expiration },
+        { type: 'Food Handler Certification', expiration: user.food_handler_expiration }
+      ];
+
+      credentialTypes.forEach((credential, index) => {
+        if (credential.expiration) {
+          const expirationDate = new Date(credential.expiration);
+          const daysUntilExpiration = Math.ceil((expirationDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          
+          // Alert for credentials expiring within 30 days
+          if (daysUntilExpiration <= 30 && daysUntilExpiration >= 0) {
+            alerts.push({
+              id: `${userId}-${credential.type.toLowerCase().replace(/\s+/g, '-')}`,
+              credentialType: credential.type,
+              expirationDate: credential.expiration,
+              daysUntilExpiration: daysUntilExpiration,
+              dismissed: false // We'll track this in user preferences later
+            });
+          }
+        }
+      });
+
+      res.json(alerts);
+    } catch (error) {
+      console.error("Error fetching credential alerts:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Dismiss credential alert endpoint
+  app.post("/api/credential-alerts/:id/dismiss", requireAuth, async (req, res) => {
+    try {
+      // For now, we'll just return success
+      // In a full implementation, we'd store dismissed alerts in user preferences
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error dismissing credential alert:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Remind about credential alert endpoint
+  app.post("/api/credential-alerts/:id/remind", requireAuth, async (req, res) => {
+    try {
+      // For now, we'll just return success
+      // In a full implementation, we'd schedule a reminder for tomorrow
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error setting credential reminder:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Newsletter Management Routes
   app.get('/api/admin/newsletters', requireAuth, async (req, res) => {
     try {

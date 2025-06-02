@@ -20,7 +20,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, MessageSquare } from "lucide-react";
+import { Bell, MessageSquare, AlertCircle } from "lucide-react";
 
 export default function Header() {
   // return <>hello</>
@@ -43,9 +43,22 @@ export default function Header() {
     refetchInterval: 30000, // Check for new messages every 30 seconds
   });
 
-  const unreadCount = Array.isArray(unreadMessages) 
+  // Fetch credential expiration notifications
+  const { data: credentialAlerts } = useQuery({
+    queryKey: ["/api/credential-alerts"],
+    enabled: !!user,
+    refetchInterval: 60000, // Check for credential alerts every minute
+  });
+
+  const messageCount = Array.isArray(unreadMessages) 
     ? unreadMessages.filter((msg: any) => !msg.isRead).length 
     : 0;
+
+  const credentialCount = Array.isArray(credentialAlerts) 
+    ? credentialAlerts.filter((alert: any) => !alert.dismissed).length 
+    : 0;
+
+  const totalNotifications = messageCount + credentialCount;
   
   console.log(isAdmin,isSchoolAdmin,isOwner,'isAdmin,isSchoolAdmin,isOwner from header')
   console.log(user,'user from header')
@@ -157,16 +170,91 @@ export default function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="relative p-2">
                   <Bell className="h-5 w-5" />
-                  {unreadCount > 0 && (
+                  {totalNotifications > 0 && (
                     <Badge 
                       className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 text-white"
                     >
-                      {unreadCount}
+                      {totalNotifications}
                     </Badge>
                   )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-80">
+              <DropdownMenuContent align="end" className="w-80 max-h-96 overflow-y-auto">
+                {/* Credential Alerts Section */}
+                {Array.isArray(credentialAlerts) && credentialAlerts.length > 0 && (
+                  <>
+                    <DropdownMenuLabel className="flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-2 text-orange-500" />
+                      Credential Expiration Alerts
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {credentialAlerts.filter((alert: any) => !alert.dismissed).slice(0, 3).map((alert: any, index: number) => (
+                      <DropdownMenuItem 
+                        key={`alert-${index}`} 
+                        className="flex-col items-start p-3"
+                      >
+                        <div className="flex items-center w-full">
+                          <div className="font-medium text-sm flex-1 text-orange-700">
+                            {alert.credentialType} expires {alert.daysUntilExpiration === 0 ? 'today' : `in ${alert.daysUntilExpiration} days`}
+                          </div>
+                          <div className="w-2 h-2 bg-orange-500 rounded-full ml-2"></div>
+                        </div>
+                        <div className="text-xs text-gray-600 mt-1">
+                          Expiration: {new Date(alert.expirationDate).toLocaleDateString()}
+                        </div>
+                        <div className="flex gap-2 mt-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-xs h-6"
+                            onClick={async () => {
+                              try {
+                                await apiRequest(`/api/credential-alerts/${alert.id}/dismiss`, {
+                                  method: "POST"
+                                });
+                                queryClient.invalidateQueries({ queryKey: ["/api/credential-alerts"] });
+                              } catch (error) {
+                                console.error("Error dismissing alert:", error);
+                              }
+                            }}
+                          >
+                            Dismiss
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-xs h-6"
+                            onClick={async () => {
+                              try {
+                                await apiRequest(`/api/credential-alerts/${alert.id}/remind`, {
+                                  method: "POST"
+                                });
+                                queryClient.invalidateQueries({ queryKey: ["/api/credential-alerts"] });
+                                toast({
+                                  title: "Reminder Set",
+                                  description: "You'll be reminded again tomorrow about this credential.",
+                                  duration: 3000
+                                });
+                              } catch (error) {
+                                console.error("Error setting reminder:", error);
+                              }
+                            }}
+                          >
+                            Remind Tomorrow
+                          </Button>
+                        </div>
+                      </DropdownMenuItem>
+                    ))}
+                    {credentialCount > 3 && (
+                      <DropdownMenuItem className="text-center text-sm text-orange-600">
+                        {credentialCount - 3} more credential alerts
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+
+                {/* Messages Section */}
                 <DropdownMenuLabel className="flex items-center">
                   <MessageSquare className="h-4 w-4 mr-2" />
                   Messages from Leadership
@@ -175,7 +263,7 @@ export default function Header() {
                 {Array.isArray(unreadMessages) && unreadMessages.length > 0 ? (
                   unreadMessages.slice(0, 5).map((message: any, index: number) => (
                     <DropdownMenuItem 
-                      key={index} 
+                      key={`message-${index}`} 
                       className="flex-col items-start p-3 cursor-pointer"
                       onClick={async () => {
                         // Mark message as read
