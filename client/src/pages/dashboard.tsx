@@ -98,14 +98,18 @@ export default function Dashboard() {
   // Show welcome dashboard on every login session (not just daily)
   useEffect(() => {
     if (user) {
-      // Use a session-based key that resets when the browser session ends
-      // This ensures the welcome shows on every fresh login
-      const sessionKey = `welcomeShown_${user.id}_session`;
-      const hasShownThisSession = sessionStorage.getItem(sessionKey);
+      // Use a timestamp-based approach to show welcome on every actual login
+      // Store the last welcome shown time and compare with user's lastActive time
+      const welcomeKey = `lastWelcomeShown_${user.id}`;
+      const lastWelcomeShown = localStorage.getItem(welcomeKey);
+      const userLastActive = new Date(user.lastActive || 0).getTime();
+      const lastWelcomeTime = lastWelcomeShown ? parseInt(lastWelcomeShown) : 0;
       
-      if (!hasShownThisSession) {
+      // Show welcome if this is a new login session (lastActive is more recent than last welcome shown)
+      // or if we've never shown welcome for this user
+      if (!lastWelcomeShown || userLastActive > lastWelcomeTime) {
         setShowWelcomeDashboard(true);
-        sessionStorage.setItem(sessionKey, 'true');
+        localStorage.setItem(welcomeKey, userLastActive.toString());
       }
     }
   }, [user]);

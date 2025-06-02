@@ -31,18 +31,37 @@ export function WelcomeDashboard({ user, onClose }: WelcomeDashboardProps) {
     // Calculate rewards based on streak
     const rewards: StreakReward[] = [];
     
+    // Daily streak points - everyone gets these for logging in
+    const dailyStreakPoints = user.streak >= 2 ? Math.min(user.streak, 5) : 0;
+    if (dailyStreakPoints > 0) {
+      rewards.push({
+        type: "points",
+        amount: dailyStreakPoints,
+        message: `🎯 Daily Streak Bonus: ${dailyStreakPoints} points!`
+      });
+    }
+    
+    // Special milestone bonuses
     if (user.streak === 7) {
       rewards.push({
         type: "points",
-        amount: 5,
-        message: "🎉 7-Day Streak Bonus!"
+        amount: 25,
+        message: "🎉 7-Day Streak Milestone Bonus!"
+      });
+    }
+    
+    if (user.streak === 30) {
+      rewards.push({
+        type: "points",
+        amount: 100,
+        message: "🏆 30-Day Streak Milestone Bonus!"
       });
     }
     
     if (user.streak && user.streak % 5 === 0 && user.streak >= 5) {
       rewards.push({
-        type: "bear_bucks",
-        amount: 1,
+        type: "points",
+        amount: 15,
         message: `🔥 ${user.streak}-Day Streak Achievement!`
       });
     }
