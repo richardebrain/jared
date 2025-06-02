@@ -76,6 +76,7 @@ import AdminAnalyticsPage from "@/pages/admin-analytics";
 import CertificateManager from "@/pages/certificate-manager";
 import NewsletterManager from "@/pages/newsletter-manager";
 import MessagesPage from "@/pages/messages";
+import SchoolSettingsPage from "@/pages/school-settings";
 
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
@@ -648,6 +649,12 @@ function Router(props: {
       <Route path="/admin/analytics">
         <ProtectedRoute adminOnly={true}>
           <AdminAnalyticsPage />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/school-settings">
+        <ProtectedRoute adminOnly={true}>
+          <SchoolSettingsPage />
         </ProtectedRoute>
       </Route>
 

@@ -3868,18 +3868,6 @@ Continue for all 5 questions...
           120 as average_watch_time
         FROM video_ratings vr
         GROUP BY vr.video_id, vr.id
-        UNION ALL
-        SELECT 
-          et.id::text as id,
-          et.title,
-          et.category,
-          COUNT(DISTINCT eui.user_id) as views,
-          AVG(CASE WHEN eui.interaction_type = 'like' THEN 5 ELSE 3 END) as rating,
-          90.0 as completion_rate,
-          60 as average_watch_time
-        FROM edu_tok_snippets et
-        LEFT JOIN edu_tok_user_interactions eui ON et.id = eui.snippet_id
-        GROUP BY et.id, et.title, et.category
         ORDER BY views DESC, rating DESC
         LIMIT 20
       `);
@@ -3999,6 +3987,87 @@ Continue for all 5 questions...
       res.json(formattedStats);
     } catch (error) {
       console.error("Error fetching engagement analytics:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // School settings endpoints
+  app.get("/api/school/settings", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      // Get school information from the schools table
+      const schoolQuery = await db.execute(sql`
+        SELECT * FROM schools WHERE id = ${user.schoolId || 1} LIMIT 1
+      `);
+
+      const school = schoolQuery.rows[0];
+      res.json(school || {
+        id: 1,
+        name: "Raising Arizona Preschool",
+        address: "123 Education Street",
+        city: "Phoenix", 
+        state: "AZ",
+        zipCode: "85001",
+        contactEmail: "info@raisingarizona.com",
+        contactPhone: "(555) 123-4567",
+        description: "A premier early childhood education center focused on nurturing young minds.",
+        website: "https://www.raisingarizona.com",
+        founded: "2015",
+        type: "Private",
+        capacity: 120,
+        customization: {
+          primaryColor: "#3b82f6",
+          secondaryColor: "#10b981",
+          coreValues: ["Respect", "Kindness", "Learning", "Growth", "Community"]
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching school settings:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch("/api/school/settings", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const updateData = req.body;
+      const schoolId = user.schoolId || 1;
+
+      // Update school information
+      await db.execute(sql`
+        UPDATE schools 
+        SET 
+          name = COALESCE(${updateData.name}, name),
+          address = COALESCE(${updateData.address}, address),
+          city = COALESCE(${updateData.city}, city),
+          state = COALESCE(${updateData.state}, state),
+          zip_code = COALESCE(${updateData.zipCode}, zip_code),
+          contact_email = COALESCE(${updateData.contactEmail}, contact_email),
+          contact_phone = COALESCE(${updateData.contactPhone}, contact_phone),
+          description = COALESCE(${updateData.description}, description),
+          website = COALESCE(${updateData.website}, website),
+          founded = COALESCE(${updateData.founded}, founded),
+          type = COALESCE(${updateData.type}, type),
+          capacity = COALESCE(${updateData.capacity}, capacity),
+          customization = COALESCE(${JSON.stringify(updateData.customization)}, customization)
+        WHERE id = ${schoolId}
+      `);
+
+      res.json({ message: "School settings updated successfully" });
+    } catch (error) {
+      console.error("Error updating school settings:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

@@ -134,6 +134,14 @@ const directorTools: ToolkitTool[] = [
     category: 'staff'
   },
   {
+    id: 'school-settings',
+    title: 'School Settings',
+    description: 'Configure school information, contact details, branding, and core values',
+    icon: Settings,
+    route: '/school-settings',
+    category: 'analytics'
+  },
+  {
     id: 'goals-tracker',
     title: 'Professional Goals Tracker',
     description: 'Set and monitor professional development goals for your team',
