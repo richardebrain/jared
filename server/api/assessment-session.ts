@@ -392,48 +392,17 @@ router.get('/status', requireTeacherRole, async (req: Request, res: Response) =>
         
         // Check if it's a "question pool exhausted" error
         if (questionError.message && questionError.message.includes('question pool exhausted')) {
-          // This means we've run out of questions - mark assessment as complete
+          // Don't mark assessment as complete - instead return a specific error for frontend handling
           console.log(`Assessment ${assessment.id} has exhausted question pool after ${questionsAnswered} questions`);
           
-          // Update assessment as completed due to question pool exhaustion
-          await db.update(assessments)
-            .set({
-              completed: true,
-              completedAt: new Date(),
-              results: {
-                status: 'completed_early',
-                reason: 'question_pool_exhausted',
-                questionsAnswered: questionsAnswered.toString(),
-                completedAt: new Date().toISOString()
-              },
-              notes: `Assessment completed early due to question pool exhaustion after ${questionsAnswered} questions`
-            })
-            .where(eq(assessments.id, assessment.id));
-
-          return res.status(200).json({
-            success: true,
-            session: {
-              assessmentId: assessment.id,
-              userId: userId,
-              type: assessment.type,
-              startedAt: assessment.createdAt,
-              currentDifficulty: assessment.currentDifficulty,
-              difficultyProgression: assessment.difficultyProgression,
-              domainCoverage: assessment.domainCoverage,
-              progress: {
-                questionsAnswered: questionsAnswered,
-                totalQuestions: config.questionCount || 40,
-                currentSequence: currentSequence,
-                percentComplete: 100 // Mark as complete
-              },
-              config: {
-                questionCount: config.questionCount || 40,
-                timePerQuestion: config.timePerQuestion || 60,
-                startingDifficulty: config.startingDifficulty || 3
-              },
-              currentQuestion: null,
-              completed: true,
-              completionReason: 'question_pool_exhausted'
+          return res.status(422).json({
+            success: false,
+            error: "question_pool_exhausted",
+            message: "No more unique questions available",
+            details: {
+              questionsAnswered: questionsAnswered,
+              reason: "You have answered all available unique questions in the question pool. The assessment cannot continue as there are no more questions that haven't been asked yet.",
+              totalQuestionsInPool: "Limited question pool"
             }
           });
         }

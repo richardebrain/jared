@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { QuestionForm } from "./QuestionForm";
+import QuestionPoolWarnings from './QuestionPoolWarnings';
 
 // TODO: Replace with proper authentication system
 // This is a temporary solution for local development only
@@ -102,7 +103,8 @@ export function QuestionManagement() {
   const { 
     data: questionsData, 
     isLoading: isLoadingQuestions, 
-    error 
+    error,
+    refetch
   } = useQuery<PaginatedQuestions>({
     queryKey: ["/api/admin/questions", queryParams],
     queryFn: async () => {
@@ -263,6 +265,12 @@ export function QuestionManagement() {
   const questions = questionsData?.questions || [];
   const pagination = questionsData?.pagination || { page: 1, limit: 20, total: 0, pages: 0 };
 
+  const handlePoolWarningsRefresh = () => {
+    // Refresh the question list when pool warnings are refreshed
+    // This ensures the warnings update if questions are added/removed
+    refetch();
+  };
+
   if (isLoadingQuestions) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -287,6 +295,9 @@ export function QuestionManagement() {
 
   return (
     <div className="space-y-6">
+      {/* Question Pool Warnings */}
+      <QuestionPoolWarnings onRefresh={handlePoolWarningsRefresh} />
+      
       {/* Header with Create Button */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">

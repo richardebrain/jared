@@ -4,9 +4,11 @@ import { z } from 'zod';
 import { db } from '../db';
 import { teacherMessages, users, insertTeacherMessageSchema } from '@shared/schema';
 import { eq, desc, and } from 'drizzle-orm';
+import { QuestionPoolAnalysisService } from '../services/admin/QuestionPoolAnalysisService';
 
 const router = Router();
 const questionService = new QuestionManagementService();
+const poolAnalysisService = new QuestionPoolAnalysisService();
 
 // TODO: Replace with proper authentication system
 // This is a temporary solution for local development only
@@ -631,6 +633,48 @@ router.post('/assign-modules', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error assigning module:', error);
     res.status(500).json({ message: 'Failed to assign module' });
+  }
+});
+
+/**
+ * GET /api/admin/question-pool/analysis
+ * Get question pool adequacy analysis with warnings and recommendations
+ */
+router.get('/question-pool/analysis', requireAdmin, async (req, res) => {
+  try {
+    const analysis = await poolAnalysisService.analyzeQuestionPool();
+    
+    res.json({
+      success: true,
+      data: analysis
+    });
+  } catch (error) {
+    console.error('Error analyzing question pool:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to analyze question pool'
+    });
+  }
+});
+
+/**
+ * GET /api/admin/question-pool/distribution
+ * Get domain distribution summary for dashboard
+ */
+router.get('/question-pool/distribution', requireAdmin, async (req, res) => {
+  try {
+    const distribution = await poolAnalysisService.getDomainDistributionSummary();
+    
+    res.json({
+      success: true,
+      data: distribution
+    });
+  } catch (error) {
+    console.error('Error getting domain distribution:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get domain distribution'
+    });
   }
 });
 

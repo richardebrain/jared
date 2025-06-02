@@ -108,6 +108,17 @@ export default function AssessmentQuestions() {
 
       const result = await response.json();
 
+      // Handle question pool exhausted error specifically
+      if (response.status === 422 && result.error === 'question_pool_exhausted') {
+        toast({
+          title: "Assessment Cannot Continue",
+          description: `You have answered all ${result.details.questionsAnswered} available questions. ${result.details.reason}`,
+          variant: "destructive",
+        });
+        setError(`Question pool exhausted: ${result.details.reason}`);
+        return;
+      }
+
       if (!response.ok) {
         throw new Error(result.message || 'Failed to load session status');
       }
@@ -116,16 +127,6 @@ export default function AssessmentQuestions() {
         setSessionStatus(result.session);
         setTimeRemaining(result.session.config.timePerQuestion || 60);
         setQuestionStartTime(new Date());
-        
-        // Check if assessment was completed due to question pool exhaustion
-        if (result.session.completed && result.session.completionReason === 'question_pool_exhausted') {
-          toast({
-            title: "Assessment Complete",
-            description: `Assessment completed with ${result.session.progress.questionsAnswered} questions. No more unique questions available.`,
-          });
-          setLocation('/assessment-results');
-          return;
-        }
         
         // Check if we have a current question from the session
         if (result.session.currentQuestion) {
@@ -161,13 +162,7 @@ export default function AssessmentQuestions() {
       setError(error.message);
       
       // Handle specific error cases
-      if (error.message.includes('question pool exhausted')) {
-        toast({
-          title: "Assessment Complete",
-          description: "Assessment completed. No more unique questions available in the question pool.",
-        });
-        setLocation('/assessment-results');
-      } else if (error.message.includes('No active session') || error.message.includes('not found')) {
+      if (error.message.includes('No active session') || error.message.includes('not found')) {
         toast({
           title: "No Active Assessment",
           description: "No active assessment session found. Please start a new assessment.",
@@ -315,18 +310,63 @@ export default function AssessmentQuestions() {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <Header />
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-2xl mx-auto text-center">
-            <h1 className="text-2xl font-bold text-red-600 mb-4">Assessment Error</h1>
-            <p className="text-muted-foreground mb-6">{error}</p>
-            <button 
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
+          <div className="mb-6">
+            {error.includes('Question pool exhausted') ? (
+              <>
+                <div className="mx-auto w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
+                  <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.502 0L4.732 15.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+                <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                  Assessment Cannot Continue
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  You have answered all available unique questions in our current question pool. 
+                  The assessment cannot continue as there are no more questions that haven't been asked yet.
+                </p>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <p className="text-sm text-blue-800">
+                    <strong>Good news:</strong> This means our question repetition fix is working! 
+                    We'll be expanding the question pool soon.
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                  <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                  Assessment Error
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  {error}
+                </p>
+              </>
+            )}
+          </div>
+          
+          <div className="space-y-3">
+            <button
               onClick={() => setLocation('/dashboard')}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
             >
               Return to Dashboard
             </button>
+            
+            {!error.includes('Question pool exhausted') && (
+              <button
+                onClick={() => window.location.reload()}
+                className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-3 px-4 rounded-lg transition-colors"
+              >
+                Try Again
+              </button>
+            )}
           </div>
         </div>
       </div>
