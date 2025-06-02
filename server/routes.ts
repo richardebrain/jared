@@ -3396,12 +3396,33 @@ Continue for all 5 questions...
         title: msg.title,
         content: msg.content,
         createdAt: msg.created_at,
+        isRead: msg.is_read || false,
+        important: msg.important || false,
         senderName: msg.sender_name ? `${msg.sender_name} ${msg.sender_last_name}` : 'Leadership'
       }));
 
       res.json(formattedMessages);
     } catch (error) {
       console.error("Error fetching director messages:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Mark message as read endpoint
+  app.post("/api/director-messages/:id/mark-read", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const messageId = parseInt(req.params.id);
+
+      await db.execute(sql`
+        UPDATE teacher_messages 
+        SET is_read = true 
+        WHERE id = ${messageId} AND recipient_id = ${userId}
+      `);
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking message as read:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

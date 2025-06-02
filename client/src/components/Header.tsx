@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Bell, MessageSquare } from "lucide-react";
 
 export default function Header() {
   // return <>hello</>
@@ -33,6 +35,17 @@ export default function Header() {
   const isAdmin = user?.isAdmin || false;
   const isSchoolAdmin = user?.isSchoolAdmin || false;
   const isOwner = user?.isOwner || false;
+
+  // Fetch unread messages count for notification badge
+  const { data: unreadMessages } = useQuery({
+    queryKey: ["/api/director-messages"],
+    enabled: !!user,
+    refetchInterval: 30000, // Check for new messages every 30 seconds
+  });
+
+  const unreadCount = Array.isArray(unreadMessages) 
+    ? unreadMessages.filter((msg: any) => !msg.isRead).length 
+    : 0;
   
   console.log(isAdmin,isSchoolAdmin,isOwner,'isAdmin,isSchoolAdmin,isOwner from header')
   console.log(user,'user from header')
@@ -139,6 +152,71 @@ export default function Header() {
         
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
+            {/* Notification Bell */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="relative p-2">
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <Badge 
+                      className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 text-white"
+                    >
+                      {unreadCount}
+                    </Badge>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80">
+                <DropdownMenuLabel className="flex items-center">
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Messages from Leadership
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {Array.isArray(unreadMessages) && unreadMessages.length > 0 ? (
+                  unreadMessages.slice(0, 5).map((message: any, index: number) => (
+                    <DropdownMenuItem 
+                      key={index} 
+                      className="flex-col items-start p-3 cursor-pointer"
+                      onClick={async () => {
+                        // Mark message as read
+                        try {
+                          await apiRequest(`/api/director-messages/${message.id}/mark-read`, {
+                            method: "POST"
+                          });
+                          // Refresh messages
+                          queryClient.invalidateQueries({ queryKey: ["/api/director-messages"] });
+                        } catch (error) {
+                          console.error("Error marking message as read:", error);
+                        }
+                      }}
+                    >
+                      <div className="flex items-center w-full">
+                        <div className="font-medium text-sm flex-1">{message.title}</div>
+                        {!message.isRead && (
+                          <div className="w-2 h-2 bg-red-500 rounded-full ml-2"></div>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-600 mt-1 line-clamp-2">
+                        {message.content}
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        From: {message.senderName} • {new Date(message.createdAt).toLocaleDateString()}
+                      </div>
+                    </DropdownMenuItem>
+                  ))
+                ) : (
+                  <DropdownMenuItem disabled>
+                    <div className="text-sm text-gray-500">No new messages</div>
+                  </DropdownMenuItem>
+                )}
+                {Array.isArray(unreadMessages) && unreadMessages.length > 5 && (
+                  <DropdownMenuItem className="text-center text-sm text-blue-600">
+                    View all messages
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {/* Beary AI Assistant */}
             <div className="relative group">
               <button 
