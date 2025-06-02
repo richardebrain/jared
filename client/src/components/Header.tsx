@@ -68,6 +68,15 @@ export default function Header() {
     // Immediately clear all client-side data
     localStorage.clear();
     sessionStorage.clear();
+    
+    // Specifically clear welcome session keys for all users to ensure welcome shows on next login
+    const sessionKeys = Object.keys(sessionStorage);
+    sessionKeys.forEach(key => {
+      if (key.includes('welcomeShown_')) {
+        sessionStorage.removeItem(key);
+      }
+    });
+    
     queryClient.clear();
     
     try {

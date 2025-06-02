@@ -25,31 +25,29 @@ export function WelcomeDashboard({ user, onClose }: WelcomeDashboardProps) {
   const [todayRewards, setTodayRewards] = useState<StreakReward[]>([]);
 
   useEffect(() => {
-    // Show streak celebration for milestones
-    if (user.streak && user.streak >= 7) {
-      setShowStreakCelebration(true);
-      
-      // Calculate rewards based on streak
-      const rewards: StreakReward[] = [];
-      
-      if (user.streak === 7) {
-        rewards.push({
-          type: "points",
-          amount: 5,
-          message: "🎉 7-Day Streak Bonus!"
-        });
-      }
-      
-      if (user.streak % 5 === 0 && user.streak >= 5) {
-        rewards.push({
-          type: "bear_bucks",
-          amount: 1,
-          message: `🔥 ${user.streak}-Day Streak Achievement!`
-        });
-      }
-      
-      setTodayRewards(rewards);
+    // Always show streak information, regardless of streak count
+    setShowStreakCelebration(true);
+    
+    // Calculate rewards based on streak
+    const rewards: StreakReward[] = [];
+    
+    if (user.streak === 7) {
+      rewards.push({
+        type: "points",
+        amount: 5,
+        message: "🎉 7-Day Streak Bonus!"
+      });
     }
+    
+    if (user.streak && user.streak % 5 === 0 && user.streak >= 5) {
+      rewards.push({
+        type: "bear_bucks",
+        amount: 1,
+        message: `🔥 ${user.streak}-Day Streak Achievement!`
+      });
+    }
+    
+    setTodayRewards(rewards);
 
     // Load any director messages
     loadDirectorMessages();

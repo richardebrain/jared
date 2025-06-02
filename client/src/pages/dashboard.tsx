@@ -95,13 +95,15 @@ export default function Dashboard() {
     queryKey: ["/api/users"],
   });
   
-  // Show welcome dashboard only once per session
+  // Show welcome dashboard on every login session (not just daily)
   useEffect(() => {
-    if (user && user.streak && user.streak >= 1) {
-      const sessionKey = `welcomeShown_${user.id}_${new Date().toDateString()}`;
-      const hasShownToday = sessionStorage.getItem(sessionKey);
+    if (user) {
+      // Use a session-based key that resets when the browser session ends
+      // This ensures the welcome shows on every fresh login
+      const sessionKey = `welcomeShown_${user.id}_session`;
+      const hasShownThisSession = sessionStorage.getItem(sessionKey);
       
-      if (!hasShownToday) {
+      if (!hasShownThisSession) {
         setShowWelcomeDashboard(true);
         sessionStorage.setItem(sessionKey, 'true');
       }
@@ -170,20 +172,7 @@ export default function Dashboard() {
     }
   }, []);
 
-  // Show welcome dashboard for streak milestones - once per login session but shows current streak
-  useEffect(() => {
-    if (user && user.streak && user.streak >= 5) {
-      // Create a session key that includes today's date so it shows daily but not on every page navigation
-      const today = new Date().toDateString();
-      const sessionKey = `welcomeShown_${user.id}_${today}`;
-      const welcomeShownToday = sessionStorage.getItem(sessionKey);
-      
-      if (!welcomeShownToday) {
-        setShowWelcomeDashboard(true);
-        sessionStorage.setItem(sessionKey, 'true');
-      }
-    }
-  }, [user]);
+
 
   // Refresh points when coming back from casino page
   useEffect(() => {
