@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -17,7 +18,11 @@ import {
   Play,
   ThumbsUp,
   Calendar,
-  Target
+  Target,
+  Activity,
+  Timer,
+  UserCheck,
+  Zap
 } from 'lucide-react';
 import { Link } from 'wouter';
 
@@ -188,11 +193,11 @@ export default function AdminAnalyticsPage() {
 
       {/* Main Analytics Content */}
       <Tabs defaultValue="modules" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="modules">Module Analytics</TabsTrigger>
-          <TabsTrigger value="videos">Video Performance</TabsTrigger>
-          <TabsTrigger value="engagement">Engagement Metrics</TabsTrigger>
-          <TabsTrigger value="progress">Progress Tracking</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
+          <TabsTrigger value="modules" className="text-xs md:text-sm">Modules</TabsTrigger>
+          <TabsTrigger value="videos" className="text-xs md:text-sm">Videos</TabsTrigger>
+          <TabsTrigger value="engagement" className="text-xs md:text-sm">Engagement</TabsTrigger>
+          <TabsTrigger value="progress" className="text-xs md:text-sm">Progress</TabsTrigger>
         </TabsList>
 
         {/* Module Analytics Tab */}
