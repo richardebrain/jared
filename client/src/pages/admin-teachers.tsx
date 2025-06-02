@@ -18,7 +18,7 @@ import {
   ArrowLeft,
   Filter
 } from 'lucide-react';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 
 interface Teacher {
   id: number;
@@ -319,24 +319,26 @@ export default function AdminTeachersPage() {
                 </div>
                 
                 <div className="flex gap-2 pt-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1"
-                    onClick={() => window.open(`/admin/messaging?teacherId=${teacher.id}`, '_blank')}
-                  >
-                    <Mail className="h-3 w-3 mr-1" />
-                    Message
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1"
-                    onClick={() => window.open(`/director-messages?schedule=true&teacherId=${teacher.id}`, '_blank')}
-                  >
-                    <Calendar className="h-3 w-3 mr-1" />
-                    Schedule
-                  </Button>
+                  <Link href={`/admin/messaging?teacherId=${teacher.id}`}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1 w-full"
+                    >
+                      <Mail className="h-3 w-3 mr-1" />
+                      Message
+                    </Button>
+                  </Link>
+                  <Link href={`/director-messages?schedule=true&teacherId=${teacher.id}`}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1 w-full"
+                    >
+                      <Calendar className="h-3 w-3 mr-1" />
+                      Schedule
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>
