@@ -107,6 +107,27 @@ export default function Header() {
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
+
+  // Message dismissal mutation
+  const dismissMessageMutation = useMutation({
+    mutationFn: async (messageId: number) => {
+      const response = await apiRequest(`/api/messages/${messageId}/read`, {
+        method: "POST",
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/messages/unread"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+    },
+    onError: (error) => {
+      console.error("Error dismissing message:", error);
+    },
+  });
+
+  const handleDismissMessage = (messageId: number) => {
+    dismissMessageMutation.mutate(messageId);
+  };
   
   const userInitials = user && user.firstName && user.lastName
     ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}` 
@@ -311,7 +332,7 @@ export default function Header() {
                             className="h-3 w-3 text-gray-400 hover:text-gray-600 cursor-pointer" 
                             onClick={(e) => {
                               e.stopPropagation(); // Prevent triggering the parent onClick
-                              // Handle dismiss action here if needed
+                              handleDismissMessage(message.id);
                             }}
                           />
                         </div>

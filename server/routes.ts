@@ -28,7 +28,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import personalizedModuleRoutes from "./api/personalizedModuleRoutes";
 import assessmentQuestionRoutes from "./routes/assessment-questions";
-import aiSuggestionRoutes from "./api/newAiSuggestionRoutes";
+import aiSuggestionRoutes from "./api/aiSuggestionRoutes";
 import moduleRatingsRoutes from "./api/moduleRatingsRoutes";
 import communityModulesRoutes from "./api/communityModulesRoutes";
 import selfAssessmentRoutes from "./api/selfAssessmentRoutes";

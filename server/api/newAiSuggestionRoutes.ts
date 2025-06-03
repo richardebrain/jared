@@ -770,8 +770,58 @@ Questions and prompts to help educators reflect on their learning and plan next 
           suggestions: specificContent
         });
       }
+    } else if (type === 'teaching') {
+      // Handle teaching strategies request
+      try {
+        // Use AI for dynamic, contextual strategies
+        const strategies = await generateAITeachingStrategies(
+          moduleTopic, 
+          difficultyLevel as 'beginner' | 'intermediate' | 'advanced'
+        );
+        return res.json({
+          suggestions: strategies.join('\n\n')
+        });
+      } catch (error) {
+        console.log('AI teaching strategies failed, using fallback:', error);
+        // Fallback to built-in strategies
+        const strategies = generateTeachingStrategies(
+          moduleTopic, 
+          difficultyLevel as 'beginner' | 'intermediate' | 'advanced'
+        );
+        return res.json({
+          suggestions: strategies.join('\n\n')
+        });
+      }
     } else {
-      return res.status(400).json({ message: 'Invalid suggestion type' });
+      // For any unrecognized type, provide generic teaching content
+      const genericTeachingContent = `
+# ${moduleTopic} Teaching Strategies
+
+## Overview
+This module provides ${difficultyLevel} level strategies for implementing ${moduleTopic} in early childhood education settings.
+
+## Key Teaching Strategies
+- Create a supportive learning environment focused on ${moduleTopic}
+- Use developmentally appropriate practices for ${difficultyLevel} educators
+- Implement hands-on activities that engage children
+- Foster positive relationships and communication
+- Observe and document children's progress
+
+## Practical Applications
+- Daily classroom activities incorporating ${moduleTopic}
+- Assessment strategies for measuring understanding
+- Family engagement opportunities
+- Professional development considerations
+
+## Reflection Questions
+- How can you implement ${moduleTopic} strategies in your current setting?
+- What challenges might you face and how can you address them?
+- How will you measure success in implementing these approaches?
+`;
+      
+      return res.json({
+        suggestions: genericTeachingContent
+      });
     }
     
   } catch (error) {
