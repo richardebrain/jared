@@ -100,7 +100,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
-          $ref: '#/components/responses/TeacherRoleRequired'
+          $ref: '#/components/responses/EducatorRoleRequired'
         '409':
           $ref: '#/components/responses/AssessmentAlreadyCompleted'
         '500':
@@ -158,7 +158,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
-          $ref: '#/components/responses/TeacherRoleRequired'
+          $ref: '#/components/responses/EducatorRoleRequired'
         '404':
           $ref: '#/components/responses/NoActiveSession'
         '500':
@@ -250,7 +250,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
-          $ref: '#/components/responses/TeacherRoleRequired'
+          $ref: '#/components/responses/EducatorRoleRequired'
         '404':
           $ref: '#/components/responses/SessionOrQuestionNotFound'
         '500':
@@ -324,7 +324,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
-          $ref: '#/components/responses/TeacherRoleRequired'
+          $ref: '#/components/responses/EducatorRoleRequired'
         '404':
           $ref: '#/components/responses/SessionNotFound'
         '500':
@@ -372,7 +372,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
-          $ref: '#/components/responses/TeacherRoleRequired'
+          $ref: '#/components/responses/EducatorRoleRequired'
         '404':
           $ref: '#/components/responses/NoActiveSession'
         '500':
@@ -817,15 +817,15 @@ components:
             message: "Unauthorized"
             details: "Valid session authentication required"
 
-    TeacherRoleRequired:
-      description: Teacher role required
+    EducatorRoleRequired:
+      description: Eligible educator role required
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
           example:
             message: "Assessment access restricted"
-            details: "Initial assessments are only available for Teacher role users. Administrators should use different assessment tools."
+            details: "Initial assessments are available for teachers, school directors, and platform owners. System administrators should use administrative tools."
 
     AssessmentAlreadyCompleted:
       description: One-time assessment rule violation
@@ -854,7 +854,7 @@ components:
                     format: date-time
           example:
             message: "Assessment already completed"
-            details: "You have already completed your initial assessment. Each teacher can only take the initial assessment once."
+            details: "You have already completed your initial assessment. Each educator can only take the initial assessment once."
             existingAssessment:
               id: 122
               completed: true
