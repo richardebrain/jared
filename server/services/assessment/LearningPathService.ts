@@ -386,11 +386,31 @@ export class LearningPathService {
   }
 
   /**
-   * Helper method to parse domain ID from string to number
+   * Helper method to parse domain ID from string/number to number (handle both types safely)
    */
-  private parseDomainId(domainId: string | number): number {
-    if (typeof domainId === 'number') return domainId;
-    return parseInt(domainId, 10) || 1; // Default to 1 if parsing fails
+  private parseDomainId(domainId: string | number | null | undefined): number {
+    // Handle null/undefined cases
+    if (domainId === null || domainId === undefined) {
+      console.warn('LearningPathService.parseDomainId received null/undefined, defaulting to domain 1');
+      return 1;
+    }
+
+    // If already a number, return it
+    if (typeof domainId === 'number') {
+      return isNaN(domainId) ? 1 : domainId;
+    }
+
+    // If it's a string, try parsing as number first
+    if (typeof domainId === 'string') {
+      const numericId = parseInt(domainId, 10);
+      if (!isNaN(numericId)) {
+        return numericId;
+      }
+    }
+
+    // Fallback for any other type or parsing failure
+    console.warn('LearningPathService.parseDomainId received unexpected type or failed parsing:', typeof domainId, domainId);
+    return 1; // Default to 1 if parsing fails
   }
 }
 

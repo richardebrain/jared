@@ -167,23 +167,48 @@ export class DomainAnalysisService {
   }
   
   /**
-   * Parse domain ID from text to number (temporary during migration)
+   * Parse domain ID from text/number to number (handle both types safely)
    */
-  private parseDomainId(domainId: string): number {
-    const domainMap: Record<string, number> = {
-      'child-safety': 1,
-      'health-development': 2,
-      'trauma-informed': 3,
-      'positive-guidance': 4,
-      'curriculum-play': 5,
-      'family-engagement': 6,
-      'assessment-observation': 7,
-      'professionalism': 8,
-      'cultural-inclusion': 9,
-      'classroom-scenarios': 10
-    };
-    
-    return domainMap[domainId.toLowerCase()] || 1;
+  private parseDomainId(domainId: string | number | null | undefined): number {
+    // Handle null/undefined cases
+    if (domainId === null || domainId === undefined) {
+      console.warn('parseDomainId received null/undefined, defaulting to domain 1');
+      return 1;
+    }
+
+    // If already a number, return it
+    if (typeof domainId === 'number') {
+      return isNaN(domainId) ? 1 : domainId;
+    }
+
+    // If it's a string, handle both numeric strings and domain name strings
+    if (typeof domainId === 'string') {
+      // Try parsing as number first (for numeric string IDs)
+      const numericId = parseInt(domainId, 10);
+      if (!isNaN(numericId)) {
+        return numericId;
+      }
+
+      // Handle text-based domain IDs (legacy support)
+      const domainMap: Record<string, number> = {
+        'child-safety': 1,
+        'health-development': 2,
+        'trauma-informed': 3,
+        'positive-guidance': 4,
+        'curriculum-play': 5,
+        'family-engagement': 6,
+        'assessment-observation': 7,
+        'professionalism': 8,
+        'cultural-inclusion': 9,
+        'classroom-scenarios': 10
+      };
+      
+      return domainMap[domainId.toLowerCase()] || 1;
+    }
+
+    // Fallback for any other type
+    console.warn('parseDomainId received unexpected type:', typeof domainId, domainId);
+    return 1;
   }
 }
 
