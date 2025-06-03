@@ -1,111 +1,147 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Trophy, ArrowRight, CheckCircle } from "lucide-react";
-import ConfettiExplosion from "react-confetti-explosion";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { 
+  Trophy, 
+  Sparkles, 
+  CheckCircle, 
+  ArrowRight,
+  Clock,
+  BookOpen,
+  Award
+} from 'lucide-react';
 
 interface AssessmentCelebrationProps {
-  pointsEarned: number;
+  assessmentData: {
+    totalQuestions: number;
+    questionsAnswered: number;
+    overallScore?: number;
+    completedAt?: string;
+  };
   onViewResults: () => void;
+  onContinue?: () => void;
 }
 
 export default function AssessmentCelebration({ 
-  pointsEarned, 
-  onViewResults 
+  assessmentData, 
+  onViewResults,
+  onContinue 
 }: AssessmentCelebrationProps) {
-  // State for confetti animation
-  const [isExploding, setIsExploding] = useState(false);
+  const { totalQuestions, questionsAnswered, overallScore, completedAt } = assessmentData;
   
-  // Congratulatory messages
-  const congratsMessages = [
-    "Amazing job completing your assessment!",
-    "Well done on finishing your teacher assessment!",
-    "Fantastic work completing the assessment!",
-    "Great effort on your assessment!",
-    "Excellent work on completing your teacher evaluation!"
-  ];
-  
-  // Get a random message
-  const randomMessage = congratsMessages[Math.floor(Math.random() * congratsMessages.length)];
-  
-  // Trigger confetti on component mount
-  useEffect(() => {
-    setIsExploding(true);
-    
-    // Play success sound
-    try {
-      const audio = new Audio("sounds/mario-victory.mp3");
-      audio.volume = 0.5;
-      audio.play().catch(e => console.error("Error playing sound:", e));
-    } catch (error) {
-      console.error("Failed to load sound:", error);
-    }
-    
-    // Reset confetti after a delay
-    const timer = setTimeout(() => {
-      setIsExploding(false);
-    }, 3000);
-    
-    return () => clearTimeout(timer);
-  }, []);
+  // Calculate completion time estimate
+  const estimatedTime = Math.round((questionsAnswered * 60) / 60); // Assume 60 seconds per question
   
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-      {isExploding && (
-        <div className="fixed z-50 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          <ConfettiExplosion
-            force={0.8}
-            duration={3000}
-            particleCount={100}
-            width={1600}
-          />
-        </div>
-      )}
-      
-      <Card className="w-full max-w-md shadow-lg border-2 border-primary/20 relative overflow-hidden">
-        <div className="absolute top-0 right-0 left-0 h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
-        <CardContent className="pt-8 pb-6 px-6">
-          <div className="mb-6 flex justify-center">
-            <div className="rounded-full bg-amber-100 p-4">
-              <Trophy className="h-12 w-12 text-amber-600" />
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 flex items-center justify-center p-4">
+      <Card className="max-w-2xl w-full shadow-2xl border-0 bg-white/95 backdrop-blur">
+        <CardHeader className="text-center pb-6">
+          <div className="mx-auto w-24 h-24 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center mb-6 shadow-lg">
+            <Trophy className="w-12 h-12 text-white" />
           </div>
           
-          <h2 className="text-2xl font-bold mb-2">Assessment Complete!</h2>
-          <p className="text-muted-foreground mb-4">{randomMessage}</p>
+          <CardTitle className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+            Congratulations! 🎉
+          </CardTitle>
           
-          <div className="bg-primary/5 rounded-lg p-4 mb-6">
-            <div className="flex items-center justify-center gap-2 text-xl font-semibold text-primary">
-              <Trophy className="h-5 w-5" />
-              <span>You earned {pointsEarned} points!</span>
+          <p className="text-xl text-muted-foreground mt-2">
+            You've successfully completed your initial assessment
+          </p>
+        </CardHeader>
+
+        <CardContent className="space-y-6">
+          {/* Achievement Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200">
+              <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
+              <div className="font-semibold text-green-700">Questions Completed</div>
+              <div className="text-2xl font-bold text-green-800">{questionsAnswered}/{totalQuestions}</div>
             </div>
+            
+            <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+              <Clock className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+              <div className="font-semibold text-blue-700">Time Invested</div>
+              <div className="text-2xl font-bold text-blue-800">~{estimatedTime} min</div>
+            </div>
+            
+            {overallScore !== undefined && (
+              <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200">
+                <Award className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                <div className="font-semibold text-purple-700">Overall Score</div>
+                <div className="text-2xl font-bold text-purple-800">{overallScore}%</div>
+              </div>
+            )}
           </div>
-          
-          <div className="space-y-2 mb-6 text-left">
-            <h3 className="font-semibold text-lg">What's next?</h3>
-            <ul className="space-y-2">
-              <li className="flex items-start gap-2">
-                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                <span className="text-sm">See your teaching strengths and growth areas</span>
+
+          {/* Motivational Message */}
+          <div className="text-center p-6 bg-gradient-to-r from-amber-50 via-orange-50 to-red-50 rounded-xl border border-amber-200">
+            <Sparkles className="w-8 h-8 text-amber-600 mx-auto mb-3" />
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+              Outstanding Commitment to Professional Growth!
+            </h3>
+            <p className="text-gray-600 leading-relaxed">
+              You've just taken a significant step in your early childhood education journey. 
+              Your responses will help us create a personalized learning path tailored specifically 
+              to your professional development needs.
+            </p>
+          </div>
+
+          {/* Next Steps */}
+          <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+            <div className="flex items-center gap-3 mb-4">
+              <BookOpen className="w-6 h-6 text-gray-600" />
+              <h3 className="text-lg font-semibold text-gray-800">What's Next?</h3>
+            </div>
+            <ul className="space-y-2 text-gray-600">
+              <li className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                Review your personalized assessment results
               </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                <span className="text-sm">Discover your personalized learning path</span>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                Explore your strength areas and growth opportunities
               </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                <span className="text-sm">Start earning more points with recommended modules</span>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                Access your customized learning path and mini-lessons
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                Begin your professional development journey
               </li>
             </ul>
           </div>
-          
-          <Button 
-            className="w-full"
-            onClick={onViewResults}
-          >
-            View Results
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 pt-4">
+            <Button 
+              onClick={onViewResults}
+              size="lg"
+              className="flex-1 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105"
+            >
+              <Trophy className="w-5 h-5 mr-2" />
+              View My Results
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+            
+            {onContinue && (
+              <Button 
+                onClick={onContinue}
+                variant="outline"
+                size="lg"
+                className="flex-1 border-2 border-gray-300 hover:border-gray-400 text-gray-700 font-semibold py-3 px-6 rounded-xl transition-all duration-200"
+              >
+                Continue to Dashboard
+              </Button>
+            )}
+          </div>
+
+          {/* Completion Timestamp */}
+          {completedAt && (
+            <div className="text-center text-sm text-muted-foreground border-t pt-4">
+              Completed on {new Date(completedAt).toLocaleDateString()} at {new Date(completedAt).toLocaleTimeString()}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

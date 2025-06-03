@@ -9,7 +9,9 @@ import {
   assessmentQuestions,
   questionAvailability,
   users,
-  schools
+  schools,
+  assessmentResults,
+  learningPaths
 } from '@shared/schema';
 import { eq, and, sql, desc, asc, isNull } from 'drizzle-orm';
 import type { 
@@ -352,9 +354,11 @@ router.get('/status', requireTeacherRole, async (req: Request, res: Response) =>
         
         // Get domain name for the question
         let domainName = 'Unknown Domain';
-        const domainIdAsNumber = parseInt(selectedQuestion.domainId);
+        const domainIdAsNumber = typeof selectedQuestion.domainId === 'string' 
+          ? parseInt(selectedQuestion.domainId) 
+          : selectedQuestion.domainId;
         
-        if (!isNaN(domainIdAsNumber)) {
+        if (domainIdAsNumber && !isNaN(domainIdAsNumber)) {
           try {
             const domain = await db.select()
               .from(assessmentDomains)
@@ -574,10 +578,38 @@ router.post('/answer', requireTeacherRole, async (req: Request, res: Response) =
     const config = await loadAssessmentConfig(user.schoolId);
     
     if (currentSequence >= (config.questionCount || 40)) {
-      // Assessment complete - will be handled by completion endpoint
+      // Assessment complete - AUTOMATICALLY TRIGGER COMPLETION TO PREVENT RACE CONDITIONS
+      console.log(`Assessment ${assessmentId} reached completion (${currentSequence}/${config.questionCount || 40} questions). Auto-completing...`);
+      
+      try {
+        // Use the AnswerProcessingService to properly complete assessment and store results
+        const { AnswerProcessingService } = await import('../services/assessment/AnswerProcessingService');
+        const answerProcessingService = new AnswerProcessingService();
+        
+        // Complete assessment using the proper service (includes ResultsCompilationService and database storage)
+        const completionResult = await answerProcessingService.completeAssessment(assessmentId);
+        
+        if (completionResult.success) {
+          // Update assessment record with completion status
+          await db.update(assessments)
+            .set({
+              completed: true,
+              completedAt: new Date()
+            })
+            .where(eq(assessments.id, assessmentId));
+          
+          console.log(`Assessment ${assessmentId} auto-completed successfully with results stored in database`);
+        } else {
+          console.error(`Assessment ${assessmentId} auto-completion failed:`, completionResult.message);
+        }
+      } catch (completionError) {
+        console.error(`Error during assessment ${assessmentId} auto-completion:`, completionError);
+        // Continue with response even if completion processing fails - results can be generated later
+      }
+      
       return res.status(200).json({
         success: true,
-        message: "Answer recorded successfully",
+        message: "Assessment completed! Final answer recorded successfully.",
         response: {
           questionSequence: currentSequence,
           isCorrect: isCorrect,
@@ -587,7 +619,8 @@ router.post('/answer', requireTeacherRole, async (req: Request, res: Response) =
         assessment: {
           completed: true,
           totalQuestions: config.questionCount || 40,
-          questionsAnswered: currentSequence
+          questionsAnswered: currentSequence,
+          resultsReady: true // Indicate that results are being processed/ready
         }
       });
     }
@@ -625,6 +658,7 @@ router.post('/answer', requireTeacherRole, async (req: Request, res: Response) =
  * 
  * Finalizes assessment session and calculates results.
  * Returns assessment results with strengths and growth areas only (for Teachers).
+ * NOW PROPERLY STORES RESULTS IN DATABASE TO PREVENT RACE CONDITIONS
  */
 router.post('/complete', requireTeacherRole, async (req: Request, res: Response) => {
   try {
@@ -669,96 +703,34 @@ router.post('/complete', requireTeacherRole, async (req: Request, res: Response)
       });
     }
 
-    // Calculate domain-specific scores and identify growth areas
-    const domainScores: Record<string, { score: number; maxDifficulty: number; questionsAnswered: number; correctAnswers: number }> = {};
-    const domainCorrectness: Record<string, boolean[]> = {};
-    const incorrectQuestions: Record<string, string[]> = {};
+    // Use the AnswerProcessingService to properly complete assessment and store results
+    const { AnswerProcessingService } = await import('../services/assessment/AnswerProcessingService');
+    const answerProcessingService = new AnswerProcessingService();
     
-    let totalPoints = 0;
-    let totalCorrect = 0;
-
-    // Process responses by domain
-    for (const response of responses) {
-      const domainId = response.domainId;
-      
-      if (!domainScores[domainId]) {
-        domainScores[domainId] = {
-          score: 0,
-          maxDifficulty: 0,
-          questionsAnswered: 0,
-          correctAnswers: 0
-        };
-        domainCorrectness[domainId] = [];
-        incorrectQuestions[domainId] = [];
-      }
-
-      domainScores[domainId].questionsAnswered++;
-      domainScores[domainId].score += response.pointsEarned || 0;
-      totalPoints += response.pointsEarned || 0;
-
-      if (response.isCorrect) {
-        domainScores[domainId].correctAnswers++;
-        totalCorrect++;
-        domainCorrectness[domainId].push(true);
-        
-        // Update max difficulty reached in this domain
-        const difficultyLevel = parseInt(response.difficulty);
-        if (difficultyLevel > domainScores[domainId].maxDifficulty) {
-          domainScores[domainId].maxDifficulty = difficultyLevel;
-        }
-      } else {
-        domainCorrectness[domainId].push(false);
-        incorrectQuestions[domainId].push(response.questionId);
-      }
+    // Complete assessment using the proper service (includes ResultsCompilationService and database storage)
+    const completionResult = await answerProcessingService.completeAssessment(assessmentId);
+    
+    if (!completionResult.success) {
+      return res.status(500).json({
+        message: "Failed to complete assessment",
+        details: completionResult.message || "An error occurred during assessment completion."
+      });
     }
 
-    // Get domain names for result presentation
-    const domains = await db.select()
-      .from(assessmentDomains)
-      .where(eq(assessmentDomains.isActive, true));
-
-    const domainMap = new Map(domains.map(d => [d.id.toString(), d.name]));
-
-    // Identify strengths and growth areas
-    const strengthAreas: string[] = [];
-    const growthAreas: string[] = [];
-
-    for (const [domainId, stats] of Object.entries(domainScores)) {
-      const domainName = domainMap.get(domainId) || `Domain ${domainId}`;
-      const accuracyRate = stats.correctAnswers / stats.questionsAnswered;
-      
-      if (accuracyRate >= 0.8) {
-        strengthAreas.push(domainName);
-      } else if (accuracyRate < 0.6) {
-        growthAreas.push(domainName);
-      }
-    }
-
-    // Calculate overall score
-    const overallScore = Math.round((totalCorrect / responses.length) * 100);
-
-    // Update assessment with final results
+    // Update assessment record with completion status (additional to what AnswerProcessingService does)
     await db.update(assessments)
       .set({
         completed: true,
-        completedAt: new Date(),
-        overallScore: overallScore,
-        domainScores: domainScores,
-        strengthAreas: strengthAreas,
-        growthAreas: growthAreas,
-        incorrectAnswers: incorrectQuestions,
-        results: {
-          totalPoints: totalPoints.toString(),
-          totalCorrect: totalCorrect.toString(),
-          totalQuestions: responses.length.toString(),
-          accuracyRate: `${overallScore}%`
-        }
+        completedAt: new Date()
       })
       .where(eq(assessments.id, assessmentId));
 
-    console.log(`Assessment ${assessmentId} completed for user ${userId}. Score: ${overallScore}%`);
+    console.log(`Assessment ${assessmentId} completed for user ${userId} with results stored in database`);
 
-    // Return results (strengths and growth areas only for Teachers)
+    // Extract key results for teacher display
+    const results = completionResult.results;
+    
+    // Return simplified results for teachers (strengths and growth areas only)
     res.status(200).json({
       success: true,
       message: "Assessment completed successfully",
@@ -766,18 +738,18 @@ router.post('/complete', requireTeacherRole, async (req: Request, res: Response)
         assessmentId: assessmentId,
         completed: true,
         completedAt: new Date(),
-        overallScore: overallScore,
-        totalQuestions: responses.length,
-        totalCorrect: totalCorrect,
-        accuracyRate: overallScore,
-        strengthAreas: strengthAreas,
-        growthAreas: growthAreas,
+        overallScore: results.overallScore,
+        totalQuestions: results.totalQuestions,
+        totalCorrect: results.totalCorrect,
+        accuracyRate: results.accuracyRate,
+        strengthAreas: results.strengthAreas,
+        growthAreas: results.growthAreas,
         summary: {
-          message: strengthAreas.length > 0 
-            ? `Great work! You showed strength in ${strengthAreas.join(', ')}.`
+          message: results.strengthAreas && results.strengthAreas.length > 0 
+            ? `Great work! You showed strength in ${results.strengthAreas.join(', ')}.`
             : "Thank you for completing your assessment.",
-          nextSteps: growthAreas.length > 0
-            ? `Consider focusing on: ${growthAreas.join(', ')}.`
+          nextSteps: results.growthAreas && results.growthAreas.length > 0
+            ? `Consider focusing on: ${results.growthAreas.join(', ')}.`
             : "Continue building your professional development skills!"
         }
       }
@@ -788,6 +760,96 @@ router.post('/complete', requireTeacherRole, async (req: Request, res: Response)
     res.status(500).json({
       message: "Failed to complete assessment",
       details: "An error occurred while finalizing your assessment results. Please contact support."
+    });
+  }
+});
+
+/**
+ * GET /api/assessment/session/results
+ * 
+ * Retrieves stored assessment results for the current user.
+ * Returns comprehensive results with domain breakdown and learning path information.
+ */
+router.get('/results', requireTeacherRole, async (req: Request, res: Response) => {
+  try {
+    const userId = req.session.userId as number;
+
+    // Get the most recent completed assessment for this user
+    const userAssessment = await db.select()
+      .from(assessments)
+      .where(and(
+        eq(assessments.userId, userId),
+        eq(assessments.type, 'initial'),
+        eq(assessments.completed, true)
+      ))
+      .orderBy(desc(assessments.completedAt))
+      .limit(1);
+
+    if (!userAssessment || userAssessment.length === 0) {
+      return res.status(404).json({
+        message: "No completed assessment found",
+        details: "You haven't completed an assessment yet, or your assessment results are being processed."
+      });
+    }
+
+    const assessment = userAssessment[0];
+
+    // Get stored results from assessmentResults table
+    const storedResults = await db.select()
+      .from(assessmentResults)
+      .where(eq(assessmentResults.assessmentId, assessment.id))
+      .limit(1);
+
+    if (!storedResults || storedResults.length === 0) {
+      return res.status(404).json({
+        message: "Assessment results not found",
+        details: "Your assessment results are still being processed. Please try again in a few moments."
+      });
+    }
+
+    const results = storedResults[0];
+
+    // Get learning path if available (from EP-001-10)
+    const { learningPaths } = await import('@shared/schema');
+    const learningPath = await db.select()
+      .from(learningPaths)
+      .where(eq(learningPaths.assessmentId, assessment.id))
+      .limit(1);
+
+    // Return comprehensive results for display
+    res.status(200).json({
+      success: true,
+      assessment: {
+        id: assessment.id,
+        completedAt: assessment.completedAt,
+        type: assessment.type
+      },
+      results: {
+        overallScore: results.overallScore,
+        totalQuestions: results.totalQuestions,
+        totalCorrect: results.totalCorrect,
+        accuracyRate: results.accuracyRate,
+        strengthAreas: results.strengthAreas,
+        growthAreas: results.growthAreas,
+        domainBreakdown: results.domainBreakdown,
+        personalizedSummary: results.personalizedSummary,
+        immediateNextSteps: results.immediateNextSteps,
+        primaryMiniLessons: results.primaryMiniLessons,
+        estimatedImprovementTime: results.estimatedImprovementTime
+      },
+      learningPath: learningPath.length > 0 ? {
+        domainGroups: learningPath[0].domainGroups,
+        totalFailedQuestions: learningPath[0].totalFailedQuestions,
+        totalDomains: learningPath[0].totalDomains,
+        estimatedCompletionTime: learningPath[0].estimatedCompletionTime
+      } : null
+    });
+
+  } catch (error) {
+    console.error('Error retrieving assessment results:', error);
+    res.status(500).json({
+      message: "Failed to retrieve assessment results",
+      details: "An error occurred while loading your results. Please try again."
     });
   }
 });

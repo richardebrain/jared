@@ -7,6 +7,7 @@ import { Loader2 } from 'lucide-react';
 import AssessmentQuestion from '@/components/assessment/AssessmentQuestion';
 import AssessmentTimer from '@/components/assessment/AssessmentTimer';
 import AssessmentProgress from '@/components/assessment/AssessmentProgress';
+import AssessmentCelebration from '@/components/AssessmentCelebration';
 
 interface SessionStatus {
   assessmentId: number;
@@ -59,6 +60,7 @@ interface AnswerResponse {
     questionsAnswered: number;
     nextSequence?: number;
     percentComplete?: number;
+    resultsReady?: boolean;
   };
 }
 
@@ -82,6 +84,10 @@ export default function AssessmentQuestions() {
   const [error, setError] = useState<string | null>(null);
 
   const { toast: toastFunction } = useToast();
+
+  // Celebration state
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [completionData, setCompletionData] = useState<any>(null);
 
   // Check authentication
   useEffect(() => {
@@ -217,24 +223,33 @@ export default function AssessmentQuestions() {
       }
 
       if (result.success) {
-        // Show feedback (without revealing correct answer)
-        const feedbackMessage = isTimeout 
-          ? "Time expired. Moving to next question..."
-          : "Answer submitted successfully!";
-          
-        toast({
-          title: feedbackMessage,
-          description: `Points earned: ${result.response.pointsEarned}`,
-        });
-
         // Check if assessment is complete
         if (result.assessment.completed) {
-          toast({
-            title: "Assessment Complete!",
-            description: "Congratulations! You've completed all questions. Calculating results...",
+          // Show celebration page with completion data
+          setCompletionData({
+            totalQuestions: result.assessment.totalQuestions,
+            questionsAnswered: result.assessment.questionsAnswered,
+            completedAt: new Date().toISOString(),
+            resultsReady: result.assessment.resultsReady || false
           });
-          setLocation('/assessment-results');
+          setShowCelebration(true);
+          
+          // Show success toast
+          toast({
+            title: "Assessment Complete! 🎉",
+            description: "Congratulations! You've completed all questions. Results are being prepared...",
+          });
         } else {
+          // Show feedback for regular answers
+          const feedbackMessage = isTimeout 
+            ? "Time expired. Moving to next question..."
+            : "Answer submitted successfully!";
+            
+          toast({
+            title: feedbackMessage,
+            description: `Points earned: ${result.response.pointsEarned}`,
+          });
+
           // Update session status and load next question
           setSessionStatus(prev => prev ? {
             ...prev,
@@ -282,6 +297,16 @@ export default function AssessmentQuestions() {
       submitAnswer(selectedAnswer, false);
     }
   };
+
+  // Handle viewing results from celebration page
+  const handleViewResults = useCallback(() => {
+    setLocation('/assessment-results');
+  }, [setLocation]);
+
+  // Handle continuing to dashboard from celebration page
+  const handleContinueToDashboard = useCallback(() => {
+    setLocation('/dashboard');
+  }, [setLocation]);
 
   // Load session on mount
   useEffect(() => {
@@ -379,6 +404,17 @@ export default function AssessmentQuestions() {
           </div>
         </div>
       </div>
+    );
+  }
+
+  // Show celebration page if assessment is complete
+  if (showCelebration && completionData) {
+    return (
+      <AssessmentCelebration 
+        assessmentData={completionData}
+        onViewResults={handleViewResults}
+        onContinue={handleContinueToDashboard}
+      />
     );
   }
 
