@@ -327,12 +327,6 @@ export default function AssessmentQuestions() {
                   You have answered all available unique questions in our current question pool. 
                   The assessment cannot continue as there are no more questions that haven't been asked yet.
                 </p>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                  <p className="text-sm text-blue-800">
-                    <strong>Good news:</strong> This means our question repetition fix is working! 
-                    We'll be expanding the question pool soon.
-                  </p>
-                </div>
               </>
             ) : (
               <>
