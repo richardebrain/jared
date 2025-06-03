@@ -15,7 +15,7 @@ import { z } from 'zod';
 
 // Input validation schemas
 export const CreateQuestionSchema = z.object({
-  domainId: z.string().min(1, "Domain ID is required"),
+  domainId: z.number().int().positive("Domain ID must be a positive integer"),
   text: z.string().min(10, "Question text must be at least 10 characters"),
   options: z.array(z.string().min(1, "Option cannot be empty")).length(4, "Exactly 4 options required (A, B, C, D)"),
   correctAnswer: z.number().min(0).max(3, "Correct answer must be 0-3 (A-D)"),
@@ -30,7 +30,7 @@ export const QuestionFiltersSchema = z.object({
   limit: z.number().min(1).max(100).default(20),
   sortBy: z.string().default('createdAt'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
-  domainId: z.string().optional(),
+  domainId: z.number().optional(),
   difficulty: z.string().optional(),
   isApproved: z.boolean().optional(),
   isEnabled: z.boolean().optional(),
@@ -63,10 +63,20 @@ export class QuestionManagementService {
   /**
    * Generate a unique question ID in format: domain-difficulty-sequence
    */
-  private async generateQuestionId(domainId: string, difficulty: string): Promise<string> {
+  private async generateQuestionId(domainId: number, difficulty: string): Promise<string> {
     try {
+      // Look up the domain name from the domainId
+      const [domain] = await db
+        .select({ name: assessmentDomains.name })
+        .from(assessmentDomains)
+        .where(eq(assessmentDomains.id, domainId));
+
+      if (!domain) {
+        throw new Error(`Domain with ID ${domainId} not found`);
+      }
+
       // Normalize domain name for ID (replace spaces with hyphens, lowercase)
-      const domainSlug = domainId.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      const domainSlug = domain.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
       
       // Find the next sequence number for this domain-difficulty combination
       const existingQuestions = await db
@@ -115,7 +125,7 @@ export class QuestionManagementService {
       const whereConditions: (SQL | undefined)[] = [];
       
       if (searchFilters.domainId) {
-        whereConditions.push(eq(assessmentQuestions.domainId, parseInt(searchFilters.domainId)));
+        whereConditions.push(eq(assessmentQuestions.domainId, searchFilters.domainId));
       }
       
       if (searchFilters.difficulty) {
@@ -283,25 +293,25 @@ export class QuestionManagementService {
         throw new Error('Correct answer index is out of range for provided options');
       }
 
-      // Verify domain exists (now using integer domain IDs)
+      // Verify domain exists (using integer domain IDs)
       const [domain] = await db
         .select()
         .from(assessmentDomains)
-        .where(eq(assessmentDomains.id, parseInt(validatedData.domainId)));
+        .where(eq(assessmentDomains.id, validatedData.domainId));
       
       if (!domain) {
         throw new Error('Invalid domain ID');
       }
 
       // Generate unique question ID
-      const questionId = await this.generateQuestionId(domain.name, validatedData.difficulty);
+      const questionId = await this.generateQuestionId(validatedData.domainId, validatedData.difficulty);
 
       // Create the question with proper data conversion
       const [newQuestion] = await db
         .insert(assessmentQuestions)
         .values({
           id: questionId,
-          domainId: parseInt(validatedData.domainId), // Store as integer
+          domainId: validatedData.domainId, // Already a number
           text: validatedData.text,
           options: JSON.stringify(validatedData.options), // Convert array to JSON string
           correctAnswer: validatedData.correctAnswer,
@@ -364,7 +374,7 @@ export class QuestionManagementService {
         const [domain] = await db
           .select()
           .from(assessmentDomains)
-          .where(eq(assessmentDomains.id, parseInt(validatedData.domainId)));
+          .where(eq(assessmentDomains.id, validatedData.domainId));
         
         if (!domain) {
           throw new Error('Invalid domain ID');
@@ -382,7 +392,7 @@ export class QuestionManagementService {
       if (validatedData.correctAnswer !== undefined) updateFields.correctAnswer = validatedData.correctAnswer;
       if (validatedData.difficulty !== undefined) updateFields.difficulty = validatedData.difficulty;
       if (validatedData.miniLesson !== undefined) updateFields.miniLesson = validatedData.miniLesson;
-      if (validatedData.domainId !== undefined) updateFields.domainId = parseInt(validatedData.domainId);
+      if (validatedData.domainId !== undefined) updateFields.domainId = validatedData.domainId;
 
       // Update the question
       const [updatedQuestion] = await db

@@ -44,7 +44,7 @@ const TEMP_ADMIN_PASSWORD = "BIGSURF55";
 
 // Form validation schema matching backend - ID now auto-generated
 const QuestionFormSchema = z.object({
-  domainId: z.string().min(1, "Domain is required"),
+  domainId: z.number().int().positive("Domain is required"),
   text: z.string().min(10, "Question text must be at least 10 characters").max(500, "Question text must be less than 500 characters"),
   options: z.array(z.string().min(1, "Option cannot be empty")).length(4, "Exactly 4 options required (A, B, C, D)"),
   correctAnswer: z.number().min(0).max(3, "Correct answer must be A, B, C, or D"),
@@ -56,7 +56,7 @@ type QuestionFormData = z.infer<typeof QuestionFormSchema>;
 
 interface Question {
   id: string;
-  domainId: string;
+  domainId: number;
   text: string;
   options: string | string[];
   correctAnswer: number;
@@ -92,7 +92,7 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
   const form = useForm<QuestionFormData>({
     resolver: zodResolver(QuestionFormSchema),
     defaultValues: {
-      domainId: "",
+      domainId: 0,
       text: "",
       options: ["", "", "", ""], // Always 4 options
       correctAnswer: 0,
@@ -126,7 +126,7 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
       });
     } else if (isOpen && mode === "create") {
       form.reset({
-        domainId: "",
+        domainId: 0,
         text: "",
         options: ["", "", "", ""], // Always 4 options
         correctAnswer: 0,
@@ -270,7 +270,7 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Domain</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select a domain" />
@@ -281,7 +281,7 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
                               <SelectItem value="">Loading domains...</SelectItem>
                             ) : (
                               domains?.map((domain: any) => (
-                                <SelectItem key={domain.name} value={domain.name}>
+                                <SelectItem key={domain.id} value={domain.id.toString()}>
                                   {domain.name}
                                 </SelectItem>
                               ))

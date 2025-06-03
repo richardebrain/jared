@@ -184,9 +184,9 @@ paths:
                   type: string
                   description: Admin authentication password
                 domainId:
-                  type: string
-                  description: Domain name (must exist in assessment_domains)
-                  example: "Child Safety & Supervision"
+                  type: integer
+                  description: Domain ID (must exist in assessment_domains)
+                  example: 1
                 text:
                   type: string
                   minLength: 10
@@ -1137,9 +1137,9 @@ components:
         - miniLesson
       properties:
         domainId:
-          type: string
-          description: ID of the assessment domain
-          example: "child-safety"
+          type: integer
+          description: Domain ID (must exist in assessment_domains)
+          example: 1
         text:
           type: string
           description: The question text
@@ -1183,9 +1183,9 @@ components:
       type: object
       properties:
         domainId:
-          type: string
-          description: ID of the assessment domain
-          example: "child-safety"
+          type: integer
+          description: Domain ID (must exist in assessment_domains)
+          example: 1
         text:
           type: string
           description: The question text

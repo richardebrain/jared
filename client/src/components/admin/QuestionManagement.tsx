@@ -44,7 +44,7 @@ const TEMP_ADMIN_PASSWORD = "BIGSURF55";
 
 interface Question {
   id: string;
-  domainId: string;
+  domainId: number;
   text: string;
   options: string;
   correctAnswer: number;
