@@ -41,30 +41,6 @@ export default function AssessmentQuestion({
   hasSelectedAnswer
 }: AssessmentQuestionProps) {
 
-  const getDifficultyLabel = (difficulty: number): string => {
-    switch (difficulty) {
-      case 1: return 'Beginner';
-      case 2: return 'Developing';
-      case 3: return 'Proficient';
-      case 4: return 'Accomplished';
-      case 5: return 'Advanced';
-      case 6: return 'Master';
-      default: return 'Unknown';
-    }
-  };
-
-  const getDifficultyColor = (difficulty: number): string => {
-    switch (difficulty) {
-      case 1: return 'bg-green-100 text-green-800 border-green-200';
-      case 2: return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 3: return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 4: return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 5: return 'bg-red-100 text-red-800 border-red-200';
-      case 6: return 'bg-purple-100 text-purple-800 border-purple-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
   const handleRadioChange = (value: string) => {
     const answerIndex = parseInt(value);
     onAnswerSelect(answerIndex);
@@ -73,21 +49,16 @@ export default function AssessmentQuestion({
   return (
     <Card className="w-full">
       <CardHeader className="pb-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-              <BookOpen className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <CardTitle className="text-lg">Question {question.sequence}</CardTitle>
-              <CardDescription className="text-sm">
-                {question.domainName}
-              </CardDescription>
-            </div>
+        <div className="flex items-center space-x-3 mb-4">
+          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+            <BookOpen className="h-5 w-5 text-blue-600" />
           </div>
-          <Badge className={`${getDifficultyColor(question.difficulty)} text-xs`}>
-            {getDifficultyLabel(question.difficulty)}
-          </Badge>
+          <div>
+            <CardTitle className="text-lg">Question {question.sequence}</CardTitle>
+            <CardDescription className="text-sm">
+              {question.domainName}
+            </CardDescription>
+          </div>
         </div>
       </CardHeader>
 

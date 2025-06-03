@@ -37,6 +37,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Minus, BookOpen, Target, Tag, HelpCircle, Lightbulb } from "lucide-react";
+import { getDifficultyLabel, DIFFICULTY_OPTIONS } from '@/utils/difficulty';
 
 // Temporary admin password for API access
 const TEMP_ADMIN_PASSWORD = "BIGSURF55";
@@ -234,18 +235,6 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
     }
   };
 
-  const getDifficultyLabel = (value: string) => {
-    const difficultyMap: Record<string, string> = {
-      "1": "1 - Very Easy",
-      "2": "2 - Easy",
-      "3": "3 - Medium",
-      "4": "4 - Hard",
-      "5": "5 - Very Hard",
-      "6": "6 - Master"
-    };
-    return difficultyMap[value] || value;
-  };
-
   const isLoading = createMutation.isPending || updateMutation.isPending;
 
   return (
@@ -317,9 +306,9 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {[1, 2, 3, 4, 5, 6].map((level) => (
-                              <SelectItem key={level} value={level.toString()}>
-                                {getDifficultyLabel(level.toString())}
+                            {DIFFICULTY_OPTIONS.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.value} - {option.label}
                               </SelectItem>
                             ))}
                           </SelectContent>

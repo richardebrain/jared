@@ -62,7 +62,7 @@ describe('LearningPathService - EP-001-10 Enhanced Learning Path Recommendation'
           questionId: 'q1',
           isCorrect: false,
           timedOut: false,
-          difficulty: 'Intermediate',
+          difficulty: '3', // Medium
           domainId: '1',
           miniLesson: 'Understanding child safety protocols...',
           estimatedDuration: 20
@@ -71,7 +71,7 @@ describe('LearningPathService - EP-001-10 Enhanced Learning Path Recommendation'
           questionId: 'q2',
           isCorrect: false,
           timedOut: true,
-          difficulty: 'Easy',
+          difficulty: '3', // Medium
           domainId: '2',
           miniLesson: 'Health and development basics...',
           estimatedDuration: 15
@@ -80,7 +80,7 @@ describe('LearningPathService - EP-001-10 Enhanced Learning Path Recommendation'
           questionId: 'q3',
           isCorrect: false,
           timedOut: false,
-          difficulty: 'Advanced',
+          difficulty: '5', // Hard
           domainId: '1',
           miniLesson: 'Advanced safety measures...',
           estimatedDuration: 25
@@ -110,8 +110,8 @@ describe('LearningPathService - EP-001-10 Enhanced Learning Path Recommendation'
       
       // Verify within-domain difficulty sorting (ascending)
       const childSafetyGroup = result.domainGroups[0];
-      expect(childSafetyGroup.miniLessons[0].difficulty).toBe(3); // Intermediate (q1)
-      expect(childSafetyGroup.miniLessons[1].difficulty).toBe(5); // Advanced (q3)
+      expect(childSafetyGroup.miniLessons[0].difficulty).toBe(3); // Medium (q1)
+      expect(childSafetyGroup.miniLessons[1].difficulty).toBe(5); // Hard (q3)
       
       // Verify totals calculation
       expect(result.totals.totalFailedQuestions).toBe(3);
@@ -142,7 +142,7 @@ describe('LearningPathService - EP-001-10 Enhanced Learning Path Recommendation'
           questionId: 'q1',
           isCorrect: false,
           timedOut: false,
-          difficulty: 'Easy',
+          difficulty: '3', // Medium
           domainId: '1',
           miniLesson: 'Valid mini-lesson content...',
           estimatedDuration: 15
@@ -151,7 +151,7 @@ describe('LearningPathService - EP-001-10 Enhanced Learning Path Recommendation'
           questionId: 'q2',
           isCorrect: false,
           timedOut: false,
-          difficulty: 'Easy',
+          difficulty: '3', // Medium
           domainId: '1',
           miniLesson: null, // No mini-lesson
           estimatedDuration: 15
@@ -160,7 +160,7 @@ describe('LearningPathService - EP-001-10 Enhanced Learning Path Recommendation'
           questionId: 'q3',
           isCorrect: false,
           timedOut: false,
-          difficulty: 'Easy',
+          difficulty: '3', // Medium
           domainId: '1',
           miniLesson: '   ', // Empty mini-lesson
           estimatedDuration: 15
@@ -192,7 +192,7 @@ describe('LearningPathService - EP-001-10 Enhanced Learning Path Recommendation'
           questionId: 'q1',
           isCorrect: false,
           timedOut: false,
-          difficulty: 'Easy',
+          difficulty: '3', // Medium
           domainId: '1',
           miniLesson: 'Domain 1 lesson...',
           estimatedDuration: 10
@@ -201,7 +201,7 @@ describe('LearningPathService - EP-001-10 Enhanced Learning Path Recommendation'
           questionId: 'q2',
           isCorrect: false,
           timedOut: false,
-          difficulty: 'Intermediate',
+          difficulty: '3', // Medium
           domainId: '1',
           miniLesson: 'Another domain 1 lesson...',
           estimatedDuration: 15
@@ -210,7 +210,7 @@ describe('LearningPathService - EP-001-10 Enhanced Learning Path Recommendation'
           questionId: 'q3',
           isCorrect: false,
           timedOut: false,
-          difficulty: 'Advanced',
+          difficulty: '5', // Hard
           domainId: '2',
           miniLesson: 'Domain 2 lesson...',
           estimatedDuration: 20
@@ -247,7 +247,7 @@ describe('LearningPathService - EP-001-10 Enhanced Learning Path Recommendation'
           questionId: 'q1',
           isCorrect: false,
           timedOut: false,
-          difficulty: 'Advanced', // Difficulty 5
+          difficulty: '5', // Hard
           domainId: '1',
           miniLesson: 'Advanced lesson...',
           estimatedDuration: 25
@@ -256,7 +256,7 @@ describe('LearningPathService - EP-001-10 Enhanced Learning Path Recommendation'
           questionId: 'q2',
           isCorrect: false,
           timedOut: false,
-          difficulty: 'Easy', // Difficulty 1  
+          difficulty: '3', // Medium
           domainId: '1',
           miniLesson: 'Easy lesson...',
           estimatedDuration: 10
@@ -265,7 +265,7 @@ describe('LearningPathService - EP-001-10 Enhanced Learning Path Recommendation'
           questionId: 'q3',
           isCorrect: false,
           timedOut: false,
-          difficulty: 'Intermediate', // Difficulty 3
+          difficulty: '3', // Medium
           domainId: '1',
           miniLesson: 'Intermediate lesson...',
           estimatedDuration: 15
@@ -287,14 +287,14 @@ describe('LearningPathService - EP-001-10 Enhanced Learning Path Recommendation'
       const domainGroup = result.domainGroups[0];
       
       // Verify difficulty sorting (easiest first)
-      expect(domainGroup.miniLessons[0].difficulty).toBe(1); // Easy (q2)
-      expect(domainGroup.miniLessons[1].difficulty).toBe(3); // Intermediate (q3)  
-      expect(domainGroup.miniLessons[2].difficulty).toBe(5); // Advanced (q1)
+      expect(domainGroup.miniLessons[0].difficulty).toBe(3); // Medium (q2)
+      expect(domainGroup.miniLessons[1].difficulty).toBe(3); // Medium (q1)  
+      expect(domainGroup.miniLessons[2].difficulty).toBe(5); // Hard (q3)
       
       // Verify corresponding question IDs
       expect(domainGroup.miniLessons[0].questionId).toBe('q2');
-      expect(domainGroup.miniLessons[1].questionId).toBe('q3');
-      expect(domainGroup.miniLessons[2].questionId).toBe('q1');
+      expect(domainGroup.miniLessons[1].questionId).toBe('q1');
+      expect(domainGroup.miniLessons[2].questionId).toBe('q3');
     });
   });
 
@@ -305,7 +305,7 @@ describe('LearningPathService - EP-001-10 Enhanced Learning Path Recommendation'
           questionId: 'q1',
           isCorrect: false,
           timedOut: false,
-          difficulty: 'Easy',
+          difficulty: '3', // Medium
           domainId: '1',
           miniLesson: 'Test lesson...',
           estimatedDuration: 15
@@ -343,7 +343,7 @@ describe('LearningPathService - EP-001-10 Enhanced Learning Path Recommendation'
           questionId: 'q1',
           isCorrect: false,
           timedOut: false,
-          difficulty: 'Intermediate',
+          difficulty: '3', // Medium
           domainId: '1',
           miniLesson: 'Updated lesson...',
           estimatedDuration: 20
@@ -363,7 +363,7 @@ describe('LearningPathService - EP-001-10 Enhanced Learning Path Recommendation'
         id: 1, 
         assessmentId: 123, 
         userId: 456,
-        domainGroups: [{ domainId: 1, domainName: 'Test Domain', domainWeight: 5, failedQuestionsCount: 1, miniLessons: [{ questionId: 'q1', difficulty: 3, miniLessonId: 'q1', estimatedDuration: 20 }] }],
+        domainGroups: [{ domainId: 1, domainName: 'Test Domain', domainWeight: 5, failedQuestionsCount: 1, miniLessons: [{ questionId: 'q1', difficulty: 1, miniLessonId: 'q1', estimatedDuration: 20 }] }],
         totalFailedQuestions: 1,
         totalDomains: 1,
         estimatedCompletionTime: 20
@@ -395,7 +395,7 @@ describe('LearningPathService - EP-001-10 Enhanced Learning Path Recommendation'
           questionId: 'q1',
           isCorrect: false,
           timedOut: false,
-          difficulty: 'Easy',
+          difficulty: '3', // Medium
           domainId: '999', // Non-existent domain
           miniLesson: 'Test lesson...',
           estimatedDuration: 15
@@ -545,6 +545,50 @@ describe('LearningPathService - EP-001-10 Enhanced Learning Path Recommendation'
       expect(safetyDomain.miniLessons[0].difficulty).toBe(1); // Easy (q2)
       expect(safetyDomain.miniLessons[1].difficulty).toBe(3); // Intermediate (q3)
       expect(safetyDomain.miniLessons[2].difficulty).toBe(6); // Master (q1)
+      
+      // Verify totals
+      expect(result.totals.totalFailedQuestions).toBe(6);
+      expect(result.totals.totalDomains).toBe(3);
+      expect(result.totals.estimatedCompletionTime).toBe(112); // Sum of all durations
+    });
+
+    it('should handle complex scenario with mixed difficulty values', async () => {
+      // Mock complex scenario data
+      const complexResponses = [
+        { questionId: 'q1', isCorrect: false, timedOut: false, difficulty: '2', domainId: '1', miniLesson: 'D1 Easy/Medium lesson', estimatedDuration: 15 },
+        { questionId: 'q2', isCorrect: false, timedOut: false, difficulty: '4', domainId: '1', miniLesson: 'D1 Medium/Hard lesson', estimatedDuration: 18 },
+        { questionId: 'q3', isCorrect: false, timedOut: false, difficulty: '1', domainId: '1', miniLesson: 'D1 Easy lesson', estimatedDuration: 12 },
+        { questionId: 'q4', isCorrect: false, timedOut: false, difficulty: '5', domainId: '2', miniLesson: 'D2 Hard lesson', estimatedDuration: 25 },
+        { questionId: 'q5', isCorrect: false, timedOut: false, difficulty: '1', domainId: '2', miniLesson: 'D2 Easy lesson', estimatedDuration: 12 },
+        { questionId: 'q6', isCorrect: false, timedOut: false, difficulty: '3', domainId: '3', miniLesson: 'D3 Medium lesson', estimatedDuration: 20 }
+      ];
+
+      const mockDomains = [
+        { id: 1, name: 'Safety Protocols', weight: 10 },
+        { id: 2, name: 'Child Development', weight: 8 },
+        { id: 3, name: 'Curriculum Planning', weight: 5 }
+      ];
+
+      mockDb.where.mockResolvedValueOnce(complexResponses);
+      mockDb.where.mockResolvedValueOnce(mockDomains);
+      mockDb.where.mockResolvedValueOnce([]);
+      mockDb.returning.mockResolvedValueOnce([{ id: 1, assessmentId: 123 }]);
+
+      const result = await learningPathService.generateLearningPath(123, 456);
+
+      expect(result.success).toBe(true);
+      expect(result.domainGroups).toHaveLength(3);
+      
+      // Verify domain ordering by weight (descending)
+      expect(result.domainGroups[0].domainName).toBe('Safety Protocols'); // Weight 10
+      expect(result.domainGroups[1].domainName).toBe('Child Development'); // Weight 8
+      expect(result.domainGroups[2].domainName).toBe('Curriculum Planning'); // Weight 5
+      
+      // Verify difficulty sorting within domains
+      const safetyDomain = result.domainGroups[0];
+      expect(safetyDomain.miniLessons[0].difficulty).toBe(1); // Easy (q3)
+      expect(safetyDomain.miniLessons[1].difficulty).toBe(2); // Easy (q1)
+      expect(safetyDomain.miniLessons[2].difficulty).toBe(4); // Medium (q2)
       
       // Verify totals
       expect(result.totals.totalFailedQuestions).toBe(6);

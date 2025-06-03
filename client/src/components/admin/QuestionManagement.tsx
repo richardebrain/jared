@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,6 +36,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { QuestionForm } from "./QuestionForm";
 import QuestionPoolWarnings from './QuestionPoolWarnings';
+import { getDifficultyLabel, getDifficultyColor, DIFFICULTY_OPTIONS } from '@/utils/difficulty';
 
 // TODO: Replace with proper authentication system
 // This is a temporary solution for local development only
@@ -238,30 +239,6 @@ export function QuestionManagement() {
     enableMutation.mutate({ id: question.id, enable });
   };
 
-  const getDifficultyLabel = (difficulty: string) => {
-    const difficultyMap: Record<string, string> = {
-      "1": "Very Easy",
-      "2": "Easy", 
-      "3": "Medium",
-      "4": "Hard",
-      "5": "Very Hard",
-      "6": "Master"
-    };
-    return difficultyMap[difficulty] || difficulty;
-  };
-
-  const getDifficultyColor = (difficulty: string) => {
-    const colorMap: Record<string, string> = {
-      "1": "bg-green-100 text-green-800",
-      "2": "bg-green-100 text-green-800",
-      "3": "bg-yellow-100 text-yellow-800",
-      "4": "bg-orange-100 text-orange-800",
-      "5": "bg-red-100 text-red-800",
-      "6": "bg-purple-100 text-purple-800"
-    };
-    return colorMap[difficulty] || "bg-gray-100 text-gray-800";
-  };
-
   const questions = questionsData?.questions || [];
   const pagination = questionsData?.pagination || { page: 1, limit: 20, total: 0, pages: 0 };
 
@@ -365,12 +342,11 @@ export function QuestionManagement() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All levels</SelectItem>
-                  <SelectItem value="1">Very Easy</SelectItem>
-                  <SelectItem value="2">Easy</SelectItem>
-                  <SelectItem value="3">Medium</SelectItem>
-                  <SelectItem value="4">Hard</SelectItem>
-                  <SelectItem value="5">Very Hard</SelectItem>
-                  <SelectItem value="6">Master</SelectItem>
+                  {DIFFICULTY_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

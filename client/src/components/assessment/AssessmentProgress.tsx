@@ -25,36 +25,6 @@ export default function AssessmentProgress({
   difficulty
 }: AssessmentProgressProps) {
 
-  const getDifficultyLabel = (difficulty: number): string => {
-    switch (difficulty) {
-      case 1: return 'Beginner';
-      case 2: return 'Developing';
-      case 3: return 'Proficient';
-      case 4: return 'Accomplished';
-      case 5: return 'Advanced';
-      case 6: return 'Master';
-      default: return 'Unknown';
-    }
-  };
-
-  const getDifficultyColor = (difficulty: number): string => {
-    switch (difficulty) {
-      case 1: return 'bg-green-100 text-green-800 border-green-200';
-      case 2: return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 3: return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 4: return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 5: return 'bg-red-100 text-red-800 border-red-200';
-      case 6: return 'bg-purple-100 text-purple-800 border-purple-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const getDifficultyIcon = (difficulty: number) => {
-    if (difficulty <= 2) return <BookOpen className="h-4 w-4" />;
-    if (difficulty <= 4) return <Target className="h-4 w-4" />;
-    return <TrendingUp className="h-4 w-4" />;
-  };
-
   // Calculate progress stages
   const getProgressStage = () => {
     if (percentage < 25) return { stage: 'Getting Started', color: 'text-blue-600' };
@@ -108,15 +78,6 @@ export default function AssessmentProgress({
             <BookOpen className="h-4 w-4 text-blue-600" />
           </div>
           <p className="text-sm text-blue-800 font-medium">{domain}</p>
-        </div>
-
-        {/* Difficulty Level */}
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-700">Difficulty Level</span>
-          <Badge className={`${getDifficultyColor(difficulty)} text-xs flex items-center space-x-1`}>
-            {getDifficultyIcon(difficulty)}
-            <span>{getDifficultyLabel(difficulty)}</span>
-          </Badge>
         </div>
 
         {/* Progress Milestones */}
