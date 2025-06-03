@@ -20,7 +20,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, MessageSquare, AlertCircle } from "lucide-react";
+import { Bell, MessageSquare, AlertCircle, X } from "lucide-react";
 
 export default function Header() {
   // return <>hello</>
@@ -285,7 +285,7 @@ export default function Header() {
                   unreadMessages.slice(0, 5).map((message: any, index: number) => (
                     <DropdownMenuItem 
                       key={`message-${index}`} 
-                      className="flex-col items-start p-3 cursor-pointer"
+                      className="flex-col items-start p-3 cursor-pointer hover:bg-gray-50 min-h-[80px] max-w-[320px]"
                       onClick={async () => {
                         // Mark message as read
                         try {
@@ -299,16 +299,30 @@ export default function Header() {
                         }
                       }}
                     >
-                      <div className="flex items-center w-full">
-                        <div className="font-medium text-sm flex-1">{message.title}</div>
-                        {!message.isRead && (
-                          <div className="w-2 h-2 bg-red-500 rounded-full ml-2"></div>
-                        )}
+                      <div className="flex items-start justify-between w-full mb-2">
+                        <div className="font-medium text-sm flex-1 pr-2 leading-tight">
+                          {message.title}
+                        </div>
+                        <div className="flex items-center space-x-1 flex-shrink-0">
+                          {!message.isRead && (
+                            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                          )}
+                          <X 
+                            className="h-3 w-3 text-gray-400 hover:text-gray-600 cursor-pointer" 
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent triggering the parent onClick
+                              // Handle dismiss action here if needed
+                            }}
+                          />
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-600 mt-1 line-clamp-2">
-                        {message.content}
+                      <div className="text-xs text-gray-600 mb-2 leading-relaxed max-h-[36px] overflow-hidden">
+                        {message.content.length > 100 
+                          ? `${message.content.substring(0, 100)}...` 
+                          : message.content
+                        }
                       </div>
-                      <div className="text-xs text-gray-400 mt-1">
+                      <div className="text-xs text-gray-400">
                         From: {message.senderName} • {new Date(message.createdAt).toLocaleDateString()}
                       </div>
                     </DropdownMenuItem>
