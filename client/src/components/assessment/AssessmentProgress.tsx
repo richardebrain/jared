@@ -51,7 +51,7 @@ export default function AssessmentProgress({
           <div className="text-3xl font-bold text-blue-600">
             {current} <span className="text-lg text-muted-foreground">of</span> {total}
           </div>
-          <p className="text-sm text-muted-foreground">Questions Completed</p>
+          <p className="text-sm text-muted-foreground">Questions</p>
         </div>
 
         {/* Current Domain - Compact Inline */}

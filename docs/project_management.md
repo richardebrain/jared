@@ -638,7 +638,7 @@ This document serves as the central project management framework for MentorMe, t
      - **Ready for Testing**: Complete assessment question interface ready for manual testing and user validation
      - **Total Implementation**: 875 lines across 4 core components plus route integration
 
-13. ⬜ [EP-001-13] **Assessment Finalization and Results Display**
+13. ✅ [EP-001-13] **Assessment Finalization and Results Display**
    - **Description:** Complete the assessment experience with finalization processing, celebration interface, and comprehensive results display that provides meaningful insights and next steps for professional development.
    - **Requirements:**
      - **Assessment Completion**: Call `/api/assessment/session/complete` to finalize assessment and generate results
@@ -686,6 +686,68 @@ This document serves as the central project management framework for MentorMe, t
      - Include proper error handling for completion failures
      - Provide fallback content if results processing has issues
      - Consider results caching for performance and offline access
+   - **Status Update:** ✅ **COMPLETED** - Assessment finalization and results display successfully implemented
+
+14. ⬜ [EP-001-14] **Dashboard Personalization Based on Assessment Completion**
+   - **Description:** Transform the educator dashboard experience to show personalized content based on initial assessment completion status, displaying growth priorities and mini-lesson recommendations for completed assessments, or clear guidance to complete the assessment for those who haven't.
+   - **Requirements:**
+     - **Assessment Status Detection**: Check if current user has completed initial assessment
+     - **Pre-Assessment Dashboard State**:
+       - Show "Assessment Needed" message in relevant dashboard blocks
+       - Display: "Complete an assessment to receive your personalized learning path based on your specific strengths and growth areas."
+       - Include prominent "Take Initial Assessment" button/link
+       - Mini lessons block shows placeholder content until assessment results available
+     - **Post-Assessment Dashboard State**:
+       - Display personalized growth priorities based on assessment results (domains with <80% accuracy)
+       - Show mini-lesson recommendations organized by priority domains
+       - Replace generic content blocks with personalized learning path items
+       - Include link to view full assessment results
+     - **Dashboard Content Blocks**:
+       - **Growth Priorities Block**: Show top 3-5 growth areas with clear domain names and descriptions
+       - **Recommended Mini-Lessons Block**: Display mini-lessons from failed questions, organized by domain priority
+       - **Assessment Results Link**: "View Your Initial Assessment Results" prominent link/button
+       - **Progress Tracking**: Visual indicators of learning path progress (if applicable)
+     - **Dynamic Content Loading**: Fetch assessment results and learning path data efficiently
+     - **Error Handling**: Graceful fallback if assessment data is unavailable
+   - **Dependencies:** EP-001-07, EP-001-09, EP-001-10 (Session Management, Answer Processing, Learning Path Generation)
+   - **Technical Implementation:**
+     - **Assessment Status Service**: Check user's assessment completion status
+     - **Dashboard Components Updates**:
+       - Update existing dashboard blocks to conditionally render based on assessment status
+       - Create `AssessmentNeededBlock.tsx` for pre-assessment state
+       - Create `GrowthPrioritiesBlock.tsx` for personalized growth areas
+       - Create `RecommendedLessonsBlock.tsx` for mini-lesson recommendations
+       - Update `MiniLessonsBlock.tsx` to show personalized vs. placeholder content
+     - **Data Integration**:
+       - Fetch assessment results and learning path data for completed assessments
+       - Integrate with existing learning path generation from EP-001-10
+       - Use domain weights and failed question data for prioritization
+     - **API Endpoints**:
+       - Leverage existing assessment session and results APIs
+       - Create dashboard-specific endpoint if needed: `GET /api/dashboard/personalization`
+     - **UI/UX Design**:
+       - Clear visual distinction between pre/post-assessment states
+       - Motivational messaging for assessment completion
+       - Actionable next steps with clear call-to-action buttons
+       - Responsive design for mobile and desktop
+   - **Success Criteria:**
+     - Dashboard correctly detects assessment completion status for all eligible educators
+     - Pre-assessment state shows clear guidance and prominent assessment link
+     - Post-assessment state displays personalized growth priorities and mini-lesson recommendations
+     - Growth priorities accurately reflect assessment results (domains with <80% accuracy)
+     - Mini-lesson recommendations come from failed questions and are properly prioritized
+     - Assessment results link works correctly and navigates to comprehensive results page
+     - All dashboard blocks transition smoothly between pre/post-assessment states
+     - Error states are handled gracefully with helpful messaging
+     - Interface is fully responsive and accessible
+   - **Dependencies:** EP-001-07, EP-001-09, EP-001-10
+   - **Technical Notes:**
+     - Build on existing dashboard component structure in `client/src/pages/Dashboard.tsx`
+     - Use React Query for efficient data fetching and caching
+     - Follow existing design patterns and component styling
+     - Ensure proper loading states during data fetching
+     - Consider implementing progressive enhancement for better user experience
+     - May need to create new API endpoint for aggregated dashboard data if individual API calls are inefficient
 
 ## Tracking Progress
 
@@ -909,13 +971,115 @@ Weekly status updates will be added below to track overall project progress.
        - `client/src/components/admin/AvailabilityControl.tsx`
        - `client/src/components/admin/BulkAvailabilityEditor.tsx`
 
-5. ⬜ [EP-002-05] **AI Content Integration - To Be Planned**
-   - **Description:** Future task for AI-generated content integration workflow. Scope and approach to be determined based on current AI tooling and requirements.
-   - **Dependencies:** EP-002-04
-   - **Technical Notes:** 
-     - Placeholder for future AI integration features
-     - Will be planned and scoped when ready to implement
-     - May include copy-paste workflow, content parsing, or direct API integration
+5. ⬜ [EP-002-05] **AI-Powered Assessment Question Generation**
+   - **Description:** Integrate AI-powered question generation directly into the question management interface, enabling content managers to generate high-quality, domain-specific assessment questions using optimized prompts that leverage the existing OpenAI infrastructure.
+   - **Requirements:**
+     - **Generate Question Button**: Add "Generate with AI" button to question create/edit forms in QuestionForm.tsx
+     - **Domain-Aware Prompts**: Optimize AI prompts based on selected domain and difficulty level for relevant ECE content
+     - **Question Structure Generation**: AI generates complete question package (text, 4 options, correct answer, explanation, mini-lesson)
+     - **ECE Standards Integration**: Prompts reference established ECE frameworks (NAEYC, ECERS-R, CLASS) for authenticity
+     - **Difficulty-Matched Content**: Questions generated match selected difficulty level (1-6 scale) with appropriate complexity
+     - **Content Validation**: Generated content requires human review and approval before being added to question pool
+     - **Multiple Generation Options**: Support generating multiple question variations for content review and selection
+     - **Integration with Existing Workflow**: Seamlessly integrate with current question creation and approval processes
+   - **Dependencies:** EP-002-02 (Frontend CRUD Interface), EP-002-04 (Availability Control Interface)
+   - **Technical Implementation:**
+     - **OpenAI Infrastructure Consolidation**: 
+       - **Investigation Finding**: Currently 4+ separate OpenAI client initializations across the codebase:
+         - `server/api/dynamicAiSuggestions.ts` - Teaching content generation
+         - `server/services/aiBearyService.ts` - AI assistant service
+         - `server/api/newAiSuggestionRoutes.ts` - Module content generation
+         - `server/routes.ts` - Lesson plan generation (multiple instances)
+       - **Recommended Approach**: Create centralized `OpenAIService.ts` to consolidate API usage and ensure consistent configuration
+     - **Backend API Endpoints**:
+       - `POST /api/admin/questions/generate` - Generate question content with domain/difficulty context
+       - Request payload: `{ domainId, difficulty, generationOptions, existingContent? }`
+       - Response: `{ generatedQuestions: [...], metadata: {...} }`
+     - **Frontend Integration**:
+       - Add "Generate with AI" button to QuestionForm.tsx
+       - Modal dialog for generation options and preview
+       - Generated content populates form fields for review/editing
+       - Clear indication of AI-generated content for approval workflow
+     - **Optimized ECE Prompt Engineering**:
+       ```typescript
+       const domainPrompts = {
+         "Child Safety & Supervision": {
+           context: "Active supervision, incident response, hygiene protocols, emergency procedures",
+           standards: "NAEYC Health Standard 5, ECERS-R Safety Items",
+           scenarios: "Playground supervision, hand washing, emergency drills"
+         },
+         "Health & Development": {
+           context: "Developmental milestones, nutrition practices, physical development",
+           standards: "NAEYC Health Standards, CLASS Emotional Support",
+           scenarios: "Growth tracking, meal planning, developmental screening"
+         },
+         // ... all 10 domains with specific contexts
+       };
+       ```
+     - **Difficulty-Based Prompt Adaptation**:
+       - **Level 1 (Easy)**: Basic knowledge, recognition questions, fundamental concepts
+       - **Level 2-3 (Medium)**: Application scenarios, standard classroom situations
+       - **Level 4-5 (Hard)**: Complex problem-solving, multi-factor considerations
+       - **Level 6 (Master)**: Advanced synthesis, expert-level decision making
+     - **Generated Content Structure**:
+       ```typescript
+       interface GeneratedQuestion {
+         text: string; // Main question text
+         options: [string, string, string, string]; // Exactly 4 options
+         correctAnswer: string; // One of the options
+         explanation: string; // Why the answer is correct
+         miniLesson: string; // Brief educational content
+         tags: string[]; // Relevant topic tags
+         confidence: number; // AI confidence score (0-1)
+       }
+       ```
+   - **AI Prompt Template Structure**:
+     ```
+     You are an expert early childhood education assessment designer with deep knowledge of NAEYC standards, ECERS-R criteria, and CLASS assessment framework.
+
+     TASK: Generate a {difficulty_level} assessment question for the "{domain_name}" domain.
+
+     DOMAIN CONTEXT: {domain_description}
+     STANDARDS ALIGNMENT: {relevant_standards}
+     DIFFICULTY LEVEL: {difficulty} (Scale 1-6: 1=Basic knowledge, 6=Expert synthesis)
+
+     REQUIREMENTS:
+     - Question tests practical knowledge relevant to early childhood educators
+     - Exactly 4 multiple choice options (A, B, C, D)
+     - Options include realistic distractors based on common misconceptions
+     - Correct answer represents evidence-based best practice
+     - Explanation references specific ECE standards or research
+     - Mini-lesson provides actionable professional development content
+     - Content is appropriate for {difficulty_level} difficulty level
+
+     SCENARIO CONTEXT: Create realistic classroom/professional scenarios that ECE educators encounter
+
+     OUTPUT FORMAT: JSON object with text, options, correctAnswer, explanation, miniLesson, tags
+     ```
+   - **Quality Assurance Features**:
+     - **Content Review Workflow**: Generated questions require explicit approval before activation
+     - **Standard Compliance Check**: Prompts emphasize alignment with established ECE frameworks
+     - **Duplicate Detection**: Check against existing questions to avoid redundancy
+     - **Batch Generation**: Generate 3-5 question variations for content manager selection
+     - **Regeneration Options**: Easy regeneration with modified parameters if content unsatisfactory
+   - **Success Criteria:**
+     - Content managers can generate high-quality, domain-specific questions with single button click
+     - Generated questions consistently align with selected domain and difficulty level
+     - AI-generated content maintains ECE professional standards and evidence-based practices
+     - Generated questions pass human review at 80%+ approval rate
+     - Integration seamlessly works within existing question management workflow
+     - Generated content includes all required fields (question, options, explanation, mini-lesson)
+     - Questions demonstrate appropriate complexity progression across difficulty levels
+     - Content generation completes within 10-15 seconds for responsive user experience
+   - **Dependencies:** EP-002-02, EP-002-04
+   - **Technical Notes:**
+     - **OpenAI Model**: Use `gpt-4o` for consistency with existing implementations
+     - **Rate Limiting**: Implement reasonable rate limits for AI generation (e.g., 10 generations per hour per user)
+     - **Error Handling**: Graceful fallbacks when AI generation fails or produces invalid content
+     - **Cost Management**: Monitor OpenAI API usage and implement usage tracking
+     - **Audit Trail**: Log all AI-generated content for quality monitoring and improvement
+     - **Content Attribution**: Clear marking of AI-generated questions in the system
+     - **Performance Optimization**: Cache domain/difficulty prompt templates for faster generation
 
 **Status Updates:**
 
