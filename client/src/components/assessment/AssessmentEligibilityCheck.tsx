@@ -185,22 +185,8 @@ export default function AssessmentEligibilityCheck({
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
               <h3 className="font-semibold text-blue-800 mb-2">Assessment Eligibility</h3>
               <p className="text-sm text-blue-700">
-                Initial assessments are designed for educators including teachers, 
-                school directors, and platform owners to evaluate professional knowledge 
+                Initial assessments are designed for educators to evaluate professional knowledge 
                 and identify growth opportunities in early childhood education.
-              </p>
-            </div>
-
-            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-              <h4 className="font-medium text-green-800 mb-2">Eligible Roles:</h4>
-              <ul className="text-sm text-green-700 space-y-1">
-                <li><strong>Teachers:</strong> Regular classroom educators</li>
-                <li><strong>School Directors:</strong> Educational administrators and leaders</li>
-                <li><strong>Platform Owners:</strong> System administrators with educational oversight</li>
-              </ul>
-              <p className="text-xs text-green-600 mt-3">
-                <strong>Educator Role Required:</strong> Initial assessments are specifically designed to evaluate
-                professional knowledge and competencies in early childhood education practices.
               </p>
             </div>
           </div>
