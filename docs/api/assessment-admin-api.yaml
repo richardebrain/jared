@@ -373,7 +373,7 @@ paths:
                 success: true
                 data:
                   id: "safety-3-001"
-                  domainId: "Child Safety & Supervision"
+                  domainId: 1
                   text: "What is the appropriate adult-to-child ratio for toddlers during outdoor play activities?"
                   options: ["1:4", "1:6", "1:8", "1:10"]
                   correctAnswer: 0
@@ -1025,9 +1025,9 @@ components:
           description: Auto-generated unique question identifier (format: domain-difficulty-sequence)
           example: "child-safety-3-001"
         domainId:
-          type: string
-          description: Associated domain name
-          example: "Child Safety & Supervision"
+          type: integer
+          description: Associated domain ID
+          example: 1
         text:
           type: string
           description: Question text

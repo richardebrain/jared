@@ -41,7 +41,7 @@ export interface ProcessedAnswerResult {
   isCorrect: boolean;
   pointsEarned: number;
   difficulty: number;
-  domainId: string;
+  domainId: number;
   wasValidTiming: boolean;
   wasLateSubmission: boolean;
   timingDetails: {
@@ -85,7 +85,7 @@ export interface TimeoutProcessingResult {
   wasTimeout: true;
   pointsEarned: 0;
   difficulty: number;
-  domainId: string;
+  domainId: number;
   
   // Mini-lessons for timed-out question (same as incorrect)
   miniLessonRecommendations: DirectMiniLessonRecommendation[];
@@ -554,7 +554,7 @@ export class AnswerProcessingService {
         estimatedDuration: 5, // Default 5 minutes for reading
         difficulty: this.parseDifficulty(question.difficulty),
         domainId: this.parseDomainId(question.domainId),
-        domainName: question.domainId, // Will be domain name once converted
+        domainName: question.domainId.toString(), // Will be domain name once converted
         priority: 1, // High priority for direct question lesson
         learningObjectives: [`Understanding: ${question.text.substring(0, 100)}...`],
         relatedQuestions: [question.id],
@@ -568,23 +568,8 @@ export class AnswerProcessingService {
   /**
    * Parse domain ID from text to number (temporary during migration)
    */
-  private parseDomainId(domainId: string): number {
-    // This is a temporary function during the migration period
-    // TODO: Remove once domainId is properly converted to foreign key
-    const domainMap: Record<string, number> = {
-      'child-safety': 1,
-      'health-development': 2,
-      'trauma-informed': 3,
-      'positive-guidance': 4,
-      'curriculum-play': 5,
-      'family-engagement': 6,
-      'assessment-observation': 7,
-      'professionalism': 8,
-      'cultural-inclusion': 9,
-      'classroom-scenarios': 10
-    };
-    
-    return domainMap[domainId.toLowerCase()] || 1;
+  private parseDomainId(domainId: number): number {
+    return domainId;
   }
 
   /**

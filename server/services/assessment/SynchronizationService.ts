@@ -366,7 +366,7 @@ export class SynchronizationService {
       sequence: number;
       isCorrect: boolean;
       difficulty: string;
-      domainId: string;
+      domainId: number;
       answeredAt: Date;
     }>;
     domainCoverage: Record<number, number>;
@@ -401,7 +401,7 @@ export class SynchronizationService {
         sequence: r.sequence || 0,
         isCorrect: r.isCorrect,
         difficulty: r.difficulty,
-        domainId: r.domainId,
+        domainId: parseInt(r.domainId as string, 10),
         answeredAt: r.answeredAt || new Date()
       })),
       domainCoverage: domainCoverageRecord,
