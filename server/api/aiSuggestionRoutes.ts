@@ -54,7 +54,7 @@ router.post('/generate', async (req, res) => {
     console.log(`Module title for ${type} generation: ${moduleTopic}`);
     
     // Generate topic-specific content based on request type
-    if (type === 'strategies') {
+    if (type === 'strategies' || type === 'teaching') {
       // Generate teaching strategies specific to the module topic and difficulty level
       const strategies = generateTeachingStrategies(
         moduleTopic, 
