@@ -38,14 +38,14 @@ export default function AssessmentProgress({
 
   return (
     <Card>
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2">
         <CardTitle className="text-lg flex items-center">
           <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
           Assessment Progress
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         {/* Question Counter */}
         <div className="text-center">
           <div className="text-3xl font-bold text-blue-600">
@@ -54,7 +54,20 @@ export default function AssessmentProgress({
           <p className="text-sm text-muted-foreground">Questions Completed</p>
         </div>
 
-        {/* Progress Bar */}
+        {/* Current Domain - Compact Inline */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center flex-1">
+              <BookOpen className="h-4 w-4 text-blue-600 mr-2 flex-shrink-0" />
+              <div>
+                <span className="text-xs font-medium text-blue-700">Current Domain:</span>
+                <p className="text-sm text-blue-800 font-medium leading-tight">{domain}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Progress Bar and Milestones Combined */}
         <div className="space-y-2">
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium text-gray-700">
@@ -65,50 +78,32 @@ export default function AssessmentProgress({
             </span>
           </div>
           <Progress value={percentage} className="h-3" />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Start</span>
-            <span>Complete</span>
-          </div>
-        </div>
-
-        {/* Current Domain */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-          <div className="flex items-center justify-between mb-2">
-            <h4 className="font-medium text-blue-900 text-sm">Current Domain</h4>
-            <BookOpen className="h-4 w-4 text-blue-600" />
-          </div>
-          <p className="text-sm text-blue-800 font-medium">{domain}</p>
-        </div>
-
-        {/* Progress Milestones */}
-        <div className="space-y-2">
-          <h4 className="font-medium text-sm text-gray-700">Milestones</h4>
-          <div className="grid grid-cols-4 gap-1">
-            {[25, 50, 75, 100].map((milestone, index) => (
-              <div
-                key={milestone}
-                className={`text-center p-2 rounded text-xs ${
-                  percentage >= milestone
-                    ? 'bg-green-100 text-green-800'
-                    : percentage >= milestone - 12.5
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : 'bg-gray-100 text-gray-500'
-                }`}
-              >
-                <div className="font-medium">{milestone}%</div>
-                <div className="text-xs">
-                  {milestone === 25 && 'Quarter'}
-                  {milestone === 50 && 'Halfway'}
-                  {milestone === 75 && 'Most Done'}
-                  {milestone === 100 && 'Complete'}
+          
+          {/* Inline Milestones */}
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-muted-foreground">Start</span>
+            <div className="flex gap-1">
+              {[25, 50, 75, 100].map((milestone) => (
+                <div
+                  key={milestone}
+                  className={`px-2 py-1 rounded text-xs ${
+                    percentage >= milestone
+                      ? 'bg-green-100 text-green-800'
+                      : percentage >= milestone - 12.5
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-gray-100 text-gray-500'
+                  }`}
+                >
+                  {milestone}%
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+            <span className="text-xs text-muted-foreground">Complete</span>
           </div>
         </div>
 
-        {/* Motivational Message */}
-        <div className="text-center bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-3">
+        {/* Compact Motivational Message */}
+        <div className="text-center bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-2">
           <p className="text-sm text-gray-700">
             {percentage < 25 && "You're off to a great start! Keep going."}
             {percentage >= 25 && percentage < 50 && "Excellent progress! You're doing well."}
