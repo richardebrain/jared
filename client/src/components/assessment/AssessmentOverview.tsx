@@ -172,13 +172,7 @@ export default function AssessmentOverview({ onContinue, onBack }: AssessmentOve
                           <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
                             {domain.description}
                           </p>
-                          <div className="space-y-1">
-                            <div className="flex justify-between items-center text-xs">
-                              <span className="text-muted-foreground">Question Weight</span>
-                              <span className="font-medium">{domain.weight} questions</span>
-                            </div>
-                            <Progress value={percentage} className="h-2" />
-                          </div>
+                          <Progress value={percentage} className="h-2" />
                         </div>
                       </div>
                     </CardContent>
