@@ -4072,5 +4072,62 @@ Continue for all 5 questions...
     }
   });
 
+  // Perplexity API route for Seussifier poem generation
+  app.post("/api/perplexity/generate", async (req, res) => {
+    try {
+      const { prompt } = req.body;
+      
+      if (!prompt) {
+        return res.status(400).json({ message: "Prompt is required" });
+      }
+
+      // Call Perplexity API
+      const response = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-sonar-small-128k-online',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a creative assistant that writes in the style of Dr. Seuss. Create short, simple, rhyming poems for preschool children.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 500,
+          temperature: 0.8
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Perplexity API error:', errorData);
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data.choices || !data.choices[0]?.message?.content) {
+        console.error('Invalid Perplexity API response:', data);
+        return res.status(500).json({ message: "Invalid response from AI service" });
+      }
+
+      // Return the generated content
+      res.status(200).json({
+        content: data.choices[0].message.content
+      });
+
+    } catch (error) {
+      console.error('Error generating content with Perplexity:', error);
+      res.status(500).json({ message: "Failed to generate content" });
+    }
+  });
+
   return app;
 }
