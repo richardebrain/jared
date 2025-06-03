@@ -115,7 +115,7 @@ export class QuestionManagementService {
       const whereConditions: (SQL | undefined)[] = [];
       
       if (searchFilters.domainId) {
-        whereConditions.push(eq(assessmentQuestions.domainId, searchFilters.domainId));
+        whereConditions.push(eq(assessmentQuestions.domainId, parseInt(searchFilters.domainId)));
       }
       
       if (searchFilters.difficulty) {
@@ -187,7 +187,7 @@ export class QuestionManagementService {
           createdByLastName: users.lastName,
         })
         .from(assessmentQuestions)
-        .leftJoin(assessmentDomains, eq(assessmentQuestions.domainId, assessmentDomains.name))
+        .leftJoin(assessmentDomains, eq(assessmentQuestions.domainId, assessmentDomains.id))
         .leftJoin(users, eq(assessmentQuestions.createdBy, users.id))
         .where(whereClause)
         .orderBy(orderBy)
@@ -247,7 +247,7 @@ export class QuestionManagementService {
           createdByLastName: users.lastName,
         })
         .from(assessmentQuestions)
-        .leftJoin(assessmentDomains, eq(assessmentQuestions.domainId, assessmentDomains.name))
+        .leftJoin(assessmentDomains, eq(assessmentQuestions.domainId, assessmentDomains.id))
         .leftJoin(users, eq(assessmentQuestions.createdBy, users.id))
         .where(eq(assessmentQuestions.id, id));
 
@@ -283,25 +283,25 @@ export class QuestionManagementService {
         throw new Error('Correct answer index is out of range for provided options');
       }
 
-      // Verify domain exists (since we're using domain names as IDs)
+      // Verify domain exists (now using integer domain IDs)
       const [domain] = await db
         .select()
         .from(assessmentDomains)
-        .where(eq(assessmentDomains.name, validatedData.domainId));
+        .where(eq(assessmentDomains.id, parseInt(validatedData.domainId)));
       
       if (!domain) {
         throw new Error('Invalid domain ID');
       }
 
       // Generate unique question ID
-      const questionId = await this.generateQuestionId(validatedData.domainId, validatedData.difficulty);
+      const questionId = await this.generateQuestionId(domain.name, validatedData.difficulty);
 
       // Create the question with proper data conversion
       const [newQuestion] = await db
         .insert(assessmentQuestions)
         .values({
           id: questionId,
-          domainId: validatedData.domainId,
+          domainId: parseInt(validatedData.domainId), // Store as integer
           text: validatedData.text,
           options: JSON.stringify(validatedData.options), // Convert array to JSON string
           correctAnswer: validatedData.correctAnswer,
@@ -364,7 +364,7 @@ export class QuestionManagementService {
         const [domain] = await db
           .select()
           .from(assessmentDomains)
-          .where(eq(assessmentDomains.name, validatedData.domainId));
+          .where(eq(assessmentDomains.id, parseInt(validatedData.domainId)));
         
         if (!domain) {
           throw new Error('Invalid domain ID');
@@ -382,7 +382,7 @@ export class QuestionManagementService {
       if (validatedData.correctAnswer !== undefined) updateFields.correctAnswer = validatedData.correctAnswer;
       if (validatedData.difficulty !== undefined) updateFields.difficulty = validatedData.difficulty;
       if (validatedData.miniLesson !== undefined) updateFields.miniLesson = validatedData.miniLesson;
-      if (validatedData.domainId !== undefined) updateFields.domainId = validatedData.domainId;
+      if (validatedData.domainId !== undefined) updateFields.domainId = parseInt(validatedData.domainId);
 
       // Update the question
       const [updatedQuestion] = await db
@@ -556,7 +556,7 @@ export class QuestionManagementService {
           approvedCount: sql<number>`count(case when ${assessmentQuestions.isApproved} = true then 1 end)`,
         })
         .from(assessmentDomains)
-        .leftJoin(assessmentQuestions, eq(assessmentDomains.name, assessmentQuestions.domainId))
+        .leftJoin(assessmentQuestions, eq(assessmentDomains.id, assessmentQuestions.domainId))
         .where(eq(assessmentDomains.isActive, true))
         .groupBy(assessmentDomains.id)
         .orderBy(asc(assessmentDomains.displayOrder));

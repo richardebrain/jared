@@ -349,7 +349,7 @@ export function QuestionManagement() {
                 <SelectContent>
                   <SelectItem value="all">All domains</SelectItem>
                   {(domains || []).map((domain: any) => (
-                    <SelectItem key={domain.name} value={domain.name}>
+                    <SelectItem key={domain.id} value={domain.id.toString()}>
                       {domain.name}
                     </SelectItem>
                   ))}

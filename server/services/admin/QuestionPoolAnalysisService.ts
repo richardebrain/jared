@@ -39,19 +39,27 @@ export class QuestionPoolAnalysisService {
    */
   async analyzeQuestionPool(): Promise<PoolAnalysis> {
     try {
+      console.log('Starting question pool analysis...');
+      
       // Get current assessment configuration
+      console.log('Getting assessment config...');
       const config = await this.getAssessmentConfig();
       const questionsPerAssessment = config.questionCount || 40;
+      console.log('Assessment config:', config);
       
       // Calculate thresholds
       const criticalThreshold = questionsPerAssessment;
       const severeThreshold = questionsPerAssessment * 3;
       
       // Get total question counts
+      console.log('Getting total question counts...');
       const totalCounts = await this.getTotalQuestionCounts();
+      console.log('Total counts:', totalCounts);
       
       // Analyze domain gaps
+      console.log('Analyzing domain gaps...');
       const domainGaps = await this.analyzeDomainGaps();
+      console.log('Domain gaps found:', domainGaps.length);
       
       // Determine warning levels
       const isCriticallyLow = totalCounts.approved <= criticalThreshold;
@@ -69,6 +77,7 @@ export class QuestionPoolAnalysisService {
       }
       
       // Generate warning message and recommendations
+      console.log('Generating warning content...');
       const { warningMessage, recommendations } = this.generateWarningContent(
         warningLevel,
         totalCounts,
@@ -78,7 +87,7 @@ export class QuestionPoolAnalysisService {
         domainGaps
       );
       
-      return {
+      const result = {
         totalQuestions: totalCounts.total,
         totalApprovedQuestions: totalCounts.approved,
         questionsPerAssessment,
@@ -93,9 +102,17 @@ export class QuestionPoolAnalysisService {
         recommendations
       };
       
+      console.log('Analysis completed successfully:', result);
+      return result;
+      
     } catch (error) {
       console.error('Error analyzing question pool:', error);
-      throw new Error('Failed to analyze question pool status');
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      throw new Error(`Failed to analyze question pool status: ${error.message}`);
     }
   }
   
@@ -114,23 +131,28 @@ export class QuestionPoolAnalysisService {
    * Gets total and approved question counts
    */
   private async getTotalQuestionCounts() {
-    const totalResult = await db.select({
-      total: sql<number>`count(*)`
-    }).from(assessmentQuestions);
-    
-    const approvedResult = await db.select({
-      approved: sql<number>`count(*)`
-    })
-    .from(assessmentQuestions)
-    .where(and(
-      eq(assessmentQuestions.isApproved, true),
-      eq(assessmentQuestions.isEnabled, true)
-    ));
-    
-    return {
-      total: Number(totalResult[0]?.total || 0),
-      approved: Number(approvedResult[0]?.approved || 0)
-    };
+    try {
+      const totalResult = await db.select({
+        total: sql<string>`count(*)`
+      }).from(assessmentQuestions);
+      
+      const approvedResult = await db.select({
+        approved: sql<string>`count(*)`
+      })
+      .from(assessmentQuestions)
+      .where(and(
+        eq(assessmentQuestions.isApproved, true),
+        eq(assessmentQuestions.isEnabled, true)
+      ));
+      
+      return {
+        total: parseInt(totalResult[0]?.total || '0', 10),
+        approved: parseInt(approvedResult[0]?.approved || '0', 10)
+      };
+    } catch (error) {
+      console.error('Error in getTotalQuestionCounts:', error);
+      throw error;
+    }
   }
   
   /**
@@ -138,45 +160,50 @@ export class QuestionPoolAnalysisService {
    * Each domain should have at least 2 questions per difficulty level (6 levels = 12 questions minimum)
    */
   private async analyzeDomainGaps(): Promise<DomainGap[]> {
-    const gaps: DomainGap[] = [];
-    const requiredPerDifficulty = 2;
-    const difficultyLevels = ['1', '2', '3', '4', '5', '6'];
-    
-    // Get all active domains
-    const domains = await db.select()
-      .from(assessmentDomains)
-      .where(eq(assessmentDomains.isActive, true));
-    
-    for (const domain of domains) {
-      for (const difficulty of difficultyLevels) {
-        // Count approved questions for this domain and difficulty
-        const countResult = await db.select({
-          count: sql<number>`count(*)`
-        })
-        .from(assessmentQuestions)
-        .where(and(
-          eq(assessmentQuestions.domainId, domain.id.toString()),
-          eq(assessmentQuestions.difficulty, difficulty),
-          eq(assessmentQuestions.isApproved, true),
-          eq(assessmentQuestions.isEnabled, true)
-        ));
-        
-        const currentCount = Number(countResult[0]?.count || 0);
-        
-        if (currentCount < requiredPerDifficulty) {
-          gaps.push({
-            domainId: domain.id,
-            domainName: domain.name,
-            difficulty: parseInt(difficulty),
-            currentCount,
-            requiredCount: requiredPerDifficulty,
-            gap: requiredPerDifficulty - currentCount
-          });
+    try {
+      const gaps: DomainGap[] = [];
+      const requiredPerDifficulty = 2;
+      const difficultyLevels = ['1', '2', '3', '4', '5', '6'];
+      
+      // Get all active domains
+      const domains = await db.select()
+        .from(assessmentDomains)
+        .where(eq(assessmentDomains.isActive, true));
+      
+      for (const domain of domains) {
+        for (const difficulty of difficultyLevels) {
+          // Count approved questions for this domain and difficulty
+          const countResult = await db.select({
+            count: sql<string>`count(*)`
+          })
+          .from(assessmentQuestions)
+          .where(and(
+            eq(assessmentQuestions.domainId, domain.id),
+            eq(assessmentQuestions.difficulty, difficulty),
+            eq(assessmentQuestions.isApproved, true),
+            eq(assessmentQuestions.isEnabled, true)
+          ));
+          
+          const currentCount = parseInt(countResult[0]?.count || '0', 10);
+          
+          if (currentCount < requiredPerDifficulty) {
+            gaps.push({
+              domainId: domain.id,
+              domainName: domain.name,
+              difficulty: parseInt(difficulty),
+              currentCount,
+              requiredCount: requiredPerDifficulty,
+              gap: requiredPerDifficulty - currentCount
+            });
+          }
         }
       }
+      
+      return gaps;
+    } catch (error) {
+      console.error('Error in analyzeDomainGaps:', error);
+      throw error;
     }
-    
-    return gaps;
   }
   
   /**
@@ -230,31 +257,41 @@ export class QuestionPoolAnalysisService {
    * Gets a summary of domain distribution for the admin dashboard
    */
   async getDomainDistributionSummary() {
-    const domains = await db.select()
-      .from(assessmentDomains)
-      .where(eq(assessmentDomains.isActive, true));
-    
-    const distribution = [];
-    
-    for (const domain of domains) {
-      const countResult = await db.select({
-        total: sql<number>`count(*)`
-      })
-      .from(assessmentQuestions)
-      .where(and(
-        eq(assessmentQuestions.domainId, domain.id.toString()),
-        eq(assessmentQuestions.isApproved, true),
-        eq(assessmentQuestions.isEnabled, true)
-      ));
+    try {
+      const domains = await db.select()
+        .from(assessmentDomains)
+        .where(eq(assessmentDomains.isActive, true));
       
-      distribution.push({
-        domainId: domain.id,
-        domainName: domain.name,
-        questionCount: Number(countResult[0]?.total || 0),
-        weight: domain.questionWeight
-      });
+      const distribution: Array<{
+        domainId: number;
+        domainName: string;
+        questionCount: number;
+        weight: number;
+      }> = [];
+      
+      for (const domain of domains) {
+        const countResult = await db.select({
+          total: sql<string>`count(*)`
+        })
+        .from(assessmentQuestions)
+        .where(and(
+          eq(assessmentQuestions.domainId, domain.id),
+          eq(assessmentQuestions.isApproved, true),
+          eq(assessmentQuestions.isEnabled, true)
+        ));
+        
+        distribution.push({
+          domainId: domain.id,
+          domainName: domain.name,
+          questionCount: parseInt(countResult[0]?.total || '0', 10),
+          weight: domain.questionWeight
+        });
+      }
+      
+      return distribution;
+    } catch (error) {
+      console.error('Error in getDomainDistributionSummary:', error);
+      throw error;
     }
-    
-    return distribution;
   }
 } 

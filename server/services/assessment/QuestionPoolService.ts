@@ -6,7 +6,7 @@ import {
   users,
   type AssessmentQuestion
 } from '@shared/schema';
-import { eq, and, sql, isNull, notInArray } from 'drizzle-orm';
+import { eq, and, sql, isNull, notInArray, SQL } from 'drizzle-orm';
 
 export interface QuestionFilterCriteria {
   domainId?: number;
@@ -110,11 +110,11 @@ export class QuestionPoolService {
       .from(assessmentQuestions);
 
     // Apply filters
-    const conditions = [];
+    const conditions: SQL[] = [];
 
     // Domain filter
     if (criteria.domainId !== undefined) {
-      conditions.push(eq(assessmentQuestions.domainId, criteria.domainId.toString()));
+      conditions.push(eq(assessmentQuestions.domainId, criteria.domainId));
     }
 
     // Difficulty filter
@@ -139,7 +139,7 @@ export class QuestionPoolService {
 
     // Apply all conditions
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      query = query.where(and(...conditions)) as any;
     }
 
     let questions = await query;
@@ -176,7 +176,7 @@ export class QuestionPoolService {
     // Create availability map
     const availabilityMap = new Map<string, boolean>();
     schoolAvailability.forEach(availability => {
-      availabilityMap.set(availability.questionId, availability.isEnabled);
+      availabilityMap.set(availability.questionId, availability.isEnabled ?? true);
     });
 
     // Filter questions based on school availability
@@ -223,9 +223,9 @@ export class QuestionPoolService {
     const questionsByDifficulty: Record<number, number> = {};
 
     basicStats.forEach(stat => {
-      // Domain grouping (parse from text)
-      const domainId = parseInt(stat.domainId, 10);
-      if (!isNaN(domainId)) {
+      // Domain grouping (domainId is now integer)
+      const domainId = stat.domainId;
+      if (domainId !== null && domainId !== undefined) {
         questionsByDomain[domainId] = (questionsByDomain[domainId] || 0) + 1;
       }
 
@@ -247,7 +247,7 @@ export class QuestionPoolService {
 
       schoolSpecificQuestions = schoolAvailability.length;
       schoolAvailability.forEach(availability => {
-        schoolAvailabilityMap.set(availability.questionId, availability.isEnabled);
+        schoolAvailabilityMap.set(availability.questionId, availability.isEnabled ?? true);
       });
     }
 
@@ -259,10 +259,10 @@ export class QuestionPoolService {
     }>();
 
     basicStats.forEach(stat => {
-      const domainId = parseInt(stat.domainId, 10);
+      const domainId = stat.domainId; // Already an integer
       const difficulty = parseInt(stat.difficulty, 10);
       
-      if (isNaN(domainId) || isNaN(difficulty)) return;
+      if (domainId == null || isNaN(difficulty)) return;
 
       if (!domainDistribution.has(domainId)) {
         domainDistribution.set(domainId, {
@@ -401,10 +401,10 @@ export class QuestionPoolService {
     const breakdown: { [domainId: number]: { [difficulty: number]: { total: number; approved: number; enabled: number; available: number } } } = {};
 
     questions.forEach(question => {
-      const domainId = parseInt(question.domainId, 10);
+      const domainId = question.domainId; // Already an integer
       const difficulty = parseInt(question.difficulty, 10);
 
-      if (isNaN(domainId) || isNaN(difficulty)) return;
+      if (domainId == null || isNaN(difficulty)) return;
 
       if (!breakdown[domainId]) {
         breakdown[domainId] = {};

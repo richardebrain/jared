@@ -723,24 +723,32 @@ export const assessmentDomains = pgTable("assessment_domains", {
 // Assessment questions table
 export const assessmentQuestions = pgTable("assessment_questions", {
   id: text("id").primaryKey(), // Using text ID to support various formats (e.g., "safety-3-001")
-  domainId: text("domain_id").notNull(), // Temporarily as text to avoid conversion error - will reference domain names
+  domainId: integer("domain_id").notNull().references(() => assessmentDomains.id), // Foreign key to assessmentDomains
   text: text("text").notNull(), // The question text
   options: text("options").notNull(), // Temporarily as text to avoid conversion error - will store JSON as string
   correctAnswer: integer("correct_answer").notNull(), // Index of correct option (0-based)
   difficulty: text("difficulty").notNull(), // Temporarily as text to avoid conversion error - existing data is text
   explanation: text("explanation"), // Explanation for correct answer
-  miniLesson: text("mini_lesson"), // Written mini lesson content for this question
+  miniLesson: text("mini_lesson"), // Required educational content for this question
   tags: text("tags"), // Temporarily as text to avoid conversion error - will store JSON as string
-  createdBy: integer("created_by").references(() => users.id), // User who added the question
-  approvedBy: integer("approved_by").references(() => users.id), // User who approved the question
+  createdBy: integer("created_by").references(() => users.id), // User who created this question
+  approvedBy: integer("approved_by").references(() => users.id), // User who approved this question
   isApproved: boolean("is_approved").default(false), // Whether question is approved for use
-  isEnabled: boolean("is_enabled").default(true), // Platform-level availability control
+  isEnabled: boolean("is_enabled").default(true), // Whether question is currently enabled
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  // Critical index for weighted question selection (domain + difficulty + availability)
-  domainDifficultyIdx: index("assessment_questions_domain_difficulty_idx").on(table.domainId, table.difficulty, table.isEnabled),
-  // Index for approved and enabled questions lookup
+  updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()),
+},
+(table) => ({
+  // Critical index for weighted question selection (EP-001-08)
+  domainDifficultyAvailabilityIdx: index("assessment_questions_domain_difficulty_availability_idx").on(
+    table.domainId, 
+    table.difficulty, 
+    table.isApproved,
+    table.isEnabled
+  ),
+  // Index for user analytics and progress tracking
+  userAssessmentDomainIdx: index("assessment_questions_user_assessment_domain_idx").on(table.domainId),
+  // Index for approval and availability queries
   approvedEnabledIdx: index("assessment_questions_approved_enabled_idx").on(table.isApproved, table.isEnabled),
   // Index for difficulty-based queries
   difficultyIdx: index("assessment_questions_difficulty_idx").on(table.difficulty),
@@ -764,11 +772,10 @@ export type AssessmentQuestion = typeof assessmentQuestions.$inferSelect;
 export type InsertAssessmentQuestion = z.infer<typeof insertAssessmentQuestionSchema>;
 
 // Helper types for when we convert back to proper JSON structure
-export type AssessmentQuestionWithParsedFields = Omit<AssessmentQuestion, 'options' | 'tags' | 'difficulty' | 'domainId'> & {
+export type AssessmentQuestionWithParsedFields = Omit<AssessmentQuestion, 'options' | 'tags' | 'difficulty'> & {
   options: string[];
   tags?: string[];
-  difficulty: number; // Will be 1-6 when converted
-  domainId: number; // Will be foreign key when converted
+  difficulty: number; // Will be 1-6 when converted from text
 };
 
 // Assessment responses table for tracking user answers
@@ -782,33 +789,42 @@ export const assessmentResponses = pgTable("assessment_responses", {
   isCorrect: boolean("is_correct").notNull(),
   pointsEarned: integer("points_earned").default(0),
   timeSpent: integer("time_spent"), // Seconds spent on question
-  timedOut: boolean("timed_out").default(false), // Whether question timed out
-  difficulty: text("difficulty").notNull(), // Temporarily as text to match assessment_questions
-  domainId: text("domain_id").notNull(), // Temporarily as text to match assessment_questions
-  answeredAt: timestamp("answered_at").defaultNow(),
-  
-  // New EP-001-09 columns for enhanced answer processing
-  wasLateSubmission: boolean("was_late_submission").default(false), // User submitted after timer expired
-  processingTimestamp: timestamp("processing_timestamp").defaultNow(), // When answer was processed
-}, (table) => ({
-  // Critical index for user assessment analytics (user + assessment + domain)
-  userAssessmentDomainIdx: index("assessment_responses_user_assessment_domain_idx").on(table.userId, table.assessmentId, table.domainId),
-  // Index for assessment completion tracking
-  assessmentSequenceIdx: index("assessment_responses_assessment_sequence_idx").on(table.assessmentId, table.questionSequence),
-  // Index for user progress analytics
-  userCorrectIdx: index("assessment_responses_user_correct_idx").on(table.userId, table.isCorrect),
+  timedOut: boolean("timed_out").default(false), // Whether question was automatically submitted due to timeout
+  domainId: integer("domain_id").notNull().references(() => assessmentDomains.id), // Domain this question belongs to for analytics
+  difficulty: text("difficulty").notNull(), // Temporarily as text - difficulty level of the question (1-6)
+  createdAt: timestamp("created_at").defaultNow(),
+},
+(table) => ({
+  // Critical index for user analytics and progress tracking
+  userAssessmentDomainIdx: index("assessment_responses_user_assessment_domain_idx").on(
+    table.userId, 
+    table.assessmentId,
+    table.domainId
+  ),
+  // Index for assessment completion analysis
+  assessmentSequenceIdx: index("assessment_responses_assessment_sequence_idx").on(
+    table.assessmentId, 
+    table.questionSequence
+  ),
   // Index for domain performance analytics
-  domainPerformanceIdx: index("assessment_responses_domain_performance_idx").on(table.domainId, table.isCorrect, table.difficulty),
-  // Index for timeout analysis
-  timeoutIdx: index("assessment_responses_timeout_idx").on(table.timedOut),
-  // Index for question performance analytics
-  questionPerformanceIdx: index("assessment_responses_question_performance_idx").on(table.questionId, table.isCorrect),
-  // Index for temporal analytics
-  answeredAtIdx: index("assessment_responses_answered_at_idx").on(table.answeredAt),
-  
-  // New EP-001-09 indexes for timing analysis
-  timingAnalysisIdx: index("assessment_responses_timing_analysis_idx").on(table.timedOut, table.wasLateSubmission),
-  processingTimestampIdx: index("assessment_responses_processing_timestamp_idx").on(table.processingTimestamp),
+  domainPerformanceIdx: index("assessment_responses_domain_performance_idx").on(
+    table.domainId, 
+    table.isCorrect,
+    table.difficulty
+  ),
+  // Index for user progress tracking
+  userProgressIdx: index("assessment_responses_user_progress_idx").on(table.userId, table.createdAt),
+  // Index for question analytics
+  questionAnalyticsIdx: index("assessment_responses_question_analytics_idx").on(
+    table.questionId, 
+    table.isCorrect,
+    table.timeSpent
+  ),
+  // Index for assessment completion status
+  assessmentCompletionIdx: index("assessment_responses_assessment_completion_idx").on(
+    table.assessmentId, 
+    table.createdAt
+  ),
 }));
 
 // Question availability control for school-level management
@@ -970,8 +986,6 @@ export const insertTeacherMessageSchema = createInsertSchema(teacherMessages).om
   id: true,
   createdAt: true,
 });
-
-
 
 // Newsletter delivery tracking
 export const newsletterDeliveries = pgTable("newsletter_deliveries", {
@@ -1457,7 +1471,6 @@ export type InsertAssessmentDomain = z.infer<typeof insertAssessmentDomainSchema
 // Assessment responses insert schema and types
 export const insertAssessmentResponseSchema = createInsertSchema(assessmentResponses).omit({
   id: true,
-  answeredAt: true,
 });
 
 export type AssessmentResponse = typeof assessmentResponses.$inferSelect;
@@ -1535,9 +1548,8 @@ export type LessonPlan = typeof lessonPlans.$inferSelect;
 export type InsertLessonPlan = z.infer<typeof insertLessonPlanSchema>;
 
 // Helper type for when we convert back to proper numeric structure
-export type AssessmentResponseWithParsedFields = Omit<AssessmentResponse, 'difficulty' | 'domainId'> & {
-  difficulty: number; // Will be 1-6 when converted  
-  domainId: number; // Will be foreign key when converted
+export type AssessmentResponseWithParsedFields = Omit<AssessmentResponse, 'difficulty'> & {
+  difficulty: number; // Will be 1-6 when converted from text
 };
 
 // Question availability insert schema and types
