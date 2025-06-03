@@ -60,9 +60,35 @@ router.post('/generate', async (req, res) => {
         moduleTopic, 
         difficultyLevel as 'beginner' | 'intermediate' | 'advanced'
       );
-      return res.json({
-        suggestions: strategies.join('\n')
-      });
+      
+      if (strategies && strategies.length > 0) {
+        return res.json({
+          suggestions: strategies.join('\n\n')
+        });
+      } else {
+        // Fallback content for teaching strategies
+        const fallbackContent = `
+# ${moduleTopic} Teaching Strategies (${difficultyLevel} level)
+
+## Strategy 1: Environment Setup
+Create a supportive learning environment that promotes ${moduleTopic} through intentional space arrangement and material selection.
+
+## Strategy 2: Interactive Activities
+Design hands-on activities that engage children in exploring ${moduleTopic} concepts through play and discovery.
+
+## Strategy 3: Assessment Integration
+Use observation and documentation to track children's progress and understanding of ${moduleTopic}.
+
+## Strategy 4: Family Engagement
+Connect with families to support ${moduleTopic} learning at home and strengthen the home-school partnership.
+
+## Strategy 5: Differentiation
+Adapt ${moduleTopic} activities to meet diverse learning styles and developmental levels in your classroom.
+`;
+        return res.json({
+          suggestions: fallbackContent
+        });
+      }
     } else if (type === 'questions') {
       // Generate assessment questions specific to the module topic and difficulty level
       const questions = generateAssessmentQuestions(
@@ -170,8 +196,36 @@ Questions and prompts to help educators reflect on their learning and plan next 
           suggestions: genericContent
         });
       }
-    } else {
-      return res.status(400).json({ message: 'Invalid suggestion type' });
+    } else if (type === 'teaching' || !type) {
+      // Handle teaching type and unrecognized types with generic teaching content
+      const genericTeachingContent = `
+# ${moduleTopic} Teaching Strategies
+
+## Overview
+This module provides ${difficultyLevel} level strategies for implementing ${moduleTopic} in early childhood education settings.
+
+## Key Teaching Strategies
+- Create a supportive learning environment focused on ${moduleTopic}
+- Use developmentally appropriate practices for ${difficultyLevel} educators
+- Implement hands-on activities that engage children
+- Foster positive relationships and communication
+- Observe and document children's progress
+
+## Practical Applications
+- Daily classroom activities incorporating ${moduleTopic}
+- Assessment strategies for measuring understanding
+- Family engagement opportunities
+- Professional development considerations
+
+## Reflection Questions
+- How can you implement ${moduleTopic} strategies in your current setting?
+- What challenges might you face and how can you address them?
+- How will you measure success in implementing these approaches?
+`;
+      
+      return res.json({
+        suggestions: genericTeachingContent
+      });
     }
     
   } catch (error) {
