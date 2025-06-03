@@ -63,8 +63,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   
   // Clear any stored auth data on initial component mount
   useEffect(() => {
-    // Only do this on the first page load, not on subsequent renders
-    if (window.location.pathname === "/") {
+    // Only clear auth state on the landing page, not on login or other pages
+    if (window.location.pathname === "/" && !sessionStorage.getItem('loginRedirecting')) {
       console.log("Clearing auth state on initial page load");
       try {
         localStorage.removeItem('isAuthenticated');
@@ -72,6 +72,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (e) {
         console.warn("Could not clear storage:", e);
       }
+    } else {
+      console.log("Initial session cleared on page load");
     }
     
     // Set initial load complete after first render
@@ -173,15 +175,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Apply special fixes for specific users
       const enhancedUser = specialUserFix(data);
       
-      // Force update authentication state
+      // Save auth state to localStorage first
+      saveAuthState(enhancedUser);
+      
+      // Force update authentication state in query cache
       queryClient.setQueryData(['/api/auth/me'], enhancedUser);
       setAuthFailed(false); // Reset auth failed state
       
-      // Save auth state to localStorage
-      saveAuthState(enhancedUser);
-      
-      // Force invalidate any queries that might depend on auth status
-      queryClient.invalidateQueries();
+      // Set session flags for proper state tracking
+      sessionStorage.setItem('authStatus', 'authenticated');
+      sessionStorage.setItem('userId', String(enhancedUser.id));
+      sessionStorage.setItem('loginRedirecting', Date.now().toString());
       
       toast({
         title: "Login successful",
@@ -190,21 +194,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       console.log("Login successful! Redirecting to dashboard...");
       
-      // Immediately set a more robust session flag
-      sessionStorage.setItem('authStatus', 'authenticated');
-      sessionStorage.setItem('userId', String(enhancedUser.id));
+      // Force invalidate all queries and refetch user data
+      queryClient.invalidateQueries();
       
-      // Use a more reliable redirect approach
+      // Use setTimeout to ensure state updates before redirect
       setTimeout(() => {
-        // First clear any previous redirect state
-        sessionStorage.removeItem('loginRedirecting');
-        
-        // Set new redirect state with timestamp
-        sessionStorage.setItem('loginRedirecting', Date.now().toString());
-        
-        // Force navigation to dashboard
-        window.location.href = "/dashboard";
-      }, 300);
+        queryClient.refetchQueries({ queryKey: ['/api/auth/me'] });
+      }, 100);
     },
     onError: (error: Error) => {
       console.error("Authentication error in context:", error);
