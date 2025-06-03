@@ -17,6 +17,7 @@ interface AssessmentCelebrationProps {
     questionsAnswered: number;
     overallScore?: number;
     completedAt?: string;
+    startedAt?: string;
   };
   onViewResults: () => void;
   onContinue?: () => void;
@@ -27,10 +28,36 @@ export default function AssessmentCelebration({
   onViewResults,
   onContinue 
 }: AssessmentCelebrationProps) {
-  const { totalQuestions, questionsAnswered, overallScore, completedAt } = assessmentData;
+  const { totalQuestions, questionsAnswered, overallScore, completedAt, startedAt } = assessmentData;
   
-  // Calculate completion time estimate
-  const estimatedTime = Math.round((questionsAnswered * 60) / 60); // Assume 60 seconds per question
+  // Calculate actual elapsed time if we have both start and completion times
+  const calculateElapsedTime = () => {
+    if (startedAt && completedAt) {
+      const startTime = new Date(startedAt);
+      const endTime = new Date(completedAt);
+      const elapsedMs = endTime.getTime() - startTime.getTime();
+      const elapsedMinutes = Math.round(elapsedMs / (1000 * 60));
+      return { minutes: elapsedMinutes, isActual: true };
+    }
+    // Fallback to estimate if times not available
+    const estimatedMinutes = Math.round((questionsAnswered * 60) / 60);
+    return { minutes: estimatedMinutes, isActual: false };
+  };
+  
+  const timeData = calculateElapsedTime();
+  
+  // Format time for display
+  const formatTime = (totalMinutes: number) => {
+    if (totalMinutes >= 60) {
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      if (minutes === 0) {
+        return `${hours}h`;
+      }
+      return `${hours}h ${minutes}m`;
+    }
+    return `${totalMinutes}m`;
+  };
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 flex items-center justify-center p-4">
@@ -60,8 +87,10 @@ export default function AssessmentCelebration({
             
             <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
               <Clock className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-              <div className="font-semibold text-blue-700">Time Invested</div>
-              <div className="text-2xl font-bold text-blue-800">~{estimatedTime} min</div>
+              <div className="font-semibold text-blue-700">
+                {timeData.isActual ? 'Time Invested' : 'Est. Time'}
+              </div>
+              <div className="text-2xl font-bold text-blue-800">{formatTime(timeData.minutes)}</div>
             </div>
             
             {overallScore !== undefined && (

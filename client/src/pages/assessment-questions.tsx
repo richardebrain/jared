@@ -230,6 +230,7 @@ export default function AssessmentQuestions() {
             totalQuestions: result.assessment.totalQuestions,
             questionsAnswered: result.assessment.questionsAnswered,
             completedAt: new Date().toISOString(),
+            startedAt: sessionStatus.startedAt,
             resultsReady: result.assessment.resultsReady || false
           });
           setShowCelebration(true);
