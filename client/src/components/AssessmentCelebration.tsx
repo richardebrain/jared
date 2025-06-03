@@ -51,7 +51,7 @@ export default function AssessmentCelebration({
 
         <CardContent className="space-y-6">
           {/* Achievement Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className={`grid gap-4 ${overallScore !== undefined ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1 md:grid-cols-2 max-w-lg mx-auto'}`}>
             <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200">
               <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
               <div className="font-semibold text-green-700">Questions Completed</div>

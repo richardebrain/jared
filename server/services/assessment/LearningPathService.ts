@@ -98,7 +98,6 @@ export class LearningPathService {
       difficulty: assessmentResponses.difficulty,
       domainId: assessmentResponses.domainId,
       miniLesson: assessmentQuestions.miniLesson,
-      estimatedDuration: assessmentQuestions.estimatedDuration
     })
     .from(assessmentResponses)
     .innerJoin(assessmentQuestions, eq(assessmentResponses.questionId, assessmentQuestions.id))
@@ -121,7 +120,7 @@ export class LearningPathService {
       difficulty: this.parseDifficulty(response.difficulty),
       domainId: this.parseDomainId(response.domainId),
       miniLessonId: response.questionId, // Use question ID as mini-lesson reference
-      estimatedDuration: response.estimatedDuration || 15, // Default 15 minutes if not specified
+      estimatedDuration: 15, // Default 15 minutes since field doesn't exist in schema
       isTimeout: response.timedOut || false
     }));
   }
@@ -134,32 +133,64 @@ export class LearningPathService {
   ): Promise<Map<number, DomainGroupData>> {
     const domainGroups = new Map<number, DomainGroupData>();
 
-    // Get unique domain IDs
-    const domainIds = [...new Set(failedQuestions.map(q => q.domainId))];
+    if (!failedQuestions || failedQuestions.length === 0) {
+      console.log('No failed questions to group by domains');
+      return domainGroups;
+    }
+
+    // Get unique domain IDs with null/undefined safety
+    const domainIds = [...new Set(failedQuestions
+      .map(q => q?.domainId)
+      .filter(id => id !== null && id !== undefined && !isNaN(id))
+    )];
+    
+    if (domainIds.length === 0) {
+      console.log('No valid domain IDs found in failed questions');
+      return domainGroups;
+    }
     
     // Load domain information
     const domains = await db.select()
       .from(assessmentDomains)
       .where(inArray(assessmentDomains.id, domainIds));
 
-    // Create domain groups
+    if (!domains || domains.length === 0) {
+      console.log('No domains found in database for the provided IDs');
+      return domainGroups;
+    }
+
+    // Create domain groups with proper null/undefined checks
     for (const domain of domains) {
-      const domainQuestions = failedQuestions.filter(q => q.domainId === domain.id);
+      if (!domain || typeof domain.id !== 'number') {
+        console.warn('Invalid domain data:', domain);
+        continue;
+      }
+
+      const domainQuestions = failedQuestions.filter(q => 
+        q && q.domainId === domain.id
+      );
+      
+      if (domainQuestions.length === 0) {
+        continue;
+      }
       
       domainGroups.set(domain.id, {
         domainId: domain.id,
-        domainName: domain.name,
-        domainWeight: domain.weight,
+        domainName: domain.name || `Domain ${domain.id}`,
+        domainWeight: domain.questionWeight || 1,
         failedQuestionsCount: domainQuestions.length,
-        miniLessons: domainQuestions.map(q => ({
-          questionId: q.questionId,
-          difficulty: q.difficulty,
-          miniLessonId: q.miniLessonId,
-          estimatedDuration: q.estimatedDuration
-        }))
+        miniLessons: domainQuestions
+          .filter(q => q.questionId && q.miniLessonId) // Ensure required fields exist
+          .map(q => ({
+            questionId: q.questionId,
+            difficulty: q.difficulty || 1,
+            miniLessonId: q.miniLessonId,
+            estimatedDuration: q.estimatedDuration || 15
+          }))
       });
     }
 
+    console.log(`Grouped failed questions into ${domainGroups.size} domains`);
     return domainGroups;
   }
 
@@ -169,38 +200,93 @@ export class LearningPathService {
   private async sortDomainsByWeight(
     domainGroups: Map<number, DomainGroupData>
   ): Promise<DomainGroupData[]> {
-    const domainArray = Array.from(domainGroups.values());
+    if (!domainGroups || !(domainGroups instanceof Map)) {
+      console.warn('Invalid domainGroups Map provided to sortDomainsByWeight');
+      return [];
+    }
+
+    const domainArray = Array.from(domainGroups.values()).filter(domain => 
+      domain && typeof domain.domainWeight === 'number'
+    );
     
     // Sort by weight descending (highest importance first)
-    return domainArray.sort((a, b) => b.domainWeight - a.domainWeight);
+    return domainArray.sort((a, b) => {
+      const weightA = a?.domainWeight || 0;
+      const weightB = b?.domainWeight || 0;
+      return weightB - weightA;
+    });
   }
 
   /**
    * Within each domain, sort mini-lessons by difficulty (ascending - easiest first)
    */
   private sortMiniLessonsByDifficulty(domainGroups: DomainGroupData[]): DomainGroupData[] {
-    return domainGroups.map(domainGroup => ({
-      ...domainGroup,
-      miniLessons: domainGroup.miniLessons.sort((a, b) => a.difficulty - b.difficulty)
-    }));
+    if (!domainGroups || !Array.isArray(domainGroups)) {
+      console.warn('Invalid domainGroups array provided to sortMiniLessonsByDifficulty');
+      return [];
+    }
+
+    return domainGroups.map(domainGroup => {
+      if (!domainGroup || !Array.isArray(domainGroup.miniLessons)) {
+        console.warn('Invalid domain group or miniLessons in sortMiniLessonsByDifficulty:', domainGroup);
+        return {
+          ...domainGroup,
+          miniLessons: []
+        };
+      }
+
+      return {
+        ...domainGroup,
+        miniLessons: domainGroup.miniLessons
+          .filter(lesson => lesson && typeof lesson.difficulty === 'number')
+          .sort((a, b) => (a?.difficulty || 0) - (b?.difficulty || 0))
+      };
+    });
   }
 
   /**
    * Calculate totals and estimated completion time
    */
   private calculateTotals(domainGroups: DomainGroupData[]): LearningPathTotals {
+    if (!domainGroups || !Array.isArray(domainGroups)) {
+      console.warn('Invalid domainGroups provided to calculateTotals:', domainGroups);
+      return {
+        totalFailedQuestions: 0,
+        totalDomains: 0,
+        estimatedCompletionTime: 0
+      };
+    }
+
     const totalFailedQuestions = domainGroups.reduce(
-      (sum, domain) => sum + domain.failedQuestionsCount, 
+      (sum, domain) => {
+        if (!domain || typeof domain.failedQuestionsCount !== 'number') {
+          console.warn('Invalid domain in calculateTotals:', domain);
+          return sum;
+        }
+        return sum + domain.failedQuestionsCount;
+      }, 
       0
     );
     
     const totalDomains = domainGroups.length;
     
     const estimatedCompletionTime = domainGroups.reduce(
-      (sum, domain) => sum + domain.miniLessons.reduce(
-        (domainSum, lesson) => domainSum + lesson.estimatedDuration,
-        0
-      ),
+      (sum, domain) => {
+        if (!domain || !Array.isArray(domain.miniLessons)) {
+          console.warn('Invalid domain miniLessons in calculateTotals:', domain);
+          return sum;
+        }
+        return sum + domain.miniLessons.reduce(
+          (domainSum, lesson) => {
+            if (!lesson || typeof lesson.estimatedDuration !== 'number') {
+              console.warn('Invalid lesson in calculateTotals:', lesson);
+              return domainSum;
+            }
+            return domainSum + lesson.estimatedDuration;
+          }, 
+          0
+        );
+      }, 
       0
     );
 
