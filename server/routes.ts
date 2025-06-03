@@ -538,35 +538,9 @@ Continue for all 5 questions...
   // Serve static files from the uploads directory
   app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
   
-  // Setup session middleware using PostgreSQL for persistent sessions
-  const PgSession = connectPgSimple(session);
-  const sessionConfig = {
-    secret: process.env.SESSION_SECRET || "mentor-me-secret",
-    resave: true, // Ensures session is saved on each request
-    saveUninitialized: true, // Ensures new sessions are saved
-    rolling: true, // Reset expiration with each request
-    cookie: { 
-      secure: false, // Allow HTTP in all environments to prevent logout issues
-      httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: "lax" as "lax", // Type assertion to fix TypeScript error
-      path: '/' // Ensure cookie is available on all paths
-    }, 
-    store: new PgSession({
-      conString: process.env.DATABASE_URL,
-      tableName: 'sessions',
-      createTableIfMissing: true,
-      pruneSessionInterval: 24 * 60 * 60, // Prune expired sessions every 24 hours
-    }),
-  };
-  
-  console.log('Session configuration:', {
-    ...sessionConfig,
-    secret: '[REDACTED]',
-    store: sessionConfig.store ? 'PgSession' : 'MemoryStore',
-  });
-  
-  app.use(session(sessionConfig));
+  // NOTE: Session middleware is already configured in server/index.ts
+  // Do not set up session middleware here as it will override the existing one
+  // and cause authentication issues with assessment routes
 
   // Auth middleware
   const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
