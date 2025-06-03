@@ -37,14 +37,14 @@ const router = Router();
 /**
  * Assessment Session Management API
  * 
- * Handles creation, validation, and tracking of assessment sessions for Teacher role users.
+ * Handles creation, validation, and tracking of assessment sessions for educators.
  * Ensures one-time assessment integrity and comprehensive data persistence.
  */
 
 const questionSelectionService = new QuestionSelectionService();
 
-// Middleware to require Teacher role users only
-const requireTeacherRole = async (req: Request, res: Response, next: NextFunction) => {
+// Middleware to require eligible educator roles (teachers, school directors, and owners)
+const requireEligibleEducatorRole = async (req: Request, res: Response, next: NextFunction) => {
   if (!req.session.userId) {
     return res.status(401).json({ message: "Unauthorized" });
   }
@@ -62,12 +62,14 @@ const requireTeacherRole = async (req: Request, res: Response, next: NextFunctio
 
     const userData = user[0];
     
-    // Check if user is a Teacher (not admin, school admin, or owner)
-    // Teachers are regular users who are not in administrative roles
-    if (userData.isAdmin || userData.isSchoolAdmin || userData.isOwner) {
+    // Allow teachers, school administrators, and platform owners to take initial assessments
+    // This enables testing and provides assessment access for educators in leadership roles
+    const isEligible = !userData.isAdmin || userData.isSchoolAdmin || userData.isOwner;
+    
+    if (!isEligible) {
       return res.status(403).json({ 
         message: "Assessment access restricted", 
-        details: "Initial assessments are only available for Teacher role users. Administrators should use different assessment tools."
+        details: "Initial assessments are available for teachers, school directors, and platform owners. System administrators should use administrative tools."
       });
     }
 
@@ -75,7 +77,7 @@ const requireTeacherRole = async (req: Request, res: Response, next: NextFunctio
     req.user = userData;
     next();
   } catch (error) {
-    console.error('Error in Teacher role validation:', error);
+    console.error('Error in educator role validation:', error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -161,10 +163,10 @@ async function checkOneTimeRule(userId: number): Promise<{ allowed: boolean; exi
 /**
  * POST /api/assessment/session/start
  * 
- * Starts a new assessment session for Teacher role users.
+ * Starts a new assessment session for eligible educators (teachers, school directors, owners).
  * Validates one-time rule and loads configuration.
  */
-router.post('/start', requireTeacherRole, async (req: Request, res: Response) => {
+router.post('/start', requireEligibleEducatorRole, async (req: Request, res: Response) => {
   try {
     const userId = req.session.userId as number;
     const user = req.user as User;
@@ -286,7 +288,7 @@ router.post('/start', requireTeacherRole, async (req: Request, res: Response) =>
  * Returns current session state and progress.
  * Validates session ownership.
  */
-router.get('/status', requireTeacherRole, async (req: Request, res: Response) => {
+router.get('/status', requireEligibleEducatorRole, async (req: Request, res: Response) => {
   try {
     const userId = req.session.userId as number;
 
@@ -456,7 +458,7 @@ router.get('/status', requireTeacherRole, async (req: Request, res: Response) =>
  * Processes answer submission and returns next question or completion status.
  * Validates session integrity and question sequence.
  */
-router.post('/answer', requireTeacherRole, async (req: Request, res: Response) => {
+router.post('/answer', requireEligibleEducatorRole, async (req: Request, res: Response) => {
   try {
     const userId = req.session.userId as number;
     const { assessmentId, questionId, selectedAnswer, responseTime, timedOut = false } = req.body;
@@ -660,7 +662,7 @@ router.post('/answer', requireTeacherRole, async (req: Request, res: Response) =
  * Returns assessment results with strengths and growth areas only (for Teachers).
  * NOW PROPERLY STORES RESULTS IN DATABASE TO PREVENT RACE CONDITIONS
  */
-router.post('/complete', requireTeacherRole, async (req: Request, res: Response) => {
+router.post('/complete', requireEligibleEducatorRole, async (req: Request, res: Response) => {
   try {
     const userId = req.session.userId as number;
     const { assessmentId } = req.body;
@@ -770,7 +772,7 @@ router.post('/complete', requireTeacherRole, async (req: Request, res: Response)
  * Retrieves stored assessment results for the current user.
  * Returns comprehensive results with domain breakdown and learning path information.
  */
-router.get('/results', requireTeacherRole, async (req: Request, res: Response) => {
+router.get('/results', requireEligibleEducatorRole, async (req: Request, res: Response) => {
   try {
     const userId = req.session.userId as number;
 
@@ -860,7 +862,7 @@ router.get('/results', requireTeacherRole, async (req: Request, res: Response) =
  * Handles session abandonment (user leaves assessment incomplete).
  * Marks session as abandoned but preserves data for potential analysis.
  */
-router.get('/abandon', requireTeacherRole, async (req: Request, res: Response) => {
+router.get('/abandon', requireEligibleEducatorRole, async (req: Request, res: Response) => {
   try {
     const userId = req.session.userId as number;
 

@@ -31,7 +31,7 @@ This document serves as the central project management framework for MentorMe, t
 - Assessment completion triggers appropriate achievements/rewards
 - Data is securely stored for long-term progress tracking
 - 40-question assessment completes in 30-40 minutes with proper domain weighting
-- Teacher role users can complete initial assessment exactly once with comprehensive session management
+- Eligible educators (teachers, school directors, platform owners) can complete initial assessment exactly once with comprehensive session management
 - Weighted adaptive question selection ensures proper domain coverage and difficulty progression
 - Answer processing provides accurate scoring and meaningful growth area identification
 
@@ -231,9 +231,9 @@ This document serves as the central project management framework for MentorMe, t
    - **Next Phase Ready**: EP-001-07 - Implement New Adaptive Assessment System
 
 7. ✅ [EP-001-07] **Assessment Session Management**
-   - **Description:** Implement a robust assessment session management system that controls the creation, validation, and tracking of assessment sessions for Teacher role users, ensuring one-time assessment integrity and comprehensive data persistence.
+   - **Description:** Implement a robust assessment session management system that controls the creation, validation, and tracking of assessment sessions for eligible educators, ensuring one-time assessment integrity and comprehensive data persistence.
    - **Requirements:**
-     - **Role Restriction**: Teacher role users only
+     - **Role Restriction**: Eligible educators (teachers, school directors, platform owners)
      - **Assessment Type**: Initial assessment (one-time completion)
      - **Session Model**: Single session completion (no resumption)
      - **Data Persistence**: Complete assessment journey tracking
@@ -268,7 +268,7 @@ This document serves as the central project management framework for MentorMe, t
    - **Status Update:** ✅ **COMPLETED** - Assessment session management system successfully implemented and tested
      - **Implementation Details:**
        - ✅ **API Endpoints Created**: All 5 required endpoints implemented in `server/api/assessment-session.ts`
-       - ✅ **Teacher Role Restriction**: Middleware validates users are Teachers (not admins/school admins/owners)
+       - ✅ **Educator Role Restriction**: Middleware validates users are eligible educators (teachers, school directors, platform owners)
        - ✅ **One-Time Assessment Rule**: Strict enforcement using existing `assessments` table
        - ✅ **Session State Management**: Uses existing `assessments` table for session tracking with `currentDifficulty`, `difficultyProgression`, `domainCoverage`
        - ✅ **Data Persistence**: Complete journey tracking with `assessmentResponses` table using `questionSequence` and timestamps
@@ -492,9 +492,9 @@ This document serves as the central project management framework for MentorMe, t
      - **Foundation Ready**: Enhanced learning path system ready for UI integration and user presentation
 
 11. 🟦 [EP-001-11] **Initial Assessment Initialization and Setup**
-   - **Description:** Create the frontend interface for starting the initial assessment, including teacher eligibility validation, one-time rule enforcement, assessment introduction, and session initialization with proper error handling and user guidance.
+   - **Description:** Create the frontend interface for starting the initial assessment, including eligibility validation for educators, one-time rule enforcement, assessment introduction, and session initialization with proper error handling and user guidance.
    - **Requirements:**
-     - **Teacher Role Validation**: Verify user has Teacher role (not admin/school admin/owner) before allowing access
+     - **Educator Role Validation**: Verify user has eligible educator role (teacher, school director, or platform owner) before allowing access
      - **One-Time Assessment Check**: Integrate with `/api/assessment/session/start` to enforce single completion rule
      - **Assessment Introduction**: Present overview of assessment purpose, structure (40 questions), estimated time (30-40 minutes)
      - **Informed Consent**: Clear explanation of assessment requirements, no pause/resume capability, commitment needed
@@ -524,10 +524,10 @@ This document serves as the central project management framework for MentorMe, t
      - **Error Handling**: User-friendly error messages for all failure scenarios
      - **Navigation**: React Router integration with proper guards
    - **Success Criteria:**
-     - Teachers can successfully access assessment introduction via `/initial-assessment` route
+     - Eligible educators can successfully access assessment introduction via `/initial-assessment` route
      - Dashboard "Take Initial Assessment" button navigates directly to the new page
      - "Coming Soon!" modal is completely removed from dashboard
-     - Non-teacher roles receive clear restriction message with role explanation
+     - Non-eligible roles receive clear restriction message with role explanation
      - Users who already completed assessment see completion status and results link
      - Assessment overview clearly communicates time commitment and structure
      - Domain preview helps users understand assessment scope

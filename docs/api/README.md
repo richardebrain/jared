@@ -19,7 +19,7 @@ The Assessment Session Management API provides 5 core endpoints for managing Tea
 ## Key Features
 
 ### 🔒 Security & Access Control
-- **Teacher Role Only**: Restricted to Teacher users (not admins/school admins/owners)
+- **Educator Role Only**: Restricted to eligible educators (teachers, school directors, platform owners)
 - **Session-based Authentication**: Uses Express session cookies
 - **One-Time Assessment Rule**: Each teacher can complete initial assessment only once
 
@@ -134,7 +134,7 @@ interface ErrorResponse {
 
 Common error scenarios:
 - **401**: Authentication required
-- **403**: Teacher role required  
+- **403**: Educator role required
 - **409**: Assessment already completed (one-time rule)
 - **404**: No active session or session/question not found
 - **400**: Invalid request data

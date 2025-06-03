@@ -9,7 +9,8 @@ import {
   UserCheck, 
   Shield, 
   Award,
-  ArrowRight 
+  ArrowRight,
+  XCircle
 } from 'lucide-react';
 
 interface AssessmentEligibilityCheckProps {
@@ -159,9 +160,17 @@ export default function AssessmentEligibilityCheck({
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="text-center">
-            <Badge variant="outline" className="text-sm px-3 py-1 bg-green-50 text-green-700 border-green-200">
-              Teacher Role Verified ✓
-            </Badge>
+            {isTeacher ? (
+              <div className="flex items-center gap-2 text-green-600 bg-green-50 px-3 py-2 rounded-lg">
+                <CheckCircle className="w-5 h-5" />
+                <span className="font-medium">Educator Role Verified ✓</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+                <XCircle className="w-5 h-5" />
+                <span className="font-medium">Educator Role Required</span>
+              </div>
+            )}
           </div>
 
           <Alert>
@@ -172,15 +181,28 @@ export default function AssessmentEligibilityCheck({
             </AlertDescription>
           </Alert>
 
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h4 className="font-semibold text-blue-900 mb-2">What to Expect:</h4>
-            <ul className="text-blue-800 space-y-1 text-sm">
-              <li>• 40 adaptive questions across 10 ECE domains</li>
-              <li>• Estimated completion time: 30-40 minutes</li>
-              <li>• Questions adjust to your skill level</li>
-              <li>• Personalized learning path generated from results</li>
-              <li>• No pause/resume - complete in one session</li>
-            </ul>
+          <div className="space-y-4">
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <h3 className="font-semibold text-blue-800 mb-2">Assessment Eligibility</h3>
+              <p className="text-sm text-blue-700">
+                Initial assessments are designed for educators including teachers, 
+                school directors, and platform owners to evaluate professional knowledge 
+                and identify growth opportunities in early childhood education.
+              </p>
+            </div>
+
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <h4 className="font-medium text-green-800 mb-2">Eligible Roles:</h4>
+              <ul className="text-sm text-green-700 space-y-1">
+                <li><strong>Teachers:</strong> Regular classroom educators</li>
+                <li><strong>School Directors:</strong> Educational administrators and leaders</li>
+                <li><strong>Platform Owners:</strong> System administrators with educational oversight</li>
+              </ul>
+              <p className="text-xs text-green-600 mt-3">
+                <strong>Educator Role Required:</strong> Initial assessments are specifically designed to evaluate
+                professional knowledge and competencies in early childhood education practices.
+              </p>
+            </div>
           </div>
           
           <div className="text-center">

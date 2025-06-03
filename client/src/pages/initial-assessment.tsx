@@ -18,6 +18,8 @@ export default function InitialAssessment() {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState<AssessmentStep>('eligibility');
   const [isStartingAssessment, setIsStartingAssessment] = useState(false);
+  const [isEligible, setIsEligible] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Check if user has already completed an assessment
   const { data: existingAssessments, isLoading: assessmentLoading } = useQuery({
@@ -25,9 +27,24 @@ export default function InitialAssessment() {
     enabled: !!user && isAuthenticated,
   });
 
-  // Check if user is eligible (Teacher role - not admin/school admin/owner)
-  const isTeacher = user ? !user.isAdmin && !user.isSchoolAdmin && !user.isOwner : false;
-  
+  // Check authentication and user data
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      setLocation('/login');
+      return;
+    }
+
+    if (user) {
+      // Check if user is eligible (teachers, school directors, and owners can take initial assessment)
+      const isEligible = !user.isAdmin || user.isSchoolAdmin || user.isOwner;
+      setIsEligible(Boolean(isEligible));
+      
+      if (!isEligible) {
+        setError("Initial assessments are available for teachers, school directors, and platform owners.");
+      }
+    }
+  }, [authLoading, isAuthenticated, user, setLocation]);
+
   // Check if user has completed assessment already
   const hasCompletedAssessment = Array.isArray(existingAssessments) 
     ? existingAssessments.some((assessment: any) => 
@@ -92,12 +109,13 @@ export default function InitialAssessment() {
           variant: "destructive",
         });
         setLocation('/dashboard');
-      } else if (error.message.includes('Teacher role')) {
+      } else if (error.message.includes('Assessment access restricted') || error.message.includes('Teacher role')) {
         toast({
           title: "Access Restricted",
-          description: "Initial assessments are only available for Teacher role users.",
+          description: "Initial assessments are available for teachers, school directors, and platform owners.",
           variant: "destructive",
         });
+        setError("Initial assessments are available for teachers, school directors, and platform owners.");
       } else {
         toast({
           title: "Error Starting Assessment",
@@ -179,7 +197,7 @@ export default function InitialAssessment() {
         return (
           <AssessmentEligibilityCheck 
             user={user}
-            isTeacher={isTeacher}
+            isTeacher={isEligible}
             hasCompletedAssessment={hasCompletedAssessment}
             onContinue={goToNextStep}
             onViewResults={() => setLocation('/assessment-results')}

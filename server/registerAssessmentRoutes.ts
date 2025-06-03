@@ -8,7 +8,7 @@ import assessmentSessionRouter from "./api/assessment-session";
  * the new session management routes for the enhanced assessment system
  */
 export function registerAssessmentRoutes(app: Express): void {
-  // New assessment session management for Teacher role users (register first to avoid conflicts)
+  // New assessment session management for eligible educators (register first to avoid conflicts)
   app.use('/api/assessment/session', assessmentSessionRouter);
   
   // Global assessment results endpoint (delegates to session results)
