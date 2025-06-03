@@ -316,7 +316,7 @@ export default function AssessmentResultsPage() {
                 Growth Opportunities
               </CardTitle>
               <CardDescription>
-                Areas for focused professional development (&lt;60% accuracy)
+                Areas for focused professional development (&lt;80% accuracy)
               </CardDescription>
             </CardHeader>
             <CardContent>

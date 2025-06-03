@@ -32,7 +32,7 @@ The Assessment Session Management API provides 5 core endpoints for managing Tea
 
 ### 📈 Progress & Results
 - **Real-time Progress**: Track questions answered, sequence position, domain coverage
-- **Teacher-Focused Results**: Strengths (≥80% accuracy) and growth areas (<60% accuracy)
+- **Teacher-Focused Results**: Strengths (≥80% accuracy) and growth areas (<80% accuracy)
 - **Domain Analysis**: Performance breakdown by ECE domain
 - **Personalized Feedback**: Summary messages and next steps recommendations
 

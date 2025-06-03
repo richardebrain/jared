@@ -72,8 +72,7 @@ Implement comprehensive answer processing and evaluation logic that transforms r
   - Track correct/incorrect answers per domain
   - Calculate domain-specific accuracy rates
   - **Strength Areas**: Domains with ≥80% accuracy rate
-  - **Growth Areas**: Domains with <60% accuracy rate  
-  - **Neutral Areas**: Domains with 60-79% accuracy rate
+  - **Growth Areas**: Domains with <80% accuracy rate
   - Generate domain coverage statistics as context for main recommendations
   - Handle domains with varying question counts appropriately
 

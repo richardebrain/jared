@@ -365,7 +365,7 @@ This document serves as the central project management framework for MentorMe, t
      - **Real-Time Answer Validation**: Format validation, timeout handling, response timing analysis
      - **6-Level Scoring System**: Points (5,8,10,13,15,20) for difficulty levels 1-6, 0 for incorrect/timeout
      - **Domain Performance Analysis**: Track accuracy per domain, identify patterns, generate coverage statistics
-     - **Growth Area Identification**: <60% accuracy = growth areas, ≥80% = strengths, map to mini-lessons
+     - **Growth Area Identification**: <80% accuracy = growth areas, ≥80% = strengths, map to mini-lessons
      - **Results Compilation**: Teacher-focused results, personalized summaries, actionable next steps
      - **Assessment Completion**: Final score calculation, data integrity, completion handling
    - **Dependencies:** EP-001-07, EP-001-08
@@ -645,7 +645,7 @@ This document serves as the central project management framework for MentorMe, t
      - **Celebration Page**: Engaging congratulations interface acknowledging assessment completion
      - **Results Processing**: Display comprehensive assessment results with domain-specific insights
      - **Score Display**: Overall score, total correct answers, and accuracy percentage with visual charts
-     - **Domain Analysis**: Strength areas (≥80% accuracy) and growth areas (<60% accuracy) with clear categorization
+     - **Domain Analysis**: Strength areas (≥80% accuracy) and growth areas (<80% accuracy) with clear categorization
      - **Personalized Summary**: Teacher-focused messaging with encouragement and actionable next steps
      - **Learning Path Preview**: Brief overview of recommended professional development focus areas
      - **Results Navigation**: Save results and provide navigation to detailed results page

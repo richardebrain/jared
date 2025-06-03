@@ -98,16 +98,11 @@ describe('ScoringEngine', () => {
       expect(scoringEngine.getPerformanceLevel(100)).toBe('strength');
     });
 
-    it('should identify growth areas (<60% accuracy)', () => {
+    it('should identify growth areas (<80% accuracy)', () => {
       expect(scoringEngine.getPerformanceLevel(0)).toBe('growth');
       expect(scoringEngine.getPerformanceLevel(30)).toBe('growth');
-      expect(scoringEngine.getPerformanceLevel(59)).toBe('growth');
-    });
-
-    it('should identify neutral areas (60-79% accuracy)', () => {
-      expect(scoringEngine.getPerformanceLevel(60)).toBe('neutral');
-      expect(scoringEngine.getPerformanceLevel(70)).toBe('neutral');
-      expect(scoringEngine.getPerformanceLevel(79)).toBe('neutral');
+      expect(scoringEngine.getPerformanceLevel(60)).toBe('growth');
+      expect(scoringEngine.getPerformanceLevel(79)).toBe('growth');
     });
   });
 

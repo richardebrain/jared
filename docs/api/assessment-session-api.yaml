@@ -267,7 +267,7 @@ paths:
         **Results Calculation:**
         - Domain-specific performance analysis
         - Strengths identification (≥80% accuracy per domain)
-        - Growth areas identification (<60% accuracy per domain)
+        - Growth areas identification (<80% accuracy per domain)
         - Overall score calculation
         - Incorrect questions tracking for training recommendations
         
@@ -735,7 +735,7 @@ components:
           type: array
           items:
             type: string
-          description: Domains needing improvement (<60% accuracy)
+          description: Domains needing improvement (<80% accuracy)
           example: ["Trauma-Informed & Emotional Care", "Family Engagement"]
         summary:
           $ref: '#/components/schemas/ResultsSummary'

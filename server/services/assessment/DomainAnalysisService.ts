@@ -76,10 +76,8 @@ export class DomainAnalysisService {
       let strengthLevel: 'strength' | 'neutral' | 'growth';
       if (accuracyRate >= 80) {
         strengthLevel = 'strength';
-      } else if (accuracyRate < 60) {
-        strengthLevel = 'growth';
       } else {
-        strengthLevel = 'neutral';
+        strengthLevel = 'growth';
       }
       
       domainBreakdown.push({

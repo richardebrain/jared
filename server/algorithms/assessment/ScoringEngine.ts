@@ -124,8 +124,6 @@ export class ScoringEngine {
   getPerformanceLevel(accuracyRate: number): 'strength' | 'neutral' | 'growth' {
     if (accuracyRate >= 80) {
       return 'strength';
-    } else if (accuracyRate >= 60) {
-      return 'neutral';
     } else {
       return 'growth';
     }
