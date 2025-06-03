@@ -4129,5 +4129,80 @@ Continue for all 5 questions...
     }
   });
 
+  // AI Lesson Plan Generation route
+  app.post("/api/ai/lesson-plan", async (req, res) => {
+    try {
+      const { ageGroup, theme, details, additionalRequests } = req.body;
+      
+      if (!ageGroup || !theme) {
+        return res.status(400).json({ message: "Age group and theme are required" });
+      }
+
+      // Create comprehensive prompt for lesson plan generation
+      const prompt = `Create a detailed preschool lesson plan for ${ageGroup} children on the theme "${theme}".
+      
+Additional details: ${details || 'None provided'}
+Additional requests: ${additionalRequests || 'None'}
+
+Please structure the lesson plan with the following sections:
+1. Learning Objectives (3-4 clear, age-appropriate objectives)
+2. Materials Needed (comprehensive list)
+3. Introduction Activity (5-10 minutes)
+4. Main Activities (2-3 activities, 15-20 minutes each)
+5. Closing Circle Time (5-10 minutes)
+6. Assessment Methods
+7. Extension Activities
+8. Adaptations for Different Learning Styles
+
+Make it engaging, educational, and developmentally appropriate for ${ageGroup} children.`;
+
+      // Call OpenAI API for lesson plan generation
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o', // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert early childhood educator who creates detailed, engaging lesson plans for preschool children. Your lesson plans are always developmentally appropriate, include multiple learning modalities, and follow best practices in early childhood education.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 2000,
+          temperature: 0.7
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('OpenAI API error:', errorData);
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data.choices || !data.choices[0]?.message?.content) {
+        console.error('Invalid OpenAI API response:', data);
+        return res.status(500).json({ message: "Invalid response from AI service" });
+      }
+
+      // Return the generated lesson plan
+      res.status(200).json({
+        lessonPlan: data.choices[0].message.content
+      });
+
+    } catch (error) {
+      console.error('Error generating lesson plan:', error);
+      res.status(500).json({ message: "Failed to generate lesson plan" });
+    }
+  });
+
   return app;
 }
