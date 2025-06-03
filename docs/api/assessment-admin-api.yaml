@@ -96,8 +96,8 @@ paths:
         - name: domainId
           in: query
           schema:
-            type: string
-          description: Filter by domain name
+            type: integer
+          description: Filter by domain ID
         - name: difficulty
           in: query
           schema:
@@ -1231,24 +1231,27 @@ components:
               items:
                 $ref: '#/components/schemas/AssessmentQuestion'
             pagination:
-              type: object
-              properties:
-                page:
-                  type: integer
-                  description: Current page number
-                  example: 1
-                limit:
-                  type: integer
-                  description: Items per page
-                  example: 20
-                total:
-                  type: integer
-                  description: Total number of questions
-                  example: 156
-                pages:
-                  type: integer
-                  description: Total number of pages
-                  example: 8
+              $ref: '#/components/schemas/PaginationInfo'
+
+    PaginationInfo:
+      type: object
+      properties:
+        page:
+          type: integer
+          description: Current page number
+          example: 1
+        limit:
+          type: integer
+          description: Items per page
+          example: 20
+        total:
+          type: integer
+          description: Total number of questions
+          example: 156
+        pages:
+          type: integer
+          description: Total number of pages
+          example: 8
 
     QuestionResponse:
       type: object

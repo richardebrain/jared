@@ -143,9 +143,9 @@ export class DomainWeightingService {
     const domainCounts = new Map<number, number>();
     
     for (const response of responses) {
-      // Note: domainId is currently stored as text, need to parse
-      const domainId = parseInt(response.domainId as string, 10);
-      if (!isNaN(domainId)) {
+      // domainId is now stored as integer in the database
+      const domainId = response.domainId as number;
+      if (domainId && !isNaN(domainId)) {
         domainCounts.set(domainId, (domainCounts.get(domainId) || 0) + 1);
       }
     }

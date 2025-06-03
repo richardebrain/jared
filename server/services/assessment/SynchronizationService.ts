@@ -84,7 +84,7 @@ export class SynchronizationService {
       // Create a placeholder for completed assessments
       currentQuestion = {
         id: 'assessment_complete',
-        domainId: '0',
+        domainId: 0,
         text: 'Assessment Complete',
         options: '[]',
         correctAnswer: 0,
@@ -176,7 +176,7 @@ export class SynchronizationService {
           assessmentId,
           currentQuestion: {
             id: 'error',
-            domainId: '0',
+            domainId: 0,
             text: 'Error loading question',
             options: '[]',
             correctAnswer: 0,
@@ -324,8 +324,9 @@ export class SynchronizationService {
     const domainCoverage = new Map<number, number>();
     
     for (const response of responses) {
-      const domainId = parseInt(response.domainId as string, 10);
-      if (!isNaN(domainId)) {
+      // domainId is now stored as integer in the database
+      const domainId = response.domainId as number;
+      if (domainId && !isNaN(domainId)) {
         domainCoverage.set(domainId, Number(response.count));
       }
     }
@@ -381,7 +382,7 @@ export class SynchronizationService {
       isCorrect: assessmentResponses.isCorrect,
       difficulty: assessmentResponses.difficulty,
       domainId: assessmentResponses.domainId,
-      answeredAt: assessmentResponses.answeredAt
+      createdAt: assessmentResponses.createdAt
     })
     .from(assessmentResponses)
     .where(eq(assessmentResponses.assessmentId, assessmentId))
@@ -401,8 +402,8 @@ export class SynchronizationService {
         sequence: r.sequence || 0,
         isCorrect: r.isCorrect,
         difficulty: r.difficulty,
-        domainId: parseInt(r.domainId as string, 10),
-        answeredAt: r.answeredAt || new Date()
+        domainId: r.domainId as number,
+        answeredAt: r.createdAt || new Date()
       })),
       domainCoverage: domainCoverageRecord,
       syncState
