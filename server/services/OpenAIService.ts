@@ -47,7 +47,7 @@ export class OpenAIService {
     model: "gpt-4o", // Latest model as per existing usage
     maxTokens: 2000,
     temperature: 0.7,
-    timeout: 30000, // 30 seconds
+    timeout: 15000, // Reduced to 15 seconds for better UX
   };
 
   private constructor() {
@@ -57,6 +57,7 @@ export class OpenAIService {
 
     this.client = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
+      timeout: OpenAIService.DEFAULT_CONFIG.timeout, // Apply timeout to client
     });
   }
 
@@ -71,7 +72,18 @@ export class OpenAIService {
   }
 
   /**
-   * Generate text content using OpenAI API
+   * Create a timeout promise that rejects after specified milliseconds
+   */
+  private createTimeoutPromise<T>(timeoutMs: number): Promise<T> {
+    return new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error(`Request timed out after ${timeoutMs}ms`));
+      }, timeoutMs);
+    });
+  }
+
+  /**
+   * Generate text content using OpenAI API with timeout handling
    */
   public async generateContent({
     prompt,
@@ -102,7 +114,14 @@ export class OpenAIService {
         completionConfig.response_format = { type: 'json_object' };
       }
 
-      const response = await this.client.chat.completions.create(completionConfig);
+      // Create the OpenAI request promise
+      const openaiPromise = this.client.chat.completions.create(completionConfig);
+      
+      // Create timeout promise
+      const timeoutPromise = this.createTimeoutPromise<OpenAI.Chat.Completions.ChatCompletion>(finalConfig.timeout!);
+
+      // Race between the API call and timeout
+      const response = await Promise.race([openaiPromise, timeoutPromise]);
 
       if (!response.choices[0]?.message?.content) {
         throw new Error('No content generated from OpenAI API');
@@ -121,15 +140,35 @@ export class OpenAIService {
       console.error('OpenAI API Error:', error);
       
       if (error instanceof Error) {
-        throw new Error(`OpenAI generation failed: ${error.message}`);
+        // Handle timeout errors specifically
+        if (error.message.includes('timed out') || error.message.includes('timeout')) {
+          throw new Error('AI service is taking longer than expected. Please try again with simpler guidance or try again later.');
+        }
+        
+        // Handle rate limiting
+        if (error.message.includes('rate limit') || error.message.includes('429')) {
+          throw new Error('AI service is currently busy. Please wait a moment and try again.');
+        }
+        
+        // Handle authentication errors
+        if (error.message.includes('401') || error.message.includes('authentication')) {
+          throw new Error('AI service configuration error. Please contact support.');
+        }
+        
+        // Handle OpenAI service errors
+        if (error.message.includes('503') || error.message.includes('service unavailable')) {
+          throw new Error('AI service is temporarily unavailable. Please try again in a few minutes.');
+        }
+        
+        throw new Error(`AI generation failed: ${error.message}`);
       }
       
-      throw new Error('Unknown error occurred during OpenAI generation');
+      throw new Error('Unknown error occurred during AI generation');
     }
   }
 
   /**
-   * Generate assessment question content using specialized prompt
+   * Generate assessment question content using specialized prompt with enhanced error handling
    */
   public async generateAssessmentQuestion({
     domainName,
@@ -193,48 +232,81 @@ The correctAnswer field should be the index (0-3) of the correct option in the o
         config: {
           temperature: 0.8, // Higher creativity for question generation
           maxTokens: 1500,
+          timeout: 20000, // Longer timeout for complex question generation
         },
       });
 
-      const result = JSON.parse(response.content);
+      let result;
+      try {
+        result = JSON.parse(response.content);
+      } catch (parseError) {
+        console.error('JSON parsing error:', parseError);
+        throw new Error('AI returned invalid response format. Please try again.');
+      }
 
       // Validate the response structure
-      if (!result.text || !Array.isArray(result.options) || result.options.length !== 4) {
-        throw new Error('Invalid question structure generated');
+      if (!result.text || typeof result.text !== 'string') {
+        throw new Error('Generated question is missing valid text. Please try again.');
+      }
+      
+      if (!Array.isArray(result.options) || result.options.length !== 4) {
+        throw new Error('Generated question must have exactly 4 answer options. Please try again.');
       }
 
       if (typeof result.correctAnswer !== 'number' || result.correctAnswer < 0 || result.correctAnswer > 3) {
-        throw new Error('Invalid correct answer index');
+        throw new Error('Generated question has invalid correct answer. Please try again.');
+      }
+
+      // Validate that all options are strings
+      if (!result.options.every((option: any) => typeof option === 'string' && option.trim().length > 0)) {
+        throw new Error('Generated answer options are incomplete. Please try again.');
       }
 
       return {
-        text: result.text,
-        options: result.options,
+        text: result.text.trim(),
+        options: result.options.map((opt: string) => opt.trim()),
         correctAnswer: result.correctAnswer,
-        explanation: result.explanation || '',
-        miniLesson: result.miniLesson || '',
-        tags: Array.isArray(result.tags) ? result.tags : [],
+        explanation: (result.explanation || '').trim(),
+        miniLesson: (result.miniLesson || '').trim(),
+        tags: Array.isArray(result.tags) ? result.tags.filter((tag: any) => typeof tag === 'string') : [],
       };
 
     } catch (error) {
       console.error('Assessment question generation error:', error);
-      throw new Error('Failed to generate assessment question. Please try again.');
+      
+      if (error instanceof Error) {
+        // Re-throw our custom error messages
+        if (error.message.includes('AI service is taking longer than expected') ||
+            error.message.includes('AI service is currently busy') ||
+            error.message.includes('AI service is temporarily unavailable') ||
+            error.message.includes('AI returned invalid response format') ||
+            error.message.includes('Generated question')) {
+          throw error;
+        }
+      }
+      
+      throw new Error('Failed to generate assessment question. The AI service may be temporarily unavailable. Please try again.');
     }
   }
 
   /**
-   * Check content appropriateness using OpenAI moderation
+   * Check content appropriateness using OpenAI moderation with timeout
    */
   public async moderateContent(content: string): Promise<boolean> {
     try {
-      const moderation = await this.client.moderations.create({
+      // Create moderation request with timeout
+      const moderationPromise = this.client.moderations.create({
         input: content,
       });
+      
+      const timeoutPromise = this.createTimeoutPromise<OpenAI.Moderations.ModerationCreateResponse>(5000); // 5 second timeout for moderation
+      
+      const moderation = await Promise.race([moderationPromise, timeoutPromise]);
       
       return !moderation.results[0].flagged;
     } catch (error) {
       console.error('Content moderation error:', error);
-      // Default to allowing content if moderation fails
+      // Default to allowing content if moderation fails or times out
       return true;
     }
   }

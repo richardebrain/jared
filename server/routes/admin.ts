@@ -681,45 +681,83 @@ router.get('/question-pool/distribution', requireAdmin, async (req, res) => {
 
 // AI Question Generation endpoint
 router.post('/questions/generate', async (req, res) => {
+  // Inline admin authentication check (same as other endpoints)
+  const adminPassword = req.query.admin_password || req.body.admin_password;
+  
+  if (adminPassword !== TEMP_ADMIN_PASSWORD) {
+    return res.status(403).json({
+      success: false,
+      error: 'Forbidden: Admin access required. Password incorrect.',
+      code: 'ADMIN_AUTH_REQUIRED'
+    });
+  }
+
+  // Set a request timeout to ensure we respond to the frontend
+  const requestTimeout = setTimeout(() => {
+    if (!res.headersSent) {
+      console.error('Request timeout: AI generation took too long');
+      res.status(408).json({
+        success: false,
+        error: 'Request timed out. The AI service is taking longer than expected. Please try again.',
+        code: 'REQUEST_TIMEOUT'
+      });
+    }
+  }, 25000); // 25 second request timeout
+
   try {
     const { domainId, difficulty, userGuidance } = req.body;
 
     // Validate required fields
     if (!domainId || !difficulty) {
+      clearTimeout(requestTimeout);
       return res.status(400).json({
         success: false,
-        error: 'Domain ID and difficulty are required'
+        error: 'Domain ID and difficulty are required',
+        code: 'MISSING_REQUIRED_FIELDS'
       });
     }
 
     // Validate difficulty is in valid range
     const difficultyNumber = parseInt(difficulty);
     if (isNaN(difficultyNumber) || difficultyNumber < 1 || difficultyNumber > 6) {
+      clearTimeout(requestTimeout);
       return res.status(400).json({
         success: false,
-        error: 'Difficulty must be a number between 1 and 6'
+        error: 'Difficulty must be a number between 1 and 6',
+        code: 'INVALID_DIFFICULTY'
       });
     }
 
     // Get domain information
     const domain = await questionService.getDomainById(domainId);
     if (!domain) {
+      clearTimeout(requestTimeout);
       return res.status(400).json({
         success: false,
-        error: 'Invalid domain ID'
+        error: 'Invalid domain ID',
+        code: 'INVALID_DOMAIN'
       });
     }
 
     // Moderate user guidance if provided
     if (userGuidance && typeof userGuidance === 'string' && userGuidance.trim()) {
-      const isAppropriate = await openAIService.moderateContent(userGuidance);
-      if (!isAppropriate) {
-        return res.status(400).json({
-          success: false,
-          error: 'User guidance contains inappropriate content'
-        });
+      try {
+        const isAppropriate = await openAIService.moderateContent(userGuidance);
+        if (!isAppropriate) {
+          clearTimeout(requestTimeout);
+          return res.status(400).json({
+            success: false,
+            error: 'User guidance contains inappropriate content. Please revise your guidance.',
+            code: 'INAPPROPRIATE_CONTENT'
+          });
+        }
+      } catch (moderationError) {
+        console.warn('Content moderation failed, proceeding anyway:', moderationError);
+        // Continue with generation if moderation fails
       }
     }
+
+    console.log(`Starting AI question generation for domain: ${domain.name}, difficulty: ${difficultyNumber}`);
 
     // Generate question using OpenAI service
     const generatedQuestion = await openAIService.generateAssessmentQuestion({
@@ -729,44 +767,110 @@ router.post('/questions/generate', async (req, res) => {
       userGuidance: userGuidance?.trim() || undefined,
     });
 
+    console.log('AI question generation completed successfully');
+
+    // Clear the timeout since we're responding successfully
+    clearTimeout(requestTimeout);
+
     // Return generated content for frontend to populate form fields
-    res.json({
-      success: true,
-      data: {
-        text: generatedQuestion.text,
-        options: generatedQuestion.options,
-        correctAnswer: generatedQuestion.correctAnswer,
-        explanation: generatedQuestion.explanation,
-        miniLesson: generatedQuestion.miniLesson,
-        tags: generatedQuestion.tags.join(', '), // Convert array to comma-separated string
-      },
-      message: 'Question content generated successfully'
-    });
+    if (!res.headersSent) {
+      res.json({
+        success: true,
+        data: {
+          text: generatedQuestion.text,
+          options: generatedQuestion.options,
+          correctAnswer: generatedQuestion.correctAnswer,
+          explanation: generatedQuestion.explanation,
+          miniLesson: generatedQuestion.miniLesson,
+          tags: generatedQuestion.tags.join(', '), // Convert array to comma-separated string
+        },
+        message: 'Question content generated successfully'
+      });
+    }
 
   } catch (error) {
     console.error('Question generation error:', error);
     
-    // Handle specific OpenAI errors
+    // Clear the timeout
+    clearTimeout(requestTimeout);
+
+    // Don't respond if headers already sent (timeout already responded)
+    if (res.headersSent) {
+      return;
+    }
+
+    // Handle specific error types with appropriate HTTP status codes and user-friendly messages
     if (error instanceof Error) {
-      if (error.message.includes('OpenAI generation failed')) {
-        return res.status(503).json({
+      const errorMessage = error.message;
+
+      // Timeout errors
+      if (errorMessage.includes('AI service is taking longer than expected') || 
+          errorMessage.includes('timed out')) {
+        return res.status(408).json({
           success: false,
-          error: 'AI service temporarily unavailable. Please try again.'
+          error: 'The AI service is taking longer than expected. Please try again with simpler guidance or try again later.',
+          code: 'AI_TIMEOUT'
         });
       }
-      
-      if (error.message.includes('Failed to generate assessment question')) {
+
+      // Rate limiting errors
+      if (errorMessage.includes('AI service is currently busy') ||
+          errorMessage.includes('rate limit') ||
+          errorMessage.includes('429')) {
+        return res.status(503).json({
+          success: false,
+          error: 'The AI service is currently busy. Please wait a moment and try again.',
+          code: 'AI_RATE_LIMITED'
+        });
+      }
+
+      // Service unavailable errors
+      if (errorMessage.includes('AI service is temporarily unavailable') ||
+          errorMessage.includes('service unavailable') ||
+          errorMessage.includes('503')) {
+        return res.status(503).json({
+          success: false,
+          error: 'The AI service is temporarily unavailable. Please try again in a few minutes.',
+          code: 'AI_SERVICE_UNAVAILABLE'
+        });
+      }
+
+      // Authentication/configuration errors
+      if (errorMessage.includes('AI service configuration error') ||
+          errorMessage.includes('authentication') ||
+          errorMessage.includes('401')) {
+        return res.status(500).json({
+          success: false,
+          error: 'AI service configuration error. Please contact support.',
+          code: 'AI_CONFIG_ERROR'
+        });
+      }
+
+      // Content validation errors
+      if (errorMessage.includes('AI returned invalid response format') ||
+          errorMessage.includes('Generated question')) {
         return res.status(400).json({
           success: false,
-          error: 'Unable to generate question with current parameters. Please try different guidance or settings.'
+          error: 'The AI generated invalid content. Please try again with different guidance or settings.',
+          code: 'AI_INVALID_RESPONSE'
+        });
+      }
+
+      // Generic AI generation errors
+      if (errorMessage.includes('Failed to generate assessment question')) {
+        return res.status(503).json({
+          success: false,
+          error: 'Unable to generate question at this time. The AI service may be temporarily unavailable. Please try again.',
+          code: 'AI_GENERATION_FAILED'
         });
       }
     }
 
-    // Generic error response
+    // Generic fallback error response
     res.status(500).json({
       success: false,
-      error: 'Internal server error occurred during question generation'
+      error: 'An unexpected error occurred during question generation. Please try again.',
+      code: 'INTERNAL_SERVER_ERROR'
     });
   }
 });

@@ -162,10 +162,22 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
         difficulty: parseInt(difficulty),
         userGuidance: userGuidance.trim() || undefined,
       };
-      return await apiRequest(`/api/admin/questions/generate?admin_password=${TEMP_ADMIN_PASSWORD}`, {
-        method: "POST",
-        data: payload,
-      });
+      
+      // Use a longer timeout for AI generation (30 seconds)
+      try {
+        const response = await apiRequest(`/api/admin/questions/generate?admin_password=${TEMP_ADMIN_PASSWORD}`, {
+          method: "POST",
+          data: payload,
+          timeout: 30000, // 30 second timeout for AI generation
+        });
+        return response;
+      } catch (error) {
+        // Check if this is a timeout error
+        if (error && typeof error === 'object' && 'code' in error && error.code === 'ECONNABORTED') {
+          throw new Error('Request timed out after 30 seconds. The AI service is taking longer than expected.');
+        }
+        throw error;
+      }
     },
     onSuccess: (response) => {
       const generatedData = response.data;
@@ -179,15 +191,80 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
       form.setValue("tags", generatedData.tags || "");
 
       toast({
-        title: "Success",
-        description: "Question content generated successfully! You can now review and edit the generated content.",
+        title: "✨ AI Generation Successful",
+        description: "Question content generated successfully! You can now review and edit the generated content before saving.",
         variant: "default",
       });
     },
     onError: (error: any) => {
+      console.error('AI Generation Error:', error);
+      
+      // Handle different error types with specific user guidance
+      let title = "Generation Failed";
+      let description = "Failed to generate question content. Please try again.";
+      
+      if (error.response?.data?.code) {
+        const errorCode = error.response.data.code;
+        const errorMessage = error.response.data.error;
+        
+        switch (errorCode) {
+          case 'REQUEST_TIMEOUT':
+          case 'AI_TIMEOUT':
+            title = "⏱️ Generation Timeout";
+            description = "AI generation is taking longer than expected. Try simplifying your guidance or try again in a moment.";
+            break;
+            
+          case 'AI_RATE_LIMITED':
+            title = "🚦 Service Busy";
+            description = "The AI service is currently busy. Please wait a moment and try again.";
+            break;
+            
+          case 'AI_SERVICE_UNAVAILABLE':
+          case 'AI_GENERATION_FAILED':
+            title = "🔧 Service Unavailable";
+            description = "The AI service is temporarily unavailable. Please try again in a few minutes.";
+            break;
+            
+          case 'AI_INVALID_RESPONSE':
+            title = "⚠️ Invalid Content Generated";
+            description = "The AI generated invalid content. Try different guidance or settings.";
+            break;
+            
+          case 'INAPPROPRIATE_CONTENT':
+            title = "🚫 Content Issue";
+            description = "Your guidance contains inappropriate content. Please revise your guidance and try again.";
+            break;
+            
+          case 'AI_CONFIG_ERROR':
+            title = "⚙️ Configuration Error";
+            description = "AI service configuration error. Please contact support if this persists.";
+            break;
+            
+          case 'MISSING_REQUIRED_FIELDS':
+          case 'INVALID_DIFFICULTY':
+          case 'INVALID_DOMAIN':
+            title = "📝 Input Error";
+            description = errorMessage || "Please check your input and try again.";
+            break;
+            
+          default:
+            // Use the specific error message from backend if available
+            if (errorMessage) {
+              description = errorMessage;
+            }
+            break;
+        }
+      } else if (error.message?.includes('timed out') || error.message?.includes('timeout') || error.code === 'ECONNABORTED') {
+        title = "⏱️ Connection Timeout";
+        description = "The request timed out after 30 seconds. The AI service may be experiencing high load. Please try again.";
+      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+        title = "🌐 Network Error";
+        description = "Network connection error. Please check your connection and try again.";
+      }
+
       toast({
-        title: "Generation Failed",
-        description: error.message || "Failed to generate question content. Please try again.",
+        title,
+        description,
         variant: "destructive",
       });
     },
@@ -474,7 +551,7 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
                     {isAIGenerating ? (
                       <>
                         <Wand2 className="h-4 w-4 mr-2 animate-spin" />
-                        Generating with AI...
+                        Generating with AI... (this may take 15-30 seconds)
                       </>
                     ) : (
                       <>
@@ -483,6 +560,25 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
                       </>
                     )}
                   </Button>
+
+                  {isAIGenerating && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <div className="animate-pulse w-2 h-2 bg-blue-500 rounded-full"></div>
+                        AI is analyzing your requirements and generating ECE-appropriate content...
+                      </div>
+                      <div className="text-xs text-muted-foreground bg-blue-50 p-3 rounded-lg">
+                        <div className="font-medium mb-1">Generation Process:</div>
+                        <div>• Analyzing domain context and difficulty level</div>
+                        <div>• Creating realistic multiple choice scenarios</div>
+                        <div>• Generating explanations and mini-lessons</div>
+                        <div>• Quality checking and formatting content</div>
+                        <div className="mt-2 text-blue-600 font-medium">
+                          Please wait... this typically takes 15-30 seconds
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {!canGenerateAI && (
                     <div className="text-center text-sm text-muted-foreground p-4 bg-gray-100 rounded-lg">
