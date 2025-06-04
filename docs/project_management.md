@@ -972,16 +972,27 @@ Weekly status updates will be added below to track overall project progress.
        - `client/src/components/admin/BulkAvailabilityEditor.tsx`
 
 5. ⬜ [EP-002-05] **AI-Powered Assessment Question Generation**
-   - **Description:** Integrate AI-powered question generation directly into the question management interface, enabling content managers to generate high-quality, domain-specific assessment questions using optimized prompts that leverage the existing OpenAI infrastructure.
+   - **Description:** Integrate AI-powered question generation directly into the question management interface, enabling content managers to generate high-quality, domain-specific assessment questions. **Users must manually select domain and difficulty level first, then can optionally add custom guidance before generation.**
    - **Requirements:**
-     - **Generate Question Button**: Add "Generate with AI" button to question create/edit forms in QuestionForm.tsx
-     - **Domain-Aware Prompts**: Optimize AI prompts based on selected domain and difficulty level for relevant ECE content
-     - **Question Structure Generation**: AI generates complete question package (text, 4 options, correct answer, explanation, mini-lesson)
-     - **ECE Standards Integration**: Prompts reference established ECE frameworks (NAEYC, ECERS-R, CLASS) for authenticity
-     - **Difficulty-Matched Content**: Questions generated match selected difficulty level (1-6 scale) with appropriate complexity
-     - **Content Validation**: Generated content requires human review and approval before being added to question pool
-     - **Multiple Generation Options**: Support generating multiple question variations for content review and selection
-     - **Integration with Existing Workflow**: Seamlessly integrate with current question creation and approval processes
+     - **Section 1 - Required Manual Inputs (Top)**:
+       - **Domain Selection**: User must select from existing ECE domains dropdown (required field)
+       - **Difficulty Level Selection**: User must choose from 6-level scale (1-6, Very Easy to Master) (required field)
+       - **Clear Required Field Indicators**: Visual markers (*) and validation messages for required selections
+       - **Prerequisites Validation**: AI generation section only enabled after both domain and difficulty are selected
+     - **Section 2 - AI Generation Controls (Middle)**:
+       - **Optional User Guidance**: Simple text area for users to add optional specific guidance or focus areas
+       - **Guidance Examples**: Helper text showing examples like "focus on playground safety" or "new teacher scenarios"
+       - **Generate Question Button**: "Generate with AI" button (disabled until domain + difficulty selected)
+       - **Generation Status**: Loading indicators during AI generation
+       - **Clear Instructions**: Simple messaging about optional guidance and generation process
+     - **Section 3 - Generated Content Fields (Bottom)**:
+       - **Question Text**: Main question content (populated by AI, fully editable)
+       - **Multiple Choice Options**: 4 answer options A/B/C/D (populated by AI, fully editable)
+       - **Correct Answer**: Selection of correct option (populated by AI, editable)
+       - **Explanation**: Why the answer is correct (populated by AI, fully editable)
+       - **Mini-Lesson**: Brief educational content (populated by AI, fully editable)
+       - **Tags**: Relevant topic tags (populated by AI, fully editable)
+       - **All fields remain fully editable**: Users can modify any AI-generated content before saving
    - **Dependencies:** EP-002-02 (Frontend CRUD Interface), EP-002-04 (Availability Control Interface)
    - **Technical Implementation:**
      - **OpenAI Infrastructure Consolidation**: 
@@ -991,94 +1002,97 @@ Weekly status updates will be added below to track overall project progress.
          - `server/api/newAiSuggestionRoutes.ts` - Module content generation
          - `server/routes.ts` - Lesson plan generation (multiple instances)
        - **Recommended Approach**: Create centralized `OpenAIService.ts` to consolidate API usage and ensure consistent configuration
-     - **Backend API Endpoints**:
-       - `POST /api/admin/questions/generate` - Generate question content with domain/difficulty context
-       - Request payload: `{ domainId, difficulty, generationOptions, existingContent? }`
-       - Response: `{ generatedQuestions: [...], metadata: {...} }`
-     - **Frontend Integration**:
-       - Add "Generate with AI" button to QuestionForm.tsx
-       - Modal dialog for generation options and preview
-       - Generated content populates form fields for review/editing
-       - Clear indication of AI-generated content for approval workflow
-     - **Optimized ECE Prompt Engineering**:
+     - **Form Structure (3-Section Layout)**:
        ```typescript
-       const domainPrompts = {
-         "Child Safety & Supervision": {
-           context: "Active supervision, incident response, hygiene protocols, emergency procedures",
-           standards: "NAEYC Health Standard 5, ECERS-R Safety Items",
-           scenarios: "Playground supervision, hand washing, emergency drills"
-         },
-         "Health & Development": {
-           context: "Developmental milestones, nutrition practices, physical development",
-           standards: "NAEYC Health Standards, CLASS Emotional Support",
-           scenarios: "Growth tracking, meal planning, developmental screening"
-         },
-         // ... all 10 domains with specific contexts
+       // QuestionForm.tsx simplified layout:
+       1. Required Inputs Section (Top)
+          - Domain Selection Dropdown (required, prominent with *)
+          - Difficulty Level Selector (required, prominent with *)
+          - Visual validation feedback and error messages
+       
+       2. AI Generation Section (Middle) 
+          - Optional User Guidance (simple textarea, placeholder: "Optional: Add specific focus or scenario guidance")
+          - Helper text with examples
+          - "Generate with AI" button (conditional based on prerequisites)
+          - Generation loading state
+       
+       3. Generated Content Section (Bottom)
+          - Question text field (populated by AI, fully editable)
+          - Multiple choice options (A/B/C/D, populated by AI, editable)
+          - Correct answer selection (populated by AI, editable)
+          - Explanation field (populated by AI, fully editable)
+          - Mini-lesson field (populated by AI, fully editable)
+          - Tags field (populated by AI, fully editable)
+       ```
+     - **Backend Prompt Engineering**:
+       ```typescript
+       const generateFullPrompt = (domain: AssessmentDomain, difficulty: number, userGuidance?: string) => {
+         const basePrompt = `You are an expert early childhood education assessment designer with deep knowledge of NAEYC standards, ECERS-R criteria, and CLASS assessment framework.
+
+TASK: Generate a Level ${difficulty} assessment question for the "${domain.name}" domain.
+
+DOMAIN CONTEXT: ${domain.description}
+DIFFICULTY LEVEL: ${difficulty} (Scale 1-6: 1=Basic knowledge, 6=Expert synthesis)
+
+${userGuidance ? `SPECIFIC GUIDANCE: ${userGuidance}` : ''}
+
+REQUIREMENTS:
+- Question tests practical knowledge relevant to early childhood educators
+- Exactly 4 multiple choice options (A, B, C, D)
+- Options include realistic distractors based on common misconceptions
+- Correct answer represents evidence-based best practice
+- Correct answer should be randomly placed into position (A, B, C, D)
+- Correct answer shouldn't be obvious based on the length or level of detail. The wrong answers should look and feel similar to the correct one
+- Explanation references specific ECE standards or research
+- Mini-lesson provides actionable professional development content
+- Create realistic classroom/professional scenarios that ECE educators encounter
+
+OUTPUT FORMAT: JSON object with text, options, correctAnswer, miniLesson`;
+         
+         return basePrompt;
        };
        ```
-     - **Difficulty-Based Prompt Adaptation**:
-       - **Level 1 (Easy)**: Basic knowledge, recognition questions, fundamental concepts
-       - **Level 2-3 (Medium)**: Application scenarios, standard classroom situations
-       - **Level 4-5 (Hard)**: Complex problem-solving, multi-factor considerations
-       - **Level 6 (Master)**: Advanced synthesis, expert-level decision making
-     - **Generated Content Structure**:
+     - **Backend API Implementation**:
+       - `POST /api/admin/questions/generate` - Generate question content
+       - Request payload: `{ domainId, difficulty, userGuidance? }`
+       - Response: `{ generatedQuestion: {...} }`
+       - Use centralized `OpenAIService.ts` for consistent API calls
+     - **Frontend Form Logic**:
        ```typescript
-       interface GeneratedQuestion {
-         text: string; // Main question text
-         options: [string, string, string, string]; // Exactly 4 options
-         correctAnswer: string; // One of the options
-         explanation: string; // Why the answer is correct
-         miniLesson: string; // Brief educational content
-         tags: string[]; // Relevant topic tags
-         confidence: number; // AI confidence score (0-1)
-       }
+       const isGenerationEnabled = formState.domain && formState.difficulty;
+       const canGenerate = isGenerationEnabled;
        ```
-   - **AI Prompt Template Structure**:
-     ```
-     You are an expert early childhood education assessment designer with deep knowledge of NAEYC standards, ECERS-R criteria, and CLASS assessment framework.
-
-     TASK: Generate a {difficulty_level} assessment question for the "{domain_name}" domain.
-
-     DOMAIN CONTEXT: {domain_description}
-     STANDARDS ALIGNMENT: {relevant_standards}
-     DIFFICULTY LEVEL: {difficulty} (Scale 1-6: 1=Basic knowledge, 6=Expert synthesis)
-
-     REQUIREMENTS:
-     - Question tests practical knowledge relevant to early childhood educators
-     - Exactly 4 multiple choice options (A, B, C, D)
-     - Options include realistic distractors based on common misconceptions
-     - Correct answer represents evidence-based best practice
-     - Explanation references specific ECE standards or research
-     - Mini-lesson provides actionable professional development content
-     - Content is appropriate for {difficulty_level} difficulty level
-
-     SCENARIO CONTEXT: Create realistic classroom/professional scenarios that ECE educators encounter
-
-     OUTPUT FORMAT: JSON object with text, options, correctAnswer, explanation, miniLesson, tags
-     ```
-   - **Quality Assurance Features**:
-     - **Content Review Workflow**: Generated questions require explicit approval before activation
-     - **Standard Compliance Check**: Prompts emphasize alignment with established ECE frameworks
-     - **Duplicate Detection**: Check against existing questions to avoid redundancy
-     - **Batch Generation**: Generate 3-5 question variations for content manager selection
-     - **Regeneration Options**: Easy regeneration with modified parameters if content unsatisfactory
+     - **UI Component Updates**:
+       - Update `QuestionForm.tsx` with simplified 3-section progressive layout
+       - Simple conditional rendering based on domain/difficulty selection
+       - Basic loading states during generation
+       - Clear user guidance examples and helper text
+   - **User Flow:**
+     1. **Step 1**: User opens question creation form
+     2. **Step 2**: User selects domain from dropdown (required)
+     3. **Step 3**: User selects difficulty level (required)
+     4. **Step 4**: AI generation section becomes enabled
+     5. **Step 5**: User optionally adds specific guidance or focus areas
+     6. **Step 6**: User clicks "Generate with AI" button
+     7. **Step 7**: Backend creates well-crafted prompt combining domain, difficulty, and optional user guidance
+     8. **Step 8**: Generated content populates all form fields (fully editable)
+     9. **Step 9**: User reviews, edits, and refines content as needed
+     10. **Step 10**: User submits completed question form
    - **Success Criteria:**
-     - Content managers can generate high-quality, domain-specific questions with single button click
-     - Generated questions consistently align with selected domain and difficulty level
-     - AI-generated content maintains ECE professional standards and evidence-based practices
-     - Generated questions pass human review at 80%+ approval rate
-     - Integration seamlessly works within existing question management workflow
-     - Generated content includes all required fields (question, options, explanation, mini-lesson)
-     - Questions demonstrate appropriate complexity progression across difficulty levels
-     - Content generation completes within 10-15 seconds for responsive user experience
+     - Domain and difficulty selection required before AI generation
+     - Simple, clear 3-section form layout with good UX
+     - Optional user guidance gets properly incorporated into backend prompt
+     - Generated questions accurately reflect domain, difficulty, and any user guidance
+     - All generated fields remain fully editable
+     - Generation works reliably and provides quality ECE-appropriate content
+     - MVP-simple implementation without complex features
    - **Dependencies:** EP-002-02, EP-002-04
    - **Technical Notes:**
      - **OpenAI Model**: Use `gpt-4o` for consistency with existing implementations
-     - **Rate Limiting**: Implement reasonable rate limits for AI generation (e.g., 10 generations per hour per user)
-     - **Error Handling**: Graceful fallbacks when AI generation fails or produces invalid content
-     - **Cost Management**: Monitor OpenAI API usage and implement usage tracking
-     - **Audit Trail**: Log all AI-generated content for quality monitoring and improvement
-     - **Content Attribution**: Clear marking of AI-generated questions in the system
+     - **Centralized Service**: Create `OpenAIService.ts` to consolidate API usage across the application
+     - **Simple Error Handling**: Basic fallbacks when AI generation fails
+     - **Progressive Enhancement**: Show sections as prerequisites are met
+     - **MVP Focus**: Keep implementation simple and focused on core functionality
      - **Performance Optimization**: Cache domain/difficulty prompt templates for faster generation
 
 **Status Updates:**
@@ -1145,7 +1159,7 @@ Weekly status updates will be added below to track overall project progress.
      - Implement token refresh endpoint `/api/auth/refresh`
      - Add JWT validation to existing auth endpoints
    - **Token Structure:**
-     ```typescript
+       ```typescript
      interface JWTPayload {
        userId: number;
        username: string;
@@ -1187,7 +1201,7 @@ Weekly status updates will be added below to track overall project progress.
      - Update user authentication to include role/permission checking
      - Create utility functions for role-based UI rendering
    - **Permission Structure:**
-     ```typescript
+       ```typescript
      const PERMISSIONS = {
        QUESTIONS: {
          READ: 'admin:questions:read',
@@ -1204,8 +1218,8 @@ Weekly status updates will be added below to track overall project progress.
          READ: 'admin:schools:read',
          WRITE: 'admin:schools:write'
        }
-     };
-     ```
+       };
+       ```
 
 3. ⬜ [EP-003-03] **Admin Login & Token Management Interface**
    - **Description:** Create secure admin login interface that generates JWT tokens and replaces hardcoded password authentication.
