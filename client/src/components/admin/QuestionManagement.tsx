@@ -84,6 +84,7 @@ export function QuestionManagement() {
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [deletingQuestion, setDeletingQuestion] = useState<Question | null>(null);
+  const [componentVisible, setComponentVisible] = useState(true);
 
   // Build query parameters
   const queryParams = {
@@ -134,7 +135,32 @@ export function QuestionManagement() {
       return { questions: [], pagination: { page: 1, limit: 20, total: 0, pages: 0 } };
     },
     retry: false,
+    // Force stale time to be short to ensure fresh data when switching tabs
+    staleTime: 0,
+    // Refetch when window gains focus (tab switching)
+    refetchOnWindowFocus: true,
   });
+
+  // Add effect to refetch data when component becomes visible
+  useEffect(() => {
+    // Refetch data when component mounts or becomes visible
+    if (componentVisible) {
+      console.log('QuestionManagement component visible, refetching data...');
+      refetch();
+    }
+  }, [componentVisible, refetch]);
+
+  // Add visibility tracking effect
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setComponentVisible(!document.hidden);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   // Fetch domains for filtering
   const { data: domains } = useQuery({
@@ -158,7 +184,13 @@ export function QuestionManagement() {
         description: "Question deleted successfully",
         variant: "default",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/questions"] });
+      // Invalidate all question queries to ensure fresh data
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/admin/questions"], 
+        exact: false // This will invalidate all variants with different parameters
+      });
+      // Also refetch current query immediately
+      refetch();
       setDeletingQuestion(null);
     },
     onError: (error: any) => {
@@ -185,7 +217,13 @@ export function QuestionManagement() {
         description: "Question approval status updated",
         variant: "default",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/questions"] });
+      // Invalidate all question queries to ensure fresh data
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/admin/questions"], 
+        exact: false
+      });
+      // Also refetch current query immediately
+      refetch();
     },
     onError: (error) => {
       toast({
@@ -210,7 +248,13 @@ export function QuestionManagement() {
         description: "Question availability updated",
         variant: "default",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/questions"] });
+      // Invalidate all question queries to ensure fresh data
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/admin/questions"], 
+        exact: false
+      });
+      // Also refetch current query immediately
+      refetch();
     },
     onError: (error) => {
       toast({
