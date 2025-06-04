@@ -5,6 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Grid3X3, AlertTriangle } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface MatrixData {
   matrix: Array<{
@@ -100,7 +106,7 @@ export function QuestionCoverageMatrix({ onFilterSelect, currentFilters }: Quest
             </div>
             {Array.from({ length: 10 }, (_, i) => (
               <div key={i} className="flex gap-2">
-                <Skeleton className="h-10 w-48" />
+                <Skeleton className="h-10 w-96" />
                 {Array.from({ length: 6 }, (_, j) => (
                   <Skeleton key={j} className="h-10 w-16" />
                 ))}
@@ -179,82 +185,91 @@ export function QuestionCoverageMatrix({ onFilterSelect, currentFilters }: Quest
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
-          <div className="min-w-full">
-            {/* Header row with difficulty levels */}
-            <div className="flex mb-2">
-              <div className="w-48 flex-shrink-0 pr-2">
-                <div className="h-8 flex items-center">
-                  <span className="text-sm font-medium text-muted-foreground">Domain</span>
-                </div>
-              </div>
-              {difficultyLevels.map((difficulty) => (
-                <div key={difficulty} className="w-16 flex-shrink-0 px-1">
-                  <button
-                    onClick={() => handleColumnHeaderClick(difficulty)}
-                    className={`h-8 w-full text-xs font-medium rounded border transition-colors hover:bg-muted/50 ${
-                      currentFilters.difficultyFilter === difficulty.toString() && 
-                      currentFilters.domainFilter === 'all'
-                        ? 'bg-blue-100 border-blue-300 text-blue-700'
-                        : 'bg-muted/20 border-border text-muted-foreground'
-                    }`}
-                  >
-                    L{difficulty}
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            {/* Matrix rows */}
-            <div className="space-y-1">
-              {matrix.map((domainRow) => (
-                <div key={domainRow.domainId} className="flex">
-                  {/* Domain name */}
-                  <div className="w-48 flex-shrink-0 pr-2">
-                    <button
-                      onClick={() => handleRowHeaderClick(domainRow.domainId)}
-                      className={`h-10 w-full text-left px-3 py-2 text-sm font-medium rounded border transition-colors hover:bg-muted/50 ${
-                        currentFilters.domainFilter === domainRow.domainId.toString() && 
-                        currentFilters.difficultyFilter === 'all'
-                          ? 'bg-blue-100 border-blue-300 text-blue-700'
-                          : 'bg-muted/20 border-border'
-                      }`}
-                    >
-                      <span className="truncate block" title={domainRow.domainName}>
-                        {domainRow.domainName}
-                      </span>
-                    </button>
+        <TooltipProvider>
+          <div className="overflow-x-auto">
+            <div className="min-w-full">
+              {/* Header row with difficulty levels */}
+              <div className="flex mb-2">
+                <div className="w-96 flex-shrink-0 pr-2">
+                  <div className="h-8 flex items-center">
+                    <span className="text-sm font-medium text-muted-foreground">Domain</span>
                   </div>
-
-                  {/* Coverage cells */}
-                  {difficultyLevels.map((difficulty) => {
-                    const count = domainRow.difficulties[difficulty] || 0;
-                    const coverage = getCoverageColor(count);
-                    const isSelected = isCellSelected(domainRow.domainId, difficulty);
-
-                    return (
-                      <div key={difficulty} className="w-16 flex-shrink-0 px-1">
-                        <button
-                          onClick={() => handleCellClick(domainRow.domainId, difficulty)}
-                          className={`h-10 w-full rounded border-2 transition-all hover:scale-105 hover:shadow-md ${
-                            coverage.bg
-                          } ${coverage.text} ${
-                            isSelected 
-                              ? 'border-blue-500 ring-2 ring-blue-200 shadow-lg' 
-                              : 'border-transparent'
-                          }`}
-                          title={`${domainRow.domainName} - ${getDifficultyLabel(difficulty)}: ${count} questions`}
-                        >
-                          <span className="text-sm font-bold">{count}</span>
-                        </button>
-                      </div>
-                    );
-                  })}
                 </div>
-              ))}
+                {difficultyLevels.map((difficulty) => (
+                  <div key={difficulty} className="w-16 flex-shrink-0 px-1">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => handleColumnHeaderClick(difficulty)}
+                          className={`h-8 w-full text-xs font-medium rounded border transition-colors hover:bg-muted/50 ${
+                            currentFilters.difficultyFilter === difficulty.toString() && 
+                            currentFilters.domainFilter === 'all'
+                              ? 'bg-blue-100 border-blue-300 text-blue-700'
+                              : 'bg-muted/20 border-border text-muted-foreground'
+                          }`}
+                        >
+                          L{difficulty}
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{getDifficultyLabel(difficulty)}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                ))}
+              </div>
+
+              {/* Matrix rows */}
+              <div className="space-y-1">
+                {matrix.map((domainRow) => (
+                  <div key={domainRow.domainId} className="flex">
+                    {/* Domain name */}
+                    <div className="w-96 flex-shrink-0 pr-2">
+                      <button
+                        onClick={() => handleRowHeaderClick(domainRow.domainId)}
+                        className={`h-10 w-full text-left px-3 py-2 text-sm font-medium rounded border transition-colors hover:bg-muted/50 ${
+                          currentFilters.domainFilter === domainRow.domainId.toString() && 
+                          currentFilters.difficultyFilter === 'all'
+                            ? 'bg-blue-100 border-blue-300 text-blue-700'
+                            : 'bg-muted/20 border-border'
+                        }`}
+                      >
+                        <span className="truncate block" title={domainRow.domainName}>
+                          {domainRow.domainName}
+                        </span>
+                      </button>
+                    </div>
+
+                    {/* Coverage cells */}
+                    {difficultyLevels.map((difficulty) => {
+                      const count = domainRow.difficulties[difficulty] || 0;
+                      const coverage = getCoverageColor(count);
+                      const isSelected = isCellSelected(domainRow.domainId, difficulty);
+
+                      return (
+                        <div key={difficulty} className="w-16 flex-shrink-0 px-1">
+                          <button
+                            onClick={() => handleCellClick(domainRow.domainId, difficulty)}
+                            className={`h-10 w-full rounded border-2 transition-all hover:scale-105 hover:shadow-md ${
+                              coverage.bg
+                            } ${coverage.text} ${
+                              isSelected 
+                                ? 'border-blue-500 ring-2 ring-blue-200 shadow-lg' 
+                                : 'border-transparent'
+                            }`}
+                            title={`${domainRow.domainName} - ${getDifficultyLabel(difficulty)}: ${count} questions`}
+                          >
+                            <span className="text-sm font-bold">{count}</span>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        </TooltipProvider>
 
         {/* Legend */}
         <div className="mt-6 pt-4 border-t">

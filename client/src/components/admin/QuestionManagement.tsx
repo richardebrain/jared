@@ -36,6 +36,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { QuestionForm } from "./QuestionForm";
 import { QuestionCoverageMatrix } from "./QuestionCoverageMatrix";
+import { QuestionPoolWarning } from "./QuestionPoolWarning";
 import { getDifficultyLabel, getDifficultyColor, DIFFICULTY_OPTIONS } from '@/utils/difficulty';
 
 // TODO: Replace with proper authentication system
@@ -315,14 +316,6 @@ export function QuestionManagement() {
     difficultyFilter
   };
 
-  if (isLoadingQuestions) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <Card>
@@ -339,6 +332,9 @@ export function QuestionManagement() {
 
   return (
     <div className="space-y-6">
+      {/* Question Pool Warning (Critical/Severe only) */}
+      <QuestionPoolWarning />
+      
       {/* Question Coverage Matrix */}
       <QuestionCoverageMatrix 
         onFilterSelect={handleMatrixFilterSelect} 
@@ -469,7 +465,11 @@ export function QuestionManagement() {
           <CardTitle>Questions ({pagination.total})</CardTitle>
         </CardHeader>
         <CardContent>
-          {questions.length === 0 ? (
+          {isLoadingQuestions ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : questions.length === 0 ? (
             <div className="text-center py-12">
               <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No Questions Found</h3>
