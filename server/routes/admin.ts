@@ -45,10 +45,10 @@ const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
 // Helper function to parse query parameters
 function parseQueryFilters(query: any) {
   return {
-    domainId: query.domain || undefined,
+    domainId: query.domainId ? parseInt(query.domainId, 10) : undefined,
     difficulty: query.difficulty || undefined,
-    isApproved: query.approved !== undefined ? query.approved === 'true' : undefined,
-    isEnabled: query.enabled !== undefined ? query.enabled === 'true' : undefined,
+    isApproved: query.isApproved !== undefined ? query.isApproved === 'true' : undefined,
+    isEnabled: query.isEnabled !== undefined ? query.isEnabled === 'true' : undefined,
     createdBy: query.createdBy ? parseInt(query.createdBy) : undefined,
     search: query.search || undefined,
     page: query.page ? parseInt(query.page) : 1,
