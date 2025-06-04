@@ -305,7 +305,11 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
         description: `Question created successfully with ID: ${questionId}`,
         variant: "default",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/questions"] });
+      // Invalidate all question queries to ensure fresh data across all filters/pages
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/admin/questions"], 
+        exact: false 
+      });
       onClose();
     },
     onError: (error: any) => {
@@ -340,7 +344,11 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
         description: "Question updated successfully",
         variant: "default",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/questions"] });
+      // Invalidate all question queries to ensure fresh data across all filters/pages
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/admin/questions"], 
+        exact: false 
+      });
       onClose();
     },
     onError: (error: any) => {

@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/table";
 import { 
   CheckCircle, XCircle, Plus, Edit, Trash2, Search, Filter, 
-  ChevronLeft, ChevronRight, AlertCircle, BookOpen, Eye, EyeOff 
+  ChevronLeft, ChevronRight, AlertCircle, BookOpen, Eye, EyeOff, RefreshCw 
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { QuestionForm } from "./QuestionForm";
@@ -84,7 +84,6 @@ export function QuestionManagement() {
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [deletingQuestion, setDeletingQuestion] = useState<Question | null>(null);
-  const [componentVisible, setComponentVisible] = useState(true);
 
   // Build query parameters
   const queryParams = {
@@ -136,31 +135,23 @@ export function QuestionManagement() {
     },
     retry: false,
     // Force stale time to be short to ensure fresh data when switching tabs
-    staleTime: 0,
+    staleTime: 30000, // 30 seconds - balance between freshness and performance
     // Refetch when window gains focus (tab switching)
     refetchOnWindowFocus: true,
+    // Enable background refetching to keep data fresh
+    refetchOnMount: true,
   });
 
-  // Add effect to refetch data when component becomes visible
+  // Refetch data when component mounts to ensure fresh data on tab switch
   useEffect(() => {
-    // Refetch data when component mounts or becomes visible
-    if (componentVisible) {
-      console.log('QuestionManagement component visible, refetching data...');
+    console.log('QuestionManagement component mounted, ensuring fresh data...');
+    // Small delay to ensure the component is fully mounted
+    const timeoutId = setTimeout(() => {
       refetch();
-    }
-  }, [componentVisible, refetch]);
-
-  // Add visibility tracking effect
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      setComponentVisible(!document.hidden);
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
+    }, 100);
+    
+    return () => clearTimeout(timeoutId);
+  }, []); // Only run on mount
 
   // Fetch domains for filtering
   const { data: domains } = useQuery({
@@ -292,6 +283,17 @@ export function QuestionManagement() {
     refetch();
   };
 
+  // Manual refresh function for user-triggered refreshes
+  const handleManualRefresh = async () => {
+    console.log('Manual refresh triggered by user');
+    await refetch();
+    toast({
+      title: "Refreshed",
+      description: "Question list updated with latest data",
+      variant: "default",
+    });
+  };
+
   if (isLoadingQuestions) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -331,10 +333,21 @@ export function QuestionManagement() {
               Manage assessment questions, approval workflow, and availability controls
             </CardDescription>
           </div>
-          <Button onClick={() => setShowCreateDialog(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Question
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              onClick={handleManualRefresh}
+              disabled={isLoadingQuestions}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoadingQuestions ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Button onClick={() => setShowCreateDialog(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Question
+            </Button>
+          </div>
         </CardHeader>
       </Card>
 
