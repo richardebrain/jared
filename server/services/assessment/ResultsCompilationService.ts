@@ -1,13 +1,14 @@
 import { db } from '../../db';
 import { 
   assessmentResults,
+  assessmentResponses,
   assessments,
   users,
   type InsertAssessmentResults,
   type Assessment,
   type User
 } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { DomainAnalysisService, type DomainAnalysisResult } from './DomainAnalysisService';
 
 /**
@@ -59,6 +60,9 @@ export class ResultsCompilationService {
     // Calculate overall metrics
     const overallScore = this.calculateOverallScore(domainAnalysis.overallStats);
     
+    // Calculate total assessment time
+    const totalTimeSeconds = await this.calculateTotalTime(assessmentId);
+    
     // Compile final results
     const compiledResults: CompiledAssessmentResults = {
       assessmentId,
@@ -68,6 +72,7 @@ export class ResultsCompilationService {
       totalQuestions: domainAnalysis.overallStats.totalQuestions,
       totalCorrect: domainAnalysis.overallStats.totalCorrect,
       accuracyRate: domainAnalysis.overallStats.overallAccuracy,
+      totalTimeSeconds, // Total time spent in seconds
       domainBreakdown: domainAnalysis.domainBreakdown,
       strengthAreas: domainAnalysis.strengthAreas,
       growthAreas: domainAnalysis.growthAreas,
@@ -92,6 +97,7 @@ export class ResultsCompilationService {
       totalQuestions: results.totalQuestions,
       totalCorrect: results.totalCorrect,
       accuracyRate: results.accuracyRate,
+      totalTimeSeconds: results.totalTimeSeconds,
       domainBreakdown: results.domainBreakdown,
       strengthAreas: results.strengthAreas,
       growthAreas: results.growthAreas,
@@ -216,8 +222,31 @@ export class ResultsCompilationService {
    * Calculate overall score from domain statistics
    */
   private calculateOverallScore(overallStats: any): number {
-    // Use total points earned as the overall score
-    return overallStats.totalPoints || 0;
+    // Calculate percentage based on correct answers vs total questions
+    if (overallStats.totalQuestions === 0) {
+      return 0;
+    }
+    
+    const percentage = Math.round((overallStats.totalCorrect / overallStats.totalQuestions) * 100);
+    return percentage;
+  }
+  
+  /**
+   * Calculate total assessment time from individual question responses
+   */
+  private async calculateTotalTime(assessmentId: number): Promise<number> {
+    try {
+      const timeResult = await db.select({
+        totalTime: sql<number>`coalesce(sum(${assessmentResponses.timeSpent}), 0)`
+      })
+      .from(assessmentResponses)
+      .where(eq(assessmentResponses.assessmentId, assessmentId));
+
+      return Number(timeResult[0]?.totalTime) || 0; // Returns total seconds
+    } catch (error) {
+      console.error('Error calculating total assessment time:', error);
+      return 0;
+    }
   }
   
   /**
@@ -237,6 +266,7 @@ export interface CompiledAssessmentResults {
   totalQuestions: number;
   totalCorrect: number;
   accuracyRate: number;
+  totalTimeSeconds: number;
   domainBreakdown: any[];
   strengthAreas: string[];
   growthAreas: string[];

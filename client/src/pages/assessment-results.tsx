@@ -48,6 +48,7 @@ interface AssessmentResultsData {
     totalQuestions: number;
     totalCorrect: number;
     accuracyRate: number;
+    totalTimeSeconds?: number;
     strengthAreas: string[];
     growthAreas: string[];
     domainBreakdown: Array<{
@@ -153,6 +154,23 @@ export default function AssessmentResultsPage() {
     }
   };
 
+  // Helper to format time in seconds to human-readable format
+  const formatTime = (totalSeconds?: number) => {
+    if (!totalSeconds || totalSeconds <= 0) return 'N/A';
+    
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${seconds}s`;
+    } else {
+      return `${seconds}s`;
+    }
+  };
+
   // Loading state
   if (isLoading) {
     return (
@@ -250,14 +268,14 @@ export default function AssessmentResultsPage() {
           </div>
         </div>
 
-        {/* Overall Score Card */}
+        {/* Overall Statistics Card - Shows time taken instead of overall score for better insight */}
         <Card className="mb-8 shadow-lg border-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
               <div>
-                <Trophy className="h-8 w-8 mx-auto mb-2 text-yellow-300" />
-                <div className="text-3xl font-bold">{results.overallScore}%</div>
-                <div className="text-blue-100">Overall Score</div>
+                <Clock className="h-8 w-8 mx-auto mb-2 text-blue-300" />
+                <div className="text-3xl font-bold">{formatTime(results.totalTimeSeconds)}</div>
+                <div className="text-blue-100">Time Taken</div>
               </div>
               <div>
                 <CheckCircle className="h-8 w-8 mx-auto mb-2 text-green-300" />

@@ -97,6 +97,7 @@ export function registerAssessmentRoutes(app: Express): void {
           totalQuestions: results.totalQuestions,
           totalCorrect: results.totalCorrect,
           accuracyRate: results.accuracyRate,
+          totalTimeSeconds: results.totalTimeSeconds,
           strengthAreas: results.strengthAreas,
           growthAreas: results.growthAreas,
           domainBreakdown: results.domainBreakdown,

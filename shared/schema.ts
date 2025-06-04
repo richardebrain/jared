@@ -89,6 +89,35 @@ export const insertUserSchema = createInsertSchema(users).omit({
   createdAt: true,
 });
 
+// Bear Bucks Transactions table for tracking bear bucks transfers between users
+export const bearBucksTransactions = pgTable("bear_bucks_transactions", {
+  id: serial("id").primaryKey(),
+  recipientId: integer("recipient_id").notNull().references(() => users.id),
+  senderId: integer("sender_id").references(() => users.id), // null for system transactions
+  amount: integer("amount").notNull(),
+  reason: text("reason").notNull(),
+  category: varchar("category", { length: 50 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertBearBucksTransactionSchema = createInsertSchema(bearBucksTransactions).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Daily Logins table for tracking user login activity
+export const dailyLogins = pgTable("daily_logins", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  loginDate: date("login_date").notNull(), // date of login (YYYY-MM-DD format)
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertDailyLoginSchema = createInsertSchema(dailyLogins).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Learning Modules schema
 export const learningModules = pgTable("learning_modules", {
   id: serial("id").primaryKey(),
@@ -553,7 +582,7 @@ export const newsletters = pgTable("newsletters", {
   status: text("status").notNull().default("draft"), // draft, published, archived
   scheduledFor: timestamp("scheduled_for"),
   publishedAt: timestamp("published_at"),
-  recipientGroups: text("recipient_groups").array().notNull().default(["all"]),
+  recipientGroups: text("recipient_groups").notNull().default("all"),
   readCount: integer("read_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -792,6 +821,9 @@ export const assessmentResponses = pgTable("assessment_responses", {
   timedOut: boolean("timed_out").default(false), // Whether question was automatically submitted due to timeout
   domainId: integer("domain_id").notNull().references(() => assessmentDomains.id), // Domain this question belongs to for analytics
   difficulty: text("difficulty").notNull(), // Temporarily as text - difficulty level of the question (1-6)
+  answeredAt: timestamp("answered_at"), // When the question was answered
+  wasLateSubmission: boolean("was_late_submission").default(false), // Whether this was submitted after time limit
+  processingTimestamp: timestamp("processing_timestamp"), // When the response was processed by the system
   createdAt: timestamp("created_at").defaultNow(),
 },
 (table) => ({
@@ -871,6 +903,7 @@ export const assessmentResults = pgTable("assessment_results", {
   totalQuestions: integer("total_questions").notNull(),
   totalCorrect: integer("total_correct").notNull(),
   accuracyRate: doublePrecision("accuracy_rate").notNull(), // Percentage (0-100)
+  totalTimeSeconds: integer("total_time_seconds"), // Total time spent on assessment in seconds
   
   // Primary recommendations - mini-lesson focus
   primaryMiniLessons: json("primary_mini_lessons").$type<Array<{
@@ -912,6 +945,8 @@ export const assessmentResults = pgTable("assessment_results", {
   scoreIdx: index("assessment_results_score_idx").on(table.overallScore),
   // Index for accuracy rate queries
   accuracyIdx: index("assessment_results_accuracy_idx").on(table.accuracyRate),
+  // Index for total time analytics
+  totalTimeIdx: index("assessment_results_total_time_idx").on(table.totalTimeSeconds),
   // Unique constraint - one result per assessment
   uniqueAssessmentIdx: index("assessment_results_unique_assessment_idx").on(table.assessmentId),
 }));
@@ -1022,7 +1057,40 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   userAvatars: many(userAvatars),
   avatarItems: many(userAvatarItems),
   receivedMessages: many(teacherMessages, { relationName: "recipient" }),
-  sentMessages: many(teacherMessages, { relationName: "sender" })
+  sentMessages: many(teacherMessages, { relationName: "sender" }),
+  // New relations for added tables
+  bearBucksTransactions: many(bearBucksTransactions),
+  dailyLogins: many(dailyLogins),
+  // Discussion relations
+  threads: many(discussionThreads),
+  comments: many(discussionComments),
+  votes: many(commentVotes),
+  // Video relations
+  videoQuizCompletions: many(videoQuizCompletions),
+  // Shout out relations
+  nominatorShoutOuts: many(coreValuesShoutOuts, { relationName: "nominator" }),
+  nomineeShoutOuts: many(coreValuesShoutOuts, { relationName: "nominee" })
+}));
+
+// Relations for new tables
+export const bearBucksTransactionsRelations = relations(bearBucksTransactions, ({ one }) => ({
+  recipient: one(users, {
+    fields: [bearBucksTransactions.recipientId],
+    references: [users.id],
+    relationName: "recipient"
+  }),
+  sender: one(users, {
+    fields: [bearBucksTransactions.senderId],
+    references: [users.id],
+    relationName: "sender"
+  })
+}));
+
+export const dailyLoginsRelations = relations(dailyLogins, ({ one }) => ({
+  user: one(users, {
+    fields: [dailyLogins.userId],
+    references: [users.id]
+  })
 }));
 
 // Types
@@ -1125,7 +1193,7 @@ export const videoRatings = pgTable("video_ratings", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
   // Ensure one rating per user per video
-  userVideoUnique: primaryKey({ columns: [table.userId, table.videoId] }),
+  userVideoUnique: index("video_ratings_user_video_unique_idx").on(table.userId, table.videoId),
   // Index for video rating lookups
   videoIdIdx: index("video_ratings_video_id_idx").on(table.videoId),
   // Index for user rating history
@@ -1661,3 +1729,10 @@ export const learningPathsRelations = relations(learningPaths, ({ one }) => ({
     references: [users.id]
   })
 }));
+
+// Export types for new tables
+export type BearBucksTransaction = typeof bearBucksTransactions.$inferSelect;
+export type InsertBearBucksTransaction = z.infer<typeof insertBearBucksTransactionSchema>;
+
+export type DailyLogin = typeof dailyLogins.$inferSelect;
+export type InsertDailyLogin = z.infer<typeof insertDailyLoginSchema>;

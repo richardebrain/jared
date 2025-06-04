@@ -744,6 +744,7 @@ router.post('/complete', requireEligibleEducatorRole, async (req: Request, res: 
         totalQuestions: results.totalQuestions,
         totalCorrect: results.totalCorrect,
         accuracyRate: results.accuracyRate,
+        totalTimeSeconds: results.totalTimeSeconds,
         strengthAreas: results.strengthAreas,
         growthAreas: results.growthAreas,
         summary: {
@@ -831,6 +832,7 @@ router.get('/results', requireEligibleEducatorRole, async (req: Request, res: Re
         totalQuestions: results.totalQuestions,
         totalCorrect: results.totalCorrect,
         accuracyRate: results.accuracyRate,
+        totalTimeSeconds: results.totalTimeSeconds,
         strengthAreas: results.strengthAreas,
         growthAreas: results.growthAreas,
         domainBreakdown: results.domainBreakdown,
