@@ -971,7 +971,7 @@ Weekly status updates will be added below to track overall project progress.
        - `client/src/components/admin/AvailabilityControl.tsx`
        - `client/src/components/admin/BulkAvailabilityEditor.tsx`
 
-5. ⬜ [EP-002-05] **AI-Powered Assessment Question Generation**
+5. 🟦 [EP-002-05] **AI-Powered Assessment Question Generation**
    - **Description:** Integrate AI-powered question generation directly into the question management interface, enabling content managers to generate high-quality, domain-specific assessment questions. **Users must manually select domain and difficulty level first, then can optionally add custom guidance before generation.**
    - **Requirements:**
      - **Section 1 - Required Manual Inputs (Top)**:

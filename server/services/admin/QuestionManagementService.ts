@@ -546,6 +546,26 @@ export class QuestionManagementService {
   }
 
   /**
+   * Get domain by ID
+   */
+  async getDomainById(id: number): Promise<AssessmentDomain | null> {
+    try {
+      const [domain] = await db
+        .select()
+        .from(assessmentDomains)
+        .where(and(
+          eq(assessmentDomains.id, id),
+          eq(assessmentDomains.isActive, true)
+        ));
+
+      return domain || null;
+    } catch (error) {
+      console.error('Error getting domain by ID:', error);
+      throw new Error('Failed to retrieve domain');
+    }
+  }
+
+  /**
    * Get domain statistics (question counts)
    */
   async getDomainStatistics(): Promise<Array<AssessmentDomain & { questionCount: number; approvedCount: number }>> {

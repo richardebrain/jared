@@ -36,7 +36,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Minus, BookOpen, Target, Tag, HelpCircle, Lightbulb } from "lucide-react";
+import { Plus, Minus, BookOpen, Target, Tag, HelpCircle, Lightbulb, Sparkles, Wand2, AlertCircle } from "lucide-react";
 import { getDifficultyLabel, DIFFICULTY_OPTIONS } from '@/utils/difficulty';
 
 // Temporary admin password for API access
@@ -50,6 +50,8 @@ const QuestionFormSchema = z.object({
   correctAnswer: z.number().min(0).max(3, "Correct answer must be A, B, C, or D"),
   difficulty: z.string().min(1, "Difficulty is required"),
   miniLesson: z.string().min(1, "Mini Lesson is required"),
+  explanation: z.string().optional(),
+  tags: z.string().optional(),
 });
 
 type QuestionFormData = z.infer<typeof QuestionFormSchema>;
@@ -62,6 +64,8 @@ interface Question {
   correctAnswer: number;
   difficulty: string;
   miniLesson?: string;
+  explanation?: string;
+  tags?: string;
   isApproved: boolean;
   isEnabled: boolean;
   createdAt: Date;
@@ -77,6 +81,8 @@ interface QuestionFormProps {
 
 export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormProps) {
   const { toast } = useToast();
+  const [userGuidance, setUserGuidance] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // Fetch domains for the dropdown
   const { data: domains, isLoading: isLoadingDomains } = useQuery({
@@ -98,6 +104,8 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
       correctAnswer: 0,
       difficulty: "3",
       miniLesson: "",
+      explanation: "",
+      tags: "",
     },
   });
 
@@ -123,6 +131,8 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
         correctAnswer: Math.min(question.correctAnswer, 3), // Ensure valid range
         difficulty: question.difficulty.toString(),
         miniLesson: question.miniLesson || "",
+        explanation: question.explanation || "",
+        tags: question.tags || "",
       });
     } else if (isOpen && mode === "create") {
       form.reset({
@@ -132,9 +142,71 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
         correctAnswer: 0,
         difficulty: "3",
         miniLesson: "",
+        explanation: "",
+        tags: "",
       });
+      setUserGuidance("");
     }
   }, [isOpen, question, mode, form]);
+
+  // Check if AI generation prerequisites are met
+  const domainId = form.watch("domainId");
+  const difficulty = form.watch("difficulty");
+  const canGenerateAI = domainId > 0 && difficulty;
+
+  // AI Generation mutation
+  const generateMutation = useMutation({
+    mutationFn: async () => {
+      const payload = {
+        domainId,
+        difficulty: parseInt(difficulty),
+        userGuidance: userGuidance.trim() || undefined,
+      };
+      return await apiRequest(`/api/admin/questions/generate?admin_password=${TEMP_ADMIN_PASSWORD}`, {
+        method: "POST",
+        data: payload,
+      });
+    },
+    onSuccess: (response) => {
+      const generatedData = response.data;
+      
+      // Populate form fields with generated content
+      form.setValue("text", generatedData.text);
+      form.setValue("options", generatedData.options);
+      form.setValue("correctAnswer", generatedData.correctAnswer);
+      form.setValue("explanation", generatedData.explanation || "");
+      form.setValue("miniLesson", generatedData.miniLesson);
+      form.setValue("tags", generatedData.tags || "");
+
+      toast({
+        title: "Success",
+        description: "Question content generated successfully! You can now review and edit the generated content.",
+        variant: "default",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Generation Failed",
+        description: error.message || "Failed to generate question content. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleGenerateAI = () => {
+    if (!canGenerateAI) {
+      toast({
+        title: "Missing Requirements",
+        description: "Please select both domain and difficulty level before generating AI content.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsGenerating(true);
+    generateMutation.mutate();
+    setTimeout(() => setIsGenerating(false), 1000); // Reset loading state after delay
+  };
 
   // Create question mutation
   const createMutation = useMutation({
@@ -177,6 +249,8 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
         correctAnswer: data.correctAnswer,
         difficulty: data.difficulty,
         miniLesson: data.miniLesson,
+        explanation: data.explanation,
+        tags: data.tags,
       };
       return await apiRequest(`/api/admin/questions/${question?.id}?admin_password=${TEMP_ADMIN_PASSWORD}`, {
         method: "PUT",
@@ -236,6 +310,7 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
   };
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
+  const isAIGenerating = generateMutation.isPending || isGenerating;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -247,20 +322,25 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
           </DialogTitle>
           <DialogDescription>
             {mode === "create" 
-              ? "Create a new assessment question. A unique ID will be automatically generated based on the domain and difficulty."
+              ? "Create a new assessment question. You can use AI generation to help create content, then edit as needed."
               : "Update the question content and configuration. Changes will require re-approval."}
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Basic Information */}
-            <Card>
+            
+            {/* SECTION 1: Required Manual Inputs (Top) */}
+            <Card className="border-2 border-primary/20">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <Target className="h-4 w-4" />
-                  Basic Information
+                  <Target className="h-4 w-4 text-primary" />
+                  Section 1: Required Manual Inputs
+                  <Badge variant="destructive" className="text-xs">Required</Badge>
                 </CardTitle>
+                <div className="text-sm text-muted-foreground">
+                  Select domain and difficulty level before AI generation becomes available.
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -269,10 +349,12 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
                     name="domainId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Domain</FormLabel>
+                        <FormLabel className="flex items-center gap-1">
+                          Domain <span className="text-red-500">*</span>
+                        </FormLabel>
                         <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className={`${field.value === 0 ? 'border-red-300' : ''}`}>
                               <SelectValue placeholder="Select a domain" />
                             </SelectTrigger>
                           </FormControl>
@@ -298,10 +380,12 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
                     name="difficulty"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Difficulty Level</FormLabel>
+                        <FormLabel className="flex items-center gap-1">
+                          Difficulty Level <span className="text-red-500">*</span>
+                        </FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className={`${!field.value ? 'border-red-300' : ''}`}>
                               <SelectValue placeholder="Select difficulty" />
                             </SelectTrigger>
                           </FormControl>
@@ -330,6 +414,106 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
                   </div>
                 )}
 
+                {/* Prerequisites Status */}
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
+                  {canGenerateAI ? (
+                    <div className="flex items-center gap-2 text-green-600">
+                      <Target className="h-4 w-4" />
+                      <span className="text-sm font-medium">Prerequisites met - AI generation available</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-orange-600">
+                      <AlertCircle className="h-4 w-4" />
+                      <span className="text-sm font-medium">Select domain and difficulty to enable AI generation</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* SECTION 2: AI Generation Controls (Middle) */}
+            {mode === "create" && (
+              <Card className={`border-2 ${canGenerateAI ? 'border-green-200 bg-green-50/30' : 'border-gray-200 bg-gray-50/30'}`}>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-purple-500" />
+                    Section 2: AI Generation Controls
+                    <Badge variant={canGenerateAI ? "default" : "secondary"} className="text-xs">
+                      {canGenerateAI ? "Available" : "Disabled"}
+                    </Badge>
+                  </CardTitle>
+                  <div className="text-sm text-muted-foreground">
+                    Optionally add specific guidance, then generate AI content to populate the form fields below.
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="userGuidance">
+                      Optional User Guidance
+                    </Label>
+                    <Textarea
+                      id="userGuidance"
+                      placeholder="Optional: Add specific focus or scenario guidance (e.g., 'focus on playground safety' or 'new teacher scenarios')"
+                      value={userGuidance}
+                      onChange={(e) => setUserGuidance(e.target.value)}
+                      disabled={!canGenerateAI}
+                      className="min-h-[80px] mt-2"
+                    />
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Examples: "focus on playground safety", "scenarios for new teachers", "indoor classroom management"
+                    </div>
+                  </div>
+
+                  <Button
+                    type="button"
+                    onClick={handleGenerateAI}
+                    disabled={!canGenerateAI || isAIGenerating}
+                    className="w-full"
+                    variant={canGenerateAI ? "default" : "secondary"}
+                  >
+                    {isAIGenerating ? (
+                      <>
+                        <Wand2 className="h-4 w-4 mr-2 animate-spin" />
+                        Generating with AI...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Generate with AI
+                      </>
+                    )}
+                  </Button>
+
+                  {!canGenerateAI && (
+                    <div className="text-center text-sm text-muted-foreground p-4 bg-gray-100 rounded-lg">
+                      Complete Section 1 (domain + difficulty) to enable AI generation
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* SECTION 3: Generated/Editable Content Fields (Bottom) */}
+            <Card className="border-2 border-blue-200">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <BookOpen className="h-4 w-4 text-blue-500" />
+                  Section 3: Question Content
+                  {mode === "create" && (
+                    <Badge variant="outline" className="text-xs">
+                      AI Generated + Fully Editable
+                    </Badge>
+                  )}
+                </CardTitle>
+                <div className="text-sm text-muted-foreground">
+                  {mode === "create" 
+                    ? "AI-generated content will appear here and can be fully edited before saving."
+                    : "Edit the question content and configuration."}
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                
+                {/* Question Text */}
                 <FormField
                   control={form.control}
                   name="text"
@@ -350,76 +534,80 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
                     </FormItem>
                   )}
                 />
-              </CardContent>
-            </Card>
 
-            {/* Answer Options */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <HelpCircle className="h-4 w-4" />
-                  Answer Options
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+                {/* Answer Options */}
+                <div>
+                  <FormLabel className="text-base font-medium">Answer Options</FormLabel>
+                  <FormField
+                    control={form.control}
+                    name="options"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="space-y-3 mt-2">
+                          {field.value.map((option, index) => (
+                            <div key={index} className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-1">
+                                <div 
+                                  className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-semibold cursor-pointer transition-colors ${
+                                    form.watch("correctAnswer") === index 
+                                      ? "bg-green-500 text-white border-green-500" 
+                                      : "bg-gray-100 text-gray-600 border-gray-300 hover:border-green-400"
+                                  }`}
+                                  onClick={() => form.setValue("correctAnswer", index)}
+                                >
+                                  {String.fromCharCode(65 + index)}
+                                </div>
+                                <Input
+                                  value={option}
+                                  onChange={(e) => {
+                                    const newOptions = [...field.value];
+                                    newOptions[index] = e.target.value;
+                                    field.onChange(newOptions);
+                                  }}
+                                  placeholder={`Option ${String.fromCharCode(65 + index)}`}
+                                  className="flex-1"
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <FormDescription>
+                          Add 4 multiple choice options (A, B, C, D). Click the letter to mark it as the correct answer.
+                        </FormDescription>
+                        {form.watch("correctAnswer") !== undefined && (
+                          <div className="text-sm text-green-600 font-medium">
+                            {String.fromCharCode(65 + form.watch("correctAnswer"))} is marked as the correct answer
+                          </div>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Explanation */}
                 <FormField
                   control={form.control}
-                  name="options"
+                  name="explanation"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Answer Options</FormLabel>
-                      <div className="space-y-3">
-                        {field.value.map((option, index) => (
-                          <div key={index} className="flex items-center gap-2">
-                            <div className="flex items-center gap-2 flex-1">
-                              <div 
-                                className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-semibold cursor-pointer transition-colors ${
-                                  form.watch("correctAnswer") === index 
-                                    ? "bg-green-500 text-white border-green-500" 
-                                    : "bg-gray-100 text-gray-600 border-gray-300 hover:border-green-400"
-                                }`}
-                                onClick={() => form.setValue("correctAnswer", index)}
-                              >
-                                {String.fromCharCode(65 + index)}
-                              </div>
-                              <Input
-                                value={option}
-                                onChange={(e) => {
-                                  const newOptions = [...field.value];
-                                  newOptions[index] = e.target.value;
-                                  field.onChange(newOptions);
-                                }}
-                                placeholder={`Option ${String.fromCharCode(65 + index)}`}
-                                className="flex-1"
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                      <FormLabel>Explanation (Optional)</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Explain why the correct answer is right..."
+                          className="min-h-[80px]"
+                          {...field}
+                        />
+                      </FormControl>
                       <FormDescription>
-                        Add 4 multiple choice options (A, B, C, D). Click the letter to mark it as the correct answer.
+                        Optional explanation of why the correct answer is right
                       </FormDescription>
-                      {form.watch("correctAnswer") !== undefined && (
-                        <div className="text-sm text-green-600 font-medium">
-                          {String.fromCharCode(65 + form.watch("correctAnswer"))} is marked as the correct answer
-                        </div>
-                      )}
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </CardContent>
-            </Card>
 
-            {/* Additional Content */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Lightbulb className="h-4 w-4" />
-                  Additional Content
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+                {/* Mini-Lesson */}
                 <FormField
                   control={form.control}
                   name="miniLesson"
@@ -440,6 +628,28 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
                     </FormItem>
                   )}
                 />
+
+                {/* Tags */}
+                <FormField
+                  control={form.control}
+                  name="tags"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tags (Optional)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Enter comma-separated tags (e.g., safety, supervision, playground)"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Optional comma-separated tags for categorization
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
               </CardContent>
             </Card>
 

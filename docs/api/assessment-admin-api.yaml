@@ -817,6 +817,151 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /questions/generate:
+    post:
+      tags:
+        - Question Management
+      summary: Generate Question Content with AI
+      description: |
+        Generate high-quality, domain-specific assessment question content using AI, based on manual domain and difficulty selection with optional user guidance.
+        
+        **3-Section Workflow:**
+        1. **Required Manual Inputs**: User must select domain and difficulty level first
+        2. **AI Generation Controls**: Optional user guidance and generate button
+        3. **Generated Content**: AI populates all question fields (fully editable)
+        
+        **AI Generation Features:**
+        - Domain-specific question generation based on ECE standards
+        - Difficulty-appropriate content for 6-level assessment system
+        - Realistic multiple choice distractors based on common misconceptions
+        - Evidence-based explanations and mini-lesson content
+        - Content moderation for inappropriate guidance
+        
+        **Use Cases:**
+        - Rapid question creation for new domains
+        - Consistent quality across difficulty levels
+        - Professional development content generation
+        - Content gap filling for assessment coverage
+      operationId: generateQuestionContent
+      security:
+        - sessionAuth: []
+        - adminPassword: []
+      parameters:
+        - name: admin_password
+          in: query
+          description: Admin password for API access
+          required: false
+          schema:
+            type: string
+            default: BIGSURF55
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - domainId
+                - difficulty
+              properties:
+                domainId:
+                  type: integer
+                  description: Domain ID (must exist in assessment_domains)
+                  example: 1
+                difficulty:
+                  type: integer
+                  minimum: 1
+                  maximum: 6
+                  description: |
+                    Difficulty level:
+                    - 1: Very Easy
+                    - 2: Easy/Medium  
+                    - 3: Medium
+                    - 4: Medium/Hard
+                    - 5: Hard
+                    - 6: Master
+                  example: 3
+                userGuidance:
+                  type: string
+                  nullable: true
+                  description: Optional specific guidance or focus areas for question generation
+                  example: "focus on playground safety scenarios for new teachers"
+      responses:
+        '200':
+          description: Question content generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      text:
+                        type: string
+                        description: Generated question text
+                        example: "What is the most important safety consideration when supervising toddlers on playground equipment?"
+                      options:
+                        type: array
+                        items:
+                          type: string
+                        description: Four multiple choice options (A, B, C, D)
+                        example: ["Ensuring proper fall surface materials", "Limiting time on equipment", "Staying within 10 feet", "Counting children every 5 minutes"]
+                      correctAnswer:
+                        type: integer
+                        description: Index of correct answer (0=A, 1=B, 2=C, 3=D)
+                        example: 0
+                      explanation:
+                        type: string
+                        description: Explanation of why the answer is correct
+                        example: "Proper fall surface materials reduce injury risk from falls, which are the leading cause of playground injuries."
+                      miniLesson:
+                        type: string
+                        description: Educational content for professional development
+                        example: "Playground safety requires understanding age-appropriate equipment, supervision zones, and hazard identification..."
+                      tags:
+                        type: string
+                        description: Comma-separated relevant topic tags
+                        example: "playground safety, supervision, toddlers, injury prevention"
+                  message:
+                    type: string
+                    example: "Question content generated successfully"
+        '400':
+          description: Invalid request data or inappropriate content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Domain ID and difficulty are required"
+        '503':
+          description: AI service temporarily unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "AI service temporarily unavailable. Please try again."
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/AdminRequired'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /domains:
     get:
       tags:

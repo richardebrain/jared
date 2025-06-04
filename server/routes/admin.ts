@@ -5,6 +5,7 @@ import { db } from '../db';
 import { teacherMessages, users, insertTeacherMessageSchema } from '@shared/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { QuestionPoolAnalysisService } from '../services/admin/QuestionPoolAnalysisService';
+import { openAIService } from '../services/OpenAIService';
 
 const router = Router();
 const questionService = new QuestionManagementService();
@@ -674,6 +675,98 @@ router.get('/question-pool/distribution', requireAdmin, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to get domain distribution'
+    });
+  }
+});
+
+// AI Question Generation endpoint
+router.post('/questions/generate', async (req, res) => {
+  try {
+    const { domainId, difficulty, userGuidance } = req.body;
+
+    // Validate required fields
+    if (!domainId || !difficulty) {
+      return res.status(400).json({
+        success: false,
+        error: 'Domain ID and difficulty are required'
+      });
+    }
+
+    // Validate difficulty is in valid range
+    const difficultyNumber = parseInt(difficulty);
+    if (isNaN(difficultyNumber) || difficultyNumber < 1 || difficultyNumber > 6) {
+      return res.status(400).json({
+        success: false,
+        error: 'Difficulty must be a number between 1 and 6'
+      });
+    }
+
+    // Get domain information
+    const domain = await questionService.getDomainById(domainId);
+    if (!domain) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid domain ID'
+      });
+    }
+
+    // Moderate user guidance if provided
+    if (userGuidance && typeof userGuidance === 'string' && userGuidance.trim()) {
+      const isAppropriate = await openAIService.moderateContent(userGuidance);
+      if (!isAppropriate) {
+        return res.status(400).json({
+          success: false,
+          error: 'User guidance contains inappropriate content'
+        });
+      }
+    }
+
+    // Generate question using OpenAI service
+    const generatedQuestion = await openAIService.generateAssessmentQuestion({
+      domainName: domain.name,
+      domainDescription: domain.description,
+      difficulty: difficultyNumber,
+      userGuidance: userGuidance?.trim() || undefined,
+    });
+
+    // Return generated content for frontend to populate form fields
+    res.json({
+      success: true,
+      data: {
+        text: generatedQuestion.text,
+        options: generatedQuestion.options,
+        correctAnswer: generatedQuestion.correctAnswer,
+        explanation: generatedQuestion.explanation,
+        miniLesson: generatedQuestion.miniLesson,
+        tags: generatedQuestion.tags.join(', '), // Convert array to comma-separated string
+      },
+      message: 'Question content generated successfully'
+    });
+
+  } catch (error) {
+    console.error('Question generation error:', error);
+    
+    // Handle specific OpenAI errors
+    if (error instanceof Error) {
+      if (error.message.includes('OpenAI generation failed')) {
+        return res.status(503).json({
+          success: false,
+          error: 'AI service temporarily unavailable. Please try again.'
+        });
+      }
+      
+      if (error.message.includes('Failed to generate assessment question')) {
+        return res.status(400).json({
+          success: false,
+          error: 'Unable to generate question with current parameters. Please try different guidance or settings.'
+        });
+      }
+    }
+
+    // Generic error response
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error occurred during question generation'
     });
   }
 });
