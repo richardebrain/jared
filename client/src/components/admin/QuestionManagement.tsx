@@ -181,6 +181,11 @@ export function QuestionManagement() {
         queryKey: ["/api/admin/questions"], 
         exact: false // This will invalidate all variants with different parameters
       });
+      // Also invalidate coverage matrix since deleting questions affects coverage
+      queryClient.invalidateQueries({ 
+        queryKey: ['question-coverage-matrix'], 
+        exact: false
+      });
       // Also refetch current query immediately
       refetch();
       setDeletingQuestion(null);
@@ -214,6 +219,11 @@ export function QuestionManagement() {
         queryKey: ["/api/admin/questions"], 
         exact: false
       });
+      // Also invalidate coverage matrix since it depends on approved questions
+      queryClient.invalidateQueries({ 
+        queryKey: ['question-coverage-matrix'], 
+        exact: false
+      });
       // Also refetch current query immediately
       refetch();
     },
@@ -243,6 +253,11 @@ export function QuestionManagement() {
       // Invalidate all question queries to ensure fresh data
       queryClient.invalidateQueries({ 
         queryKey: ["/api/admin/questions"], 
+        exact: false
+      });
+      // Also invalidate coverage matrix since it depends on available questions
+      queryClient.invalidateQueries({ 
+        queryKey: ['question-coverage-matrix'], 
         exact: false
       });
       // Also refetch current query immediately

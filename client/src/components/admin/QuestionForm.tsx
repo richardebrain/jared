@@ -310,6 +310,11 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
         queryKey: ["/api/admin/questions"], 
         exact: false 
       });
+      // Also invalidate coverage matrix since new questions may affect coverage
+      queryClient.invalidateQueries({ 
+        queryKey: ['question-coverage-matrix'], 
+        exact: false
+      });
       onClose();
     },
     onError: (error: any) => {
@@ -348,6 +353,11 @@ export function QuestionForm({ isOpen, onClose, question, mode }: QuestionFormPr
       queryClient.invalidateQueries({ 
         queryKey: ["/api/admin/questions"], 
         exact: false 
+      });
+      // Also invalidate coverage matrix since updated questions may affect coverage
+      queryClient.invalidateQueries({ 
+        queryKey: ['question-coverage-matrix'], 
+        exact: false
       });
       onClose();
     },

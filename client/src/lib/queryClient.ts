@@ -21,7 +21,7 @@ const defaultQueryFn = async ({ queryKey }: { queryKey: readonly unknown[] }) =>
   
   try {
     // Normal API request - use longer timeout for AI content generation
-    const timeout = path.includes('/api/ai') ? 60000 : 10000; // 60s for AI, 10s for others
+    const timeout = path.includes('/api/ai') || path.includes('/generate') ? 60000 : 10000; // 60s for AI/generation, 10s for others
     const response = await axios.get(path, {
       withCredentials: true, // Important for cookies/sessions
       timeout: timeout,
@@ -90,7 +90,7 @@ export async function apiRequest<T = any>(
     const url = configOrUrl;
     
     // Use longer timeout for AI content generation
-    const timeout = url.includes('/api/ai') || url.includes('/generate-lesson-plan') ? 60000 : 10000;
+    const timeout = url.includes('/api/ai') || url.includes('/generate-lesson-plan') || url.includes('/generate') ? 60000 : 10000;
     finalConfig = {
       method: method as any,
       url,
@@ -104,7 +104,7 @@ export async function apiRequest<T = any>(
     const config = (configOrUrl as AxiosRequestConfig) || {};
     
     // Use longer timeout for AI content generation
-    const timeout = url.includes('/api/ai') ? 60000 : 10000;
+    const timeout = url.includes('/api/ai') || url.includes('/generate-lesson-plan') || url.includes('/generate') ? 60000 : 10000;
     finalConfig = {
       url,
       ...config,

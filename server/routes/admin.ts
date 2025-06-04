@@ -723,7 +723,7 @@ router.post('/questions/generate', async (req, res) => {
         code: 'REQUEST_TIMEOUT'
       });
     }
-  }, 25000); // 25 second request timeout
+  }, 50000); // 50 second request timeout (5 seconds more than OpenAI service timeout)
 
   try {
     const { domainId, difficulty, userGuidance } = req.body;

@@ -47,7 +47,7 @@ export class OpenAIService {
     model: "gpt-4o", // Latest model as per existing usage
     maxTokens: 2000,
     temperature: 0.7,
-    timeout: 15000, // Reduced to 15 seconds for better UX
+    timeout: 45000, // Increased to 45 seconds for better reliability with complex prompts
   };
 
   private constructor() {
@@ -188,41 +188,36 @@ export class OpenAIService {
     miniLesson: string;
     tags: string[];
   }> {
-    const systemMessage = `You are an expert early childhood education assessment designer with deep knowledge of NAEYC standards, ECERS-R criteria, and CLASS assessment framework.
+    const systemMessage = `You are an expert early childhood education assessment designer with deep knowledge of NAEYC standards, ECERS-R criteria, and CLASS assessment framework. Create high-quality, developmentally appropriate assessment questions for early childhood educators.`;
 
-Your role is to create high-quality, developmentally appropriate assessment questions that accurately evaluate early childhood educators' professional knowledge and practical skills.`;
+    const prompt = `Generate a Level ${difficulty} assessment question for "${domainName}".
 
-    const prompt = `Generate a Level ${difficulty} assessment question for the "${domainName}" domain.
-
-DOMAIN CONTEXT: ${domainDescription}
-DIFFICULTY LEVEL: ${difficulty} (Scale 1-6: 1=Very Easy, 2=Easy/Medium, 3=Medium, 4=Medium/Hard, 5=Hard, 6=Master)
-
-${userGuidance ? `SPECIFIC GUIDANCE: ${userGuidance}` : ''}
+CONTEXT: ${domainDescription}
+DIFFICULTY: ${difficulty}/6 (1=Very Easy, 6=Master)
+${userGuidance ? `FOCUS: ${userGuidance}` : ''}
 
 REQUIREMENTS:
-- Question tests practical knowledge relevant to early childhood educators
-- Exactly 4 multiple choice options (A, B, C, D)
-- Options include realistic distractors based on common misconceptions
-- Correct answer represents evidence-based best practice
-- Correct answer should be randomly placed into position (A, B, C, D)
-- Correct answer shouldn't be obvious based on the length or level of detail
-- The wrong answers should look and feel similar to the correct one
-- Explanation references specific ECE standards or research
-- Mini-lesson provides actionable professional development content
-- Create realistic classroom/professional scenarios that ECE educators encounter
-- Tags should include 3-5 relevant topic keywords
+• Practical ECE scenario-based question
+• Exactly 4 multiple choice options (A-D)
+• Realistic distractors based on common misconceptions  
+• Correct answer reflects evidence-based best practice
+• Randomly positioned correct answer (don't make it obvious)
+• All options similar in length/detail
+• Reference ECE standards in explanation
+• Actionable mini-lesson content
+• 3-5 relevant topic tags
 
-OUTPUT FORMAT: JSON object with:
+JSON FORMAT:
 {
-  "text": "Question text here",
-  "options": ["Option A", "Option B", "Option C", "Option D"],
+  "text": "Question text",
+  "options": ["A", "B", "C", "D"],
   "correctAnswer": 0,
-  "explanation": "Detailed explanation of why this answer is correct",
-  "miniLesson": "Educational content for professional development",
+  "explanation": "Why this answer is correct with ECE standard reference",
+  "miniLesson": "Professional development content",
   "tags": ["tag1", "tag2", "tag3"]
 }
 
-The correctAnswer field should be the index (0-3) of the correct option in the options array.`;
+correctAnswer = index (0-3) of correct option in the options array.`;
 
     try {
       const response = await this.generateContent({

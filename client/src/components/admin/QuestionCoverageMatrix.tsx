@@ -181,7 +181,7 @@ export function QuestionCoverageMatrix({ onFilterSelect, currentFilters }: Quest
           Question Coverage Matrix
         </CardTitle>
         <CardDescription>
-          View question count distribution across domains and difficulty levels. Click cells to filter questions below.
+          Coverage of <strong>approved and available questions</strong> across domains and difficulty levels. Click cells to filter the questions table below.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -287,7 +287,7 @@ export function QuestionCoverageMatrix({ onFilterSelect, currentFilters }: Quest
             </div>
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            Numbers represent approved, enabled questions. Click headers to filter by domain or difficulty level, or click cells for specific combinations.
+            Numbers represent <strong>approved and available questions only</strong>. Pending approval or disabled questions are not included. Click headers to filter by domain or difficulty level, or click cells for specific combinations.
           </p>
         </div>
       </CardContent>
