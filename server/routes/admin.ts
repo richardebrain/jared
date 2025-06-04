@@ -679,6 +679,27 @@ router.get('/question-pool/distribution', requireAdmin, async (req, res) => {
   }
 });
 
+/**
+ * GET /api/admin/question-pool/coverage-matrix
+ * Get domain/difficulty coverage matrix for visualization
+ */
+router.get('/question-pool/coverage-matrix', requireAdmin, async (req, res) => {
+  try {
+    const matrix = await poolAnalysisService.getDomainDifficultyMatrix();
+    
+    res.json({
+      success: true,
+      data: matrix
+    });
+  } catch (error) {
+    console.error('Error getting coverage matrix:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get coverage matrix'
+    });
+  }
+});
+
 // AI Question Generation endpoint
 router.post('/questions/generate', async (req, res) => {
   // Inline admin authentication check (same as other endpoints)

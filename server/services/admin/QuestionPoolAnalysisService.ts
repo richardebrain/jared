@@ -254,43 +254,93 @@ export class QuestionPoolAnalysisService {
   }
   
   /**
-   * Gets a summary of domain distribution for the admin dashboard
+   * Gets domain distribution summary for dashboard widgets
    */
   async getDomainDistributionSummary() {
     try {
-      const domains = await db.select()
-        .from(assessmentDomains)
-        .where(eq(assessmentDomains.isActive, true));
+      // Get domains with question counts
+      const domainStats = await db.select({
+        domainId: assessmentDomains.id,
+        domainName: assessmentDomains.name,
+        totalQuestions: sql<string>`count(${assessmentQuestions.id})`,
+        approvedQuestions: sql<string>`sum(case when ${assessmentQuestions.isApproved} = true and ${assessmentQuestions.isEnabled} = true then 1 else 0 end)`
+      })
+      .from(assessmentDomains)
+      .leftJoin(assessmentQuestions, eq(assessmentDomains.id, assessmentQuestions.domainId))
+      .where(eq(assessmentDomains.isActive, true))
+      .groupBy(assessmentDomains.id, assessmentDomains.name);
+
+      return domainStats.map(stat => ({
+        domainId: stat.domainId,
+        domainName: stat.domainName,
+        totalQuestions: parseInt(stat.totalQuestions || '0'),
+        approvedQuestions: parseInt(stat.approvedQuestions || '0')
+      }));
+    } catch (error) {
+      console.error('Error getting domain distribution summary:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Gets domain/difficulty matrix data for coverage visualization
+   */
+  async getDomainDifficultyMatrix() {
+    try {
+      console.log('Getting domain/difficulty matrix data...');
       
-      const distribution: Array<{
-        domainId: number;
-        domainName: string;
-        questionCount: number;
-        weight: number;
-      }> = [];
+      // Get all active domains
+      const domains = await db.select({
+        id: assessmentDomains.id,
+        name: assessmentDomains.name,
+        displayOrder: assessmentDomains.displayOrder
+      })
+      .from(assessmentDomains)
+      .where(eq(assessmentDomains.isActive, true))
+      .orderBy(assessmentDomains.displayOrder);
+
+      // Define difficulty levels
+      const difficultyLevels = [1, 2, 3, 4, 5, 6];
+
+      // Get question counts for each domain/difficulty combination
+      const matrix = [];
       
       for (const domain of domains) {
-        const countResult = await db.select({
-          total: sql<string>`count(*)`
-        })
-        .from(assessmentQuestions)
-        .where(and(
-          eq(assessmentQuestions.domainId, domain.id),
-          eq(assessmentQuestions.isApproved, true),
-          eq(assessmentQuestions.isEnabled, true)
-        ));
-        
-        distribution.push({
+        const domainRow = {
           domainId: domain.id,
           domainName: domain.name,
-          questionCount: parseInt(countResult[0]?.total || '0', 10),
-          weight: domain.questionWeight
-        });
+          difficulties: {}
+        };
+
+        for (const difficulty of difficultyLevels) {
+          // Count approved and enabled questions for this domain and difficulty
+          const countResult = await db.select({
+            count: sql<string>`count(*)`
+          })
+          .from(assessmentQuestions)
+          .where(and(
+            eq(assessmentQuestions.domainId, domain.id),
+            eq(assessmentQuestions.difficulty, difficulty.toString()),
+            eq(assessmentQuestions.isApproved, true),
+            eq(assessmentQuestions.isEnabled, true)
+          ));
+
+          const count = parseInt(countResult[0]?.count || '0', 10);
+          domainRow.difficulties[difficulty] = count;
+        }
+
+        matrix.push(domainRow);
       }
+
+      console.log('Matrix data generated successfully:', matrix.length, 'domains');
+      return {
+        matrix,
+        difficultyLevels,
+        domains: domains.map(d => ({ id: d.id, name: d.name }))
+      };
       
-      return distribution;
     } catch (error) {
-      console.error('Error in getDomainDistributionSummary:', error);
+      console.error('Error getting domain/difficulty matrix:', error);
       throw error;
     }
   }

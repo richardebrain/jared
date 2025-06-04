@@ -35,7 +35,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { QuestionForm } from "./QuestionForm";
-import QuestionPoolWarnings from './QuestionPoolWarnings';
+import { QuestionCoverageMatrix } from "./QuestionCoverageMatrix";
 import { getDifficultyLabel, getDifficultyColor, DIFFICULTY_OPTIONS } from '@/utils/difficulty';
 
 // TODO: Replace with proper authentication system
@@ -277,12 +277,6 @@ export function QuestionManagement() {
   const questions = questionsData?.questions || [];
   const pagination = questionsData?.pagination || { page: 1, limit: 20, total: 0, pages: 0 };
 
-  const handlePoolWarningsRefresh = () => {
-    // Refresh the question list when pool warnings are refreshed
-    // This ensures the warnings update if questions are added/removed
-    refetch();
-  };
-
   // Manual refresh function for user-triggered refreshes
   const handleManualRefresh = async () => {
     console.log('Manual refresh triggered by user');
@@ -292,6 +286,33 @@ export function QuestionManagement() {
       description: "Question list updated with latest data",
       variant: "default",
     });
+  };
+
+  // Handle matrix filter selection
+  const handleMatrixFilterSelect = (domainId: number | null, difficulty: number | null) => {
+    console.log('Matrix filter selected:', { domainId, difficulty });
+    
+    // Update filters based on matrix selection
+    if (domainId !== null) {
+      setDomainFilter(domainId.toString());
+    } else {
+      setDomainFilter('all');
+    }
+    
+    if (difficulty !== null) {
+      setDifficultyFilter(difficulty.toString());
+    } else {
+      setDifficultyFilter('all');
+    }
+    
+    // Reset to first page when filtering changes
+    setPage(1);
+  };
+
+  // Get current filter state for matrix component
+  const matrixFilters = {
+    domainFilter,
+    difficultyFilter
   };
 
   if (isLoadingQuestions) {
@@ -318,8 +339,11 @@ export function QuestionManagement() {
 
   return (
     <div className="space-y-6">
-      {/* Question Pool Warnings */}
-      <QuestionPoolWarnings onRefresh={handlePoolWarningsRefresh} />
+      {/* Question Coverage Matrix */}
+      <QuestionCoverageMatrix 
+        onFilterSelect={handleMatrixFilterSelect} 
+        currentFilters={matrixFilters}
+      />
       
       {/* Header with Create Button */}
       <Card>
