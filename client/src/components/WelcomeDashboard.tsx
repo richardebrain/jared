@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Trophy, Flame, Star, MessageCircle, Gift } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { soundManager } from "@/utils/soundManager";
 import type { User } from "@shared/schema";
 
 interface WelcomeDashboardProps {
@@ -32,7 +33,8 @@ export function WelcomeDashboard({ user, onClose }: WelcomeDashboardProps) {
     const rewards: StreakReward[] = [];
     
     // Daily streak points - everyone gets these for logging in
-    const dailyStreakPoints = user.streak >= 2 ? Math.min(user.streak, 5) : 0;
+    const userStreak = user.streak || 0;
+    const dailyStreakPoints = userStreak >= 2 ? Math.min(userStreak, 5) : 0;
     if (dailyStreakPoints > 0) {
       rewards.push({
         type: "points",
@@ -42,7 +44,7 @@ export function WelcomeDashboard({ user, onClose }: WelcomeDashboardProps) {
     }
     
     // Special milestone bonuses
-    if (user.streak === 7) {
+    if (userStreak === 7) {
       rewards.push({
         type: "points",
         amount: 25,
@@ -50,7 +52,7 @@ export function WelcomeDashboard({ user, onClose }: WelcomeDashboardProps) {
       });
     }
     
-    if (user.streak === 30) {
+    if (userStreak === 30) {
       rewards.push({
         type: "points",
         amount: 100,
@@ -58,15 +60,27 @@ export function WelcomeDashboard({ user, onClose }: WelcomeDashboardProps) {
       });
     }
     
-    if (user.streak && user.streak % 5 === 0 && user.streak >= 5) {
+    if (userStreak && userStreak % 5 === 0 && userStreak >= 5) {
       rewards.push({
         type: "points",
         amount: 15,
-        message: `🔥 ${user.streak}-Day Streak Achievement!`
+        message: `🔥 ${userStreak}-Day Streak Achievement!`
       });
     }
     
     setTodayRewards(rewards);
+
+    // Play sound effects for rewards
+    if (rewards.length > 0) {
+      // Play appropriate sound based on highest reward
+      const maxReward = Math.max(...rewards.map(r => r.amount));
+      soundManager.playCoinSound(maxReward);
+      
+      // Special sound for streak milestones
+      if (userStreak >= 5) {
+        soundManager.playStreakSound(userStreak);
+      }
+    }
 
     // Load any director messages
     loadDirectorMessages();
