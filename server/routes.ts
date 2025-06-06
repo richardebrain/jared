@@ -3422,6 +3422,18 @@ Continue for all 5 questions...
         return res.json([]);
       }
 
+      // Get dismissed alerts for this user
+      const dismissedAlerts = await db.select()
+        .from(userItems)
+        .where(and(
+          eq(userItems.userId, userId),
+          eq(userItems.itemType, 'dismissal')
+        ));
+      
+      const dismissedAlertIds = new Set(
+        dismissedAlerts.map(item => item.itemName.replace('dismissed_alert_', ''))
+      );
+
       const user = userResult.rows[0];
       const alerts = [];
       const now = new Date();
@@ -3442,12 +3454,15 @@ Continue for all 5 questions...
           
           // Alert for credentials expiring within 30 days (same as email system)
           if (daysUntilExpiration <= 30 && daysUntilExpiration >= 0) {
+            const alertId = `${userId}-${credential.type.toLowerCase().replace(/\s+/g, '-')}`;
+            const isDismissed = dismissedAlertIds.has(alertId);
+            
             alerts.push({
-              id: `${userId}-${credential.type.toLowerCase().replace(/\s+/g, '-')}`,
+              id: alertId,
               credentialType: credential.type,
               expirationDate: credential.expiration,
               daysUntilExpiration: daysUntilExpiration,
-              dismissed: false, // Future enhancement: track dismissed alerts per user
+              dismissed: isDismissed,
               priority: daysUntilExpiration <= 1 ? 'urgent' : daysUntilExpiration <= 15 ? 'high' : 'medium'
             });
           }
@@ -3464,8 +3479,32 @@ Continue for all 5 questions...
   // Dismiss credential alert endpoint
   app.post("/api/credential-alerts/:id/dismiss", requireAuth, async (req, res) => {
     try {
-      // For now, we'll just return success
-      // In a full implementation, we'd store dismissed alerts in user preferences
+      const alertId = req.params.id;
+      const userId = req.session.userId as number;
+      
+      // Store dismissed alert in user preferences or a dedicated table
+      // For now, we'll use a simple approach by storing in user_items table as a preference
+      const dismissalKey = `dismissed_alert_${alertId}`;
+      
+      // Check if dismissal record already exists
+      const existingDismissal = await db.select()
+        .from(userItems)
+        .where(and(
+          eq(userItems.userId, userId),
+          eq(userItems.itemType, 'dismissal'),
+          eq(userItems.itemName, dismissalKey)
+        ));
+      
+      if (existingDismissal.length === 0) {
+        // Create dismissal record
+        await db.insert(userItems).values({
+          userId: userId,
+          itemType: 'dismissal',
+          itemName: dismissalKey,
+          quantity: 1
+        });
+      }
+      
       res.json({ success: true });
     } catch (error) {
       console.error("Error dismissing credential alert:", error);
