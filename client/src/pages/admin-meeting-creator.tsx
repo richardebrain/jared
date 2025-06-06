@@ -104,7 +104,7 @@ export default function AdminMeetingCreator() {
 
   const generateAgenda = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const response = await fetch('/api/ai/generate-meeting-agenda', {
+      const response = await fetch('/api/ai-suggestions/generate-meeting-agenda', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

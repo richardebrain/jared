@@ -157,11 +157,11 @@ ${new Date().toLocaleDateString()}
   // AI-powered lesson plan generation
   const generateLessonPlanMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("POST", "/api/generate-lesson-plan", {
-        title: lessonPlan.title,
-        description: lessonPlan.description,
+      return await apiRequest("POST", "/api/ai/lesson-plan", {
         ageGroup: lessonPlan.ageGroup,
-        duration: lessonPlan.duration
+        theme: lessonPlan.title,
+        details: lessonPlan.description,
+        additionalRequests: `Duration: ${lessonPlan.duration} minutes`
       });
     },
     onSuccess: (data) => {

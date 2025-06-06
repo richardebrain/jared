@@ -4151,7 +4151,7 @@ Continue for all 5 questions...
     }
   });
 
-  // Perplexity API route for Seussifier poem generation
+  // OpenAI API route for Seussifier poem generation
   app.post("/api/perplexity/generate", async (req, res) => {
     try {
       const { prompt } = req.body;
@@ -4160,33 +4160,33 @@ Continue for all 5 questions...
         return res.status(400).json({ message: "Prompt is required" });
       }
 
-      // Call Perplexity API
-      const response = await fetch('https://api.perplexity.ai/chat/completions', {
+      // Call OpenAI API instead of Perplexity
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'llama-3.1-sonar-small-128k-online',
+          model: 'gpt-4o',
           messages: [
             {
               role: 'system',
-              content: 'You are a creative assistant that writes in the style of Dr. Seuss. Create short, simple, rhyming poems for preschool children.'
+              content: 'You are a creative assistant that writes in the style of Dr. Seuss. Create short, simple, rhyming poems for preschool children. Keep poems to 4-8 lines maximum, use simple vocabulary, and make them fun and positive.'
             },
             {
               role: 'user',
               content: prompt
             }
           ],
-          max_tokens: 500,
+          max_tokens: 200,
           temperature: 0.8
         })
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('Perplexity API error:', errorData);
+        console.error('OpenAI API error:', errorData);
         throw new Error(`API request failed with status ${response.status}`);
       }
 
