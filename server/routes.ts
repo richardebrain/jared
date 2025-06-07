@@ -37,6 +37,7 @@ import avatarRoutes from "./api/avatarRoutes";
 import emailRoutes from "./api/emailRoutes";
 import adminRoutes from "./routes/admin";
 import { AIBearyService } from "./services/aiBearyService";
+import aiModuleDesignerRoutes from "./api/aiModuleDesignerRoutes";
 
 // For ESM __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
