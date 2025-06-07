@@ -764,6 +764,16 @@ Create a natural conversation between two podcast hosts discussing this specific
       setIsCreatingModule(false);
     }
   });
+
+  const handleStepByStepComplete = (moduleData: any) => {
+    setCreationMethod('selection');
+    createModuleMutation.mutate(moduleData);
+  };
+
+  const handlePowerPointComplete = (moduleData: any) => {
+    setCreationMethod('selection');
+    createModuleMutation.mutate(moduleData);
+  };
   
   // Handle module creation
   const handleCreateModule = async () => {
@@ -975,22 +985,158 @@ Create a natural conversation between two podcast hosts discussing this specific
     );
   }
 
+  const renderCreationMethodSelection = () => (
+    <div className="space-y-6">
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Choose Your Module Creation Method</h2>
+        <p className="text-gray-600">Select the approach that works best for your content and style</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* AI Step-by-Step Builder */}
+        <Card className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 hover:border-purple-300">
+          <CardContent className="p-6 text-center" onClick={() => setCreationMethod('stepByStep')}>
+            <div className="mb-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Wand2 className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">AI Step-by-Step Builder</h3>
+              <p className="text-gray-600 text-sm mb-4">
+                Build your module one section at a time with AI assistance. Perfect for creating structured, engaging content with 10 different learning section types.
+              </p>
+            </div>
+            <div className="space-y-2 text-left">
+              <div className="flex items-center text-sm text-gray-600">
+                <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
+                Stories, scenarios, matching exercises
+              </div>
+              <div className="flex items-center text-sm text-gray-600">
+                <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
+                Triage situations and simulations
+              </div>
+              <div className="flex items-center text-sm text-gray-600">
+                <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
+                AI-generated content for each section
+              </div>
+            </div>
+            <Button className="w-full mt-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+              Start Building
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* PowerPoint Import */}
+        <Card className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 hover:border-blue-300">
+          <CardContent className="p-6 text-center" onClick={() => setCreationMethod('powerPoint')}>
+            <div className="mb-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Upload className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">PowerPoint Import</h3>
+              <p className="text-gray-600 text-sm mb-4">
+                Transform your existing PowerPoint presentations into interactive learning modules with AI enhancement.
+              </p>
+            </div>
+            <div className="space-y-2 text-left">
+              <div className="flex items-center text-sm text-gray-600">
+                <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
+                Upload .ppt or .pptx files
+              </div>
+              <div className="flex items-center text-sm text-gray-600">
+                <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
+                AI converts static slides to interactive content
+              </div>
+              <div className="flex items-center text-sm text-gray-600">
+                <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
+                Automatic quiz generation from content
+              </div>
+            </div>
+            <Button className="w-full mt-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+              Import Presentation
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Manual Creation */}
+        <Card className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 hover:border-green-300">
+          <CardContent className="p-6 text-center" onClick={() => setCreationMethod('manual')}>
+            <div className="mb-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Edit className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Manual Creation</h3>
+              <p className="text-gray-600 text-sm mb-4">
+                Build your module from scratch with full control over every section. Includes AI templates and content suggestions.
+              </p>
+            </div>
+            <div className="space-y-2 text-left">
+              <div className="flex items-center text-sm text-gray-600">
+                <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
+                Complete creative control
+              </div>
+              <div className="flex items-center text-sm text-gray-600">
+                <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
+                AI content templates available
+              </div>
+              <div className="flex items-center text-sm text-gray-600">
+                <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
+                Multiple section types and formats
+              </div>
+            </div>
+            <Button className="w-full mt-4 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700">
+              Create Manually
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+
+  if (creationMethod === 'stepByStep') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+        <div className="container mx-auto px-4 py-8">
+          <StepByStepModuleBuilder
+            onModuleComplete={handleStepByStepComplete}
+            onBack={() => setCreationMethod('selection')}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (creationMethod === 'powerPoint') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+        <div className="container mx-auto px-4 py-8">
+          <PowerPointImporter
+            onImportComplete={handlePowerPointComplete}
+            onBack={() => setCreationMethod('selection')}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-6 space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Module Creator</h1>
-          <p className="text-gray-600 mt-2">Create and manage custom learning modules with AI assistance</p>
+          <h1 className="text-3xl font-bold">Comprehensive Module Creator</h1>
+          <p className="text-gray-600 mt-2">Create engaging learning modules with AI assistance and professional templates</p>
         </div>
         <div className="flex gap-3">
-          <Button 
-            onClick={() => navigate('/module-wizard')}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
-          >
-            <Wand2 className="h-4 w-4" />
-            Easy Wizard
-          </Button>
+          {creationMethod === 'manual' && (
+            <Button
+              onClick={() => setCreationMethod('selection')}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Change Creation Method
+            </Button>
+          )}
           <Button 
             variant="outline" 
             onClick={() => navigate('/admin')}
@@ -1001,6 +1147,8 @@ Create a natural conversation between two podcast hosts discussing this specific
           </Button>
         </div>
       </div>
+
+      {creationMethod === 'selection' ? renderCreationMethodSelection() : null}
 
       {/* Module Creation Form */}
       <Card>
