@@ -23,7 +23,7 @@ import {
   Gamepad2,
   BookOpen,
   Eye,
-  PresentationChart,
+  Presentation,
   MessageCircle
 } from "lucide-react";
 
