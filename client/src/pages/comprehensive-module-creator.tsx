@@ -1389,11 +1389,15 @@ Create a natural conversation between two podcast hosts discussing this specific
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="text">📝 Text Content</SelectItem>
-                          <SelectItem value="quiz">❓ Quiz</SelectItem>
-                          <SelectItem value="scenario-match">🎯 Scenario Match</SelectItem>
-                          <SelectItem value="podcast">🎧 Audio/Podcast</SelectItem>
-                          <SelectItem value="slide">📊 Slides</SelectItem>
-                          <SelectItem value="video">🎥 Video</SelectItem>
+                          <SelectItem value="story">📚 Interactive Story</SelectItem>
+                          <SelectItem value="example">💡 Real-World Examples</SelectItem>
+                          <SelectItem value="matching">🔗 Matching Exercise</SelectItem>
+                          <SelectItem value="scenario">🎯 Scenario Decision</SelectItem>
+                          <SelectItem value="triage">🚦 Priority Sorting</SelectItem>
+                          <SelectItem value="quiz">❓ Quiz Assessment</SelectItem>
+                          <SelectItem value="video">🎥 Video Learning</SelectItem>
+                          <SelectItem value="mnemonic">🎵 Memory Device Builder</SelectItem>
+                          <SelectItem value="simulation">🎭 Role-Play Simulation</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1432,6 +1436,126 @@ Create a natural conversation between two podcast hosts discussing this specific
                     </>
                   )}
 
+                  {/* Interactive Story Template */}
+                  {section.type === 'story' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Story Setup</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="Set up your interactive story with characters, setting, and situation..."
+                          rows={4}
+                        />
+                      </div>
+                      <div className="p-4 bg-purple-50 rounded-lg">
+                        <div className="flex items-center mb-2">
+                          <Heart className="h-4 w-4 text-purple-600 mr-2" />
+                          <span className="text-sm font-medium text-purple-800">Story Elements</span>
+                        </div>
+                        <p className="text-sm text-purple-700">
+                          Create an engaging narrative that teaches through character experiences and decisions. AI can help generate story elements based on your content.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Real-World Examples Template */}
+                  {section.type === 'example' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Example Scenarios</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="Provide real-world examples that illustrate the concept..."
+                          rows={4}
+                        />
+                      </div>
+                      <div className="p-4 bg-yellow-50 rounded-lg">
+                        <div className="flex items-center mb-2">
+                          <Lightbulb className="h-4 w-4 text-yellow-600 mr-2" />
+                          <span className="text-sm font-medium text-yellow-800">Example Builder</span>
+                        </div>
+                        <p className="text-sm text-yellow-700">
+                          Share concrete examples from your experience or industry best practices. Show how concepts apply in real situations.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Matching Exercise Template */}
+                  {section.type === 'matching' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Matching Instructions</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="Explain what learners should match (terms to definitions, problems to solutions, etc.)..."
+                          rows={3}
+                        />
+                      </div>
+                      <div className="p-4 bg-blue-50 rounded-lg">
+                        <div className="flex items-center mb-2">
+                          <Link className="h-4 w-4 text-blue-600 mr-2" />
+                          <span className="text-sm font-medium text-blue-800">Matching Activity</span>
+                        </div>
+                        <p className="text-sm text-blue-700">
+                          Create connections between concepts, terms, and definitions. AI can generate matching pairs based on your topic.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Scenario Decision Template */}
+                  {section.type === 'scenario' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Scenario Description</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="Describe a realistic scenario where learners must make decisions..."
+                          rows={4}
+                        />
+                      </div>
+                      <div className="p-4 bg-green-50 rounded-lg">
+                        <div className="flex items-center mb-2">
+                          <Brain className="h-4 w-4 text-green-600 mr-2" />
+                          <span className="text-sm font-medium text-green-800">Decision Making</span>
+                        </div>
+                        <p className="text-sm text-green-700">
+                          Present challenging situations where learners practice decision-making skills. Include multiple options with feedback for each choice.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Priority Sorting Template */}
+                  {section.type === 'triage' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Triage Instructions</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="Describe how to prioritize items (urgent/important, high/medium/low, etc.)..."
+                          rows={3}
+                        />
+                      </div>
+                      <div className="p-4 bg-red-50 rounded-lg">
+                        <div className="flex items-center mb-2">
+                          <Target className="h-4 w-4 text-red-600 mr-2" />
+                          <span className="text-sm font-medium text-red-800">Priority Training</span>
+                        </div>
+                        <p className="text-sm text-red-700">
+                          Help learners practice prioritization skills by sorting items based on urgency, importance, or other criteria.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Quiz Template */}
                   {section.type === 'quiz' && (
                     <div className="space-y-4">
@@ -1446,7 +1570,69 @@ Create a natural conversation between two podcast hosts discussing this specific
                       </div>
                       <div className="p-4 bg-blue-50 rounded-lg">
                         <p className="text-sm text-blue-700">
-                          💡 Quiz questions will be generated using AI when you create the module, or you can add them manually later.
+                          Quiz questions will be generated using AI when you create the module, or you can add them manually later.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Mnemonic Device Builder Template */}
+                  {section.type === 'mnemonic' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Memory Content</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="Enter the information learners need to memorize (steps, lists, key points)..."
+                          rows={4}
+                        />
+                      </div>
+                      <div className="p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border border-pink-200">
+                        <div className="flex items-center mb-3">
+                          <Music className="h-5 w-5 text-pink-600 mr-2" />
+                          <span className="text-sm font-medium text-pink-800">Fun Memory Device Builder</span>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                          <button className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700">
+                            🎵 Funny Song
+                          </button>
+                          <button className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700">
+                            🎤 Catchy Rap
+                          </button>
+                          <button className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700">
+                            📝 Funny Poem
+                          </button>
+                          <button className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700">
+                            🔤 Acronym
+                          </button>
+                        </div>
+                        <p className="text-sm text-pink-700">
+                          AI will create fun, memorable devices like poems, raps, songs, or acronyms to help learners remember important information. Perfect for procedures, safety steps, or key concepts!
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Role-Play Simulation Template */}
+                  {section.type === 'simulation' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Simulation Setup</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="Describe the role-play scenario, characters, and objectives..."
+                          rows={4}
+                        />
+                      </div>
+                      <div className="p-4 bg-indigo-50 rounded-lg">
+                        <div className="flex items-center mb-2">
+                          <Users className="h-4 w-4 text-indigo-600 mr-2" />
+                          <span className="text-sm font-medium text-indigo-800">Interactive Simulation</span>
+                        </div>
+                        <p className="text-sm text-indigo-700">
+                          Create immersive role-playing experiences where learners practice skills in realistic situations. Include character roles and interaction guidelines.
                         </p>
                       </div>
                     </div>

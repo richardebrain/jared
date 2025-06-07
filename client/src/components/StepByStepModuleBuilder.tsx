@@ -31,7 +31,8 @@ import {
   Play,
   Shuffle,
   Upload,
-  FileText
+  FileText,
+  Music
 } from "lucide-react";
 
 interface ModuleSection {
@@ -343,7 +344,7 @@ export default function StepByStepModuleBuilder({ initialData, onModuleComplete,
       case 'video': return <Video className="h-4 w-4" />;
       case 'discussion': return <MessageCircle className="h-4 w-4" />;
       case 'simulation': return <Play className="h-4 w-4" />;
-      case 'reflection': return <Lightbulb className="h-4 w-4" />;
+      case 'mnemonic': return <Music className="h-4 w-4" />;
       default: return <BookOpen className="h-4 w-4" />;
     }
   };
@@ -359,7 +360,7 @@ export default function StepByStepModuleBuilder({ initialData, onModuleComplete,
       case 'video': return 'Video content with guided viewing';
       case 'discussion': return 'Interactive discussion prompts and activities';
       case 'simulation': return 'Role-play and interactive simulations';
-      case 'reflection': return 'Personal reflection and application exercises';
+      case 'mnemonic': return 'Fun memory devices: poems, raps, acronyms, and songs';
       default: return 'Interactive learning content';
     }
   };
