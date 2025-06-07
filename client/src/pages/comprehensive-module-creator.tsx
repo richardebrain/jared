@@ -774,6 +774,70 @@ Create a natural conversation between two podcast hosts discussing this specific
     setCreationMethod('selection');
     createModuleMutation.mutate(moduleData);
   };
+
+  const generateMnemonicDevice = async (sectionIndex: number, deviceType: string) => {
+    const section = newModule.sections[sectionIndex];
+    if (!section.content) {
+      toast({
+        title: "Content Required",
+        description: "Please enter the information to memorize first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsGeneratingContent(true);
+      
+      const prompt = `Create a ${deviceType} to help memorize this information: "${section.content}". 
+      
+      Requirements:
+      - Make it fun, catchy, and memorable
+      - ${deviceType === 'song' ? 'Use a simple melody pattern like "Twinkle Twinkle Little Star"' : ''}
+      - ${deviceType === 'rap' ? 'Use a simple rap rhythm with rhyming verses' : ''}
+      - ${deviceType === 'poem' ? 'Create a simple rhyming poem that flows well' : ''}
+      - ${deviceType === 'acronym' ? 'Create a memorable acronym with explanation' : ''}
+      - Keep it appropriate for educational settings
+      - Include the key information from the content
+      
+      Format: Just return the ${deviceType} text, nothing else.`;
+
+      const response = await fetch('/api/ai/generate-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ prompt })
+      });
+
+      if (!response.ok) throw new Error('Failed to generate mnemonic device');
+      
+      const data = await response.json();
+      
+      // Update the section content with the generated mnemonic device
+      const updatedSections = [...newModule.sections];
+      updatedSections[sectionIndex] = {
+        ...section,
+        content: `${section.content}\n\n🎯 Memory Device (${deviceType.toUpperCase()}):\n${data.content}`
+      };
+      
+      setNewModule(prev => ({ ...prev, sections: updatedSections }));
+      
+      toast({
+        title: "Memory Device Created!",
+        description: `Generated a fun ${deviceType} to help memorize the content.`,
+      });
+      
+    } catch (error) {
+      console.error('Error generating mnemonic device:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Could not generate the memory device. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingContent(false);
+    }
+  };
   
   // Handle module creation
   const handleCreateModule = async () => {
@@ -1742,16 +1806,28 @@ Create a natural conversation between two podcast hosts discussing this specific
                           <span className="text-sm font-medium text-pink-800">Fun Memory Device Builder</span>
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
-                          <button className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700">
+                          <button 
+                            onClick={() => generateMnemonicDevice(index, 'song')}
+                            className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors"
+                          >
                             🎵 Funny Song
                           </button>
-                          <button className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700">
+                          <button 
+                            onClick={() => generateMnemonicDevice(index, 'rap')}
+                            className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors"
+                          >
                             🎤 Catchy Rap
                           </button>
-                          <button className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700">
+                          <button 
+                            onClick={() => generateMnemonicDevice(index, 'poem')}
+                            className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors"
+                          >
                             📝 Funny Poem
                           </button>
-                          <button className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700">
+                          <button 
+                            onClick={() => generateMnemonicDevice(index, 'acronym')}
+                            className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors"
+                          >
                             🔤 Acronym
                           </button>
                         </div>
