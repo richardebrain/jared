@@ -479,4 +479,65 @@ Make content specific, actionable, and engaging for the target audience.`;
   }
 });
 
+// Process PowerPoint presentations and extract content
+router.post('/process-powerpoint', async (req, res) => {
+  try {
+    // Note: This would typically use a library like mammoth or officegen
+    // For now, we'll simulate the extraction process
+    
+    const mockSlides = [
+      {
+        title: "Introduction",
+        content: "Welcome to this learning module. Today we'll explore key concepts and practical applications.",
+        text: "Learning objectives and overview",
+        hasQuestions: false,
+        image: null
+      },
+      {
+        title: "Key Concepts",
+        content: "Understanding the fundamental principles and how they apply in real-world scenarios.",
+        text: "Core concepts explanation with examples",
+        hasQuestions: false,
+        image: null
+      },
+      {
+        title: "Practical Application",
+        content: "How to implement these concepts in your daily practice with specific strategies.",
+        text: "Implementation strategies and best practices",
+        hasQuestions: true,
+        questions: [
+          {
+            question: "What is the most important factor when implementing these concepts?",
+            answers: ["Planning", "Execution", "Evaluation", "All of the above"],
+            correctAnswer: 3,
+            explanation: "All factors are equally important for successful implementation."
+          }
+        ]
+      },
+      {
+        title: "Summary and Next Steps",
+        content: "Review of key takeaways and action items for continued learning and improvement.",
+        text: "Conclusion and follow-up activities",
+        hasQuestions: false,
+        image: null
+      }
+    ];
+
+    const result = {
+      title: "Imported Learning Module",
+      description: "Interactive module created from PowerPoint presentation",
+      category: "Professional Development",
+      slides: mockSlides
+    };
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error processing PowerPoint:', error);
+    res.status(500).json({ 
+      error: 'Failed to process PowerPoint file',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;

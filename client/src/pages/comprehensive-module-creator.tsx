@@ -49,6 +49,7 @@ import {
   Wand2
 } from 'lucide-react';
 import StepByStepModuleBuilder from '@/components/StepByStepModuleBuilder';
+import PowerPointImporter from '@/components/PowerPointImporter';
 
 interface ModuleSection {
   title: string;
@@ -100,6 +101,7 @@ export default function ComprehensiveModuleCreator() {
   const [showStepByStepBuilder, setShowStepByStepBuilder] = useState(false);
   const [showPowerPointImport, setShowPowerPointImport] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [creationMethod, setCreationMethod] = useState<'selection' | 'stepByStep' | 'powerPoint' | 'manual'>('selection');
   
   // Module Creator state - comprehensive version
   const [newModule, setNewModule] = useState({

@@ -36,7 +36,7 @@ import {
 
 interface ModuleSection {
   id: string;
-  type: 'story' | 'example' | 'matching' | 'scenario' | 'triage' | 'quiz' | 'video' | 'discussion' | 'simulation' | 'reflection';
+  type: 'story' | 'example' | 'matching' | 'scenario' | 'triage' | 'quiz' | 'video' | 'discussion' | 'simulation' | 'mnemonic';
   title: string;
   content: string;
   duration: number;
@@ -68,6 +68,12 @@ interface ModuleSection {
     priority: 'high' | 'medium' | 'low';
     rationale: string;
   }>;
+  mnemonicDevice?: {
+    technique: 'acronym' | 'rhyme' | 'song' | 'story' | 'visual';
+    content: string;
+    keyPoints: string[];
+    practiceExercise: string;
+  };
   learningObjectives?: string[];
   materials?: string[];
   instructions?: string[];
