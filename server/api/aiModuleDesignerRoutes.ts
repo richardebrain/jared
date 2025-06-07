@@ -370,4 +370,113 @@ Provide 3-5 diverse activity suggestions that use different engagement methods (
   }
 });
 
+// Generate detailed content for a specific section
+router.post('/generate-section-content', async (req, res) => {
+  try {
+    const { sectionOutline, moduleContext, sectionIndex, totalSections } = req.body;
+
+    const prompt = `Generate detailed content for section ${sectionIndex + 1} of ${totalSections} in a learning module.
+
+MODULE CONTEXT:
+Title: ${moduleContext.title}
+Description: ${moduleContext.description}
+Target Audience: ${moduleContext.targetAudience}
+Learning Objectives: ${moduleContext.learningObjectives.join(', ')}
+
+SECTION TO BUILD:
+Type: ${sectionOutline.type}
+Title: ${sectionOutline.title}
+Description: ${sectionOutline.description}
+Duration: ${sectionOutline.duration} minutes
+
+Generate content based on the section type. Return JSON in this exact format:
+
+{
+  "type": "${sectionOutline.type}",
+  "title": "Section title",
+  "content": "Detailed content for this section",
+  "duration": ${sectionOutline.duration},
+  "materials": ["list of materials needed"],
+  "instructions": ["step-by-step instructions"],
+  "learningObjectives": ["specific objectives"],
+  "questions": [
+    {
+      "question": "Question text",
+      "answers": ["Answer 1", "Answer 2", "Answer 3", "Answer 4"],
+      "correctAnswer": 0,
+      "explanation": "Why this answer is correct"
+    }
+  ],
+  "interactiveElements": {
+    "scenarios": [
+      {
+        "situation": "Real scenario description",
+        "options": ["Option 1", "Option 2", "Option 3"],
+        "correctChoice": 0,
+        "feedback": "Explanation of best choice"
+      }
+    ],
+    "matchingPairs": [
+      {
+        "left": "Concept",
+        "right": "Definition"
+      }
+    ],
+    "storyElements": {
+      "character": "Character description",
+      "situation": "Story setup",
+      "challenge": "Problem to solve",
+      "resolution": "Learning application"
+    },
+    "triageElements": [
+      {
+        "situation": "Emergency or priority situation",
+        "priority": "high|medium|low",
+        "rationale": "Why this priority level"
+      }
+    ]
+  },
+  "videoSuggestions": {
+    "searchTerms": ["relevant", "keywords"],
+    "description": "Video type needed"
+  }
+}
+
+Make content specific, actionable, and engaging for the target audience.`;
+
+    let result;
+    try {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You are an expert instructional designer creating detailed, engaging learning content. Focus on practical application and learner engagement."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 3000,
+        response_format: { type: "json_object" }
+      });
+
+      result = JSON.parse(response.choices[0].message.content || '{}');
+    } catch (openaiError) {
+      console.error('OpenAI API failed, trying Perplexity:', openaiError);
+      result = await callPerplexityAPI(prompt);
+    }
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error generating section content:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate section content',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;

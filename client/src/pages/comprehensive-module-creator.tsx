@@ -97,6 +97,9 @@ export default function ComprehensiveModuleCreator() {
   const [editingModule, setEditingModule] = useState<Module | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isUpdatingModule, setIsUpdatingModule] = useState(false);
+  const [showStepByStepBuilder, setShowStepByStepBuilder] = useState(false);
+  const [showPowerPointImport, setShowPowerPointImport] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   
   // Module Creator state - comprehensive version
   const [newModule, setNewModule] = useState({
