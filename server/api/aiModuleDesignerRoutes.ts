@@ -76,7 +76,7 @@ Please design a module that follows micro-learning best practices with varied en
     "Core concept 2", 
     "Core concept 3"
   ],
-  "suggestedActivities": [
+  "sections": [
     {
       "type": "video|interactive|quiz|discussion|reflection|practice|demonstration|scenario|storytelling|gamification",
       "title": "Activity title",
@@ -115,7 +115,6 @@ Focus on creating a logical progression from introduction through practice to ap
         max_tokens: 2000,
         response_format: { type: "json_object" }
       });
-
       result = JSON.parse(response.choices[0].message.content || '{}');
     } catch (openaiError) {
       console.error('OpenAI API failed, trying Perplexity:', openaiError);

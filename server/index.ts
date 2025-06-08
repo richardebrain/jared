@@ -235,9 +235,9 @@ app.get('/api/streak/silver-box-eligibility', (req, res) => {
   res.json({ eligible: false });
 });
 
-app.get('/api/progress', (req, res) => {
-  res.json({ completedModules: 0, totalPoints: 100 });
-});
+//app.get('/api/progress', (req, res) => {
+ // res.json({ completedModules: 0, totalPoints: 100 });
+//});
 
 app.get('/api/auth/clear-session', (req, res) => {
   res.json({ success: true });
@@ -247,9 +247,9 @@ app.get('/api/personalized-modules/:id', (req, res) => {
   res.json([]);
 });
 
-app.get('/api/community-modules/top', (req, res) => {
-  res.json([]);
-});
+//app.get('/api/community-modules/top', (req, res) => {
+ // res.json([]);
+//});
 
 app.get('/api/core-values-shoutouts', (req, res) => {
   res.json([]);
@@ -257,9 +257,10 @@ app.get('/api/core-values-shoutouts', (req, res) => {
 
 // Users route handled in routes.ts
 
-app.get('/api/modules', (req, res) => {
-  res.json([]);
-});
+// app.get('/api/modules', (req, res) => {
+ // console.log('wrong route called')
+//res.json([]);
+//});
 
 app.get('/api/assessments', (req, res) => {
   res.json([]);

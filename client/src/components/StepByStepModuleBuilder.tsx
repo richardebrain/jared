@@ -197,6 +197,7 @@ export default function StepByStepModuleBuilder({ initialData, onModuleComplete,
       }
 
       const outline = await response.json();
+      console.log(outline,'ai module outline')
       setModuleOutline(outline);
       setCurrentStep(2);
       
@@ -338,7 +339,7 @@ export default function StepByStepModuleBuilder({ initialData, onModuleComplete,
       case 'story': return <Heart className="h-4 w-4" />;
       case 'example': return <BookOpen className="h-4 w-4" />;
       case 'matching': return <Link className="h-4 w-4" />;
-      case 'scenario': return <Brain className="h-4 w-4" />;
+      case 'scenario': return <Brain className="h-4 w-4" />;a
       case 'triage': return <Target className="h-4 w-4" />;
       case 'quiz': return <FileQuestion className="h-4 w-4" />;
       case 'video': return <Video className="h-4 w-4" />;
