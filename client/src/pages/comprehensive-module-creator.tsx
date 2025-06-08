@@ -705,9 +705,32 @@ Create a natural conversation between two podcast hosts discussing this specific
         data: moduleData
       });
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
       queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
+      
+      let successMessage = "Your custom module has been created successfully.";
+      let competitionInfo = null;
+      
+      // If shareWithCommunity is enabled, call the community sharing API
+      if (newModule.shareWithCommunity && data?.module?.id) {
+        try {
+          const shareResponse = await apiRequest('/api/community-modules/share', {
+            method: 'POST',
+            data: { moduleId: data.module.id }
+          });
+          
+          competitionInfo = shareResponse.competitionInfo;
+          successMessage += ` ${shareResponse.message}`;
+          
+          if (competitionInfo) {
+            successMessage += ` ${competitionInfo.message}`;
+          }
+        } catch (error) {
+          console.error('Error sharing module with community:', error);
+          successMessage += " However, there was an issue sharing it with the community.";
+        }
+      }
       
       // Reset form
       setNewModule({
@@ -737,11 +760,8 @@ Create a natural conversation between two podcast hosts discussing this specific
       
       setIsCreatingModule(false);
       
-      let successMessage = "Your custom module has been created successfully.";
-      
-      // Handle community sharing response
-      if (newModule.shareWithCommunity && data?.competitionInfo) {
-        successMessage += ` ${data.competitionInfo.message}`;
+      // Show appropriate toast message
+      if (newModule.shareWithCommunity && competitionInfo) {
         toast({
           title: "Module Created & Shared!",
           description: successMessage,
