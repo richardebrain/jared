@@ -1787,11 +1787,47 @@ Continue for all 5 questions...
         title,
       );
 
-      res.status(201).json({
+      // If shareWithCommunity is enabled, automatically share the module
+      let competitionInfo = null;
+      if (shareWithCommunity && user.schoolId) {
+        try {
+          // Import CommunityModuleManager here to avoid circular dependencies
+          const { CommunityModuleManager } = await import("./communityModules");
+          
+          // Check if module duration is 30 minutes or less (community requirement)
+          if (parseInt(estimatedTime) <= 30) {
+            await CommunityModuleManager.shareModuleToCommunity(newModule.id, user.schoolId);
+            
+            // Get current month competition info
+            const currentMonth = new Date().toLocaleString('default', { month: 'long' });
+            const currentYear = new Date().getFullYear();
+            
+            competitionInfo = {
+              message: `Your module has been entered into the ${currentMonth} ${currentYear} Community Module Competition!`,
+              details: "The top-rated modules each month will earn points prizes. The competition ends on the last day of the month."
+            };
+            
+            console.log(`Module ${newModule.id} automatically shared to community`);
+          } else {
+            console.log(`Module ${newModule.id} not shared - duration exceeds 30 minutes`);
+          }
+        } catch (error) {
+          console.error("Error auto-sharing module to community:", error);
+          // Don't fail the module creation if sharing fails
+        }
+      }
+
+      const responseData = {
         success: true,
         module: newModule,
         message: "Module created successfully",
-      });
+      };
+
+      if (competitionInfo) {
+        responseData.competitionInfo = competitionInfo;
+      }
+
+      res.status(201).json(responseData);
     } catch (error) {
       console.error("Error creating module:", error);
       res.status(500).json({
