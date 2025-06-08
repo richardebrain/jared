@@ -46,7 +46,8 @@ import {
   Mic,
   X,
   ChevronRight,
-  Wand2
+  Wand2,
+  Upload
 } from 'lucide-react';
 import StepByStepModuleBuilder from '@/components/StepByStepModuleBuilder';
 import PowerPointImporter from '@/components/PowerPointImporter';

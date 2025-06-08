@@ -278,8 +278,8 @@ export default function StepByStepModuleBuilder({ initialData, onModuleComplete,
     if (!moduleOutline) return;
     
     setSections([]);
-    for (let i = 0; i < moduleOutline.sections.length; i++) {
-      await generateSectionContent(moduleOutline.sections[i], i);
+    for (let i = 0; i < moduleOutline?.sections?.length; i++) {
+      await generateSectionContent(moduleOutline?.sections[i], i);
     }
     setCurrentStep(3);
   };
@@ -501,9 +501,9 @@ export default function StepByStepModuleBuilder({ initialData, onModuleComplete,
           </div>
 
           <div>
-            <h4 className="font-medium mb-3">Suggested Sections ({moduleOutline.sections.length})</h4>
+            <h4 className="font-medium mb-3">Suggested Sections ({moduleOutline?.sections?.length})</h4>
             <div className="space-y-3">
-              {moduleOutline.sections.map((section, index) => (
+              {moduleOutline?.sections?.map((section, index) => (
                 <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-medium">
                     {index + 1}
