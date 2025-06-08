@@ -135,7 +135,8 @@ export default function StepByStepModuleBuilder({ initialData, onModuleComplete,
           category: template.category || '',
           targetAudience: template.targetAge || '',
           difficulty: 'intermediate',
-          estimatedTime: template.totalDuration?.toString() || '15'
+          estimatedTime: template.totalDuration?.toString() || '15',
+          shareWithCommunity: false
         });
         
         if (template.activities) {
@@ -166,7 +167,8 @@ export default function StepByStepModuleBuilder({ initialData, onModuleComplete,
           category: aiData.moduleInfo?.category || '',
           targetAudience: aiData.moduleInfo?.targetAudience || '',
           difficulty: aiData.moduleInfo?.difficultyLevel || 'intermediate',
-          estimatedTime: aiData.moduleInfo?.totalDuration?.toString() || '15'
+          estimatedTime: aiData.moduleInfo?.totalDuration?.toString() || '15',
+          shareWithCommunity: false
         });
 
         if (aiData.sections) {
@@ -323,6 +325,7 @@ export default function StepByStepModuleBuilder({ initialData, onModuleComplete,
       category: moduleBasics.category,
       difficulty: moduleBasics.difficulty,
       estimatedTime: moduleBasics.estimatedTime,
+      shareWithCommunity: moduleBasics.shareWithCommunity,
       pointValue: sections.length * 10, // Base points calculation
       sections: sections.map(section => ({
         title: section.title,
@@ -342,7 +345,7 @@ export default function StepByStepModuleBuilder({ initialData, onModuleComplete,
       case 'story': return <Heart className="h-4 w-4" />;
       case 'example': return <BookOpen className="h-4 w-4" />;
       case 'matching': return <Link className="h-4 w-4" />;
-      case 'scenario': return <Brain className="h-4 w-4" />;a
+      case 'scenario': return <Brain className="h-4 w-4" />;
       case 'triage': return <Target className="h-4 w-4" />;
       case 'quiz': return <FileQuestion className="h-4 w-4" />;
       case 'video': return <Video className="h-4 w-4" />;
