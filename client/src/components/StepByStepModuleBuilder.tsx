@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Brain, 
@@ -32,7 +33,8 @@ import {
   Shuffle,
   Upload,
   FileText,
-  Music
+  Music,
+  Trophy
 } from "lucide-react";
 
 interface ModuleSection {
@@ -115,7 +117,8 @@ export default function StepByStepModuleBuilder({ initialData, onModuleComplete,
     category: '',
     targetAudience: '',
     difficulty: 'intermediate',
-    estimatedTime: '15'
+    estimatedTime: '15',
+    shareWithCommunity: false
   });
 
   useEffect(() => {
@@ -442,6 +445,23 @@ export default function StepByStepModuleBuilder({ initialData, onModuleComplete,
               type="number"
               value={moduleBasics.estimatedTime}
               onChange={(e) => setModuleBasics(prev => ({ ...prev, estimatedTime: e.target.value }))}
+            />
+          </div>
+        </div>
+
+        {/* Community Sharing */}
+        <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg border border-purple-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Trophy className="h-5 w-5 text-purple-600" />
+              <div>
+                <h3 className="font-medium text-purple-900">Share with Community</h3>
+                <p className="text-sm text-purple-700">Enter your module into the monthly competition for bonus points!</p>
+              </div>
+            </div>
+            <Switch
+              checked={moduleBasics.shareWithCommunity}
+              onCheckedChange={(checked) => setModuleBasics(prev => ({ ...prev, shareWithCommunity: checked }))}
             />
           </div>
         </div>
