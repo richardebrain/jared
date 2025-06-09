@@ -201,7 +201,7 @@ export default function CrosswordGame({ onComplete, onPointsEarned }: {
     // Check if answer is correct
     if (upperValue === clue.answer) {
       if (!gameState.completedClues.includes(clueId)) {
-        const points = clue.length * 15;
+        const points = Math.min(Math.max(clue.length - 5, 2), 10); // 2-10 points based on word length
         setGameState(prev => ({
           ...prev,
           completedClues: [...prev.completedClues, clueId],
@@ -215,7 +215,7 @@ export default function CrosswordGame({ onComplete, onPointsEarned }: {
 
         // Check if all clues completed
         if (gameState.completedClues.length + 1 === gameState.clues.length) {
-          const bonusPoints = gameState.timeLeft * 3;
+          const bonusPoints = 5; // Fixed bonus
           setGameState(prev => ({
             ...prev,
             score: prev.score + bonusPoints,
@@ -335,7 +335,7 @@ export default function CrosswordGame({ onComplete, onPointsEarned }: {
                         </span>
                       )}
                       {isAnswerCell && (
-                        <div className="w-full h-full flex items-center justify-center text-sm font-bold">
+                        <div className="w-full h-full flex items-center justify-center text-sm font-bold text-gray-800">
                           {cellContent}
                         </div>
                       )}

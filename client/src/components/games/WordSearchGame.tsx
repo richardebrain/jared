@@ -139,7 +139,9 @@ export default function WordSearchGame({ onComplete, onPointsEarned }: {
         setGameState(prev => ({ ...prev, timeLeft: prev.timeLeft - 1 }));
       }, 1000);
       return () => clearTimeout(timer);
-    } else if (gameState.timeLeft === 0) {
+    }
+    
+    if (gameState.timeLeft === 0) {
       endGame();
     }
   }, [gameState.timeLeft, gameState.gameComplete]);
@@ -195,7 +197,7 @@ export default function WordSearchGame({ onComplete, onPointsEarned }: {
     );
 
     if (foundWord) {
-      const points = foundWord.length * 10;
+      const points = Math.min(Math.max(foundWord.length - 3, 2), 8); // 2-8 points based on word length
       setGameState(prev => ({
         ...prev,
         foundWords: [...prev.foundWords, foundWord],
@@ -209,7 +211,7 @@ export default function WordSearchGame({ onComplete, onPointsEarned }: {
 
       // Check if all words found
       if (gameState.foundWords.length + 1 === gameState.words.length) {
-        const bonusPoints = gameState.timeLeft * 2;
+        const bonusPoints = 2; // Fixed bonus
         setGameState(prev => ({
           ...prev,
           score: prev.score + bonusPoints,

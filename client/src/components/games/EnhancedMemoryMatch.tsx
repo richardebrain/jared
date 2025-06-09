@@ -137,14 +137,18 @@ export default function EnhancedMemoryMatch({ onComplete, onPointsEarned }: {
   }, []);
 
   useEffect(() => {
+    let cleanup: (() => void) | undefined;
+    
     if (gameState.timeLeft > 0 && !gameState.gameComplete) {
       const timer = setTimeout(() => {
         setGameState(prev => ({ ...prev, timeLeft: prev.timeLeft - 1 }));
       }, 1000);
-      return () => clearTimeout(timer);
+      cleanup = () => clearTimeout(timer);
     } else if (gameState.timeLeft === 0) {
       endGame();
     }
+    
+    return cleanup;
   }, [gameState.timeLeft, gameState.gameComplete]);
 
   const endGame = () => {
@@ -197,11 +201,11 @@ export default function EnhancedMemoryMatch({ onComplete, onPointsEarned }: {
       newCards[firstCardId].isMatched = true;
       newCards[secondCardId].isMatched = true;
       
-      const basePoints = gameState.difficulty === 'easy' ? 20 : 
-                        gameState.difficulty === 'medium' ? 30 : 40;
-      const streakBonus = gameState.streak * 5;
-      const timeBonus = gameState.timeLeft > 60 ? 10 : 0;
-      const totalPoints = basePoints + streakBonus + timeBonus;
+      const basePoints = gameState.difficulty === 'easy' ? 2 : 
+                        gameState.difficulty === 'medium' ? 3 : 4;
+      const streakBonus = gameState.streak > 2 ? 1 : 0;
+      const timeBonus = gameState.timeLeft > 60 ? 1 : 0;
+      const totalPoints = Math.min(basePoints + streakBonus + timeBonus, 8);
       
       const newStreak = gameState.streak + 1;
       const newMatchedPairs = gameState.matchedPairs + 1;
@@ -223,7 +227,7 @@ export default function EnhancedMemoryMatch({ onComplete, onPointsEarned }: {
       // Check if game is complete
       const totalPairs = DEVELOPMENTAL_PAIRS[gameState.difficulty].length;
       if (newMatchedPairs === totalPairs) {
-        const bonusPoints = Math.floor(gameState.timeLeft * 2) + (newStreak * 10);
+        const bonusPoints = 3; // Fixed completion bonus
         setGameState(prev => ({
           ...prev,
           score: prev.score + bonusPoints,
