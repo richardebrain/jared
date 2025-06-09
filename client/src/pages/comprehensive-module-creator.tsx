@@ -58,6 +58,7 @@ import {
   Zap,
   Play,
   Gamepad,
+  GripVertical,
   Wrench
 } from 'lucide-react';
 import StepByStepModuleBuilder from '@/components/StepByStepModuleBuilder';
@@ -2416,18 +2417,34 @@ Create a natural conversation between two podcast hosts discussing this specific
                     disabled={currentSectionIndex === 0}
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" />
-                Previous
-              </Button>
-              <Button 
-                onClick={nextSection}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-              >
-                {currentSectionIndex === newModule.sections.length - 1 ? 'Finish & Preview' : 'Next Section'}
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                    Previous Section
+                  </Button>
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        if (!completedSections.includes(currentSectionIndex)) {
+                          setCompletedSections(prev => [...prev, currentSectionIndex]);
+                        }
+                      }}
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Section
+                    </Button>
+                    <Button 
+                      onClick={nextSection}
+                      className="bg-purple-600 hover:bg-purple-700"
+                    >
+                      {currentSectionIndex === newModule.sections.length - 1 ? 'Preview Module' : 'Save & Next Section'}
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       )}
 
       {/* Preview Mode */}
