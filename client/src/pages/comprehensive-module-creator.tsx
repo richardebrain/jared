@@ -62,7 +62,17 @@ interface ModuleSection {
   content: string;
   videoUrl: string;
   imageUrl: string;
-  type: 'text' | 'quiz' | 'scenario-match' | 'podcast' | 'slide' | 'video';
+  type: 'text' | 'quiz' | 'scenario-match' | 'podcast' | 'slide' | 'video' | 'story' | 'example' | 'matching' | 'scenario' | 'triage' | 'mnemonic' | 'simulation';
+  duration: number;
+  activities: Array<{
+    type: 'watch' | 'read' | 'practice' | 'reflect' | 'quiz' | 'journal' | 'breathing' | 'recording';
+    title: string;
+    duration: number;
+    content: string;
+    videoUrl?: string;
+    audioUrl?: string;
+    interactionType?: string;
+  }>;
   questions?: Array<{
     question: string;
     answers: string[];
@@ -127,15 +137,15 @@ export default function ComprehensiveModuleCreator() {
         imageUrl: '',
         type: 'text' as const,
         duration: 5,
-        activities: [] as Array<{
-          type: 'watch' | 'read' | 'practice' | 'reflect' | 'quiz' | 'journal' | 'breathing' | 'recording';
-          title: string;
-          duration: number;
-          content: string;
-          videoUrl?: string;
-          audioUrl?: string;
-          interactionType?: 'timer' | 'recorder' | 'worksheet' | 'form';
-        }>
+        activities: [{
+          type: 'read',
+          title: 'Introduction',
+          duration: 5,
+          content: '',
+          videoUrl: '',
+          audioUrl: '',
+          interactionType: 'form'
+        }]
       }
     ],
     // Advanced features for template support
@@ -963,7 +973,17 @@ Create a natural conversation between two podcast hosts discussing this specific
         content: content,
         videoUrl: '',
         imageUrl: '',
-        type: 'quiz' as const
+        type: 'quiz' as const,
+        duration: 10,
+        activities: [{
+          type: 'quiz' as const,
+          title: 'Knowledge Check Quiz',
+          duration: 10,
+          content: content,
+          videoUrl: '',
+          audioUrl: '',
+          interactionType: 'form'
+        }]
       };
       
       setNewModule(prev => ({
@@ -977,7 +997,17 @@ Create a natural conversation between two podcast hosts discussing this specific
         content: content,
         videoUrl: '',
         imageUrl: '',
-        type: 'scenario-match' as const
+        type: 'scenario-match' as const,
+        duration: 15,
+        activities: [{
+          type: 'practice' as const,
+          title: 'Interactive Scenario',
+          duration: 15,
+          content: content,
+          videoUrl: '',
+          audioUrl: '',
+          interactionType: 'form'
+        }]
       };
       
       setNewModule(prev => ({
@@ -991,7 +1021,17 @@ Create a natural conversation between two podcast hosts discussing this specific
         content: content,
         videoUrl: '',
         imageUrl: '',
-        type: 'podcast' as const
+        type: 'podcast' as const,
+        duration: 20,
+        activities: [{
+          type: 'read' as const,
+          title: 'Podcast Discussion',
+          duration: 20,
+          content: content,
+          videoUrl: '',
+          audioUrl: '',
+          interactionType: 'form'
+        }]
       };
       
       setNewModule(prev => ({
