@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 // Game constants
 const CANVAS_WIDTH = 800;
@@ -223,11 +224,18 @@ const safetyQuestions: SafetyQuestion[] = [
 
 export default function FroggerGame(): JSX.Element {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameLoopRef = useRef<number | undefined>();
   const startTimeRef = useRef<number>();
   const lastObstacleSpawn = useRef<number>(0);
   const lastPowerUpSpawn = useRef<number>(0);
+  
+  // Fetch user points
+  const { data: user } = useQuery({
+    queryKey: ['/api/auth/me'],
+    queryFn: () => apiRequest('/api/auth/me')
+  });
   
   // Game state
   const [gameState, setGameState] = useState<'menu' | 'playing' | 'question' | 'levelComplete' | 'gameOver'>('menu');
@@ -285,10 +293,39 @@ export default function FroggerGame(): JSX.Element {
         description: `+${points} points for ${reason}`,
         variant: "default"
       });
+      
+      // Refresh user data to show updated points
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
     } catch (error) {
       console.error('Failed to award points:', error);
     }
-  }, [toast]);
+  }, [toast, queryClient]);
+
+  // Spend points for game actions
+  const spendPoints = useCallback(async (points: number, reason: string) => {
+    try {
+      await apiRequest('/api/points/spend', {
+        method: 'POST',
+        data: { 
+          points, 
+          reason,
+          gameType: 'frogger-safety'
+        }
+      });
+      
+      // Refresh user data to show updated points
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      return true;
+    } catch (error) {
+      console.error('Failed to spend points:', error);
+      toast({
+        title: "Insufficient Points",
+        description: "You need more points to play this game.",
+        variant: "destructive"
+      });
+      return false;
+    }
+  }, [toast, queryClient]);
 
   // Audio system using Web Audio API
   const playSound = useCallback((frequency: number, duration: number, type: OscillatorType = 'sine') => {
@@ -856,7 +893,21 @@ export default function FroggerGame(): JSX.Element {
   }, [gameState, gameLoop]);
 
   // Game control functions
-  const startGame = () => {
+  const startGame = async () => {
+    // Check if user has enough points to play
+    if (!user || user.points < 1) {
+      toast({
+        title: "Insufficient Points",
+        description: "You need 1 point to play this game. Complete activities to earn points!",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Spend 1 point to start the game
+    const success = await spendPoints(1, "Frogger Safety Game - Start");
+    if (!success) return;
+
     setGameState('playing');
     setScore(0);
     setLevel(1);
@@ -1020,12 +1071,26 @@ export default function FroggerGame(): JSX.Element {
             </div>
           </div>
           
-          <button
-            onClick={startGame}
-            className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg text-xl shadow-lg transform hover:scale-105 transition-all"
-          >
-            Start Game
-          </button>
+          <div className="space-y-4">
+            <button
+              onClick={startGame}
+              className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg text-xl shadow-lg transform hover:scale-105 transition-all disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none"
+              disabled={!user || user.points < 1}
+            >
+              Start Game (1 Point)
+            </button>
+            
+            <div className="text-center">
+              <p className="text-lg font-semibold text-blue-600">
+                Your Points: {user?.points || 0}
+              </p>
+              {(!user || user.points < 1) && (
+                <p className="text-sm text-red-600 mt-2">
+                  Complete activities to earn points and play!
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -1123,17 +1188,61 @@ export default function FroggerGame(): JSX.Element {
   }
 
   if (gameState === 'gameOver') {
+    const continueGame = async () => {
+      if (!user || user.points < 1) {
+        toast({
+          title: "Insufficient Points",
+          description: "You need 1 point to continue playing.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const success = await spendPoints(1, "Frogger Safety Game - Continue");
+      if (!success) return;
+
+      // Reset player with 3 lives and continue from current level
+      setPlayer(prev => ({
+        ...prev,
+        lives: 3,
+        row: PLAYER_START_ROW,
+        col: Math.floor(COLS / 2),
+        isInvulnerable: false,
+        hasShield: false
+      }));
+      setCheckpoint(PLAYER_START_ROW);
+      setGameState('playing');
+      lastObstacleSpawn.current = Date.now();
+    };
+
     return (
       <div className="flex items-center justify-center min-h-screen bg-red-100">
         <div className="bg-white rounded-lg shadow-xl p-8 max-w-md text-center">
           <h2 className="text-3xl font-bold text-red-600 mb-4">Game Over</h2>
-          <p className="text-xl mb-6">Final Score: {score}</p>
-          <button
-            onClick={startGame}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg"
-          >
-            Play Again
-          </button>
+          <p className="text-xl mb-2">Final Score: {score}</p>
+          <p className="text-lg mb-6">Level Reached: {level}</p>
+          
+          <div className="space-y-3">
+            <button
+              onClick={continueGame}
+              className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg"
+              disabled={!user || user.points < 1}
+            >
+              Continue (1 Point) - Level {level}
+            </button>
+            
+            <button
+              onClick={startGame}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg"
+              disabled={!user || user.points < 1}
+            >
+              New Game (1 Point)
+            </button>
+            
+            <p className="text-sm text-gray-600">
+              Your Points: {user?.points || 0}
+            </p>
+          </div>
         </div>
       </div>
     );
