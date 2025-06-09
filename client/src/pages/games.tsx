@@ -28,7 +28,7 @@ import PacHealGame from '@/components/games/PacHealGameWorking';
 import BounceAwayBlocks from '@/components/games/BounceAwayBlocks';
 import GameTokenMachine from '@/components/games/GameTokenMachine';
 import TransitionMaster from '@/components/games/TransitionMaster';
-import WhoLeftTheGateOpen from '@/components/games/WhoLeftTheGateOpen';
+import FroggerGame from '@/components/games/FroggerGame';
 import { GameWindowManager } from '@/components/games/GameWindowManager';
 import { openGameInWindow, GameRenderer } from '@/components/games/GameRenderer';
 import { useToast } from "@/hooks/use-toast";
@@ -183,7 +183,7 @@ export default function GamesPage() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Games
           </Button>
-          <WhoLeftTheGateOpen />
+          <FroggerGame />
         </div>
       </div>
     );
