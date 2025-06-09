@@ -250,7 +250,9 @@ router.post('/generate-section-content', async (req, res) => {
       sectionType, 
       sectionIndex, 
       totalSections, 
-      category 
+      category,
+      specificTopic,
+      templateType
     } = req.body;
     
     if (!moduleTitle || !sectionTitle || !sectionType) {
@@ -264,15 +266,136 @@ router.post('/generate-section-content', async (req, res) => {
       sectionTitle, 
       sectionType, 
       sectionIndex, 
-      totalSections 
+      totalSections,
+      specificTopic,
+      templateType
     });
     
+    const topic = specificTopic || moduleDescription || moduleTitle;
     let content = '';
     let questions = [];
     let scenarios = [];
     
-    // Generate content based on section type
-    switch (sectionType) {
+    // Handle template-specific section generation
+    if (templateType === 'lightning' && sectionTitle.toLowerCase().includes('hook')) {
+      // Generate Lightning template hook content
+      content = `# ${sectionTitle}
+
+## Quick Challenge Question
+*"Have you ever noticed a child in your classroom who seems to struggle with ${topic.toLowerCase()}? What was your first instinct - to intervene immediately, step back and observe, or try a completely different approach?"*
+
+## The Reality Check
+Picture this: It's 10:30 AM, and you've just witnessed a situation involving ${topic.toLowerCase()} in your classroom. You have about 30 seconds to decide your next move. The children are watching, parents might be nearby, and your decision in this moment could make all the difference.
+
+## Why This Matters Right Now
+${topic} isn't just another professional development topic - it's happening in your classroom today. Whether you're dealing with it daily or preparing for when it does occur, having a clear, confident response strategy can transform both your teaching practice and the children's experience.
+
+## Your 5-Minute Investment
+In the next few minutes, you're going to discover:
+- One powerful strategy that works immediately
+- A simple decision framework you can use today
+- Exactly what to say (and what not to say) in the moment
+
+**Ready to dive in?** This isn't about perfect solutions - it's about practical confidence when it matters most.`;
+    } else if (templateType === 'lightning' && sectionTitle.toLowerCase().includes('core strategy')) {
+      // Generate Lightning template core strategy
+      content = `# ${sectionTitle}
+
+## The PAUSE Method for ${topic}
+When dealing with ${topic.toLowerCase()}, remember: **P-A-U-S-E**
+
+**P - Pause and Breathe**
+Before reacting, take a conscious breath. This gives you clarity and models calm behavior.
+
+**A - Assess the Situation**
+Quickly scan: Is anyone in immediate danger? What emotions are present? What might have triggered this situation?
+
+**U - Understand the Need**
+What is the child trying to communicate through their behavior? What need are they expressing?
+
+**S - Support with Intention**
+Choose your response based on the child's need, not just the behavior you see.
+
+**E - Evaluate and Adjust**
+After responding, reflect: Did this approach work? What will you try differently next time?
+
+## Practical Application
+**In the moment:** "I see you're having a hard time with [specific situation]. Let's figure this out together."
+
+**Your tone:** Calm, curious, supportive
+**Your body language:** Get on their level, open posture
+**Your mindset:** Problem-solving partner, not authority figure
+
+## Quick Reference Card
+Print or save this simple reminder:
+1. Pause (breathe)
+2. Assess (scan for safety and emotions)  
+3. Understand (what's the underlying need?)
+4. Support (respond to the need)
+5. Evaluate (reflect and adjust)
+
+This method works whether you have 30 seconds or 30 minutes to address ${topic.toLowerCase()}.`;
+    } else if (templateType === 'lightning' && sectionTitle.toLowerCase().includes('action step')) {
+      // Generate Lightning template action step
+      content = `# ${sectionTitle}
+
+## Your Immediate Action Plan
+
+### Today - Before You Leave Work
+- [ ] Practice the PAUSE method once during a calm moment
+- [ ] Identify one area in your classroom that supports positive ${topic.toLowerCase()}
+- [ ] Write down one phrase you'll use next time this situation arises
+
+### This Week
+- [ ] Try the PAUSE method with one challenging situation
+- [ ] Notice and document what worked (and what didn't)
+- [ ] Share this approach with one colleague or family member
+
+### This Month
+- [ ] Refine your approach based on what you've learned
+- [ ] Create a simple visual reminder for yourself
+- [ ] Celebrate one success story related to ${topic.toLowerCase()}
+
+## Your Success Phrase
+Choose ONE phrase to practice and use consistently:
+- "I see you're having a hard time. Let's figure this out together."
+- "That's a big feeling. I'm here to help you through it."
+- "I notice [specific behavior]. What do you need right now?"
+
+## Quick Win Strategy
+For immediate impact: Focus on your voice tone and body language before worrying about perfect words. Children respond more to how you feel than what you say.
+
+**Remember:** Progress, not perfection. Every small step you take in understanding ${topic.toLowerCase()} makes a difference in a child's experience.`;
+    } else {
+      // Generate content based on section type for other templates
+      switch (sectionType) {
+      case 'scenario':
+      case 'hook':
+        if (templateType !== 'lightning') {
+          content = `# ${sectionTitle}
+
+## Engaging Opening Scenario
+Imagine you're in your classroom during a typical Tuesday morning. The children have just finished circle time, and you notice something happening that relates directly to ${topic.toLowerCase()}.
+
+### The Situation
+Sarah, a 4-year-old in your care, is experiencing exactly what this module addresses. Her response is immediate and genuine - the kind of moment that makes you pause and think, "This is exactly why I need to understand ${topic.toLowerCase()} better."
+
+### The Challenge
+You have multiple factors to consider:
+- Sarah's immediate needs and emotional state
+- The other children who are watching and learning
+- The family's expectations and communication style
+- Your own confidence in handling this situation effectively
+
+### Your Opportunity
+This isn't just about managing a moment - it's about creating a learning experience that supports Sarah's development while building your professional skills.
+
+### Reflection Question
+Before we dive deeper into strategies, take a moment to consider: What would your instinctive response be in this situation? What factors would influence your decision-making?
+
+This scenario will serve as our foundation as we explore evidence-based approaches to ${topic.toLowerCase()}.`;
+        }
+        break;
       case 'introduction':
         content = `# ${sectionTitle}
 
@@ -544,6 +667,7 @@ The strategies and approaches presented here are grounded in research and best p
 ## Reflection and Growth
 Take time to consider how this learning connects to your professional goals and development as an educator.`;
         break;
+      }
     }
     
     return res.json({

@@ -466,22 +466,32 @@ export default function ComprehensiveModuleCreator() {
 
   // AI Content Generation for Section Builder
   const [isGeneratingAIContent, setIsGeneratingAIContent] = useState(false);
+  const [showTopicInput, setShowTopicInput] = useState(false);
+  const [aiTopicInput, setAiTopicInput] = useState('');
 
   const generateAIContentForSection = async () => {
     const currentSection = newModule.sections[currentSectionIndex];
-    if (!currentSection || !newModule.title) return;
+    if (!currentSection) return;
+
+    // If no specific topic provided, show topic input dialog
+    if (!aiTopicInput && !newModule.description) {
+      setShowTopicInput(true);
+      return;
+    }
 
     setIsGeneratingAIContent(true);
     
     try {
       const response = await apiRequest('POST', '/api/ai/generate-section-content', {
-        moduleTitle: newModule.title,
+        moduleTitle: newModule.title || 'Professional Development Module',
         moduleDescription: newModule.description,
         sectionTitle: currentSection.title,
         sectionType: currentSection.type,
         sectionIndex: currentSectionIndex + 1,
         totalSections: newModule.sections.length,
-        category: newModule.category || 'professional-development'
+        category: newModule.category || 'professional-development',
+        specificTopic: aiTopicInput || newModule.description || newModule.title,
+        templateType: aiSelectedTemplate?.type || 'standard'
       });
 
       if (response.content) {
@@ -517,6 +527,13 @@ export default function ComprehensiveModuleCreator() {
       });
     } finally {
       setIsGeneratingAIContent(false);
+      setShowTopicInput(false);
+    }
+  };
+
+  const handleTopicSubmit = () => {
+    if (aiTopicInput.trim()) {
+      generateAIContentForSection();
     }
   };
 
@@ -2259,7 +2276,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                 variant="outline" 
                 className="w-full border-purple-300 text-purple-600 hover:bg-purple-50"
                 onClick={generateAIContentForSection}
-                disabled={isGeneratingAIContent || !newModule.title}
+                disabled={isGeneratingAIContent}
               >
                 {isGeneratingAIContent ? (
                   <>
@@ -2273,6 +2290,46 @@ Create a natural conversation between two podcast hosts discussing this specific
                   </>
                 )}
               </Button>
+
+              {/* Topic Input Dialog */}
+              {showTopicInput && (
+                <div className="mt-4 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-sm font-medium text-blue-900">
+                        What specific topic should this module focus on?
+                      </Label>
+                      <p className="text-xs text-blue-700 mt-1">
+                        Be specific to get the best AI-generated content. For example: "Classroom transitions after recess" or "Supporting children with separation anxiety"
+                      </p>
+                    </div>
+                    <Input
+                      value={aiTopicInput}
+                      onChange={(e) => setAiTopicInput(e.target.value)}
+                      placeholder="Enter your specific module topic..."
+                      className="border-blue-300 focus:border-blue-500"
+                      onKeyPress={(e) => e.key === 'Enter' && handleTopicSubmit()}
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setShowTopicInput(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        size="sm"
+                        onClick={handleTopicSubmit}
+                        disabled={!aiTopicInput.trim()}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        Generate Content
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-between">
