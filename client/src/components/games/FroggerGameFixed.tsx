@@ -58,7 +58,7 @@ interface GameStats {
   dodgeStreak: number;
   questionStreak: number;
   combos: number;
-  totalDodges: 0;
+  totalDodges: number;
   perfectAnswers: number;
   coins: number;
   runTime: number;
@@ -115,7 +115,7 @@ const safetyQuestions: SafetyQuestion[] = [
 export default function FroggerGame(): JSX.Element {
   const { toast } = useToast();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const gameLoopRef = useRef<number>();
+  const gameLoopRef = useRef<number | undefined>();
   const startTimeRef = useRef<number>();
   const lastObstacleSpawn = useRef<number>(0);
   const lastPowerUpSpawn = useRef<number>(0);
@@ -230,7 +230,7 @@ export default function FroggerGame(): JSX.Element {
           }
           
           // Make player invulnerable temporarily
-          setTimeout(() => {
+          const timeoutId = window.setTimeout(() => {
             setPlayer(p => ({ ...p, isInvulnerable: false }));
           }, 2000);
           
@@ -623,11 +623,13 @@ export default function FroggerGame(): JSX.Element {
   // Start game loop
   useEffect(() => {
     if (gameState === 'playing') {
-      gameLoopRef.current = setInterval(gameLoop, 16); // ~60fps
+      const intervalId = window.setInterval(gameLoop, 16); // ~60fps
+      gameLoopRef.current = intervalId;
       return () => {
-        if (gameLoopRef.current) clearInterval(gameLoopRef.current);
+        window.clearInterval(intervalId);
       };
     }
+    return undefined;
   }, [gameState, gameLoop]);
 
   // Game control functions
