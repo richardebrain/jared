@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 // import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-// Core Frogger mechanics constants
+// Enhanced game constants
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 const GRID_SIZE = 40;
@@ -13,10 +13,19 @@ const PLAYER_START_ROW = ROWS - 2;
 const GOAL_ROW = 1;
 const SAFE_ZONE_ROW = Math.floor(ROWS / 2);
 
+// Enhanced gameplay constants
+const COMBO_THRESHOLD = 5;
+const QUESTION_STREAK_THRESHOLD = 3;
+const PRAISE_POWER_DURATION = 5000;
+const POWER_UP_DURATION = 3000;
+
 interface Player {
   row: number;
   col: number;
   lives: number;
+  xp: number;
+  isInvulnerable: boolean;
+  hasShield: boolean;
 }
 
 interface Obstacle {
@@ -26,8 +35,49 @@ interface Obstacle {
   width: number;
   height: number;
   speed: number;
-  type: 'car' | 'bike' | 'stroller';
+  type: 'car' | 'bike' | 'stroller' | 'snack-cart' | 'scooter' | 'meltdown-monster';
   color: string;
+  size: 'small' | 'medium' | 'large';
+  oscillating?: boolean;
+  oscillateOffset?: number;
+}
+
+interface PowerUp {
+  id: number;
+  x: number;
+  row: number;
+  type: 'shield' | 'turbo' | 'sticker-storm' | 'team-rally' | 'time-warp';
+  color: string;
+  collected: boolean;
+}
+
+interface Particle {
+  id: number;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  color: string;
+  size: number;
+}
+
+interface LaneConfig {
+  type: 'rush-hour' | 'slow-mo' | 'power-up' | 'quiz-gate' | 'normal';
+  spawnInterval: number;
+  speedMultiplier: number;
+  lastSpawn: number;
+}
+
+interface GameStats {
+  dodgeStreak: number;
+  questionStreak: number;
+  combos: number;
+  totalDodges: number;
+  perfectAnswers: number;
+  coins: number;
+  runTime: number;
 }
 
 interface SafetyQuestion {
@@ -61,26 +111,48 @@ export default function FroggerGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameLoopRef = useRef<number>();
   const keysRef = useRef<Set<string>>(new Set());
+  const startTimeRef = useRef<number>(0);
   
-  // Game state
-  const [gameState, setGameState] = useState<'menu' | 'playing' | 'paused' | 'question' | 'gameOver' | 'levelComplete'>('menu');
+  // Enhanced game state
+  const [gameState, setGameState] = useState<'menu' | 'playing' | 'paused' | 'question' | 'gameOver' | 'levelComplete' | 'endless'>('menu');
+  const [gameMode, setGameMode] = useState<'normal' | 'endless' | 'timeAttack' | 'dailyChallenge'>('normal');
   const [score, setScore] = useState(0);
   const [level, setLevel] = useState(1);
   
-  // Player with grid coordinates
+  // Enhanced player with new abilities
   const [player, setPlayer] = useState<Player>({
     row: PLAYER_START_ROW,
     col: Math.floor(COLS / 2),
-    lives: 3
+    lives: 3,
+    xp: 0,
+    isInvulnerable: false,
+    hasShield: false
   });
   
   const [checkpoint, setCheckpoint] = useState(PLAYER_START_ROW);
   const [obstacles, setObstacles] = useState<Obstacle[]>([]);
-  const [currentQuestion, setCurrentQuestion] = useState<SafetyQuestion | null>(null);
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [showExplanation, setShowExplanation] = useState(false);
+  const [powerUps, setPowerUps] = useState<PowerUp[]>([]);
+  const [particles, setParticles] = useState<Particle[]>([]);
   
-  // Lane configuration for authentic Frogger
+  // Enhanced lane system with procedural types
+  const [laneConfigs, setLaneConfigs] = useState<LaneConfig[]>(() => {
+    return Array.from({ length: ROWS }, (_, i) => {
+      if (i === 0 || i === ROWS - 1 || i === SAFE_ZONE_ROW) {
+        return { type: 'normal', spawnInterval: 0, speedMultiplier: 0, lastSpawn: 0 };
+      }
+      
+      const types: LaneConfig['type'][] = ['normal', 'rush-hour', 'slow-mo', 'power-up'];
+      const randomType = types[Math.floor(Math.random() * types.length)];
+      
+      return {
+        type: randomType,
+        spawnInterval: 1000 + Math.random() * 2000, // 1-3 seconds
+        speedMultiplier: randomType === 'rush-hour' ? 1.5 : randomType === 'slow-mo' ? 0.7 : 1,
+        lastSpawn: 0
+      };
+    });
+  });
+  
   const [laneDirections] = useState<number[]>(() => {
     return Array.from({ length: ROWS }, (_, i) => {
       if (i === 0 || i === ROWS - 1 || i === SAFE_ZONE_ROW) return 0; // Safe zones
@@ -88,7 +160,26 @@ export default function FroggerGame() {
     });
   });
   
-  const [laneTimers, setLaneTimers] = useState<number[]>(new Array(ROWS).fill(0));
+  // Game stats and progression
+  const [stats, setStats] = useState<GameStats>({
+    dodgeStreak: 0,
+    questionStreak: 0,
+    combos: 0,
+    totalDodges: 0,
+    perfectAnswers: 0,
+    coins: 0,
+    runTime: 0
+  });
+  
+  // Power-up states
+  const [praisePowerActive, setPraisePowerActive] = useState(false);
+  const [praisePowerTimer, setPraisePowerTimer] = useState(0);
+  const [activeBuffs, setActiveBuffs] = useState<{[key: string]: number}>({});
+  
+  // Question system
+  const [currentQuestion, setCurrentQuestion] = useState<SafetyQuestion | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [showExplanation, setShowExplanation] = useState(false);
 
   // Audio feedback
   const playSound = useCallback((frequency: number, duration: number, type: OscillatorType = 'sine') => {
@@ -174,27 +265,96 @@ export default function FroggerGame() {
     };
   }, [gameState, player, checkpoint, playSound]);
 
-  // Obstacle spawning with consistent timers
+  // Enhanced obstacle spawning with procedural variety
   const spawnObstacle = useCallback((row: number) => {
     if (laneDirections[row] === 0) return; // Skip safe zones
     
-    const obstacleTypes = ['car', 'bike', 'stroller'];
-    const type = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)] as 'car' | 'bike' | 'stroller';
-    const colors = { car: '#FF6B6B', bike: '#FFD700', stroller: '#DDA0DD' };
+    const laneConfig = laneConfigs[row];
+    const obstacleTypes = ['car', 'bike', 'stroller', 'snack-cart', 'scooter'];
+    const type = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)] as Obstacle['type'];
+    
+    // Enhanced obstacle properties
+    const sizes: Obstacle['size'][] = ['small', 'medium', 'large'];
+    const size = sizes[Math.floor(Math.random() * sizes.length)];
+    const sizeMultiplier = size === 'small' ? 0.7 : size === 'large' ? 1.4 : 1;
+    
+    const colors = { 
+      car: '#FF6B6B', 
+      bike: '#FFD700', 
+      stroller: '#DDA0DD',
+      'snack-cart': '#32CD32',
+      scooter: '#FF8C00',
+      'meltdown-monster': '#8B0000'
+    };
+    
+    const baseSpeed = (1 + level * 0.2) * laneConfig.speedMultiplier;
+    const speedVariation = 0.5 + Math.random() * 1; // 0.5x to 1.5x speed variation
     
     const newObstacle: Obstacle = {
       id: Math.random(),
-      x: laneDirections[row] > 0 ? -GRID_SIZE : CANVAS_WIDTH,
+      x: laneDirections[row] > 0 ? -GRID_SIZE * sizeMultiplier : CANVAS_WIDTH,
       row: row,
-      width: GRID_SIZE,
-      height: GRID_SIZE * 0.8,
-      speed: (1 + level * 0.3) * laneDirections[row],
+      width: GRID_SIZE * sizeMultiplier,
+      height: GRID_SIZE * 0.8 * sizeMultiplier,
+      speed: baseSpeed * speedVariation * laneDirections[row],
       type: type,
-      color: colors[type]
+      color: colors[type] || '#888888',
+      size: size,
+      oscillating: Math.random() < 0.2, // 20% chance of oscillating
+      oscillateOffset: 0
     };
     
     setObstacles(prev => [...prev, newObstacle]);
-  }, [level, laneDirections]);
+    
+    // Chance to spawn power-up in power-up lanes
+    if (laneConfig.type === 'power-up' && Math.random() < 0.3) {
+      spawnPowerUp(row);
+    }
+  }, [level, laneDirections, laneConfigs]);
+
+  // Power-up spawning system
+  const spawnPowerUp = useCallback((row: number) => {
+    const powerUpTypes: PowerUp['type'][] = ['shield', 'turbo', 'sticker-storm', 'team-rally', 'time-warp'];
+    const type = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
+    
+    const colors = {
+      shield: '#4169E1',
+      turbo: '#FF4500',
+      'sticker-storm': '#FFD700',
+      'team-rally': '#32CD32',
+      'time-warp': '#9370DB'
+    };
+    
+    const newPowerUp: PowerUp = {
+      id: Math.random(),
+      x: CANVAS_WIDTH / 2 + (Math.random() - 0.5) * CANVAS_WIDTH * 0.6,
+      row: row,
+      type: type,
+      color: colors[type],
+      collected: false
+    };
+    
+    setPowerUps(prev => [...prev, newPowerUp]);
+  }, []);
+
+  // Particle system for visual effects
+  const createParticles = useCallback((x: number, y: number, color: string, count: number = 10) => {
+    const newParticles: Particle[] = [];
+    for (let i = 0; i < count; i++) {
+      newParticles.push({
+        id: Math.random(),
+        x: x,
+        y: y,
+        vx: (Math.random() - 0.5) * 8,
+        vy: (Math.random() - 0.5) * 8,
+        life: 1,
+        maxLife: 1,
+        color: color,
+        size: 2 + Math.random() * 4
+      });
+    }
+    setParticles(prev => [...prev, ...newParticles]);
+  }, []);
 
   // Collision detection
   const checkCollisions = useCallback(() => {
@@ -217,35 +377,156 @@ export default function FroggerGame() {
     });
   }, [player, obstacles, playSound]);
 
-  // Main game loop
+  // Enhanced main game loop with all systems
   const gameLoop = useCallback(() => {
     if (gameState !== 'playing') return;
     
-    // Update obstacle positions
+    const currentTime = Date.now();
+    
+    // Update obstacle positions with oscillation
     setObstacles(prev => prev
-      .map(obstacle => ({
-        ...obstacle,
-        x: obstacle.x + obstacle.speed
-      }))
+      .map(obstacle => {
+        let newX = obstacle.x + obstacle.speed;
+        let newOscillateOffset = obstacle.oscillateOffset || 0;
+        
+        if (obstacle.oscillating) {
+          newOscillateOffset += 0.1;
+          const oscillateY = Math.sin(newOscillateOffset) * 10;
+          // Apply oscillation to visual rendering, not collision
+        }
+        
+        return {
+          ...obstacle,
+          x: newX,
+          oscillateOffset: newOscillateOffset
+        };
+      })
       .filter(obstacle => 
-        obstacle.x > -GRID_SIZE * 2 && obstacle.x < CANVAS_WIDTH + GRID_SIZE * 2
+        obstacle.x > -GRID_SIZE * 3 && obstacle.x < CANVAS_WIDTH + GRID_SIZE * 3
       )
     );
     
-    // Spawn new obstacles based on lane timers
-    setLaneTimers(prev => prev.map((timer, row) => {
-      const newTimer = timer + 1;
-      const spawnInterval = 120 - (level * 10); // Faster spawning each level
+    // Update power-ups
+    setPowerUps(prev => prev.filter(powerUp => !powerUp.collected));
+    
+    // Update particles
+    setParticles(prev => prev
+      .map(particle => ({
+        ...particle,
+        x: particle.x + particle.vx,
+        y: particle.y + particle.vy,
+        life: particle.life - 0.02,
+        vx: particle.vx * 0.98,
+        vy: particle.vy * 0.98
+      }))
+      .filter(particle => particle.life > 0)
+    );
+    
+    // Enhanced lane-based spawning with procedural timers
+    setLaneConfigs(prev => prev.map((config, row) => {
+      if (config.type === 'normal' || laneDirections[row] === 0) return config;
       
-      if (newTimer >= spawnInterval && laneDirections[row] !== 0) {
+      const timeSinceLastSpawn = currentTime - config.lastSpawn;
+      if (timeSinceLastSpawn >= config.spawnInterval) {
         spawnObstacle(row);
-        return 0;
+        return {
+          ...config,
+          lastSpawn: currentTime,
+          spawnInterval: 1000 + Math.random() * 2000 // Randomize next spawn
+        };
       }
-      return newTimer;
+      return config;
     }));
     
+    // Update stats
+    setStats(prev => ({
+      ...prev,
+      runTime: currentTime - startTimeRef.current
+    }));
+    
+    // Update power-up timers
+    setActiveBuffs(prev => {
+      const updated = { ...prev };
+      Object.keys(updated).forEach(key => {
+        updated[key] -= 16; // ~60fps
+        if (updated[key] <= 0) {
+          delete updated[key];
+        }
+      });
+      return updated;
+    });
+    
+    // Update praise power
+    if (praisePowerActive) {
+      setPraisePowerTimer(prev => {
+        if (prev <= 16) {
+          setPraisePowerActive(false);
+          return 0;
+        }
+        return prev - 16;
+      });
+    }
+    
     checkCollisions();
-  }, [gameState, level, spawnObstacle, checkCollisions, laneDirections]);
+    checkPowerUpCollections();
+  }, [gameState, level, spawnObstacle, checkCollisions, laneDirections, praisePowerActive]);
+
+  // Power-up collection detection
+  const checkPowerUpCollections = useCallback(() => {
+    const playerX = player.col * GRID_SIZE;
+    const playerY = player.row * LANE_HEIGHT;
+    
+    powerUps.forEach(powerUp => {
+      if (!powerUp.collected &&
+          Math.abs(powerUp.x - playerX) < GRID_SIZE &&
+          Math.abs(powerUp.row * LANE_HEIGHT - playerY) < LANE_HEIGHT) {
+        
+        // Collect power-up
+        setPowerUps(prev => prev.map(p => 
+          p.id === powerUp.id ? { ...p, collected: true } : p
+        ));
+        
+        // Apply power-up effect
+        applyPowerUp(powerUp.type);
+        
+        // Visual feedback
+        createParticles(powerUp.x, powerUp.row * LANE_HEIGHT, powerUp.color, 15);
+        playSound(523, 200, 'square');
+      }
+    });
+  }, [player, powerUps, createParticles, playSound]);
+
+  // Power-up effects system
+  const applyPowerUp = useCallback((type: PowerUp['type']) => {
+    switch (type) {
+      case 'shield':
+        setPlayer(prev => ({ ...prev, hasShield: true }));
+        setActiveBuffs(prev => ({ ...prev, shield: POWER_UP_DURATION }));
+        toast({ title: "Shield Active!", description: "Next collision blocked" });
+        break;
+        
+      case 'turbo':
+        setActiveBuffs(prev => ({ ...prev, turbo: POWER_UP_DURATION }));
+        toast({ title: "Turbo Boost!", description: "Move faster for 3 seconds" });
+        break;
+        
+      case 'sticker-storm':
+        setStats(prev => ({ ...prev, coins: prev.coins + 10 }));
+        createParticles(player.col * GRID_SIZE, player.row * LANE_HEIGHT, '#FFD700', 25);
+        toast({ title: "Sticker Storm!", description: "+10 coins collected" });
+        break;
+        
+      case 'team-rally':
+        setActiveBuffs(prev => ({ ...prev, teamRally: POWER_UP_DURATION }));
+        toast({ title: "Team Rally!", description: "Co-teacher helps block obstacles" });
+        break;
+        
+      case 'time-warp':
+        setActiveBuffs(prev => ({ ...prev, timeWarp: POWER_UP_DURATION }));
+        toast({ title: "Time Warp!", description: "All obstacles slowed" });
+        break;
+    }
+  }, [player, toast, createParticles]);
 
   // Game loop effect
   useEffect(() => {
@@ -367,11 +648,44 @@ export default function FroggerGame() {
     setPlayer({
       row: PLAYER_START_ROW,
       col: Math.floor(COLS / 2),
-      lives: 3
+      lives: 3,
+      xp: 0,
+      isInvulnerable: false,
+      hasShield: false
     });
     setCheckpoint(PLAYER_START_ROW);
     setObstacles([]);
-    setLaneTimers(new Array(ROWS).fill(0));
+    setPowerUps([]);
+    setParticles([]);
+    setStats({
+      dodgeStreak: 0,
+      questionStreak: 0,
+      combos: 0,
+      totalDodges: 0,
+      perfectAnswers: 0,
+      coins: 0,
+      runTime: 0
+    });
+    setActiveBuffs({});
+    setPraisePowerActive(false);
+    startTimeRef.current = Date.now();
+    
+    // Reset lane configs with new procedural setup
+    setLaneConfigs(Array.from({ length: ROWS }, (_, i) => {
+      if (i === 0 || i === ROWS - 1 || i === SAFE_ZONE_ROW) {
+        return { type: 'normal', spawnInterval: 0, speedMultiplier: 0, lastSpawn: 0 };
+      }
+      
+      const types: LaneConfig['type'][] = ['normal', 'rush-hour', 'slow-mo', 'power-up'];
+      const randomType = types[Math.floor(Math.random() * types.length)];
+      
+      return {
+        type: randomType,
+        spawnInterval: 1000 + Math.random() * 2000,
+        speedMultiplier: randomType === 'rush-hour' ? 1.5 : randomType === 'slow-mo' ? 0.7 : 1,
+        lastSpawn: Date.now()
+      };
+    }));
   };
 
   const handleQuestionAnswer = (answerIndex: number) => {
@@ -381,9 +695,25 @@ export default function FroggerGame() {
     if (answerIndex === currentQuestion?.correctAnswer) {
       playSound(523, 200);
       setScore(prev => prev + 50);
+      setStats(prev => ({ 
+        ...prev, 
+        questionStreak: prev.questionStreak + 1,
+        perfectAnswers: prev.perfectAnswers + 1
+      }));
+      
+      // Check for question streak bonus
+      if (stats.questionStreak + 1 >= QUESTION_STREAK_THRESHOLD) {
+        toast({ title: "Question Master!", description: "Free spin unlocked!" });
+      }
     } else {
       playSound(150, 300);
-      setPlayer(prev => ({ ...prev, lives: prev.lives - 1 }));
+      if (player.hasShield) {
+        setPlayer(prev => ({ ...prev, hasShield: false }));
+        toast({ title: "Shield Protected!", description: "Shield absorbed the hit" });
+      } else {
+        setPlayer(prev => ({ ...prev, lives: prev.lives - 1 }));
+      }
+      setStats(prev => ({ ...prev, questionStreak: 0 }));
     }
   };
 
@@ -395,12 +725,19 @@ export default function FroggerGame() {
     if (player.lives <= 0) {
       setGameState('gameOver');
     } else {
-      // Reset to checkpoint
+      // Enhanced respawn with smooth animation
       setPlayer(prev => ({
         ...prev,
         row: checkpoint,
-        col: Math.floor(COLS / 2)
+        col: Math.floor(COLS / 2),
+        isInvulnerable: true
       }));
+      
+      // Remove invulnerability after brief period
+      setTimeout(() => {
+        setPlayer(prev => ({ ...prev, isInvulnerable: false }));
+      }, 1000);
+      
       setGameState('playing');
     }
   };
@@ -410,37 +747,118 @@ export default function FroggerGame() {
     setPlayer(prev => ({
       ...prev,
       row: PLAYER_START_ROW,
-      col: Math.floor(COLS / 2)
+      col: Math.floor(COLS / 2),
+      xp: prev.xp + 100
     }));
     setCheckpoint(PLAYER_START_ROW);
     setObstacles([]);
+    setPowerUps([]);
+    setParticles([]);
+    
+    // Generate new procedural lane layout
+    setLaneConfigs(Array.from({ length: ROWS }, (_, i) => {
+      if (i === 0 || i === ROWS - 1 || i === SAFE_ZONE_ROW) {
+        return { type: 'normal', spawnInterval: 0, speedMultiplier: 0, lastSpawn: 0 };
+      }
+      
+      const types: LaneConfig['type'][] = ['normal', 'rush-hour', 'slow-mo', 'power-up', 'quiz-gate'];
+      const randomType = types[Math.floor(Math.random() * types.length)];
+      
+      return {
+        type: randomType,
+        spawnInterval: Math.max(500, 1500 - (level * 50)), // Faster each level
+        speedMultiplier: randomType === 'rush-hour' ? 1.5 : randomType === 'slow-mo' ? 0.7 : 1,
+        lastSpawn: Date.now()
+      };
+    }));
+    
     setGameState('playing');
+    toast({ title: `Level ${level + 1}!`, description: "New lane patterns ahead" });
   };
 
   if (gameState === 'menu') {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-100 to-green-100 p-8">
-        <div className="bg-white rounded-lg shadow-xl p-8 max-w-2xl text-center">
-          <h1 className="text-4xl font-bold text-green-600 mb-4">Preschool Safety Dash</h1>
+        <div className="bg-white rounded-lg shadow-xl p-8 max-w-4xl text-center">
+          <h1 className="text-4xl font-bold text-green-600 mb-4">🎮 Preschool Safety Dash</h1>
           <p className="text-lg text-gray-600 mb-6">
-            Navigate safely through the playground to reach the child who needs help!
-            Answer safety questions along the way.
+            Modern Frogger-style safety training with power-ups, combos, and procedural lanes!
           </p>
-          <div className="bg-blue-50 p-4 rounded-lg mb-6">
-            <h3 className="font-semibold text-blue-800 mb-2">How to Play:</h3>
-            <ul className="text-sm text-blue-700 space-y-1">
-              <li>• Use arrow keys to move one step at a time</li>
-              <li>• Avoid obstacles in each lane</li>
-              <li>• Answer safety questions when you get hit</li>
-              <li>• Reach the green goal zone to complete the level</li>
+          
+          {/* Game Mode Selection */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <button
+              onClick={() => { setGameMode('normal'); startGame(); }}
+              className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-4 rounded-lg"
+            >
+              📚 Classic Mode
+              <div className="text-xs mt-1">Progressive levels</div>
+            </button>
+            <button
+              onClick={() => { setGameMode('endless'); startGame(); }}
+              className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-4 px-4 rounded-lg"
+            >
+              ♾️ Endless Mode
+              <div className="text-xs mt-1">Infinite challenge</div>
+            </button>
+            <button
+              onClick={() => { setGameMode('timeAttack'); startGame(); }}
+              className="bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-4 rounded-lg"
+            >
+              ⏱️ Time Trial
+              <div className="text-xs mt-1">Speed challenge</div>
+            </button>
+            <button
+              onClick={() => { setGameMode('dailyChallenge'); startGame(); }}
+              className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 px-4 rounded-lg"
+            >
+              🏆 Daily Challenge
+              <div className="text-xs mt-1">Special modifiers</div>
+            </button>
+          </div>
+
+          {/* Enhanced Features Showcase */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-sm">
+            <div className="bg-green-50 p-4 rounded-lg">
+              <h4 className="font-bold text-green-800 mb-2">🎯 New Features</h4>
+              <ul className="text-green-700 space-y-1">
+                <li>• Procedural lane types</li>
+                <li>• Power-up arsenal</li>
+                <li>• Combo & streak system</li>
+                <li>• Particle effects</li>
+              </ul>
+            </div>
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h4 className="font-bold text-blue-800 mb-2">⚡ Power-Ups</h4>
+              <ul className="text-blue-700 space-y-1">
+                <li>🛡️ Compassion Shield</li>
+                <li>🚀 Timeout Turbo</li>
+                <li>⭐ Sticker Storm</li>
+                <li>👥 Team Rally</li>
+                <li>🌀 Time Warp</li>
+              </ul>
+            </div>
+            <div className="bg-purple-50 p-4 rounded-lg">
+              <h4 className="font-bold text-purple-800 mb-2">🏅 Progression</h4>
+              <ul className="text-purple-700 space-y-1">
+                <li>• XP & Level system</li>
+                <li>• Question streaks</li>
+                <li>• Dodge combos</li>
+                <li>• Coin collection</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="bg-amber-50 p-4 rounded-lg mb-6">
+            <h3 className="font-semibold text-amber-800 mb-2">🎮 Enhanced Controls:</h3>
+            <ul className="text-sm text-amber-700 space-y-1">
+              <li>• Arrow keys for precise grid movement</li>
+              <li>• Collect power-ups for special abilities</li>
+              <li>• Build combos by dodging obstacles</li>
+              <li>• Answer safety questions correctly for streaks</li>
+              <li>• Mid-level checkpoints preserve progress</li>
             </ul>
           </div>
-          <button
-            onClick={startGame}
-            className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg text-xl"
-          >
-            Start Playing
-          </button>
         </div>
       </div>
     );
