@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -200,6 +200,99 @@ export default function ComprehensiveModuleCreator() {
   const [generatingContent, setGeneratingContent] = useState<number | null>(null);
   const [generatingVideo, setGeneratingVideo] = useState<number | null>(null);
   const [videoGenerationStatus, setVideoGenerationStatus] = useState<{[key: number]: string}>({});
+
+  // Function to load template data into the module creator
+  const loadTemplateData = (template: any) => {
+    if (!template) return;
+    
+    try {
+      // Convert template activities to module sections
+      const templateSections = template.activities?.map((activity: any, index: number) => ({
+        title: activity.title || `Section ${index + 1}`,
+        content: activity.content || activity.description || '',
+        videoUrl: activity.videoUrl || '',
+        imageUrl: '',
+        type: 'text' as const,
+        duration: activity.duration || 5,
+        activities: [{
+          type: activity.type || 'read',
+          title: activity.title,
+          duration: activity.duration || 5,
+          content: activity.content || activity.description || '',
+          videoUrl: activity.videoUrl,
+          audioUrl: activity.audioUrl,
+          interactionType: activity.interactionType
+        }]
+      })) || [];
+
+      setNewModule(prev => ({
+        ...prev,
+        title: template.title || '',
+        description: template.description || '',
+        category: template.category || 'classroom-management',
+        difficulty: template.difficulty || 'beginner',
+        estimatedTime: String(template.totalDuration || template.duration || 15),
+        moduleType: template.moduleType || (template.activities?.length > 1 ? 'course' : 'single'),
+        sections: templateSections.length > 0 ? templateSections : prev.sections,
+        courseStructure: {
+          ...prev.courseStructure,
+          sequentialUnlock: template.courseStructure?.sequentialUnlock || false,
+          certificateAwarded: template.courseStructure?.certificateAwarded || false,
+          badgeType: template.courseStructure?.badgeType || '',
+          modules: template.courseStructure?.modules || []
+        },
+        interactiveElements: {
+          ...prev.interactiveElements,
+          hasTimer: template.interactiveElements?.hasTimer || false,
+          hasAudioRecording: template.interactiveElements?.hasAudioRecording || false,
+          hasJournaling: template.interactiveElements?.hasJournaling || false,
+          hasBreathingExercises: template.interactiveElements?.hasBreathingExercises || false,
+          hasWorksheets: template.interactiveElements?.hasWorksheets || false
+        },
+        certificationSystem: {
+          ...prev.certificationSystem,
+          enabled: template.certificationSystem?.enabled || false,
+          badgeName: template.certificationSystem?.badgeName || template.title,
+          requirements: {
+            ...prev.certificationSystem.requirements,
+            ...template.certificationSystem?.requirements
+          }
+        }
+      }));
+
+      toast({
+        title: "Template Loaded",
+        description: `Successfully loaded the ${template.title} template with ${templateSections.length} sections.`,
+      });
+    } catch (error) {
+      console.error('Error loading template:', error);
+      toast({
+        title: "Template Load Error",
+        description: "Failed to load template data. Using default structure.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Check for template data in URL parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const templateData = urlParams.get('template');
+    
+    if (templateData) {
+      try {
+        const template = JSON.parse(decodeURIComponent(templateData));
+        loadTemplateData(template);
+      } catch (error) {
+        console.error('Error parsing template data:', error);
+        toast({
+          title: "Template Load Error",
+          description: "Failed to load the selected template. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
+  }, []);
 
   // Generate AI video using Veo API
   const generateAiVideo = async (sectionIndex: number) => {
