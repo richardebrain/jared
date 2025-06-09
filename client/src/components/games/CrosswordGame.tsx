@@ -229,6 +229,8 @@ export default function CrosswordGame({ onComplete, onPointsEarned }: {
   };
 
   const getCellContent = (row: number, col: number) => {
+    if (!gameState.clues || gameState.clues.length === 0) return '';
+    
     const clue = gameState.clues.find(c => {
       if (c.direction === 'across') {
         return row === c.startRow && col >= c.startCol && col < c.startCol + c.length;
@@ -237,7 +239,7 @@ export default function CrosswordGame({ onComplete, onPointsEarned }: {
       }
     });
 
-    if (!clue) return null;
+    if (!clue) return '';
 
     const userAnswer = gameState.userAnswers[clue.id] || '';
     const letterIndex = clue.direction === 'across' 
@@ -248,11 +250,13 @@ export default function CrosswordGame({ onComplete, onPointsEarned }: {
   };
 
   const getCellNumber = (row: number, col: number) => {
+    if (!gameState.clues || gameState.clues.length === 0) return null;
     const clue = gameState.clues.find(c => c.startRow === row && c.startCol === col);
     return clue ? clue.number : null;
   };
 
   const isActiveCellForClue = (row: number, col: number, clueId: number) => {
+    if (!gameState.clues || gameState.clues.length === 0) return false;
     const clue = gameState.clues.find(c => c.id === clueId);
     if (!clue) return false;
 
@@ -295,11 +299,19 @@ export default function CrosswordGame({ onComplete, onPointsEarned }: {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-12 gap-1 max-w-fit mx-auto">
-                {Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, index) => {
+              {gameState.grid.length === 0 ? (
+                <div className="flex items-center justify-center h-64">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading crossword...</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-12 gap-1 max-w-fit mx-auto">
+                  {Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, index) => {
                   const row = Math.floor(index / GRID_SIZE);
                   const col = index % GRID_SIZE;
-                  const isAnswerCell = gameState.grid[row][col] !== null;
+                  const isAnswerCell = gameState.grid[row] && gameState.grid[row][col] !== null;
                   const cellNumber = getCellNumber(row, col);
                   const cellContent = getCellContent(row, col);
                   const isHighlighted = gameState.selectedClue && isActiveCellForClue(row, col, gameState.selectedClue);
@@ -326,7 +338,8 @@ export default function CrosswordGame({ onComplete, onPointsEarned }: {
                     </div>
                   );
                 })}
-              </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
