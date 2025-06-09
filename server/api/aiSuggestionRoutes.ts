@@ -709,160 +709,82 @@ router.post('/generate-content-blocks', async (req, res) => {
 
     let contentBlocks = [];
 
+    // Helper function to create topic-specific scenarios
+    const createScenario = (situation: string) => {
+      return `It's a typical Tuesday morning in your preschool classroom. You're working with a small group when you notice 4-year-old Alex starting to show signs of ${topic.toLowerCase()}. ${situation} 
+
+The other children are beginning to notice. You have about 30 seconds to respond before this becomes a bigger situation.
+
+What's your next move?`;
+    };
+
     // Generate section-specific content based on section type
     if (sectionType === 'quiz') {
-      // Generate quiz-specific content blocks
-      contentBlocks = [
-        {
-          type: "Multiple Choice Question",
-          preview: `What's the most effective approach to ${topic.toLowerCase()} in early childhood settings?`,
-          content: `## Multiple Choice Question
-
-**Question:** What's the most effective approach to ${topic.toLowerCase()} in early childhood settings?
-
-**Options:**
-A) Use the same strategy for all children
-B) Observe individual needs and adapt your approach
-C) Follow a strict behavioral checklist
-D) Wait for the behavior to stop on its own
-
-**Correct Answer:** B) Observe individual needs and adapt your approach
-
-**Explanation:** Research from Dr. Ross Greene shows that individualized approaches based on careful observation are 60% more effective than one-size-fits-all strategies. Each child's brain develops differently, so what works for one may not work for another.
-
-**Teacher Tip:** When dealing with ${topic.toLowerCase()}, think "detective mode" before "intervention mode."`
-        },
-        {
-          type: "Scenario-Based Question",
-          preview: `Real classroom scenario involving ${topic.toLowerCase()}...`,
-          content: `## Scenario-Based Question
-
-**Scenario:** It's 10:30 AM, and you notice 4-year-old Maya showing signs of ${topic.toLowerCase()}. The other children are watching, and you have parent-teacher conferences starting in 20 minutes.
-
-**Question:** What's your FIRST priority in this situation?
-
-**Options:**
-A) Quickly redirect Maya to prevent disruption
-B) Take a deep breath and assess what Maya might need
-C) Send Maya to the quiet corner immediately
-D) Continue with planned activities and address it later
-
-**Correct Answer:** B) Take a deep breath and assess what Maya might need
-
-**Explanation:** Dr. Dan Siegel's research on "Name It to Tame It" shows that taking a moment to assess before reacting helps both you and the child regulate emotions more effectively.
-
-**Real Talk:** Yes, you're thinking about those conferences, but 30 seconds of mindful assessment now saves 20 minutes of crisis management later.`
-        },
-        {
-          type: "Evidence-Based Quiz Item",
-          preview: `Research-backed question about ${topic.toLowerCase()} strategies...`,
-          content: `## Evidence-Based Quiz Item
-
-**Research Context:** Dr. Becky Bailey's Conscious Discipline research shows specific timeframes for emotional regulation in young children.
-
-**Question:** According to neuroscience research, how long does it typically take a 4-year-old's brain to regulate after experiencing ${topic.toLowerCase()}?
-
-**Options:**
-A) 30 seconds to 1 minute
-B) 2-5 minutes with support
-C) 10-15 minutes
-D) Up to 20 minutes
-
-**Correct Answer:** B) 2-5 minutes with support
-
-**Explanation:** The developing prefrontal cortex needs adult co-regulation to calm down. Without support, it can take much longer.
-
-**Practical Application:** This is why the "time-out" approach often fails - children need "time-in" with supportive adults to learn regulation skills.
-
-**Your Strategy:** Stay nearby, offer calm presence, and remember that helping them regulate IS teaching.`
-        }
-      ];
+      // Create topic-specific quiz questions
+      contentBlocks = generateQuizContent(topic, sectionTitle || '');
     } else if (sectionType === 'hook' || sectionType === 'scenario') {
       // Generate hook/scenario-specific content blocks
-      contentBlocks = [
-        {
-          type: "Opening Hook",
-          preview: `Engaging scenario that grabs attention and introduces ${topic.toLowerCase()}...`,
-          content: `## The 9:47 AM Reality Check
-
-Picture this: It's 9:47 AM on a Tuesday (why is it always Tuesday?), you've had exactly half a cup of lukewarm coffee, and you're mentally rehearsing your parent conference notes when BAM - ${topic.toLowerCase()} shows up in your classroom like an uninvited party guest.
-
-Meet Jamie, age 4, who has just provided a perfect live demonstration of everything you've read about ${topic.toLowerCase()} in theory. You know that moment when you think, "Did they just read my lesson plans and decide to create a real-world example?"
-
-**The Plot Twist:** According to Dr. Patty Wipfler's research, children often act out their biggest learning moments right when we feel least prepared. It's not coincidence - it's development in action.
-
-**Your Mission (Should You Choose to Accept It):** Navigate this moment with wisdom, humor, and evidence-based strategies that actually work in the real world.
-
-Ready? Let's dive in.`
-        },
-        {
-          type: "Relatable Scenario",
-          preview: `Real classroom situation every teacher faces with ${topic.toLowerCase()}...`,
-          content: `## The Multi-Layer Challenge
-
-Here's what's actually happening in your teacher brain right now:
-
-**Layer 1:** Jamie's immediate needs (and that look in their eyes that says "help me")
-**Layer 2:** The 15 other children watching this unfold like it's live television
-**Layer 3:** Your principal who just walked by (Murphy's Law strikes again)
-**Layer 4:** Jamie's family, who asked you yesterday how things were going
-
-**The Hidden Truth:** Research from Dr. Alfie Kohn shows that these "crisis" moments are actually when the most authentic learning happens - for both you AND the children.
-
-Jamie isn't trying to test you. Jamie is showing you exactly what they need to learn about ${topic.toLowerCase()}, wrapped up in a 4-year-old package with zero filter.
-
-**Your Superpower:** Remembering that this moment is information, not judgment of your teaching skills.`
-        }
-      ];
+      contentBlocks = generateHookContent(topic, sectionTitle || '');
     } else if (sectionType === 'introduction') {
-      // Generate introduction-specific content blocks
+      contentBlocks = generateIntroContent(topic, sectionTitle || '');
+    } else if (sectionType === 'reflection') {
+      contentBlocks = generateReflectionContent(topic, sectionTitle || '');
+    } else {
+      // Generate general content blocks with humor and research
       contentBlocks = [
         {
-          type: "Welcome & Overview",
-          preview: `Welcome to this learning journey about ${topic.toLowerCase()}...`,
-          content: `## Welcome to Your ${topic} Learning Journey
+          type: "Research Insight",
+          preview: `Clear, achievable goals for mastering ${topic.toLowerCase()} in practice...`,
+          content: `## What You'll Be Able to Do
 
-Welcome to this comprehensive exploration of ${topic.toLowerCase()} in early childhood education. If you're here, you're probably thinking one of two things: "I need help with this" or "My director told me I need to complete this module" (and honestly, both are totally valid reasons).
+After completing this module, you'll confidently:
 
-**What You'll Discover:**
-This isn't just another training module that tells you things you already know. We're diving into the real stuff - the strategies that actually work when you're dealing with ${topic.toLowerCase()} at 9:47 AM on a Tuesday with 16 pairs of eyes watching you.
+**Recognize and Respond**
+✓ Identify early signs of ${topic.toLowerCase()} in your classroom
+✓ Choose the most effective response based on the child and situation
+✓ Know when to intervene and when to give space
 
-**The Research Promise:**
-Every strategy you'll learn is backed by actual neuroscience and developmental research. No fluff, no "trust us, it works" - just proven approaches from experts like Dr. Daniel Siegel, Dr. Becky Bailey, and other researchers who understand how young brains actually work.
+**Apply Evidence-Based Strategies**
+✓ Use 3-4 specific techniques that work consistently
+✓ Adapt your approach for different children's needs
+✓ Create a calmer environment that prevents many issues
 
-**Your Investment:**
-This module takes about [X] minutes to complete, but the strategies you'll learn will save you hours of stress and make your classroom a place where both you and the children can thrive.
+**Support Long-Term Growth**
+✓ Help children develop their own coping skills
+✓ Communicate effectively with families about ${topic.toLowerCase()}
+✓ Build your confidence in challenging moments
 
-Ready to transform how you approach ${topic.toLowerCase()}? Let's dive in.`
+**Measure Your Success**
+✓ Track what's working in your classroom
+✓ Adjust strategies based on what you observe
+✓ Feel prepared instead of reactive`
         },
         {
-          type: "Learning Objectives",
-          preview: `Clear, practical objectives for mastering ${topic.toLowerCase()}...`,
-          content: `## What You'll Master in This Module
+          type: "Pre-Assessment Check-In",
+          preview: `Quick self-reflection to establish where teachers are starting with ${topic.toLowerCase()}...`,
+          content: `## Where Are You Starting?
 
-By the end of this learning experience, you'll be able to:
+Before we dive in, take a moment to think about your current experience with ${topic.toLowerCase()}:
 
-**🎯 Understand the Why**
-- Explain the developmental science behind ${topic.toLowerCase()} in children ages 3-6
-- Recognize the difference between developmental behavior and concerning patterns
-- Identify environmental and emotional triggers
+**Your Confidence Level Right Now:**
+□ "I feel pretty confident most of the time"
+□ "I have some strategies but they don't always work"
+□ "I often feel unsure about the best approach"
+□ "I'm looking for completely new ideas"
 
-**🎯 Apply the How**
-- Implement 3-5 evidence-based strategies that work in real classroom settings
-- Adapt your approach based on individual children's needs and temperaments
-- Use co-regulation techniques to support children's emotional development
+**Your Biggest Challenge:**
+□ Knowing what to do in the moment
+□ Helping children calm down quickly
+□ Managing other children's reactions
+□ Communicating with families about incidents
 
-**🎯 Reflect and Grow**
-- Assess your current approach and identify areas for growth
-- Create a personal action plan for implementing new strategies
-- Build confidence in your professional decision-making
+**What You Hope to Gain:**
+□ More confidence in difficult moments
+□ Specific strategies that actually work
+□ Better understanding of why children act this way
+□ Ways to prevent ${topic.toLowerCase()} from happening
 
-**🎯 Connect and Collaborate**
-- Communicate effectively with families about ${topic.toLowerCase()}
-- Share strategies with colleagues and build a supportive team approach
-- Document progress and celebrate small wins
-
-**The Real Goal:** You'll leave feeling more confident, less stressed, and equipped with practical tools that actually work in the beautiful chaos of early childhood education.`
+*Remember where you're starting - we'll check back on your progress at the end.*`
         }
       ];
     } else if (sectionType === 'reflection') {
@@ -1023,16 +945,213 @@ Let's be honest - you don't have time for complicated strategies when ${topic.to
   }
 });
 
-// Helper function to get random researcher names for credibility
+// Helper functions for generating topic-specific content
+function generateQuizContent(topic: string, sectionTitle: string) {
+  const scenarios = [
+    "during circle time when other children are watching",
+    "right before lunch when everyone is hungry", 
+    "during outdoor play transition",
+    "when a parent is visiting the classroom",
+    "during a fire drill practice"
+  ];
+  
+  const randomScenario = scenarios[Math.floor(Math.random() * scenarios.length)];
+  
+  return [
+    {
+      type: "Multiple Choice Question",
+      preview: `What should you do first when you notice ${topic} in your classroom?`,
+      content: `**Question:** When you first notice signs of ${topic} in your classroom, what should be your immediate priority?
+
+A) Immediately redirect the child to stop the behavior
+B) Take a moment to observe and understand what's happening
+C) Remove the child from the situation right away
+D) Continue with your planned activity and address it later
+
+**Correct Answer:** B) Take a moment to observe and understand what's happening
+
+**Why this works:** Research shows that taking 10-15 seconds to assess the situation leads to more effective interventions. You're gathering important information about triggers and the child's actual needs.
+
+**In practice:** Look for environmental triggers, the child's body language, and what happened just before ${topic} began.`
+    },
+    {
+      type: "Scenario Question", 
+      preview: `Real situation: ${topic} happens ${randomScenario}...`,
+      content: `**Scenario:** You notice 4-year-old Jamie showing signs of ${topic} ${randomScenario}. 
+
+**Question:** What's your best first response?
+
+A) Use a firm voice to get Jamie's attention immediately
+B) Get down to Jamie's eye level and speak calmly
+C) Ask another child to help distract Jamie
+D) Give Jamie space and wait to see what happens
+
+**Correct Answer:** B) Get down to Jamie's eye level and speak calmly
+
+**Why:** Physical positioning at the child's level shows respect and makes communication more effective. A calm tone helps regulate both your emotions and the child's.
+
+**Your script:** "Jamie, I can see you're having a big feeling. I'm here to help."`
+    },
+    {
+      type: "Knowledge Check",
+      preview: `What does research tell us about ${topic} in preschoolers?`,
+      content: `**Question:** According to child development research, ${topic} in preschool-age children is usually:
+
+A) A sign of poor parenting at home
+B) Normal brain development that needs adult support
+C) Something children should control on their own by age 4
+D) Best handled by ignoring the behavior
+
+**Correct Answer:** B) Normal brain development that needs adult support
+
+**The science:** The prefrontal cortex (executive function center) isn't fully developed until age 25. Preschoolers literally need adult help to regulate emotions and behavior.
+
+**What this means:** Your job isn't to eliminate ${topic} but to teach children skills for managing it appropriately.`
+    }
+  ];
+}
+
+function generateHookContent(topic: string, sectionTitle: string) {
+  return [
+    {
+      type: "Opening Question",
+      preview: `Gets teachers thinking about their own experience with ${topic}...`,
+      content: `Have you ever been in the middle of a perfectly planned activity when ${topic} suddenly appears in your classroom, and you think: "They definitely didn't cover THIS scenario in my training"?
+
+Take a moment to think about the last time this happened to you. What was your first instinct?
+
+We've all been there, and you're about to learn why these moments are actually opportunities in disguise.`
+    },
+    {
+      type: "Classroom Scenario",
+      preview: `Real moment every teacher recognizes involving ${topic}...`,
+      content: `It's 10:30 AM on a Wednesday. You're transitioning from circle time to centers when you notice Alex starting to show signs of ${topic}. 
+
+Alex's shoulders are getting tense, breathing is faster, and there's that look that says "I need help but don't know how to ask."
+
+The other 15 children haven't noticed yet, but they will in about 30 seconds. Your assistant stepped out to make copies. There's a parent observation this afternoon.
+
+This is where theory meets reality. What happens next depends on the tools you have and the confidence to use them.`
+    },
+    {
+      type: "Personal Reflection",
+      preview: `Connects to teachers' own experiences with ${topic}...`,
+      content: `Think about your most challenging moment with ${topic} this week:
+
+- What did you notice first - the child's behavior, body language, or something environmental?
+- What was your gut reaction? Did you act on it or pause to think?
+- How did it turn out? What worked? What would you do differently?
+- How did you feel afterward?
+
+Every teacher's experience is unique, but the feelings are universal. You're not alone in this.`
+    }
+  ];
+}
+
+function generateIntroContent(topic: string, sectionTitle: string) {
+  return [
+    {
+      type: "Welcome & Purpose",
+      preview: `Clear, practical introduction to learning about ${topic}...`,
+      content: `Welcome to this practical guide for handling ${topic} in early childhood settings.
+
+Whether you're here because you're facing new challenges, want to refresh your approach, or are building your confidence, you're in the right place.
+
+**What makes this different:** Real classroom strategies you can use immediately, backed by research but tested by teachers like you.
+
+**Time investment:** 15-20 minutes that will give you tools for countless future situations.
+
+**Our promise:** Every strategy has been used successfully in real preschool classrooms.`
+    },
+    {
+      type: "Learning Goals",
+      preview: `What teachers will master about ${topic} by the end...`,
+      content: `By the end of this module, you'll confidently:
+
+**Recognize the Signs**
+✓ Spot early indicators of ${topic} before situations escalate
+✓ Understand what triggers these behaviors in your specific environment
+✓ Know the difference between developmentally normal and concerning patterns
+
+**Respond Effectively**
+✓ Use 3-4 proven strategies that work in real classroom settings
+✓ Adapt your approach based on individual children's needs
+✓ Stay calm and confident during challenging moments
+
+**Support Growth**
+✓ Help children develop their own coping strategies
+✓ Communicate effectively with families about ${topic}
+✓ Create a classroom environment that prevents many issues`
+    }
+  ];
+}
+
+function generateReflectionContent(topic: string, sectionTitle: string) {
+  return [
+    {
+      type: "Self-Assessment",
+      preview: `Honest look at current confidence and skills with ${topic}...`,
+      content: `Take a moment to assess where you are right now with ${topic}:
+
+**Your current confidence level:**
+□ "I feel prepared and confident most of the time"
+□ "I have some strategies but they don't always work"
+□ "I often feel unsure about the best approach"
+□ "I'm looking for completely new strategies"
+
+**Your biggest challenge:**
+□ Knowing what to do in the moment
+□ Staying calm when ${topic} escalates
+□ Managing other children's reactions
+□ Following up effectively after incidents
+
+**What you most want to improve:**
+□ Prevention strategies
+□ In-the-moment responses
+□ Long-term behavior support
+□ Family communication about ${topic}
+
+Remember where you're starting - we'll return to this reflection.`
+    },
+    {
+      type: "Action Planning",
+      preview: `Practical next steps for implementing ${topic} strategies...`,
+      content: `Based on what you've learned, create your personal action plan:
+
+**This week, I will try:**
+Strategy: _________________________________
+When I'll practice it: _______________________
+How I'll remember to use it: __________________
+
+**Environmental changes I can make:**
+Physical space: ____________________________
+Daily schedule: ____________________________
+Materials or tools: ___________________________
+
+**Family communication:**
+What I'll share about ${topic}: __________________
+How I'll ask for their input: ____________________
+Ways to align home and school: _________________
+
+**Measuring success:**
+I'll know it's working when: ____________________
+I'll document progress by: _____________________
+I'll adjust my approach if: ______________________
+
+**My commitment:** I will practice _____________ for _____ days and reflect on progress on _______.`
+    }
+  ];
+}
+
 function getRandomResearcher() {
   const researchers = [
-    'Daniel Siegel (neuroscientist)',
-    'Becky Bailey (Conscious Discipline)',
-    'Ross Greene (Collaborative Problem Solving)',
-    'Dan Hughes (attachment research)',
-    'Patty Wipfler (Hand in Hand Parenting)',
-    'Stuart Shanker (self-regulation)',
-    'Mona Delahooke (neurodevelopmental approach)'
+    'Dr. Daniel Siegel',
+    'Dr. Becky Bailey', 
+    'Dr. Ross Greene',
+    'Dr. Dan Hughes',
+    'Dr. Patty Wipfler',
+    'Dr. Stuart Shanker',
+    'Dr. Mona Delahooke'
   ];
   return researchers[Math.floor(Math.random() * researchers.length)];
 }
