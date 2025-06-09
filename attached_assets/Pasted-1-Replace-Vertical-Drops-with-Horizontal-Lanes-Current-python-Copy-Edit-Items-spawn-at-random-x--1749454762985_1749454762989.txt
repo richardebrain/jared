@@ -1,0 +1,111 @@
+1. Replace Vertical Drops with Horizontal Lanes
+Current:
+python
+Copy
+Edit
+# Items spawn at random x, y=0 and fall downward   → REMOVE THIS
+item.y += fallSpeed
+New (Frogger style):
+Define five fixed lane Y-positions (e.g. [200,300,400,500,600]).
+
+For each lane, maintain a list of obstacles that move horizontally at a given speed and direction.
+
+On each frame:
+
+python
+Copy
+Edit
+for obs in laneObstacles[laneIndex]:
+    obs.x += LEVELS[currentLevel]['speed'] * obs.direction
+    if obs.x > SCREEN_WIDTH:   # went off right edge
+        obs.x = -obs.width      # wrap around left
+    elif obs.x + obs.width < 0: # off left edge
+        obs.x = SCREEN_WIDTH
+2. Four-Way Grid Movement for the Teacher
+Current:
+python
+Copy
+Edit
+# Teacher only moves left/right catching drops → REPLACE
+teacher.x += dx
+New:
+Snap the teacher to a grid of cells matching lane rows and fixed columns (or free movement bounded by the screen, but allowing Up/Down/Left/Right).
+
+On arrow key press:
+
+python
+Copy
+Edit
+if key == K_UP:
+    teacher.y = max(0, teacher.y - laneHeight)
+elif key == K_DOWN:
+    teacher.y = min(screenHeight - teacher.height, teacher.y + laneHeight)
+elif key == K_LEFT:
+    teacher.x = max(0, teacher.x - stepX)
+elif key == K_RIGHT:
+    teacher.x = min(screenWidth - teacher.width, teacher.x + stepX)
+Initial position: bottom lane center (e.g. teacher.x = SCREEN_WIDTH//2; teacher.y = laneYs[-1]).
+
+3. Goal at the Top: Catch the Child
+Place the “child” sprite in the topmost lane, moving upward slowly or stationary.
+
+When teacher.rect.colliderect(child.rect), trigger level complete.
+
+4. Collision → Quiz, Not Game-Over
+On teacher-obstacle collision:
+
+python
+Copy
+Edit
+if teacher.rect.colliderect(obs.rect):
+    gameState = STATE_QUESTION
+    pauseAllObstacleMovement()
+    loadRandomQuestion()
+Remove any “life lost” or falling resets and hook into your existing quiz logic.
+
+5. Level Data & Speeds
+Structure LEVELS as:
+
+python
+Copy
+Edit
+LEVELS = [
+  {'speed':5, 'obstacles':['Car','Bike'], 'dialogue':"..."},
+  {'speed':7, 'obstacles':['Car','Bike','Stroller'], ...},
+  ...
+]
+When you call setupLevel(), spawn one obstacle instance per lane:
+
+python
+Copy
+Edit
+for laneIndex, laneY in enumerate(laneYs):
+    for i in range(numObsPerLane):
+        x = random.choice([-100, SCREEN_WIDTH + 100])
+        direction = 1 if x < 0 else -1
+        obstacle = Obstacle(type=chooseType(), x=x, y=laneY, dir=direction)
+        laneObstacles[laneIndex].append(obstacle)
+6. Remove Drop-Spawner Code
+Search for and delete anything that looks like:
+
+python
+Copy
+Edit
+if spawnTimer > threshold:
+    spawnItemAt(randomX, y=0)
+    spawnTimer = 0
+You want no vertical spawning at all.
+
+7. Summary of Changes to Request
+Obstacles move horizontally in fixed lanes, wrap around edges.
+
+Teacher moves in four directions on a grid (up/down lanes, left/right steps).
+
+Child sits (or slowly ascends) in top lane—reaching it wins the level.
+
+Collisions pause the run and fire a quiz—no more “lose a life and start over.”
+
+Remove all “things dropping from y=0” code.
+
+Maintain your level-based speed increases, power-ups, and dialogue, but re-anchor them to the Frogger lanes.
+

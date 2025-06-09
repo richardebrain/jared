@@ -139,10 +139,15 @@ const GAME_LEVELS: GameLevel[] = [
   }
 ];
 
+// Frogger-style game constants
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
-const PLAYER_SIZE = 30;
-const PLAYER_SPEED = 8;
+const LANE_HEIGHT = 80;
+const LANE_COUNT = 6;
+const LANE_Y_POSITIONS = Array.from({length: LANE_COUNT}, (_, i) => 80 + i * LANE_HEIGHT);
+const PLAYER_GRID_SIZE = 40;
+const PLAYER_SPEED = LANE_HEIGHT; // Move one full lane at a time
+const BASE_OBSTACLE_SPEED = 2;
 const TARGET_FPS = 60;
 const FRAME_TIME = 1000 / TARGET_FPS;
 
@@ -175,10 +180,10 @@ export default function WhoLeftTheGateOpen() {
 
   // Game objects - all useState calls at top level
   const [player, setPlayer] = useState<Player>({
-    x: CANVAS_WIDTH / 2 - PLAYER_SIZE / 2,
-    y: CANVAS_HEIGHT - PLAYER_SIZE - 10,
-    width: PLAYER_SIZE,
-    height: PLAYER_SIZE,
+    x: CANVAS_WIDTH / 2 - PLAYER_GRID_SIZE / 2,
+    y: LANE_Y_POSITIONS[LANE_COUNT - 1], // Start in bottom lane
+    width: PLAYER_GRID_SIZE,
+    height: PLAYER_GRID_SIZE,
     lives: 3
   });
   const [obstacles, setObstacles] = useState<Obstacle[]>([]);
@@ -380,10 +385,10 @@ export default function WhoLeftTheGateOpen() {
     setCurrentLevel(0);
     setScore(0);
     setPlayer({
-      x: CANVAS_WIDTH / 2 - PLAYER_SIZE / 2,
-      y: CANVAS_HEIGHT - PLAYER_SIZE - 10,
-      width: PLAYER_SIZE,
-      height: PLAYER_SIZE,
+      x: CANVAS_WIDTH / 2 - PLAYER_GRID_SIZE / 2,
+      y: LANE_Y_POSITIONS[LANE_COUNT - 1], // Start in bottom lane
+      width: PLAYER_GRID_SIZE,
+      height: PLAYER_GRID_SIZE,
       lives: 3
     });
     setObstacles([]);
@@ -703,90 +708,72 @@ export default function WhoLeftTheGateOpen() {
     return () => clearInterval(interval);
   }, [gameState, currentLevel, score]);
 
-  // Keyboard controls
+  // Frogger-style grid movement - discrete key presses
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (gameState !== 'playing') return;
       
-      keysRef.current.add(e.key.toLowerCase());
-    };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      keysRef.current.delete(e.key.toLowerCase());
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, [gameState]);
-
-  // Enhanced player movement with smooth acceleration and deceleration
-  useEffect(() => {
-    if (gameState !== 'playing') return;
-
-    const movePlayer = () => {
+      e.preventDefault();
+      const key = e.key.toLowerCase();
+      
       setPlayer(prev => {
-        setPlayerVelocity(prevVel => {
-          let targetVelX = 0;
-          let targetVelY = 0;
-          
-          const baseSpeed = teamRallyActive ? PLAYER_SPEED * 1.5 : PLAYER_SPEED;
-          
-          // Instant input response - zero lag detection
-          if (keysRef.current.has('arrowleft') || keysRef.current.has('a')) {
-            targetVelX = -baseSpeed;
-          }
-          if (keysRef.current.has('arrowright') || keysRef.current.has('d')) {
-            targetVelX = baseSpeed;
-          }
-          if (keysRef.current.has('arrowup') || keysRef.current.has('w')) {
-            targetVelY = -baseSpeed;
-          }
-          if (keysRef.current.has('arrowdown') || keysRef.current.has('s')) {
-            targetVelY = baseSpeed;
-          }
-          
-          // Smooth acceleration with easing curves for natural feel
-          const acceleration = 0.3;
-          const deceleration = 0.4;
-          
-          let newVelX = prevVel.x;
-          let newVelY = prevVel.y;
-          
-          if (targetVelX !== 0) {
-            newVelX += (targetVelX - prevVel.x) * acceleration;
-          } else {
-            newVelX *= (1 - deceleration);
-          }
-          
-          if (targetVelY !== 0) {
-            newVelY += (targetVelY - prevVel.y) * acceleration;
-          } else {
-            newVelY *= (1 - deceleration);
-          }
-          
-          // Apply velocity to player position with boundary constraints
-          const newX = Math.max(0, Math.min(CANVAS_WIDTH - prev.width, prev.x + newVelX));
-          const newY = Math.max(0, Math.min(CANVAS_HEIGHT - prev.height, prev.y + newVelY));
-          
-          return { x: newVelX, y: newVelY };
-        });
+        let newX = prev.x;
+        let newY = prev.y;
         
-        return {
-          ...prev,
-          x: Math.max(0, Math.min(CANVAS_WIDTH - prev.width, prev.x + playerVelocity.x)),
-          y: Math.max(0, Math.min(CANVAS_HEIGHT - prev.height, prev.y + playerVelocity.y))
-        };
+        // Grid-based movement - snap to lanes and columns
+        if (key === 'arrowleft' || key === 'a') {
+          newX = Math.max(0, prev.x - PLAYER_GRID_SIZE);
+          playCrispFeedback('move');
+        } else if (key === 'arrowright' || key === 'd') {
+          newX = Math.min(CANVAS_WIDTH - prev.width, prev.x + PLAYER_GRID_SIZE);
+          playCrispFeedback('move');
+        } else if (key === 'arrowup' || key === 'w') {
+          // Move up one lane
+          const currentLaneIndex = LANE_Y_POSITIONS.findIndex(y => Math.abs(y - prev.y) < 20);
+          if (currentLaneIndex > 0) {
+            newY = LANE_Y_POSITIONS[currentLaneIndex - 1];
+            playCrispFeedback('move');
+          }
+        } else if (key === 'arrowdown' || key === 's') {
+          // Move down one lane
+          const currentLaneIndex = LANE_Y_POSITIONS.findIndex(y => Math.abs(y - prev.y) < 20);
+          if (currentLaneIndex < LANE_COUNT - 1 && currentLaneIndex !== -1) {
+            newY = LANE_Y_POSITIONS[currentLaneIndex + 1];
+            playCrispFeedback('move');
+          }
+        }
+        
+        return { ...prev, x: newX, y: newY };
       });
     };
 
-    const interval = setInterval(movePlayer, 16); // Locked 60fps for buttery-smooth motion
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [gameState, playCrispFeedback]);
+
+  // Horizontal obstacle movement for Frogger-style gameplay
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    const moveObstacles = () => {
+      setObstacles(prev => prev.map(obstacle => {
+        const speed = (BASE_OBSTACLE_SPEED + currentLevel) * (timeSlowActive ? 0.5 : 1);
+        let newX = obstacle.x + speed * obstacle.direction;
+        
+        // Wrap around screen edges
+        if (newX > CANVAS_WIDTH) {
+          newX = -obstacle.width;
+        } else if (newX + obstacle.width < 0) {
+          newX = CANVAS_WIDTH;
+        }
+        
+        return { ...obstacle, x: newX };
+      }));
+    };
+
+    const interval = setInterval(moveObstacles, 16); // 60fps movement
     return () => clearInterval(interval);
-  }, [gameState, teamRallyActive, playerVelocity]);
+  }, [gameState, currentLevel, timeSlowActive]);
 
   // Spawn timers
   useEffect(() => {
