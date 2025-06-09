@@ -677,6 +677,19 @@ export default function WhoLeftTheGateOpen() {
 
   }, [gameState, player, playCrispFeedback, createParticles, triggerScreenShake]);
 
+  // Get obstacle color based on type
+  const getObstacleColor = (type: string): string => {
+    const obstacleColors = {
+      'car': '#FF4444',
+      'bike': '#4444FF', 
+      'stroller': '#FF8844',
+      'snack-cart': '#8844FF',
+      'glitter-puddle': '#44FFFF',
+      'runaway-child': '#32CD32'
+    };
+    return obstacleColors[type as keyof typeof obstacleColors] || '#888888';
+  };
+
   // Update particles and effects for satisfying visual feedback
   useEffect(() => {
     if (gameState !== 'playing') return;
@@ -723,23 +736,23 @@ export default function WhoLeftTheGateOpen() {
         // Grid-based movement - snap to lanes and columns
         if (key === 'arrowleft' || key === 'a') {
           newX = Math.max(0, prev.x - PLAYER_GRID_SIZE);
-          playCrispFeedback('move');
+          playSound(400, 0.1);
         } else if (key === 'arrowright' || key === 'd') {
           newX = Math.min(CANVAS_WIDTH - prev.width, prev.x + PLAYER_GRID_SIZE);
-          playCrispFeedback('move');
+          playSound(400, 0.1);
         } else if (key === 'arrowup' || key === 'w') {
           // Move up one lane
           const currentLaneIndex = LANE_Y_POSITIONS.findIndex(y => Math.abs(y - prev.y) < 20);
           if (currentLaneIndex > 0) {
             newY = LANE_Y_POSITIONS[currentLaneIndex - 1];
-            playCrispFeedback('move');
+            playSound(500, 0.1);
           }
         } else if (key === 'arrowdown' || key === 's') {
           // Move down one lane
           const currentLaneIndex = LANE_Y_POSITIONS.findIndex(y => Math.abs(y - prev.y) < 20);
           if (currentLaneIndex < LANE_COUNT - 1 && currentLaneIndex !== -1) {
             newY = LANE_Y_POSITIONS[currentLaneIndex + 1];
-            playCrispFeedback('move');
+            playSound(450, 0.1);
           }
         }
         
@@ -775,22 +788,74 @@ export default function WhoLeftTheGateOpen() {
     return () => clearInterval(interval);
   }, [gameState, currentLevel, timeSlowActive]);
 
-  // Spawn timers
-  useEffect(() => {
-    if (gameState !== 'playing') return;
-
-    const obstacleTimer = setInterval(spawnObstacle, timeSlowActive ? 2000 : 1000);
-    const powerUpTimer = setInterval(() => {
-      if (Math.random() < (GAME_LEVELS[currentLevel]?.powerUpChance || 0.2)) {
-        spawnPowerUp();
-      }
-    }, 3000);
-
-    return () => {
-      clearInterval(obstacleTimer);
-      clearInterval(powerUpTimer);
+  // Initialize Frogger-style level with lane-based obstacles
+  const initializeLevel = useCallback(() => {
+    const getObstacleColor = (type: string): string => {
+      const obstacleColors = {
+        'car': '#FF4444',
+        'bike': '#4444FF', 
+        'stroller': '#FF8844',
+        'snack-cart': '#8844FF',
+        'glitter-puddle': '#44FFFF',
+        'runaway-child': '#32CD32'
+      };
+      return obstacleColors[type as keyof typeof obstacleColors] || '#888888';
     };
-  }, [gameState, spawnObstacle, spawnPowerUp, timeSlowActive, currentLevel]);
+
+    const newObstacles: Obstacle[] = [];
+    const level = GAME_LEVELS[currentLevel] || GAME_LEVELS[0];
+    
+    // Skip first and last lanes for player start/goal positions
+    for (let laneIndex = 1; laneIndex < LANE_COUNT - 1; laneIndex++) {
+      const laneY = LANE_Y_POSITIONS[laneIndex];
+      const direction = laneIndex % 2 === 0 ? 1 : -1; // Alternate directions
+      const obstacleCount = Math.min(3, level.obstacleCount);
+      
+      for (let i = 0; i < obstacleCount; i++) {
+        const spacing = CANVAS_WIDTH / obstacleCount;
+        const startX = direction === 1 ? -60 - (i * spacing) : CANVAS_WIDTH + 60 + (i * spacing);
+        
+        const obstacleTypes = ['car', 'bike', 'stroller', 'snack-cart', 'glitter-puddle'];
+        const type = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)] as any;
+        
+        newObstacles.push({
+          id: Date.now() + i + laneIndex * 100,
+          x: startX,
+          y: laneY,
+          width: 50,
+          height: 40,
+          speed: level.speed,
+          direction,
+          type,
+          color: getObstacleColor(type)
+        });
+      }
+    }
+    
+    // Add goal child at top lane
+    newObstacles.push({
+      id: Date.now() + 9999,
+      x: CANVAS_WIDTH / 2 - 25,
+      y: LANE_Y_POSITIONS[0],
+      width: 50,
+      height: 40,
+      speed: 0,
+      direction: 0,
+      type: 'runaway-child',
+      color: '#32CD32'
+    });
+    
+    setObstacles(newObstacles);
+    // Clear power-ups to simplify gameplay
+    setPowerUps([]);
+  }, [currentLevel]);
+
+  // Initialize level when starting
+  useEffect(() => {
+    if (gameState === 'playing') {
+      initializeLevel();
+    }
+  }, [gameState, currentLevel, initializeLevel]);
 
   // Main game loop
   useEffect(() => {
@@ -836,18 +901,31 @@ export default function WhoLeftTheGateOpen() {
       ctx.fillStyle = '#90EE90';
       ctx.fillRect(0, CANVAS_HEIGHT * 0.8, CANVAS_WIDTH, CANVAS_HEIGHT * 0.2);
       
-      // Add lane markings for predictable patterns
-      ctx.strokeStyle = '#FFFFFF';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([10, 10]);
-      for (let i = 1; i < 4; i++) {
-        const laneX = (CANVAS_WIDTH / 4) * i;
+      // Draw horizontal lane markings for Frogger-style gameplay
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.lineWidth = 1;
+      LANE_Y_POSITIONS.forEach((laneY, index) => {
+        // Alternate lane colors for visual clarity
+        if (index === 0) {
+          // Goal zone - green
+          ctx.fillStyle = 'rgba(50, 205, 50, 0.2)';
+          ctx.fillRect(0, laneY - 10, CANVAS_WIDTH, LANE_HEIGHT);
+        } else if (index === LANE_COUNT - 1) {
+          // Start zone - blue
+          ctx.fillStyle = 'rgba(100, 149, 237, 0.2)';
+          ctx.fillRect(0, laneY - 10, CANVAS_WIDTH, LANE_HEIGHT);
+        } else {
+          // Traffic lanes - alternating gray
+          ctx.fillStyle = index % 2 === 0 ? 'rgba(128, 128, 128, 0.1)' : 'rgba(64, 64, 64, 0.1)';
+          ctx.fillRect(0, laneY - 10, CANVAS_WIDTH, LANE_HEIGHT);
+        }
+        
+        // Lane divider lines
         ctx.beginPath();
-        ctx.moveTo(laneX, 0);
-        ctx.lineTo(laneX, CANVAS_HEIGHT);
+        ctx.moveTo(0, laneY + LANE_HEIGHT / 2);
+        ctx.lineTo(CANVAS_WIDTH, laneY + LANE_HEIGHT / 2);
         ctx.stroke();
-      }
-      ctx.setLineDash([]);
+      });
 
       // Draw player with enhanced visual hierarchy
       const playerColor = stickerStormActive ? '#FFD700' : teamRallyActive ? '#FF44FF' : '#FF6B6B';
