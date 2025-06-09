@@ -144,6 +144,8 @@ export default function WordSearchGame({ onComplete, onPointsEarned }: {
     if (gameState.timeLeft === 0) {
       endGame();
     }
+    
+    return undefined;
   }, [gameState.timeLeft, gameState.gameComplete]);
 
   const endGame = () => {
