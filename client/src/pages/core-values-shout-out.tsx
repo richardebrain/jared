@@ -31,6 +31,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import VoiceInputTextarea from "@/components/VoiceInputTextarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -272,10 +273,11 @@ export default function CoreValuesShoutOutPage() {
                       <FormItem>
                         <FormLabel>Description</FormLabel>
                         <FormControl>
-                          <Textarea
+                          <VoiceInputTextarea
+                            value={field.value}
+                            onChange={field.onChange}
                             placeholder="Describe how they demonstrated this core value..."
                             className="resize-none"
-                            {...field}
                           />
                         </FormControl>
                         <FormDescription>

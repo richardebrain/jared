@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import VoiceInputTextarea from '@/components/VoiceInputTextarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -450,56 +451,49 @@ ${agenda.followUpPlanning}
 
             <div>
               <Label htmlFor="primaryFocus">Primary Focus/Objective</Label>
-              <Textarea
-                id="primaryFocus"
-                placeholder="What is the main goal of this meeting? (e.g., discuss new curriculum implementation, address parent feedback, plan upcoming events)"
+              <VoiceInputTextarea
                 value={formData.primaryFocus}
-                onChange={(e) => handleInputChange('primaryFocus', e.target.value)}
-                rows={3}
+                onChange={(value) => handleInputChange('primaryFocus', value)}
+                placeholder="What is the main goal of this meeting? (e.g., discuss new curriculum implementation, address parent feedback, plan upcoming events)"
               />
             </div>
 
             <div>
               <Label htmlFor="specificTopics">Specific Topics to Cover</Label>
-              <Textarea
-                id="specificTopics"
-                placeholder="List any specific topics, announcements, or issues to address (optional)"
+              <VoiceInputTextarea
                 value={formData.specificTopics}
-                onChange={(e) => handleInputChange('specificTopics', e.target.value)}
-                rows={3}
+                onChange={(value) => handleInputChange('specificTopics', value)}
+                placeholder="List any specific topics, announcements, or issues to address (optional)"
               />
             </div>
 
             <div>
               <Label htmlFor="challenges">Current Challenges/Issues</Label>
-              <Textarea
-                id="challenges"
-                placeholder="Any current challenges the team is facing that should be addressed? (optional)"
+              <VoiceInputTextarea
                 value={formData.challenges}
-                onChange={(e) => handleInputChange('challenges', e.target.value)}
-                rows={2}
+                onChange={(value) => handleInputChange('challenges', value)}
+                placeholder="Any current challenges the team is facing that should be addressed? (optional)"
+                minHeight="min-h-[100px]"
               />
             </div>
 
             <div>
               <Label htmlFor="goals">Upcoming Goals/Milestones</Label>
-              <Textarea
-                id="goals"
-                placeholder="Any upcoming goals, deadlines, or milestones to discuss? (optional)"
+              <VoiceInputTextarea
                 value={formData.goals}
-                onChange={(e) => handleInputChange('goals', e.target.value)}
-                rows={2}
+                onChange={(value) => handleInputChange('goals', value)}
+                placeholder="Any upcoming goals, deadlines, or milestones to discuss? (optional)"
+                minHeight="min-h-[100px]"
               />
             </div>
 
             <div>
               <Label htmlFor="previousMeetingNotes">Previous Meeting Follow-up</Label>
-              <Textarea
-                id="previousMeetingNotes"
-                placeholder="Any action items or topics from the previous meeting to follow up on? (optional)"
+              <VoiceInputTextarea
                 value={formData.previousMeetingNotes}
-                onChange={(e) => handleInputChange('previousMeetingNotes', e.target.value)}
-                rows={2}
+                onChange={(value) => handleInputChange('previousMeetingNotes', value)}
+                placeholder="Any action items or topics from the previous meeting to follow up on? (optional)"
+                minHeight="min-h-[100px]"
               />
             </div>
 
