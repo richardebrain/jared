@@ -1,0 +1,52 @@
+1. Dynamic Power-Ups & Boosts
+“Time-Out Timer”
+Catch this floating hourglass and slow all obstacles by 50% for 5 seconds—buy yourself a breather (and reinforce the idea of a brief, calm “time-out” when things get overwhelming).
+
+“Sticker Storm”
+Snag a whirlwind of virtual reward stickers (stars, smiley faces, high-five icons). Each sticker dropped on a safety-question hit nets bonus points and becomes a “cheat-sheet” hint if you miss a question later.
+
+“Team Rally”
+Collect three “Teacher Teammate” icons (mini avatars of Conner, Tanner, OJ and Jeremiah) to trigger a brief “co-op mode” where obstacles part like a crowd, modeling how asking for help clears chaos.
+
+2. Sillier Obstacles & Random Events
+“Glitter Glue Puddles”
+Step in one and you’re stuck for 1 s—but tapping the “Wipe Up” key combo frees you. Teaches quick clean-up habits!
+
+“Fire Drill Frenzy”
+At random intervals, an alarm bell rings and all obstacles speed up 20% for 5 s—simulating an evacuation drill and testing your calm-under-pressure reflexes.
+
+“Surprise Snack Cart”
+Occasionally rolls by and drops “Goldfish Bombs”: if you hit one you get extra points—but you must instantly answer a question about allergen protocols to claim them.
+
+3. Mini-Games Between Levels
+After each level, unlock a 15 s “Micro-Module”:
+
+Tap-Quiz Dash: Rapid-fire 5 true/false questions on that level’s domain.
+
+Drag-and-Drop Chart: Reassemble a “Visual Schedule” board in 10 s to unlock a speed boost for the next level.
+
+Match-the-Milestone: Pair a toddler milestone (pincer grasp, first words) with the right age range—correct matches give you a “Milestone Medal.”
+
+4. Customization & Progression
+Avatar Unlocks
+Earn costumes (“Super-Teacher Cape,” “Pajama-Day Bear Suit,” “Ninja-Quiet Shoes”) that come with tiny gameplay perks (slightly faster sprint, quieter movement to sneak past some obstacles).
+
+Classroom Hub
+Between runs, visit your “Classroom” screen to place items you’ve unlocked—posters, rugs, even a live digital fish tank. Each décor unlock boosts passive score multipliers (e.g. +5 % for having a “Handwashing” poster).
+
+5. Social & Challenge Modes
+Daily “Headcount Challenge”
+Run a quick, 30-s mini-level where you must dodge as many “Missing Child” shadows as possible. High scores get featured on a weekly leaderboard.
+
+Co-op Rescue Run
+Two-player mode (split-screen or online) where one teacher chases the child and the other drives a “Safety Cart,” laying down power-up puddles. Teaches teamwork!
+
+Speed-Run Sprint
+How fast can you finish all three levels without ever hitting an obstacle? Unlocks a “Master of Calm” badge.
+
+6. Narrative & Easter Eggs
+“Storybook Snippets”
+Occasionally you’ll spot a moving book icon—run over it to pause and see a 5 s animated vignette of a preschool scenario (nap-time rescue, playground heroics).
+
+Hidden Easter Eggs
+Drop into a secret “Finger-Paint Fury” bonus lane if you collect three “Paint-Can” power-ups in one run—complete it to earn a rainbow paddle skin.
