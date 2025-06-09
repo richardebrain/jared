@@ -97,7 +97,7 @@ const ToolCard: React.FC<ToolCardProps> = ({ icon, title, description, onClick, 
 
 export default function ToolsPage() {
   const [activeTab, setActiveTab] = useState("parent-responses");
-  const [viewMode, setViewMode] = useState<"cards" | "tabs">("cards");
+  const [viewMode, setViewMode] = useState<"cards" | "tabs">("tabs");
 
   // Tools definitions
   const tools = [
@@ -247,26 +247,20 @@ export default function ToolsPage() {
         <div className="flex items-center justify-between mb-8">
           <div className="text-center flex-1">
             <div className="flex items-center justify-center gap-4 mb-4">
-              <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full shadow-xl animate-bounce">
+              <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full shadow-lg">
                 <GraduationCap className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  🛠️ Teacher Toolkit ✨
+                <h1 className="text-4xl font-bold text-gray-800">
+                  Teacher Toolkit
                 </h1>
-                <div className="flex items-center justify-center gap-2 mt-2">
-                  <div className="h-1 w-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
-                  <Stars className="h-4 w-4 text-purple-500 animate-spin" />
-                  <div className="h-1 w-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
-                </div>
               </div>
-              <div className="p-3 bg-gradient-to-br from-green-500 to-blue-500 rounded-full shadow-xl animate-bounce delay-300">
+              <div className="p-3 bg-gradient-to-br from-green-500 to-blue-500 rounded-full shadow-lg">
                 <Lightbulb className="h-8 w-8 text-white" />
               </div>
             </div>
-            <p className="text-lg text-gray-700 max-w-2xl mx-auto bg-white/60 backdrop-blur-sm p-3 rounded-xl border border-purple-200 shadow-lg">
-              🚀 AI-powered resources to enhance your teaching experience and classroom management! 
-              Choose your tool and unlock powerful capabilities! 
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              AI-powered resources to enhance your teaching experience and classroom management.
             </p>
           </div>
           
@@ -294,13 +288,10 @@ export default function ToolsPage() {
           <>
             {/* Enhanced Card selector view */}
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center flex items-center justify-center gap-2">
-                🎯 Choose Your Teaching Tool
-                <Stars className="h-6 w-6 text-purple-500 animate-pulse" />
+              <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
+                Choose Your Teaching Tool
               </h2>
-              <p className="text-center text-gray-600 mb-6 bg-white/70 backdrop-blur-sm px-4 py-2 rounded-lg inline-block border border-purple-200 shadow-sm">
-                Click on any tool card to unlock its powerful features
-              </p>
+
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
