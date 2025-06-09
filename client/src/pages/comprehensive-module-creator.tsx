@@ -468,6 +468,11 @@ export default function ComprehensiveModuleCreator() {
   const [isGeneratingAIContent, setIsGeneratingAIContent] = useState(false);
   const [showTopicInput, setShowTopicInput] = useState(false);
   const [aiTopicInput, setAiTopicInput] = useState('');
+  const [aiGeneratedBlocks, setAiGeneratedBlocks] = useState<Array<{
+    type: string;
+    content: string;
+    preview: string;
+  }>>([]);
 
   const generateAIContentForSection = async () => {
     const currentSection = newModule.sections[currentSectionIndex];
@@ -495,27 +500,42 @@ export default function ComprehensiveModuleCreator() {
       });
 
       if (response.content) {
-        const updatedSections = [...newModule.sections];
-        updatedSections[currentSectionIndex] = {
-          ...updatedSections[currentSectionIndex],
-          content: response.content
-        };
+        // Parse content into draggable blocks
+        const contentParts = response.content.split('\n\n');
+        const newBlocks = contentParts
+          .filter(part => part.trim().length > 0)
+          .map((part, index) => {
+            let type = 'Content Block';
+            let preview = part.trim();
+            
+            if (part.includes('##')) {
+              type = 'Heading';
+              preview = part.replace(/#+\s*/g, '').trim();
+            } else if (part.includes('*') || part.includes('-')) {
+              type = 'List';
+              preview = part.substring(0, 100) + '...';
+            } else if (part.includes('**')) {
+              type = 'Key Point';
+              preview = part.replace(/\*\*/g, '').trim();
+            } else if (part.length > 200) {
+              type = 'Paragraph';
+              preview = part.substring(0, 150) + '...';
+            } else {
+              preview = part.substring(0, 100) + (part.length > 100 ? '...' : '');
+            }
+            
+            return {
+              type,
+              content: part.trim(),
+              preview
+            };
+          });
 
-        // Add questions if generated
-        if (response.questions && response.questions.length > 0) {
-          updatedSections[currentSectionIndex].questions = response.questions;
-        }
-
-        // Add scenarios if generated
-        if (response.scenarios && response.scenarios.length > 0) {
-          updatedSections[currentSectionIndex].scenarios = response.scenarios;
-        }
-
-        setNewModule(prev => ({ ...prev, sections: updatedSections }));
+        setAiGeneratedBlocks(prev => [...prev, ...newBlocks]);
         
         toast({
           title: 'AI Content Generated',
-          description: 'Section content has been successfully generated!',
+          description: `${newBlocks.length} content blocks ready to drag into your section!`,
         });
       }
     } catch (error) {
@@ -2201,144 +2221,201 @@ Create a natural conversation between two podcast hosts discussing this specific
 
       {/* Step-by-Step Section Builder */}
       {creationMethod === 'manual' && aiWorkflowStep === 'section-builder' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Wand2 className="h-5 w-5 text-purple-600" />
-              AI Section Builder - Step {currentSectionIndex + 1} of {newModule.sections.length}
-            </CardTitle>
-            <CardDescription>
-              Building: {newModule.sections[currentSectionIndex]?.title}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center gap-2 mb-4">
-              {newModule.sections.map((_, index) => (
-                <div
-                  key={index}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    completedSections.includes(index)
-                      ? 'bg-green-500 text-white'
-                      : index === currentSectionIndex
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-gray-200 text-gray-600'
-                  }`}
-                >
-                  {index + 1}
-                </div>
-              ))}
-            </div>
-
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h4 className="font-medium mb-2">Section Type: {newModule.sections[currentSectionIndex]?.type}</h4>
-              <p className="text-sm text-gray-600">
-                AI will help you create engaging content for this section type.
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="section-title">Section Title</Label>
-                <Input
-                  id="section-title"
-                  value={newModule.sections[currentSectionIndex]?.title || ''}
-                  onChange={(e) => {
-                    const updatedSections = [...newModule.sections];
-                    updatedSections[currentSectionIndex] = {
-                      ...updatedSections[currentSectionIndex],
-                      title: e.target.value
-                    };
-                    setNewModule(prev => ({ ...prev, sections: updatedSections }));
-                  }}
-                  placeholder="Enter section title"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="section-content">Content</Label>
-                <Textarea
-                  id="section-content"
-                  value={newModule.sections[currentSectionIndex]?.content || ''}
-                  onChange={(e) => {
-                    const updatedSections = [...newModule.sections];
-                    updatedSections[currentSectionIndex] = {
-                      ...updatedSections[currentSectionIndex],
-                      content: e.target.value
-                    };
-                    setNewModule(prev => ({ ...prev, sections: updatedSections }));
-                  }}
-                  placeholder="Enter section content"
-                  rows={6}
-                />
-              </div>
-
-              <Button 
-                variant="outline" 
-                className="w-full border-purple-300 text-purple-600 hover:bg-purple-50"
-                onClick={generateAIContentForSection}
-                disabled={isGeneratingAIContent}
-              >
-                {isGeneratingAIContent ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Generating AI Content...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Generate AI Content for This Section
-                  </>
-                )}
-              </Button>
-
-              {/* Topic Input Dialog */}
-              {showTopicInput && (
-                <div className="mt-4 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-                  <div className="space-y-3">
-                    <div>
-                      <Label className="text-sm font-medium text-blue-900">
-                        What specific topic should this module focus on?
-                      </Label>
-                      <p className="text-xs text-blue-700 mt-1">
-                        Be specific to get the best AI-generated content. For example: "Classroom transitions after recess" or "Supporting children with separation anxiety"
-                      </p>
+        <div className="grid grid-cols-12 gap-6">
+          {/* Section Outline Sidebar */}
+          <div className="col-span-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Module Outline</CardTitle>
+                <CardDescription>{aiSelectedTemplate?.name || 'Custom Template'}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {newModule.sections.map((section, index) => (
+                    <div 
+                      key={index}
+                      className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                        index === currentSectionIndex 
+                          ? 'border-purple-500 bg-purple-50' 
+                          : completedSections.includes(index)
+                          ? 'border-green-300 bg-green-50'
+                          : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                      }`}
+                      onClick={() => setCurrentSectionIndex(index)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                          index === currentSectionIndex 
+                            ? 'bg-purple-500 text-white'
+                            : completedSections.includes(index)
+                            ? 'bg-green-500 text-white'
+                            : 'bg-gray-300 text-gray-600'
+                        }`}>
+                          {completedSections.includes(index) ? '✓' : index + 1}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">{section.title}</div>
+                          <div className="text-xs text-gray-500">{section.type}</div>
+                        </div>
+                      </div>
                     </div>
-                    <Input
-                      value={aiTopicInput}
-                      onChange={(e) => setAiTopicInput(e.target.value)}
-                      placeholder="Enter your specific module topic..."
-                      className="border-blue-300 focus:border-blue-500"
-                      onKeyPress={(e) => e.key === 'Enter' && handleTopicSubmit()}
-                    />
-                    <div className="flex gap-2 justify-end">
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Main Section Builder */}
+          <div className="col-span-9">
+            <Card>
+              <CardHeader>
+                <CardTitle>Build Section {currentSectionIndex + 1}: {newModule.sections[currentSectionIndex]?.title}</CardTitle>
+                <CardDescription>
+                  Drag content blocks from AI suggestions to build your section
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Drag and Drop Content Area */}
+                <div className="grid grid-cols-2 gap-6">
+                  {/* AI Content Suggestions */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold">AI Content Suggestions</h3>
                       <Button 
+                        size="sm"
                         variant="outline" 
-                        size="sm"
-                        onClick={() => setShowTopicInput(false)}
+                        onClick={generateAIContentForSection}
+                        disabled={isGeneratingAIContent}
                       >
-                        Cancel
+                        {isGeneratingAIContent ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4 mr-2" />
+                            Generate Ideas
+                          </>
+                        )}
                       </Button>
-                      <Button 
-                        size="sm"
-                        onClick={handleTopicSubmit}
-                        disabled={!aiTopicInput.trim()}
-                        className="bg-blue-600 hover:bg-blue-700"
-                      >
-                        Generate Content
-                      </Button>
+                    </div>
+                    
+                    {/* Topic Input Dialog */}
+                    {showTopicInput && (
+                      <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                        <div className="space-y-3">
+                          <div>
+                            <Label className="text-sm font-medium text-blue-900">
+                              What specific topic should this module focus on?
+                            </Label>
+                            <p className="text-xs text-blue-700 mt-1">
+                              Be specific to get the best AI-generated content.
+                            </p>
+                          </div>
+                          <Input
+                            value={aiTopicInput}
+                            onChange={(e) => setAiTopicInput(e.target.value)}
+                            placeholder="Enter your specific module topic..."
+                            className="border-blue-300 focus:border-blue-500"
+                            onKeyPress={(e) => e.key === 'Enter' && handleTopicSubmit()}
+                          />
+                          <div className="flex gap-2 justify-end">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => setShowTopicInput(false)}
+                            >
+                              Cancel
+                            </Button>
+                            <Button 
+                              size="sm"
+                              onClick={handleTopicSubmit}
+                              disabled={!aiTopicInput.trim()}
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
+                              Generate Content
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* AI Generated Content Blocks */}
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {aiGeneratedBlocks.map((block, index) => (
+                        <div 
+                          key={index}
+                          className="p-3 bg-gray-50 border border-gray-200 rounded-lg cursor-move hover:bg-gray-100 transition-colors"
+                          draggable
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData('text/plain', block.content);
+                            e.dataTransfer.setData('block-type', block.type);
+                          }}
+                        >
+                          <div className="flex items-start gap-2">
+                            <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                              <GripVertical className="h-4 w-4 text-purple-600" />
+                            </div>
+                            <div className="flex-1">
+                              <div className="font-medium text-sm text-purple-700 mb-1">{block.type}</div>
+                              <div className="text-sm text-gray-700 line-clamp-3">{block.preview}</div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {aiGeneratedBlocks.length === 0 && (
+                        <div className="text-center py-8 text-gray-500">
+                          <Sparkles className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                          <p>Click "Generate Ideas" to get AI content suggestions</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Section Content Builder */}
+                  <div className="space-y-4">
+                    <h3 className="font-semibold">Section Content</h3>
+                    <div 
+                      className="min-h-96 p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50"
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const content = e.dataTransfer.getData('text/plain');
+                        const currentContent = newModule.sections[currentSectionIndex]?.content || '';
+                        const updatedSections = [...newModule.sections];
+                        updatedSections[currentSectionIndex] = {
+                          ...updatedSections[currentSectionIndex],
+                          content: currentContent + (currentContent ? '\n\n' : '') + content
+                        };
+                        setNewModule(prev => ({ ...prev, sections: updatedSections }));
+                      }}
+                    >
+                      <Textarea
+                        value={newModule.sections[currentSectionIndex]?.content || ''}
+                        onChange={(e) => {
+                          const updatedSections = [...newModule.sections];
+                          updatedSections[currentSectionIndex] = {
+                            ...updatedSections[currentSectionIndex],
+                            content: e.target.value
+                          };
+                          setNewModule(prev => ({ ...prev, sections: updatedSections }));
+                        }}
+                        placeholder="Drag content blocks here or type directly..."
+                        className="min-h-80 resize-none border-0 bg-transparent"
+                      />
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
 
-            <div className="flex justify-between">
-              <Button 
-                variant="outline" 
-                onClick={previousSection}
-                disabled={currentSectionIndex === 0}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
+                {/* Section Actions */}
+                <div className="flex justify-between items-center pt-4 border-t">
+                  <Button 
+                    variant="outline"
+                    onClick={previousSection}
+                    disabled={currentSectionIndex === 0}
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
                 Previous
               </Button>
               <Button 
