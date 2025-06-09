@@ -105,7 +105,7 @@ const safetyQuestions: SafetyQuestion[] = [
   }
 ];
 
-export default function FroggerGame() {
+export default function FroggerGame(): JSX.Element {
   // const { user } = useAuth();
   const { toast } = useToast();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -727,13 +727,41 @@ export default function FroggerGame() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Clear canvas with gradient background
-    const gradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-    gradient.addColorStop(0, '#E6F3FF');
-    gradient.addColorStop(0.5, '#F0F8FF');
-    gradient.addColorStop(1, '#E0F6FF');
-    ctx.fillStyle = gradient;
+    // High-resolution rendering with modern effects
+    const dpr = window.devicePixelRatio || 1;
+    ctx.scale(1/dpr, 1/dpr); // Reset previous scaling
+    ctx.scale(dpr, dpr); // Apply device pixel ratio for crisp rendering
+    
+    // Multi-layer parallax background system
+    const time = performance.now() * 0.001;
+    
+    // Sky layer with animated elements
+    const skyGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+    skyGradient.addColorStop(0, '#87CEEB');
+    skyGradient.addColorStop(0.3, '#B0E0E6');
+    skyGradient.addColorStop(0.7, '#98FB98');
+    skyGradient.addColorStop(1, '#90EE90');
+    ctx.fillStyle = skyGradient;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    
+    // Parallax background elements (clouds moving at different speeds)
+    ctx.save();
+    ctx.globalAlpha = 0.3;
+    for (let i = 0; i < 4; i++) {
+      const parallaxSpeed = 0.2 + i * 0.1; // Different speeds for depth
+      const x = ((CANVAS_WIDTH * 0.25 * i) + (time * 20 * parallaxSpeed)) % (CANVAS_WIDTH + 80);
+      const y = 30 + Math.sin(time * 0.5 + i) * 15;
+      
+      // Soft cloud shapes
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.ellipse(x, y, 25 + i * 5, 12 + i * 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(x + 15, y - 5, 20 + i * 3, 10 + i, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
 
     // Draw enhanced lanes with procedural types
     for (let row = 0; row < ROWS; row++) {
@@ -797,103 +825,318 @@ export default function FroggerGame() {
       ctx.stroke();
     }
 
-    // Draw enhanced obstacles with oscillation and size variety
-    obstacles.forEach(obstacle => {
-      const baseY = obstacle.row * LANE_HEIGHT + 5;
-      const oscillateY = obstacle.oscillating ? Math.sin(obstacle.oscillateOffset || 0) * 8 : 0;
+    // Draw enhanced obstacles with sprite-like rendering and animations
+    obstacles.forEach((obstacle, index) => {
+      ctx.save();
       
-      // Shadow effect
+      // Dynamic animation based on movement
+      const animFrame = Math.floor(time * 8) % 4; // 8 FPS animation
+      const oscillation = obstacle.oscillating ? Math.sin(time * 5 + index) * 3 : 0;
+      
+      // Shadow for depth
       ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-      ctx.fillRect(obstacle.x + 2, baseY + oscillateY + 2, obstacle.width, obstacle.height);
+      ctx.fillRect(obstacle.x + 2, obstacle.row * LANE_HEIGHT + LANE_HEIGHT - 8, obstacle.width, 4);
       
-      // Main obstacle
-      ctx.fillStyle = obstacle.color;
-      ctx.fillRect(obstacle.x, baseY + oscillateY, obstacle.width, obstacle.height);
+      // Obstacle with enhanced sprite-like appearance
+      const gradient = ctx.createLinearGradient(
+        obstacle.x, obstacle.row * LANE_HEIGHT,
+        obstacle.x + obstacle.width, obstacle.row * LANE_HEIGHT + obstacle.height
+      );
       
-      // Enhanced visual indicators based on type and size
-      ctx.fillStyle = '#FFF';
-      ctx.font = `${obstacle.size === 'large' ? '20px' : obstacle.size === 'small' ? '12px' : '16px'} Arial`;
-      ctx.textAlign = 'center';
-      const centerX = obstacle.x + obstacle.width / 2;
-      const centerY = baseY + oscillateY + obstacle.height / 2 + 5;
-      
-      const icons = {
-        car: '🚗', bike: '🚲', stroller: '🍼', 
-        'snack-cart': '🛒', scooter: '🛴', 'meltdown-monster': '👹'
-      };
-      ctx.fillText(icons[obstacle.type] || '⚫', centerX, centerY);
-      
-      // Time warp effect
-      if (activeBuffs.timeWarp) {
-        ctx.strokeStyle = 'rgba(147, 112, 219, 0.8)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY - 5, obstacle.width / 2 + 5, 0, Math.PI * 2);
-        ctx.stroke();
+      // Enhanced color schemes based on type
+      switch (obstacle.type) {
+        case 'car':
+          gradient.addColorStop(0, '#FF8B8B');
+          gradient.addColorStop(0.5, '#FF6B6B');
+          gradient.addColorStop(1, '#E55555');
+          break;
+        case 'bike':
+          gradient.addColorStop(0, '#74E8DC');
+          gradient.addColorStop(0.5, '#4ECDC4');
+          gradient.addColorStop(1, '#38A89D');
+          break;
+        case 'stroller':
+          gradient.addColorStop(0, '#65C7F7');
+          gradient.addColorStop(0.5, '#45B7D1');
+          gradient.addColorStop(1, '#3498DB');
+          break;
+        case 'snack-cart':
+          gradient.addColorStop(0, '#B6E5D8');
+          gradient.addColorStop(0.5, '#96CEB4');
+          gradient.addColorStop(1, '#76B896');
+          break;
+        case 'scooter':
+          gradient.addColorStop(0, '#FED766');
+          gradient.addColorStop(0.5, '#FECA57');
+          gradient.addColorStop(1, '#F39801');
+          break;
       }
+      
+      ctx.fillStyle = gradient;
+      
+      // Main body with rounded corners for modern look
+      const x = obstacle.x;
+      const y = obstacle.row * LANE_HEIGHT + (LANE_HEIGHT - obstacle.height) / 2 + oscillation;
+      const radius = 8;
+      
+      ctx.beginPath();
+      ctx.roundRect(x, y, obstacle.width, obstacle.height, radius);
+      ctx.fill();
+      
+      // Add shine effect for polish
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.beginPath();
+      ctx.roundRect(x + 2, y + 2, obstacle.width - 4, obstacle.height * 0.3, radius);
+      ctx.fill();
+      
+      // Type-specific details
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      const centerX = x + obstacle.width / 2;
+      const centerY = y + obstacle.height / 2 + 4;
+      
+      switch (obstacle.type) {
+        case 'car':
+          ctx.fillText('🚗', centerX, centerY);
+          break;
+        case 'bike':
+          ctx.fillText('🚲', centerX, centerY);
+          break;
+        case 'stroller':
+          ctx.fillText('👶', centerX, centerY);
+          break;
+        case 'snack-cart':
+          ctx.fillText('🍎', centerX, centerY);
+          break;
+        case 'scooter':
+          ctx.fillText('🛴', centerX, centerY);
+          break;
+      }
+      
+      // Speed indicator particles for fast obstacles
+      if (obstacle.speed > 1.2) {
+        for (let i = 0; i < 3; i++) {
+          const particleX = x - 10 - i * 8;
+          const particleY = y + obstacle.height / 2 + (Math.random() - 0.5) * 10;
+          ctx.fillStyle = `rgba(255, 255, 255, ${0.6 - i * 0.2})`;
+          ctx.beginPath();
+          ctx.arc(particleX, particleY, 2 - i * 0.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      
+      ctx.restore();
     });
 
-    // Draw power-ups with glow effects
-    powerUps.forEach(powerUp => {
+    // Enhanced power-ups with glow effects and animations
+    powerUps.forEach((powerUp, index) => {
       if (powerUp.collected) return;
       
-      const powerUpY = powerUp.row * LANE_HEIGHT + LANE_HEIGHT / 2;
+      ctx.save();
       
-      // Glow effect
-      const glowGradient = ctx.createRadialGradient(powerUp.x, powerUpY, 0, powerUp.x, powerUpY, 20);
-      glowGradient.addColorStop(0, powerUp.color + 'AA');
-      glowGradient.addColorStop(1, powerUp.color + '00');
-      ctx.fillStyle = glowGradient;
-      ctx.fillRect(powerUp.x - 20, powerUpY - 20, 40, 40);
+      // Animated glow effect
+      const glowSize = 15 + Math.sin(time * 4 + index) * 5;
+      const glowAlpha = 0.3 + Math.sin(time * 6 + index) * 0.2;
       
-      // Power-up icon
-      ctx.fillStyle = powerUp.color;
-      ctx.beginPath();
-      ctx.arc(powerUp.x, powerUpY, 12, 0, Math.PI * 2);
-      ctx.fill();
-      
-      ctx.fillStyle = '#FFF';
-      ctx.font = 'bold 14px Arial';
-      ctx.textAlign = 'center';
-      const powerUpIcons = {
-        shield: '🛡️', turbo: '🚀', 'sticker-storm': '⭐', 
-        'team-rally': '👥', 'time-warp': '🌀'
-      };
-      ctx.fillText(powerUpIcons[powerUp.type] || '⚡', powerUp.x, powerUpY + 4);
-    });
-
-    // Draw particle effects
-    particles.forEach(particle => {
-      const alpha = particle.life / particle.maxLife;
-      ctx.fillStyle = particle.color + Math.floor(alpha * 255).toString(16).padStart(2, '0');
-      ctx.beginPath();
-      ctx.arc(particle.x, particle.y, particle.size * alpha, 0, Math.PI * 2);
-      ctx.fill();
-    });
-
-    // Draw enhanced player with shields and invulnerability
-    const playerX = player.col * GRID_SIZE;
-    const playerY = player.row * LANE_HEIGHT;
-    
-    // Invulnerability flashing
-    const alpha = player.isInvulnerable && Math.floor(Date.now() / 100) % 2 ? 0.5 : 1;
-    
-    // Shield effect
-    if (player.hasShield || activeBuffs.shield) {
-      const shieldGradient = ctx.createRadialGradient(
-        playerX + GRID_SIZE/2, playerY + GRID_SIZE/2, 0,
-        playerX + GRID_SIZE/2, playerY + GRID_SIZE/2, GRID_SIZE
+      // Outer glow
+      const glowGradient = ctx.createRadialGradient(
+        powerUp.x + 15, powerUp.row * LANE_HEIGHT + 30, 0,
+        powerUp.x + 15, powerUp.row * LANE_HEIGHT + 30, glowSize
       );
-      shieldGradient.addColorStop(0, 'rgba(65, 105, 225, 0.3)');
-      shieldGradient.addColorStop(1, 'rgba(65, 105, 225, 0)');
-      ctx.fillStyle = shieldGradient;
-      ctx.fillRect(playerX - 10, playerY - 10, GRID_SIZE + 20, GRID_SIZE + 20);
+      glowGradient.addColorStop(0, `rgba(255, 215, 0, ${glowAlpha})`);
+      glowGradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
+      ctx.fillStyle = glowGradient;
+      ctx.beginPath();
+      ctx.arc(powerUp.x + 15, powerUp.row * LANE_HEIGHT + 30, glowSize, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Power-up body with enhanced gradient
+      const powerUpGradient = ctx.createRadialGradient(
+        powerUp.x + 15, powerUp.row * LANE_HEIGHT + 30, 0,
+        powerUp.x + 15, powerUp.row * LANE_HEIGHT + 30, 15
+      );
+      
+      switch (powerUp.type) {
+        case 'shield':
+          powerUpGradient.addColorStop(0, '#87CEEB');
+          powerUpGradient.addColorStop(1, '#4682B4');
+          break;
+        case 'turbo':
+          powerUpGradient.addColorStop(0, '#FFD700');
+          powerUpGradient.addColorStop(1, '#FFA500');
+          break;
+        case 'sticker-storm':
+          powerUpGradient.addColorStop(0, '#FF69B4');
+          powerUpGradient.addColorStop(1, '#FF1493');
+          break;
+        case 'team-rally':
+          powerUpGradient.addColorStop(0, '#98FB98');
+          powerUpGradient.addColorStop(1, '#32CD32');
+          break;
+        case 'time-warp':
+          powerUpGradient.addColorStop(0, '#DDA0DD');
+          powerUpGradient.addColorStop(1, '#8A2BE2');
+          break;
+      }
+      
+      ctx.fillStyle = powerUpGradient;
+      ctx.beginPath();
+      ctx.arc(powerUp.x + 15, powerUp.row * LANE_HEIGHT + 30, 12, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Sparkle particles around power-ups
+      for (let i = 0; i < 3; i++) {
+        const sparkleAngle = (time * 2 + index + i * 2) % (Math.PI * 2);
+        const sparkleRadius = 20 + Math.sin(time * 3 + i) * 5;
+        const sparkleX = powerUp.x + 15 + Math.cos(sparkleAngle) * sparkleRadius;
+        const sparkleY = powerUp.row * LANE_HEIGHT + 30 + Math.sin(sparkleAngle) * sparkleRadius;
+        
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.beginPath();
+        ctx.arc(sparkleX, sparkleY, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      ctx.restore();
+    });
+
+    // Enhanced player with smooth animations and visual effects
+    ctx.save();
+    
+    // Player spotlight effect for visibility
+    const playerCenterX = player.col * GRID_SIZE + GRID_SIZE / 2;
+    const playerCenterY = player.row * LANE_HEIGHT + LANE_HEIGHT / 2;
+    
+    // Subtle radial light around player
+    const spotlight = ctx.createRadialGradient(
+      playerCenterX, playerCenterY, 0,
+      playerCenterX, playerCenterY, 40
+    );
+    spotlight.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
+    spotlight.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = spotlight;
+    ctx.beginPath();
+    ctx.arc(playerCenterX, playerCenterY, 40, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Player shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    ctx.beginPath();
+    ctx.ellipse(playerCenterX + 2, playerCenterY + 18, 15, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Player body with animation frames
+    const playerBob = Math.sin(time * 6) * 2; // Subtle bobbing animation
+    const playerY = playerCenterY - 10 + playerBob;
+    
+    // Player gradient based on power-up status
+    const playerGradient = ctx.createLinearGradient(
+      playerCenterX - 15, playerY - 15,
+      playerCenterX + 15, playerY + 15
+    );
+    
+    if (player.hasShield) {
+      playerGradient.addColorStop(0, '#87CEEB');
+      playerGradient.addColorStop(0.5, '#4682B4');
+      playerGradient.addColorStop(1, '#1E90FF');
+    } else if (player.isInvulnerable) {
+      playerGradient.addColorStop(0, '#FFD700');
+      playerGradient.addColorStop(0.5, '#FFA500');
+      playerGradient.addColorStop(1, '#FF8C00');
+    } else {
+      playerGradient.addColorStop(0, '#FFB6C1');
+      playerGradient.addColorStop(0.5, '#FF69B4');
+      playerGradient.addColorStop(1, '#FF1493');
     }
     
-    // Player body
-    ctx.globalAlpha = alpha;
-    ctx.fillStyle = '#4682B4';
-    ctx.fillRect(playerX + 2, playerY + 2, GRID_SIZE - 4, GRID_SIZE - 4);
+    ctx.fillStyle = playerGradient;
+    
+    // Player body with rounded shape
+    ctx.beginPath();
+    ctx.roundRect(playerCenterX - 12, playerY - 12, 24, 24, 6);
+    ctx.fill();
+    
+    // Player shine effect
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.beginPath();
+    ctx.roundRect(playerCenterX - 8, playerY - 8, 16, 8, 4);
+    ctx.fill();
+    
+    // Player face/details
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('👩‍🏫', playerCenterX, playerY + 5);
+    
+    // Shield visual effect
+    if (player.hasShield) {
+      ctx.strokeStyle = 'rgba(135, 206, 235, 0.6)';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([5, 5]);
+      ctx.lineDashOffset = -time * 10;
+      ctx.beginPath();
+      ctx.arc(playerCenterX, playerCenterY, 20, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    
+    // Invulnerability flash effect
+    if (player.isInvulnerable) {
+      const flashAlpha = 0.3 + Math.sin(time * 15) * 0.3;
+      ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha})`;
+      ctx.beginPath();
+      ctx.arc(playerCenterX, playerCenterY, 18, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    ctx.restore();
+
+    // Enhanced particle system with GPU-optimized rendering
+    particles.forEach((particle, index) => {
+      ctx.save();
+      ctx.globalAlpha = particle.life / particle.maxLife;
+      
+      // Particle with glow effect
+      const particleGradient = ctx.createRadialGradient(
+        particle.x, particle.y, 0,
+        particle.x, particle.y, particle.size * 2
+      );
+      particleGradient.addColorStop(0, particle.color);
+      particleGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      
+      ctx.fillStyle = particleGradient;
+      ctx.beginPath();
+      ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.restore();
+    });
+
+    // Enhanced UI overlay with modern design
+    ctx.save();
+    ctx.resetTransform();
+    
+    // Semi-transparent overlay for UI
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    ctx.fillRect(0, 0, CANVAS_WIDTH, 60);
+    
+    // Score and stats display
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText(`Score: ${score}`, 10, 25);
+    ctx.fillText(`Level: ${level}`, 10, 45);
+    
+    ctx.textAlign = 'center';
+    ctx.fillText(`Lives: ${player.lives}`, CANVAS_WIDTH / 2, 25);
+    ctx.fillText(`XP: ${player.xp}`, CANVAS_WIDTH / 2, 45);
+    
+    ctx.textAlign = 'right';
+    ctx.fillText(`Streak: ${stats.dodgeStreak}`, CANVAS_WIDTH - 10, 25);
+    ctx.fillText(`Time: ${Math.floor((performance.now() - (startTimeRef.current || 0)) / 1000)}s`, CANVAS_WIDTH - 10, 45);
+    
+    ctx.restore();
     
     // Player face
     ctx.fillStyle = '#FDBCB4';

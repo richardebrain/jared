@@ -1,0 +1,49 @@
+1. Pick a WebGL-Powered 2D Engine
+PixiJS or Phaser 3 are battle-tested for performant sprite batching, particle systems, shaders and texture atlases.
+
+Wrap them in React with react-pixi or a custom hook so your game canvas lives alongside your UI components.
+
+2. Sprite Atlases & Texture Packing
+Use a tool like TexturePacker or Shoebox to pack all your character, obstacle and UI art into one or two PNG atlases.
+
+Load them once, then create PIXI.Sprite (or Phaser.GameObjects.Sprite) instances for each obstacle/teacher avatar—no per-frame image loads.
+
+3. Offscreen & Parallax Layers
+Render static background layers (lanes, sidewalks, playground buildings) to offscreen framebuffers or RenderTextures, then composite them each frame.
+
+Create two or three of these at different scroll speeds for a parallax effect.
+
+4. Tweened, Grid-Snapped Movement
+Use a tweening library like GSAP or the engine’s built-in tweens to move your teacher sprite from lane to lane over 0.1 s with ease-in/out.
+
+On each arrow-key (or tap), fire a single tween and ignore new input until it completes—guarantees crisp, non-overlapping moves.
+
+5. Particle & Feedback Systems
+Implement a pooled ParticleContainer (PixiJS) or ParticleEmitter (Phaser) for confetti bursts and near-miss sparks.
+
+Cap particles at ~30 per burst and reuse them to avoid GC spikes.
+
+6. Shader Effects & Bloom
+Add a simple glow filter (e.g. PIXI.filters.GlowFilter) around power-ups when they spawn.
+
+Use a full-screen color tint flash on collision (graphics.beginFill(0xFF0000, 0.2) + fade) for instant feedback.
+
+7. High-Resolution Canvas & Downscaling
+Render your WebGL canvas at 2× the logical resolution (e.g. 1200×1600) with antialias: true, then CSS-scale it down to 600×800—gives crisp, sub-pixel edges.
+
+8. Fixed Timestep & requestAnimationFrame
+Drive your game loop with a fixed-timestep update inside requestAnimationFrame, interpolating render frames to maintain a rock-solid 60 FPS.
+
+9. UI Overlays in React
+Keep your heads-up display (score, quiz dialogs, buttons) as React components overlayed on the Canvas.
+
+Use React state to push data into Pixi/Phaser (e.g. new quiz prompt → pause the renderer and show your <QuizModal />).
+
+10. Asset & Performance Safeguards
+Preload and .baseTexture.preload() all atlases before the first run.
+
+Monitor your render stats (e.g. Pixi’s app.ticker.FPS) and dynamically throttle spawn rates or particle counts if you ever drop below ~55 FPS.
+
+In short: • Use a WebGL-first 2D engine (PixiJS/Phaser) • Pack and batch your art in atlases • Pre-render static layers • Tween grid-snapped moves • Pool your particles • Add simple shaders/filters • Render high-res + downscale • Drive your loop with requestAnimationFrame + fixed timestep • Overlay UI in React.
+
+That roadmap will give you the modern, polished look and buttery-smooth feel of a top-tier endless runner—perfect for keeping anyone hooked while they learn.

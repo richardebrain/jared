@@ -1,0 +1,77 @@
+Switch to a Modern Rendering Engine
+
+Use the Python Arcade library (built on OpenGL) instead of raw Pygame for GPU-accelerated sprites, smoothing, and scene management.
+
+Install:
+
+bash
+Copy
+Edit
+pip install arcade arcade_gui
+High-Resolution Sprite Sheets
+
+Provide or link to 2–4x HD PNG sprite atlases for the teacher, child, obstacles, power-ups, and UI.
+
+Load them with arcade.load_spritesheet and use arcade.SpriteList to batch-draw, not manual draw.rect.
+
+Call .set_hit_box_from_texture() so collision matches the art, not a raw rectangle.
+
+Parallax Background Layers
+
+Create 3 background layers (e.g. school silhouette, playground props, street foreground).
+
+Move each at a different fraction of camera scroll (0.2×, 0.5×, 1×) to give depth.
+
+Frame-Based Animation & Tweening
+
+Animate all characters with real sprite frames (walking frames, idle, hit).
+
+Use arcade.animate() or a tweening helper to smoothly interpolate positions and special-effect scales.
+
+Antialiasing & Smoothing
+
+Render to a high-res offscreen buffer (e.g. 1200×1600), then downscale to 600×800 with bilinear filtering for crisp, anti-aliased edges.
+
+Enable arcade.enable_blending() for proper transparency.
+
+Polished UI with 9-Slice Panels
+
+Use pre-made panel graphics with nine-patch slicing for score bars, dialogue boxes, and quiz overlays.
+
+Render text with a modern bitmap or vector font (e.g. “Nunito” or “Fredoka One”) rather than the default Arial.
+
+Dynamic Lighting & Bloom Accent
+
+Layer a subtle radial light texture at the player’s position (20% opacity) for a “spotlight” effect.
+
+On power-up, draw a white, translucent ellipse that quickly expands/fades (a quick “bloom” effect).
+
+Particle Effects with GPU Sprites
+
+Use arcade.Particle for confetti, sparkles, and smoke. Pre-define textures (star, circle, leaf) and let the engine batch them.
+
+Cap each system at 100 particles and pool instances to avoid GC pauses.
+
+Shader-Like Transition Effects
+
+For level-intro and quiz panels, use a quick “page-turn” or “wipe” tween (Arcade has built-in arcade.load_texture with transform shaders).
+
+On collision, flash a tinted overlay (e.g. semi-transparent red) for 0.1 s.
+
+Consistent Art Direction & Palette
+
+Choose a 16-color palette (to keep textures small) and have every sprite use only those colors.
+
+Export all art at the same pixel grid (e.g. 32×32 or 64×64 texels) for consistent scale and no blurry stretching.
+
+Short prompt for Replit:
+
+“Switch to the Arcade library for OpenGL acceleration, import high-res sprite sheets and 16-color-palette textures, set up parallax background layers, sprite-based animations with frame-tweens, 9-slice UI panels, GPU-pooled particles, and subtle lighting/bloom. Render offscreen at double resolution and downscale with bilinear filtering for crisp anti-aliased graphics. This combination of modern engine, real art assets, and layered effects will give us the polished, inviting look of a top mobile endless runner—without blowing out the browser.”
+
+
+
+
+
+
+
+
