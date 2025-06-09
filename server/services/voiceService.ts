@@ -1,5 +1,3 @@
-import { ElevenLabsApi } from '@elevenlabs/elevenlabs-js';
-
 // Voice profiles for different narrator types
 export const NARRATOR_VOICES = {
   'professional-female': {
@@ -30,30 +28,23 @@ export const NARRATOR_VOICES = {
 };
 
 export class VoiceService {
-  private client: ElevenLabs | null = null;
   private isInitialized = false;
+  private apiKey: string | null = null;
 
   constructor() {
     this.initializeClient();
   }
 
   private initializeClient(): void {
-    const apiKey = process.env.ELEVENLABS_API_KEY;
+    this.apiKey = process.env.ELEVENLABS_API_KEY || null;
     
-    if (!apiKey) {
+    if (!this.apiKey) {
       console.warn('ElevenLabs API key not found. Voice generation will be disabled.');
       return;
     }
 
-    try {
-      this.client = new ElevenLabs({
-        apiKey: apiKey
-      });
-      this.isInitialized = true;
-      console.log('ElevenLabs voice service initialized successfully');
-    } catch (error) {
-      console.error('Failed to initialize ElevenLabs client:', error);
-    }
+    this.isInitialized = true;
+    console.log('ElevenLabs voice service initialized successfully');
   }
 
   async generateSpeech(
@@ -66,7 +57,7 @@ export class VoiceService {
       useSpeakerBoost?: boolean;
     } = {}
   ): Promise<Buffer | null> {
-    if (!this.isInitialized || !this.client) {
+    if (!this.isInitialized || !this.apiKey) {
       console.error('ElevenLabs client not initialized');
       return null;
     }
@@ -81,36 +72,35 @@ export class VoiceService {
       // Clean and optimize text for speech
       const optimizedText = this.optimizeTextForSpeech(text);
 
-      const response = await this.client.textToSpeech.convert({
-        voice_id: voice.voiceId,
-        text: optimizedText,
-        model_id: 'eleven_multilingual_v2', // Best quality model
-        voice_settings: {
-          stability: settings.stability ?? 0.75,
-          similarity_boost: settings.similarityBoost ?? 0.85,
-          style: settings.style ?? 0.0,
-          use_speaker_boost: settings.useSpeakerBoost ?? true
-        }
+      const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voice.voiceId}`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'audio/mpeg',
+          'Content-Type': 'application/json',
+          'xi-api-key': this.apiKey
+        },
+        body: JSON.stringify({
+          text: optimizedText,
+          model_id: 'eleven_multilingual_v2',
+          voice_settings: {
+            stability: settings.stability ?? 0.75,
+            similarity_boost: settings.similarityBoost ?? 0.85,
+            style: settings.style ?? 0.0,
+            use_speaker_boost: settings.useSpeakerBoost ?? true
+          }
+        })
       });
 
-      // Convert response to buffer
-      const chunks: Uint8Array[] = [];
-      for await (const chunk of response) {
-        chunks.push(chunk);
+      if (!response.ok) {
+        throw new Error(`ElevenLabs API error: ${response.status} ${response.statusText}`);
       }
 
-      const audioBuffer = Buffer.concat(chunks);
+      const audioBuffer = Buffer.from(await response.arrayBuffer());
       console.log(`Generated speech for text: "${text.substring(0, 50)}..." using voice: ${voice.name}`);
       
       return audioBuffer;
     } catch (error) {
-      if (error instanceof ElevenLabsApiError) {
-        console.error('ElevenLabs API error:', error.message);
-        console.error('Status:', error.status);
-        console.error('Body:', error.body);
-      } else {
-        console.error('Voice generation error:', error);
-      }
+      console.error('Voice generation error:', error);
       return null;
     }
   }
@@ -225,7 +215,7 @@ export class VoiceService {
   }
 
   isServiceAvailable(): boolean {
-    return this.isInitialized && this.client !== null;
+    return this.isInitialized && this.apiKey !== null;
   }
 }
 

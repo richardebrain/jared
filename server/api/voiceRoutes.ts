@@ -1,11 +1,11 @@
 import express from 'express';
 import { voiceService, NARRATOR_VOICES } from '../services/voiceService';
-import { authenticateUser } from '../middleware/auth';
+import { requireAuth } from '../middleware/auth';
 
 const router = express.Router();
 
 // Get available narrator voices
-router.get('/voices', authenticateUser, async (req, res) => {
+router.get('/voices', requireAuth, async (req, res) => {
   try {
     const voices = voiceService.getAvailableVoices();
     const isServiceAvailable = voiceService.isServiceAvailable();
@@ -22,7 +22,7 @@ router.get('/voices', authenticateUser, async (req, res) => {
 });
 
 // Generate speech for text
-router.post('/generate', authenticateUser, async (req, res) => {
+router.post('/generate', requireAuth, async (req, res) => {
   try {
     const { text, voiceType = 'professional-female', settings = {} } = req.body;
 
@@ -55,7 +55,7 @@ router.post('/generate', authenticateUser, async (req, res) => {
 });
 
 // Generate complete module narration
-router.post('/generate-module', authenticateUser, async (req, res) => {
+router.post('/generate-module', requireAuth, async (req, res) => {
   try {
     const { moduleContent, voiceType = 'professional-female' } = req.body;
 
@@ -86,7 +86,7 @@ router.post('/generate-module', authenticateUser, async (req, res) => {
 });
 
 // Generate question narration
-router.post('/generate-question', authenticateUser, async (req, res) => {
+router.post('/generate-question', requireAuth, async (req, res) => {
   try {
     const { question, voiceType = 'friendly-female' } = req.body;
 
@@ -110,7 +110,7 @@ router.post('/generate-question', authenticateUser, async (req, res) => {
 });
 
 // Test voice service endpoint
-router.get('/test', authenticateUser, async (req, res) => {
+router.get('/test', requireAuth, async (req, res) => {
   try {
     const testText = "Hello! This is a test of the voice narration system for educational modules.";
     const audioBuffer = await voiceService.generateSpeech(testText, 'professional-female');
