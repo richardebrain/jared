@@ -136,6 +136,7 @@ export default function ComprehensiveModuleCreator() {
       description: '60-minute multi-module course with breathing exercises, reflection, and certification',
       duration: '60 min',
       modules: 6,
+      icon: Heart,
       sections: [
         { type: 'text', title: 'Welcome & Why It Matters', duration: 5 },
         { type: 'video', title: 'Mindfulness Introduction Video', duration: 10 },
@@ -151,6 +152,7 @@ export default function ComprehensiveModuleCreator() {
       description: 'Strategic approaches for smooth transitions with behavior management focus',
       duration: '25 min',
       modules: 1,
+      icon: Users,
       sections: [
         { type: 'text', title: 'Understanding the Challenge', duration: 5 },
         { type: 'example', title: 'Effective Strategies', duration: 8 },
@@ -164,6 +166,7 @@ export default function ComprehensiveModuleCreator() {
       description: 'Evidence-based strategies for classroom behavior management',
       duration: '35 min',
       modules: 1,
+      icon: CheckCircle2,
       sections: [
         { type: 'text', title: 'Foundation Principles', duration: 8 },
         { type: 'video', title: 'Expert Demonstration', duration: 12 },
@@ -178,6 +181,7 @@ export default function ComprehensiveModuleCreator() {
       description: 'Understanding and responding to childhood trauma in educational settings',
       duration: '45 min',
       modules: 1,
+      icon: Brain,
       sections: [
         { type: 'text', title: 'Introduction to Trauma', duration: 10 },
         { type: 'story', title: 'Case Studies', duration: 15 },
@@ -1926,7 +1930,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                   <CardContent className="p-6" onClick={() => handleTemplateSelection(template)}>
                     <div className="flex items-start gap-4">
                       <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-                        <template.icon className="h-6 w-6 text-white" />
+                        {template.icon ? React.createElement(template.icon, { className: "h-6 w-6 text-white" }) : <BookOpen className="h-6 w-6 text-white" />}
                       </div>
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg mb-2">{template.title}</h3>
