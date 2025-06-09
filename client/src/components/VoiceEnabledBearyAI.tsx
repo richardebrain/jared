@@ -34,6 +34,13 @@ export default function VoiceEnabledBearyAI({ onResponse }: VoiceEnabledBearyAIP
 
   // Initialize speech recognition and synthesis
   useEffect(() => {
+    // Listen for prompt events from quick action buttons
+    const handlePromptEvent = (event: CustomEvent) => {
+      setPrompt(event.detail);
+    };
+
+    window.addEventListener('beary-ai-prompt', handlePromptEvent as EventListener);
+
     // Check if Speech Recognition is supported
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       setIsRecognitionSupported(true);
@@ -87,6 +94,7 @@ export default function VoiceEnabledBearyAI({ onResponse }: VoiceEnabledBearyAIP
     }
     
     return () => {
+      window.removeEventListener('beary-ai-prompt', handlePromptEvent as EventListener);
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
