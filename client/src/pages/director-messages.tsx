@@ -393,11 +393,11 @@ export default function DirectorMessages() {
 
               <div>
                 <label className="block text-sm font-medium mb-2">Additional Message (Optional)</label>
-                <Textarea
-                  placeholder="Add any additional instructions or context for this training assignment..."
+                <VoiceInputTextarea
                   value={trainingAssignment.message}
-                  onChange={(e) => setTrainingAssignment({ ...trainingAssignment, message: e.target.value })}
-                  rows={3}
+                  onChange={(value) => setTrainingAssignment({ ...trainingAssignment, message: value })}
+                  placeholder="Add any additional instructions or context for this training assignment..."
+                  minHeight="min-h-[120px]"
                 />
               </div>
 
