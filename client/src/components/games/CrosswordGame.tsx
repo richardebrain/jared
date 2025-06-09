@@ -164,14 +164,18 @@ export default function CrosswordGame({ onComplete, onPointsEarned }: {
   }, []);
 
   useEffect(() => {
+    let cleanup: (() => void) | undefined;
+    
     if (gameState.timeLeft > 0 && !gameState.gameComplete) {
       const timer = setTimeout(() => {
         setGameState(prev => ({ ...prev, timeLeft: prev.timeLeft - 1 }));
       }, 1000);
-      return () => clearTimeout(timer);
+      cleanup = () => clearTimeout(timer);
     } else if (gameState.timeLeft === 0) {
       endGame();
     }
+    
+    return cleanup;
   }, [gameState.timeLeft, gameState.gameComplete]);
 
   const endGame = () => {
