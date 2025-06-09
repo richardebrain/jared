@@ -48,6 +48,32 @@ function AssessmentNavButton({ location }: { location: string }) {
   );
 }
 
+// Mobile Assessment Navigation Button Component
+function MobileAssessmentNavButton({ location }: { location: string }) {
+  const { data: assessmentStatus } = useQuery({
+    queryKey: ["/api/assessment/status"],
+    staleTime: 30000, // Cache for 30 seconds to avoid excessive API calls
+  });
+
+  const handleAssessmentClick = () => {
+    const routeTo = assessmentStatus?.routeTo || '/assessment';
+    window.location.href = routeTo;
+  };
+
+  const isActive = location === "/assessment" || location === "/assessment/results";
+
+  return (
+    <div 
+      onClick={handleAssessmentClick}
+      className={`py-2 px-4 rounded-md ${isActive
+        ? "bg-amber-600 text-white font-medium shadow-sm" 
+        : "text-neutral-700 hover:bg-amber-100"} cursor-pointer transition-colors`}
+    >
+      Assessment
+    </div>
+  );
+}
+
 export default function Header() {
   // return <>hello</>
   const [location, setLocation] = useLocation();
