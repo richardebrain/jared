@@ -3448,14 +3448,15 @@ Continue for all 5 questions...
       const nominator = await storage.getUser(nominatorId);
       const nominatorName = nominator ? `${nominator.firstName} ${nominator.lastName}` : 'A colleague';
       
-      await storage.createMessage({
+      await db.insert(teacherMessages).values({
         senderId: nominatorId,
         recipientId: nomineeId,
         schoolId: nominator?.schoolId || 1,
         messageType: 'shoutout',
         title: `Core Value Recognition: ${coreValue}`,
         content: `${nominatorName} nominated you for demonstrating "${coreValue}"! They said: "${nominationText}". You earned ${pointsAwarded} points!`,
-        important: true
+        important: true,
+        isRead: false
       });
 
       // Mark nominee as having unread messages
