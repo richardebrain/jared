@@ -26,6 +26,8 @@ import DailyChallenge from '@/components/DailyChallenge';
 import PacHealGame from '@/components/games/PacHealGameWorking';
 import BounceAwayBlocks from '@/components/games/BounceAwayBlocks';
 import GameTokenMachine from '@/components/games/GameTokenMachine';
+import { GameWindowManager } from '@/components/games/GameWindowManager';
+import { openGameInWindow, GameRenderer } from '@/components/games/GameRenderer';
 import { useToast } from "@/hooks/use-toast";
 import { 
   LuckySlots, 
