@@ -47,7 +47,11 @@ import {
   X,
   ChevronRight,
   Wand2,
-  Upload
+  Upload,
+  Heart,
+  Link,
+  Target,
+  Music
 } from 'lucide-react';
 import StepByStepModuleBuilder from '@/components/StepByStepModuleBuilder';
 import PowerPointImporter from '@/components/PowerPointImporter';
@@ -293,6 +297,179 @@ export default function ComprehensiveModuleCreator() {
       }
     }
   }, []);
+
+  // Generate AI story content for interactive story sections
+  const generateStoryContent = async (sectionIndex: number) => {
+    if (!newModule.title || !newModule.description) {
+      toast({
+        title: "Missing Information",
+        description: "Please add a module title and description first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setGeneratingContent(sectionIndex);
+    
+    try {
+      const response = await apiRequest('/api/ai/generate-story-content', {
+        method: 'POST',
+        data: {
+          moduleTitle: newModule.title,
+          moduleDescription: newModule.description,
+          sectionTitle: newModule.sections[sectionIndex].title,
+          currentContent: newModule.sections[sectionIndex].content,
+          category: newModule.category
+        }
+      });
+
+      if (response.story) {
+        updateSection(sectionIndex, 'content', response.story);
+        toast({
+          title: "Story Generated",
+          description: "AI has created an engaging interactive story for this section.",
+        });
+      }
+    } catch (error) {
+      console.error('Error generating story:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate story content. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingContent(null);
+    }
+  };
+
+  // Generate AI examples for real-world examples sections
+  const generateExampleContent = async (sectionIndex: number) => {
+    if (!newModule.title || !newModule.description) {
+      toast({
+        title: "Missing Information",
+        description: "Please add a module title and description first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setGeneratingContent(sectionIndex);
+    
+    try {
+      const response = await apiRequest('/api/ai/generate-examples', {
+        method: 'POST',
+        data: {
+          moduleTitle: newModule.title,
+          moduleDescription: newModule.description,
+          sectionTitle: newModule.sections[sectionIndex].title,
+          category: newModule.category
+        }
+      });
+
+      if (response.examples) {
+        updateSection(sectionIndex, 'content', response.examples);
+        toast({
+          title: "Examples Generated",
+          description: "AI has created practical real-world examples for this section.",
+        });
+      }
+    } catch (error) {
+      console.error('Error generating examples:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate example content. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingContent(null);
+    }
+  };
+
+  // Generate AI matching exercises
+  const generateMatchingContent = async (sectionIndex: number) => {
+    if (!newModule.title || !newModule.description) {
+      toast({
+        title: "Missing Information",
+        description: "Please add a module title and description first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setGeneratingContent(sectionIndex);
+    
+    try {
+      const response = await apiRequest('/api/ai/generate-matching-exercise', {
+        method: 'POST',
+        data: {
+          moduleTitle: newModule.title,
+          moduleDescription: newModule.description,
+          sectionTitle: newModule.sections[sectionIndex].title,
+          category: newModule.category
+        }
+      });
+
+      if (response.matchingExercise) {
+        updateSection(sectionIndex, 'content', response.matchingExercise);
+        toast({
+          title: "Matching Exercise Generated",
+          description: "AI has created an interactive matching exercise for this section.",
+        });
+      }
+    } catch (error) {
+      console.error('Error generating matching exercise:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate matching exercise. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingContent(null);
+    }
+  };
+
+  // Generate AI scenario content
+  const generateScenarioContent = async (sectionIndex: number) => {
+    if (!newModule.title || !newModule.description) {
+      toast({
+        title: "Missing Information",
+        description: "Please add a module title and description first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setGeneratingContent(sectionIndex);
+    
+    try {
+      const response = await apiRequest('/api/ai/generate-scenario', {
+        method: 'POST',
+        data: {
+          moduleTitle: newModule.title,
+          moduleDescription: newModule.description,
+          sectionTitle: newModule.sections[sectionIndex].title,
+          category: newModule.category
+        }
+      });
+
+      if (response.scenario) {
+        updateSection(sectionIndex, 'content', response.scenario);
+        toast({
+          title: "Scenario Generated",
+          description: "AI has created a realistic decision-making scenario for this section.",
+        });
+      }
+    } catch (error) {
+      console.error('Error generating scenario:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate scenario content. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingContent(null);
+    }
+  };
 
   // Generate AI video using Veo API
   const generateAiVideo = async (sectionIndex: number) => {
@@ -1832,12 +2009,32 @@ Create a natural conversation between two podcast hosts discussing this specific
                         />
                       </div>
                       <div className="p-4 bg-purple-50 rounded-lg">
-                        <div className="flex items-center mb-2">
-                          <Heart className="h-4 w-4 text-purple-600 mr-2" />
-                          <span className="text-sm font-medium text-purple-800">Story Elements</span>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <Brain className="h-4 w-4 text-purple-600 mr-2" />
+                            <span className="text-sm font-medium text-purple-800">AI Story Builder</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => generateStoryContent(index)}
+                            disabled={generatingContent === index}
+                            className="bg-purple-600 hover:bg-purple-700"
+                          >
+                            {generatingContent === index ? (
+                              <>
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="h-3 w-3 mr-1" />
+                                Generate Story
+                              </>
+                            )}
+                          </Button>
                         </div>
                         <p className="text-sm text-purple-700">
-                          Create an engaging narrative that teaches through character experiences and decisions. AI can help generate story elements based on your content.
+                          AI will create an engaging interactive story with characters, setting, and decision points for {newModule.title || 'your topic'}.
                         </p>
                       </div>
                     </div>
@@ -1856,12 +2053,32 @@ Create a natural conversation between two podcast hosts discussing this specific
                         />
                       </div>
                       <div className="p-4 bg-yellow-50 rounded-lg">
-                        <div className="flex items-center mb-2">
-                          <Lightbulb className="h-4 w-4 text-yellow-600 mr-2" />
-                          <span className="text-sm font-medium text-yellow-800">Example Builder</span>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <Brain className="h-4 w-4 text-yellow-600 mr-2" />
+                            <span className="text-sm font-medium text-yellow-800">AI Example Builder</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => generateExampleContent(index)}
+                            disabled={generatingContent === index}
+                            className="bg-yellow-600 hover:bg-yellow-700"
+                          >
+                            {generatingContent === index ? (
+                              <>
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <Lightbulb className="h-3 w-3 mr-1" />
+                                Generate Examples
+                              </>
+                            )}
+                          </Button>
                         </div>
                         <p className="text-sm text-yellow-700">
-                          Share concrete examples from your experience or industry best practices. Show how concepts apply in real situations.
+                          AI will create practical real-world examples that illustrate {newModule.title || 'your concept'} in action.
                         </p>
                       </div>
                     </div>
