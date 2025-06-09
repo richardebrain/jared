@@ -707,13 +707,18 @@ Create a natural conversation between two podcast hosts discussing this specific
     },
     onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
+      //queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
       
       let successMessage = "Your custom module has been created successfully.";
       let competitionInfo = null;
-      
+
+     // console.log('Module creation response:', data)
       // If shareWithCommunity is enabled, call the community sharing API
-      if (newModule.shareWithCommunity && data?.module?.id) {
+      console.log('Module creation response before:', data,newModule)
+
+      if (data?.module?.is_shared_to_community && data?.module?.id) {
+        console.log('Module creation response after:', data,newModule)
+
         try {
           const shareResponse = await apiRequest('/api/community-modules/share', {
             method: 'POST',
@@ -761,7 +766,7 @@ Create a natural conversation between two podcast hosts discussing this specific
       setIsCreatingModule(false);
       
       // Show appropriate toast message
-      if (newModule.shareWithCommunity && competitionInfo) {
+      if (data?.module?.is_shared_to_community && competitionInfo) {
         toast({
           title: "Module Created & Shared!",
           description: successMessage,

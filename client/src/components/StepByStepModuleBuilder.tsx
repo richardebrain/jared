@@ -202,7 +202,6 @@ export default function StepByStepModuleBuilder({ initialData, onModuleComplete,
       }
 
       const outline = await response.json();
-      console.log(outline,'ai module outline')
       setModuleOutline(outline);
       setCurrentStep(2);
       
