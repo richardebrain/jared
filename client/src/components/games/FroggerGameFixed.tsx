@@ -72,7 +72,7 @@ interface SafetyQuestion {
   explanation: string;
 }
 
-// Safety questions for educational content
+// Expanded safety questions for educational content
 const safetyQuestions: SafetyQuestion[] = [
   {
     id: 1,
@@ -100,15 +100,123 @@ const safetyQuestions: SafetyQuestion[] = [
   },
   {
     id: 3,
-    question: "What's the safest way to handle transitions between activities?",
+    question: "What is the proper adult-to-child ratio for preschool outdoor activities?",
     options: [
-      "Let children move freely when ready",
-      "Move all children at once quickly",
-      "Use a buddy system and clear signals",
-      "Have children run to the next activity"
+      "1 adult for every 15 children",
+      "1 adult for every 10 children",
+      "1 adult for every 8 children",
+      "1 adult for every 6 children"
     ],
     correctAnswer: 2,
-    explanation: "Buddy systems and clear signals help maintain order and ensure no child gets left behind."
+    explanation: "A 1:8 ratio ensures adequate supervision while allowing children to explore safely."
+  },
+  {
+    id: 4,
+    question: "When should you wash your hands during a preschool day?",
+    options: [
+      "Only before meals",
+      "Before meals and after using the bathroom",
+      "Before meals, after bathroom, after playground, and when visibly dirty",
+      "Only when they look dirty"
+    ],
+    correctAnswer: 2,
+    explanation: "Frequent handwashing at key times prevents the spread of germs and illness."
+  },
+  {
+    id: 5,
+    question: "How should you respond to aggressive behavior between children?",
+    options: [
+      "Let them work it out themselves",
+      "Separate them immediately and use calm, clear language",
+      "Punish both children equally",
+      "Ignore it unless someone gets hurt"
+    ],
+    correctAnswer: 1,
+    explanation: "Quick intervention with calm guidance helps children learn appropriate conflict resolution."
+  },
+  {
+    id: 6,
+    question: "What is the most important safety rule for playground equipment?",
+    options: [
+      "Children can play on any equipment",
+      "Only age-appropriate equipment should be used",
+      "Equipment doesn't need regular inspection",
+      "One adult can supervise unlimited children"
+    ],
+    correctAnswer: 1,
+    explanation: "Age-appropriate equipment ensures children can play safely within their developmental abilities."
+  },
+  {
+    id: 7,
+    question: "How do you handle a child who refuses to follow safety rules?",
+    options: [
+      "Force them to comply immediately",
+      "Use positive redirection and explain the safety reason",
+      "Send them to timeout right away",
+      "Let them learn from natural consequences"
+    ],
+    correctAnswer: 1,
+    explanation: "Positive redirection with clear explanations helps children understand and internalize safety rules."
+  },
+  {
+    id: 8,
+    question: "What should you do if you suspect child abuse or neglect?",
+    options: [
+      "Investigate the situation yourself first",
+      "Report immediately to appropriate authorities",
+      "Talk to the parents directly",
+      "Wait to see if it happens again"
+    ],
+    correctAnswer: 1,
+    explanation: "Immediate reporting to proper authorities is legally required and protects the child's safety."
+  },
+  {
+    id: 9,
+    question: "How should art supplies be stored for safety?",
+    options: [
+      "All supplies accessible to children",
+      "Toxic materials secured, safe supplies accessible",
+      "Everything locked away from children",
+      "Storage location doesn't matter"
+    ],
+    correctAnswer: 1,
+    explanation: "Safe supplies should be accessible for creativity while hazardous materials must be secured."
+  },
+  {
+    id: 10,
+    question: "What is the best way to prevent choking during snack time?",
+    options: [
+      "Cut all foods into small pieces and supervise eating",
+      "Let children eat however they want",
+      "Only serve liquid foods",
+      "Don't worry about food preparation"
+    ],
+    correctAnswer: 0,
+    explanation: "Proper food preparation and active supervision during eating prevents choking incidents."
+  },
+  {
+    id: 11,
+    question: "When is it appropriate to leave children unsupervised?",
+    options: [
+      "During naptime if they're sleeping",
+      "Never - children should always have adult supervision",
+      "When they're playing quietly",
+      "During bathroom breaks"
+    ],
+    correctAnswer: 1,
+    explanation: "Continuous adult supervision is essential for child safety and regulatory compliance."
+  },
+  {
+    id: 12,
+    question: "How do you create a safe sleep environment for naptime?",
+    options: [
+      "Any comfortable position is fine",
+      "Back sleeping, clear cribs, room temperature monitoring",
+      "Stomach sleeping with extra blankets",
+      "Sleep position doesn't matter for preschoolers"
+    ],
+    correctAnswer: 1,
+    explanation: "Safe sleep practices reduce SIDS risk and ensure comfortable, secure rest periods."
   }
 ];
 
@@ -146,10 +254,14 @@ export default function FroggerGame(): JSX.Element {
     runTime: 0
   });
   
-  // Question system
+  // Enhanced question system
   const [currentQuestion, setCurrentQuestion] = useState<SafetyQuestion | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [usedQuestions, setUsedQuestions] = useState<Set<number>>(new Set());
+  const [questionResult, setQuestionResult] = useState<'correct' | 'incorrect' | null>(null);
+  const [questionsCorrect, setQuestionsCorrect] = useState(0);
+  const [totalQuestions, setTotalQuestions] = useState(0);
   
   // Enhanced visual effects
   const [activeBuffs, setActiveBuffs] = useState<Record<string, number>>({});
