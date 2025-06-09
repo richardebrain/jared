@@ -745,20 +745,14 @@ export default function PacHealGame() {
         {(gameState === 'playing' || gameState === 'paused') && (
           <div className="space-y-4">
             {/* Game Stats */}
-            <div className="flex justify-between items-center">
-              <div className="flex gap-4">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2 md:gap-4">
+              <div className="flex flex-wrap gap-2 md:gap-4">
                 <Badge variant="outline">Score: {score}</Badge>
                 <Badge variant="outline">Lives: {lives}</Badge>
                 {powerUpActive && (
                   <Badge className="bg-green-500">Power-Up Active!</Badge>
                 )}
               </div>
-              <Button 
-                onClick={() => setGameState(gameState === 'paused' ? 'playing' : 'paused')}
-                variant="outline"
-              >
-                {gameState === 'paused' ? 'Resume' : 'Pause'}
-              </Button>
             </div>
 
             {gameState === 'paused' && (
@@ -767,14 +761,43 @@ export default function PacHealGame() {
               </div>
             )}
 
-            {/* Game Board */}
-            <div className="w-full overflow-x-auto px-4">
+            <MobileGameContainer
+              gameWidth={MAZE_SIZE * CELL_SIZE}
+              gameHeight={MAZE_SIZE * CELL_SIZE}
+              controls={
+                <MobileTouchControls
+                  onDirectionPress={(direction) => {
+                    if (gameState === 'playing') {
+                      const directionMap = {
+                        up: { x: 0, y: -1 },
+                        down: { x: 0, y: 1 },
+                        left: { x: -1, y: 0 },
+                        right: { x: 1, y: 0 }
+                      };
+                      setPlayerPosition(prev => {
+                        const newPos = {
+                          x: prev.x + directionMap[direction].x,
+                          y: prev.y + directionMap[direction].y
+                        };
+                        if (newPos.x >= 0 && newPos.x < MAZE_SIZE && 
+                            newPos.y >= 0 && newPos.y < MAZE_SIZE &&
+                            MAZE_LAYOUT[newPos.y][newPos.x] === 0) {
+                          return newPos;
+                        }
+                        return prev;
+                      });
+                    }
+                  }}
+                  onPause={() => setGameState('paused')}
+                  onResume={() => setGameState('playing')}
+                  isPaused={gameState === 'paused'}
+                  showDirectional={true}
+                  showGameControls={true}
+                />
+              }
+            >
               <div 
-                className="relative mx-auto border-4 border-blue-800 bg-black rounded-lg shadow-2xl"
-                style={{ 
-                  width: MAZE_SIZE * CELL_SIZE, 
-                  height: MAZE_SIZE * CELL_SIZE
-                }}
+                className="relative w-full h-full border-4 border-blue-800 bg-black rounded-lg"
               >
                 {/* Maze walls */}
                 {MAZE_LAYOUT.map((row, y) =>
@@ -933,42 +956,10 @@ export default function PacHealGame() {
               </div>
             )}
               </div>
-            </div>
+            </MobileGameContainer>
           </div>
         )}
-      </CardContent>
-    </Card>
-  );
-}
 
-// Temporary component wrapper to fix JSX structure
-function PacHealGameWrapper() {
-  return <PacHealGame />;
-}
-
-export default function PacHealGameFixed() {
-  return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Heart className="h-6 w-6 text-red-500" />
-          Pac-Heal: Emotional Regulation Adventure
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="text-center">
-          <p className="text-gray-600 mb-4">Game is temporarily unavailable while we fix technical issues.</p>
-          <p className="text-sm text-gray-500">We're working to restore the educational game experience.</p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-// Keep original for reference but export fixed version
-function OriginalPacHealGame() {
-  return (
-    <div>
         {gameState === 'gameOver' && (
           <div className="text-center space-y-4">
             <div className="text-xl font-bold text-red-600">Game Over</div>
