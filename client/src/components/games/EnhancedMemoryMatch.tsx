@@ -137,18 +137,16 @@ export default function EnhancedMemoryMatch({ onComplete, onPointsEarned }: {
   }, []);
 
   useEffect(() => {
-    let cleanup: (() => void) | undefined;
-    
     if (gameState.timeLeft > 0 && !gameState.gameComplete) {
       const timer = setTimeout(() => {
         setGameState(prev => ({ ...prev, timeLeft: prev.timeLeft - 1 }));
       }, 1000);
-      cleanup = () => clearTimeout(timer);
-    } else if (gameState.timeLeft === 0) {
-      endGame();
+      return () => clearTimeout(timer);
     }
     
-    return cleanup;
+    if (gameState.timeLeft === 0) {
+      endGame();
+    }
   }, [gameState.timeLeft, gameState.gameComplete]);
 
   const endGame = () => {

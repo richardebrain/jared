@@ -312,29 +312,30 @@ export default function GamesPage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="educational" className="space-y-8">
-            <div className="text-center space-y-4 mb-8">
-              <div className="flex items-center justify-center space-x-2">
-                <Heart className="h-8 w-8 text-red-500" />
-                <h2 className="text-2xl font-bold text-gray-800">Educational Games</h2>
-              </div>
-              <p className="text-gray-600 max-w-2xl mx-auto">
-                Learn important emotional regulation and social skills through fun, interactive games designed specifically for early childhood educators.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-8">
-              <GameTokenMachine 
-                userPoints={user?.points || 0} 
-                onPointsUpdate={(newPoints) => {
-                  // Invalidate user data to refresh from server
-                  queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-                  console.log('Points updated:', newPoints);
-                }} 
-              />
-
-              {/* Teaching Puzzles Section */}
-              <div className="space-y-6">
+          {/* Teaching Puzzles Tab */}
+          <TabsContent value="puzzle" className="space-y-6">
+            {!hasCompletedActivity ? (
+              <Card className="p-8 text-center">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-center mb-4">
+                    <Puzzle className="h-8 w-8 mr-3 text-purple-500" />
+                    Complete Training to Unlock Puzzles
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-neutral-600 mb-6">
+                    Teaching puzzles are unlocked after completing your first training module or earning points.
+                  </p>
+                  <Link to="/modules">
+                    <Button className="bg-purple-500 hover:bg-purple-600 text-white">
+                      <Star className="h-4 w-4 mr-2" />
+                      Start Training
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="max-w-4xl mx-auto space-y-6">
                 <div className="text-center space-y-4 mb-8">
                   <div className="flex items-center justify-center space-x-2">
                     <Puzzle className="h-8 w-8 text-purple-500" />
@@ -358,49 +359,7 @@ export default function GamesPage() {
                   </div>
                 </div>
               </div>
-
-              <Card className="border border-gray-200 bg-gray-50">
-                <CardHeader>
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-blue-100 rounded-full">
-                      <Gamepad2 className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg text-gray-700">More Games Coming Soon!</CardTitle>
-                      <CardDescription>
-                        Additional educational games to enhance your teaching skills
-                      </CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-6">
-                    <div className="text-gray-500 mb-4">
-                      <Sparkles className="h-10 w-10 mx-auto mb-2" />
-                      <p className="text-sm">More exciting games in development:</p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                      <div className="bg-white p-3 rounded-lg border">
-                        <strong className="text-blue-600">Mindful Breathing Game</strong>
-                        <p className="text-gray-600 mt-1">Interactive calming techniques</p>
-                      </div>
-                      <div className="bg-white p-3 rounded-lg border">
-                        <strong className="text-green-600">Emotion Detective</strong>
-                        <p className="text-gray-600 mt-1">Identify children's emotions</p>
-                      </div>
-                      <div className="bg-white p-3 rounded-lg border">
-                        <strong className="text-purple-600">Conflict Resolution</strong>
-                        <p className="text-gray-600 mt-1">Handle classroom conflicts</p>
-                      </div>
-                      <div className="bg-white p-3 rounded-lg border">
-                        <strong className="text-orange-600">Communication Builder</strong>
-                        <p className="text-gray-600 mt-1">Parent & child communication</p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            )}
           </TabsContent>
           
           <TabsContent value="daily">

@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Grid3X3, Brain, Play, ArrowLeft } from 'lucide-react';
+import { Search, Grid3X3, Brain, Play, ArrowLeft, Coins } from 'lucide-react';
 import WordSearchGame from './games/WordSearchGame';
 import CrosswordGame from './games/CrosswordGame';
 import EnhancedMemoryMatch from './games/EnhancedMemoryMatch';
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useQuery } from '@tanstack/react-query';
 
 type GameType = 'wordsearch' | 'crossword' | 'memory' | null;
 
@@ -16,8 +17,56 @@ export default function PuzzleGameSelector() {
   const [totalPointsEarned, setTotalPointsEarned] = useState(0);
   const { toast } = useToast();
 
+  // Get current user data to check points
+  const { data: user } = useQuery({
+    queryKey: ['/api/auth/me'],
+  });
+
   const handleGameComplete = () => {
     // Game completion is handled by individual games
+  };
+
+  const handleStartGame = async (gameType: GameType) => {
+    if (!user) return;
+    
+    // Check if user has enough points
+    if (((user as any).points || 0) < 1) {
+      toast({
+        title: "Not enough points",
+        description: "You need at least 1 point to play puzzle games. Complete training modules to earn points.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Deduct 1 point to start the game
+      await apiRequest('/api/award-points', {
+        method: 'POST',
+        data: {
+          points: -1,
+          source: 'puzzle_game_cost',
+          description: 'Puzzle game entry fee'
+        }
+      });
+
+      // Refresh user data
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      
+      setActiveGame(gameType);
+      
+      toast({
+        title: "Game Started!",
+        description: "1 point deducted. Good luck!",
+      });
+    } catch (error) {
+      console.error('Failed to start game:', error);
+      toast({
+        title: "Error",
+        description: "Could not start the game. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handlePointsEarned = async (points: number) => {
@@ -27,12 +76,15 @@ export default function PuzzleGameSelector() {
       // Award points to user account
       await apiRequest('/api/award-points', {
         method: 'POST',
-        body: JSON.stringify({
+        data: {
           points,
           source: 'puzzle_game',
           description: 'Educational puzzle game completion'
-        })
+        }
       });
+      
+      // Refresh user data
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
     } catch (error) {
       console.error('Failed to award points:', error);
     }
@@ -126,10 +178,11 @@ export default function PuzzleGameSelector() {
             </p>
             <Button 
               className="bg-purple-600 hover:bg-purple-700 text-white"
-              onClick={() => setActiveGame('wordsearch')}
+              onClick={() => handleStartGame('wordsearch')}
+              disabled={!user || (user.points || 0) < 1}
             >
-              <Play className="h-4 w-4 mr-2" />
-              Play Now
+              <Coins className="h-4 w-4 mr-2" />
+              Play (1 point)
             </Button>
           </div>
         </CardContent>
@@ -177,10 +230,11 @@ export default function PuzzleGameSelector() {
             </p>
             <Button 
               className="bg-blue-600 hover:bg-blue-700 text-white"
-              onClick={() => setActiveGame('crossword')}
+              onClick={() => handleStartGame('crossword')}
+              disabled={!user || (user.points || 0) < 1}
             >
-              <Play className="h-4 w-4 mr-2" />
-              Play Now
+              <Coins className="h-4 w-4 mr-2" />
+              Play (1 point)
             </Button>
           </div>
         </CardContent>
@@ -228,10 +282,11 @@ export default function PuzzleGameSelector() {
             </p>
             <Button 
               className="bg-green-600 hover:bg-green-700 text-white"
-              onClick={() => setActiveGame('memory')}
+              onClick={() => handleStartGame('memory')}
+              disabled={!user || ((user as any).points || 0) < 1}
             >
-              <Play className="h-4 w-4 mr-2" />
-              Play Now
+              <Coins className="h-4 w-4 mr-2" />
+              Play (1 point)
             </Button>
           </div>
         </CardContent>
