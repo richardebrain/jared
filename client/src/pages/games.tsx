@@ -30,6 +30,7 @@ import GameTokenMachine from '@/components/games/GameTokenMachine';
 import TransitionMaster from '@/components/games/TransitionMaster';
 import FroggerGame from '@/components/games/FroggerGameFixed';
 import EnhancedFroggerGame from '@/components/games/EnhancedFroggerGame';
+import Enhanced3DFrogger from '@/components/games/Enhanced3DFrogger';
 import { GameWindowManager } from '@/components/games/GameWindowManager';
 import { openGameInWindow, GameRenderer } from '@/components/games/GameRenderer';
 import { useToast } from "@/hooks/use-toast";
