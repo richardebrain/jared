@@ -937,7 +937,8 @@ export default function FroggerGame(): JSX.Element {
                 <li>• On-screen buttons available on mobile</li>
                 <li>• Avoid obstacles crossing lanes</li>
                 <li>• Collect power-ups for special abilities</li>
-                <li>• Answer safety questions correctly</li>
+                <li>• Safety questions appear every 8 moves</li>
+                <li>• Correct answers give bonus XP and streak multipliers</li>
                 <li>• Reach the top to advance levels</li>
               </ul>
             </div>
@@ -956,38 +957,70 @@ export default function FroggerGame(): JSX.Element {
 
   if (gameState === 'question' && currentQuestion) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black bg-opacity-50">
-        <div className="bg-white rounded-lg shadow-xl p-8 max-w-2xl mx-4">
-          <h2 className="text-2xl font-bold text-blue-600 mb-4">Safety Question</h2>
-          <p className="text-lg mb-6">{currentQuestion.question}</p>
+      <div className="flex items-center justify-center min-h-screen bg-black bg-opacity-75">
+        <div className="bg-white rounded-lg shadow-xl p-8 max-w-2xl mx-4 border-4 border-yellow-400">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-blue-600">🎯 Safety Challenge</h2>
+            <div className="text-sm bg-yellow-100 px-3 py-1 rounded-full">
+              Question {totalQuestions} • Streak: {stats.questionStreak}
+            </div>
+          </div>
+          
+          <div className="bg-blue-50 p-4 rounded-lg mb-6">
+            <p className="text-lg font-medium text-gray-800">{currentQuestion.question}</p>
+          </div>
           
           {!showExplanation ? (
             <div className="space-y-3">
+              <p className="text-sm text-gray-600 mb-4">
+                💡 Choose the best answer to earn bonus XP and maintain your learning streak!
+              </p>
               {currentQuestion.options.map((option, index) => (
                 <button
                   key={index}
                   onClick={() => handleQuestionAnswer(index)}
-                  className="w-full p-3 text-left bg-blue-50 hover:bg-blue-100 rounded-lg border-2 border-transparent hover:border-blue-300"
+                  className="w-full p-4 text-left bg-blue-50 hover:bg-blue-100 rounded-lg border-2 border-transparent hover:border-blue-300 transition-all duration-200 font-medium"
                 >
-                  {index + 1}. {option}
+                  <span className="inline-block w-8 h-8 bg-blue-200 text-blue-800 rounded-full text-center leading-8 mr-3 font-bold">
+                    {String.fromCharCode(65 + index)}
+                  </span>
+                  {option}
                 </button>
               ))}
             </div>
           ) : (
             <div>
-              <div className={`p-4 rounded-lg mb-4 ${
+              <div className={`p-6 rounded-lg mb-6 text-center ${
                 selectedAnswer === currentQuestion.correctAnswer 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
+                  ? 'bg-green-100 border-2 border-green-300' 
+                  : 'bg-red-100 border-2 border-red-300'
               }`}>
-                {selectedAnswer === currentQuestion.correctAnswer ? '✓ Correct!' : '✗ Incorrect'}
+                {selectedAnswer === currentQuestion.correctAnswer ? (
+                  <div>
+                    <div className="text-2xl text-green-600 mb-2">🎉 Excellent!</div>
+                    <div className="text-green-800 font-bold mb-2">
+                      +{100 + (stats.questionStreak * 25)} Points, +{20 + (stats.questionStreak * 5)} XP
+                    </div>
+                    <div className="text-green-700">Question Streak: {stats.questionStreak + 1}</div>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="text-2xl text-red-600 mb-2">📚 Learning Opportunity</div>
+                    <div className="text-red-800 font-bold">Review this safety concept</div>
+                  </div>
+                )}
               </div>
-              <p className="text-gray-700 mb-6">{currentQuestion.explanation}</p>
+              
+              <div className="bg-gray-50 p-4 rounded-lg mb-6">
+                <h4 className="font-bold text-gray-800 mb-2">Why this matters:</h4>
+                <p className="text-gray-700">{currentQuestion.explanation}</p>
+              </div>
+              
               <button
                 onClick={continueAfterQuestion}
-                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg"
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200"
               >
-                Continue
+                Continue Playing
               </button>
             </div>
           )}
