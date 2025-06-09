@@ -707,7 +707,7 @@ export default function StepByStepModuleBuilder({ initialData, onModuleComplete,
                             className="w-full"
                             onClick={() => window.open(sections[currentSectionIndex].slidesData?.presentationUrl, '_blank')}
                           >
-                            <ExternalLink className="h-4 w-4 mr-2" />
+                            <Link className="h-4 w-4 mr-2" />
                             Open in Google Slides
                           </Button>
                         )}
