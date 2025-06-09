@@ -637,7 +637,7 @@ export default function FroggerGame() {
             size,
             oscillating: false,
             oscillateOffset: 0
-          }].slice(-50)); // Performance cap
+          } as Obstacle].slice(-50)); // Performance cap
           
           config.lastSpawn = spawnTime;
         }
