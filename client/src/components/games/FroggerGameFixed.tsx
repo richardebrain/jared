@@ -372,6 +372,7 @@ export default function FroggerGame(): JSX.Element {
     const playerTop = player.row * LANE_HEIGHT + 5;
     const playerBottom = playerTop + LANE_HEIGHT - 10;
     
+    // Check obstacle collisions
     for (const obstacle of obstacles) {
       const obstacleLeft = obstacle.x;
       const obstacleRight = obstacle.x + obstacle.width;
@@ -454,7 +455,99 @@ export default function FroggerGame(): JSX.Element {
         break;
       }
     }
-  }, [player, obstacles, checkpoint, playSound, toast]);
+    
+    // Check power-up collections
+    powerUps.forEach(powerUp => {
+      if (!powerUp.collected && player.row === powerUp.row) {
+        const powerUpLeft = powerUp.x;
+        const powerUpRight = powerUp.x + 30;
+        
+        if (playerLeft < powerUpRight && playerRight > powerUpLeft) {
+          // Collect power-up
+          setPowerUps(prev => prev.map(p => 
+            p.id === powerUp.id ? { ...p, collected: true } : p
+          ));
+          
+          // Apply power-up effect
+          applyPowerUp(powerUp.type);
+          
+          // Visual feedback
+          const newParticles: Particle[] = [];
+          for (let i = 0; i < 12; i++) {
+            newParticles.push({
+              id: Date.now() + i + 1000,
+              x: powerUp.x + 15,
+              y: powerUp.row * LANE_HEIGHT + 15,
+              vx: (Math.random() - 0.5) * 8,
+              vy: (Math.random() - 0.5) * 8,
+              life: 40,
+              maxLife: 40,
+              color: powerUp.color,
+              size: 2 + Math.random() * 3
+            });
+          }
+          setParticles(prev => [...prev, ...newParticles]);
+          
+          playSound(523, 0.2, 'square');
+        }
+      }
+    });
+  }, [player, obstacles, powerUps, checkpoint, playSound, toast]);
+
+  // Apply power-up effects
+  const applyPowerUp = useCallback((type: PowerUp['type']) => {
+    switch (type) {
+      case 'shield':
+        setPlayer(prev => ({ ...prev, hasShield: true, isInvulnerable: true }));
+        setTimeout(() => {
+          setPlayer(prev => ({ ...prev, hasShield: false, isInvulnerable: false }));
+        }, 5000);
+        toast({
+          title: "Shield Activated!",
+          description: "You're protected from obstacles for 5 seconds!",
+          variant: "default"
+        });
+        break;
+      case 'turbo':
+        setStats(prev => ({ ...prev, dodgeStreak: prev.dodgeStreak + 5 }));
+        setScore(prev => prev + 200);
+        toast({
+          title: "Turbo Boost!",
+          description: "+200 points and streak bonus!",
+          variant: "default"
+        });
+        break;
+      case 'sticker-storm':
+        setPlayer(prev => ({ ...prev, xp: prev.xp + 50 }));
+        setScore(prev => prev + 150);
+        toast({
+          title: "Sticker Storm!",
+          description: "+150 points and +50 XP!",
+          variant: "default"
+        });
+        break;
+      case 'team-rally':
+        setPlayer(prev => ({ ...prev, lives: Math.min(prev.lives + 1, 5) }));
+        toast({
+          title: "Team Rally!",
+          description: "Extra life gained!",
+          variant: "default"
+        });
+        break;
+      case 'time-warp':
+        // Slow down obstacles temporarily
+        setObstacles(prev => prev.map(obs => ({ ...obs, speed: obs.speed * 0.5 })));
+        setTimeout(() => {
+          setObstacles(prev => prev.map(obs => ({ ...obs, speed: obs.speed * 2 })));
+        }, 3000);
+        toast({
+          title: "Time Warp!",
+          description: "Obstacles slowed for 3 seconds!",
+          variant: "default"
+        });
+        break;
+    }
+  }, [toast]);
 
   // Enhanced obstacle spawning with varied patterns
   const spawnObstacle = useCallback(() => {
@@ -764,9 +857,8 @@ export default function FroggerGame(): JSX.Element {
       playSound(523, 0.5, 'sine'); // C5 note
       setScore(prev => prev + 100 * level);
       
-      // Award points based on level (2-10 points, max 10 for completing all levels)
-      const pointsEarned = Math.min(2 + level - 1, 10);
-      awardPoints(pointsEarned, `Level ${level} Completion`);
+      // Award 1 point per level completed (max 10 total for all levels)
+      awardPoints(1, `Level ${level} Completion`);
       
       return;
     }
@@ -1010,12 +1102,10 @@ export default function FroggerGame(): JSX.Element {
     
     // Check if this is level 10 completion (maximum level for full game completion)
     if (level >= 10) {
-      // Award maximum completion bonus for finishing all levels
-      awardPoints(10, "Game Completion - All Levels Mastered");
-      
+      // Game completed - no additional bonus points since each level already awards 1 point
       toast({
         title: "Game Master Achievement!",
-        description: "You've completed all 10 levels! Maximum 10 points awarded.",
+        description: "You've completed all 10 levels! Total 10 points earned.",
         variant: "default"
       });
       
@@ -1040,7 +1130,7 @@ export default function FroggerGame(): JSX.Element {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-400 to-purple-600">
         <div className="bg-white rounded-lg shadow-xl p-8 max-w-2xl text-center">
-          <h1 className="text-4xl font-bold text-blue-600 mb-4">Preschool Dash</h1>
+          <h1 className="text-4xl font-bold text-blue-600 mb-4">Safety Zone Navigator</h1>
           <p className="text-lg text-gray-700 mb-8">
             Navigate safely through the preschool environment while learning important safety protocols!
           </p>
