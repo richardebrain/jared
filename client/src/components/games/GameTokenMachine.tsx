@@ -10,13 +10,15 @@ import {
   Gamepad2,
   Sparkles,
   Target,
-  Heart
+  Heart,
+  ExternalLink
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from '@/lib/queryClient';
 import BounceAwayBlocks from './BounceAwayBlocks';
 import PacHealGame from './PacHealGameWorking';
 import PreschoolDash from './PreschoolDash';
+import { openGameInWindow, GameRenderer } from './GameRenderer';
 
 interface GameTokenMachineProps {
   userPoints: number;
@@ -25,8 +27,6 @@ interface GameTokenMachineProps {
 
 export default function GameTokenMachine({ userPoints, onPointsUpdate }: GameTokenMachineProps) {
   const { toast } = useToast();
-  const [selectedGame, setSelectedGame] = useState<'bounce' | 'pacheal' | 'dash' | null>(null);
-  const [gameStarted, setGameStarted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const games = [
@@ -117,13 +117,33 @@ export default function GameTokenMachine({ userPoints, onPointsUpdate }: GameTok
       });
       
       onPointsUpdate(response.points);
-      setSelectedGame(gameId);
-      setGameStarted(true);
       playSound('purchase');
       
+      // Get game component and title
+      const game = games.find(g => g.id === gameId);
+      if (game) {
+        let GameComponent;
+        switch (gameId) {
+          case 'bounce':
+            GameComponent = BounceAwayBlocks;
+            break;
+          case 'pacheal':
+            GameComponent = PacHealGame;
+            break;
+          case 'dash':
+            GameComponent = PreschoolDash;
+            break;
+          default:
+            return;
+        }
+        
+        // Open game in new window
+        openGameInWindow(GameComponent, game.title);
+      }
+      
       toast({
-        title: "Game Purchased!",
-        description: `1 point deducted. Complete levels to earn up to ${games.find(g => g.id === gameId)?.maxPoints} points!`,
+        title: "Game Started!",
+        description: `1 point deducted. Game opened in new window. Complete levels to earn up to ${game?.maxPoints} points!`,
         variant: "default"
       });
       
@@ -139,27 +159,9 @@ export default function GameTokenMachine({ userPoints, onPointsUpdate }: GameTok
     }
   };
 
-  const resetMachine = () => {
-    setSelectedGame(null);
-    setGameStarted(false);
-  };
 
-  if (gameStarted && selectedGame) {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold">Now Playing: {games.find(g => g.id === selectedGame)?.title}</h3>
-          <Button onClick={resetMachine} variant="outline">
-            Back to Game Selection
-          </Button>
-        </div>
-        
-        {selectedGame === 'bounce' && <BounceAwayBlocks />}
-        {selectedGame === 'pacheal' && <PacHealGame />}
-        {selectedGame === 'dash' && <PreschoolDash />}
-      </div>
-    );
-  }
+
+
 
   return (
     <Card className="border-2 border-yellow-300 bg-gradient-to-br from-yellow-50 to-amber-50">
@@ -170,8 +172,11 @@ export default function GameTokenMachine({ userPoints, onPointsUpdate }: GameTok
               <Coins className="h-8 w-8 text-yellow-600" />
             </div>
             <div>
-              <CardTitle className="text-2xl text-yellow-800">Educational Game Arcade</CardTitle>
-              <p className="text-yellow-600">Insert 1 point to play • Earn up to 10 points!</p>
+              <CardTitle className="text-2xl text-yellow-800 flex items-center gap-2">
+                Educational Game Arcade
+                <ExternalLink className="h-5 w-5" />
+              </CardTitle>
+              <p className="text-yellow-600">Insert 1 point to play • Games open in new windows • Earn up to 10 points!</p>
             </div>
           </div>
           <div className="text-center">
