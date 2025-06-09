@@ -707,8 +707,245 @@ router.post('/generate-content-blocks', async (req, res) => {
       return res.status(400).json({ error: 'Topic is required' });
     }
 
-    // Generate multiple types of content blocks with witty humor and evidence-based content
-    const contentBlocks = [
+    let contentBlocks = [];
+
+    // Generate section-specific content based on section type
+    if (sectionType === 'quiz') {
+      // Generate quiz-specific content blocks
+      contentBlocks = [
+        {
+          type: "Multiple Choice Question",
+          preview: `What's the most effective approach to ${topic.toLowerCase()} in early childhood settings?`,
+          content: `## Multiple Choice Question
+
+**Question:** What's the most effective approach to ${topic.toLowerCase()} in early childhood settings?
+
+**Options:**
+A) Use the same strategy for all children
+B) Observe individual needs and adapt your approach
+C) Follow a strict behavioral checklist
+D) Wait for the behavior to stop on its own
+
+**Correct Answer:** B) Observe individual needs and adapt your approach
+
+**Explanation:** Research from Dr. Ross Greene shows that individualized approaches based on careful observation are 60% more effective than one-size-fits-all strategies. Each child's brain develops differently, so what works for one may not work for another.
+
+**Teacher Tip:** When dealing with ${topic.toLowerCase()}, think "detective mode" before "intervention mode."`
+        },
+        {
+          type: "Scenario-Based Question",
+          preview: `Real classroom scenario involving ${topic.toLowerCase()}...`,
+          content: `## Scenario-Based Question
+
+**Scenario:** It's 10:30 AM, and you notice 4-year-old Maya showing signs of ${topic.toLowerCase()}. The other children are watching, and you have parent-teacher conferences starting in 20 minutes.
+
+**Question:** What's your FIRST priority in this situation?
+
+**Options:**
+A) Quickly redirect Maya to prevent disruption
+B) Take a deep breath and assess what Maya might need
+C) Send Maya to the quiet corner immediately
+D) Continue with planned activities and address it later
+
+**Correct Answer:** B) Take a deep breath and assess what Maya might need
+
+**Explanation:** Dr. Dan Siegel's research on "Name It to Tame It" shows that taking a moment to assess before reacting helps both you and the child regulate emotions more effectively.
+
+**Real Talk:** Yes, you're thinking about those conferences, but 30 seconds of mindful assessment now saves 20 minutes of crisis management later.`
+        },
+        {
+          type: "Evidence-Based Quiz Item",
+          preview: `Research-backed question about ${topic.toLowerCase()} strategies...`,
+          content: `## Evidence-Based Quiz Item
+
+**Research Context:** Dr. Becky Bailey's Conscious Discipline research shows specific timeframes for emotional regulation in young children.
+
+**Question:** According to neuroscience research, how long does it typically take a 4-year-old's brain to regulate after experiencing ${topic.toLowerCase()}?
+
+**Options:**
+A) 30 seconds to 1 minute
+B) 2-5 minutes with support
+C) 10-15 minutes
+D) Up to 20 minutes
+
+**Correct Answer:** B) 2-5 minutes with support
+
+**Explanation:** The developing prefrontal cortex needs adult co-regulation to calm down. Without support, it can take much longer.
+
+**Practical Application:** This is why the "time-out" approach often fails - children need "time-in" with supportive adults to learn regulation skills.
+
+**Your Strategy:** Stay nearby, offer calm presence, and remember that helping them regulate IS teaching.`
+        }
+      ];
+    } else if (sectionType === 'hook' || sectionType === 'scenario') {
+      // Generate hook/scenario-specific content blocks
+      contentBlocks = [
+        {
+          type: "Opening Hook",
+          preview: `Engaging scenario that grabs attention and introduces ${topic.toLowerCase()}...`,
+          content: `## The 9:47 AM Reality Check
+
+Picture this: It's 9:47 AM on a Tuesday (why is it always Tuesday?), you've had exactly half a cup of lukewarm coffee, and you're mentally rehearsing your parent conference notes when BAM - ${topic.toLowerCase()} shows up in your classroom like an uninvited party guest.
+
+Meet Jamie, age 4, who has just provided a perfect live demonstration of everything you've read about ${topic.toLowerCase()} in theory. You know that moment when you think, "Did they just read my lesson plans and decide to create a real-world example?"
+
+**The Plot Twist:** According to Dr. Patty Wipfler's research, children often act out their biggest learning moments right when we feel least prepared. It's not coincidence - it's development in action.
+
+**Your Mission (Should You Choose to Accept It):** Navigate this moment with wisdom, humor, and evidence-based strategies that actually work in the real world.
+
+Ready? Let's dive in.`
+        },
+        {
+          type: "Relatable Scenario",
+          preview: `Real classroom situation every teacher faces with ${topic.toLowerCase()}...`,
+          content: `## The Multi-Layer Challenge
+
+Here's what's actually happening in your teacher brain right now:
+
+**Layer 1:** Jamie's immediate needs (and that look in their eyes that says "help me")
+**Layer 2:** The 15 other children watching this unfold like it's live television
+**Layer 3:** Your principal who just walked by (Murphy's Law strikes again)
+**Layer 4:** Jamie's family, who asked you yesterday how things were going
+
+**The Hidden Truth:** Research from Dr. Alfie Kohn shows that these "crisis" moments are actually when the most authentic learning happens - for both you AND the children.
+
+Jamie isn't trying to test you. Jamie is showing you exactly what they need to learn about ${topic.toLowerCase()}, wrapped up in a 4-year-old package with zero filter.
+
+**Your Superpower:** Remembering that this moment is information, not judgment of your teaching skills.`
+        }
+      ];
+    } else if (sectionType === 'introduction') {
+      // Generate introduction-specific content blocks
+      contentBlocks = [
+        {
+          type: "Welcome & Overview",
+          preview: `Welcome to this learning journey about ${topic.toLowerCase()}...`,
+          content: `## Welcome to Your ${topic} Learning Journey
+
+Welcome to this comprehensive exploration of ${topic.toLowerCase()} in early childhood education. If you're here, you're probably thinking one of two things: "I need help with this" or "My director told me I need to complete this module" (and honestly, both are totally valid reasons).
+
+**What You'll Discover:**
+This isn't just another training module that tells you things you already know. We're diving into the real stuff - the strategies that actually work when you're dealing with ${topic.toLowerCase()} at 9:47 AM on a Tuesday with 16 pairs of eyes watching you.
+
+**The Research Promise:**
+Every strategy you'll learn is backed by actual neuroscience and developmental research. No fluff, no "trust us, it works" - just proven approaches from experts like Dr. Daniel Siegel, Dr. Becky Bailey, and other researchers who understand how young brains actually work.
+
+**Your Investment:**
+This module takes about [X] minutes to complete, but the strategies you'll learn will save you hours of stress and make your classroom a place where both you and the children can thrive.
+
+Ready to transform how you approach ${topic.toLowerCase()}? Let's dive in.`
+        },
+        {
+          type: "Learning Objectives",
+          preview: `Clear, practical objectives for mastering ${topic.toLowerCase()}...`,
+          content: `## What You'll Master in This Module
+
+By the end of this learning experience, you'll be able to:
+
+**🎯 Understand the Why**
+- Explain the developmental science behind ${topic.toLowerCase()} in children ages 3-6
+- Recognize the difference between developmental behavior and concerning patterns
+- Identify environmental and emotional triggers
+
+**🎯 Apply the How**
+- Implement 3-5 evidence-based strategies that work in real classroom settings
+- Adapt your approach based on individual children's needs and temperaments
+- Use co-regulation techniques to support children's emotional development
+
+**🎯 Reflect and Grow**
+- Assess your current approach and identify areas for growth
+- Create a personal action plan for implementing new strategies
+- Build confidence in your professional decision-making
+
+**🎯 Connect and Collaborate**
+- Communicate effectively with families about ${topic.toLowerCase()}
+- Share strategies with colleagues and build a supportive team approach
+- Document progress and celebrate small wins
+
+**The Real Goal:** You'll leave feeling more confident, less stressed, and equipped with practical tools that actually work in the beautiful chaos of early childhood education.`
+        }
+      ];
+    } else if (sectionType === 'reflection') {
+      // Generate reflection-specific content blocks
+      contentBlocks = [
+        {
+          type: "Self-Assessment Questions",
+          preview: `Thoughtful questions to assess your current approach to ${topic.toLowerCase()}...`,
+          content: `## Your Current Approach: An Honest Assessment
+
+Before we dive into new strategies, let's take a moment to reflect on where you are right now with ${topic.toLowerCase()}. No judgment here - we've all been there.
+
+**Your Confidence Level**
+On a scale of 1-10, how confident do you feel when ${topic.toLowerCase()} shows up in your classroom?
+- 1-3: "Help me, I have no idea what I'm doing"
+- 4-6: "I have some strategies, but they don't always work"
+- 7-8: "I feel pretty good most of the time"
+- 9-10: "I've got this handled and could mentor others"
+
+**Your Current Go-To Strategies**
+Think about the last time you encountered ${topic.toLowerCase()} in your classroom:
+- What was your first instinct?
+- What strategy did you actually use?
+- How did it work out?
+- What would you do differently?
+
+**Your Biggest Challenges**
+What makes ${topic.toLowerCase()} most difficult for you?
+- Feeling unprepared in the moment
+- Worry about other children watching
+- Concern about family reactions
+- Uncertainty about when to intervene vs. when to step back
+
+**Your Support System**
+- Who do you turn to for advice about challenging situations?
+- What resources have been most helpful?
+- What do you wish you had more support with?
+
+Remember: Every expert was once a beginner, and every confident teacher has had moments of doubt.`
+        },
+        {
+          type: "Action Planning Template",
+          preview: `Practical planning tool to implement your learning about ${topic.toLowerCase()}...`,
+          content: `## Your Personal Action Plan for ${topic}
+
+**This Week's Focus**
+Choose ONE strategy from this module to practice this week:
+- Strategy: ______________________
+- When I'll use it: ________________
+- How I'll remember: _______________
+
+**Environmental Changes**
+What small changes can you make to your classroom environment to support ${topic.toLowerCase()}?
+- Physical space adjustments: ________
+- Schedule modifications: ___________
+- Materials or tools needed: _________
+
+**Family Communication**
+How will you share your learning with families?
+- What you'll tell them about ${topic.toLowerCase()}: ___________
+- How you'll ask for their input: _______________
+- Ways to align home and school approaches: _______
+
+**Colleague Collaboration**
+- One person you'll share this learning with: _______
+- One question you'll ask a mentor or colleague: _____
+- How you'll contribute to team discussions: ________
+
+**Measuring Success**
+How will you know your new approach is working?
+- What you'll observe in children: _______________
+- How you'll feel different: __________________
+- What documentation you'll keep: _____________
+
+**Your Commitment**
+I commit to trying _____________ [strategy] for _____ [time period] and checking in with myself on _______ [date] to reflect on what's working.
+
+Remember: Progress, not perfection. Small steps lead to big changes.`
+        }
+      ];
+    } else {
+      // Generate general content blocks with humor and research
+      contentBlocks = [
       {
         type: "Research Insight",
         preview: `Did you know? Research from Dr. ${getRandomResearcher()} shows that ${topic.toLowerCase()} actually works best when...`,
@@ -718,14 +955,14 @@ router.post('/generate-content-blocks', async (req, res) => {
 
 Here's the fascinating part: When we approach ${topic.toLowerCase()} with evidence-based strategies, children's stress hormones (cortisol) decrease by up to 23%, while their curiosity hormones (dopamine) increase significantly.
 
-**The Bottom Line:** Your approach to ${topic.toLowerCase()} isn't just about managing behavior - you're actually rewiring developing brains for success. No pressure, right? 😉
+**The Bottom Line:** Your approach to ${topic.toLowerCase()} isn't just about managing behavior - you're actually rewiring developing brains for success. No pressure, right?
 
 **Try This:** Next time you encounter ${topic.toLowerCase()}, remember you're not just a teacher - you're a neuroscientist in action.`
-      },
-      {
-        type: "Reality Check Story",
-        preview: `Picture this: It's 10:47 AM, you're running on coffee fumes, and suddenly ${topic.toLowerCase()} happens...`,
-        content: `## The Tuesday Morning Chronicles
+        },
+        {
+          type: "Reality Check Story",
+          preview: `Picture this: It's 10:47 AM, you're running on coffee fumes, and suddenly ${topic.toLowerCase()} happens...`,
+          content: `## The Tuesday Morning Chronicles
 
 Picture this: It's 10:47 AM on a Tuesday (why is it always Tuesday?), you've had exactly half a cup of lukewarm coffee, and you're mentally reviewing your grocery list when BAM - ${topic.toLowerCase()} shows up in your classroom like an uninvited party guest.
 
@@ -740,11 +977,11 @@ Meet Emma, age 4, who has just provided a live demonstration of everything you l
 **Plot Twist:** According to Dr. Alfie Kohn's research, these "crisis" moments are actually when the most authentic learning happens. Emma isn't trying to test you - she's showing you exactly what she needs to learn, wrapped in a 4-year-old package with zero filter.
 
 **Your Superpower:** Taking a deep breath and remembering that progress, not perfection, is the goal.`
-      },
-      {
-        type: "Quick Win Strategy",
-        preview: `The 2-minute magic trick that actually works for ${topic.toLowerCase()}...`,
-        content: `## The 2-Minute Magic Trick for ${topic}
+        },
+        {
+          type: "Quick Win Strategy",
+          preview: `The 2-minute magic trick that actually works for ${topic.toLowerCase()}...`,
+          content: `## The 2-Minute Magic Trick for ${topic}
 
 Let's be honest - you don't have time for complicated strategies when ${topic.toLowerCase()} shows up unannounced. You need something that works NOW, while you're juggling 16 other things.
 
@@ -763,106 +1000,10 @@ Let's be honest - you don't have time for complicated strategies when ${topic.to
 
 **Pro Tip:** Practice this script during your commute. When ${topic.toLowerCase()} hits, your automatic response will be calm confidence instead of internal panic.
 
-**Bonus:** This works on adults too. Try it in your next staff meeting. 😉`
-      },
-      {
-        type: "Evidence-Based Toolkit",
-        preview: `Three research-backed strategies that actually work in real classrooms...`,
-        content: `## Your Evidence-Based Toolkit for ${topic}
-
-**Real talk:** You've probably tried seventeen different approaches to ${topic.toLowerCase()}, and some worked great... until they didn't. Here's what the research actually says works consistently.
-
-### Strategy 1: The Environmental Detective Approach
-**The Science:** Maria Montessori's research on environment as the "third teacher" + modern neuroscience = game changer.
-
-**What to Notice:**
-- Time of day patterns (hint: it's usually transition times)
-- Physical space triggers (too crowded? too loud?)
-- Hunger levels (when in doubt, offer a snack)
-
-### Strategy 2: The PACE Method
-**The Research:** Dr. Dan Hughes' PACE model (Playfulness, Acceptance, Curiosity, Empathy) reduces challenging behaviors by 40%.
-
-**Your New Mantra:**
-- P - "Let's figure this out together" (not "What's wrong with you?")
-- A - Accept the feeling, redirect the behavior
-- C - Get curious instead of frustrated
-- E - Remember they're doing their best with a developing brain
-
-### Strategy 3: The Family Partnership Power-Up
-**The Data:** Dr. Joyce Epstein's research shows aligned home-school strategies increase progress by 40%.
-
-**The Script:** "I noticed [specific observation]. What works at home when this happens?"
-
-**Reality Check:** Sometimes the answer is "nothing works at home either," and that's okay. You're building a team, not comparing notes.`
-      },
-      {
-        type: "Humor Break",
-        preview: `Why ${topic.toLowerCase()} is actually a sign your classroom is working...`,
-        content: `## Plot Twist: ${topic} Means You're Doing It Right
-
-**Unpopular Opinion:** If you never encounter ${topic.toLowerCase()} in your classroom, you might actually be playing it too safe.
-
-**Here's Why:**
-- Children only show their authentic selves in places they feel safe
-- ${topic.charAt(0).toUpperCase() + topic.slice(1).toLowerCase()} often means they trust you enough to NOT be perfect
-- Research from Dr. Brené Brown shows that vulnerability is actually a sign of connection
-
-**The Teacher Truth Nobody Talks About:**
-- Perfect children are often anxious children
-- Challenging behaviors usually mean developing brains doing exactly what they're supposed to do
-- Your job isn't to eliminate ${topic.toLowerCase()} - it's to guide children through it
-
-**Reframe Your Thinking:**
-Instead of: "Why is this happening to me?"
-Try: "What is this child trying to communicate?"
-
-Instead of: "This kid is so difficult."
-Try: "This kid has big feelings and needs big support."
-
-**Your New Badge of Honor:** The child who shows you their worst behavior trusts you the most. That's actually a compliment wrapped in chaos.
-
-**Permission Slip:** You don't have to enjoy every moment of ${topic.toLowerCase()}, but you can choose to see it as part of the beautiful mess of human development.`
-      },
-      {
-        type: "Practical Application",
-        preview: `How to actually implement ${topic.toLowerCase()} strategies when you have 30 seconds and 16 witnesses...`,
-        content: `## Real-World Implementation: When Theory Meets Tuesday
-
-**The Scenario:** You have 30 seconds to address ${topic.toLowerCase()}, 16 children watching, and your principal just walked in. Game time.
-
-### The 30-Second Game Plan
-
-**Seconds 1-10: Assess and Breathe**
-- Quick body scan: Are YOU calm?
-- Fast observation: What's the real need here?
-- Remember: Your energy sets the tone
-
-**Seconds 11-20: Connect Before Correct**
-- Get on their level (literally - crouch down)
-- Use their name: "Emma, I see you're having a hard time"
-- Validate the feeling: "That's frustrating!"
-
-**Seconds 21-30: Guide and Support**
-- Offer choices: "Would you like to take deep breaths or would you like a hug?"
-- Set the boundary: "I can't let you hurt yourself/others/materials"
-- Plan the follow-up: "Let's talk more about this in two minutes"
-
-### The 16-Witness Management
-**Pro Tip:** The other children are learning more from watching your response than from any planned lesson.
-
-**What They See:** Calm adults help people through hard times
-**What They Learn:** Feelings are okay, hurting isn't
-**What They Practice:** Empathy and emotional regulation
-
-### The Principal Factor
-**Reality Check:** If your principal judges you for a child having big feelings, that says more about them than you.
-
-**Your Professional Response:** Continue implementing best practices. Document what works. Share your learning.
-
-**Remember:** Good administrators want to see authentic teaching, not perfect performances.`
-      }
-    ];
+**Bonus:** This works on adults too. Try it in your next staff meeting.`
+        }
+      ];
+    }
 
     // Randomly select 4-5 blocks to provide variety
     const selectedBlocks = contentBlocks
