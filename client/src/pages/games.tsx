@@ -29,6 +29,7 @@ import BounceAwayBlocks from '@/components/games/BounceAwayBlocks';
 import GameTokenMachine from '@/components/games/GameTokenMachine';
 import TransitionMaster from '@/components/games/TransitionMaster';
 import FroggerGame from '@/components/games/FroggerGameFixed';
+import EnhancedFroggerGame from '@/components/games/EnhancedFroggerGame';
 import { GameWindowManager } from '@/components/games/GameWindowManager';
 import { openGameInWindow, GameRenderer } from '@/components/games/GameRenderer';
 import { useToast } from "@/hooks/use-toast";
