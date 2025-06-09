@@ -488,62 +488,33 @@ export default function ComprehensiveModuleCreator() {
     setIsGeneratingAIContent(true);
     
     try {
-      const response = await apiRequest('POST', '/api/ai/generate-section-content', {
-        moduleTitle: newModule.title || 'Professional Development Module',
-        moduleDescription: newModule.description,
+      const response = await apiRequest('POST', '/api/ai/generate-content-blocks', {
+        topic: aiTopicInput,
         sectionTitle: currentSection.title,
-        sectionType: currentSection.type,
-        sectionIndex: currentSectionIndex + 1,
-        totalSections: newModule.sections.length,
-        category: newModule.category || 'professional-development',
-        specificTopic: aiTopicInput || newModule.description || newModule.title,
-        templateType: aiSelectedTemplate?.type || 'standard'
+        moduleTitle: newModule.title || 'Professional Development Module',
+        sectionType: currentSection.type
       });
 
-      if (response.content) {
-        // Parse content into draggable blocks
-        const contentParts = response.content.split('\n\n');
-        const newBlocks = contentParts
-          .filter(part => part.trim().length > 0)
-          .map((part, index) => {
-            let type = 'Content Block';
-            let preview = part.trim();
-            
-            if (part.includes('##')) {
-              type = 'Heading';
-              preview = part.replace(/#+\s*/g, '').trim();
-            } else if (part.includes('*') || part.includes('-')) {
-              type = 'List';
-              preview = part.substring(0, 100) + '...';
-            } else if (part.includes('**')) {
-              type = 'Key Point';
-              preview = part.replace(/\*\*/g, '').trim();
-            } else if (part.length > 200) {
-              type = 'Paragraph';
-              preview = part.substring(0, 150) + '...';
-            } else {
-              preview = part.substring(0, 100) + (part.length > 100 ? '...' : '');
-            }
-            
-            return {
-              type,
-              content: part.trim(),
-              preview
-            };
-          });
+      if (response.blocks && response.blocks.length > 0) {
+        // Add new content blocks with humor and evidence-based content
+        const newBlocks = response.blocks.map(block => ({
+          type: block.type,
+          content: block.content,
+          preview: block.preview
+        }));
 
         setAiGeneratedBlocks(prev => [...prev, ...newBlocks]);
         
         toast({
-          title: 'AI Content Generated',
-          description: `${newBlocks.length} content blocks ready to drag into your section!`,
+          title: 'Content Generated',
+          description: `Generated ${newBlocks.length} engaging content blocks with research insights and practical humor.`,
         });
       }
     } catch (error) {
       console.error('AI generation error:', error);
       toast({
         title: 'Generation Failed',
-        description: 'Unable to generate AI content. Please try again or add content manually.',
+        description: 'Unable to generate content. Please try again or add content manually.',
         variant: 'destructive'
       });
     } finally {
