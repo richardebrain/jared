@@ -416,11 +416,11 @@ ${new Date().toLocaleDateString()}
 
               <div>
                 <label className="block text-sm font-medium mb-2">Description</label>
-                <Textarea
-                  placeholder="Describe the lesson objectives and what children will learn..."
+                <VoiceInputTextarea
                   value={lessonPlan.description}
-                  onChange={(e) => setLessonPlan(prev => ({ ...prev, description: e.target.value }))}
-                  rows={3}
+                  onChange={(value) => setLessonPlan(prev => ({ ...prev, description: value }))}
+                  placeholder="Describe the lesson objectives and what children will learn..."
+                  minHeight="min-h-[120px]"
                 />
               </div>
 
@@ -582,11 +582,11 @@ ${new Date().toLocaleDateString()}
 
                   <div>
                     <label className="block text-sm font-medium mb-2">Description</label>
-                    <Textarea
-                      placeholder="Describe what happens in this activity..."
+                    <VoiceInputTextarea
                       value={activity.description}
-                      onChange={(e) => updateActivity(actIndex, "description", e.target.value)}
-                      rows={2}
+                      onChange={(value) => updateActivity(actIndex, "description", value)}
+                      placeholder="Describe what happens in this activity..."
+                      minHeight="min-h-[80px]"
                     />
                   </div>
 
@@ -637,21 +637,21 @@ ${new Date().toLocaleDateString()}
             <CardContent className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2">Assessment Strategy</label>
-                <Textarea
-                  placeholder="How will you assess if children met the learning objectives?"
+                <VoiceInputTextarea
                   value={lessonPlan.assessment}
-                  onChange={(e) => setLessonPlan(prev => ({ ...prev, assessment: e.target.value }))}
-                  rows={3}
+                  onChange={(value) => setLessonPlan(prev => ({ ...prev, assessment: value }))}
+                  placeholder="How will you assess if children met the learning objectives?"
+                  minHeight="min-h-[120px]"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium mb-2">Additional Notes</label>
-                <Textarea
-                  placeholder="Any additional notes, modifications, or extensions..."
+                <VoiceInputTextarea
                   value={lessonPlan.notes}
-                  onChange={(e) => setLessonPlan(prev => ({ ...prev, notes: e.target.value }))}
-                  rows={3}
+                  onChange={(value) => setLessonPlan(prev => ({ ...prev, notes: value }))}
+                  placeholder="Any additional notes, modifications, or extensions..."
+                  minHeight="min-h-[120px]"
                 />
               </div>
 

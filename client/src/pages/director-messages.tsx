@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import VoiceInputTextarea from "@/components/VoiceInputTextarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -260,11 +261,11 @@ export default function DirectorMessages() {
 
           <div>
             <label className="block text-sm font-medium mb-2">Message Content</label>
-            <Textarea
-              placeholder="Enter your message here..."
-              rows={4}
+            <VoiceInputTextarea
               value={newMessage.content}
-              onChange={(e) => setNewMessage({ ...newMessage, content: e.target.value })}
+              onChange={(value) => setNewMessage({ ...newMessage, content: value })}
+              placeholder="Enter your message here..."
+              minHeight="min-h-[120px]"
             />
           </div>
 
