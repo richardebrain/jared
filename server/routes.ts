@@ -145,12 +145,11 @@ async function ensureDefaultSchoolExists() {
         subscriptionActive: true,
         subscriptionType: "Premium",
         teacherCount: 8,
-        customization: JSON.stringify({
+        customization: {
           primaryColor: "#4A7B9D",
           secondaryColor: "#FFCC5C",
-          welcomeMessage:
-            "Welcome to Raising Arizona Preschool's Professional Development Portal!",
-        }),
+          coreValues: ["Excellence", "Integrity", "Compassion", "Innovation"]
+        },
         subscriptionStartedAt: new Date("2025-01-01"),
         subscriptionExpiresAt: new Date("2026-01-01"),
       });
@@ -324,7 +323,7 @@ Continue for all 5 questions...
         `);
 
         const streak = streakResult.rows[0]?.current_streak || 0;
-        return Math.max(0, streak);
+        return Math.max(0, Number(streak));
       } catch (recursiveError) {
         console.error(
           `Recursive streak query failed for user ${userId}:`,
@@ -449,7 +448,7 @@ Continue for all 5 questions...
       const recentRewards = streakRewards.slice(0, 10).map((reward) => ({
         id: reward.id,
         date: reward.createdAt,
-        boxType: reward.type.replace("_box", ""),
+        boxType: reward.rewardType.replace("_box", ""),
         type: "points",
         value: 25, // Sample value
         label: "25 Points",
@@ -562,7 +561,7 @@ Continue for all 5 questions...
       }
 
       // Check if user has a streak of 5 or more days
-      const isEligible = user.streak >= 5;
+      const isEligible = (user.streak || 0) >= 5;
 
       // Check if user has already claimed the reward today
       const today = new Date();
@@ -607,7 +606,7 @@ Continue for all 5 questions...
       }
 
       // Verify eligibility
-      if (user.streak < 5) {
+      if ((user.streak || 0) < 5) {
         return res.status(400).json({
           message: "You need a 5-day login streak to claim this reward",
           streak: user.streak,
