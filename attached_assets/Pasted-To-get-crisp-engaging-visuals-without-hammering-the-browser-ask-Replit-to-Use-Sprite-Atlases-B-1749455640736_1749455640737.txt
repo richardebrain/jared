@@ -1,0 +1,44 @@
+To get crisp, engaging visuals without hammering the browser, ask Replit to:
+
+Use Sprite Atlases & Batched Blits
+
+Pack all obstacle, avatar, and UI images into one or two PNG atlases so Pygame can draw them in a single texture bind.
+
+Blit entire sprite sheets then use subsurface() rather than loading individual files.
+
+Pre‐Render Static Layers
+
+Draw your background (sidewalk, lane lines, playground fencing) once to an off‐screen Surface, then blit that each frame—only your moving objects get re‐drawn every tick.
+
+Convert Surfaces for Speed
+
+After loading or creating any image Surface, immediately call .convert() or .convert_alpha() so Pygame stores it in the native video format and speeds up blitting.
+
+Limit Resolution & Scale Wisely
+
+Keep your canvas at a modest 600×800 (or even 480×640 on mobile). If you need larger art, use integer scales (×1, ×2) rather than smooth resizes every frame.
+
+Optimize Your Particle System
+
+Cap active particles (e.g. 30 at once), reuse dead particles from a pool instead of creating new objects, and pre‐draw your “confetti” shapes to tiny sprite frames rather than computing shapes on the fly.
+
+Use Simple Geometry & Vector Shapes
+
+For UI elements (buttons, health bars, combo meters), draw rectangles, circles, and polygons with Pygame’s primitives—no need for heavyweight images.
+
+Parallax with Minimal Layers
+
+If you add a moving sky or distant playground props, limit yourself to two parallax layers (slow + medium scroll) and move them by small offsets—keeps the scene dynamic but light.
+
+Palette & Style Consistency
+
+Pick a tight, 8–16 color palette and reuse those colors for obstacles, avatars, and UI. Fewer unique pixels = faster texture uploads.
+
+Frame‐Rate Independent Animations
+
+Animate via dt‐based frame switches (e.g. advance animation frame every 0.1 s) so you never drop frames or overload at higher speeds.
+
+Profile & Throttle
+
+Add a simple FPS counter in debug mode. If you dip below ~50 FPS, automatically reduce particle counts or obstacle density until you bounce back above 55 FPS.
+
