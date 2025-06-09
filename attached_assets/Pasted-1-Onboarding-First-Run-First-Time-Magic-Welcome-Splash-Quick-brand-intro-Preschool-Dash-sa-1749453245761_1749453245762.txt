@@ -1,0 +1,90 @@
+1. Onboarding & First Run (“First-Time Magic”)
+Welcome Splash
+
+Quick brand intro: “Preschool Dash—save the kiddos!”
+
+Show a Daily Spin Wheel (“Try it free!”) with guaranteed small reward on first play (e.g. +50 coins or a “Compassion Shield” power-up).
+
+Turbo Tutorial
+
+2–3 swipes through core mechanics (lane-swipe, jump, slide).
+
+Tutorial gives you one full Power-Up crate at the end so managers feel rewarded before the real chase begins.
+
+2. Core Run Loop (“Run → Crash → Question → Reward”)
+Run Phase
+
+Endless-runner chasing the child through three lanes of Preschool Parkway.
+
+Randomly spawn Loot Crates at hard-to-reach spots—crate icons say “Quiz Booster” or “Sticker Storm.”
+
+Crash & Quiz Phase
+
+On collision: pause → safety question → either +10 points/respawn or level reset.
+
+Immediately after correct answer, drop a Mini-Loot Spinner (3-segment chance: “+5 Coins,” “Extra Life,” “Speed Dash”).
+
+Reward Tally
+
+Show score + coins + spins + badges.
+
+Offer a “Double-Or-Nothing” prompt: gamble today’s coins on a 50/50 spinner for double or lose half—encourages risk/reward play.
+
+3. Session End & Meta-Progression
+Level Completion Screen
+
+Big “Level Up!” banner, breakdown of coins, crates, spins earned.
+
+A “Mystery Crate” appears: click to open (randomly grants one of: new costume, rare power-up, extra quiz skip token).
+
+Daily Login Bonus
+
+Each new day grants a free spin on a 5-segment “Rainbow Wheel” (varied odds: small coin stash, big coin jackpot, rare “Super Teacher Cape,” extra life, or “Better Quiz Skip”).
+
+Streak Tracker & Stash
+
+Track consecutive days played—5-day streak unlocks a guaranteed Rare Loot Crate.
+
+Show “Streak Bar” on home screen to encourage return visits.
+
+4. Long-Term Engagement
+Gacha-Style “Power-Up Draw”
+
+Offer a shop where coins buy “Power-Up Cards” (randomized pulls with displayed rarity odds).
+
+Cards include one-time shields, multi-ball modes, or special “Scenario-Save” tokens that auto-answer one quiz question correctly.
+
+Seasonal Events & Limited-Time Offers
+
+Holiday themes (e.g. “Pumpkin-Patch Panic” level) with exclusive crates only available during the event window.
+
+Countdown timers (“2 days left to claim the Glitter-Glue Gauntlet skin!”) drive FOMO.
+
+Social Hooks
+
+Leaderboards: Top scores per week earn virtual badges (“Teacher Titan,” “Quiz Conqueror”).
+
+Share-Your-Run: One-click social share of your best run clip or “Mystery Crate haul.”
+
+Achievement Badges
+
+Long-tail goals: “Answer 100 Quiz Questions,” “Open 50 Crates,” “Run 10 km total.”
+
+Badge collection displayed in a “Trophy Room” encourages completionism.
+
+5. Ideal Play Flow
+Entry Point:
+
+Daily Spin → Turbo Tutorial (only first time) → Core Run
+
+During Run:
+
+Collect coins, loot crates, power-ups → dodge obstacles → occasional quiz resets
+
+Post-Run Rewards:
+
+Level/score screen → open loot crates → optional gamble (“Double-Or-Nothing”) → claim daily streak bonus
+
+Meta Engagement:
+
+Visit Shop for gacha draws → check Achievements → peek Leaderboards → schedule next play via push reminder
