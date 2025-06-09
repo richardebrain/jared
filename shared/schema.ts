@@ -1484,6 +1484,40 @@ export type InsertCommunityModule = z.infer<typeof insertCommunityModuleSchema>;
 export type CommunityModuleAward = typeof communityModuleAwards.$inferSelect;
 export type InsertCommunityModuleAward = z.infer<typeof insertCommunityModuleAwardSchema>;
 
+// Assessment Retake Permissions schema
+export const assessmentRetakePermissions = pgTable("assessment_retake_permissions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  requestedBy: integer("requested_by").notNull().references(() => users.id), // Teacher requesting retake
+  approvedBy: integer("approved_by").references(() => users.id), // Admin who approved/denied
+  schoolId: integer("school_id").notNull().references(() => schools.id),
+  requestReason: text("request_reason").notNull(), // Why the retake is needed
+  adminNotes: text("admin_notes"), // Admin's notes on the decision
+  status: text("status").notNull().default("pending"), // pending, approved, denied
+  requestedAt: timestamp("requested_at").defaultNow(),
+  respondedAt: timestamp("responded_at"), // When admin approved/denied
+  expiresAt: timestamp("expires_at"), // When permission expires (24-48 hours after approval)
+  used: boolean("used").default(false), // Whether permission has been used
+  usedAt: timestamp("used_at"), // When the retake was actually taken
+}, (table) => ({
+  // Index for pending requests by school
+  pendingRequestsIdx: index("assessment_retake_permissions_pending_idx").on(table.schoolId, table.status),
+  // Index for user request history
+  userRequestsIdx: index("assessment_retake_permissions_user_idx").on(table.userId),
+  // Index for active permissions (approved and not expired)
+  activePermissionsIdx: index("assessment_retake_permissions_active_idx").on(table.userId, table.status, table.expiresAt),
+}));
+
+export const insertAssessmentRetakePermissionSchema = createInsertSchema(assessmentRetakePermissions).omit({
+  id: true,
+  requestedAt: true,
+  respondedAt: true,
+  usedAt: true,
+});
+
+export type AssessmentRetakePermission = typeof assessmentRetakePermissions.$inferSelect;
+export type InsertAssessmentRetakePermission = z.infer<typeof insertAssessmentRetakePermissionSchema>;
+
 // Streak Rewards schema
 // Streak rewards are defined earlier in the file
 
@@ -1803,6 +1837,29 @@ export const learningPathsRelations = relations(learningPaths, ({ one }) => ({
   user: one(users, {
     fields: [learningPaths.userId],
     references: [users.id]
+  })
+}));
+
+// Assessment retake permissions relations
+export const assessmentRetakePermissionsRelations = relations(assessmentRetakePermissions, ({ one }) => ({
+  user: one(users, {
+    fields: [assessmentRetakePermissions.userId],
+    references: [users.id],
+    relationName: "retakeUser"
+  }),
+  requestedByUser: one(users, {
+    fields: [assessmentRetakePermissions.requestedBy],
+    references: [users.id],
+    relationName: "retakeRequester"
+  }),
+  approvedByUser: one(users, {
+    fields: [assessmentRetakePermissions.approvedBy],
+    references: [users.id],
+    relationName: "retakeApprover"
+  }),
+  school: one(schools, {
+    fields: [assessmentRetakePermissions.schoolId],
+    references: [schools.id]
   })
 }));
 

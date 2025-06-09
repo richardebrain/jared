@@ -11,7 +11,8 @@ import {
   users,
   schools,
   assessmentResults,
-  learningPaths
+  learningPaths,
+  assessmentRetakePermissions
 } from '@shared/schema';
 import { eq, and, sql, desc, asc, isNull } from 'drizzle-orm';
 import type { 
@@ -134,8 +135,13 @@ async function loadAssessmentConfig(schoolId?: number | null): Promise<Assessmen
   }
 }
 
-// Helper function to check one-time assessment rule
-async function checkOneTimeRule(userId: number): Promise<{ allowed: boolean; existingAssessment?: Assessment }> {
+// Helper function to check assessment retake permissions
+async function checkRetakePermissions(userId: number): Promise<{ 
+  allowed: boolean; 
+  existingAssessment?: Assessment;
+  needsPermission?: boolean;
+  hasValidPermission?: boolean;
+}> {
   try {
     const existingAssessments = await db.select()
       .from(assessments)
@@ -146,16 +152,47 @@ async function checkOneTimeRule(userId: number): Promise<{ allowed: boolean; exi
       .orderBy(desc(assessments.createdAt))
       .limit(1);
 
-    if (existingAssessments && existingAssessments.length > 0) {
-      return {
-        allowed: false,
-        existingAssessment: existingAssessments[0]
+    // If no existing assessment, allow first attempt
+    if (!existingAssessments || existingAssessments.length === 0) {
+      return { allowed: true };
+    }
+
+    // Check for valid retake permission
+    const validPermission = await db.select()
+      .from(assessmentRetakePermissions)
+      .where(and(
+        eq(assessmentRetakePermissions.userId, userId),
+        eq(assessmentRetakePermissions.status, 'approved'),
+        eq(assessmentRetakePermissions.used, false)
+      ))
+      .orderBy(desc(assessmentRetakePermissions.requestedAt))
+      .limit(1);
+
+    if (validPermission && validPermission.length > 0) {
+      const permission = validPermission[0];
+      // Check if permission has expired
+      if (permission.expiresAt && new Date() > new Date(permission.expiresAt)) {
+        return {
+          allowed: false,
+          existingAssessment: existingAssessments[0],
+          needsPermission: true,
+          hasValidPermission: false
+        };
+      }
+      return { 
+        allowed: true,
+        hasValidPermission: true
       };
     }
 
-    return { allowed: true };
+    return {
+      allowed: false,
+      existingAssessment: existingAssessments[0],
+      needsPermission: true,
+      hasValidPermission: false
+    };
   } catch (error) {
-    console.error('Error checking one-time assessment rule:', error);
+    console.error('Error checking retake permissions:', error);
     throw error;
   }
 }
