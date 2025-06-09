@@ -1972,25 +1972,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                     </div>
                   )}
 
-                  {/* Slide Template */}
-                  {section.type === 'slide' && (
-                    <div className="space-y-4">
-                      <div>
-                        <Label>Slide Content Overview</Label>
-                        <Textarea
-                          value={section.content}
-                          onChange={(e) => updateSection(index, 'content', e.target.value)}
-                          placeholder="Outline the key points for this slide presentation..."
-                          rows={3}
-                        />
-                      </div>
-                      <div className="p-4 bg-orange-50 rounded-lg">
-                        <p className="text-sm text-orange-700">
-                          📊 AI will create a complete slide deck with presenter notes and visual suggestions.
-                        </p>
-                      </div>
-                    </div>
-                  )}
+
 
                   {/* Video Template */}
                   {section.type === 'video' && (
