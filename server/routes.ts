@@ -40,6 +40,7 @@ import { dirname } from "path";
 import personalizedModuleRoutes from "./api/personalizedModuleRoutes";
 import assessmentQuestionRoutes from "./routes/assessment-questions";
 import aiSuggestionRoutes from "./api/aiSuggestionRoutes";
+import newAiSuggestionRoutes from "./api/newAiSuggestionRoutes";
 import moduleRatingsRoutes from "./api/moduleRatingsRoutes";
 import communityModulesRoutes from "./api/communityModulesRoutes";
 import selfAssessmentRoutes from "./api/selfAssessmentRoutes";
@@ -5061,6 +5062,9 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
 
   // Register AI Module Designer routes
   app.use("/api/ai", aiModuleDesignerRoutes);
+  
+  // Register new AI suggestion routes (includes parent response)
+  app.use("/api/ai", newAiSuggestionRoutes);
 
 
 
