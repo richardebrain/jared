@@ -62,118 +62,28 @@ Just ask me anything related to teaching preschool!`
     setIsTyping(true);
     
     try {
-      let responseText = '';
-      
-      // First check for keyword matches in the responses object for instant responses
-      let matchFound = false;
-      for (const [keyword, response] of Object.entries(responses)) {
-        if (userQuestion.toLowerCase().includes(keyword)) {
-          responseText = response;
-          matchFound = true;
-          break;
-        }
-      }
-      
-      // Try to find a suitable response based on keywords first
-      if (!matchFound) {
-        // These are more generic keywords that might match more broadly
-        const genericKeywords = {
-          'classroom': 'Effective classroom management strategies include clear routines, visual schedules, and positive reinforcement. Try our "Preschool Classroom Management" module for more details.',
-          'activity': 'Age-appropriate activities help children develop key skills. Consider open-ended art projects, sensory tables, and guided discovery for your classroom.',
-          'behavior': 'When addressing challenging behaviors, use the CALM approach: Connect before correcting, Acknowledge feelings, Listen actively, and Model positive behavior.',
-          'parent': 'Parent partnerships are essential. Regular communication through newsletters, family events, and daily updates helps build strong relationships.',
-          'curriculum': 'Our curriculum focuses on whole-child development with emphasis on social-emotional learning while meeting academic benchmarks.',
-          'development': 'Child development follows predictable patterns but at individual paces. Our "Child Development Milestones" module can help you recognize key indicators.',
-          'routine': 'Consistent routines provide security for young children. Daily schedules with visual cues help children understand expectations and transitions.',
-        };
-        
-        // Check for generic keyword matches
-        for (const [keyword, response] of Object.entries(genericKeywords)) {
-          if (userQuestion.toLowerCase().includes(keyword)) {
-            responseText = response;
-            matchFound = true;
-            break;
-          }
-        }
+      // Use the same backend service as the dedicated BearyAI page
+      const response = await fetch("/api/bear-assistant/ask", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ query: userQuestion })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
       }
 
-      // If still no match found and using Perplexity is enabled, use the API as last resort
-      if (!matchFound && isUsingPerplexity) {
-        responseText = "Let me think about that...";
-        
-        // Add temporary thinking message while API request processes
-        setMessages(prev => [...prev, { role: 'assistant', content: responseText }]);
-        setIsTyping(true);
-        
-        try {
-          // Enhance the question with user context if available
-          let enhancedQuestion = userQuestion;
-          if (user?.learningStyle) {
-            enhancedQuestion += `\n\nContext: Teacher's preferred learning style is ${user.learningStyle.preferred}.`;
-          }
-          
-          // Temporarily set a loading message
-          setTimeout(async () => {
-            try {
-              const aiResponse = await askEceQuestion(enhancedQuestion);
-              if (aiResponse && aiResponse.length > 0) {
-                // Replace the temporary message with the real response
-                setMessages(prev => {
-                  const newMessages = [...prev];
-                  newMessages[newMessages.length - 1] = { 
-                    role: 'assistant', 
-                    content: aiResponse 
-                  };
-                  return newMessages;
-                });
-              } else {
-                // Fallback if API response is empty
-                setMessages(prev => {
-                  const newMessages = [...prev];
-                  newMessages[newMessages.length - 1] = {
-                    role: 'assistant',
-                    content: "I don't have specific information about that yet. Try asking about our 'Building Chapter One' philosophy, Mindful Mornings approach, classroom management techniques, or specific early childhood development questions."
-                  };
-                  return newMessages;
-                });
-              }
-              setIsTyping(false);
-            } catch (err) {
-              console.error("Error in async Perplexity request:", err);
-              setIsUsingPerplexity(false);
-              setMessages(prev => {
-                const newMessages = [...prev];
-                newMessages[newMessages.length - 1] = {
-                  role: 'assistant',
-                  content: "I'm having trouble accessing my knowledge base right now. Let me help with what I know. At Raising Arizona Preschool, we focus on 'Building Chapter One' for each child - creating formative experiences that become the foundation of their life story. Try asking me about Mindful Mornings, transitions between activities, behavior management strategies, or how to implement our Chapter One philosophy in specific classroom situations."
-                };
-                return newMessages;
-              });
-              setIsTyping(false);
-            }
-          }, 500);
-          
-          // Return early - we're handling the response asynchronously
-          return;
-          
-        } catch (error) {
-          console.error("Error using Perplexity:", error);
-          setIsUsingPerplexity(false);
-          responseText = "I'm experiencing technical difficulties accessing my full knowledge base. I can still help with questions about our 'Building Chapter One' philosophy, Mindful Mornings activities, classroom management strategies, and quick transition techniques. Try asking about these topics!";
-        }
-      } else if (!matchFound) {
-        // Fallback response if no match found
-        responseText = "I don't have specific information about that topic yet. Try asking about our Mindful Mornings approach, transition techniques, classroom management strategies, or how to implement the 'Building Chapter One' philosophy in different learning activities.";
-      }
+      const data = await response.json();
+      const responseText = data.message || data.content || "I'm having trouble processing that question right now. Could you try rephrasing it?";
       
-      // Add assistant message after a slight delay to simulate thinking
-      setTimeout(() => {
-        setMessages(prev => [...prev, { role: 'assistant', content: responseText }]);
-        setIsTyping(false);
-      }, 800);
+      // Add assistant response
+      setMessages(prev => [...prev, { role: 'assistant', content: responseText }]);
+      setIsTyping(false);
       
     } catch (error) {
-      console.error("Error in message handling:", error);
+      console.error("Error asking BearyAI:", error);
       setIsTyping(false);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
