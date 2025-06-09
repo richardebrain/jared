@@ -128,82 +128,137 @@ export default function ComprehensiveModuleCreator() {
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [completedSections, setCompletedSections] = useState<number[]>([]);
 
-  // Proven Templates for AI-Assisted workflow
+  // Proven template types for AI-assisted workflow
   const PROVEN_TEMPLATES = [
     {
-      id: 'mindful-morning',
-      title: 'Mindful Morning Online Course',
-      description: '60-minute multi-module course with breathing exercises, reflection, and certification',
-      duration: '60 min',
-      modules: 6,
-      icon: Heart,
+      id: 'lightning',
+      title: 'Lightning Module',
+      description: 'A super-condensed, single-idea burst perfect for quick refreshers (3-4 sections, ~5 min)',
+      duration: '5 min',
+      modules: 1,
+      icon: Zap,
       sections: [
-        { type: 'text', title: 'Welcome & Why It Matters', duration: 5 },
-        { type: 'video', title: 'Mindfulness Introduction Video', duration: 10 },
-        { type: 'story', title: 'Classroom Scenario', duration: 8 },
-        { type: 'example', title: 'Real-World Examples', duration: 12 },
-        { type: 'quiz', title: 'Knowledge Check', duration: 5 },
-        { type: 'simulation', title: 'Practice Session', duration: 20 }
+        { type: 'scenario', title: 'Hook (scenario or question)', duration: 1 },
+        { type: 'text', title: 'Core Concept (AI-generated key points)', duration: 2 },
+        { type: 'example', title: 'Micro-Activity (2-step interactive prompt)', duration: 1 },
+        { type: 'quiz', title: 'Quick Quiz (1-2 questions)', duration: 1 }
       ]
     },
     {
-      id: 'playground-transition',
-      title: 'Playground to Classroom Transitions',
-      description: 'Strategic approaches for smooth transitions with behavior management focus',
-      duration: '25 min',
+      id: 'standard',
+      title: 'Standard Module',
+      description: 'Your go-to template for everyday trainings (5-6 sections, ~10 min)',
+      duration: '10 min',
+      modules: 1,
+      icon: BookOpen,
+      sections: [
+        { type: 'text', title: 'Intro & Objectives', duration: 1 },
+        { type: 'video', title: 'Video or Case Story', duration: 3 },
+        { type: 'matching', title: 'Interactive Activity (matching, drag-and-drop)', duration: 2 },
+        { type: 'example', title: 'Why & Science (rationale slide)', duration: 2 },
+        { type: 'text', title: 'Reflection Prompt (text or journal)', duration: 1 },
+        { type: 'quiz', title: 'Quiz & Feedback', duration: 1 }
+      ]
+    },
+    {
+      id: 'deep-dive',
+      title: 'Deep-Dive Workshop',
+      description: 'A thorough exploration, great for new topics or certifications (8-10 sections, ~15 min)',
+      duration: '15 min',
+      modules: 1,
+      icon: Target,
+      sections: [
+        { type: 'text', title: 'Welcome & Agenda', duration: 1 },
+        { type: 'quiz', title: 'Pre-Check Question (knowledge gauge)', duration: 1 },
+        { type: 'video', title: 'Foundational Video', duration: 3 },
+        { type: 'mnemonic', title: 'Key Terms & Definitions (flash cards)', duration: 1 },
+        { type: 'example', title: 'Guided Activity (step-by-step)', duration: 2 },
+        { type: 'story', title: 'Case Study / Story', duration: 2 },
+        { type: 'text', title: 'Why It Matters (science + policy)', duration: 2 },
+        { type: 'simulation', title: 'Hands-On Practice (AI-guided scenario)', duration: 2 },
+        { type: 'text', title: 'Reflection & Action Plan', duration: 1 },
+        { type: 'quiz', title: 'Post-Test Quiz (certification)', duration: 2 }
+      ]
+    },
+    {
+      id: 'toolkit',
+      title: 'Toolkit Module',
+      description: 'Focuses on giving managers a "kit" of resources they can reuse (variable sections, ~5-12 min)',
+      duration: '8 min',
+      modules: 1,
+      icon: Wrench,
+      sections: [
+        { type: 'text', title: 'Resource Gallery (videos, PDFs, links)', duration: 2 },
+        { type: 'example', title: 'Template Launcher (lesson-plan, email-scripts)', duration: 2 },
+        { type: 'text', title: 'Best-Practice Snippets (AI-written talking points)', duration: 2 },
+        { type: 'text', title: 'FAQ Chatbot (embedded "Ask AI" widget)', duration: 2 }
+      ]
+    },
+    {
+      id: 'scenario-driven',
+      title: 'Scenario-Driven Module',
+      description: 'Learners work through a single extended scenario (4-7 sections, ~8 min)',
+      duration: '8 min',
       modules: 1,
       icon: Users,
       sections: [
-        { type: 'text', title: 'Understanding the Challenge', duration: 5 },
-        { type: 'example', title: 'Effective Strategies', duration: 8 },
-        { type: 'scenario', title: 'Practice Scenarios', duration: 7 },
-        { type: 'quiz', title: 'Assessment', duration: 5 }
-      ]
-    },
-    {
-      id: 'behavior-management',
-      title: 'Positive Behavior Support',
-      description: 'Evidence-based strategies for classroom behavior management',
-      duration: '35 min',
-      modules: 1,
-      icon: CheckCircle2,
-      sections: [
-        { type: 'text', title: 'Foundation Principles', duration: 8 },
-        { type: 'video', title: 'Expert Demonstration', duration: 12 },
-        { type: 'matching', title: 'Strategy Matching', duration: 6 },
-        { type: 'triage', title: 'Decision Making', duration: 7 },
-        { type: 'quiz', title: 'Competency Check', duration: 2 }
-      ]
-    },
-    {
-      id: 'trauma-informed',
-      title: 'Trauma-Informed Care Basics',
-      description: 'Understanding and responding to childhood trauma in educational settings',
-      duration: '45 min',
-      modules: 1,
-      icon: Brain,
-      sections: [
-        { type: 'text', title: 'Introduction to Trauma', duration: 10 },
-        { type: 'story', title: 'Case Studies', duration: 15 },
-        { type: 'example', title: 'Response Strategies', duration: 12 },
-        { type: 'mnemonic', title: 'Memory Aids', duration: 5 },
-        { type: 'quiz', title: 'Final Assessment', duration: 3 }
+        { type: 'story', title: 'Scenario Setup (video or text)', duration: 2 },
+        { type: 'triage', title: 'Decision Point #1 (choose A/B/C → AI-branch)', duration: 1 },
+        { type: 'text', title: 'Feedback & Micro-Lesson', duration: 1 },
+        { type: 'triage', title: 'Decision Point #2', duration: 1 },
+        { type: 'example', title: 'Why Behind It', duration: 2 },
+        { type: 'text', title: 'Reflection', duration: 1 },
+        { type: 'quiz', title: 'Knowledge Check', duration: 1 }
       ]
     }
   ];
 
+  // Get existing user modules as additional template options
+  const getUserModuleTemplates = () => {
+    if (!modules || !Array.isArray(modules)) return [];
+    
+    return modules.filter(module => module.isVisible && module.sections).map(module => ({
+      id: `user-${module.id}`,
+      title: `${module.title} (Your Module)`,
+      description: module.description,
+      duration: module.estimatedTime + ' min',
+      modules: 1,
+      icon: getCategoryIcon(module.category),
+      sections: JSON.parse(module.sections).map((section: any) => ({
+        type: section.type || 'text',
+        title: section.title,
+        duration: section.duration || 5
+      })),
+      isUserModule: true,
+      originalModuleId: module.id
+    }));
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'mindfulness': return Heart;
+      case 'classroom-management': return Users;
+      case 'child-development': return Brain;
+      case 'health-safety': return CheckCircle2;
+      case 'professional-development': return Trophy;
+      default: return BookOpen;
+    }
+  };
+
+  const ALL_TEMPLATES = [...PROVEN_TEMPLATES, ...getUserModuleTemplates()];
+
   // Section type definitions with AI assistance
   const SECTION_TYPES = [
-    { type: 'text', icon: '📝', title: 'Text Content', description: 'Written educational content with AI assistance' },
-    { type: 'video', icon: '🎥', title: 'Video Content', description: 'Video resources with AI-generated questions' },
-    { type: 'quiz', icon: '❓', title: 'Knowledge Quiz', description: 'AI-generated assessment questions' },
-    { type: 'story', icon: '📚', title: 'Story/Scenario', description: 'Engaging narratives with AI storytelling' },
-    { type: 'example', icon: '💡', title: 'Examples', description: 'Real-world examples with AI insights' },
-    { type: 'matching', icon: '🔗', title: 'Matching Exercise', description: 'Interactive matching with AI generation' },
-    { type: 'scenario', icon: '🎭', title: 'Scenario Practice', description: 'Practice scenarios with AI feedback' },
-    { type: 'triage', icon: '⚡', title: 'Decision Triage', description: 'Quick decision-making exercises' },
-    { type: 'mnemonic', icon: '🧠', title: 'Memory Aids', description: 'AI-generated memory devices' },
-    { type: 'simulation', icon: '🎮', title: 'Interactive Simulation', description: 'Hands-on practice simulations' }
+    { type: 'text', icon: FileText, title: 'Text Content', description: 'Written educational content with AI assistance' },
+    { type: 'video', icon: Play, title: 'Video Content', description: 'Video resources with AI-generated questions' },
+    { type: 'quiz', icon: HelpCircle, title: 'Knowledge Quiz', description: 'AI-generated assessment questions' },
+    { type: 'story', icon: BookOpen, title: 'Story/Scenario', description: 'Engaging narratives with AI storytelling' },
+    { type: 'example', icon: Lightbulb, title: 'Examples', description: 'Real-world examples with AI insights' },
+    { type: 'matching', icon: Link, title: 'Matching Exercise', description: 'Interactive matching with AI generation' },
+    { type: 'scenario', icon: Users, title: 'Scenario Practice', description: 'Practice scenarios with AI feedback' },
+    { type: 'triage', icon: Zap, title: 'Decision Triage', description: 'Quick decision-making exercises' },
+    { type: 'mnemonic', icon: Brain, title: 'Memory Aids', description: 'AI-generated memory devices' },
+    { type: 'simulation', icon: Gamepad2, title: 'Interactive Simulation', description: 'Hands-on practice simulations' }
   ];
   
   // Module Creator state - comprehensive version
@@ -310,28 +365,68 @@ export default function ComprehensiveModuleCreator() {
 
   const handleTemplateSelection = (template: any) => {
     setAiSelectedTemplate(template);
-    setNewModule(prev => ({
-      ...prev,
-      title: template.title,
-      description: template.description,
-      sections: template.sections.map((section: any) => ({
-        title: section.title,
-        content: '',
-        videoUrl: '',
-        imageUrl: '',
-        type: section.type,
-        duration: section.duration,
-        activities: [{
-          type: 'read' as const,
+    
+    // Get the original module data for more complete information
+    const originalModule = modules?.find(m => m.id === template.id);
+    
+    if (originalModule) {
+      const parsedSections = originalModule.sections ? JSON.parse(originalModule.sections) : [];
+      
+      setNewModule(prev => ({
+        ...prev,
+        title: `${template.title} (Copy)`,
+        description: template.description,
+        category: originalModule.category,
+        difficulty: originalModule.difficulty,
+        estimatedTime: originalModule.estimatedTime,
+        sections: parsedSections.map((section: any) => ({
           title: section.title,
-          duration: section.duration,
+          content: section.content || '',
+          videoUrl: section.videoUrl || '',
+          imageUrl: section.imageUrl || '',
+          type: section.type || 'text',
+          duration: section.duration || 5,
+          activities: section.activities || [{
+            type: 'read' as const,
+            title: section.title,
+            duration: section.duration || 5,
+            content: section.content || '',
+            videoUrl: section.videoUrl || '',
+            audioUrl: section.audioUrl || '',
+            interactionType: 'form' as const
+          }],
+          questions: section.questions || [],
+          scenarios: section.scenarios || [],
+          audioUrl: section.audioUrl || '',
+          slides: section.slides || []
+        }))
+      }));
+    } else {
+      // Fallback for template structure
+      setNewModule(prev => ({
+        ...prev,
+        title: `${template.title} (Copy)`,
+        description: template.description,
+        sections: template.sections.map((section: any) => ({
+          title: section.title,
           content: '',
           videoUrl: '',
-          audioUrl: '',
-          interactionType: 'form' as const
-        }]
-      }))
-    }));
+          imageUrl: '',
+          type: section.type,
+          duration: section.duration,
+          activities: [{
+            type: 'read' as const,
+            title: section.title,
+            duration: section.duration,
+            content: '',
+            videoUrl: '',
+            audioUrl: '',
+            interactionType: 'form' as const
+          }]
+        }))
+      }));
+    }
+    
     setAiWorkflowStep('section-builder');
   };
 
@@ -1989,7 +2084,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                   onClick={() => addCustomSection(sectionType.type)}
                 >
                   <div>
-                    <sectionType.icon className="h-6 w-6 mx-auto mb-2 text-purple-600" />
+                    {React.createElement(sectionType.icon, { className: "h-6 w-6 mx-auto mb-2 text-purple-600" })}
                     <div className="text-xs font-medium">{sectionType.title}</div>
                   </div>
                 </Button>
