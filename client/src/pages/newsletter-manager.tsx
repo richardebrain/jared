@@ -156,13 +156,23 @@ export default function NewsletterManager() {
       if (!response.ok) throw new Error('Failed to publish newsletter');
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Newsletter Published",
         description: "Your newsletter has been published and will appear on the school dashboard."
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/newsletters'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/newsletters'] });
       queryClient.invalidateQueries({ queryKey: ['/api/school-dashboard'] });
+      refetchNewsletters();
+      
+      // Update the selected newsletter status
+      if (selectedNewsletter) {
+        setSelectedNewsletter({
+          ...selectedNewsletter,
+          status: 'published',
+          publishedAt: new Date().toISOString()
+        });
+      }
     }
   });
 
@@ -524,7 +534,7 @@ export default function NewsletterManager() {
             </DialogHeader>
             
             <div className="space-y-4">
-              {!showContentSuggestions || contentSuggestions.length === 0 ? (
+              {contentSuggestions.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <Sparkles className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                   <p className="mb-4">Click "Generate New Suggestions" to get AI-powered content ideas</p>

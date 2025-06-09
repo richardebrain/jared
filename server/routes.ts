@@ -4330,6 +4330,188 @@ Continue for all 5 questions...
     }
   });
 
+  // Helper function to generate newsletter HTML
+  function generateNewsletterHTML(newsletter: any): string {
+    const sections = newsletter.content?.sections || [];
+    
+    let sectionsHTML = '';
+    sections.forEach((section: any) => {
+      switch (section.type) {
+        case 'text':
+          sectionsHTML += `
+            <div class="section text-section">
+              <h3>${section.title || ''}</h3>
+              <p>${section.content || ''}</p>
+            </div>
+          `;
+          break;
+        case 'announcement':
+          sectionsHTML += `
+            <div class="section announcement-section">
+              <h3>📢 ${section.title || 'Announcement'}</h3>
+              <p>${section.content || ''}</p>
+            </div>
+          `;
+          break;
+        case 'event':
+          sectionsHTML += `
+            <div class="section event-section">
+              <h3>📅 ${section.title || 'Event'}</h3>
+              <p>${section.content || ''}</p>
+              ${section.date ? `<p><strong>Date:</strong> ${section.date}</p>` : ''}
+              ${section.location ? `<p><strong>Location:</strong> ${section.location}</p>` : ''}
+            </div>
+          `;
+          break;
+        case 'staff_spotlight':
+          sectionsHTML += `
+            <div class="section spotlight-section">
+              <h3>⭐ ${section.title || 'Staff Spotlight'}</h3>
+              <p>${section.content || ''}</p>
+            </div>
+          `;
+          break;
+        case 'image':
+          sectionsHTML += `
+            <div class="section image-section">
+              <h3>${section.title || ''}</h3>
+              ${section.imageUrl ? `<img src="${section.imageUrl}" alt="${section.title || 'Newsletter image'}" style="max-width: 100%; height: auto;">` : ''}
+              <p>${section.content || ''}</p>
+            </div>
+          `;
+          break;
+        default:
+          sectionsHTML += `
+            <div class="section">
+              <h3>${section.title || ''}</h3>
+              <p>${section.content || ''}</p>
+            </div>
+          `;
+      }
+    });
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>${newsletter.title}</title>
+        <style>
+          body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+          .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
+          .section { margin-bottom: 30px; padding: 20px; }
+          .text-section { background-color: #f9f9f9; }
+          .announcement-section { background-color: #fff3cd; border-left: 4px solid #ffc107; }
+          .event-section { background-color: #d1ecf1; border-left: 4px solid #17a2b8; }
+          .spotlight-section { background-color: #f8d7da; border-left: 4px solid #dc3545; }
+          .image-section { text-align: center; }
+          h1 { color: #333; margin: 0; }
+          h2 { color: #666; margin: 10px 0 0 0; font-weight: normal; }
+          h3 { color: #333; margin-top: 0; }
+          p { line-height: 1.6; color: #555; }
+          img { border-radius: 8px; }
+          .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #888; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>${newsletter.title}</h1>
+          ${newsletter.subtitle ? `<h2>${newsletter.subtitle}</h2>` : ''}
+          <p>Published: ${new Date(newsletter.publishedAt || newsletter.createdAt).toLocaleDateString()}</p>
+        </div>
+        
+        ${sectionsHTML}
+        
+        <div class="footer">
+          <p>This newsletter was generated from your school management system.</p>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  // Newsletter admin endpoints
+  app.post("/api/admin/newsletters/:id/publish", requireAuth, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.session!.userId!);
+      if (!user || !user.schoolId || (!user.isAdmin && !user.isSchoolAdmin)) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      const newsletterId = parseInt(req.params.id);
+      const { scheduledFor } = req.body;
+
+      // Update newsletter status to published
+      const [newsletter] = await db
+        .update(newsletters)
+        .set({
+          status: 'published',
+          publishedAt: new Date(),
+          scheduledFor: scheduledFor ? new Date(scheduledFor) : null,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(newsletters.id, newsletterId),
+            eq(newsletters.schoolId, user.schoolId),
+          ),
+        )
+        .returning();
+
+      if (!newsletter) {
+        return res.status(404).json({ error: "Newsletter not found" });
+      }
+
+      res.json({ 
+        success: true, 
+        message: "Newsletter published successfully",
+        newsletter 
+      });
+    } catch (error) {
+      console.error("Error publishing newsletter:", error);
+      res.status(500).json({ error: "Failed to publish newsletter" });
+    }
+  });
+
+  app.post("/api/admin/newsletters/:id/pdf", requireAuth, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.session!.userId!);
+      if (!user || !user.schoolId || (!user.isAdmin && !user.isSchoolAdmin)) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      const newsletterId = parseInt(req.params.id);
+
+      // Get newsletter data
+      const [newsletter] = await db
+        .select()
+        .from(newsletters)
+        .where(
+          and(
+            eq(newsletters.id, newsletterId),
+            eq(newsletters.schoolId, user.schoolId),
+          ),
+        );
+
+      if (!newsletter) {
+        return res.status(404).json({ error: "Newsletter not found" });
+      }
+
+      // Generate HTML content for PDF
+      const htmlContent = generateNewsletterHTML(newsletter);
+
+      // For now, return the HTML as a simple text file since we don't have PDF generation library
+      // In production, you'd use puppeteer or similar to generate actual PDFs
+      res.setHeader('Content-Type', 'text/html');
+      res.setHeader('Content-Disposition', `attachment; filename="newsletter-${newsletter.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.html"`);
+      res.send(htmlContent);
+
+    } catch (error) {
+      console.error("Error generating newsletter PDF:", error);
+      res.status(500).json({ error: "Failed to generate PDF" });
+    }
+  });
+
   // Analytics endpoints
   app.get("/api/analytics/modules", requireAuth, async (req, res) => {
     try {
