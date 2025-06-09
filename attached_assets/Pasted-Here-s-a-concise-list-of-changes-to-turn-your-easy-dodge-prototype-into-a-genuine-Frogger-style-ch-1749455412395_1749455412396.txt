@@ -1,0 +1,75 @@
+Here’s a concise list of changes to turn your “easy dodge” prototype into a genuine Frogger-style challenge—more lanes, faster hazards, and just enough complexity to keep it fun and fair:
+
+Switch to Horizontal Lane Spawns
+
+Remove the diagonal drop logic entirely.
+
+Define an array of fixed Y-positions (e.g. laneYs = [200, 300, 400, 500, 600]).
+
+Spawn each obstacle at one of those Y’s, at either X=–width or X=screenWidth+width depending on its direction.
+
+Implement Continuous Wrap-Around Movement
+
+python
+Copy
+Edit
+for obs in obstacles:
+    obs.x += LEVELS[level]['speed'] * obs.direction * dt
+    if obs.direction > 0 and obs.x > WIDTH:
+        obs.x = -obs.width
+    elif obs.direction < 0 and obs.x + obs.width < 0:
+        obs.x = WIDTH
+This creates a constant stream of hazards to dodge, not just a one-time drop.
+
+Increase Obstacle Density & Speed by Level
+
+Level 1: 2–3 obstacles per lane at speed 5.
+
+Level 2: 4–5 obstacles per lane at speed 7.
+
+Level 3: 6–7 obstacles per lane at speed 9 (and add special hazard like “GlitterPuddle” that slows you).
+
+Limit Player Movement to Lanes & Columns
+
+Snap the teacher to the nearest lane when moving up/down.
+
+Use a fixed step (e.g. 80 px sideways) so you’re always aligned to dodge horizontally moving obstacles.
+
+Add a “Safe Zone” & Checkpoint
+
+After passing the third lane, move the teacher to a brief checkpoint—reset obstacle positions but preserve your score so you don’t restart from the bottom every collision.
+
+Dynamic Obstacle Timing
+
+Don’t spawn all obstacles at once. Use a per-lane timer so each lane gets a new obstacle every 1.5–3 s (randomized).
+
+python
+Copy
+Edit
+laneTimers[lane] += dt
+if laneTimers[lane] > random.uniform(1.5, 3.0):
+    spawnObstacleInLane(lane)
+    laneTimers[lane] = 0
+Child “Chase” Mechanic
+
+Instead of a stationary baby at the top, let the child drift sideways at a slow, constant speed on the top lane—so you actually have to predict and intercept rather than just step straight up.
+
+Introduce a Second Challenge Mode
+
+Fire Drill: Every 20 s all obstacle speeds boost 25% for 5 s, simulating a drill.
+
+Slow-Mo “Time-Out” Zone: One random lane occasionally slows obstacles by 50%—a tactical breather.
+
+Tweak Collision Consequences
+
+On collision, instead of instantly going to the quiz, play a 0.5 s “hit” animation, subtract a life, and respawn at the last checkpoint—so you feel the penalty but keep your momentum.
+
+Polish with Feedback
+
+Screen Shake + SFX on near-misses (when obstacle passes within 20 px).
+
+Combo Meter: Dodge 5 hazards in a row → “Flow Mode” for 3 s (points x2).
+
+Tell Replit:
+
+“Switch from dropping items to horizontal, lane‐based obstacles that wrap around. Increase the number and speed of hazards each level. Snap teacher movement to a lane/column grid. Add per‐lane spawn timers, a mid‐lane checkpoint, and a drifting child at the top lane to intercept. Layer in periodic fire‐drill speed boosts and slow‐mo zones. Improve feedback with screen-shake, sound effects, life penalties, and a combo multiplier. This will transform the easy prototype into a true Frogger-style chase that’s simple, yet progressively challenging and addictive.”

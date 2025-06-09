@@ -202,6 +202,17 @@ export default function WhoLeftTheGateOpen() {
   const [collectionEffects, setCollectionEffects] = useState<any[]>([]);
   const [difficultyMultiplier, setDifficultyMultiplier] = useState(1);
   const [lastFrameTime, setLastFrameTime] = useState(0);
+  
+  // Enhanced Frogger mechanics
+  const [laneTimers, setLaneTimers] = useState<number[]>(new Array(LANE_COUNT).fill(0));
+  const [fireDrillActive, setFireDrillActive] = useState(false);
+  const [fireDrillTimer, setFireDrillTimer] = useState(0);
+  const [slowMoLane, setSlowMoLane] = useState<number | null>(null);
+  const [comboCount, setComboCount] = useState(0);
+  const [flowModeActive, setFlowModeActive] = useState(false);
+  const [checkpointReached, setCheckpointReached] = useState(false);
+  const [childTarget, setChildTarget] = useState({ x: CANVAS_WIDTH / 2, direction: 1 });
+  const [nearMissCount, setNearMissCount] = useState(0);
 
   // Initialize audio context and check first time user
   useEffect(() => {
@@ -788,8 +799,10 @@ export default function WhoLeftTheGateOpen() {
     return () => clearInterval(interval);
   }, [gameState, currentLevel, timeSlowActive]);
 
-  // Initialize Frogger-style level with lane-based obstacles
-  const initializeLevel = useCallback(() => {
+  // Enhanced per-lane obstacle spawning system
+  const spawnObstacleInLane = useCallback((laneIndex: number) => {
+    if (laneIndex === 0 || laneIndex === LANE_COUNT - 1) return; // Skip goal and start lanes
+    
     const getObstacleColor = (type: string): string => {
       const obstacleColors = {
         'car': '#FF4444',
@@ -802,53 +815,46 @@ export default function WhoLeftTheGateOpen() {
       return obstacleColors[type as keyof typeof obstacleColors] || '#888888';
     };
 
-    const newObstacles: Obstacle[] = [];
     const level = GAME_LEVELS[currentLevel] || GAME_LEVELS[0];
+    const direction = laneIndex % 2 === 0 ? 1 : -1;
+    const laneY = LANE_Y_POSITIONS[laneIndex];
+    const startX = direction === 1 ? -60 : CANVAS_WIDTH + 60;
     
-    // Skip first and last lanes for player start/goal positions
-    for (let laneIndex = 1; laneIndex < LANE_COUNT - 1; laneIndex++) {
-      const laneY = LANE_Y_POSITIONS[laneIndex];
-      const direction = laneIndex % 2 === 0 ? 1 : -1; // Alternate directions
-      const obstacleCount = Math.min(3, level.obstacleCount);
-      
-      for (let i = 0; i < obstacleCount; i++) {
-        const spacing = CANVAS_WIDTH / obstacleCount;
-        const startX = direction === 1 ? -60 - (i * spacing) : CANVAS_WIDTH + 60 + (i * spacing);
-        
-        const obstacleTypes = ['car', 'bike', 'stroller', 'snack-cart', 'glitter-puddle'];
-        const type = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)] as any;
-        
-        newObstacles.push({
-          id: Date.now() + i + laneIndex * 100,
-          x: startX,
-          y: laneY,
-          width: 50,
-          height: 40,
-          speed: level.speed,
-          direction,
-          type,
-          color: getObstacleColor(type)
-        });
-      }
-    }
+    const obstacleTypes = ['car', 'bike', 'stroller', 'snack-cart'];
+    if (currentLevel >= 2) obstacleTypes.push('glitter-puddle'); // Special hazard in higher levels
     
-    // Add goal child at top lane
-    newObstacles.push({
-      id: Date.now() + 9999,
-      x: CANVAS_WIDTH / 2 - 25,
-      y: LANE_Y_POSITIONS[0],
+    const type = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)] as any;
+    
+    const speedMultiplier = fireDrillActive ? 1.25 : (slowMoLane === laneIndex ? 0.5 : 1);
+    
+    setObstacles(prev => [...prev, {
+      id: Date.now() + Math.random(),
+      x: startX,
+      y: laneY,
       width: 50,
       height: 40,
-      speed: 0,
-      direction: 0,
-      type: 'runaway-child',
-      color: '#32CD32'
-    });
+      speed: level.speed * speedMultiplier,
+      direction,
+      type,
+      color: getObstacleColor(type)
+    }]);
+  }, [currentLevel, fireDrillActive, slowMoLane]);
+
+  // Initialize level with drifting child target
+  const initializeLevel = useCallback(() => {
+    // Clear existing obstacles and reset child position
+    setObstacles([]);
+    setChildTarget({ x: CANVAS_WIDTH / 2, direction: 1 });
+    setCheckpointReached(false);
+    setComboCount(0);
+    setFlowModeActive(false);
+    setLaneTimers(new Array(LANE_COUNT).fill(0));
     
-    setObstacles(newObstacles);
-    // Clear power-ups to simplify gameplay
-    setPowerUps([]);
-  }, [currentLevel]);
+    // Initialize some obstacles for immediate gameplay
+    for (let laneIndex = 1; laneIndex < LANE_COUNT - 1; laneIndex++) {
+      setTimeout(() => spawnObstacleInLane(laneIndex), laneIndex * 500);
+    }
+  }, [currentLevel, spawnObstacleInLane]);
 
   // Initialize level when starting
   useEffect(() => {
@@ -856,6 +862,86 @@ export default function WhoLeftTheGateOpen() {
       initializeLevel();
     }
   }, [gameState, currentLevel, initializeLevel]);
+
+  // Enhanced game mechanics - Fire Drill and Special Modes
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    const fireDrillInterval = setInterval(() => {
+      // Fire drill every 20 seconds for 5 seconds
+      setFireDrillActive(true);
+      setFireDrillTimer(20000);
+      
+      setTimeout(() => {
+        setFireDrillActive(false);
+      }, 5000);
+    }, 20000);
+
+    const slowMoInterval = setInterval(() => {
+      // Random slow-mo zone every 15 seconds
+      const randomLane = Math.floor(Math.random() * (LANE_COUNT - 2)) + 1;
+      setSlowMoLane(randomLane);
+      
+      setTimeout(() => {
+        setSlowMoLane(null);
+      }, 8000);
+    }, 15000);
+
+    return () => {
+      clearInterval(fireDrillInterval);
+      clearInterval(slowMoInterval);
+    };
+  }, [gameState]);
+
+  // Per-lane spawning timers
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    const laneSpawnInterval = setInterval(() => {
+      setLaneTimers(prev => {
+        const newTimers = [...prev];
+        
+        for (let laneIndex = 1; laneIndex < LANE_COUNT - 1; laneIndex++) {
+          newTimers[laneIndex] += 100; // 100ms increment
+          
+          const spawnInterval = 1500 + Math.random() * 1500; // 1.5-3s random
+          if (newTimers[laneIndex] >= spawnInterval) {
+            spawnObstacleInLane(laneIndex);
+            newTimers[laneIndex] = 0;
+          }
+        }
+        
+        return newTimers;
+      });
+    }, 100);
+
+    return () => clearInterval(laneSpawnInterval);
+  }, [gameState, spawnObstacleInLane]);
+
+  // Drifting child target
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    const childDriftInterval = setInterval(() => {
+      setChildTarget(prev => {
+        let newX = prev.x + (prev.direction * 30); // Slow drift
+        let newDirection = prev.direction;
+        
+        // Bounce off edges
+        if (newX <= 50) {
+          newX = 50;
+          newDirection = 1;
+        } else if (newX >= CANVAS_WIDTH - 50) {
+          newX = CANVAS_WIDTH - 50;
+          newDirection = -1;
+        }
+        
+        return { x: newX, direction: newDirection };
+      });
+    }, 500);
+
+    return () => clearInterval(childDriftInterval);
+  }, [gameState]);
 
   // Main game loop
   useEffect(() => {
@@ -967,10 +1053,7 @@ export default function WhoLeftTheGateOpen() {
         const centerX = obstacle.x + obstacle.width/2;
         const centerY = obstacle.y + obstacle.height/2 + 4;
         
-        if (obstacle.type === 'runaway-child') {
-          ctx.strokeText('👶', centerX, centerY);
-          ctx.fillText('👶', centerX, centerY);
-        } else if (obstacle.type === 'car') {
+        if (obstacle.type === 'car') {
           ctx.strokeText('🚗', centerX, centerY);
           ctx.fillText('🚗', centerX, centerY);
         } else if (obstacle.type === 'bike') {
@@ -987,6 +1070,78 @@ export default function WhoLeftTheGateOpen() {
           ctx.fillText('✨', centerX, centerY);
         }
       });
+
+      // Draw drifting child target at top lane
+      const childY = LANE_Y_POSITIONS[0];
+      const childPulse = Math.sin(Date.now() * 0.01) * 0.2 + 0.8;
+      
+      // Glowing goal child
+      ctx.shadowColor = '#32CD32';
+      ctx.shadowBlur = 15 * childPulse;
+      ctx.fillStyle = '#32CD32';
+      ctx.fillRect(childTarget.x - 25, childY, 50, 40);
+      ctx.shadowBlur = 0;
+      
+      // Child emoji with outline for visibility
+      ctx.fillStyle = '#000';
+      ctx.font = 'bold 20px Arial';
+      ctx.textAlign = 'center';
+      ctx.strokeStyle = '#FFF';
+      ctx.lineWidth = 3;
+      ctx.strokeText('👶', childTarget.x, childY + 25);
+      ctx.fillText('👶', childTarget.x, childY + 25);
+      
+      // Goal indicator arrow
+      ctx.fillStyle = '#FFD700';
+      ctx.beginPath();
+      ctx.moveTo(childTarget.x - 15, childY - 10);
+      ctx.lineTo(childTarget.x, childY - 20);
+      ctx.lineTo(childTarget.x + 15, childY - 10);
+      ctx.fill();
+
+      // Special zone indicators
+      if (fireDrillActive) {
+        // Fire drill warning
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        
+        ctx.fillStyle = '#FF0000';
+        ctx.font = 'bold 24px Arial';
+        ctx.textAlign = 'center';
+        ctx.strokeStyle = '#FFF';
+        ctx.lineWidth = 2;
+        ctx.strokeText('🚨 FIRE DRILL! 🚨', CANVAS_WIDTH / 2, 40);
+        ctx.fillText('🚨 FIRE DRILL! 🚨', CANVAS_WIDTH / 2, 40);
+      }
+
+      if (slowMoLane !== null) {
+        // Slow-mo zone indicator
+        const laneY = LANE_Y_POSITIONS[slowMoLane];
+        ctx.fillStyle = 'rgba(0, 255, 255, 0.2)';
+        ctx.fillRect(0, laneY - 10, CANVAS_WIDTH, LANE_HEIGHT);
+        
+        ctx.fillStyle = '#00FFFF';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'center';
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 1;
+        ctx.strokeText('⏱️ TIME-OUT ZONE', CANVAS_WIDTH / 2, laneY + 15);
+        ctx.fillText('⏱️ TIME-OUT ZONE', CANVAS_WIDTH / 2, laneY + 15);
+      }
+
+      if (flowModeActive) {
+        // Flow mode indicator
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.1)';
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        
+        ctx.fillStyle = '#FFD700';
+        ctx.font = 'bold 20px Arial';
+        ctx.textAlign = 'center';
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.strokeText('⚡ FLOW MODE! POINTS x2 ⚡', CANVAS_WIDTH / 2, CANVAS_HEIGHT - 30);
+        ctx.fillText('⚡ FLOW MODE! POINTS x2 ⚡', CANVAS_WIDTH / 2, CANVAS_HEIGHT - 30);
+      }
 
       // Draw power-ups with shimmering gold effect
       powerUps.forEach(powerUp => {
