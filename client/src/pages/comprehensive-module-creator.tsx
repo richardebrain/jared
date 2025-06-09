@@ -113,15 +113,67 @@ export default function ComprehensiveModuleCreator() {
     estimatedTime: '15',
     customPoints: '',
     shareWithCommunity: false,
+    moduleType: 'single' as 'single' | 'course' | 'interactive',
     sections: [
       {
         title: 'Introduction',
         content: '',
         videoUrl: '',
         imageUrl: '',
-        type: 'text' as const
+        type: 'text' as const,
+        duration: 5,
+        activities: [] as Array<{
+          type: 'watch' | 'read' | 'practice' | 'reflect' | 'quiz' | 'journal' | 'breathing' | 'recording';
+          title: string;
+          duration: number;
+          content: string;
+          videoUrl?: string;
+          audioUrl?: string;
+          interactionType?: 'timer' | 'recorder' | 'worksheet' | 'form';
+        }>
       }
-    ]
+    ],
+    // Advanced features for template support
+    courseStructure: {
+      sequentialUnlock: false,
+      certificateAwarded: false,
+      badgeType: '',
+      modules: [] as Array<{
+        id: string;
+        title: string;
+        description: string;
+        duration: number;
+        activities: Array<{
+          type: 'watch' | 'read' | 'practice' | 'reflect' | 'quiz' | 'journal' | 'breathing' | 'recording';
+          title: string;
+          duration: number;
+          content: string;
+          videoUrl?: string;
+          audioUrl?: string;
+          interactionType?: 'timer' | 'recorder' | 'worksheet' | 'form';
+        }>;
+        completionRequirements: {
+          passingScore?: number;
+          requiredActivities?: string[];
+          timeRequirement?: number;
+        };
+      }>
+    },
+    interactiveElements: {
+      hasTimer: false,
+      hasAudioRecording: false,
+      hasJournaling: false,
+      hasBreathingExercises: false,
+      hasWorksheets: false
+    },
+    certificationSystem: {
+      enabled: false,
+      badgeName: '',
+      requirements: {
+        completionPercentage: 100,
+        minimumScore: 70
+      }
+    }
   });
   
   const [isCreatingModule, setIsCreatingModule] = useState(false);

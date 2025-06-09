@@ -144,6 +144,82 @@ export const learningModules = pgTable("learning_modules", {
   ratingCount: integer("rating_count").default(0), // Number of ratings received
   isSharedToCommunity: boolean("is_shared_to_community").default(false), // Whether shared to community
   schoolId: integer("school_id").references(() => schools.id), // School that created this module
+  
+  // Enhanced features for advanced module types
+  moduleType: text("module_type").default("single"), // single, course, interactive
+  courseStructure: json("course_structure").$type<{
+    modules?: Array<{
+      id: string;
+      title: string;
+      description: string;
+      duration: number;
+      activities: Array<{
+        type: 'watch' | 'read' | 'practice' | 'reflect' | 'quiz' | 'journal' | 'breathing' | 'recording';
+        title: string;
+        duration: number;
+        content: string;
+        videoUrl?: string;
+        audioUrl?: string;
+        interactionType?: 'timer' | 'recorder' | 'worksheet' | 'form';
+      }>;
+      completionRequirements: {
+        passingScore?: number;
+        requiredActivities?: string[];
+        timeRequirement?: number;
+      };
+    }>;
+    sequentialUnlock?: boolean;
+    certificateAwarded?: boolean;
+    badgeType?: string;
+  }>(),
+  
+  interactiveElements: json("interactive_elements").$type<{
+    hasTimer?: boolean;
+    hasAudioRecording?: boolean;
+    hasJournaling?: boolean;
+    hasBreathingExercises?: boolean;
+    hasWorksheets?: boolean;
+    customInteractions?: Array<{
+      type: string;
+      config: Record<string, any>;
+    }>;
+  }>(),
+  
+  advancedQuizTypes: json("advanced_quiz_types").$type<{
+    matching?: Array<{
+      prompt: string;
+      pairs: Array<{ left: string; right: string }>;
+    }>;
+    trueFalse?: Array<{
+      statement: string;
+      correct: boolean;
+      explanation?: string;
+    }>;
+    multipleResponse?: Array<{
+      question: string;
+      options: string[];
+      correctAnswers: number[];
+      explanation?: string;
+    }>;
+  }>(),
+  
+  certificationSystem: json("certification_system").$type<{
+    enabled?: boolean;
+    badgeName?: string;
+    badgeImageUrl?: string;
+    requirements?: {
+      completionPercentage?: number;
+      minimumScore?: number;
+      timeSpent?: number;
+      activitiesCompleted?: string[];
+    };
+    sharingOptions?: {
+      allowSocialShare?: boolean;
+      generatePDF?: boolean;
+      addToProfile?: boolean;
+    };
+  }>(),
+  
   createdAt: timestamp("created_at").defaultNow(),
 });
 
