@@ -80,14 +80,28 @@ interface GameState {
   showPointAnimation: boolean;
 }
 
-const GAME_WIDTH = 800;
-const GAME_HEIGHT = 600;
-const PADDLE_WIDTH = 100;
-const PADDLE_HEIGHT = 20;
-const BALL_RADIUS = 8;
-const BRICK_WIDTH = 75;
-const BRICK_HEIGHT = 30;
-const BRICK_PADDING = 5;
+// Base game dimensions - will be scaled for mobile
+const BASE_GAME_WIDTH = 800;
+const BASE_GAME_HEIGHT = 600;
+const BASE_PADDLE_WIDTH = 100;
+const BASE_PADDLE_HEIGHT = 20;
+const BASE_BALL_RADIUS = 8;
+const BASE_BRICK_WIDTH = 75;
+const BASE_BRICK_HEIGHT = 30;
+const BASE_BRICK_PADDING = 5;
+
+// Mobile responsive scaling
+const isMobile = () => window.innerWidth < 768;
+const getScale = () => isMobile() ? Math.min(window.innerWidth / BASE_GAME_WIDTH * 0.95, 1) : 1;
+
+const GAME_WIDTH = isMobile() ? window.innerWidth * 0.95 : BASE_GAME_WIDTH;
+const GAME_HEIGHT = isMobile() ? (window.innerWidth * 0.95 * BASE_GAME_HEIGHT) / BASE_GAME_WIDTH : BASE_GAME_HEIGHT;
+const PADDLE_WIDTH = BASE_PADDLE_WIDTH * getScale();
+const PADDLE_HEIGHT = BASE_PADDLE_HEIGHT * getScale();
+const BALL_RADIUS = BASE_BALL_RADIUS * getScale();
+const BRICK_WIDTH = BASE_BRICK_WIDTH * getScale();
+const BRICK_HEIGHT = BASE_BRICK_HEIGHT * getScale();
+const BRICK_PADDING = BASE_BRICK_PADDING * getScale();
 
 // CDA Level Data
 const LEVEL_DATA = [
@@ -715,32 +729,32 @@ export default function BounceAwayBlocks() {
   const currentLevel = LEVEL_DATA[gameState.level - 1];
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-4">
+    <div className="w-full max-w-4xl mx-auto space-y-2 md:space-y-4 px-2 md:px-0">
       {/* Game Header */}
-      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg">
-        <div>
-          <h2 className="text-2xl font-bold">Bounce-Away Blocks 2.0</h2>
-          <p className="text-blue-100">Level {gameState.level}: {currentLevel?.title}</p>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between p-3 md:p-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg">
+        <div className="mb-2 md:mb-0">
+          <h2 className="text-lg md:text-2xl font-bold">Bounce-Away Blocks 2.0</h2>
+          <p className="text-xs md:text-sm text-blue-100">Level {gameState.level}: {currentLevel?.title}</p>
         </div>
-        <div className="flex items-center space-x-4 text-right">
-          <div>
-            <div className="text-sm opacity-90">Score</div>
-            <div className="text-xl font-bold">{gameState.score.toLocaleString()}</div>
+        <div className="flex items-center justify-between md:space-x-4">
+          <div className="text-center">
+            <div className="text-xs opacity-90">Score</div>
+            <div className="text-sm md:text-xl font-bold">{gameState.score.toLocaleString()}</div>
           </div>
-          <div>
-            <div className="text-sm opacity-90">Lives</div>
-            <div className="flex space-x-1">
+          <div className="text-center">
+            <div className="text-xs opacity-90">Lives</div>
+            <div className="flex space-x-1 justify-center">
               {Array.from({ length: 3 }).map((_, i) => (
                 <Heart 
                   key={i} 
-                  className={`h-5 w-5 ${i < gameState.lives ? 'text-red-400 fill-current' : 'text-gray-400'}`} 
+                  className={`h-4 w-4 md:h-5 md:w-5 ${i < gameState.lives ? 'text-red-400 fill-current' : 'text-gray-400'}`} 
                 />
               ))}
             </div>
           </div>
-          <div>
-            <div className="text-sm opacity-90">Combo</div>
-            <div className="text-xl font-bold">×{gameState.combo}</div>
+          <div className="text-center">
+            <div className="text-xs opacity-90">Combo</div>
+            <div className="text-sm md:text-xl font-bold">×{gameState.combo}</div>
           </div>
         </div>
       </div>
@@ -755,16 +769,41 @@ export default function BounceAwayBlocks() {
       )}
 
       {/* Game Canvas */}
-      <Card className="relative">
+      <Card className="relative overflow-hidden">
         <CardContent className="p-0">
-          <canvas
-            ref={canvasRef}
-            width={GAME_WIDTH}
-            height={GAME_HEIGHT}
-            className="border rounded-lg cursor-pointer"
-            onMouseMove={handleMouseMove}
-            onClick={handleClick}
-          />
+          <div className="relative w-full" style={{ aspectRatio: `${BASE_GAME_WIDTH}/${BASE_GAME_HEIGHT}` }}>
+            <canvas
+              ref={canvasRef}
+              width={GAME_WIDTH}
+              height={GAME_HEIGHT}
+              className="absolute inset-0 w-full h-full border rounded-lg cursor-pointer touch-none"
+              style={{ maxWidth: '100%', maxHeight: '100%' }}
+              onMouseMove={handleMouseMove}
+              onClick={handleClick}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const rect = canvasRef.current?.getBoundingClientRect();
+                if (rect) {
+                  const scaleX = GAME_WIDTH / rect.width;
+                  const scaleY = GAME_HEIGHT / rect.height;
+                  const x = (touch.clientX - rect.left) * scaleX;
+                  setPaddle(prev => ({ ...prev, x: Math.max(0, Math.min(GAME_WIDTH - PADDLE_WIDTH, x - PADDLE_WIDTH / 2)) }));
+                }
+              }}
+              onTouchMove={(e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const rect = canvasRef.current?.getBoundingClientRect();
+                if (rect) {
+                  const scaleX = GAME_WIDTH / rect.width;
+                  const scaleY = GAME_HEIGHT / rect.height;
+                  const x = (touch.clientX - rect.left) * scaleX;
+                  setPaddle(prev => ({ ...prev, x: Math.max(0, Math.min(GAME_WIDTH - PADDLE_WIDTH, x - PADDLE_WIDTH / 2)) }));
+                }
+              }}
+            />
+          </div>
           
           {/* Game State Overlays */}
           {!gameState.isPlaying && !gameState.gameOver && !gameState.victory && (
@@ -834,18 +873,22 @@ export default function BounceAwayBlocks() {
         </CardContent>
       </Card>
 
-      {/* Game Controls */}
-      <div className="flex items-center justify-center space-x-4">
-        {gameState.isPlaying && !gameState.gameOver && (
-          <Button onClick={togglePause} variant="outline">
-            {gameState.isPaused ? <Play className="h-4 w-4 mr-2" /> : <Pause className="h-4 w-4 mr-2" />}
-            {gameState.isPaused ? 'Resume' : 'Pause'}
+      {/* Mobile Game Controls - Fixed Position */}
+      <div className="md:relative fixed bottom-4 left-4 right-4 z-40 md:z-auto">
+        <div className="flex items-center justify-center space-x-4 bg-white/95 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none rounded-lg md:rounded-none p-2 md:p-0 border md:border-none shadow-lg md:shadow-none">
+          {gameState.isPlaying && !gameState.gameOver && (
+            <Button onClick={togglePause} variant="outline" size="sm" className="md:size-default">
+              {gameState.isPaused ? <Play className="h-4 w-4 mr-1 md:mr-2" /> : <Pause className="h-4 w-4 mr-1 md:mr-2" />}
+              <span className="hidden sm:inline">{gameState.isPaused ? 'Resume' : 'Pause'}</span>
+              <span className="sm:hidden">{gameState.isPaused ? 'Play' : 'Pause'}</span>
+            </Button>
+          )}
+          <Button onClick={resetGame} variant="outline" size="sm" className="md:size-default">
+            <RotateCcw className="h-4 w-4 mr-1 md:mr-2" />
+            <span className="hidden sm:inline">Reset Game</span>
+            <span className="sm:hidden">Reset</span>
           </Button>
-        )}
-        <Button onClick={resetGame} variant="outline">
-          <RotateCcw className="h-4 w-4 mr-2" />
-          Reset Game
-        </Button>
+        </div>
       </div>
 
       {/* Level Progress */}
