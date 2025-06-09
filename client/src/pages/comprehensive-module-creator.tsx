@@ -119,6 +119,87 @@ export default function ComprehensiveModuleCreator() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [creationMethod, setCreationMethod] = useState<'selection' | 'stepByStep' | 'powerPoint' | 'manual'>('selection');
   
+  // AI-Assisted workflow states
+  const [aiWorkflowStep, setAiWorkflowStep] = useState<'method-selection' | 'template-selection' | 'template-builder' | 'section-builder' | 'preview'>('method-selection');
+  const [aiSelectedTemplate, setAiSelectedTemplate] = useState<any>(null);
+  const [customTemplate, setCustomTemplate] = useState<any>(null);
+  const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
+  const [completedSections, setCompletedSections] = useState<number[]>([]);
+
+  // Proven Templates for AI-Assisted workflow
+  const PROVEN_TEMPLATES = [
+    {
+      id: 'mindful-morning',
+      title: 'Mindful Morning Online Course',
+      description: '60-minute multi-module course with breathing exercises, reflection, and certification',
+      duration: '60 min',
+      modules: 6,
+      sections: [
+        { type: 'text', title: 'Welcome & Why It Matters', duration: 5 },
+        { type: 'video', title: 'Mindfulness Introduction Video', duration: 10 },
+        { type: 'story', title: 'Classroom Scenario', duration: 8 },
+        { type: 'example', title: 'Real-World Examples', duration: 12 },
+        { type: 'quiz', title: 'Knowledge Check', duration: 5 },
+        { type: 'simulation', title: 'Practice Session', duration: 20 }
+      ]
+    },
+    {
+      id: 'playground-transition',
+      title: 'Playground to Classroom Transitions',
+      description: 'Strategic approaches for smooth transitions with behavior management focus',
+      duration: '25 min',
+      modules: 1,
+      sections: [
+        { type: 'text', title: 'Understanding the Challenge', duration: 5 },
+        { type: 'example', title: 'Effective Strategies', duration: 8 },
+        { type: 'scenario', title: 'Practice Scenarios', duration: 7 },
+        { type: 'quiz', title: 'Assessment', duration: 5 }
+      ]
+    },
+    {
+      id: 'behavior-management',
+      title: 'Positive Behavior Support',
+      description: 'Evidence-based strategies for classroom behavior management',
+      duration: '35 min',
+      modules: 1,
+      sections: [
+        { type: 'text', title: 'Foundation Principles', duration: 8 },
+        { type: 'video', title: 'Expert Demonstration', duration: 12 },
+        { type: 'matching', title: 'Strategy Matching', duration: 6 },
+        { type: 'triage', title: 'Decision Making', duration: 7 },
+        { type: 'quiz', title: 'Competency Check', duration: 2 }
+      ]
+    },
+    {
+      id: 'trauma-informed',
+      title: 'Trauma-Informed Care Basics',
+      description: 'Understanding and responding to childhood trauma in educational settings',
+      duration: '45 min',
+      modules: 1,
+      sections: [
+        { type: 'text', title: 'Introduction to Trauma', duration: 10 },
+        { type: 'story', title: 'Case Studies', duration: 15 },
+        { type: 'example', title: 'Response Strategies', duration: 12 },
+        { type: 'mnemonic', title: 'Memory Aids', duration: 5 },
+        { type: 'quiz', title: 'Final Assessment', duration: 3 }
+      ]
+    }
+  ];
+
+  // Section type definitions with AI assistance
+  const SECTION_TYPES = [
+    { type: 'text', icon: '📝', title: 'Text Content', description: 'Written educational content with AI assistance' },
+    { type: 'video', icon: '🎥', title: 'Video Content', description: 'Video resources with AI-generated questions' },
+    { type: 'quiz', icon: '❓', title: 'Knowledge Quiz', description: 'AI-generated assessment questions' },
+    { type: 'story', icon: '📚', title: 'Story/Scenario', description: 'Engaging narratives with AI storytelling' },
+    { type: 'example', icon: '💡', title: 'Examples', description: 'Real-world examples with AI insights' },
+    { type: 'matching', icon: '🔗', title: 'Matching Exercise', description: 'Interactive matching with AI generation' },
+    { type: 'scenario', icon: '🎭', title: 'Scenario Practice', description: 'Practice scenarios with AI feedback' },
+    { type: 'triage', icon: '⚡', title: 'Decision Triage', description: 'Quick decision-making exercises' },
+    { type: 'mnemonic', icon: '🧠', title: 'Memory Aids', description: 'AI-generated memory devices' },
+    { type: 'simulation', icon: '🎮', title: 'Interactive Simulation', description: 'Hands-on practice simulations' }
+  ];
+  
   // Module Creator state - comprehensive version
   const [newModule, setNewModule] = useState({
     title: '',
@@ -208,13 +289,98 @@ export default function ComprehensiveModuleCreator() {
     quizQuestions: []
   });
 
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [isGeneratingContent, setIsGeneratingContent] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<any>(null);
   const [useStepByStep, setUseStepByStep] = useState(false);
   const [generatingContent, setGeneratingContent] = useState<number | null>(null);
   const [generatingVideo, setGeneratingVideo] = useState<number | null>(null);
   const [videoGenerationStatus, setVideoGenerationStatus] = useState<{[key: number]: string}>({});
+
+  // AI-Assisted workflow functions
+  const handleAiAssistedFlow = () => {
+    setCreationMethod('manual');
+    setAiWorkflowStep('template-selection');
+  };
+
+  const handleTemplateSelection = (template: any) => {
+    setAiSelectedTemplate(template);
+    setNewModule(prev => ({
+      ...prev,
+      title: template.title,
+      description: template.description,
+      sections: template.sections.map((section: any) => ({
+        title: section.title,
+        content: '',
+        videoUrl: '',
+        imageUrl: '',
+        type: section.type,
+        duration: section.duration,
+        activities: [{
+          type: 'read' as const,
+          title: section.title,
+          duration: section.duration,
+          content: '',
+          videoUrl: '',
+          audioUrl: '',
+          interactionType: 'form' as const
+        }]
+      }))
+    }));
+    setAiWorkflowStep('section-builder');
+  };
+
+  const handleCustomTemplateBuilder = () => {
+    setAiWorkflowStep('template-builder');
+  };
+
+  const proceedToSectionBuilder = () => {
+    setAiWorkflowStep('section-builder');
+    setCurrentSectionIndex(0);
+  };
+
+  const nextSection = () => {
+    if (currentSectionIndex < newModule.sections.length - 1) {
+      setCompletedSections(prev => [...prev, currentSectionIndex]);
+      setCurrentSectionIndex(prev => prev + 1);
+    } else {
+      setCompletedSections(prev => [...prev, currentSectionIndex]);
+      setAiWorkflowStep('preview');
+    }
+  };
+
+  const previousSection = () => {
+    if (currentSectionIndex > 0) {
+      setCurrentSectionIndex(prev => prev - 1);
+    }
+  };
+
+  const addCustomSection = (sectionType: string) => {
+    const sectionTypeConfig = SECTION_TYPES.find(type => type.type === sectionType);
+    if (!sectionTypeConfig) return;
+
+    const newSection: ModuleSection = {
+      title: sectionTypeConfig.title,
+      content: '',
+      videoUrl: '',
+      imageUrl: '',
+      type: sectionType as any,
+      duration: 5,
+      activities: [{
+        type: 'read' as const,
+        title: sectionTypeConfig.title,
+        duration: 5,
+        content: '',
+        videoUrl: '',
+        audioUrl: '',
+        interactionType: 'form' as const
+      }]
+    };
+
+    setCustomTemplate(prev => ({
+      ...prev,
+      sections: [...(prev?.sections || []), newSection]
+    }));
+  };
 
   // Function to load template data into the module creator
   const loadTemplateData = (template: any) => {
@@ -1101,7 +1267,7 @@ Create a natural conversation between two podcast hosts discussing this specific
     }
     
     setGeneratedContent(null);
-    setSelectedTemplate(null);
+    setAiSelectedTemplate(null);
     
     toast({
       title: "Content Applied!",
