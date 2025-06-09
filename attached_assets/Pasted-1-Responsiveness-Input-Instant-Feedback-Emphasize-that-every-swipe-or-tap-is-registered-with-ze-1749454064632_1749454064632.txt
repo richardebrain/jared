@@ -1,0 +1,57 @@
+1. Responsiveness & Input
+“Instant Feedback”
+Emphasize that every swipe or tap is registered with zero perceptible lag:
+
+“The moment you press left or right, your teacher avatar pivots on-a-dime—no slide-back, no ‘dead zones.’ It’s like your brain and the game are on the same neural highway.”
+
+“Intuitive Controls”
+Stress how little players need to think about the mechanics and can focus on the fun:
+
+“One-touch jumps and slides feel completely natural, so even novice players are dodging runaway snack carts in seconds.”
+
+2. Smooth Motion & Animation
+“Buttery-Smooth Frame Rate”
+Call out a locked 60 FPS (or higher) baseline:
+
+“Every obstacle glides across the screen at a steady, stutter-free clip—so you’re never tripped up by a dropped frame.”
+
+“Easing & Inertia”
+Describe acceleration curves and subtle deceleration:
+
+“When the teacher sprints, she eases in and out of full speed—adding just enough momentum that you feel her weight, but never enough to feel floaty.”
+
+3. Satisfying Visual & Audio Feedback
+“Particle & Smash Effects”
+Talk about shards, sparkles, and screen shake:
+
+“Bricks explode into a shower of confetti-like fragments, complete with a tiny camera shake—so each hit feels like a mini celebration.”
+
+“Audio Cues & Voice-Overs”
+Mention crisp stingers and character quips:
+
+“A quick ‘boop’ when you collect a Praise Coin and Sir HuggleMcFuzz’s cheerful ‘Yay!’ instantly rewards your win.”
+
+4. Consistent Difficulty Ramp & Progression
+“Flow State Curve”
+Explain how obstacles speed up just enough to keep you challenged—never bored:
+
+“Each level nudges speeds up by a hair: you barely notice the jump, but you feel the rush of mastering it.”
+
+“Reward Pacing”
+Highlight how loot drops and quiz prompts are timed to land when players need a payoff:
+
+“Right when you’re in the zone, a Mystery Crate drifts by—giving you that jolt of dopamine that keeps you glued in for ‘just one more run.’”
+
+5. Clarity & Readability
+“Clean Visual Hierarchy”
+Talk about color-coding and iconography:
+
+“Obstacles glow red, power-ups shimmer gold, and on-screen text uses bold, high-contrast fonts—so you instantly know what to dodge and what to grab.”
+
+“Predictable Patterns”
+Mention how lane layouts and obstacle timings repeat in small cycles so players can learn and adapt:
+
+“Cars always zig in the middle lane first—after a few runs you’ll instinctively flick left to avoid them.”
+
+Putting It All Together
+“Users feel like they’re one with the game: every swipe is met with instant, fluid motion; every success is punctuated by crisp visuals and sounds; and the challenge scales just enough to keep them in that sweet ‘flow’ state. The result is an experience that’s endlessly replayable, highly addictive, and—best of all—teaches core ECE concepts without ever feeling like homework.”

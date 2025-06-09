@@ -411,6 +411,339 @@ export default function WhoLeftTheGateOpen() {
     saveProgress();
   };
 
+  // Collision detection helper
+  const checkCollision = (rect1: any, rect2: any) => {
+    return rect1.x < rect2.x + rect2.width &&
+           rect1.x + rect1.width > rect2.x &&
+           rect1.y < rect2.y + rect2.height &&
+           rect1.y + rect1.height > rect2.y;
+  };
+
+  // Spawn obstacles
+  const spawnObstacle = useCallback(() => {
+    if (gameState !== 'playing') return;
+
+    const obstacleTypes = ['car', 'bike', 'stroller', 'snack-cart', 'glitter-puddle', 'runaway-child'];
+    const type = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)] as any;
+    
+    const colors = {
+      'car': '#ff4444',
+      'bike': '#44ff44', 
+      'stroller': '#4444ff',
+      'snack-cart': '#ffff44',
+      'glitter-puddle': '#ff44ff',
+      'runaway-child': '#ff8844'
+    };
+
+    const newObstacle: Obstacle = {
+      id: Date.now() + Math.random(),
+      x: Math.random() * (CANVAS_WIDTH - 40),
+      y: -40,
+      width: type === 'glitter-puddle' ? 60 : 40,
+      height: type === 'glitter-puddle' ? 20 : 40,
+      speed: (GAME_LEVELS[currentLevel]?.speed || 1) * (2 + Math.random() * 3),
+      direction: 1,
+      type,
+      color: colors[type]
+    };
+
+    setObstacles(prev => [...prev, newObstacle]);
+  }, [gameState, currentLevel]);
+
+  // Spawn power-ups
+  const spawnPowerUp = useCallback(() => {
+    if (gameState !== 'playing') return;
+    
+    const powerUpTypes = ['time-out-timer', 'sticker-storm', 'team-rally', 'goldfish-bomb'];
+    const type = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)] as any;
+    
+    const colors = {
+      'time-out-timer': '#00aaff',
+      'sticker-storm': '#ffaa00', 
+      'team-rally': '#aa00ff',
+      'goldfish-bomb': '#ff00aa'
+    };
+
+    const newPowerUp: PowerUp = {
+      id: Date.now() + Math.random(),
+      x: Math.random() * (CANVAS_WIDTH - 30),
+      y: -30,
+      width: 30,
+      height: 30,
+      type,
+      color: colors[type],
+      active: false
+    };
+
+    setPowerUps(prev => [...prev, newPowerUp]);
+  }, [gameState]);
+
+  // Game loop
+  const gameLoop = useCallback(() => {
+    if (gameState !== 'playing') return;
+
+    // Move obstacles
+    setObstacles(prev => prev.map(obstacle => ({
+      ...obstacle,
+      y: obstacle.y + obstacle.speed
+    })).filter(obstacle => obstacle.y < CANVAS_HEIGHT + 50));
+
+    // Move power-ups
+    setPowerUps(prev => prev.map(powerUp => ({
+      ...powerUp,
+      y: powerUp.y + 2
+    })).filter(powerUp => powerUp.y < CANVAS_HEIGHT + 50));
+
+    // Check collisions with obstacles
+    setObstacles(prev => {
+      const collisions = prev.filter(obstacle => checkCollision(player, obstacle));
+      
+      if (collisions.length > 0) {
+        // Handle collision
+        const obstacle = collisions[0];
+        
+        if (obstacle.type === 'runaway-child') {
+          // Caught a child - trigger question
+          playSound(600, 0.3);
+          setScore(prevScore => prevScore + 100);
+          
+          // Select random question
+          const randomQuestion = SAFETY_QUESTIONS[Math.floor(Math.random() * SAFETY_QUESTIONS.length)];
+          setCurrentQuestion(randomQuestion);
+          setGameState('question');
+          
+          return prev.filter(o => o.id !== obstacle.id);
+        } else {
+          // Hit an obstacle - lose life
+          playSound(200, 0.5);
+          setPlayer(prevPlayer => {
+            const newLives = prevPlayer.lives - 1;
+            if (newLives <= 0) {
+              setGameState('game-over');
+            }
+            return { ...prevPlayer, lives: newLives };
+          });
+          
+          return prev.filter(o => o.id !== obstacle.id);
+        }
+      }
+      
+      return prev;
+    });
+
+    // Check collisions with power-ups
+    setPowerUps(prev => {
+      const collisions = prev.filter(powerUp => checkCollision(player, powerUp));
+      
+      if (collisions.length > 0) {
+        const powerUp = collisions[0];
+        playSound(800, 0.2);
+        setScore(prevScore => prevScore + 25);
+        
+        // Activate power-up effect
+        switch (powerUp.type) {
+          case 'time-out-timer':
+            setTimeSlowActive(true);
+            setTimeout(() => setTimeSlowActive(false), 3000);
+            break;
+          case 'sticker-storm':
+            setStickerStormActive(true);
+            setTimeout(() => setStickerStormActive(false), 2000);
+            break;
+          case 'team-rally':
+            setTeamRallyActive(true);
+            setTimeout(() => setTeamRallyActive(false), 4000);
+            break;
+          case 'goldfish-bomb':
+            // Clear all obstacles
+            setObstacles([]);
+            break;
+        }
+        
+        return prev.filter(p => p.id !== powerUp.id);
+      }
+      
+      return prev;
+    });
+
+  }, [gameState, player, playSound]);
+
+  // Keyboard controls
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (gameState !== 'playing') return;
+      
+      keysRef.current.add(e.key.toLowerCase());
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      keysRef.current.delete(e.key.toLowerCase());
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [gameState]);
+
+  // Player movement
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    const movePlayer = () => {
+      setPlayer(prev => {
+        let newX = prev.x;
+        let newY = prev.y;
+        
+        const moveSpeed = teamRallyActive ? PLAYER_SPEED * 1.5 : PLAYER_SPEED;
+        
+        if (keysRef.current.has('arrowleft') || keysRef.current.has('a')) {
+          newX = Math.max(0, prev.x - moveSpeed);
+        }
+        if (keysRef.current.has('arrowright') || keysRef.current.has('d')) {
+          newX = Math.min(CANVAS_WIDTH - prev.width, prev.x + moveSpeed);
+        }
+        if (keysRef.current.has('arrowup') || keysRef.current.has('w')) {
+          newY = Math.max(0, prev.y - moveSpeed);
+        }
+        if (keysRef.current.has('arrowdown') || keysRef.current.has('s')) {
+          newY = Math.min(CANVAS_HEIGHT - prev.height, prev.y + moveSpeed);
+        }
+        
+        return { ...prev, x: newX, y: newY };
+      });
+    };
+
+    const interval = setInterval(movePlayer, 16); // ~60fps
+    return () => clearInterval(interval);
+  }, [gameState, teamRallyActive]);
+
+  // Spawn timers
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    const obstacleTimer = setInterval(spawnObstacle, timeSlowActive ? 2000 : 1000);
+    const powerUpTimer = setInterval(() => {
+      if (Math.random() < (GAME_LEVELS[currentLevel]?.powerUpChance || 0.2)) {
+        spawnPowerUp();
+      }
+    }, 3000);
+
+    return () => {
+      clearInterval(obstacleTimer);
+      clearInterval(powerUpTimer);
+    };
+  }, [gameState, spawnObstacle, spawnPowerUp, timeSlowActive, currentLevel]);
+
+  // Main game loop
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    gameLoopRef.current = setInterval(gameLoop, 16); // ~60fps
+
+    return () => {
+      if (gameLoopRef.current) {
+        clearInterval(gameLoopRef.current);
+      }
+    };
+  }, [gameLoop]);
+
+  // Canvas rendering
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const render = () => {
+      // Clear canvas
+      ctx.fillStyle = '#87CEEB'; // Sky blue background
+      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+      // Draw road/playground
+      ctx.fillStyle = '#90EE90'; // Light green for playground
+      ctx.fillRect(0, CANVAS_HEIGHT * 0.8, CANVAS_WIDTH, CANVAS_HEIGHT * 0.2);
+
+      // Draw player
+      ctx.fillStyle = stickerStormActive ? '#FFD700' : '#FF6B6B'; // Golden when powered up
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+      
+      // Add simple face to player
+      ctx.fillStyle = '#000';
+      ctx.fillRect(player.x + 8, player.y + 8, 4, 4); // Left eye
+      ctx.fillRect(player.x + 18, player.y + 8, 4, 4); // Right eye
+      ctx.fillRect(player.x + 10, player.y + 18, 10, 2); // Mouth
+
+      // Draw obstacles
+      obstacles.forEach(obstacle => {
+        ctx.fillStyle = obstacle.color;
+        ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+        
+        // Add simple details based on type
+        ctx.fillStyle = '#000';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        
+        if (obstacle.type === 'runaway-child') {
+          ctx.fillText('👶', obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2 + 4);
+        } else if (obstacle.type === 'car') {
+          ctx.fillText('🚗', obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2 + 4);
+        } else if (obstacle.type === 'bike') {
+          ctx.fillText('🚲', obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2 + 4);
+        }
+      });
+
+      // Draw power-ups
+      powerUps.forEach(powerUp => {
+        ctx.fillStyle = powerUp.color;
+        ctx.fillRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+        
+        // Add glow effect
+        ctx.shadowColor = powerUp.color;
+        ctx.shadowBlur = 10;
+        ctx.fillRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+        ctx.shadowBlur = 0;
+        
+        // Add power-up icon
+        ctx.fillStyle = '#FFF';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('⚡', powerUp.x + powerUp.width/2, powerUp.y + powerUp.height/2 + 4);
+      });
+
+      // Draw active power-up effects
+      if (timeSlowActive) {
+        ctx.fillStyle = 'rgba(0, 170, 255, 0.2)';
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      }
+      
+      if (stickerStormActive) {
+        ctx.fillStyle = 'rgba(255, 170, 0, 0.2)';
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      }
+      
+      if (teamRallyActive) {
+        ctx.fillStyle = 'rgba(170, 0, 255, 0.2)';
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      }
+    };
+
+    const animationId = requestAnimationFrame(function animate() {
+      render();
+      if (gameState === 'playing') {
+        requestAnimationFrame(animate);
+      }
+    });
+
+    return () => cancelAnimationFrame(animationId);
+  }, [gameState, player, obstacles, powerUps, timeSlowActive, stickerStormActive, teamRallyActive]);
+
   // Reset game
   const resetGame = () => {
     setGameState('menu');
@@ -823,7 +1156,265 @@ export default function WhoLeftTheGateOpen() {
     );
   }
 
-  // Basic game interface for other states
+  // Game playing state with canvas
+  if (gameState === 'playing') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 p-4">
+        <Card className="max-w-6xl mx-auto">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Button
+                  onClick={() => setGameState('paused')}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Pause className="h-4 w-4" />
+                </Button>
+                <div className="text-sm">
+                  <span className="font-semibold">Level {currentLevel + 1}</span>
+                  <span className="text-gray-500 ml-2">Score: {score}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-1">
+                  <Heart className="h-4 w-4 text-red-500" />
+                  <span>{player.lives}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Zap className="h-4 w-4 text-yellow-500" />
+                  <span>{coins}</span>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-green-100 border border-green-300 rounded-lg p-3 mb-4">
+              <p className="text-green-800 text-sm">
+                {GAME_LEVELS[currentLevel]?.dialogue || "Chase the runaway children safely!"}
+              </p>
+            </div>
+            
+            <div className="relative bg-sky-200 rounded-lg overflow-hidden">
+              <canvas
+                ref={canvasRef}
+                width={CANVAS_WIDTH}
+                height={CANVAS_HEIGHT}
+                className="border-2 border-gray-300 rounded-lg w-full max-w-4xl"
+                style={{ imageRendering: 'pixelated' }}
+              />
+              
+              <div className="absolute top-2 left-2 bg-white/90 rounded px-2 py-1 text-xs">
+                Use WASD or Arrow Keys to move
+              </div>
+            </div>
+            
+            <div className="mt-4 text-center">
+              <Button
+                onClick={() => setGameState('menu')}
+                variant="outline"
+                size="sm"
+              >
+                Exit Game
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Game paused state
+  if (gameState === 'paused') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 p-4">
+        <Card className="max-w-4xl mx-auto">
+          <CardHeader>
+            <CardTitle className="text-center">Game Paused</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p className="text-lg">Take a breather! Ready to continue?</p>
+            <div className="space-x-4">
+              <Button onClick={() => setGameState('playing')}>
+                <Play className="h-4 w-4 mr-2" />
+                Resume
+              </Button>
+              <Button onClick={() => setGameState('menu')} variant="outline">
+                Exit to Menu
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Question state
+  if (gameState === 'question' && currentQuestion) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-4">
+        <Card className="max-w-4xl mx-auto">
+          <CardHeader>
+            <CardTitle className="text-center text-purple-800">Safety Quiz</CardTitle>
+            <div className="text-center">
+              <Badge variant="secondary">{currentQuestion.domain}</Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+              <h3 className="text-xl font-semibold text-purple-900 mb-4">
+                {currentQuestion.question}
+              </h3>
+              
+              <div className="space-y-3">
+                {currentQuestion.options.map((option, index) => (
+                  <Button
+                    key={index}
+                    onClick={() => handleAnswerSelect(index)}
+                    variant={selectedAnswer === index ? "default" : "outline"}
+                    className={`w-full text-left justify-start p-4 h-auto ${
+                      selectedAnswer !== null
+                        ? index === currentQuestion.correctAnswer
+                          ? 'bg-green-100 border-green-300 text-green-800'
+                          : selectedAnswer === index
+                          ? 'bg-red-100 border-red-300 text-red-800'
+                          : 'opacity-50'
+                        : ''
+                    }`}
+                    disabled={selectedAnswer !== null}
+                  >
+                    <span className="mr-3 font-semibold">
+                      {String.fromCharCode(65 + index)}.
+                    </span>
+                    {option}
+                  </Button>
+                ))}
+              </div>
+              
+              {selectedAnswer !== null && (
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h4 className="font-semibold text-blue-900 mb-2">Explanation:</h4>
+                  <p className="text-blue-800">{currentQuestion.explanation}</p>
+                  
+                  <div className="mt-4 text-center">
+                    <Button onClick={continueGame}>
+                      Continue Adventure
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Game over state
+  if (gameState === 'game-over') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 p-4">
+        <Card className="max-w-4xl mx-auto">
+          <CardHeader className="text-center">
+            <CardTitle className="text-3xl font-bold text-red-800">Game Over!</CardTitle>
+            <p className="text-red-600 mt-2">Don't worry - every expert started as a beginner!</p>
+          </CardHeader>
+          <CardContent className="space-y-6 text-center">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+              <h3 className="text-xl font-bold text-red-800 mb-4">Final Score</h3>
+              <div className="text-4xl font-bold text-red-600 mb-2">{score}</div>
+              <p className="text-red-700">Level {currentLevel + 1} reached</p>
+            </div>
+            
+            <div className="space-y-4">
+              <Button 
+                onClick={startGame}
+                size="lg"
+                className="bg-red-600 hover:bg-red-700 text-white px-8 py-3"
+              >
+                <RotateCcw className="h-5 w-5 mr-2" />
+                Try Again
+              </Button>
+              
+              <Button 
+                onClick={() => setGameState('menu')}
+                variant="outline"
+                size="lg"
+                className="px-8 py-3"
+              >
+                Back to Menu
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Completed state
+  if (gameState === 'completed') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-4">
+        <Card className="max-w-4xl mx-auto">
+          <CardHeader className="text-center">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="p-3 bg-green-100 rounded-full">
+                <Trophy className="h-8 w-8 text-green-600" />
+              </div>
+              <CardTitle className="text-3xl font-bold text-gray-800">
+                Mission Accomplished!
+              </CardTitle>
+            </div>
+            <p className="text-lg text-gray-600">
+              You've successfully rescued all the children and proven your safety expertise!
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+              <h3 className="text-2xl font-bold text-green-800 mb-4">🎉 Achievement Unlocked!</h3>
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <div>
+                  <p className="text-3xl font-bold text-green-600">{score}</p>
+                  <p className="text-sm text-green-700">Final Score</p>
+                </div>
+                <div>
+                  <p className="text-3xl font-bold text-yellow-600">{coins}</p>
+                  <p className="text-sm text-yellow-700">Coins Earned</p>
+                </div>
+                <div>
+                  <p className="text-3xl font-bold text-purple-600">{GAME_LEVELS.length}</p>
+                  <p className="text-sm text-purple-700">Levels Completed</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="text-center space-y-4">
+              <Button 
+                onClick={startGame}
+                size="lg"
+                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 mr-4"
+              >
+                <RotateCcw className="h-5 w-5 mr-2" />
+                Play Again
+              </Button>
+              
+              <Button 
+                onClick={() => window.location.href = '/games'}
+                variant="outline"
+                size="lg"
+                className="px-8 py-3"
+              >
+                Try Other Games
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Fallback for any other states
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 p-4">
       <Card className="max-w-4xl mx-auto">
