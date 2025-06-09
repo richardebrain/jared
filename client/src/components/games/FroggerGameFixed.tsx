@@ -290,6 +290,19 @@ export default function FroggerGame(): JSX.Element {
     }
   }, []);
 
+  // Enhanced question selection to prevent repetition
+  const selectRandomQuestion = useCallback(() => {
+    const availableQuestions = safetyQuestions.filter(q => !usedQuestions.has(q.id));
+    
+    // Reset used questions if all have been used
+    if (availableQuestions.length === 0) {
+      setUsedQuestions(new Set());
+      return safetyQuestions[Math.floor(Math.random() * safetyQuestions.length)];
+    }
+    
+    return availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
+  }, [usedQuestions]);
+
   // Enhanced collision detection with precise hitboxes
   const checkCollisions = useCallback(() => {
     if (player.isInvulnerable || player.hasShield) return;
@@ -620,6 +633,13 @@ export default function FroggerGame(): JSX.Element {
     ctx.textAlign = 'right';
     ctx.fillText(`Streak: ${stats.dodgeStreak}`, CANVAS_WIDTH - 10, 25);
     
+    // Question progress indicator
+    if (totalQuestions > 0) {
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#FFD700';
+      ctx.fillText(`Q: ${questionsCorrect}/${totalQuestions}`, CANVAS_WIDTH - 120, 25);
+    }
+    
   }, [obstacles, powerUps, particles, player, score, level, stats]);
 
   // Game loop with enhanced physics and mechanics
@@ -698,11 +718,19 @@ export default function FroggerGame(): JSX.Element {
       
       setPlayer(prev => ({ ...prev, row: newRow, col: newCol }));
       
-      // Trigger question randomly
-      if (Math.random() < 0.1 && !currentQuestion) {
-        const question = safetyQuestions[Math.floor(Math.random() * safetyQuestions.length)];
+      // Trigger question with visual indicator
+      if (Math.random() < 0.15 && !currentQuestion && stats.dodgeStreak > 0 && stats.dodgeStreak % 8 === 0) {
+        const question = selectRandomQuestion();
         setCurrentQuestion(question);
+        setTotalQuestions(prev => prev + 1);
         setGameState('question');
+        playSound(800, 0.2, 'sine'); // Question alert sound
+        
+        toast({
+          title: "Safety Challenge!",
+          description: "Answer correctly to earn bonus XP and continue your streak!",
+          variant: "default"
+        });
       }
     };
     
@@ -826,21 +854,39 @@ export default function FroggerGame(): JSX.Element {
   };
 
   const handleQuestionAnswer = (answerIndex: number) => {
+    if (!currentQuestion) return;
+    
     setSelectedAnswer(answerIndex);
     setShowExplanation(true);
     
-    if (answerIndex === currentQuestion!.correctAnswer) {
+    const isCorrect = answerIndex === currentQuestion.correctAnswer;
+    setQuestionResult(isCorrect ? 'correct' : 'incorrect');
+    
+    if (isCorrect) {
       playSound(523, 0.3, 'sine');
-      setScore(prev => prev + 50);
+      const bonusPoints = 100 + (stats.questionStreak * 25);
+      const bonusXP = 20 + (stats.questionStreak * 5);
+      
+      setScore(prev => prev + bonusPoints);
+      setPlayer(prev => ({ ...prev, xp: prev.xp + bonusXP }));
       setStats(prev => ({ ...prev, questionStreak: prev.questionStreak + 1, perfectAnswers: prev.perfectAnswers + 1 }));
+      setQuestionsCorrect(prev => prev + 1);
+      setUsedQuestions(prev => new Set([...prev, currentQuestion.id]));
+      
       toast({
-        title: "Correct!",
-        description: "Great safety knowledge!",
+        title: "Excellent Safety Knowledge!",
+        description: `+${bonusPoints} points, +${bonusXP} XP! Question streak: ${stats.questionStreak + 1}`,
         variant: "default"
       });
     } else {
       playSound(200, 0.3, 'sawtooth');
       setStats(prev => ({ ...prev, questionStreak: 0 }));
+      
+      toast({
+        title: "Study This Safety Concept",
+        description: "Review the explanation and try again next time!",
+        variant: "destructive"
+      });
     }
   };
 
@@ -848,6 +894,7 @@ export default function FroggerGame(): JSX.Element {
     setCurrentQuestion(null);
     setSelectedAnswer(null);
     setShowExplanation(false);
+    setQuestionResult(null);
     setGameState('playing');
   };
 
