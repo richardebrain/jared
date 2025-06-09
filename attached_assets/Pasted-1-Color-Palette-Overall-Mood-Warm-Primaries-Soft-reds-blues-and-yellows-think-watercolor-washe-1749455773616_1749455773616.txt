@@ -1,0 +1,84 @@
+1. Color Palette & Overall Mood
+Warm Primaries: Soft reds, blues, and yellows—think watercolor-washed toy blocks rather than neon.
+
+Pastel Accents: Muted greens, pinks, and lavenders for background elements—evoking classroom wall paint.
+
+High Contrast Highlights: Crisp white lane dividers, bold black outlines on characters and obstacles, to ensure instant readability.
+
+2. Background & Lanes
+Layered Playground Panorama:
+
+Farthest Layer: Faint silhouette of a school building and rolling hills, softly blurred for depth.
+
+Mid Layer: A row of cartoon-style preschool facades (tiny front porches, chalkboard signs that read “Circle Time,” “Snack Nook”).
+
+Closest Layer: The road itself—five painted lanes with friendly zebra-crossing stripes, oversize hopscotch squares, and spot-illustrations of chalk drawings (flowers, smiley faces).
+
+3. Teacher & Child Sprites
+Teacher Avatar:
+
+A simple, rounded-corner rectangle body in bright blue, with a smiling face, oversized head, and subtle arm-swing animation.
+
+Tiny details: a polka-dot neck scarf and cartoon loafers that “slide” across the lane for motion feedback.
+
+Child Avatar:
+
+A smaller green rounded shape, bobbing upward slowly with a cute looping walk cycle.
+
+Animated pigtails or a little cap that “bounces” as they move.
+
+4. Obstacles & Power-Ups
+Obstacle Cars & Bikes:
+
+Shiny 2-tone vehicles—red cars with big googly headlights, yellow tricycles with smiling faces on the front.
+
+Simple vector shapes with a subtle “bounce” when they wrap around the screen edge.
+
+Runaway Strollers & Snack Carts:
+
+Strollers with oversized wheels and a trailing pacifier icon—wheels rotate with a soft, rubbery wobble when they change direction.
+
+Snack carts shaped like mini-dessert trolleys, pastel colored, dropping tiny donut icons if not dodged.
+
+Power-Up Icons:
+
+Praise Coin: A round, golden coin stamped with a star, gleaming with a quick 3-frame “sparkle” loop.
+
+Compassion Shield: A translucent heart-shaped bubble that briefly surrounds the teacher sprite with a warm pink glow.
+
+5. UI & HUD
+Score & Lives:
+
+Displayed in a “Chalkboard” banner across the top, with white, hand-drawn font. Lives are pictured as little apples or crayon icons.
+
+Level Dialogue:
+
+Popped into a “Sticky Note” graphic at screen top-center, slightly rotated for a casual, handcrafted feel.
+
+Combo Meter:
+
+A crayon-doodle style progress bar along the bottom, filling with rainbow chalk as you build streaks.
+
+6. Transitions & Pop-Ups
+Quiz Panels:
+
+Slide in from the side as a giant notebook page, with lined-paper texture and three chunky buttons (1, 2, 3) that “press” visually when hovered or clicked.
+
+Level Intro/Outro:
+
+A playful book-page turn effect: the screen “turns” like a page, revealing the new level’s name in big, friendly letters (“The Great Diaper Dash!”), then settles with a light “thump” animation.
+
+7. Particle & Feedback Effects
+Brick-Break Confetti:
+
+Tiny star and heart shapes that scatter and fade in under a second.
+
+Screen Shake on Near-Miss:
+
+A very subtle 3-px shake, applied only for 0.2 s to give tactile feedback without disorienting.
+
+SFX Bubbles & Boops:
+
+Soft “pop” sounds when coins are collected, gentle “whoosh” on power-up grabs—synthesized in-code to avoid large audio files.
+
+By combining these hand-drawn, storybook visuals with just-right motion and feedback, “Preschool Dash” will look as delightful—and as instantly playable—as a top-tier mobile endless runner, yet remain light enough to run smoothly in Replit’s browser environment.

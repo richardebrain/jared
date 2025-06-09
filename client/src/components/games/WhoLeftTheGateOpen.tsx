@@ -1004,17 +1004,55 @@ export default function WhoLeftTheGateOpen() {
     const bgCtx = backgroundLayerRef.current.getContext('2d');
     if (!bgCtx) return;
 
-    // Render static background elements once
-    const gradient = bgCtx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-    gradient.addColorStop(0, '#87CEEB'); // Sky blue
-    gradient.addColorStop(0.8, '#98FB98'); // Pale green
-    gradient.addColorStop(1, '#90EE90'); // Light green
-    bgCtx.fillStyle = gradient;
-    bgCtx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    // Storybook-style layered playground panorama
+    const skyGradient = bgCtx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT * 0.6);
+    skyGradient.addColorStop(0, '#E6F3FF'); // Soft watercolor sky
+    skyGradient.addColorStop(0.5, '#FFF8DC'); // Warm cream
+    skyGradient.addColorStop(1, '#F0F8E8'); // Pastel green
+    bgCtx.fillStyle = skyGradient;
+    bgCtx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT * 0.6);
 
-    // Draw playground with texture lines
-    bgCtx.fillStyle = '#90EE90';
-    bgCtx.fillRect(0, CANVAS_HEIGHT * 0.8, CANVAS_WIDTH, CANVAS_HEIGHT * 0.2);
+    // Far background - school building silhouettes
+    bgCtx.fillStyle = 'rgba(180, 200, 220, 0.4)';
+    bgCtx.fillRect(CANVAS_WIDTH * 0.1, CANVAS_HEIGHT * 0.1, CANVAS_WIDTH * 0.2, CANVAS_HEIGHT * 0.15);
+    bgCtx.fillRect(CANVAS_WIDTH * 0.7, CANVAS_HEIGHT * 0.08, CANVAS_WIDTH * 0.25, CANVAS_HEIGHT * 0.18);
+    
+    // Add simple roof triangles
+    bgCtx.beginPath();
+    bgCtx.moveTo(CANVAS_WIDTH * 0.08, CANVAS_HEIGHT * 0.1);
+    bgCtx.lineTo(CANVAS_WIDTH * 0.2, CANVAS_HEIGHT * 0.05);
+    bgCtx.lineTo(CANVAS_WIDTH * 0.32, CANVAS_HEIGHT * 0.1);
+    bgCtx.fill();
+
+    // Mid-layer - preschool facades
+    bgCtx.fillStyle = '#FFE4B5'; // Warm peach
+    bgCtx.fillRect(CANVAS_WIDTH * 0.05, CANVAS_HEIGHT * 0.3, CANVAS_WIDTH * 0.15, CANVAS_HEIGHT * 0.2);
+    bgCtx.fillStyle = '#E6E6FA'; // Lavender
+    bgCtx.fillRect(CANVAS_WIDTH * 0.8, CANVAS_HEIGHT * 0.32, CANVAS_WIDTH * 0.15, CANVAS_HEIGHT * 0.18);
+    
+    // Playground surface with watercolor texture
+    const playgroundGradient = bgCtx.createLinearGradient(0, CANVAS_HEIGHT * 0.5, 0, CANVAS_HEIGHT);
+    playgroundGradient.addColorStop(0, '#F5F5DC'); // Beige
+    playgroundGradient.addColorStop(0.3, '#DDD8C0'); // Warm sand  
+    playgroundGradient.addColorStop(1, '#C8B99C'); // Deeper sand
+    bgCtx.fillStyle = playgroundGradient;
+    bgCtx.fillRect(0, CANVAS_HEIGHT * 0.5, CANVAS_WIDTH, CANVAS_HEIGHT * 0.5);
+
+    // Add chalk drawing elements scattered around
+    bgCtx.strokeStyle = 'rgba(255, 182, 193, 0.6)'; // Light pink chalk
+    bgCtx.lineWidth = 3;
+    bgCtx.beginPath();
+    bgCtx.arc(CANVAS_WIDTH * 0.15, CANVAS_HEIGHT * 0.65, 20, 0, Math.PI * 2);
+    bgCtx.stroke();
+    
+    // Chalk flower
+    bgCtx.strokeStyle = 'rgba(255, 255, 0, 0.5)'; // Yellow chalk
+    for (let i = 0; i < 6; i++) {
+      const angle = (i * Math.PI * 2) / 6;
+      bgCtx.beginPath();
+      bgCtx.arc(CANVAS_WIDTH * 0.8 + Math.cos(angle) * 15, CANVAS_HEIGHT * 0.7 + Math.sin(angle) * 15, 8, 0, Math.PI * 2);
+      bgCtx.stroke();
+    }
     
     // Draw horizontal lane markings
     bgCtx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
@@ -1073,61 +1111,209 @@ export default function WhoLeftTheGateOpen() {
         ctx.drawImage(backgroundLayerRef.current, 0, 0);
       }
 
-      // Draw player with enhanced visual hierarchy
-      const playerColor = stickerStormActive ? '#FFD700' : teamRallyActive ? '#FF44FF' : '#FF6B6B';
+      // Storybook-style teacher avatar with rounded corners and warm colors
+      const teacherColor = stickerStormActive ? '#FFD700' : teamRallyActive ? '#DA70D6' : '#4682B4'; // Warm blue
+      const animationOffset = Math.sin(Date.now() * 0.005) * 2; // Gentle bob animation
       
-      // Player glow effect when powered up
-      if (stickerStormActive || teamRallyActive) {
-        ctx.shadowColor = playerColor;
-        ctx.shadowBlur = 15;
-      }
+      // Teacher body - rounded rectangle with soft corners
+      ctx.fillStyle = teacherColor;
+      ctx.shadowColor = stickerStormActive || teamRallyActive ? teacherColor : 'rgba(0,0,0,0.2)';
+      ctx.shadowBlur = stickerStormActive || teamRallyActive ? 12 : 4;
+      ctx.shadowOffsetY = 2;
       
-      ctx.fillStyle = playerColor;
-      ctx.fillRect(player.x, player.y, player.width, player.height);
+      // Main body with rounded corners
+      ctx.beginPath();
+      ctx.roundRect(player.x, player.y + animationOffset, player.width, player.height - 8, 8);
+      ctx.fill();
+      
+      // Oversized friendly head
+      ctx.fillStyle = '#FDBCB4'; // Warm peach skin tone
+      ctx.beginPath();
+      ctx.arc(player.x + player.width/2, player.y - 5 + animationOffset, 18, 0, Math.PI * 2);
+      ctx.fill();
       ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
       
-      // Enhanced player face with clear readability
+      // Polka-dot neck scarf
+      ctx.fillStyle = '#FF6B6B'; // Soft red
+      ctx.fillRect(player.x + 8, player.y + 20 + animationOffset, player.width - 16, 8);
+      ctx.fillStyle = '#FFF';
+      ctx.beginPath();
+      ctx.arc(player.x + 12, player.y + 24 + animationOffset, 2, 0, Math.PI * 2);
+      ctx.arc(player.x + 20, player.y + 24 + animationOffset, 2, 0, Math.PI * 2);
+      ctx.arc(player.x + 28, player.y + 24 + animationOffset, 2, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Friendly facial features with high contrast
       ctx.fillStyle = '#000';
-      ctx.fillRect(player.x + 8, player.y + 8, 4, 4); // Left eye
-      ctx.fillRect(player.x + 18, player.y + 8, 4, 4); // Right eye
-      ctx.fillRect(player.x + 10, player.y + 18, 10, 2); // Mouth
+      // Eyes with slight animation
+      const eyeOffset = Math.sin(Date.now() * 0.003) * 0.5;
+      ctx.beginPath();
+      ctx.arc(player.x + player.width/2 - 6 + eyeOffset, player.y - 8 + animationOffset, 2, 0, Math.PI * 2);
+      ctx.arc(player.x + player.width/2 + 6 - eyeOffset, player.y - 8 + animationOffset, 2, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Smiling mouth
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(player.x + player.width/2, player.y - 2 + animationOffset, 6, 0, Math.PI);
+      ctx.stroke();
+      
+      // Cartoon loafers that "slide" with motion feedback
+      ctx.fillStyle = '#8B4513'; // Brown
+      ctx.fillRect(player.x + 2, player.y + player.height - 6 + animationOffset, 12, 6);
+      ctx.fillRect(player.x + player.width - 14, player.y + player.height - 6 + animationOffset, 12, 6);
 
-      // Draw obstacles with color-coded visual hierarchy
+      // Storybook-style charming obstacles with personality
       obstacles.forEach(obstacle => {
-        // Red glow for dangerous obstacles, green for children
-        const isChild = obstacle.type === 'runaway-child';
-        ctx.shadowColor = isChild ? '#44FF44' : '#FF4444';
-        ctx.shadowBlur = isChild ? 8 : 5;
-        
-        ctx.fillStyle = obstacle.color;
-        ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-        ctx.shadowBlur = 0;
-        
-        // High-contrast iconography for instant recognition
-        ctx.fillStyle = '#000';
-        ctx.font = 'bold 14px Arial';
-        ctx.textAlign = 'center';
-        ctx.strokeStyle = '#FFF';
-        ctx.lineWidth = 2;
-        
-        const centerX = obstacle.x + obstacle.width/2;
-        const centerY = obstacle.y + obstacle.height/2 + 4;
+        const bounceOffset = Math.sin(Date.now() * 0.008 + obstacle.id) * 1; // Gentle bounce animation
         
         if (obstacle.type === 'car') {
-          ctx.strokeText('🚗', centerX, centerY);
-          ctx.fillText('🚗', centerX, centerY);
+          // Shiny 2-tone car with googly headlights
+          const carGradient = ctx.createLinearGradient(obstacle.x, obstacle.y, obstacle.x, obstacle.y + obstacle.height);
+          carGradient.addColorStop(0, '#FF6B6B'); // Bright red
+          carGradient.addColorStop(1, '#CC5555'); // Darker red
+          ctx.fillStyle = carGradient;
+          
+          // Car body with rounded corners
+          ctx.beginPath();
+          ctx.roundRect(obstacle.x, obstacle.y + bounceOffset, obstacle.width, obstacle.height - 4, 6);
+          ctx.fill();
+          
+          // Googly headlights
+          ctx.fillStyle = '#FFFACD'; // Light yellow
+          ctx.beginPath();
+          ctx.arc(obstacle.x + 8, obstacle.y + 8 + bounceOffset, 6, 0, Math.PI * 2);
+          ctx.arc(obstacle.x + obstacle.width - 8, obstacle.y + 8 + bounceOffset, 6, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Pupils that "look" at player
+          ctx.fillStyle = '#000';
+          const lookX = (player.x - obstacle.x) * 0.02;
+          ctx.beginPath();
+          ctx.arc(obstacle.x + 8 + Math.max(-2, Math.min(2, lookX)), obstacle.y + 8 + bounceOffset, 2, 0, Math.PI * 2);
+          ctx.arc(obstacle.x + obstacle.width - 8 + Math.max(-2, Math.min(2, lookX)), obstacle.y + 8 + bounceOffset, 2, 0, Math.PI * 2);
+          ctx.fill();
+          
         } else if (obstacle.type === 'bike') {
-          ctx.strokeText('🚲', centerX, centerY);
-          ctx.fillText('🚲', centerX, centerY);
+          // Yellow tricycle with smiling face
+          ctx.fillStyle = '#FFD700'; // Golden yellow
+          ctx.beginPath();
+          ctx.roundRect(obstacle.x, obstacle.y + bounceOffset, obstacle.width, obstacle.height, 4);
+          ctx.fill();
+          
+          // Wheels
+          ctx.strokeStyle = '#333';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(obstacle.x + 6, obstacle.y + obstacle.height - 2 + bounceOffset, 4, 0, Math.PI * 2);
+          ctx.arc(obstacle.x + obstacle.width - 6, obstacle.y + obstacle.height - 2 + bounceOffset, 4, 0, Math.PI * 2);
+          ctx.stroke();
+          
+          // Smiling face on front
+          ctx.fillStyle = '#000';
+          ctx.beginPath();
+          ctx.arc(obstacle.x + obstacle.width/2 - 3, obstacle.y + 6 + bounceOffset, 1, 0, Math.PI * 2);
+          ctx.arc(obstacle.x + obstacle.width/2 + 3, obstacle.y + 6 + bounceOffset, 1, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(obstacle.x + obstacle.width/2, obstacle.y + 10 + bounceOffset, 3, 0, Math.PI);
+          ctx.stroke();
+          
         } else if (obstacle.type === 'stroller') {
-          ctx.strokeText('🍼', centerX, centerY);
-          ctx.fillText('🍼', centerX, centerY);
+          // Pastel stroller with oversized wheels
+          ctx.fillStyle = '#DDA0DD'; // Plum
+          ctx.beginPath();
+          ctx.roundRect(obstacle.x, obstacle.y + bounceOffset, obstacle.width, obstacle.height - 6, 4);
+          ctx.fill();
+          
+          // Oversized wheels with rubbery wobble
+          const wheelWobble = Math.sin(Date.now() * 0.01 + obstacle.id) * 0.5;
+          ctx.fillStyle = '#333';
+          ctx.beginPath();
+          ctx.ellipse(obstacle.x + 6, obstacle.y + obstacle.height - 3 + bounceOffset, 5 + wheelWobble, 5 - wheelWobble, 0, 0, Math.PI * 2);
+          ctx.ellipse(obstacle.x + obstacle.width - 6, obstacle.y + obstacle.height - 3 + bounceOffset, 5 - wheelWobble, 5 + wheelWobble, 0, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Trailing pacifier icon
+          ctx.fillStyle = '#FFB6C1'; // Light pink
+          ctx.beginPath();
+          ctx.arc(obstacle.x - 8, obstacle.y + obstacle.height/2 + bounceOffset, 3, 0, Math.PI * 2);
+          ctx.fill();
+          
         } else if (obstacle.type === 'snack-cart') {
-          ctx.strokeText('🍪', centerX, centerY);
-          ctx.fillText('🍪', centerX, centerY);
+          // Mini-dessert trolley with pastels
+          ctx.fillStyle = '#98FB98'; // Pale green
+          ctx.beginPath();
+          ctx.roundRect(obstacle.x, obstacle.y + bounceOffset, obstacle.width, obstacle.height, 6);
+          ctx.fill();
+          
+          // Dessert icons on top
+          ctx.fillStyle = '#FF69B4'; // Hot pink donut
+          ctx.beginPath();
+          ctx.arc(obstacle.x + obstacle.width/2, obstacle.y + 4 + bounceOffset, 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#98FB98';
+          ctx.beginPath();
+          ctx.arc(obstacle.x + obstacle.width/2, obstacle.y + 4 + bounceOffset, 2, 0, Math.PI * 2);
+          ctx.fill();
+          
         } else if (obstacle.type === 'glitter-puddle') {
-          ctx.strokeText('✨', centerX, centerY);
-          ctx.fillText('✨', centerX, centerY);
+          // Sparkly puddle with animated glitter
+          ctx.fillStyle = '#E6E6FA'; // Lavender
+          ctx.beginPath();
+          ctx.ellipse(obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2 + bounceOffset, obstacle.width/2, obstacle.height/3, 0, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Animated sparkles
+          for (let i = 0; i < 3; i++) {
+            const sparkleTime = Date.now() * 0.01 + i * 2;
+            const sparkleX = obstacle.x + (Math.sin(sparkleTime) + 1) * obstacle.width/2;
+            const sparkleY = obstacle.y + (Math.cos(sparkleTime * 1.3) + 1) * obstacle.height/2 + bounceOffset;
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(sparkleX, sparkleY, 1, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          
+        } else if (obstacle.type === 'runaway-child') {
+          // Small green rounded child with bouncing pigtails
+          ctx.fillStyle = '#32CD32'; // Lime green
+          ctx.shadowColor = '#90EE90';
+          ctx.shadowBlur = 6;
+          ctx.beginPath();
+          ctx.roundRect(obstacle.x, obstacle.y + bounceOffset, obstacle.width, obstacle.height - 4, 8);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          
+          // Friendly child head
+          ctx.fillStyle = '#FDBCB4'; // Peach skin
+          ctx.beginPath();
+          ctx.arc(obstacle.x + obstacle.width/2, obstacle.y - 2 + bounceOffset, 10, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Bouncing pigtails
+          const pigtailBounce = Math.sin(Date.now() * 0.01 + obstacle.id) * 2;
+          ctx.fillStyle = '#8B4513'; // Brown hair
+          ctx.beginPath();
+          ctx.arc(obstacle.x + obstacle.width/2 - 8, obstacle.y - 6 + bounceOffset + pigtailBounce, 3, 0, Math.PI * 2);
+          ctx.arc(obstacle.x + obstacle.width/2 + 8, obstacle.y - 6 + bounceOffset - pigtailBounce, 3, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Happy face
+          ctx.fillStyle = '#000';
+          ctx.beginPath();
+          ctx.arc(obstacle.x + obstacle.width/2 - 3, obstacle.y - 4 + bounceOffset, 1, 0, Math.PI * 2);
+          ctx.arc(obstacle.x + obstacle.width/2 + 3, obstacle.y - 4 + bounceOffset, 1, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(obstacle.x + obstacle.width/2, obstacle.y + bounceOffset, 2, 0, Math.PI);
+          ctx.stroke();
         }
       });
 
