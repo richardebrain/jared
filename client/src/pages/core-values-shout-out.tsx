@@ -134,10 +134,13 @@ export default function CoreValuesShoutOutPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/shout-outs"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      // Extract the actual error message from the server response
+      const errorMessage = error?.response?.data?.message || "There was an error submitting your nomination. Please try again.";
+      
       toast({
         title: "Nomination Failed",
-        description: "There was an error submitting your nomination. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     },
