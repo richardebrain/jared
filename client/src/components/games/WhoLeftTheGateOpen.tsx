@@ -375,12 +375,43 @@ export default function WhoLeftTheGateOpen() {
     setSelectedAnswer(null);
     setShowExplanation(false);
     
+    const coinsEarned = 25 + (currentLevel * 10);
+    setCoins(prev => prev + coinsEarned);
+    
+    // Award loot crate every 3 levels
+    if ((currentLevel + 1) % 3 === 0) {
+      setLootCrates(prev => prev + 1);
+    }
+    
     if (currentLevel >= GAME_LEVELS.length - 1) {
-      setGameState('completed');
+      // Game completed - award bonus rewards
+      setCoins(prev => prev + 100); // Completion bonus
+      setLootCrates(prev => prev + 2); // Extra loot crates
+      setGameState('reward-screen');
+      
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+      
+      toast({
+        title: "Adventure Complete!",
+        description: `You saved all the children! Earned ${coinsEarned + 100} coins and 2 loot crates!`,
+        duration: 5000,
+      });
     } else {
       setCurrentLevel(prev => prev + 1);
       setGameState('playing');
+      
+      toast({
+        title: "Level Complete!",
+        description: `Earned ${coinsEarned} coins! ${(currentLevel + 2) % 3 === 0 ? 'Next level awards a loot crate!' : ''}`,
+        duration: 3000,
+      });
     }
+    
+    saveProgress();
   };
 
   // Reset game
