@@ -1,0 +1,60 @@
+Frogger Mechanics Overview for “Preschool Dash”
+
+Grid‐Based, Four-Direction Movement
+
+The player moves one fixed “step” at a time with each arrow key press (Up, Down, Left, Right), snapping to a simple row-and-column grid.
+
+No analog or sliding—each tap moves the avatar exactly one lane up/down or one column left/right.
+
+Fixed Lanes of Horizontal Traffic
+
+The playfield is divided into a series of parallel horizontal lanes (typically five).
+
+Each lane has obstacles that continuously travel left or right at a constant speed.
+
+When an obstacle leaves one side of the screen, it immediately reappears on the opposite side—creating an endless stream.
+
+Collision = Reset / Penalty
+
+If the player’s sprite overlaps an obstacle’s rectangle, it triggers a “hit.”
+
+In classic Frogger, that means losing a life and restarting at the bottom. In our version, it pauses for a quiz question, deducts a life if wrong, and respawns the player at the last checkpoint.
+
+Top-of-Screen Goal
+
+The goal (in Frogger it’s a safe lily pad, here it’s the runaway child) sits in the topmost lane.
+
+Reaching that top lane cell exactly with no collision triggers a “level complete.”
+
+Increasing Difficulty by Level
+
+Each successive level speeds up all lane traffic and/or adds more obstacles per lane.
+
+You can also introduce new hazard types (e.g. faster vehicles, staggered spawn timings) to keep the challenge growing.
+
+Checkpoints & Safe Zones
+
+To avoid frustration, implement a mid-level “safe zone” (e.g. after passing the third lane). Collisions only send you back to that checkpoint, not all the way to the bottom.
+
+Power-Ups & Bonuses
+
+Scatter collectibles in certain lanes that confer temporary shields or speed boosts.
+
+These pop in and out of a lane like obstacles but are colored differently and tagged with text.
+
+Consistent Spawn Timers
+
+Rather than dumping all obstacles at once, each lane has its own spawn timer so hazards appear at regular, predictable (yet varied) intervals—players learn to time their moves.
+
+Visual Clarity
+
+Obstacles use high-contrast colors and bold outlines so players immediately know what to dodge.
+
+The grid and lanes are clearly marked so movement and positioning feel intuitive.
+
+Flow & Feedback
+
+Lock the frame rate (60 FPS) and use easing so each grid move feels weighty but precise.
+
+Add small animations (screen shake on near miss, particle bursts on success) and audio cues (“boop” on collect, “buzz” on hit) to reinforce actions.
+

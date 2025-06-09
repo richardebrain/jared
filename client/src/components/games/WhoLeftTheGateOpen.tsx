@@ -139,15 +139,17 @@ const GAME_LEVELS: GameLevel[] = [
   }
 ];
 
-// Frogger-style game constants
+// Core Frogger mechanics constants
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
-const LANE_HEIGHT = 80;
-const LANE_COUNT = 6;
-const LANE_Y_POSITIONS = Array.from({length: LANE_COUNT}, (_, i) => 80 + i * LANE_HEIGHT);
-const PLAYER_GRID_SIZE = 40;
-const PLAYER_SPEED = LANE_HEIGHT; // Move one full lane at a time
-const BASE_OBSTACLE_SPEED = 2;
+const GRID_SIZE = 40; // Fixed grid for snappy movement
+const COLS = Math.floor(CANVAS_WIDTH / GRID_SIZE); // 20 columns
+const ROWS = 13; // Fixed number of rows
+const LANE_HEIGHT = CANVAS_HEIGHT / ROWS;
+const PLAYER_START_ROW = ROWS - 2; // Start near bottom
+const GOAL_ROW = 1; // Top row is the goal
+const SAFE_ZONE_ROW = Math.floor(ROWS / 2); // Middle checkpoint
+const BASE_OBSTACLE_SPEED = 1.5;
 const TARGET_FPS = 60;
 const FRAME_TIME = 1000 / TARGET_FPS;
 
@@ -180,12 +182,17 @@ export default function WhoLeftTheGateOpen() {
 
   // Game objects - all useState calls at top level
   const [player, setPlayer] = useState<Player>({
-    x: CANVAS_WIDTH / 2 - PLAYER_GRID_SIZE / 2,
-    y: LANE_Y_POSITIONS[LANE_COUNT - 1], // Start in bottom lane
-    width: PLAYER_GRID_SIZE,
-    height: PLAYER_GRID_SIZE,
+    x: Math.floor(COLS / 2) * GRID_SIZE, // Center column
+    y: PLAYER_START_ROW * LANE_HEIGHT,   // Near bottom row
+    width: GRID_SIZE,
+    height: GRID_SIZE,
     lives: 3
   });
+  
+  // Grid-based player position tracking
+  const [playerRow, setPlayerRow] = useState(PLAYER_START_ROW);
+  const [playerCol, setPlayerCol] = useState(Math.floor(COLS / 2));
+  const [checkpoint, setCheckpoint] = useState(PLAYER_START_ROW);
   const [obstacles, setObstacles] = useState<Obstacle[]>([]);
   const [powerUps, setPowerUps] = useState<PowerUp[]>([]);
   
@@ -203,15 +210,14 @@ export default function WhoLeftTheGateOpen() {
   const [difficultyMultiplier, setDifficultyMultiplier] = useState(1);
   const [lastFrameTime, setLastFrameTime] = useState(0);
   
-  // Enhanced Frogger mechanics
-  const [laneTimers, setLaneTimers] = useState<number[]>(new Array(LANE_COUNT).fill(0));
-  const [fireDrillActive, setFireDrillActive] = useState(false);
-  const [fireDrillTimer, setFireDrillTimer] = useState(0);
-  const [slowMoLane, setSlowMoLane] = useState<number | null>(null);
+  // Core Frogger lane mechanics
+  const [laneTimers, setLaneTimers] = useState<number[]>(new Array(ROWS).fill(0));
+  const [laneDirections, setLaneDirections] = useState<number[]>(() => {
+    // Alternate lane directions for classic Frogger feel
+    return Array.from({ length: ROWS }, (_, i) => i % 2 === 0 ? 1 : -1);
+  });
   const [comboCount, setComboCount] = useState(0);
   const [flowModeActive, setFlowModeActive] = useState(false);
-  const [checkpointReached, setCheckpointReached] = useState(false);
-  const [childTarget, setChildTarget] = useState({ x: CANVAS_WIDTH / 2, direction: 1 });
   const [nearMissCount, setNearMissCount] = useState(0);
   
   // Performance optimization states
@@ -399,16 +405,25 @@ export default function WhoLeftTheGateOpen() {
     setShowDoubleOrNothing(false);
   };
 
-  // Start new game
+  // Start new game with proper Frogger positioning
   const startGame = () => {
     setGameState('playing');
     setCurrentLevel(0);
     setScore(0);
+    
+    // Reset to grid-based starting position
+    const startCol = Math.floor(COLS / 2);
+    const startRow = PLAYER_START_ROW;
+    
+    setPlayerRow(startRow);
+    setPlayerCol(startCol);
+    setCheckpoint(startRow);
+    
     setPlayer({
-      x: CANVAS_WIDTH / 2 - PLAYER_GRID_SIZE / 2,
-      y: LANE_Y_POSITIONS[LANE_COUNT - 1], // Start in bottom lane
-      width: PLAYER_GRID_SIZE,
-      height: PLAYER_GRID_SIZE,
+      x: startCol * GRID_SIZE,
+      y: startRow * LANE_HEIGHT,
+      width: GRID_SIZE,
+      height: GRID_SIZE,
       lives: 3
     });
     setObstacles([]);
