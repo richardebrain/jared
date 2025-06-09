@@ -213,6 +213,15 @@ export default function WhoLeftTheGateOpen() {
   const [checkpointReached, setCheckpointReached] = useState(false);
   const [childTarget, setChildTarget] = useState({ x: CANVAS_WIDTH / 2, direction: 1 });
   const [nearMissCount, setNearMissCount] = useState(0);
+  
+  // Performance optimization states
+  const MAX_PARTICLES = 30;
+  const [fpsCounter, setFpsCounter] = useState(60);
+  const [frameCount, setFrameCount] = useState(0);
+  const [lastFpsUpdate, setLastFpsUpdate] = useState(Date.now());
+  const [particlePool, setParticlePool] = useState<any[]>([]);
+  const backgroundLayerRef = useRef<HTMLCanvasElement | null>(null);
+  const [backgroundRendered, setBackgroundRendered] = useState(false);
 
   // Initialize audio context and check first time user
   useEffect(() => {
@@ -943,11 +952,39 @@ export default function WhoLeftTheGateOpen() {
     return () => clearInterval(childDriftInterval);
   }, [gameState]);
 
-  // Main game loop
+  // FPS monitoring and adaptive performance
   useEffect(() => {
     if (gameState !== 'playing') return;
 
-    gameLoopRef.current = setInterval(gameLoop, 16); // ~60fps
+    const fpsInterval = setInterval(() => {
+      const now = Date.now();
+      const elapsed = now - lastFpsUpdate;
+      
+      if (elapsed >= 1000) {
+        const currentFps = Math.round((frameCount * 1000) / elapsed);
+        setFpsCounter(currentFps);
+        
+        // Adaptive performance - reduce particles if FPS drops
+        if (currentFps < 50) {
+          setParticles(prev => prev.slice(0, Math.floor(MAX_PARTICLES * 0.6)));
+        }
+        
+        setFrameCount(0);
+        setLastFpsUpdate(now);
+      }
+    }, 100);
+
+    return () => clearInterval(fpsInterval);
+  }, [gameState, frameCount, lastFpsUpdate]);
+
+  // Optimized main game loop with frame counting
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    gameLoopRef.current = setInterval(() => {
+      gameLoop();
+      setFrameCount(prev => prev + 1);
+    }, 16); // ~60fps
 
     return () => {
       if (gameLoopRef.current) {
@@ -956,7 +993,63 @@ export default function WhoLeftTheGateOpen() {
     };
   }, [gameLoop]);
 
-  // Canvas rendering
+  // Pre-render static background for performance
+  const renderStaticBackground = useCallback(() => {
+    if (!backgroundLayerRef.current) {
+      backgroundLayerRef.current = document.createElement('canvas');
+      backgroundLayerRef.current.width = CANVAS_WIDTH;
+      backgroundLayerRef.current.height = CANVAS_HEIGHT;
+    }
+    
+    const bgCtx = backgroundLayerRef.current.getContext('2d');
+    if (!bgCtx) return;
+
+    // Render static background elements once
+    const gradient = bgCtx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+    gradient.addColorStop(0, '#87CEEB'); // Sky blue
+    gradient.addColorStop(0.8, '#98FB98'); // Pale green
+    gradient.addColorStop(1, '#90EE90'); // Light green
+    bgCtx.fillStyle = gradient;
+    bgCtx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    // Draw playground with texture lines
+    bgCtx.fillStyle = '#90EE90';
+    bgCtx.fillRect(0, CANVAS_HEIGHT * 0.8, CANVAS_WIDTH, CANVAS_HEIGHT * 0.2);
+    
+    // Draw horizontal lane markings
+    bgCtx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    bgCtx.lineWidth = 1;
+    LANE_Y_POSITIONS.forEach((laneY, index) => {
+      // Lane zones
+      if (index === 0) {
+        bgCtx.fillStyle = 'rgba(50, 205, 50, 0.2)';
+        bgCtx.fillRect(0, laneY - 10, CANVAS_WIDTH, LANE_HEIGHT);
+      } else if (index === LANE_COUNT - 1) {
+        bgCtx.fillStyle = 'rgba(100, 149, 237, 0.2)';
+        bgCtx.fillRect(0, laneY - 10, CANVAS_WIDTH, LANE_HEIGHT);
+      } else {
+        bgCtx.fillStyle = index % 2 === 0 ? 'rgba(128, 128, 128, 0.1)' : 'rgba(64, 64, 64, 0.1)';
+        bgCtx.fillRect(0, laneY - 10, CANVAS_WIDTH, LANE_HEIGHT);
+      }
+      
+      // Lane divider lines
+      bgCtx.beginPath();
+      bgCtx.moveTo(0, laneY + LANE_HEIGHT / 2);
+      bgCtx.lineTo(CANVAS_WIDTH, laneY + LANE_HEIGHT / 2);
+      bgCtx.stroke();
+    });
+    
+    setBackgroundRendered(true);
+  }, []);
+
+  // Initialize background
+  useEffect(() => {
+    if (gameState === 'playing' && !backgroundRendered) {
+      renderStaticBackground();
+    }
+  }, [gameState, backgroundRendered, renderStaticBackground]);
+
+  // Optimized canvas rendering with static background blitting
   useEffect(() => {
     if (gameState !== 'playing') return;
 
@@ -967,7 +1060,7 @@ export default function WhoLeftTheGateOpen() {
     if (!ctx) return;
 
     const render = () => {
-      // Apply screen shake for impactful feedback
+      // Apply screen shake
       ctx.save();
       if (screenShake > 0) {
         const shakeX = (Math.random() - 0.5) * screenShake;
@@ -975,43 +1068,10 @@ export default function WhoLeftTheGateOpen() {
         ctx.translate(shakeX, shakeY);
       }
 
-      // Clear canvas with crisp gradient background
-      const gradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-      gradient.addColorStop(0, '#87CEEB'); // Sky blue
-      gradient.addColorStop(0.8, '#98FB98'); // Pale green
-      gradient.addColorStop(1, '#90EE90'); // Light green
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-      // Draw playground with texture lines for visual clarity
-      ctx.fillStyle = '#90EE90';
-      ctx.fillRect(0, CANVAS_HEIGHT * 0.8, CANVAS_WIDTH, CANVAS_HEIGHT * 0.2);
-      
-      // Draw horizontal lane markings for Frogger-style gameplay
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-      ctx.lineWidth = 1;
-      LANE_Y_POSITIONS.forEach((laneY, index) => {
-        // Alternate lane colors for visual clarity
-        if (index === 0) {
-          // Goal zone - green
-          ctx.fillStyle = 'rgba(50, 205, 50, 0.2)';
-          ctx.fillRect(0, laneY - 10, CANVAS_WIDTH, LANE_HEIGHT);
-        } else if (index === LANE_COUNT - 1) {
-          // Start zone - blue
-          ctx.fillStyle = 'rgba(100, 149, 237, 0.2)';
-          ctx.fillRect(0, laneY - 10, CANVAS_WIDTH, LANE_HEIGHT);
-        } else {
-          // Traffic lanes - alternating gray
-          ctx.fillStyle = index % 2 === 0 ? 'rgba(128, 128, 128, 0.1)' : 'rgba(64, 64, 64, 0.1)';
-          ctx.fillRect(0, laneY - 10, CANVAS_WIDTH, LANE_HEIGHT);
-        }
-        
-        // Lane divider lines
-        ctx.beginPath();
-        ctx.moveTo(0, laneY + LANE_HEIGHT / 2);
-        ctx.lineTo(CANVAS_WIDTH, laneY + LANE_HEIGHT / 2);
-        ctx.stroke();
-      });
+      // Blit pre-rendered background for performance
+      if (backgroundLayerRef.current) {
+        ctx.drawImage(backgroundLayerRef.current, 0, 0);
+      }
 
       // Draw player with enhanced visual hierarchy
       const playerColor = stickerStormActive ? '#FFD700' : teamRallyActive ? '#FF44FF' : '#FF6B6B';
