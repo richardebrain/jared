@@ -734,195 +734,34 @@ What's your next move?`;
       contentBlocks = [
         {
           type: "Research Insight",
-          preview: `Clear, achievable goals for mastering ${topic.toLowerCase()} in practice...`,
-          content: `## What You'll Be Able to Do
+          preview: `Evidence-based insights about ${topic.toLowerCase()} in early childhood settings...`,
+          content: `## Research Insight: The Science Behind ${topic}
 
-After completing this module, you'll confidently:
+**Did you know?** Research from ${getRandomResearcher()} shows that children's brains are designed to respond to ${topic.toLowerCase()} in ways that make perfect developmental sense.
 
-**Recognize and Respond**
-✓ Identify early signs of ${topic.toLowerCase()} in your classroom
-✓ Choose the most effective response based on the child and situation
-✓ Know when to intervene and when to give space
+When we approach ${topic.toLowerCase()} with evidence-based strategies, children's stress hormones decrease while their learning receptivity increases.
 
-**Apply Evidence-Based Strategies**
-✓ Use 3-4 specific techniques that work consistently
-✓ Adapt your approach for different children's needs
-✓ Create a calmer environment that prevents many issues
+**The bottom line:** Your response to ${topic.toLowerCase()} isn't just about managing the moment - you're supporting healthy brain development.
 
-**Support Long-Term Growth**
-✓ Help children develop their own coping skills
-✓ Communicate effectively with families about ${topic.toLowerCase()}
-✓ Build your confidence in challenging moments
-
-**Measure Your Success**
-✓ Track what's working in your classroom
-✓ Adjust strategies based on what you observe
-✓ Feel prepared instead of reactive`
-        },
-        {
-          type: "Pre-Assessment Check-In",
-          preview: `Quick self-reflection to establish where teachers are starting with ${topic.toLowerCase()}...`,
-          content: `## Where Are You Starting?
-
-Before we dive in, take a moment to think about your current experience with ${topic.toLowerCase()}:
-
-**Your Confidence Level Right Now:**
-□ "I feel pretty confident most of the time"
-□ "I have some strategies but they don't always work"
-□ "I often feel unsure about the best approach"
-□ "I'm looking for completely new ideas"
-
-**Your Biggest Challenge:**
-□ Knowing what to do in the moment
-□ Helping children calm down quickly
-□ Managing other children's reactions
-□ Communicating with families about incidents
-
-**What You Hope to Gain:**
-□ More confidence in difficult moments
-□ Specific strategies that actually work
-□ Better understanding of why children act this way
-□ Ways to prevent ${topic.toLowerCase()} from happening
-
-*Remember where you're starting - we'll check back on your progress at the end.*`
-        }
-      ];
-    } else if (sectionType === 'reflection') {
-      // Generate reflection-specific content blocks
-      contentBlocks = [
-        {
-          type: "Self-Assessment Questions",
-          preview: `Thoughtful questions to assess your current approach to ${topic.toLowerCase()}...`,
-          content: `## Your Current Approach: An Honest Assessment
-
-Before we dive into new strategies, let's take a moment to reflect on where you are right now with ${topic.toLowerCase()}. No judgment here - we've all been there.
-
-**Your Confidence Level**
-On a scale of 1-10, how confident do you feel when ${topic.toLowerCase()} shows up in your classroom?
-- 1-3: "Help me, I have no idea what I'm doing"
-- 4-6: "I have some strategies, but they don't always work"
-- 7-8: "I feel pretty good most of the time"
-- 9-10: "I've got this handled and could mentor others"
-
-**Your Current Go-To Strategies**
-Think about the last time you encountered ${topic.toLowerCase()} in your classroom:
-- What was your first instinct?
-- What strategy did you actually use?
-- How did it work out?
-- What would you do differently?
-
-**Your Biggest Challenges**
-What makes ${topic.toLowerCase()} most difficult for you?
-- Feeling unprepared in the moment
-- Worry about other children watching
-- Concern about family reactions
-- Uncertainty about when to intervene vs. when to step back
-
-**Your Support System**
-- Who do you turn to for advice about challenging situations?
-- What resources have been most helpful?
-- What do you wish you had more support with?
-
-Remember: Every expert was once a beginner, and every confident teacher has had moments of doubt.`
-        },
-        {
-          type: "Action Planning Template",
-          preview: `Practical planning tool to implement your learning about ${topic.toLowerCase()}...`,
-          content: `## Your Personal Action Plan for ${topic}
-
-**This Week's Focus**
-Choose ONE strategy from this module to practice this week:
-- Strategy: ______________________
-- When I'll use it: ________________
-- How I'll remember: _______________
-
-**Environmental Changes**
-What small changes can you make to your classroom environment to support ${topic.toLowerCase()}?
-- Physical space adjustments: ________
-- Schedule modifications: ___________
-- Materials or tools needed: _________
-
-**Family Communication**
-How will you share your learning with families?
-- What you'll tell them about ${topic.toLowerCase()}: ___________
-- How you'll ask for their input: _______________
-- Ways to align home and school approaches: _______
-
-**Colleague Collaboration**
-- One person you'll share this learning with: _______
-- One question you'll ask a mentor or colleague: _____
-- How you'll contribute to team discussions: ________
-
-**Measuring Success**
-How will you know your new approach is working?
-- What you'll observe in children: _______________
-- How you'll feel different: __________________
-- What documentation you'll keep: _____________
-
-**Your Commitment**
-I commit to trying _____________ [strategy] for _____ [time period] and checking in with myself on _______ [date] to reflect on what's working.
-
-Remember: Progress, not perfection. Small steps lead to big changes.`
-        }
-      ];
-    } else {
-      // Generate general content blocks with humor and research
-      contentBlocks = [
-      {
-        type: "Research Insight",
-        preview: `Did you know? Research from Dr. ${getRandomResearcher()} shows that ${topic.toLowerCase()} actually works best when...`,
-        content: `## Research Insight: The Science Behind ${topic}
-
-**Did you know?** Dr. ${getRandomResearcher()}'s groundbreaking research shows that children's brains are literally wired to respond to ${topic.toLowerCase()} in ways we never expected. 
-
-Here's the fascinating part: When we approach ${topic.toLowerCase()} with evidence-based strategies, children's stress hormones (cortisol) decrease by up to 23%, while their curiosity hormones (dopamine) increase significantly.
-
-**The Bottom Line:** Your approach to ${topic.toLowerCase()} isn't just about managing behavior - you're actually rewiring developing brains for success. No pressure, right?
-
-**Try This:** Next time you encounter ${topic.toLowerCase()}, remember you're not just a teacher - you're a neuroscientist in action.`
-        },
-        {
-          type: "Reality Check Story",
-          preview: `Picture this: It's 10:47 AM, you're running on coffee fumes, and suddenly ${topic.toLowerCase()} happens...`,
-          content: `## The Tuesday Morning Chronicles
-
-Picture this: It's 10:47 AM on a Tuesday (why is it always Tuesday?), you've had exactly half a cup of lukewarm coffee, and you're mentally reviewing your grocery list when BAM - ${topic.toLowerCase()} shows up in your classroom like an uninvited party guest.
-
-Meet Emma, age 4, who has just provided a live demonstration of everything you learned about ${topic.toLowerCase()} in theory. You know that moment when you think, "Did she read my lesson plans and decide to create a real-world example?"
-
-**The Teacher Brain Spiral:**
-- Layer 1: Emma's immediate needs
-- Layer 2: The 15 other children watching like it's live TV
-- Layer 3: Your director walking by (Murphy's Law strikes again)
-- Layer 4: That parent conference tomorrow
-
-**Plot Twist:** According to Dr. Alfie Kohn's research, these "crisis" moments are actually when the most authentic learning happens. Emma isn't trying to test you - she's showing you exactly what she needs to learn, wrapped in a 4-year-old package with zero filter.
-
-**Your Superpower:** Taking a deep breath and remembering that progress, not perfection, is the goal.`
+**Try this:** Next time you encounter ${topic.toLowerCase()}, remember you're not just a teacher - you're a developmental ally.`
         },
         {
           type: "Quick Win Strategy",
-          preview: `The 2-minute magic trick that actually works for ${topic.toLowerCase()}...`,
-          content: `## The 2-Minute Magic Trick for ${topic}
+          preview: `Simple, effective strategy for ${topic.toLowerCase()} that works immediately...`,
+          content: `## The 2-Minute Strategy for ${topic}
 
-Let's be honest - you don't have time for complicated strategies when ${topic.toLowerCase()} shows up unannounced. You need something that works NOW, while you're juggling 16 other things.
+You need something that works NOW when ${topic.toLowerCase()} shows up unannounced.
 
-**The Evidence:** Dr. Dan Siegel's "Name It to Tame It" research proves that simply acknowledging what's happening calms the brain's alarm system in under 2 minutes.
+**The approach:** The "See, Name, Support" method proven effective in real classrooms.
 
-**Your Script (Yes, You Can Memorize This):**
+**Your script:**
 1. **See it:** "I notice you're having a big feeling about..."
 2. **Name it:** "That looks like frustration/excitement/worry..."
 3. **Support it:** "I'm here to help you through this."
 
-**Why This Actually Works:**
-- Kids feel seen (not judged)
-- Their brain calms down faster
-- You look like you know what you're doing
-- Other children learn emotional vocabulary
+**Why this works:** Children feel seen rather than judged, their brains calm down faster, and you appear confident even when uncertain.
 
-**Pro Tip:** Practice this script during your commute. When ${topic.toLowerCase()} hits, your automatic response will be calm confidence instead of internal panic.
-
-**Bonus:** This works on adults too. Try it in your next staff meeting.`
+**Practice tip:** Rehearse this during your commute so it becomes automatic.`
         }
       ];
     }
