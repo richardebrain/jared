@@ -471,6 +471,132 @@ export default function ComprehensiveModuleCreator() {
     }
   };
 
+  const generateQuizContent = async (sectionIndex: number) => {
+    if (!newModule.title || !newModule.description) {
+      toast({
+        title: "Missing Information",
+        description: "Please add a module title and description first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setGeneratingContent(sectionIndex);
+    
+    try {
+      const response = await apiRequest('/api/ai/generate-quiz-questions', {
+        method: 'POST',
+        data: {
+          moduleTitle: newModule.title,
+          moduleDescription: newModule.description,
+          sectionTitle: newModule.sections[sectionIndex].title,
+          category: newModule.category
+        }
+      });
+
+      if (response.questions) {
+        updateSection(sectionIndex, 'content', JSON.stringify(response.questions, null, 2));
+        toast({
+          title: "Quiz Generated!",
+          description: "AI has created quiz questions for your section.",
+        });
+      }
+    } catch (error) {
+      console.error('Error generating quiz:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Unable to generate quiz content. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingContent(null);
+    }
+  };
+
+  const generateReflectionContent = async (sectionIndex: number) => {
+    if (!newModule.title || !newModule.description) {
+      toast({
+        title: "Missing Information",
+        description: "Please add a module title and description first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setGeneratingContent(sectionIndex);
+    
+    try {
+      const response = await apiRequest('/api/ai/generate-reflection-prompts', {
+        method: 'POST',
+        data: {
+          moduleTitle: newModule.title,
+          moduleDescription: newModule.description,
+          sectionTitle: newModule.sections[sectionIndex].title,
+          category: newModule.category
+        }
+      });
+
+      if (response.prompts) {
+        updateSection(sectionIndex, 'content', response.prompts);
+        toast({
+          title: "Reflection Prompts Generated!",
+          description: "AI has created thoughtful reflection questions for your section.",
+        });
+      }
+    } catch (error) {
+      console.error('Error generating reflection prompts:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Unable to generate reflection content. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingContent(null);
+    }
+  };
+
+  const generatePriorityContent = async (sectionIndex: number) => {
+    if (!newModule.title || !newModule.description) {
+      toast({
+        title: "Missing Information",
+        description: "Please add a module title and description first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setGeneratingContent(sectionIndex);
+    
+    try {
+      const response = await apiRequest('/api/ai/generate-priority-exercise', {
+        method: 'POST',
+        data: {
+          moduleTitle: newModule.title,
+          moduleDescription: newModule.description,
+          sectionTitle: newModule.sections[sectionIndex].title,
+          category: newModule.category
+        }
+      });
+
+      if (response.priorityExercise) {
+        updateSection(sectionIndex, 'content', response.priorityExercise);
+        toast({
+          title: "Priority Exercise Generated!",
+          description: "AI has created a priority sorting exercise for your section.",
+        });
+      }
+    } catch (error) {
+      console.error('Error generating priority exercise:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Unable to generate priority content. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingContent(null);
+    }
+  };
+
   // Generate AI video using Veo API
   const generateAiVideo = async (sectionIndex: number) => {
     if (!newModule.title || !newModule.description) {
@@ -2097,12 +2223,32 @@ Create a natural conversation between two podcast hosts discussing this specific
                         />
                       </div>
                       <div className="p-4 bg-blue-50 rounded-lg">
-                        <div className="flex items-center mb-2">
-                          <Link className="h-4 w-4 text-blue-600 mr-2" />
-                          <span className="text-sm font-medium text-blue-800">Matching Activity</span>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <Brain className="h-4 w-4 text-blue-600 mr-2" />
+                            <span className="text-sm font-medium text-blue-800">AI Matching Builder</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => generateMatchingContent(index)}
+                            disabled={generatingContent === index}
+                            className="bg-blue-600 hover:bg-blue-700"
+                          >
+                            {generatingContent === index ? (
+                              <>
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <Link2 className="h-3 w-3 mr-1" />
+                                Generate Matching
+                              </>
+                            )}
+                          </Button>
                         </div>
                         <p className="text-sm text-blue-700">
-                          Create connections between concepts, terms, and definitions. AI can generate matching pairs based on your topic.
+                          AI will create matching pairs connecting concepts, terms, and definitions for {newModule.title || 'your topic'}.
                         </p>
                       </div>
                     </div>
@@ -2121,12 +2267,32 @@ Create a natural conversation between two podcast hosts discussing this specific
                         />
                       </div>
                       <div className="p-4 bg-green-50 rounded-lg">
-                        <div className="flex items-center mb-2">
-                          <Brain className="h-4 w-4 text-green-600 mr-2" />
-                          <span className="text-sm font-medium text-green-800">Decision Making</span>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <Brain className="h-4 w-4 text-green-600 mr-2" />
+                            <span className="text-sm font-medium text-green-800">AI Scenario Builder</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => generateScenarioContent(index)}
+                            disabled={generatingContent === index}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            {generatingContent === index ? (
+                              <>
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="h-3 w-3 mr-1" />
+                                Generate Scenario
+                              </>
+                            )}
+                          </Button>
                         </div>
                         <p className="text-sm text-green-700">
-                          Present challenging situations where learners practice decision-making skills. Include multiple options with feedback for each choice.
+                          AI will create realistic decision-making scenarios with multiple options and feedback for {newModule.title || 'your topic'}.
                         </p>
                       </div>
                     </div>
@@ -2145,12 +2311,32 @@ Create a natural conversation between two podcast hosts discussing this specific
                         />
                       </div>
                       <div className="p-4 bg-red-50 rounded-lg">
-                        <div className="flex items-center mb-2">
-                          <Target className="h-4 w-4 text-red-600 mr-2" />
-                          <span className="text-sm font-medium text-red-800">Priority Training</span>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <Brain className="h-4 w-4 text-red-600 mr-2" />
+                            <span className="text-sm font-medium text-red-800">AI Priority Builder</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => generatePriorityContent(index)}
+                            disabled={generatingContent === index}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            {generatingContent === index ? (
+                              <>
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <Target className="h-3 w-3 mr-1" />
+                                Generate Priority Exercise
+                              </>
+                            )}
+                          </Button>
                         </div>
                         <p className="text-sm text-red-700">
-                          Help learners practice prioritization skills by sorting items based on urgency, importance, or other criteria.
+                          AI will create prioritization scenarios to help learners practice sorting items by urgency and importance for {newModule.title || 'your topic'}.
                         </p>
                       </div>
                     </div>
@@ -2168,9 +2354,33 @@ Create a natural conversation between two podcast hosts discussing this specific
                           rows={2}
                         />
                       </div>
-                      <div className="p-4 bg-blue-50 rounded-lg">
-                        <p className="text-sm text-blue-700">
-                          Quiz questions will be generated using AI when you create the module, or you can add them manually later.
+                      <div className="p-4 bg-purple-50 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <Brain className="h-4 w-4 text-purple-600 mr-2" />
+                            <span className="text-sm font-medium text-purple-800">AI Quiz Builder</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => generateQuizContent(index)}
+                            disabled={generatingContent === index}
+                            className="bg-purple-600 hover:bg-purple-700"
+                          >
+                            {generatingContent === index ? (
+                              <>
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <HelpCircle className="h-3 w-3 mr-1" />
+                                Generate Quiz
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                        <p className="text-sm text-purple-700">
+                          AI will create quiz questions to assess understanding for {newModule.title || 'your topic'}.
                         </p>
                       </div>
                     </div>
