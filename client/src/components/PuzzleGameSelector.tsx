@@ -179,7 +179,7 @@ export default function PuzzleGameSelector() {
             <Button 
               className="bg-purple-600 hover:bg-purple-700 text-white"
               onClick={() => handleStartGame('wordsearch')}
-              disabled={!user || (user.points || 0) < 1}
+              disabled={!user || ((user as any).points || 0) < 1}
             >
               <Coins className="h-4 w-4 mr-2" />
               Play (1 point)
@@ -231,7 +231,7 @@ export default function PuzzleGameSelector() {
             <Button 
               className="bg-blue-600 hover:bg-blue-700 text-white"
               onClick={() => handleStartGame('crossword')}
-              disabled={!user || (user.points || 0) < 1}
+              disabled={!user || ((user as any).points || 0) < 1}
             >
               <Coins className="h-4 w-4 mr-2" />
               Play (1 point)
