@@ -3488,9 +3488,10 @@ Continue for all 5 questions...
 
       if (userShoutOutsToday.length >= 3) {
         return res.status(400).json({
-          message:
-            "You've reached the maximum number of core value nominations for today",
+          message: `You've already submitted ${userShoutOutsToday.length} core value nominations today. You can submit up to 3 per day. Please try again tomorrow!`,
           remaining: 0,
+          currentCount: userShoutOutsToday.length,
+          dailyLimit: 3
         });
       }
 
