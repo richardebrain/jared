@@ -464,6 +464,62 @@ export default function ComprehensiveModuleCreator() {
     }
   };
 
+  // AI Content Generation for Section Builder
+  const [isGeneratingAIContent, setIsGeneratingAIContent] = useState(false);
+
+  const generateAIContentForSection = async () => {
+    const currentSection = newModule.sections[currentSectionIndex];
+    if (!currentSection || !newModule.title) return;
+
+    setIsGeneratingAIContent(true);
+    
+    try {
+      const response = await apiRequest('POST', '/api/ai/generate-section-content', {
+        moduleTitle: newModule.title,
+        moduleDescription: newModule.description,
+        sectionTitle: currentSection.title,
+        sectionType: currentSection.type,
+        sectionIndex: currentSectionIndex + 1,
+        totalSections: newModule.sections.length,
+        category: newModule.category || 'professional-development'
+      });
+
+      if (response.content) {
+        const updatedSections = [...newModule.sections];
+        updatedSections[currentSectionIndex] = {
+          ...updatedSections[currentSectionIndex],
+          content: response.content
+        };
+
+        // Add questions if generated
+        if (response.questions && response.questions.length > 0) {
+          updatedSections[currentSectionIndex].questions = response.questions;
+        }
+
+        // Add scenarios if generated
+        if (response.scenarios && response.scenarios.length > 0) {
+          updatedSections[currentSectionIndex].scenarios = response.scenarios;
+        }
+
+        setNewModule(prev => ({ ...prev, sections: updatedSections }));
+        
+        toast({
+          title: 'AI Content Generated',
+          description: 'Section content has been successfully generated!',
+        });
+      }
+    } catch (error) {
+      console.error('AI generation error:', error);
+      toast({
+        title: 'Generation Failed',
+        description: 'Unable to generate AI content. Please try again or add content manually.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsGeneratingAIContent(false);
+    }
+  };
+
   const addCustomSection = (sectionType: string) => {
     const sectionTypeConfig = SECTION_TYPES.find(type => type.type === sectionType);
     if (!sectionTypeConfig) return;
@@ -2202,9 +2258,20 @@ Create a natural conversation between two podcast hosts discussing this specific
               <Button 
                 variant="outline" 
                 className="w-full border-purple-300 text-purple-600 hover:bg-purple-50"
+                onClick={generateAIContentForSection}
+                disabled={isGeneratingAIContent || !newModule.title}
               >
-                <Sparkles className="h-4 w-4 mr-2" />
-                Generate AI Content for This Section
+                {isGeneratingAIContent ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Generating AI Content...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Generate AI Content for This Section
+                  </>
+                )}
               </Button>
             </div>
 

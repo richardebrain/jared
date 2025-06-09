@@ -237,4 +237,328 @@ This module provides ${difficultyLevel} level strategies for implementing ${modu
   }
 });
 
+/**
+ * AI section content generation endpoint
+ * Generates contextual content for specific module sections
+ */
+router.post('/generate-section-content', async (req, res) => {
+  try {
+    const { 
+      moduleTitle, 
+      moduleDescription, 
+      sectionTitle, 
+      sectionType, 
+      sectionIndex, 
+      totalSections, 
+      category 
+    } = req.body;
+    
+    if (!moduleTitle || !sectionTitle || !sectionType) {
+      return res.status(400).json({ 
+        message: 'Module title, section title, and section type are required' 
+      });
+    }
+    
+    console.log("Generating AI content for section:", { 
+      moduleTitle, 
+      sectionTitle, 
+      sectionType, 
+      sectionIndex, 
+      totalSections 
+    });
+    
+    let content = '';
+    let questions = [];
+    let scenarios = [];
+    
+    // Generate content based on section type
+    switch (sectionType) {
+      case 'introduction':
+        content = `# ${sectionTitle}
+
+Welcome to "${moduleTitle}" - a comprehensive learning experience designed to enhance your professional development in early childhood education.
+
+## What You'll Learn
+In this module, you'll explore key concepts and practical strategies related to ${moduleTitle.toLowerCase()}. This learning experience is structured to build your knowledge progressively while providing immediate applications for your classroom.
+
+## Module Overview
+${moduleDescription || `This module focuses on ${moduleTitle.toLowerCase()}, providing evidence-based approaches and real-world applications for early childhood educators.`}
+
+## Learning Objectives
+By the end of this module, you will be able to:
+- Understand fundamental concepts related to ${moduleTitle.toLowerCase()}
+- Apply practical strategies in your daily work with children
+- Reflect on current practices and identify areas for growth
+- Implement evidence-based approaches in your classroom setting
+
+## How This Module Works
+This module contains ${totalSections} sections, each designed to build upon previous learning while introducing new concepts and applications. Take your time with each section and reflect on how the content applies to your unique teaching environment.
+
+Let's begin this learning journey together!`;
+        break;
+        
+      case 'content':
+      case 'text':
+        content = `# ${sectionTitle}
+
+## Key Concepts
+This section explores essential concepts related to ${moduleTitle.toLowerCase()}, providing you with foundational knowledge that supports effective practice in early childhood education.
+
+## Understanding the Framework
+When working with ${moduleTitle.toLowerCase()}, it's important to consider the developmental needs of children and how our approaches can support their growth and learning.
+
+## Evidence-Based Strategies
+Research shows that effective implementation of ${moduleTitle.toLowerCase()} strategies includes:
+
+### Strategy 1: Observation and Documentation
+Carefully observe children's responses and document what works best in your specific context.
+
+### Strategy 2: Environmental Considerations
+Create supportive environments that facilitate positive outcomes related to ${moduleTitle.toLowerCase()}.
+
+### Strategy 3: Family Partnership
+Engage families as partners in supporting children's development and learning.
+
+### Strategy 4: Individualized Approaches
+Recognize that each child is unique and may benefit from different approaches.
+
+## Practical Applications
+Consider how these concepts apply in your daily work:
+- During routine activities and transitions
+- In your interactions with children and families
+- When planning learning experiences
+- While reflecting on your professional practice
+
+## Reflection Prompt
+How might you begin implementing these concepts in your current role? What supports or resources would be most helpful?`;
+
+        questions = [
+          {
+            question: `What is a key principle when implementing ${moduleTitle.toLowerCase()} strategies?`,
+            answers: [
+              "Using the same approach for all children",
+              "Focusing only on academic outcomes",
+              "Observing and adapting to individual needs",
+              "Following rigid procedures"
+            ],
+            correctAnswer: 2,
+            explanation: "Observing and adapting to individual needs ensures that strategies are effective and responsive to each child's unique characteristics."
+          },
+          {
+            question: `How can families support ${moduleTitle.toLowerCase()} at home?`,
+            answers: [
+              "By replicating classroom activities exactly",
+              "Through partnership and communication with educators",
+              "By avoiding any involvement",
+              "Only during scheduled meetings"
+            ],
+            correctAnswer: 1,
+            explanation: "Partnership and communication between families and educators creates consistency and support for children's development."
+          }
+        ];
+        break;
+        
+      case 'video':
+        content = `# ${sectionTitle}
+
+## Video Learning Experience
+This section features carefully selected video content that demonstrates key concepts related to ${moduleTitle.toLowerCase()}.
+
+## Before Watching
+Take a moment to consider your current understanding and experiences with ${moduleTitle.toLowerCase()}. What questions do you have? What challenges have you encountered?
+
+## Key Points to Notice
+As you watch, pay attention to:
+- Specific strategies being demonstrated
+- How children respond to different approaches
+- Environmental factors that support success
+- The educator's role and decision-making process
+
+## Application Ideas
+While watching, consider:
+- How might you adapt these strategies for your specific context?
+- What resources or supports would you need?
+- How do these approaches align with your current practices?
+
+## Discussion and Reflection
+After watching, reflect on:
+- What resonated most strongly with you?
+- What questions emerged from this viewing?
+- How might you begin implementing what you observed?
+
+This video content is designed to bridge theory and practice, helping you visualize effective approaches in action.`;
+        break;
+        
+      case 'activity':
+      case 'interactive':
+        content = `# ${sectionTitle}
+
+## Interactive Learning Experience
+This section provides hands-on activities designed to deepen your understanding of ${moduleTitle.toLowerCase()} through practical application.
+
+## Activity Overview
+Engage with realistic scenarios and challenges that early childhood educators commonly face. Through these activities, you'll practice decision-making, problem-solving, and strategy implementation.
+
+## Learning Through Practice
+Research shows that active engagement with content leads to deeper understanding and better retention. These activities are designed to:
+- Connect theory to practice
+- Provide safe spaces to explore different approaches
+- Build confidence in your professional skills
+- Encourage reflection and self-assessment
+
+## How to Engage
+As you work through these activities:
+- Take your time to consider each scenario carefully
+- Think about your own experiences and context
+- Consider multiple perspectives and approaches
+- Reflect on what you learn about yourself as an educator
+
+## Real-World Application
+After completing these activities, consider how you might apply what you've learned in your daily work with children and families.`;
+
+        scenarios = [
+          {
+            scenario: `You notice a child in your classroom who seems to struggle with ${moduleTitle.toLowerCase()}. The child appears frustrated and is beginning to avoid related activities.`,
+            responses: [
+              "Observe the child more closely to understand their specific needs and interests",
+              "Continue with the planned activities as scheduled",
+              "Remove the child from these activities temporarily",
+              "Focus on the children who are succeeding"
+            ],
+            correctResponse: 0,
+            explanation: "Careful observation helps you understand the child's perspective and develop responsive strategies."
+          }
+        ];
+        break;
+        
+      case 'assessment':
+      case 'quiz':
+        content = `# ${sectionTitle}
+
+## Knowledge Check
+This assessment helps you reflect on your understanding of key concepts related to ${moduleTitle.toLowerCase()}.
+
+## Purpose of Assessment
+This quiz is designed to:
+- Help you identify areas of strength in your understanding
+- Highlight concepts that may benefit from further exploration
+- Provide immediate feedback on your learning
+- Support your professional development journey
+
+## Approach to Assessment
+Take your time with each question and consider how the concepts apply to your specific context and experience. There's no penalty for incorrect answers - this is a learning opportunity.
+
+## After the Assessment
+Use your results to guide further learning and professional development. Consider which concepts you'd like to explore further and how you might apply new understanding in your work.`;
+
+        questions = [
+          {
+            question: `What is the most important factor when implementing ${moduleTitle.toLowerCase()} strategies?`,
+            answers: [
+              "Following guidelines exactly as written",
+              "Adapting approaches based on individual children's needs",
+              "Using the same method for all situations",
+              "Focusing primarily on outcomes"
+            ],
+            correctAnswer: 1,
+            explanation: "Adapting approaches based on individual children's needs ensures that strategies are effective and responsive."
+          },
+          {
+            question: `How can you support families in understanding ${moduleTitle.toLowerCase()}?`,
+            answers: [
+              "Provide written information only",
+              "Schedule formal meetings exclusively",
+              "Use multiple communication methods and involve families as partners",
+              "Handle everything independently"
+            ],
+            correctAnswer: 2,
+            explanation: "Using multiple communication methods and involving families as partners creates strong support systems for children."
+          },
+          {
+            question: `What role does observation play in ${moduleTitle.toLowerCase()}?`,
+            answers: [
+              "It's only needed for documentation purposes",
+              "It helps inform responsive teaching practices",
+              "It's not particularly important",
+              "It should only be done during formal assessments"
+            ],
+            correctAnswer: 1,
+            explanation: "Observation helps inform responsive teaching practices by providing insight into children's needs, interests, and development."
+          }
+        ];
+        break;
+        
+      case 'reflection':
+        content = `# ${sectionTitle}
+
+## Time for Reflection
+Reflection is a crucial component of professional growth. This section provides space and prompts to help you process your learning about ${moduleTitle.toLowerCase()}.
+
+## The Value of Reflection
+Taking time to reflect helps you:
+- Connect new learning to your existing knowledge and experience
+- Identify practical applications for your specific context
+- Recognize growth and areas for continued development
+- Build confidence in your professional capabilities
+
+## Reflection Prompts
+Consider the following questions as you reflect on your learning:
+
+### Understanding and Application
+- What new insights have you gained about ${moduleTitle.toLowerCase()}?
+- How do these concepts connect to your current practices?
+- What surprised you most during this learning experience?
+
+### Implementation Planning
+- Which strategies are you most excited to try in your classroom?
+- What supports or resources would help you implement new approaches?
+- How might you adapt these concepts for your specific context?
+
+### Professional Growth
+- How has your confidence in this area changed?
+- What questions do you still have?
+- What would you like to learn more about?
+
+## Moving Forward
+Use your reflections to create a personal action plan. Consider small, manageable steps you can take to implement new learning in your daily practice.
+
+## Sharing Your Learning
+Consider how you might share your insights with colleagues, families, or your professional learning community.`;
+        break;
+        
+      default:
+        content = `# ${sectionTitle}
+
+## Learning Focus
+This section explores important aspects of ${moduleTitle.toLowerCase()}, providing practical insights for early childhood educators.
+
+## Key Concepts
+Understanding ${moduleTitle.toLowerCase()} involves considering multiple factors that influence children's development and learning experiences.
+
+## Professional Application
+As you engage with this content, consider how these concepts apply to your daily work with children, families, and colleagues.
+
+## Evidence-Based Practice
+The strategies and approaches presented here are grounded in research and best practices in early childhood education.
+
+## Reflection and Growth
+Take time to consider how this learning connects to your professional goals and development as an educator.`;
+        break;
+    }
+    
+    return res.json({
+      content,
+      questions: questions.length > 0 ? questions : undefined,
+      scenarios: scenarios.length > 0 ? scenarios : undefined
+    });
+    
+  } catch (error) {
+    console.error("Error generating section content:", error);
+    return res.status(500).json({
+      message: 'Error generating section content',
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+});
+
 export default router;
