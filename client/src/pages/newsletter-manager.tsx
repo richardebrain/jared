@@ -146,8 +146,15 @@ export default function NewsletterManager() {
 
   // Publish newsletter
   const publishNewsletter = useMutation({
-    mutationFn: async ({ id, scheduledFor }: { id: number, scheduledFor?: string }) => {
-      const response = await fetch(`/api/admin/newsletters/${id}/publish`, {
+    mutationFn: async ({ newsletter, scheduledFor }: { newsletter: Newsletter, scheduledFor?: string }) => {
+      let newsletterToPublish = newsletter;
+      
+      // If newsletter doesn't have an ID, save it first
+      if (!newsletter.id || newsletter.id === 0) {
+        newsletterToPublish = await saveNewsletter.mutateAsync(newsletter);
+      }
+      
+      const response = await fetch(`/api/admin/newsletters/${newsletterToPublish.id}/publish`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -165,12 +172,13 @@ export default function NewsletterManager() {
       queryClient.invalidateQueries({ queryKey: ['/api/school-dashboard'] });
       refetchNewsletters();
       
-      // Update the selected newsletter status
-      if (selectedNewsletter) {
+      // Update the selected newsletter with the published data
+      if (selectedNewsletter && data.newsletter) {
         setSelectedNewsletter({
           ...selectedNewsletter,
+          id: data.newsletter.id,
           status: 'published',
-          publishedAt: new Date().toISOString()
+          publishedAt: data.newsletter.publishedAt
         });
       }
     }
@@ -179,6 +187,12 @@ export default function NewsletterManager() {
   // Generate PDF
   const generatePDF = async (newsletter: Newsletter) => {
     try {
+      // If newsletter doesn't have an ID, save it first
+      if (!newsletter.id || newsletter.id === 0) {
+        const savedNewsletter = await saveNewsletter.mutateAsync(newsletter);
+        newsletter = savedNewsletter;
+      }
+
       const response = await fetch(`/api/admin/newsletters/${newsletter.id}/pdf`, {
         method: 'POST',
         credentials: 'include'
@@ -189,20 +203,20 @@ export default function NewsletterManager() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `newsletter-${newsletter.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
+      a.download = `newsletter-${newsletter.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.html`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       
       toast({
-        title: "PDF Generated",
-        description: "Newsletter PDF has been downloaded successfully."
+        title: "Preview Generated",
+        description: "Newsletter preview has been downloaded successfully."
       });
     } catch (error) {
       toast({
-        title: "PDF Generation Failed",
-        description: "There was an error generating the PDF.",
+        title: "Preview Generation Failed",
+        description: "There was an error generating the preview.",
         variant: "destructive"
       });
     }
@@ -515,7 +529,7 @@ export default function NewsletterManager() {
               Save Draft
             </Button>
             <Button
-              onClick={() => publishNewsletter.mutate({ id: selectedNewsletter.id })}
+              onClick={() => publishNewsletter.mutate({ newsletter: selectedNewsletter })}
               disabled={publishNewsletter.isPending}
             >
               <Send className="h-4 w-4 mr-2" />
