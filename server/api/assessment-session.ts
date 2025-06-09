@@ -1003,7 +1003,7 @@ router.get('/abandon', requireEligibleEducatorRole, async (req: Request, res: Re
 });
 
 /**
- * GET /api/assessment/status
+ * GET /api/assessment/session/status
  * 
  * Check user's assessment completion status and determine where to route them
  */

@@ -25,7 +25,7 @@ import { Bell, MessageSquare, AlertCircle, X } from "lucide-react";
 // Assessment Navigation Button Component
 function AssessmentNavButton({ location }: { location: string }) {
   const { data: assessmentStatus } = useQuery({
-    queryKey: ["/api/assessment/status"],
+    queryKey: ["/api/assessment/session/status"],
     staleTime: 30000, // Cache for 30 seconds to avoid excessive API calls
   });
 
@@ -51,7 +51,7 @@ function AssessmentNavButton({ location }: { location: string }) {
 // Mobile Assessment Navigation Button Component
 function MobileAssessmentNavButton({ location }: { location: string }) {
   const { data: assessmentStatus } = useQuery({
-    queryKey: ["/api/assessment/status"],
+    queryKey: ["/api/assessment/session/status"],
     staleTime: 30000, // Cache for 30 seconds to avoid excessive API calls
   });
 
