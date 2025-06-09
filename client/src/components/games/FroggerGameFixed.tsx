@@ -571,9 +571,28 @@ export default function FroggerGame(): JSX.Element {
     render();
   }, [gameState, player, spawnObstacle, spawnPowerUp, checkCollisions, render, level, checkpoint, playSound, toast]);
 
-  // Input handling
+  // Input handling (keyboard and touch)
   useEffect(() => {
     if (gameState !== 'playing') return;
+    
+    const handleMovement = (newRow: number, newCol: number) => {
+      // Movement sound
+      playSound(440, 0.1, 'square');
+      
+      // Update dodge streak
+      if (newRow !== player.row || newCol !== player.col) {
+        setStats(prev => ({ ...prev, dodgeStreak: prev.dodgeStreak + 1, totalDodges: prev.totalDodges + 1 }));
+      }
+      
+      setPlayer(prev => ({ ...prev, row: newRow, col: newCol }));
+      
+      // Trigger question randomly
+      if (Math.random() < 0.1 && !currentQuestion) {
+        const question = safetyQuestions[Math.floor(Math.random() * safetyQuestions.length)];
+        setCurrentQuestion(question);
+        setGameState('question');
+      }
+    };
     
     const handleKeyDown = (e: KeyboardEvent) => {
       let newRow = player.row;
@@ -597,27 +616,59 @@ export default function FroggerGame(): JSX.Element {
       }
       
       e.preventDefault();
+      handleMovement(newRow, newCol);
+    };
+    
+    // Touch controls for mobile
+    let touchStartX = 0;
+    let touchStartY = 0;
+    
+    const handleTouchStart = (e: TouchEvent) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+    };
+    
+    const handleTouchEnd = (e: TouchEvent) => {
+      e.preventDefault();
+      const touch = e.changedTouches[0];
+      const deltaX = touch.clientX - touchStartX;
+      const deltaY = touch.clientY - touchStartY;
       
-      // Movement sound
-      playSound(440, 0.1, 'square');
+      // Minimum swipe distance to register movement
+      const minSwipeDistance = 30;
       
-      // Update dodge streak
-      if (newRow !== player.row || newCol !== player.col) {
-        setStats(prev => ({ ...prev, dodgeStreak: prev.dodgeStreak + 1, totalDodges: prev.totalDodges + 1 }));
-      }
-      
-      setPlayer(prev => ({ ...prev, row: newRow, col: newCol }));
-      
-      // Trigger question randomly
-      if (Math.random() < 0.1 && !currentQuestion) {
-        const question = safetyQuestions[Math.floor(Math.random() * safetyQuestions.length)];
-        setCurrentQuestion(question);
-        setGameState('question');
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        // Horizontal swipe
+        if (Math.abs(deltaX) > minSwipeDistance) {
+          if (deltaX > 0 && player.col < COLS - 1) {
+            handleMovement(player.row, player.col + 1);
+          } else if (deltaX < 0 && player.col > 0) {
+            handleMovement(player.row, player.col - 1);
+          }
+        }
+      } else {
+        // Vertical swipe
+        if (Math.abs(deltaY) > minSwipeDistance) {
+          if (deltaY < 0 && player.row > 0) {
+            handleMovement(player.row - 1, player.col);
+          } else if (deltaY > 0 && player.row < ROWS - 1) {
+            handleMovement(player.row + 1, player.col);
+          }
+        }
       }
     };
     
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('touchstart', handleTouchStart, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd, { passive: false });
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
   }, [gameState, player, currentQuestion, playSound]);
 
   // Start game loop
@@ -723,11 +774,12 @@ export default function FroggerGame(): JSX.Element {
             <div className="bg-amber-50 p-4 rounded-lg">
               <h3 className="font-semibold text-amber-800 mb-2">🎮 Controls:</h3>
               <ul className="text-sm text-amber-700 space-y-1 text-left">
-                <li>• Arrow keys to move</li>
-                <li>• Avoid obstacles</li>
-                <li>• Collect power-ups</li>
-                <li>• Answer safety questions</li>
-                <li>• Reach the top to advance</li>
+                <li>• Arrow keys or swipe gestures to move</li>
+                <li>• On-screen buttons available on mobile</li>
+                <li>• Avoid obstacles crossing lanes</li>
+                <li>• Collect power-ups for special abilities</li>
+                <li>• Answer safety questions correctly</li>
+                <li>• Reach the top to advance levels</li>
               </ul>
             </div>
           </div>
@@ -819,14 +871,94 @@ export default function FroggerGame(): JSX.Element {
     );
   }
 
+  // Mobile controls component
+  const MobileControls = () => {
+    const handleDirectionalInput = (direction: 'up' | 'down' | 'left' | 'right') => {
+      let newRow = player.row;
+      let newCol = player.col;
+      
+      switch (direction) {
+        case 'up':
+          if (player.row > 0) newRow = player.row - 1;
+          break;
+        case 'down':
+          if (player.row < ROWS - 1) newRow = player.row + 1;
+          break;
+        case 'left':
+          if (player.col > 0) newCol = player.col - 1;
+          break;
+        case 'right':
+          if (player.col < COLS - 1) newCol = player.col + 1;
+          break;
+      }
+      
+      if (newRow !== player.row || newCol !== player.col) {
+        playSound(440, 0.1, 'square');
+        setStats(prev => ({ ...prev, dodgeStreak: prev.dodgeStreak + 1, totalDodges: prev.totalDodges + 1 }));
+        setPlayer(prev => ({ ...prev, row: newRow, col: newCol }));
+        
+        if (Math.random() < 0.1 && !currentQuestion) {
+          const question = safetyQuestions[Math.floor(Math.random() * safetyQuestions.length)];
+          setCurrentQuestion(question);
+          setGameState('question');
+        }
+      }
+    };
+
+    return (
+      <div className="md:hidden fixed bottom-4 left-1/2 transform -translate-x-1/2 z-10">
+        <div className="relative w-32 h-32">
+          {/* Up button */}
+          <button
+            onTouchStart={(e) => { e.preventDefault(); handleDirectionalInput('up'); }}
+            className="absolute top-0 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-lg flex items-center justify-center text-xl font-bold active:scale-95 transition-transform"
+          >
+            ↑
+          </button>
+          
+          {/* Down button */}
+          <button
+            onTouchStart={(e) => { e.preventDefault(); handleDirectionalInput('down'); }}
+            className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-lg flex items-center justify-center text-xl font-bold active:scale-95 transition-transform"
+          >
+            ↓
+          </button>
+          
+          {/* Left button */}
+          <button
+            onTouchStart={(e) => { e.preventDefault(); handleDirectionalInput('left'); }}
+            className="absolute left-0 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-lg flex items-center justify-center text-xl font-bold active:scale-95 transition-transform"
+          >
+            ←
+          </button>
+          
+          {/* Right button */}
+          <button
+            onTouchStart={(e) => { e.preventDefault(); handleDirectionalInput('right'); }}
+            className="absolute right-0 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-lg flex items-center justify-center text-xl font-bold active:scale-95 transition-transform"
+          >
+            →
+          </button>
+        </div>
+        
+        <div className="text-center mt-2 text-sm text-gray-600 bg-white px-2 py-1 rounded shadow">
+          Tap to move
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 relative">
       <canvas
         ref={canvasRef}
         width={CANVAS_WIDTH}
         height={CANVAS_HEIGHT}
-        className="border-4 border-gray-400 bg-white shadow-lg"
+        className="border-4 border-gray-400 bg-white shadow-lg max-w-full max-h-full"
+        style={{ imageRendering: 'pixelated' }}
       />
+      
+      {gameState === 'playing' && <MobileControls />}
     </div>
   );
 }
