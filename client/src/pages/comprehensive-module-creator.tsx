@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
+import { VoiceNarrationPanel } from "@/components/VoiceNarrationPanel";
 import {
   Video,
   Link2,
@@ -2887,6 +2888,18 @@ Create a natural conversation between two podcast hosts discussing this specific
               )}
             </div>
           )}
+
+          {/* Voice Narration Panel */}
+          <VoiceNarrationPanel
+            defaultText={`${newModule.title}\n\n${newModule.description}\n\nModule Sections:\n${newModule.sections.map((section, index) => `${index + 1}. ${section.title}: ${section.content}`).join('\n\n')}`}
+            onNarrationGenerated={(audioUrl, voiceType) => {
+              toast({
+                title: "Module Narration Generated",
+                description: `Professional narration created with ${voiceType} voice`,
+              });
+            }}
+            className="mb-6"
+          />
 
           {/* Module Sections */}
           <div className="space-y-4">

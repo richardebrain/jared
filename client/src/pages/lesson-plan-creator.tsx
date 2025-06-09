@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import VoiceInputTextarea from "@/components/VoiceInputTextarea";
+import { VoiceNarrationPanel } from "@/components/VoiceNarrationPanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -752,6 +753,18 @@ ${new Date().toLocaleDateString()}
               </div>
             </CardContent>
           </Card>
+
+          {/* Voice Narration Panel */}
+          <VoiceNarrationPanel
+            defaultText={`${lessonPlan.title}\n\n${lessonPlan.description}\n\nLearning Objectives:\n${lessonPlan.objectives.join('\n- ')}\n\nAssessment:\n${lessonPlan.assessment}`}
+            onNarrationGenerated={(audioUrl, voiceType) => {
+              toast({
+                title: "Narration Generated",
+                description: `Your lesson plan narration is ready for download`,
+              });
+            }}
+            className="mb-6"
+          />
 
           {/* Action Buttons */}
           <div className="space-y-2">
