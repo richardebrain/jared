@@ -138,16 +138,16 @@ export default function ComprehensiveModuleCreator() {
         type: 'text' as const,
         duration: 5,
         activities: [{
-          type: 'read',
+          type: 'read' as const,
           title: 'Introduction',
           duration: 5,
           content: '',
           videoUrl: '',
           audioUrl: '',
-          interactionType: 'form'
+          interactionType: 'form' as const
         }]
       }
-    ],
+    ] as ModuleSection[],
     // Advanced features for template support
     courseStructure: {
       sequentialUnlock: false,
@@ -968,7 +968,7 @@ Create a natural conversation between two podcast hosts discussing this specific
     // Handle different template types with proper formatting
     if (templateId === 'quiz-teachback') {
       // Create a quiz section
-      const newSection = {
+      const newSection: ModuleSection = {
         title: 'Knowledge Check Quiz',
         content: content,
         videoUrl: '',
@@ -992,7 +992,7 @@ Create a natural conversation between two podcast hosts discussing this specific
       }));
     } else if (templateId === 'interactive-scenario') {
       // Create a scenario match section
-      const newSection = {
+      const newSection: ModuleSection = {
         title: 'Interactive Scenario',
         content: content,
         videoUrl: '',
@@ -1016,7 +1016,7 @@ Create a natural conversation between two podcast hosts discussing this specific
       }));
     } else if (templateId === 'podcast-audio') {
       // Create a podcast section
-      const newSection = {
+      const newSection: ModuleSection = {
         title: 'Podcast Discussion',
         content: content,
         videoUrl: '',
@@ -1040,12 +1040,22 @@ Create a natural conversation between two podcast hosts discussing this specific
       }));
     } else if (templateId === 'slide-storyboard') {
       // Create a slide section
-      const newSection = {
+      const newSection: ModuleSection = {
         title: 'Slide Presentation',
         content: content,
         videoUrl: '',
         imageUrl: '',
-        type: 'slide' as const
+        type: 'slide' as const,
+        duration: 15,
+        activities: [{
+          type: 'read' as const,
+          title: 'Slide Presentation',
+          duration: 15,
+          content: content,
+          videoUrl: '',
+          audioUrl: '',
+          interactionType: 'form'
+        }]
       };
       
       setNewModule(prev => ({
