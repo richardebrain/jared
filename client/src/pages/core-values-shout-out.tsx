@@ -119,6 +119,8 @@ export default function CoreValuesShoutOutPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/core-values/nominations-made"] });
       queryClient.invalidateQueries({ queryKey: ["/api/core-values/nominations-received"] });
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/shout-outs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
     },
     onError: (error) => {
       toast({

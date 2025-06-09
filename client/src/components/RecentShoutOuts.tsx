@@ -39,7 +39,7 @@ interface User {
 const RecentShoutOuts: React.FC<RecentShoutOutsProps> = ({ limit = 3 }) => {
   // Fetch shoutouts
   const { data: shoutouts, isLoading: shoutoutsLoading, error: shoutoutsError } = useQuery<ShoutOut[]>({
-    queryKey: ['/api/core-values-shoutouts'],
+    queryKey: ['/api/shout-outs'],
     refetchOnWindowFocus: false,
     retry: 1,
   });
