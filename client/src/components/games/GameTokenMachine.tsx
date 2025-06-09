@@ -211,7 +211,8 @@ export default function GameTokenMachine({ userPoints, onPointsUpdate }: GameTok
 
 
   return (
-    <Card className="border-2 border-yellow-300 bg-gradient-to-br from-yellow-50 to-amber-50">
+    <>
+      <Card className="border-2 border-yellow-300 bg-gradient-to-br from-yellow-50 to-amber-50">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -332,10 +333,9 @@ export default function GameTokenMachine({ userPoints, onPointsUpdate }: GameTok
           </div>
         </div>
       </CardContent>
-    </Card>
-    
-    {/* Render games in their respective windows */}
-    <React.Fragment>
+      </Card>
+      
+      {/* Render games in their respective windows */}
       {gameWindows.map((gameWindow, index) => (
         <GameRenderer
           key={index}
@@ -344,7 +344,6 @@ export default function GameTokenMachine({ userPoints, onPointsUpdate }: GameTok
           title={gameWindow.title}
         />
       ))}
-    </React.Fragment>
-  </>
+    </>
   );
 }
