@@ -161,7 +161,7 @@ function Router(props: {
     <Switch>
       {/* Public routes */}
       <Route path="/login">
-        {isAuthenticated ? <Redirect to="/dashboard" /> : <Login />}
+        {isAuthenticated ? <Dashboard /> : <Login />}
       </Route>
 
       <Route path="/register">
