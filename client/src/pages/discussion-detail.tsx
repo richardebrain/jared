@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import VoiceInputTextarea from "@/components/VoiceInputTextarea";
 import { Separator } from "@/components/ui/separator";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -347,10 +348,11 @@ const AddComment = ({ threadId, parentCommentId }: { threadId: number, parentCom
                 <FormItem>
                   <FormLabel>{parentCommentId ? "Reply to comment" : "Add a comment"}</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <VoiceInputTextarea
+                      value={field.value}
+                      onChange={field.onChange}
                       placeholder={parentCommentId ? "Write your reply..." : "Share your thoughts or questions..."}
-                      className="min-h-[100px]"
-                      {...field} 
+                      minHeight="min-h-[100px]"
                     />
                   </FormControl>
                   <FormMessage />

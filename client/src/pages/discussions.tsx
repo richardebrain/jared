@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import VoiceInputTextarea from "@/components/VoiceInputTextarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -313,10 +314,11 @@ const CreateThreadDialog = ({ categories }: { categories: string[] }) => {
                 <FormItem>
                   <FormLabel>Content</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Share your thoughts, questions, or insights..." 
-                      className="min-h-[150px]"
-                      {...field} 
+                    <VoiceInputTextarea
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Share your thoughts, questions, or insights..."
+                      minHeight="min-h-[150px]"
                     />
                   </FormControl>
                   <FormMessage />
