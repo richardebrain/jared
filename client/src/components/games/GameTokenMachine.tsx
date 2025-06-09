@@ -18,7 +18,7 @@ import { apiRequest } from '@/lib/queryClient';
 import BounceAwayBlocks from './BounceAwayBlocks';
 import PacHealGame from './PacHealGameWorking';
 import PreschoolDash from './PreschoolDash';
-import { openGameInWindow, GameRenderer } from './GameRenderer';
+import { GameRenderer } from './GameRenderer';
 
 interface GameTokenMachineProps {
   userPoints: number;
@@ -28,6 +28,7 @@ interface GameTokenMachineProps {
 export default function GameTokenMachine({ userPoints, onPointsUpdate }: GameTokenMachineProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [gameWindows, setGameWindows] = useState<{ window: Window; component: React.ComponentType; title: string }[]>([]);
 
   const games = [
     {
@@ -137,8 +138,54 @@ export default function GameTokenMachine({ userPoints, onPointsUpdate }: GameTok
             return;
         }
         
-        // Open game in new window
-        openGameInWindow(GameComponent, game.title);
+        // Create new window and store reference
+        const gameWindow = window.open(
+          '',
+          `game-${gameId}`,
+          'width=1200,height=800,scrollbars=yes,resizable=yes,menubar=no,toolbar=no,location=no,status=no'
+        );
+        
+        if (!gameWindow) {
+          toast({
+            title: "Popup Blocked",
+            description: "Please allow popups for this site to open games in new windows",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        // Set up the window structure
+        gameWindow.document.title = `${game.title} - Learning Game`;
+        gameWindow.document.head.innerHTML = `
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>${game.title} - Learning Game</title>
+        `;
+        
+        gameWindow.document.body.innerHTML = `
+          <div id="game-container" style="
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+          ">
+            <div id="game-root" style="
+              width: 100%;
+              height: 100%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            "></div>
+          </div>
+        `;
+        
+        // Store the window reference for React rendering
+        setGameWindows(prev => [...prev, { window: gameWindow, component: GameComponent, title: game.title }]);
+        
+        // Focus the new window
+        gameWindow.focus();
       }
       
       toast({
@@ -286,5 +333,18 @@ export default function GameTokenMachine({ userPoints, onPointsUpdate }: GameTok
         </div>
       </CardContent>
     </Card>
+    
+    {/* Render games in their respective windows */}
+    <React.Fragment>
+      {gameWindows.map((gameWindow, index) => (
+        <GameRenderer
+          key={index}
+          gameWindow={gameWindow.window}
+          gameComponent={gameWindow.component}
+          title={gameWindow.title}
+        />
+      ))}
+    </React.Fragment>
+  </>
   );
 }
