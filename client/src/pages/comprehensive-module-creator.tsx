@@ -1748,34 +1748,34 @@ Create a natural conversation between two podcast hosts discussing this specific
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* AI Step-by-Step Builder */}
+        {/* AI Assisted */}
         <Card className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 hover:border-purple-300">
-          <CardContent className="p-6 text-center" onClick={() => setCreationMethod('stepByStep')}>
+          <CardContent className="p-6 text-center" onClick={handleAiAssistedFlow}>
             <div className="mb-4">
               <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Wand2 className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">AI Step-by-Step Builder</h3>
+              <h3 className="text-xl font-semibold mb-2">AI Assisted</h3>
               <p className="text-gray-600 text-sm mb-4">
-                Build your module one section at a time with AI assistance. Perfect for creating structured, engaging content with 10 different learning section types.
+                Start with proven templates, then build step-by-step with AI assistance. Perfect for structured, engaging content creation.
               </p>
             </div>
             <div className="space-y-2 text-left">
               <div className="flex items-center text-sm text-gray-600">
                 <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
-                Stories, scenarios, matching exercises
+                Choose from proven templates
               </div>
               <div className="flex items-center text-sm text-gray-600">
                 <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
-                Triage situations and simulations
+                Step-by-step AI section building
               </div>
               <div className="flex items-center text-sm text-gray-600">
                 <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
-                AI-generated content for each section
+                Professional module creation workflow
               </div>
             </div>
             <Button className="w-full mt-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
-              Start Building
+              Start with Templates
             </Button>
           </CardContent>
         </Card>
@@ -1905,8 +1905,269 @@ Create a natural conversation between two podcast hosts discussing this specific
 
       {creationMethod === 'selection' ? renderCreationMethodSelection() : null}
 
-      {/* Module Creation Form */}
-      <Card>
+      {/* AI-Assisted Workflow */}
+      {creationMethod === 'manual' && aiWorkflowStep === 'template-selection' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-purple-600" />
+              Choose Your Template
+            </CardTitle>
+            <CardDescription>
+              Start with a proven template or build your own from scratch
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {PROVEN_TEMPLATES.map((template) => (
+                <Card key={template.id} className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 hover:border-purple-300">
+                  <CardContent className="p-6" onClick={() => handleTemplateSelection(template)}>
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+                        <template.icon className="h-6 w-6 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg mb-2">{template.title}</h3>
+                        <p className="text-gray-600 text-sm mb-3">{template.description}</p>
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <div className="flex items-center">
+                            <Clock className="h-4 w-4 mr-1" />
+                            {template.duration}
+                          </div>
+                          <div className="flex items-center">
+                            <Users className="h-4 w-4 mr-1" />
+                            {template.sections.length} sections
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            
+            <div className="text-center">
+              <div className="text-gray-500 mb-4">or</div>
+              <Button 
+                variant="outline" 
+                className="border-2 border-dashed border-purple-300 text-purple-600 hover:bg-purple-50"
+                onClick={handleCustomTemplateBuilder}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Build Custom Template
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Custom Template Builder */}
+      {creationMethod === 'manual' && aiWorkflowStep === 'template-builder' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building className="h-5 w-5 text-blue-600" />
+              Build Custom Template
+            </CardTitle>
+            <CardDescription>
+              Create your own template by selecting section types
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              {SECTION_TYPES.map((sectionType) => (
+                <Button
+                  key={sectionType.type}
+                  variant="outline"
+                  className="h-auto p-3 text-center border-2 hover:border-purple-300"
+                  onClick={() => addCustomSection(sectionType.type)}
+                >
+                  <div>
+                    <sectionType.icon className="h-6 w-6 mx-auto mb-2 text-purple-600" />
+                    <div className="text-xs font-medium">{sectionType.title}</div>
+                  </div>
+                </Button>
+              ))}
+            </div>
+
+            {customTemplate?.sections && customTemplate.sections.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="font-medium">Your Template Sections:</h4>
+                {customTemplate.sections.map((section: any, index: number) => (
+                  <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div className="text-sm font-medium">{index + 1}.</div>
+                    <div className="text-sm">{section.title}</div>
+                  </div>
+                ))}
+                <Button 
+                  onClick={proceedToSectionBuilder}
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                >
+                  Start Building Sections
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step-by-Step Section Builder */}
+      {creationMethod === 'manual' && aiWorkflowStep === 'section-builder' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Wand2 className="h-5 w-5 text-purple-600" />
+              AI Section Builder - Step {currentSectionIndex + 1} of {newModule.sections.length}
+            </CardTitle>
+            <CardDescription>
+              Building: {newModule.sections[currentSectionIndex]?.title}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex items-center gap-2 mb-4">
+              {newModule.sections.map((_, index) => (
+                <div
+                  key={index}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                    completedSections.includes(index)
+                      ? 'bg-green-500 text-white'
+                      : index === currentSectionIndex
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-gray-200 text-gray-600'
+                  }`}
+                >
+                  {index + 1}
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h4 className="font-medium mb-2">Section Type: {newModule.sections[currentSectionIndex]?.type}</h4>
+              <p className="text-sm text-gray-600">
+                AI will help you create engaging content for this section type.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="section-title">Section Title</Label>
+                <Input
+                  id="section-title"
+                  value={newModule.sections[currentSectionIndex]?.title || ''}
+                  onChange={(e) => {
+                    const updatedSections = [...newModule.sections];
+                    updatedSections[currentSectionIndex] = {
+                      ...updatedSections[currentSectionIndex],
+                      title: e.target.value
+                    };
+                    setNewModule(prev => ({ ...prev, sections: updatedSections }));
+                  }}
+                  placeholder="Enter section title"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="section-content">Content</Label>
+                <Textarea
+                  id="section-content"
+                  value={newModule.sections[currentSectionIndex]?.content || ''}
+                  onChange={(e) => {
+                    const updatedSections = [...newModule.sections];
+                    updatedSections[currentSectionIndex] = {
+                      ...updatedSections[currentSectionIndex],
+                      content: e.target.value
+                    };
+                    setNewModule(prev => ({ ...prev, sections: updatedSections }));
+                  }}
+                  placeholder="Enter section content"
+                  rows={6}
+                />
+              </div>
+
+              <Button 
+                variant="outline" 
+                className="w-full border-purple-300 text-purple-600 hover:bg-purple-50"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                Generate AI Content for This Section
+              </Button>
+            </div>
+
+            <div className="flex justify-between">
+              <Button 
+                variant="outline" 
+                onClick={previousSection}
+                disabled={currentSectionIndex === 0}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Previous
+              </Button>
+              <Button 
+                onClick={nextSection}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+              >
+                {currentSectionIndex === newModule.sections.length - 1 ? 'Finish & Preview' : 'Next Section'}
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Preview Mode */}
+      {creationMethod === 'manual' && aiWorkflowStep === 'preview' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-green-600" />
+              Module Preview
+            </CardTitle>
+            <CardDescription>
+              Review your module before publishing
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="bg-green-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-lg mb-2">{newModule.title}</h3>
+              <p className="text-gray-600 mb-4">{newModule.description}</p>
+              <div className="flex items-center gap-4 text-sm text-gray-500">
+                <div>Category: {newModule.category}</div>
+                <div>Sections: {newModule.sections.length}</div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="font-medium">Module Sections:</h4>
+              {newModule.sections.map((section, index) => (
+                <div key={index} className="p-3 border rounded-lg">
+                  <div className="font-medium">{index + 1}. {section.title}</div>
+                  <div className="text-sm text-gray-600 mt-1">{section.type}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => setAiWorkflowStep('section-builder')}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Edit
+              </Button>
+              <Button 
+                className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+              >
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                Publish Module
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Regular Module Creation Form */}
+      {creationMethod === 'manual' && aiWorkflowStep === 'method-selection' && (
+        <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-blue-600" />
@@ -2869,6 +3130,7 @@ Create a natural conversation between two podcast hosts discussing this specific
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* Module Management */}
       <Card>
