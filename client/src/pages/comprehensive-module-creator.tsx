@@ -54,7 +54,11 @@ import {
   Link,
   Target,
   Music,
-  HelpCircle
+  HelpCircle,
+  Zap,
+  Play,
+  Gamepad,
+  Wrench
 } from 'lucide-react';
 import StepByStepModuleBuilder from '@/components/StepByStepModuleBuilder';
 import PowerPointImporter from '@/components/PowerPointImporter';
@@ -258,7 +262,7 @@ export default function ComprehensiveModuleCreator() {
     { type: 'scenario', icon: Users, title: 'Scenario Practice', description: 'Practice scenarios with AI feedback' },
     { type: 'triage', icon: Zap, title: 'Decision Triage', description: 'Quick decision-making exercises' },
     { type: 'mnemonic', icon: Brain, title: 'Memory Aids', description: 'AI-generated memory devices' },
-    { type: 'simulation', icon: Gamepad2, title: 'Interactive Simulation', description: 'Hands-on practice simulations' }
+    { type: 'simulation', icon: Gamepad, title: 'Interactive Simulation', description: 'Hands-on practice simulations' }
   ];
   
   // Module Creator state - comprehensive version
@@ -366,47 +370,50 @@ export default function ComprehensiveModuleCreator() {
   const handleTemplateSelection = (template: any) => {
     setAiSelectedTemplate(template);
     
-    // Get the original module data for more complete information
-    const originalModule = modules?.find(m => m.id === template.id);
-    
-    if (originalModule) {
-      const parsedSections = originalModule.sections ? JSON.parse(originalModule.sections) : [];
+    // Check if this is a user module template
+    if (template.isUserModule && modules) {
+      const originalModule = modules.find((m: any) => m.id === template.originalModuleId);
       
-      setNewModule(prev => ({
-        ...prev,
-        title: `${template.title} (Copy)`,
-        description: template.description,
-        category: originalModule.category,
-        difficulty: originalModule.difficulty,
-        estimatedTime: originalModule.estimatedTime,
-        sections: parsedSections.map((section: any) => ({
-          title: section.title,
-          content: section.content || '',
-          videoUrl: section.videoUrl || '',
-          imageUrl: section.imageUrl || '',
-          type: section.type || 'text',
-          duration: section.duration || 5,
-          activities: section.activities || [{
-            type: 'read' as const,
+      if (originalModule) {
+        const parsedSections = originalModule.sections ? JSON.parse(originalModule.sections) : [];
+        
+        setNewModule(prev => ({
+          ...prev,
+          title: `${template.title} (Copy)`,
+          description: template.description,
+          category: originalModule.category,
+          difficulty: originalModule.difficulty,
+          estimatedTime: originalModule.estimatedTime,
+          sections: parsedSections.map((section: any) => ({
             title: section.title,
-            duration: section.duration || 5,
             content: section.content || '',
             videoUrl: section.videoUrl || '',
+            imageUrl: section.imageUrl || '',
+            type: section.type || 'text',
+            duration: section.duration || 5,
+            activities: section.activities || [{
+              type: 'read' as const,
+              title: section.title,
+              duration: section.duration || 5,
+              content: section.content || '',
+              videoUrl: section.videoUrl || '',
+              audioUrl: section.audioUrl || '',
+              interactionType: 'form' as const
+            }],
+            questions: section.questions || [],
+            scenarios: section.scenarios || [],
             audioUrl: section.audioUrl || '',
-            interactionType: 'form' as const
-          }],
-          questions: section.questions || [],
-          scenarios: section.scenarios || [],
-          audioUrl: section.audioUrl || '',
-          slides: section.slides || []
-        }))
-      }));
+            slides: section.slides || []
+          }))
+        }));
+      }
     } else {
-      // Fallback for template structure
+      // Handle proven template structure
       setNewModule(prev => ({
         ...prev,
-        title: `${template.title} (Copy)`,
+        title: template.title,
         description: template.description,
+        estimatedTime: template.duration.replace(' min', ''),
         sections: template.sections.map((section: any) => ({
           title: section.title,
           content: '',
@@ -422,7 +429,11 @@ export default function ComprehensiveModuleCreator() {
             videoUrl: '',
             audioUrl: '',
             interactionType: 'form' as const
-          }]
+          }],
+          questions: [],
+          scenarios: [],
+          audioUrl: '',
+          slides: []
         }))
       }));
     }
@@ -2020,7 +2031,7 @@ Create a natural conversation between two podcast hosts discussing this specific
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {PROVEN_TEMPLATES.map((template) => (
+              {ALL_TEMPLATES.map((template) => (
                 <Card key={template.id} className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 hover:border-purple-300">
                   <CardContent className="p-6" onClick={() => handleTemplateSelection(template)}>
                     <div className="flex items-start gap-4">
