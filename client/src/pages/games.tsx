@@ -171,6 +171,25 @@ export default function GamesPage() {
     );
   }
 
+  if (activeGame === 'enhanced-frogger') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <Button 
+            onClick={handleBackToGames}
+            variant="outline" 
+            className="mb-4"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Games
+          </Button>
+          <EnhancedFroggerGame />
+        </div>
+      </div>
+    );
+  }
+
   if (activeGame === 'gate-open') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-100">
@@ -299,6 +318,44 @@ export default function GamesPage() {
                           >
                             <Play className="h-4 w-4 mr-2" />
                             Start Game
+                          </Button>
+                        </CardContent>
+                      </Card>
+
+                      {/* Enhanced Frogger Safety Game */}
+                      <Card className="hover:shadow-lg transition-shadow border-green-200">
+                        <CardHeader>
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white">
+                              <Gamepad2 className="h-6 w-6" />
+                            </div>
+                            <div>
+                              <CardTitle className="text-lg">Enhanced Playground Safety</CardTitle>
+                              <div className="flex gap-2 mt-1">
+                                <Badge variant="outline" className="text-xs">Enhanced</Badge>
+                                <Badge variant="secondary" className="text-xs">Safety</Badge>
+                                <Badge className="text-xs bg-purple-100 text-purple-800">NEW</Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-gray-600 mb-4">
+                            Advanced safety training with enhanced graphics, power-ups, and comprehensive educational content
+                          </p>
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-1 text-yellow-600">
+                              <Star className="h-4 w-4" />
+                              <span className="text-sm font-medium">Up to 500pts</span>
+                            </div>
+                            <Badge variant="outline" className="text-xs">15 Questions</Badge>
+                          </div>
+                          <Button 
+                            onClick={() => setActiveGame('enhanced-frogger')}
+                            className="w-full bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            <Trophy className="h-4 w-4 mr-2" />
+                            Play Enhanced Game
                           </Button>
                         </CardContent>
                       </Card>

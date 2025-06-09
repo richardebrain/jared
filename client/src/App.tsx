@@ -48,6 +48,7 @@ import PlatformIntegrationsPage from "@/pages/platform-integrations";
 import AccountPage from "@/pages/settings/account";
 import BearyAIPage from "@/pages/beary-ai";
 import GamesPage from "@/pages/games";
+import EnhancedFroggerGame from "@/components/games/EnhancedFroggerGame";
 import AdminPage from "@/pages/admin";
 import LessonPlanMakerPage from "@/pages/lesson-plan-maker";
 import LessonPlanCreator from "@/pages/lesson-plan-creator";
@@ -535,6 +536,18 @@ function Router(props: {
           </div>
         ) : (
           <GamesPage />
+        )}
+      </Route>
+
+      <Route path="/enhanced-frogger">
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <EnhancedFroggerGame />
         )}
       </Route>
 

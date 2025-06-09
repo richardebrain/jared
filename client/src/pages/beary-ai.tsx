@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import Header from "@/components/Header";
 import ChatbotSupport from "@/components/ChatbotSupport";
+import VoiceEnabledBearyAI from "@/components/VoiceEnabledBearyAI";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
