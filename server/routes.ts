@@ -4155,15 +4155,17 @@ Continue for all 5 questions...
 
       IMPORTANT: Always generate exactly 6 suggestions even if the topic seems narrow. Be creative and expand on themes.
 
-      Return ONLY a valid JSON array with this exact structure (no additional text):
-      [
-        {
-          "type": "text",
-          "title": "Clear, actionable title",
-          "content": "Detailed, practical content (2-3 paragraphs with specific tips)",
-          "category": "Safety" or "Educational" or "Community" or "Health" or "Events"
-        }
-      ]
+      Return ONLY a valid JSON object with this exact structure (no additional text):
+      {
+        "suggestions": [
+          {
+            "type": "text",
+            "title": "Clear, actionable title",
+            "content": "Detailed, practical content (2-3 paragraphs with specific tips)",
+            "category": "Safety" or "Educational" or "Community" or "Health" or "Events"
+          }
+        ]
+      }
 
       Make all content immediately useful for preschool families and staff.`;
 
@@ -4174,10 +4176,23 @@ Continue for all 5 questions...
           max_tokens: 2000,
         });
 
-        const result = JSON.parse(response.choices[0].message.content);
+        const responseContent = response.choices[0].message.content;
+        console.log("OpenAI Response:", responseContent);
+        
+        if (!responseContent) {
+          throw new Error("Empty response from OpenAI");
+        }
+        
+        const result = JSON.parse(responseContent);
+        console.log("Parsed result:", result);
+        
         const suggestions = result.suggestions || result;
-
-        res.json(suggestions);
+        console.log("Final suggestions array:", suggestions);
+        
+        // Ensure we always return an array
+        const finalSuggestions = Array.isArray(suggestions) ? suggestions : [suggestions];
+        
+        res.json(finalSuggestions);
       } catch (error) {
         console.error("Error generating newsletter suggestions:", error);
         if (error.message?.includes("API key")) {
