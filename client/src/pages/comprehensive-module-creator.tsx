@@ -48,6 +48,8 @@ import {
   ChevronRight,
   Wand2,
   Upload,
+  ArrowRight,
+  Building,
   Heart,
   Link,
   Target,
