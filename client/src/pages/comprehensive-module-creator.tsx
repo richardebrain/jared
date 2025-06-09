@@ -217,6 +217,17 @@ export default function ComprehensiveModuleCreator() {
     }
   ];
 
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'mindfulness': return Heart;
+      case 'classroom-management': return Users;
+      case 'child-development': return Brain;
+      case 'health-safety': return CheckCircle2;
+      case 'professional-development': return Trophy;
+      default: return BookOpen;
+    }
+  };
+
   // Get existing user modules as additional template options
   const getUserModuleTemplates = () => {
     if (!modules || !Array.isArray(modules)) return [];
@@ -237,19 +248,6 @@ export default function ComprehensiveModuleCreator() {
       originalModuleId: module.id
     }));
   };
-
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'mindfulness': return Heart;
-      case 'classroom-management': return Users;
-      case 'child-development': return Brain;
-      case 'health-safety': return CheckCircle2;
-      case 'professional-development': return Trophy;
-      default: return BookOpen;
-    }
-  };
-
-  const ALL_TEMPLATES = [...PROVEN_TEMPLATES, ...getUserModuleTemplates()];
 
   // Section type definitions with AI assistance
   const SECTION_TYPES = [
@@ -1797,6 +1795,11 @@ Create a natural conversation between two podcast hosts discussing this specific
   const { data: modules, isLoading, error } = useQuery({
     queryKey: ['/api/modules']
   });
+
+  // Combine proven templates with user module templates safely
+  const ALL_TEMPLATES = React.useMemo(() => {
+    return [...PROVEN_TEMPLATES, ...getUserModuleTemplates()];
+  }, [modules]);
 
   // Update module visibility mutation
   const updateVisibilityMutation = useMutation({
