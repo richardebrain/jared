@@ -1040,7 +1040,7 @@ router.get('/status', async (req: Request, res: Response) => {
     return res.json({
       hasCompletedAssessment,
       hasResults,
-      routeTo: hasCompletedAssessment || hasResults ? '/assessment/results' : '/assessment',
+      routeTo: hasCompletedAssessment || hasResults ? '/assessment/results' : '/initial-assessment',
       lastCompletedAt: completedAssessments[0]?.completedAt || null,
       canRetake: false // Will be determined by permission system
     });

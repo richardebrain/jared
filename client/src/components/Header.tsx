@@ -30,11 +30,11 @@ function AssessmentNavButton({ location }: { location: string }) {
   });
 
   const handleAssessmentClick = () => {
-    const routeTo = assessmentStatus?.routeTo || '/assessment';
+    const routeTo = assessmentStatus?.routeTo || '/initial-assessment';
     window.location.href = routeTo;
   };
 
-  const isActive = location === "/assessment" || location === "/assessment/results";
+  const isActive = location === "/initial-assessment" || location === "/assessment/results";
 
   return (
     <div 
@@ -56,11 +56,11 @@ function MobileAssessmentNavButton({ location }: { location: string }) {
   });
 
   const handleAssessmentClick = () => {
-    const routeTo = assessmentStatus?.routeTo || '/assessment';
+    const routeTo = assessmentStatus?.routeTo || '/initial-assessment';
     window.location.href = routeTo;
   };
 
-  const isActive = location === "/assessment" || location === "/assessment/results";
+  const isActive = location === "/initial-assessment" || location === "/assessment/results";
 
   return (
     <div 
