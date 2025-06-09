@@ -34,12 +34,13 @@ import {
   Upload,
   FileText,
   Music,
-  Trophy
+  Trophy,
+  Presentation
 } from "lucide-react";
 
 interface ModuleSection {
   id: string;
-  type: 'story' | 'example' | 'matching' | 'scenario' | 'triage' | 'quiz' | 'video' | 'discussion' | 'simulation' | 'mnemonic';
+  type: 'story' | 'example' | 'matching' | 'scenario' | 'triage' | 'quiz' | 'video' | 'discussion' | 'simulation' | 'mnemonic' | 'slides';
   title: string;
   content: string;
   duration: number;
@@ -76,6 +77,18 @@ interface ModuleSection {
     content: string;
     keyPoints: string[];
     practiceExercise: string;
+  };
+  slidesData?: {
+    presentationId?: string;
+    presentationUrl?: string;
+    slides: Array<{
+      slideId: string;
+      title: string;
+      content: string;
+      speakerNotes?: string;
+      imageUrl?: string;
+    }>;
+    generatedFromText: boolean;
   };
   learningObjectives?: string[];
   materials?: string[];
@@ -351,6 +364,7 @@ export default function StepByStepModuleBuilder({ initialData, onModuleComplete,
       case 'discussion': return <MessageCircle className="h-4 w-4" />;
       case 'simulation': return <Play className="h-4 w-4" />;
       case 'mnemonic': return <Music className="h-4 w-4" />;
+      case 'slides': return <Presentation className="h-4 w-4" />;
       default: return <BookOpen className="h-4 w-4" />;
     }
   };
@@ -367,6 +381,7 @@ export default function StepByStepModuleBuilder({ initialData, onModuleComplete,
       case 'discussion': return 'Interactive discussion prompts and activities';
       case 'simulation': return 'Role-play and interactive simulations';
       case 'mnemonic': return 'Fun memory devices: poems, raps, acronyms, and songs';
+      case 'slides': return 'AI-generated Google Slides presentation with visual content';
       default: return 'Interactive learning content';
     }
   };
