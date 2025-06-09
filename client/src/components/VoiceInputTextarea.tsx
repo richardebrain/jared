@@ -84,14 +84,26 @@ export default function VoiceInputTextarea({
     };
   }, [toast, value, onChange]);
 
-  const startListening = useCallback(() => {
+  const startListening = useCallback(async () => {
     if (recognitionRef.current && !isListening && !disabled) {
-      setIsListening(true);
-      recognitionRef.current.start();
-      toast({
-        title: "Voice input started",
-        description: "Speak to add text to the field",
-      });
+      try {
+        // Request microphone permission explicitly
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        setIsListening(true);
+        recognitionRef.current.start();
+        toast({
+          title: "Voice input started",
+          description: "Speak to add text to the field",
+        });
+      } catch (error) {
+        console.error('Microphone permission denied:', error);
+        toast({
+          title: "Microphone access required",
+          description: "Please allow microphone access to use voice input. Check your browser settings.",
+          variant: "destructive",
+        });
+      }
     }
   }, [isListening, disabled, toast]);
 

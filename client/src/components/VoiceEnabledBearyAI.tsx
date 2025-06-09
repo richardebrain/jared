@@ -76,9 +76,19 @@ export default function VoiceEnabledBearyAI({ onResponse }: VoiceEnabledBearyAIP
       recognitionRef.current.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
         setIsListening(false);
+        
+        let errorMessage = "There was an issue with voice recognition.";
+        if (event.error === 'not-allowed') {
+          errorMessage = "Microphone access denied. Please allow microphone access and try again.";
+        } else if (event.error === 'no-speech') {
+          errorMessage = "No speech detected. Please try speaking again.";
+        } else if (event.error === 'network') {
+          errorMessage = "Network error. Please check your connection.";
+        }
+        
         toast({
           title: "Voice input error",
-          description: "There was an issue with voice recognition. Please try again.",
+          description: errorMessage,
           variant: "destructive",
         });
       };
@@ -104,14 +114,26 @@ export default function VoiceEnabledBearyAI({ onResponse }: VoiceEnabledBearyAIP
     };
   }, [toast]);
 
-  const startListening = useCallback(() => {
+  const startListening = useCallback(async () => {
     if (recognitionRef.current && !isListening) {
-      setIsListening(true);
-      recognitionRef.current.start();
-      toast({
-        title: "Voice input started",
-        description: "I'm listening... Speak your question to BearyAI!",
-      });
+      try {
+        // Request microphone permission explicitly
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        setIsListening(true);
+        recognitionRef.current.start();
+        toast({
+          title: "Voice input started",
+          description: "I'm listening... Speak your question to BearyAI!",
+        });
+      } catch (error) {
+        console.error('Microphone permission denied:', error);
+        toast({
+          title: "Microphone access required",
+          description: "Please allow microphone access to use voice input. Check your browser settings.",
+          variant: "destructive",
+        });
+      }
     }
   }, [isListening, toast]);
 
