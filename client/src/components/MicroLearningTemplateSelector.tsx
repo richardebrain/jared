@@ -1119,6 +1119,18 @@ export default function MicroLearningTemplateSelector({ onSelectTemplate, onCust
                       ))}
                     </div>
                   </div>
+
+                  {/* Use Template Button */}
+                  <div className="pt-4 border-t">
+                    <Button 
+                      onClick={() => onSelectTemplate(selectedTemplate)} 
+                      className="w-full" 
+                      size="lg"
+                    >
+                      Use This Template
+                      <ChevronRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </div>
