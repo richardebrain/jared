@@ -3444,6 +3444,23 @@ Continue for all 5 questions...
       await storage.addUserPoints(nominatorId, 2); // Nominator gets 2 points
       await storage.addUserPoints(nomineeId, pointsAwarded); // Nominee gets 5 points
 
+      // Create notification message for the nominee
+      const nominator = await storage.getUser(nominatorId);
+      const nominatorName = nominator ? `${nominator.firstName} ${nominator.lastName}` : 'A colleague';
+      
+      await storage.createMessage({
+        senderId: nominatorId,
+        recipientId: nomineeId,
+        schoolId: nominator?.schoolId || 1,
+        messageType: 'shoutout',
+        title: `Core Value Recognition: ${coreValue}`,
+        content: `${nominatorName} nominated you for demonstrating "${coreValue}"! They said: "${nominationText}". You earned ${pointsAwarded} points!`,
+        important: true
+      });
+
+      // Mark nominee as having unread messages
+      await storage.updateUser(nomineeId, { hasUnreadMessages: true });
+
       // Respond with success message
       res.status(200).json({
         success: true,

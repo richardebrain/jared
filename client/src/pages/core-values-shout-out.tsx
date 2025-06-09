@@ -111,6 +111,17 @@ export default function CoreValuesShoutOutPage() {
       return response.data;
     },
     onSuccess: (data) => {
+      // Play success sound for points earned
+      try {
+        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmCJEjGH2O2xYxUFLITPwtzEfiMFklgqpYBobWNfZJKurZNiOTZfndHapxoEHaPb6Pl8PAcaY7vty6RUFQpOr+PqwWsaAzeO1+vLdicDQ5vZ6sV/PQUZYLjqxoI1AQOJ0+/Jh0cKDV6z5c2lWR4IRZ7Z4ruBQwgUXLHk0aReGAU7k9bryl8gADyU1O6+hU8LEmWw5sqjXSoIMJDR5saMTgwOUKnn47NrJAMxhM/lxpFJDQpRqePmu2UeDkeg4OW5aScEOI/Z6cF+QAcZY7np0KRaGgg6lNDrwXkxBSSApMfQeDMBE2q27kWHFH7DfERtHRjrKD0FAAB6AAAGAAAAAKNhdUePdmF0YQ==');
+        audio.volume = 0.3;
+        audio.play().catch(() => {
+          console.log("Could not play sound completion:", {});
+        });
+      } catch (error) {
+        console.log("Could not play sound completion:", error);
+      }
+      
       toast({
         title: "Nomination Successful!",
         description: data.message,
