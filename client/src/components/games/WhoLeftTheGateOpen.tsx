@@ -143,6 +143,8 @@ const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 const PLAYER_SIZE = 30;
 const PLAYER_SPEED = 8;
+const TARGET_FPS = 60;
+const FRAME_TIME = 1000 / TARGET_FPS;
 
 export default function WhoLeftTheGateOpen() {
   // All hooks must be called at the top level consistently
@@ -187,6 +189,14 @@ export default function WhoLeftTheGateOpen() {
   const [stickerStormActive, setStickerStormActive] = useState(false);
   const [teamRallyActive, setTeamRallyActive] = useState(false);
   const [glitterStuck, setGlitterStuck] = useState(false);
+  
+  // Animation and feedback state
+  const [playerVelocity, setPlayerVelocity] = useState({ x: 0, y: 0 });
+  const [particles, setParticles] = useState<any[]>([]);
+  const [screenShake, setScreenShake] = useState(0);
+  const [collectionEffects, setCollectionEffects] = useState<any[]>([]);
+  const [difficultyMultiplier, setDifficultyMultiplier] = useState(1);
+  const [lastFrameTime, setLastFrameTime] = useState(0);
 
   // Initialize audio context and check first time user
   useEffect(() => {
@@ -216,8 +226,8 @@ export default function WhoLeftTheGateOpen() {
     }
   }, []);
 
-  // Sound effects
-  const playSound = useCallback((frequency: number, duration: number, type: OscillatorType = 'sine') => {
+  // Enhanced sound effects with crisp audio cues
+  const playSound = useCallback((frequency: number, duration: number, type: OscillatorType = 'sine', volume = 0.3) => {
     if (!audioContextRef.current) return;
     
     try {
@@ -230,7 +240,7 @@ export default function WhoLeftTheGateOpen() {
       oscillator.frequency.setValueAtTime(frequency, audioContextRef.current.currentTime);
       oscillator.type = type;
       
-      gainNode.gain.setValueAtTime(0.3, audioContextRef.current.currentTime);
+      gainNode.gain.setValueAtTime(volume, audioContextRef.current.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioContextRef.current.currentTime + duration);
       
       oscillator.start(audioContextRef.current.currentTime);
@@ -238,6 +248,62 @@ export default function WhoLeftTheGateOpen() {
     } catch (error) {
       console.warn('Could not play sound:', error);
     }
+  }, []);
+
+  // Crisp feedback sounds for instant responsiveness
+  const playCrispFeedback = useCallback((type: 'collect' | 'jump' | 'hit' | 'powerup' | 'child') => {
+    switch (type) {
+      case 'collect':
+        playSound(800, 0.1, 'sine', 0.4); // Quick "boop" for coin collection
+        break;
+      case 'jump':
+        playSound(400, 0.15, 'square', 0.3); // Satisfying jump sound
+        break;
+      case 'hit':
+        playSound(150, 0.3, 'sawtooth', 0.5); // Impact feedback
+        break;
+      case 'powerup':
+        playSound(600, 0.2, 'triangle', 0.4); // Power-up activation
+        setTimeout(() => playSound(800, 0.15, 'sine', 0.3), 100); // Chord effect
+        break;
+      case 'child':
+        playSound(500, 0.25, 'sine', 0.4); // Child caught - celebratory
+        setTimeout(() => playSound(700, 0.2, 'triangle', 0.3), 150);
+        break;
+    }
+  }, [playSound]);
+
+  // Particle system for satisfying visual feedback
+  const createParticles = useCallback((x: number, y: number, type: 'coin' | 'explosion' | 'powerup' | 'child', count = 8) => {
+    const newParticles = [];
+    const colors = {
+      coin: ['#FFD700', '#FFA500', '#FFFF00'],
+      explosion: ['#FF4444', '#FF8844', '#FFAA44'],
+      powerup: ['#44AAFF', '#4444FF', '#AA44FF'],
+      child: ['#44FF44', '#88FF88', '#AAFFAA']
+    };
+    
+    for (let i = 0; i < count; i++) {
+      newParticles.push({
+        id: Date.now() + i,
+        x: x + (Math.random() - 0.5) * 20,
+        y: y + (Math.random() - 0.5) * 20,
+        vx: (Math.random() - 0.5) * 8,
+        vy: (Math.random() - 0.5) * 8 - 2,
+        life: 1,
+        decay: 0.02 + Math.random() * 0.02,
+        size: 3 + Math.random() * 4,
+        color: colors[type][Math.floor(Math.random() * colors[type].length)]
+      });
+    }
+    
+    setParticles(prev => [...prev, ...newParticles]);
+  }, []);
+
+  // Screen shake for impactful feedback
+  const triggerScreenShake = useCallback((intensity = 5) => {
+    setScreenShake(intensity);
+    setTimeout(() => setScreenShake(0), 150);
   }, []);
 
   // Gamification helper functions
@@ -503,9 +569,21 @@ export default function WhoLeftTheGateOpen() {
         const obstacle = collisions[0];
         
         if (obstacle.type === 'runaway-child') {
-          // Caught a child - trigger question
-          playSound(600, 0.3);
+          // Caught a child - celebratory feedback with particles and sound
+          playCrispFeedback('child');
+          createParticles(obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2, 'child', 12);
+          triggerScreenShake(3);
           setScore(prevScore => prevScore + 100);
+          
+          // Add collection effect
+          setCollectionEffects(prev => [...prev, {
+            id: Date.now(),
+            x: obstacle.x + obstacle.width/2,
+            y: obstacle.y + obstacle.height/2,
+            text: '+100 Points!',
+            life: 1,
+            decay: 0.02
+          }]);
           
           // Select random question
           const randomQuestion = SAFETY_QUESTIONS[Math.floor(Math.random() * SAFETY_QUESTIONS.length)];
@@ -514,8 +592,11 @@ export default function WhoLeftTheGateOpen() {
           
           return prev.filter(o => o.id !== obstacle.id);
         } else {
-          // Hit an obstacle - lose life
-          playSound(200, 0.5);
+          // Hit an obstacle - impactful feedback with screen shake and explosion
+          playCrispFeedback('hit');
+          createParticles(obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2, 'explosion', 15);
+          triggerScreenShake(8);
+          
           setPlayer(prevPlayer => {
             const newLives = prevPlayer.lives - 1;
             if (newLives <= 0) {
@@ -537,10 +618,29 @@ export default function WhoLeftTheGateOpen() {
       
       if (collisions.length > 0) {
         const powerUp = collisions[0];
-        playSound(800, 0.2);
+        playCrispFeedback('powerup');
+        createParticles(powerUp.x + powerUp.width/2, powerUp.y + powerUp.height/2, 'powerup', 10);
+        triggerScreenShake(4);
         setScore(prevScore => prevScore + 25);
         
-        // Activate power-up effect
+        // Add collection effect with power-up name
+        const powerUpNames = {
+          'time-out-timer': 'Time Slow!',
+          'sticker-storm': 'Invincible!',
+          'team-rally': 'Speed Boost!',
+          'goldfish-bomb': 'Clear All!'
+        };
+        
+        setCollectionEffects(prev => [...prev, {
+          id: Date.now(),
+          x: powerUp.x + powerUp.width/2,
+          y: powerUp.y + powerUp.height/2,
+          text: powerUpNames[powerUp.type as keyof typeof powerUpNames] || 'Power Up!',
+          life: 1,
+          decay: 0.015
+        }]);
+        
+        // Activate power-up effect with enhanced feedback
         switch (powerUp.type) {
           case 'time-out-timer':
             setTimeSlowActive(true);
@@ -555,8 +655,12 @@ export default function WhoLeftTheGateOpen() {
             setTimeout(() => setTeamRallyActive(false), 4000);
             break;
           case 'goldfish-bomb':
-            // Clear all obstacles
+            // Clear all obstacles with explosive effect
+            obstacles.forEach(obs => {
+              createParticles(obs.x + obs.width/2, obs.y + obs.height/2, 'explosion', 6);
+            });
             setObstacles([]);
+            triggerScreenShake(10);
             break;
         }
         
@@ -566,7 +670,38 @@ export default function WhoLeftTheGateOpen() {
       return prev;
     });
 
-  }, [gameState, player, playSound]);
+  }, [gameState, player, playCrispFeedback, createParticles, triggerScreenShake]);
+
+  // Update particles and effects for satisfying visual feedback
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    const updateEffects = () => {
+      // Update particles with physics
+      setParticles(prev => prev.map(particle => ({
+        ...particle,
+        x: particle.x + particle.vx,
+        y: particle.y + particle.vy,
+        vy: particle.vy + 0.3, // Gravity
+        vx: particle.vx * 0.98, // Air resistance
+        life: particle.life - particle.decay
+      })).filter(particle => particle.life > 0));
+
+      // Update collection effects
+      setCollectionEffects(prev => prev.map(effect => ({
+        ...effect,
+        y: effect.y - 1, // Float upward
+        life: effect.life - effect.decay
+      })).filter(effect => effect.life > 0));
+
+      // Update difficulty multiplier for flow state curve
+      const baseMultiplier = 1 + (currentLevel * 0.1) + (score / 1000);
+      setDifficultyMultiplier(baseMultiplier);
+    };
+
+    const interval = setInterval(updateEffects, 16); // 60fps
+    return () => clearInterval(interval);
+  }, [gameState, currentLevel, score]);
 
   // Keyboard controls
   useEffect(() => {
@@ -589,37 +724,69 @@ export default function WhoLeftTheGateOpen() {
     };
   }, [gameState]);
 
-  // Player movement
+  // Enhanced player movement with smooth acceleration and deceleration
   useEffect(() => {
     if (gameState !== 'playing') return;
 
     const movePlayer = () => {
       setPlayer(prev => {
-        let newX = prev.x;
-        let newY = prev.y;
+        setPlayerVelocity(prevVel => {
+          let targetVelX = 0;
+          let targetVelY = 0;
+          
+          const baseSpeed = teamRallyActive ? PLAYER_SPEED * 1.5 : PLAYER_SPEED;
+          
+          // Instant input response - zero lag detection
+          if (keysRef.current.has('arrowleft') || keysRef.current.has('a')) {
+            targetVelX = -baseSpeed;
+          }
+          if (keysRef.current.has('arrowright') || keysRef.current.has('d')) {
+            targetVelX = baseSpeed;
+          }
+          if (keysRef.current.has('arrowup') || keysRef.current.has('w')) {
+            targetVelY = -baseSpeed;
+          }
+          if (keysRef.current.has('arrowdown') || keysRef.current.has('s')) {
+            targetVelY = baseSpeed;
+          }
+          
+          // Smooth acceleration with easing curves for natural feel
+          const acceleration = 0.3;
+          const deceleration = 0.4;
+          
+          let newVelX = prevVel.x;
+          let newVelY = prevVel.y;
+          
+          if (targetVelX !== 0) {
+            newVelX += (targetVelX - prevVel.x) * acceleration;
+          } else {
+            newVelX *= (1 - deceleration);
+          }
+          
+          if (targetVelY !== 0) {
+            newVelY += (targetVelY - prevVel.y) * acceleration;
+          } else {
+            newVelY *= (1 - deceleration);
+          }
+          
+          // Apply velocity to player position with boundary constraints
+          const newX = Math.max(0, Math.min(CANVAS_WIDTH - prev.width, prev.x + newVelX));
+          const newY = Math.max(0, Math.min(CANVAS_HEIGHT - prev.height, prev.y + newVelY));
+          
+          return { x: newVelX, y: newVelY };
+        });
         
-        const moveSpeed = teamRallyActive ? PLAYER_SPEED * 1.5 : PLAYER_SPEED;
-        
-        if (keysRef.current.has('arrowleft') || keysRef.current.has('a')) {
-          newX = Math.max(0, prev.x - moveSpeed);
-        }
-        if (keysRef.current.has('arrowright') || keysRef.current.has('d')) {
-          newX = Math.min(CANVAS_WIDTH - prev.width, prev.x + moveSpeed);
-        }
-        if (keysRef.current.has('arrowup') || keysRef.current.has('w')) {
-          newY = Math.max(0, prev.y - moveSpeed);
-        }
-        if (keysRef.current.has('arrowdown') || keysRef.current.has('s')) {
-          newY = Math.min(CANVAS_HEIGHT - prev.height, prev.y + moveSpeed);
-        }
-        
-        return { ...prev, x: newX, y: newY };
+        return {
+          ...prev,
+          x: Math.max(0, Math.min(CANVAS_WIDTH - prev.width, prev.x + playerVelocity.x)),
+          y: Math.max(0, Math.min(CANVAS_HEIGHT - prev.height, prev.y + playerVelocity.y))
+        };
       });
     };
 
-    const interval = setInterval(movePlayer, 16); // ~60fps
+    const interval = setInterval(movePlayer, 16); // Locked 60fps for buttery-smooth motion
     return () => clearInterval(interval);
-  }, [gameState, teamRallyActive]);
+  }, [gameState, teamRallyActive, playerVelocity]);
 
   // Spawn timers
   useEffect(() => {
@@ -662,76 +829,193 @@ export default function WhoLeftTheGateOpen() {
     if (!ctx) return;
 
     const render = () => {
-      // Clear canvas
-      ctx.fillStyle = '#87CEEB'; // Sky blue background
+      // Apply screen shake for impactful feedback
+      ctx.save();
+      if (screenShake > 0) {
+        const shakeX = (Math.random() - 0.5) * screenShake;
+        const shakeY = (Math.random() - 0.5) * screenShake;
+        ctx.translate(shakeX, shakeY);
+      }
+
+      // Clear canvas with crisp gradient background
+      const gradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+      gradient.addColorStop(0, '#87CEEB'); // Sky blue
+      gradient.addColorStop(0.8, '#98FB98'); // Pale green
+      gradient.addColorStop(1, '#90EE90'); // Light green
+      ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-      // Draw road/playground
-      ctx.fillStyle = '#90EE90'; // Light green for playground
+      // Draw playground with texture lines for visual clarity
+      ctx.fillStyle = '#90EE90';
       ctx.fillRect(0, CANVAS_HEIGHT * 0.8, CANVAS_WIDTH, CANVAS_HEIGHT * 0.2);
-
-      // Draw player
-      ctx.fillStyle = stickerStormActive ? '#FFD700' : '#FF6B6B'; // Golden when powered up
-      ctx.fillRect(player.x, player.y, player.width, player.height);
       
-      // Add simple face to player
+      // Add lane markings for predictable patterns
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([10, 10]);
+      for (let i = 1; i < 4; i++) {
+        const laneX = (CANVAS_WIDTH / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(laneX, 0);
+        ctx.lineTo(laneX, CANVAS_HEIGHT);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+
+      // Draw player with enhanced visual hierarchy
+      const playerColor = stickerStormActive ? '#FFD700' : teamRallyActive ? '#FF44FF' : '#FF6B6B';
+      
+      // Player glow effect when powered up
+      if (stickerStormActive || teamRallyActive) {
+        ctx.shadowColor = playerColor;
+        ctx.shadowBlur = 15;
+      }
+      
+      ctx.fillStyle = playerColor;
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+      ctx.shadowBlur = 0;
+      
+      // Enhanced player face with clear readability
       ctx.fillStyle = '#000';
       ctx.fillRect(player.x + 8, player.y + 8, 4, 4); // Left eye
       ctx.fillRect(player.x + 18, player.y + 8, 4, 4); // Right eye
       ctx.fillRect(player.x + 10, player.y + 18, 10, 2); // Mouth
 
-      // Draw obstacles
+      // Draw obstacles with color-coded visual hierarchy
       obstacles.forEach(obstacle => {
+        // Red glow for dangerous obstacles, green for children
+        const isChild = obstacle.type === 'runaway-child';
+        ctx.shadowColor = isChild ? '#44FF44' : '#FF4444';
+        ctx.shadowBlur = isChild ? 8 : 5;
+        
         ctx.fillStyle = obstacle.color;
         ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+        ctx.shadowBlur = 0;
         
-        // Add simple details based on type
+        // High-contrast iconography for instant recognition
         ctx.fillStyle = '#000';
-        ctx.font = '12px Arial';
+        ctx.font = 'bold 14px Arial';
         ctx.textAlign = 'center';
+        ctx.strokeStyle = '#FFF';
+        ctx.lineWidth = 2;
+        
+        const centerX = obstacle.x + obstacle.width/2;
+        const centerY = obstacle.y + obstacle.height/2 + 4;
         
         if (obstacle.type === 'runaway-child') {
-          ctx.fillText('👶', obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2 + 4);
+          ctx.strokeText('👶', centerX, centerY);
+          ctx.fillText('👶', centerX, centerY);
         } else if (obstacle.type === 'car') {
-          ctx.fillText('🚗', obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2 + 4);
+          ctx.strokeText('🚗', centerX, centerY);
+          ctx.fillText('🚗', centerX, centerY);
         } else if (obstacle.type === 'bike') {
-          ctx.fillText('🚲', obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2 + 4);
+          ctx.strokeText('🚲', centerX, centerY);
+          ctx.fillText('🚲', centerX, centerY);
+        } else if (obstacle.type === 'stroller') {
+          ctx.strokeText('🍼', centerX, centerY);
+          ctx.fillText('🍼', centerX, centerY);
+        } else if (obstacle.type === 'snack-cart') {
+          ctx.strokeText('🍪', centerX, centerY);
+          ctx.fillText('🍪', centerX, centerY);
+        } else if (obstacle.type === 'glitter-puddle') {
+          ctx.strokeText('✨', centerX, centerY);
+          ctx.fillText('✨', centerX, centerY);
         }
       });
 
-      // Draw power-ups
+      // Draw power-ups with shimmering gold effect
       powerUps.forEach(powerUp => {
+        // Animated shimmer effect
+        const shimmer = Math.sin(Date.now() * 0.01) * 0.3 + 0.7;
+        ctx.shadowColor = '#FFD700';
+        ctx.shadowBlur = 15 * shimmer;
+        
         ctx.fillStyle = powerUp.color;
         ctx.fillRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
         
-        // Add glow effect
-        ctx.shadowColor = powerUp.color;
-        ctx.shadowBlur = 10;
-        ctx.fillRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+        // Golden border for clarity
+        ctx.strokeStyle = '#FFD700';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
         ctx.shadowBlur = 0;
         
-        // Add power-up icon
+        // Clear power-up icon
         ctx.fillStyle = '#FFF';
-        ctx.font = '16px Arial';
+        ctx.font = 'bold 18px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText('⚡', powerUp.x + powerUp.width/2, powerUp.y + powerUp.height/2 + 4);
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 1;
+        const iconX = powerUp.x + powerUp.width/2;
+        const iconY = powerUp.y + powerUp.height/2 + 4;
+        ctx.strokeText('⚡', iconX, iconY);
+        ctx.fillText('⚡', iconX, iconY);
       });
 
-      // Draw active power-up effects
+      // Draw particle effects for satisfying feedback
+      particles.forEach(particle => {
+        ctx.globalAlpha = particle.life;
+        ctx.fillStyle = particle.color;
+        ctx.fillRect(particle.x - particle.size/2, particle.y - particle.size/2, particle.size, particle.size);
+      });
+      ctx.globalAlpha = 1;
+
+      // Draw collection effects with floating text
+      collectionEffects.forEach(effect => {
+        ctx.globalAlpha = effect.life;
+        ctx.font = 'bold 16px Arial';
+        ctx.fillStyle = '#FFD700';
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.textAlign = 'center';
+        ctx.strokeText(effect.text, effect.x, effect.y);
+        ctx.fillText(effect.text, effect.x, effect.y);
+      });
+      ctx.globalAlpha = 1;
+
+      // Draw active power-up overlays with clear visual feedback
       if (timeSlowActive) {
-        ctx.fillStyle = 'rgba(0, 170, 255, 0.2)';
+        ctx.fillStyle = 'rgba(0, 170, 255, 0.15)';
         ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        
+        // Time slow indicator
+        ctx.font = 'bold 20px Arial';
+        ctx.fillStyle = '#00AAFF';
+        ctx.strokeStyle = '#FFF';
+        ctx.lineWidth = 2;
+        ctx.textAlign = 'center';
+        ctx.strokeText('TIME SLOW ACTIVE', CANVAS_WIDTH/2, 30);
+        ctx.fillText('TIME SLOW ACTIVE', CANVAS_WIDTH/2, 30);
       }
       
       if (stickerStormActive) {
-        ctx.fillStyle = 'rgba(255, 170, 0, 0.2)';
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.15)';
         ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        
+        // Invincibility indicator
+        ctx.font = 'bold 20px Arial';
+        ctx.fillStyle = '#FFD700';
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.textAlign = 'center';
+        ctx.strokeText('INVINCIBLE!', CANVAS_WIDTH/2, 30);
+        ctx.fillText('INVINCIBLE!', CANVAS_WIDTH/2, 30);
       }
       
       if (teamRallyActive) {
-        ctx.fillStyle = 'rgba(170, 0, 255, 0.2)';
+        ctx.fillStyle = 'rgba(170, 0, 255, 0.15)';
         ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        
+        // Speed boost indicator
+        ctx.font = 'bold 20px Arial';
+        ctx.fillStyle = '#AA00FF';
+        ctx.strokeStyle = '#FFF';
+        ctx.lineWidth = 2;
+        ctx.textAlign = 'center';
+        ctx.strokeText('SPEED BOOST!', CANVAS_WIDTH/2, 30);
+        ctx.fillText('SPEED BOOST!', CANVAS_WIDTH/2, 30);
       }
+
+      ctx.restore();
     };
 
     const animationId = requestAnimationFrame(function animate() {
