@@ -424,36 +424,41 @@ Let's begin this learning journey together!`;
       case 'text':
         content = `# ${sectionTitle}
 
-## Key Concepts
-This section explores essential concepts related to ${moduleTitle.toLowerCase()}, providing you with foundational knowledge that supports effective practice in early childhood education.
+## The Real Deal About ${topic}
+Let's be honest - as an early childhood educator, you've probably dealt with situations involving ${topic.toLowerCase()} more times than you've had lukewarm coffee (which, let's face it, is A LOT). But here's the thing: there's actual science behind what works, and it's pretty fascinating.
 
-## Understanding the Framework
-When working with ${moduleTitle.toLowerCase()}, it's important to consider the developmental needs of children and how our approaches can support their growth and learning.
+## What the Research Says (The Good Stuff)
+**Did you know?** Neuroscientist Dr. Daniel Siegel's research shows that a child's brain doesn't fully develop the capacity for self-regulation until around age 25. So when you're dealing with ${topic.toLowerCase()}, you're literally working with a brain under construction - hard hat required!
 
-## Evidence-Based Strategies
-Research shows that effective implementation of ${moduleTitle.toLowerCase()} strategies includes:
+### The Evidence-Based Toolkit
+Based on research from leaders like Dr. Becky Bailey (Conscious Discipline) and Dr. Ross Greene (Collaborative Problem Solving):
 
-### Strategy 1: Observation and Documentation
-Carefully observe children's responses and document what works best in your specific context.
+**Strategy 1: The "Name It to Tame It" Approach**
+Dr. Dan Siegel's research proves that simply naming emotions helps regulate the brain's amygdala. When dealing with ${topic.toLowerCase()}, try: "I see a frustrated body. Your brain is having big feelings right now."
 
-### Strategy 2: Environmental Considerations
-Create supportive environments that facilitate positive outcomes related to ${moduleTitle.toLowerCase()}.
+**Strategy 2: The Environmental Detective Work**
+Maria Montessori was onto something - the environment IS the third teacher. Notice what triggers ${topic.toLowerCase()} situations:
+- Is it transition times? (Hint: it's almost always transition times)
+- Too much visual stimulation?
+- Hunger? (When in doubt, offer a snack)
 
-### Strategy 3: Family Partnership
-Engage families as partners in supporting children's development and learning.
+**Strategy 3: The Family Partnership Power-Up**
+Research by Dr. Joyce Epstein shows that when families and teachers align strategies, children make 40% more progress. Share what works at school and ask what works at home.
 
-### Strategy 4: Individualized Approaches
-Recognize that each child is unique and may benefit from different approaches.
+## The Plot Twist Nobody Tells You
+Here's what veteran teachers know: Sometimes the "problem" behavior is actually communication. Children who struggle with ${topic.toLowerCase()} are often our most creative problem-solvers - they just need help channeling that energy.
 
-## Practical Applications
-Consider how these concepts apply in your daily work:
-- During routine activities and transitions
-- In your interactions with children and families
-- When planning learning experiences
-- While reflecting on your professional practice
+## Your Monday Morning Game Plan
+1. **The 2-Minute Reset**: Take two minutes to observe before reacting
+2. **The Curiosity Question**: Ask yourself "What is this child trying to tell me?"
+3. **The Partnership Play**: Connect with families about what you're seeing
+
+**Pro Tip**: Remember Maslow before Bloom - a child's basic needs (safety, belonging, hunger) must be met before learning can happen.
 
 ## Reflection Prompt
-How might you begin implementing these concepts in your current role? What supports or resources would be most helpful?`;
+How might you begin implementing these concepts in your current role? What supports or resources would be most helpful?
+
+**Your Turn**: This week, try ONE of these strategies and notice what happens. Document it like a scientist - no judgment, just curiosity. What worked? What surprised you? What would you adjust next time?`;
 
         questions = [
           {

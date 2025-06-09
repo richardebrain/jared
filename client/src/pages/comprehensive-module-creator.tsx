@@ -479,8 +479,8 @@ export default function ComprehensiveModuleCreator() {
     const currentSection = newModule.sections[currentSectionIndex];
     if (!currentSection) return;
 
-    // If no specific topic provided, show topic input dialog
-    if (!aiTopicInput && !newModule.description) {
+    // Always require specific topic input for better content generation
+    if (!aiTopicInput.trim()) {
       setShowTopicInput(true);
       return;
     }
@@ -2282,50 +2282,81 @@ Create a natural conversation between two podcast hosts discussing this specific
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h3 className="font-semibold">AI Content Suggestions</h3>
-                      <Button 
-                        size="sm"
-                        variant="outline" 
-                        onClick={generateAIContentForSection}
-                        disabled={isGeneratingAIContent}
-                      >
-                        {isGeneratingAIContent ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Generating...
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="h-4 w-4 mr-2" />
-                            Generate Ideas
-                          </>
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm"
+                          variant="outline" 
+                          onClick={generateAIContentForSection}
+                          disabled={isGeneratingAIContent}
+                          className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                        >
+                          {isGeneratingAIContent ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Generating...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="h-4 w-4 mr-2" />
+                              {aiGeneratedBlocks.length > 0 ? 'Generate More Ideas' : 'Generate Ideas'}
+                            </>
+                          )}
+                        </Button>
+                        {aiGeneratedBlocks.length > 0 && (
+                          <Button 
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setAiGeneratedBlocks([]);
+                              setAiTopicInput('');
+                            }}
+                            className="text-gray-500 hover:text-gray-700"
+                          >
+                            Clear All
+                          </Button>
                         )}
-                      </Button>
+                      </div>
                     </div>
                     
                     {/* Topic Input Dialog */}
                     {showTopicInput && (
                       <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                           <div>
                             <Label className="text-sm font-medium text-blue-900">
-                              What specific topic should this module focus on?
+                              What specific topic should this section cover?
                             </Label>
                             <p className="text-xs text-blue-700 mt-1">
-                              Be specific to get the best AI-generated content.
+                              The AI needs a specific topic to create relevant content blocks for this section.
                             </p>
                           </div>
+                          
+                          <div className="bg-white p-3 rounded border border-blue-200">
+                            <h4 className="text-xs font-medium text-blue-800 mb-2">Example topics for "{newModule.sections[currentSectionIndex]?.title}":</h4>
+                            <ul className="text-xs text-blue-700 space-y-1">
+                              <li>• "Managing classroom transitions after recess"</li>
+                              <li>• "Supporting children with separation anxiety"</li>
+                              <li>• "Creating inclusive learning environments"</li>
+                              <li>• "Positive behavior reinforcement strategies"</li>
+                            </ul>
+                          </div>
+                          
                           <Input
                             value={aiTopicInput}
                             onChange={(e) => setAiTopicInput(e.target.value)}
-                            placeholder="Enter your specific module topic..."
+                            placeholder="e.g., Managing classroom transitions after recess"
                             className="border-blue-300 focus:border-blue-500"
-                            onKeyPress={(e) => e.key === 'Enter' && handleTopicSubmit()}
+                            onKeyPress={(e) => e.key === 'Enter' && aiTopicInput.trim() && handleTopicSubmit()}
                           />
+                          
                           <div className="flex gap-2 justify-end">
                             <Button 
                               variant="outline" 
                               size="sm"
-                              onClick={() => setShowTopicInput(false)}
+                              onClick={() => {
+                                setShowTopicInput(false);
+                                setAiTopicInput('');
+                              }}
                             >
                               Cancel
                             </Button>
@@ -2335,19 +2366,30 @@ Create a natural conversation between two podcast hosts discussing this specific
                               disabled={!aiTopicInput.trim()}
                               className="bg-blue-600 hover:bg-blue-700"
                             >
-                              Generate Content
+                              Generate Content Ideas
                             </Button>
                           </div>
                         </div>
                       </div>
                     )}
                     
+                    {/* Current Topic Display */}
+                    {aiTopicInput && aiGeneratedBlocks.length > 0 && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span className="text-sm font-medium text-green-800">Content generated for:</span>
+                          <span className="text-sm text-green-700">"{aiTopicInput}"</span>
+                        </div>
+                      </div>
+                    )}
+
                     {/* AI Generated Content Blocks */}
                     <div className="space-y-3 max-h-96 overflow-y-auto">
                       {aiGeneratedBlocks.map((block, index) => (
                         <div 
                           key={index}
-                          className="p-3 bg-gray-50 border border-gray-200 rounded-lg cursor-move hover:bg-gray-100 transition-colors"
+                          className="p-3 bg-gray-50 border border-gray-200 rounded-lg cursor-move hover:bg-gray-100 transition-colors group"
                           draggable
                           onDragStart={(e) => {
                             e.dataTransfer.setData('text/plain', block.content);
@@ -2355,12 +2397,15 @@ Create a natural conversation between two podcast hosts discussing this specific
                           }}
                         >
                           <div className="flex items-start gap-2">
-                            <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
                               <GripVertical className="h-4 w-4 text-purple-600" />
                             </div>
                             <div className="flex-1">
                               <div className="font-medium text-sm text-purple-700 mb-1">{block.type}</div>
                               <div className="text-sm text-gray-700 line-clamp-3">{block.preview}</div>
+                              <div className="text-xs text-gray-500 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                Drag to section content area →
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -2368,7 +2413,8 @@ Create a natural conversation between two podcast hosts discussing this specific
                       {aiGeneratedBlocks.length === 0 && (
                         <div className="text-center py-8 text-gray-500">
                           <Sparkles className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                          <p>Click "Generate Ideas" to get AI content suggestions</p>
+                          <p className="text-sm">Click "Generate Ideas" to get AI content suggestions</p>
+                          <p className="text-xs mt-1">You'll need to specify a topic first</p>
                         </div>
                       )}
                     </div>
@@ -2376,13 +2422,29 @@ Create a natural conversation between two podcast hosts discussing this specific
 
                   {/* Section Content Builder */}
                   <div className="space-y-4">
-                    <h3 className="font-semibold">Section Content</h3>
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold">Section Content</h3>
+                      <div className="text-xs text-gray-500">
+                        {newModule.sections[currentSectionIndex]?.content ? 
+                          `${newModule.sections[currentSectionIndex]?.content.length} characters` : 
+                          'Empty'
+                        }
+                      </div>
+                    </div>
                     <div 
-                      className="min-h-96 p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50"
-                      onDragOver={(e) => e.preventDefault()}
+                      className="min-h-96 p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:border-gray-400 transition-colors relative"
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.classList.add('border-purple-400', 'bg-purple-50');
+                      }}
+                      onDragLeave={(e) => {
+                        e.currentTarget.classList.remove('border-purple-400', 'bg-purple-50');
+                      }}
                       onDrop={(e) => {
                         e.preventDefault();
+                        e.currentTarget.classList.remove('border-purple-400', 'bg-purple-50');
                         const content = e.dataTransfer.getData('text/plain');
+                        const blockType = e.dataTransfer.getData('block-type');
                         const currentContent = newModule.sections[currentSectionIndex]?.content || '';
                         const updatedSections = [...newModule.sections];
                         updatedSections[currentSectionIndex] = {
@@ -2390,8 +2452,25 @@ Create a natural conversation between two podcast hosts discussing this specific
                           content: currentContent + (currentContent ? '\n\n' : '') + content
                         };
                         setNewModule(prev => ({ ...prev, sections: updatedSections }));
+                        
+                        // Show success feedback
+                        toast({
+                          title: 'Content Added',
+                          description: `${blockType} added to section content`,
+                        });
                       }}
                     >
+                      {!newModule.sections[currentSectionIndex]?.content && (
+                        <div className="absolute inset-4 flex items-center justify-center pointer-events-none">
+                          <div className="text-center text-gray-400">
+                            <div className="w-12 h-12 mx-auto mb-3 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                              <ArrowRight className="h-6 w-6" />
+                            </div>
+                            <p className="text-sm font-medium">Drop content blocks here</p>
+                            <p className="text-xs mt-1">Or type directly in the text area below</p>
+                          </div>
+                        </div>
+                      )}
                       <Textarea
                         value={newModule.sections[currentSectionIndex]?.content || ''}
                         onChange={(e) => {
@@ -2402,8 +2481,8 @@ Create a natural conversation between two podcast hosts discussing this specific
                           };
                           setNewModule(prev => ({ ...prev, sections: updatedSections }));
                         }}
-                        placeholder="Drag content blocks here or type directly..."
-                        className="min-h-80 resize-none border-0 bg-transparent"
+                        placeholder="Type your content here or drag AI-generated content blocks from the left..."
+                        className="min-h-80 resize-none border-0 bg-transparent placeholder:text-gray-400"
                       />
                     </div>
                   </div>
