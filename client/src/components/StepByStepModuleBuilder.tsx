@@ -35,7 +35,8 @@ import {
   FileText,
   Music,
   Trophy,
-  Presentation
+  Presentation,
+  ExternalLink
 } from "lucide-react";
 
 interface ModuleSection {
@@ -676,6 +677,65 @@ export default function StepByStepModuleBuilder({ initialData, onModuleComplete,
                       </div>
                     </Card>
                   ))}
+                </div>
+              )}
+
+              {sections[currentSectionIndex].type === 'slides' && (
+                <div>
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Presentation className="h-5 w-5 text-blue-600" />
+                      <h4 className="font-medium text-blue-900">Google Slides Integration</h4>
+                    </div>
+                    <p className="text-sm text-blue-800 mb-3">
+                      Generate an interactive Google Slides presentation based on your section content.
+                    </p>
+                    
+                    {sections[currentSectionIndex].slidesData ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">Presentation Created</span>
+                          <Badge className="bg-green-100 text-green-800">
+                            {sections[currentSectionIndex].slidesData.slides.length} slides
+                          </Badge>
+                        </div>
+                        
+                        {sections[currentSectionIndex].slidesData.presentationUrl && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full"
+                            onClick={() => window.open(sections[currentSectionIndex].slidesData?.presentationUrl, '_blank')}
+                          >
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            Open in Google Slides
+                          </Button>
+                        )}
+                        
+                        <div className="text-xs text-gray-600">
+                          <strong>Slides:</strong>
+                          {sections[currentSectionIndex].slidesData.slides.map((slide: any, idx: number) => (
+                            <div key={idx} className="ml-2">• {slide.title}</div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <Button 
+                        size="sm"
+                        onClick={() => {
+                          // We'll implement slides generation here
+                          toast({
+                            title: "Slides Generation",
+                            description: "Google Slides integration will be available once configured.",
+                          });
+                        }}
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        <Wand2 className="h-4 w-4 mr-2" />
+                        Generate Slides
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

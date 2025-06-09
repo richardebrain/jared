@@ -49,6 +49,7 @@ import emailRoutes from "./api/emailRoutes";
 import adminRoutes from "./routes/admin";
 import { AIBearyService } from "./services/aiBearyService";
 import aiModuleDesignerRoutes from "./api/aiModuleDesignerRoutes";
+import googleSlidesRoutes from "./api/googleSlidesRoutes";
 
 // For ESM __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -4754,6 +4755,9 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
 
   // Register AI Module Designer routes
   app.use("/api/ai", aiModuleDesignerRoutes);
+
+  // Register Google Slides routes
+  app.use("/api/google-slides", googleSlidesRoutes);
 
   return app;
 }
