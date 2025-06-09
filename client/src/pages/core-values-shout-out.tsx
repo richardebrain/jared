@@ -107,6 +107,7 @@ export default function CoreValuesShoutOutPage() {
         nomineeId: parseInt(values.nomineeId),
         coreValue: values.coreValue,
         description: values.description,
+        message: values.description, // Send both for backend compatibility
       });
       return response.data;
     },

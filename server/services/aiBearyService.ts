@@ -109,8 +109,7 @@ Respond as AI Beary with helpful, practical advice for preschool teachers.`;
           { role: "user", content: userQuery }
         ],
         max_tokens: 500,
-        temperature: 0.7,
-        timeout: 25000 // 25 second timeout
+        temperature: 0.7
       });
 
       const aiResponse = response.choices[0].message.content || "I'm having trouble processing that question right now. Could you try rephrasing it?";
