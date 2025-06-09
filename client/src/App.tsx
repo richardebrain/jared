@@ -65,6 +65,7 @@ import DirectorMessages from "@/pages/director-messages";
 import ComprehensiveModuleCreator from "@/pages/comprehensive-module-creator";
 import EnhancedModuleBuilder from "@/pages/enhanced-module-builder";
 import ModuleWizard from "@/pages/module-wizard";
+import ModuleCreationWorkflow from "@/components/ModuleCreationWorkflow";
 import EmailServiceDemo from "@/pages/EmailServiceDemo";
 import DirectorToolkit from "@/pages/director-toolkit";
 import AdminTeachersPage from "@/pages/admin-teachers";
@@ -752,6 +753,18 @@ function Router(props: {
           </div>
         ) : (
           <ModuleWizard />
+        )}
+      </Route>
+
+      <Route path="/step-by-step-creator">
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <ModuleCreationWorkflow />
         )}
       </Route>
 
