@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from '@/lib/queryClient';
+import MobileGameContainer from './MobileGameContainer';
 
 interface GameBrick {
   id: string;
@@ -728,8 +729,25 @@ export default function BounceAwayBlocks() {
 
   const currentLevel = LEVEL_DATA[gameState.level - 1];
 
+  const gameControls = (
+    <>
+      {gameState.isPlaying && !gameState.gameOver && (
+        <Button onClick={togglePause} variant="outline" size="sm" className="md:size-default">
+          {gameState.isPaused ? <Play className="h-4 w-4 mr-1 md:mr-2" /> : <Pause className="h-4 w-4 mr-1 md:mr-2" />}
+          <span className="hidden sm:inline">{gameState.isPaused ? 'Resume' : 'Pause'}</span>
+          <span className="sm:hidden">{gameState.isPaused ? 'Play' : 'Pause'}</span>
+        </Button>
+      )}
+      <Button onClick={resetGame} variant="outline" size="sm" className="md:size-default">
+        <RotateCcw className="h-4 w-4 mr-1 md:mr-2" />
+        <span className="hidden sm:inline">Reset Game</span>
+        <span className="sm:hidden">Reset</span>
+      </Button>
+    </>
+  );
+
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-2 md:space-y-4 px-2 md:px-0">
+    <div className="w-full space-y-2 md:space-y-4">
       {/* Game Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between p-3 md:p-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg">
         <div className="mb-2 md:mb-0">
@@ -762,48 +780,47 @@ export default function BounceAwayBlocks() {
       {/* Point Animation Overlay */}
       {gameState.showPointAnimation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-          <div className="bg-green-500 text-white px-8 py-4 rounded-full text-2xl font-bold animate-bounce shadow-lg">
+          <div className="bg-green-500 text-white px-4 py-2 md:px-8 md:py-4 rounded-full text-lg md:text-2xl font-bold animate-bounce shadow-lg">
             +{gameState.pointsEarned} Points!
           </div>
         </div>
       )}
 
-      {/* Game Canvas */}
-      <Card className="relative overflow-hidden">
-        <CardContent className="p-0">
-          <div className="relative w-full" style={{ aspectRatio: `${BASE_GAME_WIDTH}/${BASE_GAME_HEIGHT}` }}>
-            <canvas
-              ref={canvasRef}
-              width={GAME_WIDTH}
-              height={GAME_HEIGHT}
-              className="absolute inset-0 w-full h-full border rounded-lg cursor-pointer touch-none"
-              style={{ maxWidth: '100%', maxHeight: '100%' }}
-              onMouseMove={handleMouseMove}
-              onClick={handleClick}
-              onTouchStart={(e) => {
-                e.preventDefault();
-                const touch = e.touches[0];
-                const rect = canvasRef.current?.getBoundingClientRect();
-                if (rect) {
-                  const scaleX = GAME_WIDTH / rect.width;
-                  const scaleY = GAME_HEIGHT / rect.height;
-                  const x = (touch.clientX - rect.left) * scaleX;
-                  setPaddle(prev => ({ ...prev, x: Math.max(0, Math.min(GAME_WIDTH - PADDLE_WIDTH, x - PADDLE_WIDTH / 2)) }));
-                }
-              }}
-              onTouchMove={(e) => {
-                e.preventDefault();
-                const touch = e.touches[0];
-                const rect = canvasRef.current?.getBoundingClientRect();
-                if (rect) {
-                  const scaleX = GAME_WIDTH / rect.width;
-                  const scaleY = GAME_HEIGHT / rect.height;
-                  const x = (touch.clientX - rect.left) * scaleX;
-                  setPaddle(prev => ({ ...prev, x: Math.max(0, Math.min(GAME_WIDTH - PADDLE_WIDTH, x - PADDLE_WIDTH / 2)) }));
-                }
-              }}
-            />
-          </div>
+      <MobileGameContainer
+        gameWidth={BASE_GAME_WIDTH}
+        gameHeight={BASE_GAME_HEIGHT}
+        controls={gameControls}
+      >
+        <canvas
+          ref={canvasRef}
+          width={GAME_WIDTH}
+          height={GAME_HEIGHT}
+          className="absolute inset-0 w-full h-full cursor-pointer touch-none"
+          onMouseMove={handleMouseMove}
+          onClick={handleClick}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvasRef.current?.getBoundingClientRect();
+            if (rect) {
+              const scaleX = GAME_WIDTH / rect.width;
+              const scaleY = GAME_HEIGHT / rect.height;
+              const x = (touch.clientX - rect.left) * scaleX;
+              setPaddle(prev => ({ ...prev, x: Math.max(0, Math.min(GAME_WIDTH - PADDLE_WIDTH, x - PADDLE_WIDTH / 2)) }));
+            }
+          }}
+          onTouchMove={(e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvasRef.current?.getBoundingClientRect();
+            if (rect) {
+              const scaleX = GAME_WIDTH / rect.width;
+              const scaleY = GAME_HEIGHT / rect.height;
+              const x = (touch.clientX - rect.left) * scaleX;
+              setPaddle(prev => ({ ...prev, x: Math.max(0, Math.min(GAME_WIDTH - PADDLE_WIDTH, x - PADDLE_WIDTH / 2)) }));
+            }
+          }}
+        />
           
           {/* Game State Overlays */}
           {!gameState.isPlaying && !gameState.gameOver && !gameState.victory && (
@@ -870,26 +887,7 @@ export default function BounceAwayBlocks() {
               <p className="text-gray-700">{gameState.currentDefinition.definition}</p>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Mobile Game Controls - Fixed Position */}
-      <div className="md:relative fixed bottom-4 left-4 right-4 z-40 md:z-auto">
-        <div className="flex items-center justify-center space-x-4 bg-white/95 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none rounded-lg md:rounded-none p-2 md:p-0 border md:border-none shadow-lg md:shadow-none">
-          {gameState.isPlaying && !gameState.gameOver && (
-            <Button onClick={togglePause} variant="outline" size="sm" className="md:size-default">
-              {gameState.isPaused ? <Play className="h-4 w-4 mr-1 md:mr-2" /> : <Pause className="h-4 w-4 mr-1 md:mr-2" />}
-              <span className="hidden sm:inline">{gameState.isPaused ? 'Resume' : 'Pause'}</span>
-              <span className="sm:hidden">{gameState.isPaused ? 'Play' : 'Pause'}</span>
-            </Button>
-          )}
-          <Button onClick={resetGame} variant="outline" size="sm" className="md:size-default">
-            <RotateCcw className="h-4 w-4 mr-1 md:mr-2" />
-            <span className="hidden sm:inline">Reset Game</span>
-            <span className="sm:hidden">Reset</span>
-          </Button>
-        </div>
-      </div>
+      </MobileGameContainer>
 
       {/* Level Progress */}
       <Card>

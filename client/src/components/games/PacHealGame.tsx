@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Ghost, Star, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Heart, Ghost, Star, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Play, Pause, RotateCcw } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import MobileGameContainer from './MobileGameContainer';
+import MobileTouchControls from './MobileTouchControls';
 
 interface Position {
   x: number;
