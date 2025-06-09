@@ -21,6 +21,8 @@ import {
   teacherMessages,
   newsletters,
   insertNewsletterSchema,
+  assessments,
+  assessmentResults,
 } from "@shared/schema";
 import { registerWelcomeMessageRoutes } from "./welcomeMessageRoutes";
 import { registerModuleManagementRoutes } from "./module-management/moduleRoutes";
@@ -417,49 +419,7 @@ Continue for all 5 questions...
   // Register enhanced assessment routes
   registerAssessmentRoutes(app);
 
-  // Assessment status endpoint for navigation
-  app.get("/api/assessment/session/status", async (req, res) => {
-    // Simple authentication check
-    if (!req.session.userId) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-    try {
-      const userId = req.session.userId;
 
-      // Check for completed assessments
-      const completedAssessments = await db.select()
-        .from(assessments)
-        .where(and(
-          eq(assessments.userId, userId),
-          eq(assessments.type, 'initial'),
-          eq(assessments.completed, true)
-        ))
-        .orderBy(desc(assessments.completedAt))
-        .limit(1);
-
-      // Check for any existing assessment results
-      const assessmentResults = await db.select()
-        .from(assessmentResults)
-        .where(eq(assessmentResults.userId, userId))
-        .orderBy(desc(assessmentResults.createdAt))
-        .limit(1);
-
-      const hasCompletedAssessment = completedAssessments.length > 0;
-      const hasResults = assessmentResults.length > 0;
-
-      return res.json({
-        hasCompletedAssessment,
-        hasResults,
-        routeTo: hasCompletedAssessment || hasResults ? '/assessment/results' : '/initial-assessment',
-        lastCompletedAt: completedAssessments[0]?.completedAt || null,
-        canRetake: false
-      });
-
-    } catch (error) {
-      console.error('Error checking assessment status:', error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
 
   // Mystery box and rewards endpoints
 
