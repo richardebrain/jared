@@ -1970,7 +1970,13 @@ export class DatabaseStorage implements IStorage {
   async createCoreValuesShoutOut(shoutOut: InsertCoreValuesShoutOut & { pointsAwarded: number }): Promise<CoreValuesShoutOut> {
     const [newShoutOut] = await db
       .insert(coreValuesShoutOuts)
-      .values(shoutOut)
+      .values({
+        nominatorId: shoutOut.nominatorId,
+        nomineeId: shoutOut.nomineeId,
+        coreValue: shoutOut.coreValue,
+        description: shoutOut.description,
+        pointsAwarded: shoutOut.pointsAwarded
+      })
       .returning();
     
     // Update the nominator's points (add 1 point for nominating someone)
