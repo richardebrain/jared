@@ -27,6 +27,8 @@ import PuzzleGameSelector from '@/components/PuzzleGameSelector';
 import PacHealGame from '@/components/games/PacHealGameWorking';
 import BounceAwayBlocks from '@/components/games/BounceAwayBlocks';
 import GameTokenMachine from '@/components/games/GameTokenMachine';
+import TransitionMaster from '@/components/games/TransitionMaster';
+import WhoLeftTheGateOpen from '@/components/games/WhoLeftTheGateOpen';
 import { GameWindowManager } from '@/components/games/GameWindowManager';
 import { openGameInWindow, GameRenderer } from '@/components/games/GameRenderer';
 import { useToast } from "@/hooks/use-toast";
@@ -62,7 +64,11 @@ import {
   Puzzle,
   Search,
   Grid3X3,
-  Brain
+  Brain,
+  ArrowRight,
+  Users,
+  Play,
+  ArrowLeft
 } from 'lucide-react';
 
 export default function GamesPage() {
@@ -71,6 +77,7 @@ export default function GamesPage() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [dailyGameUsed, setDailyGameUsed] = useState(false);
+  const [activeGame, setActiveGame] = useState<string | null>(null);
   
   // Force a refresh of user data when the page loads
   useEffect(() => {
@@ -203,6 +210,94 @@ export default function GamesPage() {
               </Card>
             ) : (
               <div className="max-w-4xl mx-auto space-y-6">
+                {/* New Educational Games Section */}
+                <Card className="border-2 border-purple-300 bg-gradient-to-br from-purple-50 to-indigo-50">
+                  <CardHeader>
+                    <CardTitle className="text-2xl text-purple-800 flex items-center gap-2">
+                      <Brain className="h-8 w-8" />
+                      Educational Games
+                    </CardTitle>
+                    <p className="text-purple-600">Free games to practice ECE skills and safety</p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Transition Master Game */}
+                      <Card className="hover:shadow-lg transition-shadow border-blue-200">
+                        <CardHeader>
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+                              <ArrowRight className="h-6 w-6" />
+                            </div>
+                            <div>
+                              <CardTitle className="text-lg">Transition Master</CardTitle>
+                              <div className="flex gap-2 mt-1">
+                                <Badge variant="outline" className="text-xs">Educational</Badge>
+                                <Badge variant="secondary" className="text-xs">Strategy</Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-gray-600 mb-4">
+                            Master the art of smooth classroom transitions with evidence-based strategies
+                          </p>
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-1 text-yellow-600">
+                              <Star className="h-4 w-4" />
+                              <span className="text-sm font-medium">Up to 50pts</span>
+                            </div>
+                            <Badge variant="outline" className="text-xs">5 Scenarios</Badge>
+                          </div>
+                          <Button 
+                            onClick={() => setActiveGame('transition-master')}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                          >
+                            <Play className="h-4 w-4 mr-2" />
+                            Start Game
+                          </Button>
+                        </CardContent>
+                      </Card>
+
+                      {/* Who Left the Gate Open Game */}
+                      <Card className="hover:shadow-lg transition-shadow border-orange-200">
+                        <CardHeader>
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-gradient-to-r from-orange-500 to-red-600 text-white">
+                              <Users className="h-6 w-6" />
+                            </div>
+                            <div>
+                              <CardTitle className="text-lg">Who Left the Gate Open?</CardTitle>
+                              <div className="flex gap-2 mt-1">
+                                <Badge variant="outline" className="text-xs">Arcade</Badge>
+                                <Badge variant="secondary" className="text-xs">Safety</Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-gray-600 mb-4">
+                            A super silly ECE safety adventure! Chase runaway kids and answer safety questions
+                          </p>
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-1 text-yellow-600">
+                              <Star className="h-4 w-4" />
+                              <span className="text-sm font-medium">Up to 30pts</span>
+                            </div>
+                            <Badge variant="outline" className="text-xs">3 Levels</Badge>
+                          </div>
+                          <Button 
+                            onClick={() => setActiveGame('gate-open')}
+                            className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+                          >
+                            <Play className="h-4 w-4 mr-2" />
+                            Start Chase!
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 <GameTokenMachine 
                   userPoints={totalPoints} 
                   onPointsUpdate={(newPoints) => {
