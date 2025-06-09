@@ -29,7 +29,7 @@ import {
 
 interface LessonActivity {
   id: string;
-  type: 'video' | 'interactive' | 'quiz' | 'discussion' | 'reflection' | 'practice' | 'demonstration' | 'scenario' | 'storytelling' | 'gamification';
+  type: 'video' | 'interactive' | 'quiz' | 'discussion' | 'reflection' | 'practice' | 'demonstration' | 'scenario' | 'storytelling' | 'gamification' | 'presentation';
   title: string;
   description: string;
   content: string;
@@ -58,7 +58,498 @@ interface MicroLearningTemplateSelectorProps {
   onCustomModule: () => void;
 }
 
-const microLearningTemplates: MicroModule[] = [
+const moduleTemplates: MicroModule[] = [
+  // Lightning Module Template (3-4 Sections | ~5 min)
+  {
+    id: 'lightning-module',
+    title: 'Lightning Module',
+    category: 'Quick Learning',
+    description: 'A super-condensed, single-idea burst perfect for quick refreshers. Complete in just 5 minutes.',
+    totalDuration: 5,
+    learningObjectives: [
+      'Understand one core concept quickly',
+      'Apply knowledge through micro-activity',
+      'Retain key information for immediate use'
+    ],
+    activities: [
+      {
+        id: 'hook-scenario',
+        type: 'scenario',
+        title: 'Hook (Scenario or Question)',
+        description: 'Engaging opening scenario that captures attention',
+        content: 'Present a compelling real-world scenario or thought-provoking question to immediately engage learners.',
+        duration: 1,
+        engagement: 'high',
+        difficulty: 'beginner',
+        completionCriteria: 'Review scenario and respond to opening question',
+        pointsAwarded: 3
+      },
+      {
+        id: 'core-concept',
+        type: 'video',
+        title: 'Core Concept (AI-Generated Key Points)',
+        description: 'Essential information delivered concisely',
+        content: 'AI-generated key points presented in clear, digestible format with visual aids.',
+        duration: 2,
+        engagement: 'medium',
+        difficulty: 'beginner',
+        completionCriteria: 'Complete concept review',
+        pointsAwarded: 5
+      },
+      {
+        id: 'micro-activity',
+        type: 'interactive',
+        title: 'Micro-Activity (2-Step Interactive Prompt)',
+        description: 'Quick hands-on practice',
+        content: 'Simple 2-step interactive exercise to immediately apply the core concept.',
+        duration: 1.5,
+        engagement: 'high',
+        difficulty: 'beginner',
+        completionCriteria: 'Complete both steps successfully',
+        pointsAwarded: 7
+      },
+      {
+        id: 'quick-quiz',
+        type: 'quiz',
+        title: 'Quick Quiz (1-2 Questions)',
+        description: 'Brief knowledge check',
+        content: 'Optional quick quiz with 1-2 questions to reinforce learning.',
+        duration: 0.5,
+        engagement: 'medium',
+        difficulty: 'beginner',
+        completionCriteria: 'Answer questions correctly',
+        pointsAwarded: 5
+      }
+    ],
+    assessmentMethod: 'Quick interactive check and optional mini-quiz',
+    reinforcementStrategy: 'Immediate application through micro-activity',
+    adaptiveElements: [
+      'Adjusts complexity based on learner response',
+      'Optional deeper dive for interested learners'
+    ]
+  },
+
+  // Standard Module Template (5-6 Sections | ~10 min)
+  {
+    id: 'standard-module',
+    title: 'Standard Module',
+    category: 'Core Training',
+    description: 'Your go-to template for everyday trainings. Comprehensive yet efficient 10-minute learning experience.',
+    totalDuration: 10,
+    learningObjectives: [
+      'Understand learning objectives clearly',
+      'Engage with multimedia content',
+      'Practice skills through interactive activities',
+      'Reflect on application to work context'
+    ],
+    activities: [
+      {
+        id: 'intro-objectives',
+        type: 'presentation',
+        title: 'Intro & Objectives',
+        description: 'Clear learning goals and expectations',
+        content: 'Introduction to the module with clear, measurable learning objectives.',
+        duration: 1,
+        engagement: 'medium',
+        difficulty: 'beginner',
+        completionCriteria: 'Review objectives and confirm understanding',
+        pointsAwarded: 3
+      },
+      {
+        id: 'video-case-story',
+        type: 'video',
+        title: 'Video or Case Story',
+        description: 'Engaging multimedia content',
+        content: 'Video demonstration or compelling case story that illustrates key concepts.',
+        duration: 3,
+        engagement: 'high',
+        difficulty: 'beginner',
+        completionCriteria: 'Watch complete video/story',
+        pointsAwarded: 5
+      },
+      {
+        id: 'interactive-activity',
+        type: 'interactive',
+        title: 'Interactive Activity',
+        description: 'Matching, drag-and-drop, or simulation exercise',
+        content: 'Hands-on interactive activity such as matching concepts, drag-and-drop exercises, or simulations.',
+        duration: 3,
+        engagement: 'high',
+        difficulty: 'intermediate',
+        completionCriteria: 'Complete activity with 80% accuracy',
+        pointsAwarded: 10
+      },
+      {
+        id: 'why-science',
+        type: 'presentation',
+        title: 'Why & Science (Rationale Slide)',
+        description: 'Evidence-based reasoning',
+        content: 'Explanation of the science and rationale behind the concepts being taught.',
+        duration: 1.5,
+        engagement: 'medium',
+        difficulty: 'intermediate',
+        completionCriteria: 'Review scientific basis',
+        pointsAwarded: 4
+      },
+      {
+        id: 'reflection-prompt',
+        type: 'reflection',
+        title: 'Reflection Prompt',
+        description: 'Personal application planning',
+        content: 'Guided reflection on how to apply learning to specific work situations.',
+        duration: 1,
+        engagement: 'medium',
+        difficulty: 'intermediate',
+        completionCriteria: 'Complete reflection exercise',
+        pointsAwarded: 6
+      },
+      {
+        id: 'quiz-feedback',
+        type: 'quiz',
+        title: 'Quiz & Feedback',
+        description: 'Knowledge assessment with detailed feedback',
+        content: 'Comprehensive quiz with immediate feedback and explanations.',
+        duration: 0.5,
+        engagement: 'high',
+        difficulty: 'intermediate',
+        completionCriteria: 'Score 75% or higher',
+        pointsAwarded: 8
+      }
+    ],
+    assessmentMethod: 'Interactive activities and comprehensive quiz',
+    reinforcementStrategy: 'Reflection exercises and immediate feedback',
+    adaptiveElements: [
+      'Personalized feedback based on quiz performance',
+      'Additional resources for struggling learners',
+      'Advanced challenges for high performers'
+    ]
+  },
+
+  // Deep-Dive Workshop Template (8-10 Sections | ~15 min)
+  {
+    id: 'deep-dive-workshop',
+    title: 'Deep-Dive Workshop',
+    category: 'Comprehensive Training',
+    description: 'A thorough exploration great for brand-new topics or certifications. Complete workshop experience.',
+    totalDuration: 15,
+    learningObjectives: [
+      'Master foundational concepts thoroughly',
+      'Apply knowledge in complex scenarios',
+      'Develop practical skills through guided practice',
+      'Create actionable implementation plan'
+    ],
+    activities: [
+      {
+        id: 'welcome-agenda',
+        type: 'presentation',
+        title: 'Welcome & Agenda',
+        description: 'Workshop overview and expectations',
+        content: 'Comprehensive welcome with detailed agenda and learning pathway.',
+        duration: 1,
+        engagement: 'medium',
+        difficulty: 'beginner',
+        completionCriteria: 'Review agenda and confirm commitment',
+        pointsAwarded: 3
+      },
+      {
+        id: 'pre-check-question',
+        type: 'quiz',
+        title: 'Pre-Check Question (Knowledge Gauge)',
+        description: 'Assess current knowledge level',
+        content: 'Brief assessment to gauge existing knowledge and tailor learning experience.',
+        duration: 1,
+        engagement: 'medium',
+        difficulty: 'beginner',
+        completionCriteria: 'Complete knowledge assessment',
+        pointsAwarded: 4
+      },
+      {
+        id: 'foundational-video',
+        type: 'video',
+        title: 'Foundational Video',
+        description: 'Core concept introduction',
+        content: 'Comprehensive video covering foundational concepts and principles.',
+        duration: 3,
+        engagement: 'high',
+        difficulty: 'intermediate',
+        completionCriteria: 'Watch complete foundational content',
+        pointsAwarded: 6
+      },
+      {
+        id: 'key-terms-definitions',
+        type: 'interactive',
+        title: 'Key Terms & Definitions (Flash Cards)',
+        description: 'Interactive vocabulary building',
+        content: 'Digital flash cards for learning and memorizing key terminology.',
+        duration: 2,
+        engagement: 'high',
+        difficulty: 'intermediate',
+        completionCriteria: 'Master all key terms',
+        pointsAwarded: 8
+      },
+      {
+        id: 'guided-activity',
+        type: 'practice',
+        title: 'Guided Activity (Step-by-Step)',
+        description: 'Structured skill development',
+        content: 'Step-by-step guided practice activity with instructor support.',
+        duration: 3,
+        engagement: 'high',
+        difficulty: 'intermediate',
+        completionCriteria: 'Complete all guided steps',
+        pointsAwarded: 12
+      },
+      {
+        id: 'case-study-story',
+        type: 'storytelling',
+        title: 'Case Study / Story',
+        description: 'Real-world application example',
+        content: 'Detailed case study or story demonstrating practical application.',
+        duration: 2,
+        engagement: 'high',
+        difficulty: 'intermediate',
+        completionCriteria: 'Analyze case study thoroughly',
+        pointsAwarded: 8
+      },
+      {
+        id: 'why-it-matters',
+        type: 'presentation',
+        title: 'Why It Matters (Science + Policy)',
+        description: 'Evidence and regulatory context',
+        content: 'Explanation of scientific evidence and policy implications.',
+        duration: 1.5,
+        engagement: 'medium',
+        difficulty: 'advanced',
+        completionCriteria: 'Understand regulatory context',
+        pointsAwarded: 6
+      },
+      {
+        id: 'hands-on-practice',
+        type: 'scenario',
+        title: 'Hands-On Practice (AI-Guided Scenario)',
+        description: 'Complex scenario practice',
+        content: 'AI-guided complex scenario requiring application of all learned skills.',
+        duration: 2,
+        engagement: 'high',
+        difficulty: 'advanced',
+        completionCriteria: 'Successfully navigate scenario',
+        pointsAwarded: 15
+      },
+      {
+        id: 'reflection-action-plan',
+        type: 'reflection',
+        title: 'Reflection & Action Plan',
+        description: 'Implementation planning',
+        content: 'Comprehensive reflection and creation of detailed action plan.',
+        duration: 1,
+        engagement: 'medium',
+        difficulty: 'intermediate',
+        completionCriteria: 'Create complete action plan',
+        pointsAwarded: 8
+      },
+      {
+        id: 'post-test-quiz',
+        type: 'quiz',
+        title: 'Post-Test Quiz (Passing Threshold + Certificate)',
+        description: 'Certification assessment',
+        content: 'Comprehensive assessment with passing threshold for certification.',
+        duration: 0.5,
+        engagement: 'high',
+        difficulty: 'advanced',
+        completionCriteria: 'Score 85% or higher for certification',
+        pointsAwarded: 20
+      }
+    ],
+    assessmentMethod: 'Comprehensive assessment with certification threshold',
+    reinforcementStrategy: 'Multi-layered practice with AI guidance and peer interaction',
+    adaptiveElements: [
+      'AI adjusts scenario complexity based on performance',
+      'Personalized action planning based on role and context',
+      'Advanced certification pathway for exceptional learners'
+    ]
+  },
+
+  // Toolkit Module Template (Variable Sections | ~5-12 min)
+  {
+    id: 'toolkit-module',
+    title: 'Toolkit Module',
+    category: 'Resource Library',
+    description: 'Focuses on giving managers a "kit" of resources they can reuse. Variable length based on exploration.',
+    totalDuration: 8,
+    learningObjectives: [
+      'Access curated resource library',
+      'Customize templates for specific needs',
+      'Implement best practices immediately',
+      'Build ongoing resource collection'
+    ],
+    activities: [
+      {
+        id: 'resource-gallery',
+        type: 'interactive',
+        title: 'Resource Gallery (Videos, PDFs, Links)',
+        description: 'Curated collection of resources',
+        content: 'Interactive gallery of videos, PDFs, links, and other resources organized by topic.',
+        duration: 3,
+        engagement: 'high',
+        difficulty: 'beginner',
+        completionCriteria: 'Explore resource categories',
+        pointsAwarded: 8
+      },
+      {
+        id: 'template-launcher',
+        type: 'practice',
+        title: 'Template Launcher',
+        description: 'Lesson plans, email scripts, parent handouts',
+        content: 'Customizable templates for lesson plans, email scripts, parent handouts, and more.',
+        duration: 3,
+        engagement: 'high',
+        difficulty: 'intermediate',
+        completionCriteria: 'Customize at least one template',
+        pointsAwarded: 12
+      },
+      {
+        id: 'best-practice-snippets',
+        type: 'presentation',
+        title: 'Best-Practice Snippets',
+        description: 'AI-written talking points',
+        content: 'Ready-to-use talking points and best practice snippets generated by AI.',
+        duration: 1.5,
+        engagement: 'medium',
+        difficulty: 'intermediate',
+        completionCriteria: 'Review talking points',
+        pointsAwarded: 5
+      },
+      {
+        id: 'faq-chatbot',
+        type: 'interactive',
+        title: 'FAQ Chatbot (Embedded "Ask AI" Widget)',
+        description: 'Interactive AI assistance',
+        content: 'Embedded AI chatbot for asking questions about resources and best practices.',
+        duration: 0.5,
+        engagement: 'high',
+        difficulty: 'beginner',
+        completionCriteria: 'Interact with AI assistant',
+        pointsAwarded: 6
+      }
+    ],
+    assessmentMethod: 'Practical application through template customization',
+    reinforcementStrategy: 'Ongoing access to resources and AI support',
+    adaptiveElements: [
+      'Resources personalized to role and experience level',
+      'AI assistant learns from user interactions',
+      'Resource recommendations based on usage patterns'
+    ]
+  },
+
+  // Scenario-Driven Module Template (4-7 Sections | ~8 min)
+  {
+    id: 'scenario-driven-module',
+    title: 'Scenario-Driven Module',
+    category: 'Applied Learning',
+    description: 'Learners work through a single extended scenario with branching decisions and real-time feedback.',
+    totalDuration: 8,
+    learningObjectives: [
+      'Navigate complex real-world scenarios',
+      'Make informed decisions under pressure',
+      'Learn from consequences and feedback',
+      'Apply knowledge in authentic contexts'
+    ],
+    activities: [
+      {
+        id: 'scenario-setup',
+        type: 'storytelling',
+        title: 'Scenario Setup (Video or Text)',
+        description: 'Immersive scenario introduction',
+        content: 'Rich scenario setup through video or detailed text that establishes context and characters.',
+        duration: 2,
+        engagement: 'high',
+        difficulty: 'intermediate',
+        completionCriteria: 'Understand scenario context',
+        pointsAwarded: 5
+      },
+      {
+        id: 'decision-point-1',
+        type: 'scenario',
+        title: 'Decision Point #1 (Choose A/B/C → AI-Branch)',
+        description: 'First critical decision',
+        content: 'Present multiple choice decision with AI-powered branching based on selection.',
+        duration: 1.5,
+        engagement: 'high',
+        difficulty: 'intermediate',
+        completionCriteria: 'Make informed decision',
+        pointsAwarded: 8
+      },
+      {
+        id: 'feedback-micro-lesson',
+        type: 'presentation',
+        title: 'Feedback & Micro-Lesson',
+        description: 'Immediate learning from decision',
+        content: 'Immediate feedback on decision with micro-lesson explaining consequences.',
+        duration: 1.5,
+        engagement: 'medium',
+        difficulty: 'intermediate',
+        completionCriteria: 'Understand decision impact',
+        pointsAwarded: 6
+      },
+      {
+        id: 'decision-point-2',
+        type: 'scenario',
+        title: 'Decision Point #2',
+        description: 'Second critical decision',
+        content: 'Follow-up decision point that builds on previous choice and learning.',
+        duration: 1.5,
+        engagement: 'high',
+        difficulty: 'intermediate',
+        completionCriteria: 'Apply learned concepts',
+        pointsAwarded: 10
+      },
+      {
+        id: 'why-behind-it',
+        type: 'presentation',
+        title: 'Why Behind It',
+        description: 'Deeper understanding of principles',
+        content: 'Explanation of underlying principles and theory behind best practices.',
+        duration: 1,
+        engagement: 'medium',
+        difficulty: 'advanced',
+        completionCriteria: 'Understand underlying principles',
+        pointsAwarded: 7
+      },
+      {
+        id: 'reflection',
+        type: 'reflection',
+        title: 'Reflection',
+        description: 'Personal learning integration',
+        content: 'Guided reflection on scenario experience and personal application.',
+        duration: 0.5,
+        engagement: 'medium',
+        difficulty: 'intermediate',
+        completionCriteria: 'Complete reflection exercise',
+        pointsAwarded: 5
+      },
+      {
+        id: 'knowledge-check',
+        type: 'quiz',
+        title: 'Knowledge Check',
+        description: 'Scenario-based assessment',
+        content: 'Final knowledge check based on scenario experience and key learning points.',
+        duration: 0.5,
+        engagement: 'high',
+        difficulty: 'intermediate',
+        completionCriteria: 'Demonstrate scenario learning',
+        pointsAwarded: 9
+      }
+    ],
+    assessmentMethod: 'Decision-making quality and scenario navigation',
+    reinforcementStrategy: 'Immediate feedback and consequential learning',
+    adaptiveElements: [
+      'AI adjusts scenario complexity based on decisions',
+      'Personalized feedback based on decision patterns',
+      'Alternative scenario paths for different outcomes'
+    ]
+  },
+
+  // Keep one existing template for reference
   {
     id: 'conflict-resolution-basics',
     title: 'Conflict Resolution Fundamentals',
@@ -387,6 +878,8 @@ const getActivityTypeIcon = (type: string) => {
       return <BookOpen className="h-4 w-4" />;
     case 'gamification':
       return <Gamepad2 className="h-4 w-4" />;
+    case 'presentation':
+      return <Presentation className="h-4 w-4" />;
     default:
       return <Play className="h-4 w-4" />;
   }
@@ -421,28 +914,28 @@ const getDifficultyColor = (level: string) => {
 export default function MicroLearningTemplateSelector({ onSelectTemplate, onCustomModule }: MicroLearningTemplateSelectorProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<MicroModule | null>(null);
 
-  const categories = [...new Set(microLearningTemplates.map(template => template.category))];
+  const categories = [...new Set(moduleTemplates.map(template => template.category))];
   const totalPoints = selectedTemplate?.activities.reduce((sum, activity) => sum + activity.pointsAwarded, 0) || 0;
 
   return (
     <div className="space-y-6">
       <div className="text-center space-y-4">
-        <h2 className="text-2xl font-bold">Micro-Learning Module Templates</h2>
+        <h2 className="text-2xl font-bold">Pre-Designed Module Templates</h2>
         <p className="text-muted-foreground max-w-2xl mx-auto">
-          Create engaging bite-sized learning experiences with varied teaching methods, immediate feedback, and gamified progression.
+          Choose from 5 proven templates designed for different learning objectives and time constraints. Each template provides a structured approach to building engaging content.
         </p>
       </div>
 
       <Tabs defaultValue="templates" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="templates">Proven Templates</TabsTrigger>
+          <TabsTrigger value="templates">Pre-Designed Templates</TabsTrigger>
           <TabsTrigger value="custom">Build Custom</TabsTrigger>
         </TabsList>
 
         <TabsContent value="templates" className="space-y-6">
           {!selectedTemplate ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {microLearningTemplates.map((template) => (
+              {moduleTemplates.map((template) => (
                 <Card key={template.id} className="cursor-pointer transition-all hover:shadow-lg border-2 hover:border-primary/50 group" onClick={() => setSelectedTemplate(template)}>
                   <CardHeader>
                     <div className="flex items-start justify-between">
