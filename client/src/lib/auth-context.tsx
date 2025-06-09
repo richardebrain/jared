@@ -63,8 +63,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   
   // Clear any stored auth data on initial component mount
   useEffect(() => {
-    // Only clear auth state on the landing page, not on login or other pages
-    if (window.location.pathname === "/" && !sessionStorage.getItem('loginRedirecting')) {
+    // Only clear auth state on the landing page if explicitly requested
+    if (window.location.pathname === "/" && window.location.search.includes('clear=true')) {
       console.log("Clearing auth state on initial page load");
       try {
         localStorage.removeItem('isAuthenticated');
@@ -72,8 +72,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (e) {
         console.warn("Could not clear storage:", e);
       }
-    } else {
-      console.log("Initial session cleared on page load");
     }
     
     // Set initial load complete after first render
@@ -94,22 +92,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     error 
   } = useQuery<BaseUser>({
     queryKey: ['/api/auth/me'],
-    retry: (failureCount, error: any) => {
-      // Don't retry if we're on a public page and auth failed
-      if (isOnPublicPage() && (error?.response?.status === 401 || error?.response?.status === 403)) {
-        console.log('Auth failed on public page, not retrying');
-        setAuthFailed(true);
-        return false;
-      }
-      // Only retry once for other errors
-      return failureCount < 1;
-    },
-    retryDelay: 2000,
+    retry: false, // Disable retries to prevent session clearing loops
     refetchOnWindowFocus: false, // Disable refetch on window focus to prevent loops
-    refetchOnMount: !authFailed, // Don't refetch if auth has failed
-    staleTime: 120000, // 2 minutes
-    gcTime: 300000, // 5 minutes
-    enabled: !authFailed || !isOnPublicPage(), // Disable query if auth failed and we're on a public page
+    refetchOnMount: false, // Disable refetch on mount to prevent loops
+    staleTime: 300000, // 5 minutes
+    gcTime: 600000, // 10 minutes
+    enabled: !isOnPublicPage() && !authFailed, // Only fetch if not on public page and auth hasn't failed
   });
 
   // Apply data normalization to all users
