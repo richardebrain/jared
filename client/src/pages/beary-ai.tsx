@@ -35,7 +35,7 @@ export default function BearyAIPage() {
       }
 
       const data = await response.json();
-      setResponse(data.content || `I received your question about "${prompt}" but I'm currently having trouble generating a specific answer. Please try a different question about early childhood education topics like classroom management or child development.`);
+      setResponse(data.message || data.content || `I received your question about "${prompt}" but I'm currently having trouble generating a specific answer. Please try a different question about early childhood education topics like classroom management or child development.`);
       
       toast({
         title: "Response generated",
