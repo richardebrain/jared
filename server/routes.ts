@@ -48,6 +48,7 @@ import communityModulesRoutes from "./api/communityModulesRoutes";
 import selfAssessmentRoutes from "./api/selfAssessmentRoutes";
 import teacherInvitationRoutes from "./api/teacherInvitationRoutes";
 import avatarRoutes from "./api/avatarRoutes";
+import voiceRoutes from "./api/voiceRoutes";
 import emailRoutes from "./api/emailRoutes";
 import adminRoutes from "./routes/admin";
 import { AIBearyService } from "./services/aiBearyService";
@@ -5070,7 +5071,8 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
   // Register new AI suggestion routes (includes parent response)
   app.use("/api/ai", newAiSuggestionRoutes);
 
-
+  // Register voice routes for AI narration
+  app.use("/api/voice", voiceRoutes);
 
   return app;
 }
