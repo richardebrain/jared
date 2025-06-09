@@ -202,6 +202,13 @@ export default function GamesPage() {
               </Card>
             ) : (
               <div className="max-w-4xl mx-auto space-y-6">
+                <GameTokenMachine 
+                  userPoints={totalPoints} 
+                  onPointsUpdate={(newPoints) => {
+                    // Update points in the user context if needed
+                    queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+                  }} 
+                />
 
                 {isJLCookie && (
                   <Card className="bg-yellow-50 border-yellow-200">

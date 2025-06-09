@@ -199,7 +199,6 @@ export default function GameTokenMachine({ userPoints, onPointsUpdate }: GameTok
                 className={`border-2 ${game.borderColor} bg-gradient-to-br ${game.color} text-white transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer`}
                 onClick={() => {
                   playSound('select');
-                  setSelectedGame(game.id as 'bounce' | 'pacheal' | 'dash');
                 }}
               >
                 <CardHeader>
@@ -250,12 +249,12 @@ export default function GameTokenMachine({ userPoints, onPointsUpdate }: GameTok
                         disabled={userPoints < 1 || isLoading}
                         className="bg-white/20 hover:bg-white/30 text-white border border-white/30"
                       >
-                        {isLoading && selectedGame === game.id ? (
+                        {isLoading ? (
                           <Sparkles className="h-4 w-4 mr-2 animate-spin" />
                         ) : (
-                          <Play className="h-4 w-4 mr-2" />
+                          <ExternalLink className="h-4 w-4 mr-2" />
                         )}
-                        Play Now
+                        Open Game
                       </Button>
                     </div>
                   </div>
