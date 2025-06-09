@@ -4756,8 +4756,7 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
   // Register AI Module Designer routes
   app.use("/api/ai", aiModuleDesignerRoutes);
 
-  // Register Google Slides routes
-  app.use("/api/google-slides", googleSlidesRoutes);
+
 
   return app;
 }
