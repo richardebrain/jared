@@ -45,13 +45,13 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   rolling: true,
+  name: 'mentorme.sid',
   cookie: { 
-    secure: isProduction,
+    secure: false, // Allow HTTP for Replit deployment
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    sameSite: isProduction ? "none" : "lax",
-    path: '/',
-    domain: isProduction ? undefined : undefined
+    sameSite: "lax",
+    path: '/'
   },
   store: new PgSession({
     conString: process.env.DATABASE_URL,
@@ -66,13 +66,19 @@ app.use(session({
 
 // Authentication endpoints
 app.get("/api/auth/me", async (req, res) => {
-  if (!req.session.userId) {
+  console.log('Auth check - Session ID:', req.sessionID);
+  console.log('Auth check - Session data:', req.session);
+  
+  if (!req.session || !req.session.userId) {
+    console.log('Auth failed - No userId in session');
     return res.status(401).json({ message: "Unauthorized" });
   }
   
   try {
+    console.log('Auth successful - User ID:', req.session.userId);
     const user = await storage.getUser(req.session.userId);
     if (!user) {
+      console.log('Auth failed - User not found in database');
       req.session.destroy(() => {});
       return res.status(404).json({ message: "User not found" });
     }
@@ -97,6 +103,8 @@ app.post("/api/auth/login", async (req, res) => {
     
     // Set session before streak calculation
     req.session.userId = user.id;
+    console.log('Login successful - Setting session for user:', user.id);
+    console.log('Session ID after login:', req.sessionID);
     
     // Calculate and update streak using daily login tracking
     const today = new Date();
