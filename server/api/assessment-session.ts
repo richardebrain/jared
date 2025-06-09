@@ -1007,8 +1007,13 @@ router.get('/abandon', requireEligibleEducatorRole, async (req: Request, res: Re
  * 
  * Check user's assessment completion status and determine where to route them
  */
-router.get('/status', requireEligibleEducatorRole, async (req: Request, res: Response) => {
+router.get('/status', async (req: Request, res: Response) => {
   try {
+    // Simple session check without complex middleware
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+
     const userId = req.session.userId as number;
 
     // Check for completed assessments
