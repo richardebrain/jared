@@ -271,11 +271,14 @@ export default function Enhanced3DFrogger(): JSX.Element {
     try {
       await apiRequest('/api/user/points', {
         method: 'POST',
-        body: JSON.stringify({
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        data: {
           points: Math.floor(finalScore / 10),
           source: 'enhanced_frogger_3d',
           description: `Enhanced 3D Frogger - Level ${level} - ${questionsAnswered} questions`
-        })
+        }
       });
       
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });

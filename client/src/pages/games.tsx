@@ -191,6 +191,25 @@ export default function GamesPage() {
     );
   }
 
+  if (activeGame === 'enhanced-3d-frogger') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <Button 
+            onClick={handleBackToGames}
+            variant="outline" 
+            className="mb-4"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Games
+          </Button>
+          <Enhanced3DFrogger />
+        </div>
+      </div>
+    );
+  }
+
   if (activeGame === 'gate-open') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-100">
@@ -357,6 +376,44 @@ export default function GamesPage() {
                           >
                             <Trophy className="h-4 w-4 mr-2" />
                             Play Enhanced Game
+                          </Button>
+                        </CardContent>
+                      </Card>
+
+                      {/* Enhanced 3D Frogger Safety Game */}
+                      <Card className="hover:shadow-lg transition-shadow border-blue-200">
+                        <CardHeader>
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+                              <Gamepad2 className="h-6 w-6" />
+                            </div>
+                            <div>
+                              <CardTitle className="text-lg">Enhanced 3D Playground Safety</CardTitle>
+                              <div className="flex gap-2 mt-1">
+                                <Badge variant="outline" className="text-xs">3D Graphics</Badge>
+                                <Badge variant="secondary" className="text-xs">AI Difficulty</Badge>
+                                <Badge className="text-xs bg-red-100 text-red-800">EXTREME</Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-gray-600 mb-4">
+                            Ultimate playground safety challenge with 3D graphics, smart AI obstacles, and witty commentary system
+                          </p>
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-1 text-yellow-600">
+                              <Star className="h-4 w-4" />
+                              <span className="text-sm font-medium">Up to 750pts</span>
+                            </div>
+                            <Badge variant="outline" className="text-xs">Max Difficulty</Badge>
+                          </div>
+                          <Button 
+                            onClick={() => setActiveGame('enhanced-3d-frogger')}
+                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                          >
+                            <Trophy className="h-4 w-4 mr-2" />
+                            Play 3D Adventure
                           </Button>
                         </CardContent>
                       </Card>
