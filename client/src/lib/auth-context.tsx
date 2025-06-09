@@ -188,7 +188,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Use setTimeout to ensure state updates before redirect
       setTimeout(() => {
         queryClient.refetchQueries({ queryKey: ['/api/auth/me'] });
-      }, 100);
+        // Force redirect after state is updated
+        window.location.href = '/dashboard';
+      }, 200);
     },
     onError: (error: Error) => {
       console.error("Authentication error in context:", error);
