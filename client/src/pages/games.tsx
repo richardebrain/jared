@@ -79,6 +79,50 @@ export default function GamesPage() {
   const [dailyGameUsed, setDailyGameUsed] = useState(false);
   const [activeGame, setActiveGame] = useState<string | null>(null);
   
+  // Handle back to games from individual game
+  const handleBackToGames = () => {
+    setActiveGame(null);
+  };
+
+  // If user is playing a specific game, render that game
+  if (activeGame === 'transition-master') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <Button 
+            onClick={handleBackToGames}
+            variant="outline" 
+            className="mb-4"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Games
+          </Button>
+          <TransitionMaster />
+        </div>
+      </div>
+    );
+  }
+
+  if (activeGame === 'gate-open') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-100">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <Button 
+            onClick={handleBackToGames}
+            variant="outline" 
+            className="mb-4"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Games
+          </Button>
+          <WhoLeftTheGateOpen />
+        </div>
+      </div>
+    );
+  }
+  
   // Force a refresh of user data when the page loads
   useEffect(() => {
     // This ensures we get fresh user data when the games page loads
