@@ -2079,6 +2079,71 @@ Continue for all 5 questions...
     }
   });
 
+  // Points spending endpoint for games
+  app.post("/api/points/spend", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      const { points, reason, gameType } = req.body;
+
+      if (!points || points <= 0) {
+        return res.status(400).json({ message: "Valid points amount required" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user || user.points < points) {
+        return res.status(400).json({ message: "Insufficient points" });
+      }
+
+      // Deduct points from user
+      await storage.updateUser(userId, { 
+        points: user.points - points 
+      });
+
+      res.status(200).json({
+        success: true,
+        pointsSpent: points,
+        remainingPoints: user.points - points,
+        reason
+      });
+    } catch (error) {
+      console.error("Error spending points:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Points awarding endpoint for games
+  app.post("/api/points/award", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      const { points, reason, gameType } = req.body;
+
+      if (!points || points <= 0) {
+        return res.status(400).json({ message: "Valid points amount required" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Award points to user
+      await storage.updateUser(userId, { 
+        points: user.points + points,
+        lifetimePoints: user.lifetimePoints + points
+      });
+
+      res.status(200).json({
+        success: true,
+        pointsAwarded: points,
+        totalPoints: user.points + points,
+        reason
+      });
+    } catch (error) {
+      console.error("Error awarding points:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Assign owner privileges to another user
   app.post("/api/owner/assign", requireOwner, async (req, res) => {
     try {
