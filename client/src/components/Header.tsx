@@ -22,6 +22,32 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Bell, MessageSquare, AlertCircle, X } from "lucide-react";
 
+// Assessment Navigation Button Component
+function AssessmentNavButton({ location }: { location: string }) {
+  const { data: assessmentStatus } = useQuery({
+    queryKey: ["/api/assessment/status"],
+    staleTime: 30000, // Cache for 30 seconds to avoid excessive API calls
+  });
+
+  const handleAssessmentClick = () => {
+    const routeTo = assessmentStatus?.routeTo || '/assessment';
+    window.location.href = routeTo;
+  };
+
+  const isActive = location === "/assessment" || location === "/assessment/results";
+
+  return (
+    <div 
+      onClick={handleAssessmentClick}
+      className={`whitespace-nowrap font-medium px-3.5 py-1.5 rounded-full mx-1 text-sm ${isActive
+        ? "bg-amber-600 text-white shadow-sm" 
+        : "text-neutral-700 hover:bg-amber-100"} transition-all duration-200 cursor-pointer`}
+    >
+      Assessment
+    </div>
+  );
+}
+
 export default function Header() {
   // return <>hello</>
   const [location, setLocation] = useLocation();
@@ -160,13 +186,7 @@ export default function Header() {
               Progression
             </div>
           </Link>
-          <Link href="/assessment">
-            <div className={`whitespace-nowrap font-medium px-3.5 py-1.5 rounded-full mx-1 text-sm ${location === "/assessment" 
-              ? "bg-amber-600 text-white shadow-sm" 
-              : "text-neutral-700 hover:bg-amber-100"} transition-all duration-200 cursor-pointer`}>
-              Assessment
-            </div>
-          </Link>
+          <AssessmentNavButton location={location} />
           <Link to="/tools">
             <div className={`whitespace-nowrap font-medium px-3.5 py-1.5 rounded-full mx-1 text-sm ${location === "/tools" 
               ? "bg-amber-600 text-white shadow-sm" 
@@ -492,13 +512,7 @@ export default function Header() {
                 Teacher Progression
               </div>
             </Link>
-            <Link href="/assessment">
-              <div className={`py-2 px-4 rounded-md ${location === "/assessment" 
-                ? "bg-amber-600 text-white font-medium shadow-sm" 
-                : "text-neutral-700 hover:bg-amber-100"} cursor-pointer transition-colors`}>
-                Assessment
-              </div>
-            </Link>
+            <MobileAssessmentNavButton location={location} />
             <Link to="/tools">
               <div className={`py-2 px-4 rounded-md ${location === "/tools" 
                 ? "bg-amber-600 text-white font-medium shadow-sm" 

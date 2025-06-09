@@ -210,21 +210,51 @@ router.post('/start', requireEligibleEducatorRole, async (req: Request, res: Res
 
     console.log(`Assessment session start requested by user ${userId}`);
 
-    // Check one-time assessment rule (disabled for retakes)
-    // const oneTimeCheck = await checkOneTimeRule(userId);
-    // if (!oneTimeCheck.allowed) {
-    //   console.log(`One-time assessment rule violated for user ${userId}`);
-    //   return res.status(409).json({
-    //     message: "Assessment already completed",
-    //     details: "You have already completed your initial assessment. Each teacher can only take the initial assessment once.",
-    //     existingAssessment: {
-    //       id: oneTimeCheck.existingAssessment?.id,
-    //       completed: oneTimeCheck.existingAssessment?.completed,
-    //       completedAt: oneTimeCheck.existingAssessment?.completedAt,
-    //       createdAt: oneTimeCheck.existingAssessment?.createdAt
-    //     }
-    //   });
-    // }
+    // Check assessment retake permissions
+    const retakeCheck = await checkRetakePermissions(userId);
+    if (!retakeCheck.allowed) {
+      console.log(`Assessment retake not permitted for user ${userId}`);
+      
+      if (retakeCheck.needsPermission) {
+        return res.status(403).json({
+          message: "Assessment retake requires admin approval",
+          details: "You have already completed your initial assessment. To retake the assessment, please request permission from your school administrator.",
+          existingAssessment: {
+            id: retakeCheck.existingAssessment?.id,
+            completed: retakeCheck.existingAssessment?.completed,
+            completedAt: retakeCheck.existingAssessment?.completedAt,
+            createdAt: retakeCheck.existingAssessment?.createdAt
+          },
+          requiresPermission: true
+        });
+      }
+      
+      return res.status(409).json({
+        message: "Assessment already completed",
+        details: "You have already completed your initial assessment.",
+        existingAssessment: {
+          id: retakeCheck.existingAssessment?.id,
+          completed: retakeCheck.existingAssessment?.completed,
+          completedAt: retakeCheck.existingAssessment?.completedAt,
+          createdAt: retakeCheck.existingAssessment?.createdAt
+        }
+      });
+    }
+
+    // If using a retake permission, mark it as used
+    if (retakeCheck.hasValidPermission) {
+      await db.update(assessmentRetakePermissions)
+        .set({ 
+          used: true, 
+          usedAt: new Date() 
+        })
+        .where(and(
+          eq(assessmentRetakePermissions.userId, userId),
+          eq(assessmentRetakePermissions.status, 'approved'),
+          eq(assessmentRetakePermissions.used, false)
+        ));
+      console.log(`Marked retake permission as used for user ${userId}`);
+    }
 
     // Load assessment configuration
     const config = await loadAssessmentConfig(user.schoolId);
@@ -969,6 +999,50 @@ router.get('/abandon', requireEligibleEducatorRole, async (req: Request, res: Re
       message: "Failed to abandon session",
       details: "An error occurred while abandoning the assessment session."
     });
+  }
+});
+
+/**
+ * GET /api/assessment/status
+ * 
+ * Check user's assessment completion status and determine where to route them
+ */
+router.get('/status', requireEligibleEducatorRole, async (req: Request, res: Response) => {
+  try {
+    const userId = req.session.userId as number;
+
+    // Check for completed assessments
+    const completedAssessments = await db.select()
+      .from(assessments)
+      .where(and(
+        eq(assessments.userId, userId),
+        eq(assessments.type, 'initial'),
+        eq(assessments.completed, true)
+      ))
+      .orderBy(desc(assessments.completedAt))
+      .limit(1);
+
+    // Check for any existing assessment results
+    const assessmentResults = await db.select()
+      .from(assessmentResults)
+      .where(eq(assessmentResults.userId, userId))
+      .orderBy(desc(assessmentResults.createdAt))
+      .limit(1);
+
+    const hasCompletedAssessment = completedAssessments.length > 0;
+    const hasResults = assessmentResults.length > 0;
+
+    return res.json({
+      hasCompletedAssessment,
+      hasResults,
+      routeTo: hasCompletedAssessment || hasResults ? '/assessment/results' : '/assessment',
+      lastCompletedAt: completedAssessments[0]?.completedAt || null,
+      canRetake: false // Will be determined by permission system
+    });
+
+  } catch (error) {
+    console.error('Error checking assessment status:', error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
