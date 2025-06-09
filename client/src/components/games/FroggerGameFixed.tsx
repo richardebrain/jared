@@ -100,15 +100,15 @@ const safetyQuestions: SafetyQuestion[] = [
   },
   {
     id: 3,
-    question: "What is the proper adult-to-child ratio for preschool outdoor activities?",
+    question: "What should you do first when you notice a child is missing during outdoor play?",
     options: [
-      "1 adult for every 15 children",
-      "1 adult for every 10 children",
-      "1 adult for every 8 children",
-      "1 adult for every 6 children"
+      "Call the police immediately",
+      "Check all nearby areas and count remaining children",
+      "Wait to see if they return on their own",
+      "Continue activities as normal"
     ],
-    correctAnswer: 2,
-    explanation: "A 1:8 ratio ensures adequate supervision while allowing children to explore safely."
+    correctAnswer: 1,
+    explanation: "Immediately check all areas while securing remaining children, then follow emergency protocols if child is not found quickly."
   },
   {
     id: 4,
@@ -346,6 +346,23 @@ export default function FroggerGame(): JSX.Element {
         // Reset streaks
         setStats(prev => ({ ...prev, dodgeStreak: 0, combos: 0 }));
         
+        // Trigger safety question after collision (learning from mistakes)
+        if (!currentQuestion && Math.random() < 0.7) {
+          setTimeout(() => {
+            const question = selectRandomQuestion();
+            setCurrentQuestion(question);
+            setTotalQuestions(prev => prev + 1);
+            setGameState('question');
+            playSound(800, 0.2, 'sine');
+            
+            toast({
+              title: "Safety Reflection",
+              description: "Learn from this mistake! Answer correctly to continue.",
+              variant: "default"
+            });
+          }, 1000);
+        }
+        
         // Lose life and reset position
         setPlayer(prev => {
           const newLives = prev.lives - 1;
@@ -382,7 +399,7 @@ export default function FroggerGame(): JSX.Element {
   // Enhanced obstacle spawning with varied patterns
   const spawnObstacle = useCallback(() => {
     const now = Date.now();
-    if (now - lastObstacleSpawn.current < 800 - (level * 50)) return;
+    if (now - lastObstacleSpawn.current < 400 - (level * 30)) return;
     
     // Don't spawn on safe zones or player start row
     const availableRows = Array.from({ length: ROWS }, (_, i) => i)
@@ -718,20 +735,7 @@ export default function FroggerGame(): JSX.Element {
       
       setPlayer(prev => ({ ...prev, row: newRow, col: newCol }));
       
-      // Trigger question with visual indicator
-      if (Math.random() < 0.15 && !currentQuestion && stats.dodgeStreak > 0 && stats.dodgeStreak % 8 === 0) {
-        const question = selectRandomQuestion();
-        setCurrentQuestion(question);
-        setTotalQuestions(prev => prev + 1);
-        setGameState('question');
-        playSound(800, 0.2, 'sine'); // Question alert sound
-        
-        toast({
-          title: "Safety Challenge!",
-          description: "Answer correctly to earn bonus XP and continue your streak!",
-          variant: "default"
-        });
-      }
+      // Questions no longer trigger from movement - will trigger from collisions instead
     };
     
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -837,7 +841,30 @@ export default function FroggerGame(): JSX.Element {
       hasShield: false
     });
     setCheckpoint(PLAYER_START_ROW);
-    setObstacles([]);
+    
+    // Pre-spawn initial obstacles to prevent easy run-across
+    const initialObstacles: Obstacle[] = [];
+    for (let i = 2; i < ROWS - 2; i++) {
+      if (i !== SAFE_ZONE_ROW) {
+        const types = ['car', 'bike', 'stroller', 'snack-cart'] as const;
+        const type = types[Math.floor(Math.random() * types.length)];
+        const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'];
+        
+        initialObstacles.push({
+          id: Date.now() + i,
+          x: i % 2 === 0 ? Math.random() * CANVAS_WIDTH * 0.6 : CANVAS_WIDTH - (Math.random() * CANVAS_WIDTH * 0.6),
+          row: i,
+          width: 40,
+          height: LANE_HEIGHT - 10,
+          speed: (i % 2 === 0 ? 1 : -1) * (1.5 + Math.random()),
+          type,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          size: 'medium'
+        });
+      }
+    }
+    
+    setObstacles(initialObstacles);
     setPowerUps([]);
     setParticles([]);
     setStats({
@@ -851,6 +878,7 @@ export default function FroggerGame(): JSX.Element {
     });
     setActiveBuffs({});
     startTimeRef.current = Date.now();
+    lastObstacleSpawn.current = Date.now();
   };
 
   const handleQuestionAnswer = (answerIndex: number) => {
@@ -937,8 +965,8 @@ export default function FroggerGame(): JSX.Element {
                 <li>• On-screen buttons available on mobile</li>
                 <li>• Avoid obstacles crossing lanes</li>
                 <li>• Collect power-ups for special abilities</li>
-                <li>• Safety questions appear every 8 moves</li>
-                <li>• Correct answers give bonus XP and streak multipliers</li>
+                <li>• Safety questions appear after collisions</li>
+                <li>• Learn from mistakes with educational content</li>
                 <li>• Reach the top to advance levels</li>
               </ul>
             </div>
