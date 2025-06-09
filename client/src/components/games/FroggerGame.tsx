@@ -541,7 +541,7 @@ export default function FroggerGame() {
     };
   }, [gameLoop]);
 
-  // Rendering
+  // Enhanced rendering with modern visual effects
   useEffect(() => {
     if (gameState !== 'playing') return;
 
@@ -551,37 +551,68 @@ export default function FroggerGame() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Clear canvas
-    ctx.fillStyle = '#E6F3FF';
+    // Clear canvas with gradient background
+    const gradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+    gradient.addColorStop(0, '#E6F3FF');
+    gradient.addColorStop(0.5, '#F0F8FF');
+    gradient.addColorStop(1, '#E0F6FF');
+    ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Draw lanes
+    // Draw enhanced lanes with procedural types
     for (let row = 0; row < ROWS; row++) {
       const y = row * LANE_HEIGHT;
+      const config = laneConfigs[row];
       
+      // Lane background based on type
       if (row === GOAL_ROW) {
-        ctx.fillStyle = 'rgba(50, 205, 50, 0.3)';
+        ctx.fillStyle = 'rgba(50, 205, 50, 0.4)';
       } else if (row === SAFE_ZONE_ROW) {
-        ctx.fillStyle = 'rgba(100, 149, 237, 0.3)';
+        ctx.fillStyle = 'rgba(100, 149, 237, 0.4)';
       } else if (row === PLAYER_START_ROW || row === ROWS - 1) {
         ctx.fillStyle = 'rgba(100, 149, 237, 0.3)';
       } else {
-        ctx.fillStyle = row % 2 === 0 ? 'rgba(128, 128, 128, 0.1)' : 'rgba(64, 64, 64, 0.1)';
+        // Enhanced lane visuals based on type
+        switch (config.type) {
+          case 'rush-hour':
+            ctx.fillStyle = 'rgba(255, 100, 100, 0.2)';
+            break;
+          case 'slow-mo':
+            ctx.fillStyle = 'rgba(100, 255, 100, 0.2)';
+            break;
+          case 'power-up':
+            ctx.fillStyle = 'rgba(255, 215, 0, 0.2)';
+            break;
+          case 'quiz-gate':
+            ctx.fillStyle = 'rgba(138, 43, 226, 0.2)';
+            break;
+          default:
+            ctx.fillStyle = row % 2 === 0 ? 'rgba(128, 128, 128, 0.1)' : 'rgba(64, 64, 64, 0.1)';
+        }
       }
       
       ctx.fillRect(0, y, CANVAS_WIDTH, LANE_HEIGHT);
       
-      // Lane dividers
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-      ctx.lineWidth = 1;
+      // Enhanced lane dividers
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(0, y + LANE_HEIGHT);
       ctx.lineTo(CANVAS_WIDTH, y + LANE_HEIGHT);
       ctx.stroke();
+      
+      // Lane type indicators
+      if (config.type !== 'normal' && laneDirections[row] !== 0) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'left';
+        const label = config.type.replace('-', ' ').toUpperCase();
+        ctx.fillText(label, 5, y + 15);
+      }
     }
 
-    // Draw grid
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    // Draw grid with subtle enhancement
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
     ctx.lineWidth = 0.5;
     for (let col = 0; col <= COLS; col++) {
       ctx.beginPath();
@@ -590,27 +621,101 @@ export default function FroggerGame() {
       ctx.stroke();
     }
 
-    // Draw obstacles
+    // Draw enhanced obstacles with oscillation and size variety
     obstacles.forEach(obstacle => {
-      ctx.fillStyle = obstacle.color;
-      ctx.fillRect(obstacle.x, obstacle.row * LANE_HEIGHT + 5, obstacle.width, obstacle.height);
+      const baseY = obstacle.row * LANE_HEIGHT + 5;
+      const oscillateY = obstacle.oscillating ? Math.sin(obstacle.oscillateOffset || 0) * 8 : 0;
       
-      // Add simple visual indicators
+      // Shadow effect
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+      ctx.fillRect(obstacle.x + 2, baseY + oscillateY + 2, obstacle.width, obstacle.height);
+      
+      // Main obstacle
+      ctx.fillStyle = obstacle.color;
+      ctx.fillRect(obstacle.x, baseY + oscillateY, obstacle.width, obstacle.height);
+      
+      // Enhanced visual indicators based on type and size
       ctx.fillStyle = '#FFF';
-      ctx.font = '16px Arial';
+      ctx.font = `${obstacle.size === 'large' ? '20px' : obstacle.size === 'small' ? '12px' : '16px'} Arial`;
       ctx.textAlign = 'center';
       const centerX = obstacle.x + obstacle.width / 2;
-      const centerY = obstacle.row * LANE_HEIGHT + LANE_HEIGHT / 2 + 5;
+      const centerY = baseY + oscillateY + obstacle.height / 2 + 5;
       
-      if (obstacle.type === 'car') ctx.fillText('🚗', centerX, centerY);
-      else if (obstacle.type === 'bike') ctx.fillText('🚲', centerX, centerY);
-      else if (obstacle.type === 'stroller') ctx.fillText('🍼', centerX, centerY);
+      const icons = {
+        car: '🚗', bike: '🚲', stroller: '🍼', 
+        'snack-cart': '🛒', scooter: '🛴', 'meltdown-monster': '👹'
+      };
+      ctx.fillText(icons[obstacle.type] || '⚫', centerX, centerY);
+      
+      // Time warp effect
+      if (activeBuffs.timeWarp) {
+        ctx.strokeStyle = 'rgba(147, 112, 219, 0.8)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY - 5, obstacle.width / 2 + 5, 0, Math.PI * 2);
+        ctx.stroke();
+      }
     });
 
-    // Draw player
+    // Draw power-ups with glow effects
+    powerUps.forEach(powerUp => {
+      if (powerUp.collected) return;
+      
+      const powerUpY = powerUp.row * LANE_HEIGHT + LANE_HEIGHT / 2;
+      
+      // Glow effect
+      const glowGradient = ctx.createRadialGradient(powerUp.x, powerUpY, 0, powerUp.x, powerUpY, 20);
+      glowGradient.addColorStop(0, powerUp.color + 'AA');
+      glowGradient.addColorStop(1, powerUp.color + '00');
+      ctx.fillStyle = glowGradient;
+      ctx.fillRect(powerUp.x - 20, powerUpY - 20, 40, 40);
+      
+      // Power-up icon
+      ctx.fillStyle = powerUp.color;
+      ctx.beginPath();
+      ctx.arc(powerUp.x, powerUpY, 12, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#FFF';
+      ctx.font = 'bold 14px Arial';
+      ctx.textAlign = 'center';
+      const powerUpIcons = {
+        shield: '🛡️', turbo: '🚀', 'sticker-storm': '⭐', 
+        'team-rally': '👥', 'time-warp': '🌀'
+      };
+      ctx.fillText(powerUpIcons[powerUp.type] || '⚡', powerUp.x, powerUpY + 4);
+    });
+
+    // Draw particle effects
+    particles.forEach(particle => {
+      const alpha = particle.life / particle.maxLife;
+      ctx.fillStyle = particle.color + Math.floor(alpha * 255).toString(16).padStart(2, '0');
+      ctx.beginPath();
+      ctx.arc(particle.x, particle.y, particle.size * alpha, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Draw enhanced player with shields and invulnerability
     const playerX = player.col * GRID_SIZE;
     const playerY = player.row * LANE_HEIGHT;
     
+    // Invulnerability flashing
+    const alpha = player.isInvulnerable && Math.floor(Date.now() / 100) % 2 ? 0.5 : 1;
+    
+    // Shield effect
+    if (player.hasShield || activeBuffs.shield) {
+      const shieldGradient = ctx.createRadialGradient(
+        playerX + GRID_SIZE/2, playerY + GRID_SIZE/2, 0,
+        playerX + GRID_SIZE/2, playerY + GRID_SIZE/2, GRID_SIZE
+      );
+      shieldGradient.addColorStop(0, 'rgba(65, 105, 225, 0.3)');
+      shieldGradient.addColorStop(1, 'rgba(65, 105, 225, 0)');
+      ctx.fillStyle = shieldGradient;
+      ctx.fillRect(playerX - 10, playerY - 10, GRID_SIZE + 20, GRID_SIZE + 20);
+    }
+    
+    // Player body
+    ctx.globalAlpha = alpha;
     ctx.fillStyle = '#4682B4';
     ctx.fillRect(playerX + 2, playerY + 2, GRID_SIZE - 4, GRID_SIZE - 4);
     
@@ -626,20 +731,52 @@ export default function FroggerGame() {
     ctx.arc(playerX + GRID_SIZE/2 - 3, playerY + GRID_SIZE/3 - 2, 1, 0, Math.PI * 2);
     ctx.arc(playerX + GRID_SIZE/2 + 3, playerY + GRID_SIZE/3 - 2, 1, 0, Math.PI * 2);
     ctx.fill();
+    ctx.globalAlpha = 1;
 
-    // HUD
-    ctx.fillStyle = '#2F4F2F';
-    ctx.fillRect(0, 0, CANVAS_WIDTH, 30);
+    // Enhanced HUD with modern styling
+    const hudGradient = ctx.createLinearGradient(0, 0, 0, 35);
+    hudGradient.addColorStop(0, 'rgba(47, 79, 79, 0.95)');
+    hudGradient.addColorStop(1, 'rgba(47, 79, 79, 0.8)');
+    ctx.fillStyle = hudGradient;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, 35);
+
+    // HUD content with enhanced layout
     ctx.fillStyle = '#F5F5DC';
-    ctx.font = 'bold 16px Arial';
+    ctx.font = 'bold 14px Arial';
     ctx.textAlign = 'left';
-    ctx.fillText(`Score: ${score}`, 10, 20);
-    ctx.fillText(`Lives: ${player.lives}`, 150, 20);
-    ctx.fillText(`Level: ${level}`, 250, 20);
-    ctx.textAlign = 'right';
-    ctx.fillText('Arrow keys to move • Reach the green zone!', CANVAS_WIDTH - 10, 20);
+    ctx.fillText(`Score: ${score}`, 10, 22);
+    ctx.fillText(`Lives: ${player.lives}`, 120, 22);
+    ctx.fillText(`Level: ${level}`, 200, 22);
+    ctx.fillText(`XP: ${player.xp}`, 280, 22);
+    ctx.fillText(`Coins: ${stats.coins}`, 360, 22);
+    
+    // Active buffs indicator
+    let buffX = 450;
+    Object.keys(activeBuffs).forEach(buff => {
+      ctx.fillStyle = '#FFD700';
+      ctx.font = '12px Arial';
+      const timeLeft = Math.ceil(activeBuffs[buff] / 1000);
+      ctx.fillText(`${buff.toUpperCase()}: ${timeLeft}s`, buffX, 22);
+      buffX += 100;
+    });
+    
+    // Combo indicators
+    if (praisePowerActive) {
+      ctx.fillStyle = '#FF69B4';
+      ctx.font = 'bold 16px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('PRAISE POWER!', CANVAS_WIDTH / 2, 22);
+    }
+    
+    // Streak indicator
+    if (stats.dodgeStreak >= 3) {
+      ctx.fillStyle = '#32CD32';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'right';
+      ctx.fillText(`${stats.dodgeStreak} Streak!`, CANVAS_WIDTH - 10, 22);
+    }
 
-  }, [gameState, player, obstacles, score, level]);
+  }, [gameState, player, obstacles, powerUps, particles, score, level, stats, activeBuffs, praisePowerActive, laneConfigs, laneDirections]);
 
   const startGame = () => {
     setGameState('playing');
