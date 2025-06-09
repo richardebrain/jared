@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
 // Game constants
 const CANVAS_WIDTH = 800;
@@ -266,6 +267,28 @@ export default function FroggerGame(): JSX.Element {
   // Enhanced visual effects
   const [activeBuffs, setActiveBuffs] = useState<Record<string, number>>({});
   const [checkpoint, setCheckpoint] = useState(PLAYER_START_ROW);
+  
+  // Points system integration
+  const awardPoints = useCallback(async (points: number, reason: string) => {
+    try {
+      await apiRequest('/api/points/award', {
+        method: 'POST',
+        data: { 
+          points, 
+          reason,
+          gameType: 'frogger-safety'
+        }
+      });
+      
+      toast({
+        title: "Points Earned!",
+        description: `+${points} points for ${reason}`,
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Failed to award points:', error);
+    }
+  }, [toast]);
 
   // Audio system using Web Audio API
   const playSound = useCallback((frequency: number, duration: number, type: OscillatorType = 'sine') => {
@@ -703,6 +726,11 @@ export default function FroggerGame(): JSX.Element {
       setGameState('levelComplete');
       playSound(523, 0.5, 'sine'); // C5 note
       setScore(prev => prev + 100 * level);
+      
+      // Award points based on level (2-10 points, max 10 for completing all levels)
+      const pointsEarned = Math.min(2 + level - 1, 10);
+      awardPoints(pointsEarned, `Level ${level} Completion`);
+      
       return;
     }
     
@@ -927,13 +955,33 @@ export default function FroggerGame(): JSX.Element {
   };
 
   const nextLevel = () => {
-    setLevel(prev => prev + 1);
+    const nextLevelNumber = level + 1;
+    
+    // Check if this is level 10 completion (maximum level for full game completion)
+    if (level >= 10) {
+      // Award maximum completion bonus for finishing all levels
+      awardPoints(10, "Game Completion - All Levels Mastered");
+      
+      toast({
+        title: "Game Master Achievement!",
+        description: "You've completed all 10 levels! Maximum 10 points awarded.",
+        variant: "default"
+      });
+      
+      setGameState('gameOver');
+      return;
+    }
+    
+    setLevel(nextLevelNumber);
     setPlayer(prev => ({ ...prev, row: PLAYER_START_ROW, col: Math.floor(COLS / 2) }));
     setCheckpoint(PLAYER_START_ROW);
     setObstacles([]);
     setPowerUps([]);
     setParticles([]);
     setGameState('playing');
+    
+    // Reset spawn timer for new level
+    lastObstacleSpawn.current = Date.now();
   };
 
   // Render game states
