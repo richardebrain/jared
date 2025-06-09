@@ -38,23 +38,29 @@ const server = createServer(app);
 
 // Setup session middleware
 const PgSession = connectPgSimple(session);
+const isProduction = process.env.NODE_ENV === 'production';
+
 app.use(session({
-  secret: process.env.SESSION_SECRET || "mentor-me-secret",
-  resave: true,
-  saveUninitialized: true,
+  secret: process.env.SESSION_SECRET || "mentor-me-secret-dev-only",
+  resave: false,
+  saveUninitialized: false,
   rolling: true,
   cookie: { 
-    secure: false,
+    secure: isProduction,
     httpOnly: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-    sameSite: "lax",
-    path: '/'
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    sameSite: isProduction ? "none" : "lax",
+    path: '/',
+    domain: isProduction ? undefined : undefined
   },
   store: new PgSession({
     conString: process.env.DATABASE_URL,
     tableName: 'sessions',
     createTableIfMissing: true,
     pruneSessionInterval: 24 * 60 * 60,
+    errorLog: (error) => {
+      console.error('Session store error:', error);
+    }
   })
 }));
 
@@ -239,9 +245,7 @@ app.get('/api/streak/silver-box-eligibility', (req, res) => {
  // res.json({ completedModules: 0, totalPoints: 100 });
 //});
 
-app.get('/api/auth/clear-session', (req, res) => {
-  res.json({ success: true });
-});
+
 
 app.get('/api/personalized-modules/:id', (req, res) => {
   res.json([]);

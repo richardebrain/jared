@@ -6,7 +6,7 @@ import {
   users,
   type AssessmentQuestion
 } from '@shared/schema';
-import { eq, and, sql, isNull, notInArray, SQL } from 'drizzle-orm';
+import { eq, and, sql, isNull, notInArray, inArray, SQL } from 'drizzle-orm';
 
 export interface QuestionFilterCriteria {
   domainId?: number;
@@ -170,7 +170,7 @@ export class QuestionPoolService {
       .from(questionAvailability)
       .where(and(
         eq(questionAvailability.schoolId, schoolId),
-        sql`${questionAvailability.questionId} = ANY(${questionIds})`
+        inArray(questionAvailability.questionId, questionIds)
       ));
 
     // Create availability map
