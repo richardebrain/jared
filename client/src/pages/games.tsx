@@ -325,9 +325,9 @@ export default function GamesPage() {
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-1 text-yellow-600">
                               <Star className="h-4 w-4" />
-                              <span className="text-sm font-medium">Up to 30pts</span>
+                              <span className="text-sm font-medium">Up to 10pts</span>
                             </div>
-                            <Badge variant="outline" className="text-xs">3 Levels</Badge>
+                            <Badge variant="outline" className="text-xs">10 Levels</Badge>
                           </div>
                           <Button 
                             onClick={() => setActiveGame('gate-open')}
