@@ -173,21 +173,21 @@ router.post('/start', requireEligibleEducatorRole, async (req: Request, res: Res
 
     console.log(`Assessment session start requested by user ${userId}`);
 
-    // Check one-time assessment rule
-    const oneTimeCheck = await checkOneTimeRule(userId);
-    if (!oneTimeCheck.allowed) {
-      console.log(`One-time assessment rule violated for user ${userId}`);
-      return res.status(409).json({
-        message: "Assessment already completed",
-        details: "You have already completed your initial assessment. Each teacher can only take the initial assessment once.",
-        existingAssessment: {
-          id: oneTimeCheck.existingAssessment?.id,
-          completed: oneTimeCheck.existingAssessment?.completed,
-          completedAt: oneTimeCheck.existingAssessment?.completedAt,
-          createdAt: oneTimeCheck.existingAssessment?.createdAt
-        }
-      });
-    }
+    // Check one-time assessment rule (disabled for retakes)
+    // const oneTimeCheck = await checkOneTimeRule(userId);
+    // if (!oneTimeCheck.allowed) {
+    //   console.log(`One-time assessment rule violated for user ${userId}`);
+    //   return res.status(409).json({
+    //     message: "Assessment already completed",
+    //     details: "You have already completed your initial assessment. Each teacher can only take the initial assessment once.",
+    //     existingAssessment: {
+    //       id: oneTimeCheck.existingAssessment?.id,
+    //       completed: oneTimeCheck.existingAssessment?.completed,
+    //       completedAt: oneTimeCheck.existingAssessment?.completedAt,
+    //       createdAt: oneTimeCheck.existingAssessment?.createdAt
+    //     }
+    //   });
+    // }
 
     // Load assessment configuration
     const config = await loadAssessmentConfig(user.schoolId);
