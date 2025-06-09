@@ -51,7 +51,8 @@ import {
   Heart,
   Link,
   Target,
-  Music
+  Music,
+  HelpCircle
 } from 'lucide-react';
 import StepByStepModuleBuilder from '@/components/StepByStepModuleBuilder';
 import PowerPointImporter from '@/components/PowerPointImporter';
