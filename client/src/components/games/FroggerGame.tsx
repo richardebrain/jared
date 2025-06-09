@@ -204,7 +204,7 @@ export default function FroggerGame() {
     }
   }, []);
 
-  // Grid-based movement system
+  // Grid-snap movement with instant feedback and easing
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (gameState !== 'playing' || keysRef.current.has(e.key)) return;
@@ -218,6 +218,7 @@ export default function FroggerGame() {
       let newRow = player.row;
       let newCol = player.col;
       
+      // Grid-snap movement: exactly one lane/column per keypress
       switch (e.key) {
         case 'ArrowUp':
           newRow = Math.max(0, player.row - 1);
@@ -235,19 +236,54 @@ export default function FroggerGame() {
       
       if (newRow !== player.row || newCol !== player.col) {
         setPlayer(prev => ({ ...prev, row: newRow, col: newCol }));
-        playSound(220, 50);
         
-        // Check for goal
+        // Instant audio stingers - "Boop!" for movement
+        playSound(220 + newRow * 15, 80, 'sine');
+        
+        // Particle feedback for smooth visual response
+        createParticles(newCol * GRID_SIZE, newRow * LANE_HEIGHT, '#4CAF50', 5);
+        
+        // Check for goal completion
         if (newRow === GOAL_ROW) {
-          playSound(523, 200, 'square');
-          setScore(prev => prev + 100);
-          setGameState('levelComplete');
+          playSound(523, 200, 'square'); // Success sound
+          setScore(prev => prev + 100 + level * 50);
+          setPlayer(prev => ({ ...prev, xp: prev.xp + 25 }));
+          
+          if (gameMode === 'normal' && level < 3) {
+            nextLevel();
+          } else {
+            setGameState('levelComplete');
+          }
+          return;
         }
         
-        // Update checkpoint
+        // Mid-lane checkpoint system for flow preservation
         if (newRow === SAFE_ZONE_ROW && newRow < checkpoint) {
           setCheckpoint(newRow);
-          playSound(349, 100);
+          playSound(349, 150, 'triangle'); // Checkpoint sound
+          createParticles(newCol * GRID_SIZE, newRow * LANE_HEIGHT, '#FFD700', 12);
+          toast({ title: "Checkpoint!", description: "Progress saved" });
+        }
+        
+        // Combo meter for dodge streaks
+        if (Math.abs(newRow - player.row) === 1 && newRow !== GOAL_ROW) {
+          setStats(prev => {
+            const newDodgeStreak = prev.dodgeStreak + 1;
+            
+            // 5 dodge streak triggers "Praise Power"
+            if (newDodgeStreak >= 5) {
+              setPraisePowerActive(true);
+              setPraisePowerTimer(5000); // 5 seconds
+              toast({ title: "Praise Power!", description: "2x points for 5 seconds!" });
+              playSound(440, 300, 'sawtooth');
+            }
+            
+            return {
+              ...prev,
+              dodgeStreak: newDodgeStreak,
+              totalDodges: prev.totalDodges + 1
+            };
+          });
         }
       }
     };
@@ -528,18 +564,158 @@ export default function FroggerGame() {
     }
   }, [player, toast, createParticles]);
 
-  // Game loop effect
+  // Optimized 60 FPS game loop with requestAnimationFrame and delta time
   useEffect(() => {
     if (gameState !== 'playing') return;
 
-    gameLoopRef.current = setInterval(gameLoop, 16); // ~60fps
+    let animationId: number;
+    let lastTime = performance.now();
+    const targetFPS = 60;
+    const frameTime = 1000 / targetFPS;
 
+    const optimizedGameLoop = (frameTime: number) => {
+      const deltaTime = Math.min(frameTime - lastTime, frameTime * 2); // Cap delta for stability
+      const dt = deltaTime / 1000; // Convert to seconds for smooth movement
+      lastTime = frameTime;
+
+      // Move obstacles with delta time for consistent speed across devices
+      setObstacles(prev => prev.map(obstacle => {
+        const direction = laneDirections[obstacle.row];
+        const baseSpeed = 120; // pixels per second
+        let newX = obstacle.x + (baseSpeed * obstacle.speed * direction * dt);
+
+        // Smooth wrapping with buffer
+        if (newX > CANVAS_WIDTH + 50) {
+          newX = -obstacle.width - 50;
+        } else if (newX < -obstacle.width - 50) {
+          newX = CANVAS_WIDTH + 50;
+        }
+
+        // Smooth oscillation for special obstacles
+        if (obstacle.oscillating && obstacle.oscillateOffset !== undefined) {
+          obstacle.oscillateOffset += dt * 5; // 5 radians per second
+        }
+
+        return { ...obstacle, x: newX };
+      }));
+
+      // Spawn obstacles with consistent timing using per-lane intervals
+      const spawnTime = performance.now();
+      for (let row = 1; row < ROWS - 1; row++) {
+        if (row === SAFE_ZONE_ROW || row === GOAL_ROW) continue;
+        
+        const config = laneConfigs[row];
+        if (!config || config.spawnInterval === 0) continue;
+        
+        if (spawnTime - config.lastSpawn > config.spawnInterval) {
+          const direction = laneDirections[row];
+          const startX = direction > 0 ? -60 : CANVAS_WIDTH + 10;
+          
+          const obstacleTypes = ['car', 'bike', 'stroller', 'snack-cart', 'scooter'];
+          const type = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)] as Obstacle['type'];
+          const size: Obstacle['size'] = type === 'bike' || type === 'scooter' ? 'small' : 'medium';
+          const baseWidth = size === 'small' ? 30 : 45;
+          
+          const colors = {
+            car: '#FF6B6B',
+            bike: '#4ECDC4', 
+            stroller: '#45B7D1',
+            'snack-cart': '#96CEB4',
+            scooter: '#FECA57',
+            'meltdown-monster': '#FF9FF3'
+          };
+          
+          setObstacles(prev => [...prev, {
+            id: spawnTime + row,
+            x: startX,
+            row,
+            width: baseWidth,
+            height: GRID_SIZE - 10,
+            speed: 0.8 + level * 0.1,
+            type,
+            color: colors[type],
+            size,
+            oscillating: false,
+            oscillateOffset: 0
+          }].slice(-50)); // Performance cap
+          
+          config.lastSpawn = spawnTime;
+        }
+      }
+
+      // Update particles with delta time and performance cap
+      setParticles(prev => prev.filter(particle => {
+        particle.x += particle.vx * dt * 60;
+        particle.y += particle.vy * dt * 60;
+        particle.life -= dt * 60;
+        particle.vy += 0.3 * dt * 60; // Gravity effect
+        return particle.life > 0;
+      }).slice(-30)); // Performance cap: max 30 particles
+
+      // Update power-ups with smooth movement
+      setPowerUps(prev => prev.map(powerUp => {
+        if (powerUp.collected) return powerUp;
+        const direction = laneDirections[powerUp.row];
+        const powerUpSpeed = 60; // pixels per second
+        let newX = powerUp.x + (powerUpSpeed * direction * dt);
+
+        if (newX > CANVAS_WIDTH + 20) {
+          newX = -20;
+        } else if (newX < -20) {
+          newX = CANVAS_WIDTH + 20;
+        }
+
+        return { ...powerUp, x: newX };
+      }));
+
+      // Update game stats with delta time
+      setStats(prev => ({
+        ...prev,
+        runTime: prev.runTime + dt
+      }));
+
+      // Update power-up timers with precise delta time
+      setActiveBuffs(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(key => {
+          updated[key] -= deltaTime;
+          if (updated[key] <= 0) {
+            delete updated[key];
+          }
+        });
+        return updated;
+      });
+
+      // Update praise power with delta time
+      if (praisePowerActive) {
+        setPraisePowerTimer(prev => {
+          const newTime = prev - deltaTime;
+          if (newTime <= 0) {
+            setPraisePowerActive(false);
+            return 0;
+          }
+          return newTime;
+        });
+      }
+
+      // Collision detection and power-up collection
+      checkCollisions();
+      checkPowerUpCollections();
+
+      // Continue the optimized loop
+      animationId = requestAnimationFrame(optimizedGameLoop);
+    };
+
+    // Start the optimized game loop
+    animationId = requestAnimationFrame(optimizedGameLoop);
+
+    // Cleanup function
     return () => {
-      if (gameLoopRef.current) {
-        clearInterval(gameLoopRef.current);
+      if (animationId) {
+        cancelAnimationFrame(animationId);
       }
     };
-  }, [gameLoop]);
+  }, [gameState, spawnObstacle, checkCollisions, checkPowerUpCollections, laneDirections, praisePowerActive]);
 
   // Enhanced rendering with modern visual effects
   useEffect(() => {

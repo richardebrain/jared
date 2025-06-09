@@ -1,0 +1,60 @@
+Feed your Replit agent this concise, bullet-proof spec to nail super-smooth, endlessly replayable gameplay:
+
+1. Unbreakable Core Loop
+60 FPS + Delta-Time: Use clock.tick(60) + dt (seconds) for all motion so speed is rock-solid on any browser.
+
+Asyncio Main Loop: Wrap your game loop in asyncio so Pyodide won’t hitch.
+
+2. Tight, Intuitive Controls
+Grid-Snap Movement: One-tap moves exactly one lane up/down or one column left/right—no drift, no overshoot.
+
+Easing Curves: Apply a 0.1 s ease-in/out per move for weighty, responsive slides.
+
+3. Clearly Defined Lanes & Hazards
+Fixed Lane Y’s: Predefine 5 lanes (e.g. [200,300,400,500,600]).
+
+Horizontal Wrap: Obstacles spawn at one edge, move at constant speed, and reappear on the opposite edge—endless stream.
+
+Per-Lane Timers: Each lane spawns a new hazard every 1.5–3 s (randomized) so runs never feel repetitive.
+
+4. Instant, Rewarding Feedback
+Particles & Screen Shake: On dodge → tiny confetti; on near-miss → 0.2 s subtle shake.
+
+Audio Stingers: “Boop!” for collect, “Buzz!” for hit—synth‐generated in-code.
+
+Visual Cues: Red obstacles, gold power-ups, chalkboard HUD—high contrast for split-second readability.
+
+5. Checkpoints & Flow Preservation
+Mid-Lane Checkpoint: After lane 3, respawn collisions there—keeps momentum and avoids frustration.
+
+Hit Animation: Flash or brief freeze (0.3 s) on hit before quiz pop-up.
+
+6. Simple, Sticky Progression
+3 Levels + Endless Mode: Level 1–3: rising speeds (5→7→9 px/frame) and new hazards. Then unlock Infinite Run with gradual acceleration.
+
+Combo Meter: Dodge 5 hazards in a row → enter 5 s “Praise Power” (2× points).
+
+Quiz Integration: Collision → pause → one humorous safety question → correct = +10 pts + checkpoint; wrong = minus life + checkpoint.
+
+7. Clean, Minimal UI
+Pre-Rendered Background: Draw lanes/sidewalk once to a surface and blit each frame.
+
+Sprite Atlases & convert(): Pack all art into 1–2 PNG sheets, convert for GPU.
+
+Chalkboard HUD: Simple text for score, level, and quiz prompts using a hand-drawn font.
+
+8. Performance Safeguards
+Particle Pooling: Cap at 30 active particles; recycle dead ones.
+
+FPS Monitor & Throttle: Auto-reduce particle count or obstacle spawn rate if FPS < 55.
+
+Integer Scaling: Use a fixed 600×800 canvas; no dynamic resizes.
+
+9. Onboarding & Replay Hooks
+One-Step Tutorial: First run shows arrows → practice move → start chase.
+
+Daily Spin & Streaks: Simple rewards screen after each run: coins + free spin; 7-day login grants rare power-up.
+
+Tell Replit:
+
+“Implement exactly these mechanics, controls, feedback loops, and performance safeguards. No extra bells-and-whistles—just a bullet-proof Frogger-style chase that feels so smooth and rewarding, players will sprint back for ‘just one more run’ every time.”
