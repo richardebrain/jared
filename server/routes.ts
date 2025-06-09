@@ -4968,6 +4968,32 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
     }
   });
 
+  // BearyAI assistant endpoint
+  app.post("/api/bear-assistant/ask", requireAuth, async (req, res) => {
+    try {
+      const { query } = req.body;
+      
+      if (!query || typeof query !== 'string') {
+        return res.status(400).json({ message: "Query is required" });
+      }
+
+      // Import the BearyAI service
+      const { AIBearyService } = await import("./services/aiBearyService");
+      
+      // Process the query through BearyAI
+      const response = await AIBearyService.processQuery(query);
+      
+      res.json(response);
+    } catch (error) {
+      console.error("BearyAI endpoint error:", error);
+      res.status(500).json({ 
+        message: "🐻 **AI Beary says:** I'm having trouble processing your request right now. Please try again in a moment!",
+        isAppropriate: true,
+        category: 'general'
+      });
+    }
+  });
+
   // Register AI Module Designer routes
   app.use("/api/ai", aiModuleDesignerRoutes);
 

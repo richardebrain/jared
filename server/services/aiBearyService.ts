@@ -126,11 +126,26 @@ Respond as AI Beary with helpful, practical advice for preschool teachers.`;
 
     } catch (error) {
       console.error('AI Beary service error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        status: error.status,
+        type: error.type,
+        stack: error.stack
+      });
       
       // Provide more specific error handling
       if (error.code === 'insufficient_quota' || error.status === 429) {
         return {
           message: "🐻 **AI Beary says:** I'm experiencing high demand right now! Please try again in a few minutes, or reach out to your director for immediate guidance.",
+          isAppropriate: true,
+          category: 'general'
+        };
+      }
+      
+      if (error.code === 'invalid_api_key' || error.status === 401) {
+        return {
+          message: "🐻 **AI Beary says:** I'm having trouble connecting to my knowledge base. Please contact your system administrator to resolve this issue.",
           isAppropriate: true,
           category: 'general'
         };

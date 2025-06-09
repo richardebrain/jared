@@ -27,7 +27,7 @@ export default function BearyAIPage() {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ question: prompt })
+        body: JSON.stringify({ query: prompt })
       });
 
       if (!response.ok) {
