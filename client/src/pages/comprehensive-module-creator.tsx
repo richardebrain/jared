@@ -916,12 +916,13 @@ export default function ComprehensiveModuleCreator() {
     
     try {
       const response = await apiRequest('POST', '/api/ai/generate-single-quiz-question', {
-        moduleTitle: newModule.title,
-        moduleDescription: newModule.description,
+        moduleTitle: initialModuleData.title || newModule.title,
+        moduleDescription: initialModuleData.learningObjective || newModule.description,
         sectionTitle: currentSection.title,
         category: newModule.category,
         difficulty: quizDifficulty,
-        existingQuestions: builtQuizQuestions.map(q => q.question)
+        existingQuestions: builtQuizQuestions.map(q => q.question),
+        learningObjective: initialModuleData.learningObjective
       });
 
       if (response.question) {

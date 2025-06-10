@@ -167,7 +167,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Generate single quiz question for module builder
   app.post("/api/ai/generate-single-quiz-question", async (req, res) => {
     try {
-      const { moduleTitle, moduleDescription, sectionTitle, category, difficulty = 'medium', existingQuestions = [] } = req.body;
+      const { moduleTitle, moduleDescription, sectionTitle, category, difficulty = 'medium', existingQuestions = [], learningObjective } = req.body;
 
       if (!sectionTitle) {
         return res.status(400).json({ error: "Section title is required" });
@@ -181,33 +181,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const difficultyPrompt = difficultyPrompts[difficulty] || difficultyPrompts['medium'];
 
+      // Use the learning objective as the primary focus, fall back to module description if not available
+      const mainTopic = learningObjective || moduleDescription;
+      const topicContext = learningObjective ? "learning objective" : "module description";
+
       const prompt = `
 You are an expert in early childhood education creating assessment questions for professional development.
 
 Context:
-- Module: ${moduleTitle}
-- Main Topic: ${moduleDescription}
+- Module Title: ${moduleTitle}
+- Main Learning Focus: ${mainTopic}
 - Current Section: ${sectionTitle}
 - Category: ${category}
 - Difficulty: ${difficulty}
 
-IMPORTANT: Your question MUST be specifically about the main topic "${moduleDescription}" and directly related to early childhood education practices. The section "${sectionTitle}" is just the current section - focus on the main module topic "${moduleDescription}".
+CRITICAL: Your question MUST be specifically about "${mainTopic}" and directly test practical knowledge that early childhood educators need. This is the ${topicContext} and core focus of the assessment.
 
-${difficultyPrompt} that is specifically focused on "${moduleDescription}" strategies, techniques, or concepts in early childhood education.
+${difficultyPrompt} that specifically tests understanding of "${mainTopic}" in real early childhood education settings.
 
-The question should test understanding of:
-- Specific practices related to "${moduleDescription}"
-- Real-world application of "${moduleDescription}" concepts
-- Professional knowledge about "${moduleDescription}" in early childhood settings
+The question should assess:
+- Practical application of "${mainTopic}" strategies
+- Real classroom scenarios related to "${mainTopic}"
+- Professional decision-making about "${mainTopic}"
+- Evidence-based practices for "${mainTopic}"
 
 ${existingQuestions.length > 0 ? `Avoid creating questions similar to these existing ones: ${existingQuestions.join('; ')}` : ''}
 
-Create ONE multiple choice question with 4 answers that stays strictly on the main topic of "${moduleDescription}". Format as JSON:
+Create ONE multiple choice question with 4 realistic answers that directly tests knowledge of "${mainTopic}". Focus on practical scenarios teachers actually face. Format as JSON:
 {
-  "question": "Clear, specific question text that directly addresses ${moduleDescription}",
-  "answers": ["Option A", "Option B", "Option C", "Option D"],
+  "question": "Specific, scenario-based question about ${mainTopic}",
+  "answers": ["Realistic option A", "Realistic option B", "Realistic option C", "Realistic option D"],
   "correctAnswer": 0,
-  "explanation": "Brief explanation of why this answer is correct in the context of ${moduleDescription}"
+  "explanation": "Brief explanation of why this is the best practice for ${mainTopic}"
 }
 `;
 
