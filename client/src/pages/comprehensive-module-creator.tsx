@@ -3883,7 +3883,56 @@ Create a natural conversation between two podcast hosts discussing this specific
                         });
                       }}
                     >
-                      {!newModule.sections[currentSectionIndex]?.content && (
+                      {/* Video Preview Section */}
+                      {newModule.sections[currentSectionIndex]?.videoUrl && (
+                        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium text-blue-900 flex items-center">
+                              <Video className="h-4 w-4 mr-2" />
+                              Video Added to Section
+                            </h4>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const updatedSections = [...newModule.sections];
+                                updatedSections[currentSectionIndex] = {
+                                  ...updatedSections[currentSectionIndex],
+                                  videoUrl: ''
+                                };
+                                setNewModule(prev => ({ ...prev, sections: updatedSections }));
+                                toast({
+                                  title: "Video Removed",
+                                  description: "Video has been removed from this section",
+                                });
+                              }}
+                              className="text-red-600 hover:bg-red-50"
+                            >
+                              <X className="h-3 w-3 mr-1" />
+                              Remove
+                            </Button>
+                          </div>
+                          <div className="text-sm text-blue-800 mb-2">
+                            <strong>Video URL:</strong> {newModule.sections[currentSectionIndex].videoUrl}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <a 
+                              href={newModule.sections[currentSectionIndex].videoUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline text-sm"
+                            >
+                              Preview Video
+                            </a>
+                            <span className="text-gray-500">•</span>
+                            <span className="text-sm text-gray-600">
+                              This video will be embedded when the module is published
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {!newModule.sections[currentSectionIndex]?.content && !newModule.sections[currentSectionIndex]?.videoUrl && (
                         <div className="absolute inset-4 flex items-center justify-center pointer-events-none">
                           <div className="text-center text-gray-400">
                             <div className="w-12 h-12 mx-auto mb-3 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
