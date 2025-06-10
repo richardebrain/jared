@@ -709,18 +709,71 @@ router.post('/generate-content-blocks', async (req, res) => {
 
     console.log('Generating content blocks for:', { topic, sectionTitle, moduleTitle, sectionType });
 
-    // Check if this is for guided activities or step-by-step content
+    // Check section type for specific content generation
     const isActivitySection = sectionTitle?.toLowerCase().includes('activity') || 
                              sectionTitle?.toLowerCase().includes('step-by-step') ||
                              sectionTitle?.toLowerCase().includes('guided') ||
                              sectionType === 'example';
+
+    const isCaseStudySection = sectionTitle?.toLowerCase().includes('case study') || 
+                              sectionTitle?.toLowerCase().includes('story') ||
+                              sectionTitle?.toLowerCase().includes('scenario') ||
+                              sectionType === 'story';
+
+    const isWhyItMattersSection = sectionTitle?.toLowerCase().includes('why it matters') || 
+                                 sectionTitle?.toLowerCase().includes('science') ||
+                                 sectionTitle?.toLowerCase().includes('policy') ||
+                                 sectionTitle?.toLowerCase().includes('research');
 
     // Use OpenAI to generate topic-specific content blocks
     const openai = new (await import("openai")).default({
       apiKey: process.env.OPENAI_API_KEY,
     });
 
-    const prompt = isActivitySection ? `
+    let prompt;
+    
+    if (isCaseStudySection) {
+      prompt = `
+You are an expert early childhood education professional creating realistic case studies for "${topic}".
+
+Generate 3-5 detailed case studies that help teachers understand real-world scenarios involving "${topic}".
+
+Each case study should include:
+1. Realistic scenario description with specific children (ages 2-5)
+2. Classroom context and environmental factors
+3. What the teacher observes happening
+4. Multiple response options with outcomes
+5. Best practice recommendations
+6. Reflection questions for professional growth
+
+Make these authentic, relatable situations that preschool teachers actually encounter. Include specific dialogue, actions, and decision points.
+
+FORMAT: Return a JSON object with "blocks" array. Each block should have:
+- "type": "Case Study"
+- "preview": Brief description of the scenario
+- "content": Full detailed case study content`;
+    
+    } else if (isWhyItMattersSection) {
+      prompt = `
+You are an expert early childhood education researcher explaining the importance of "${topic}" using science and policy.
+
+Generate comprehensive content explaining why "${topic}" matters, including:
+1. Research-backed evidence and key studies
+2. Child development science that supports this approach
+3. Policy implications and regulatory considerations
+4. Long-term outcomes for children and families
+5. Professional standards and best practices
+6. Connection to licensing requirements or quality frameworks
+
+Use specific researcher names, study findings, and policy documents. Make the science accessible but credible for practicing teachers.
+
+FORMAT: Return a JSON object with "blocks" array. Each block should have:
+- "type": "Research & Policy"
+- "preview": Brief description of the key evidence
+- "content": Full detailed research and policy content`;
+    
+    } else if (isActivitySection) {
+      prompt = `
 You are an expert early childhood education instructor creating hands-on activities for "${topic}".
 
 Generate 5 step-by-step guided activities that teachers can immediately implement in their classrooms related to "${topic}".
@@ -735,52 +788,40 @@ Each activity should include:
 FORMAT: Return a JSON object with "blocks" array. Each block should have:
 - "type": "Step-by-Step Activity"
 - "preview": Brief description of the activity
-- "content": Detailed activity instructions with clear numbered steps
+- "content": Full detailed activity content`;
+    
+    } else {
+      // Default generic content generation
+      prompt = `
+You are an expert early childhood education instructor creating educational content for "${topic}".
 
-Focus specifically on "${topic}" - make each activity directly address this topic with practical implementation.
+Generate 3-5 educational content blocks that help teachers understand and implement concepts related to "${topic}".
 
-Example format:
-{
-  "blocks": [
-    {
-      "type": "Step-by-Step Activity",
-      "preview": "Activity name and brief description...",
-      "content": "## Activity Name\\n\\n**Materials Needed:** List items\\n\\n**Steps:**\\n1. First step...\\n2. Second step...\\n\\n**Learning Goals:** What children will gain\\n\\n**Adaptations:** How to modify for different needs"
+Each content block should include practical, actionable information that teachers can use immediately in their classrooms.
+
+FORMAT: Return a JSON object with "blocks" array. Each block should have:
+- "type": "Educational Content"
+- "preview": Brief description of the content
+- "content": Full detailed educational content
+
+Focus specifically on "${topic}" - make each content block directly address this topic with practical implementation.`;
     }
-  ]
-}` : `
-You are an expert early childhood education content creator. Generate 5 diverse, engaging content blocks for a module about "${topic}" specifically focused on "${moduleTitle}".
 
-CRITICAL: The content must be specifically about "${topic}" - not generic early childhood education content. Use the exact topic throughout.
-
-Create content blocks that are:
-1. Immediately practical and actionable
-2. Based on real early childhood education research and best practices
-3. Specifically focused on "${topic}" strategies and techniques
-4. Written in an engaging, conversational tone that connects with teachers
-5. Include specific scenarios, scripts, or examples related to "${topic}"
-
-Generate exactly 5 content blocks with these types:
-- Research Insight (latest findings about "${topic}")
-- Quick Strategy (immediate technique for "${topic}")
-- Real Scenario (classroom situation involving "${topic}")
-- Expert Tip (professional advice for "${topic}")
-- Reflection Prompt (thoughtful question about "${topic}")
-
-Format as JSON:
-{
-  "blocks": [
-    {
-      "type": "Research Insight",
-      "preview": "Brief preview text about ${topic}...",
-      "content": "Full content specifically about ${topic} with research citations and practical applications"
-    },
-    // ... 4 more blocks
-  ]
-}
-
-Ensure each block is substantial (200-400 words) and directly addresses "${topic}" with specific, actionable content.
-`;
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system", 
+          content: "You are an expert early childhood education content creator. Always return valid JSON format with a 'blocks' array."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.7,
+    });
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
