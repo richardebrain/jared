@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { Link } from 'wouter';
 import {
   BookOpen,
   Sparkles,
@@ -22,7 +23,8 @@ import {
   Wand2,
   Users,
   Globe,
-  Mic
+  Mic,
+  ArrowLeft
 } from 'lucide-react';
 
 const STORY_TOPICS = [
@@ -272,6 +274,16 @@ export default function PersonalizedStories() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 p-6">
       <div className="max-w-4xl mx-auto space-y-6">
+        {/* Return to Dashboard Button */}
+        <div className="flex justify-start">
+          <Link href="/dashboard">
+            <Button variant="outline" className="flex items-center gap-2 text-purple-700 border-purple-300 hover:bg-purple-50">
+              <ArrowLeft className="h-4 w-4" />
+              Return to Dashboard
+            </Button>
+          </Link>
+        </div>
+
         {/* Header */}
         <Card className="border-purple-200 bg-white/80 backdrop-blur-sm">
           <CardHeader className="text-center">
