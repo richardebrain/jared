@@ -730,6 +730,7 @@ export default function ComprehensiveModuleCreator() {
   const [isCreatingModule, setIsCreatingModule] = useState(false);
   const [isGeneratingIdeas, setIsGeneratingIdeas] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   
   // Initial setup phase for title and learning objective
   const [showInitialSetup, setShowInitialSetup] = useState(true);
@@ -2584,6 +2585,96 @@ Create a natural conversation between two podcast hosts discussing this specific
     }
   };
 
+  // Handle module publishing
+  const handlePublishModule = async () => {
+    if (!newModule.title.trim()) {
+      toast({
+        title: "Missing Title",
+        description: "Please provide a module title before publishing",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newModule.sections.length === 0) {
+      toast({
+        title: "No Sections",
+        description: "Please add at least one section before publishing",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsPublishing(true);
+    try {
+      // Process sections to ensure they have all required fields
+      const processedSections = newModule.sections.map(section => ({
+        ...section,
+        duration: section.duration || 5,
+        activities: section.activities || [{
+          type: 'read' as const,
+          title: section.title || 'Activity',
+          duration: section.duration || 5,
+          content: section.content || '',
+          videoUrl: section.videoUrl || '',
+          audioUrl: '',
+          interactionType: 'form' as const
+        }]
+      }));
+
+      // Calculate points
+      const suggestedPoints = calculateSuggestedPoints(newModule.difficulty, newModule.estimatedTime);
+      const finalPoints = newModule.customPoints ? parseInt(newModule.customPoints) : suggestedPoints;
+
+      const moduleData = {
+        title: newModule.title,
+        description: newModule.description,
+        category: newModule.category,
+        difficulty: newModule.difficulty,
+        estimatedTime: newModule.estimatedTime,
+        pointValue: finalPoints,
+        isVisible: true,
+        shareWithCommunity: newModule.shareWithCommunity || false,
+        sections: JSON.stringify(processedSections)
+      };
+
+      const response = await fetch('/api/modules', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(moduleData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to publish module');
+      }
+
+      const createdModule = await response.json();
+
+      toast({
+        title: "Module Published Successfully!",
+        description: "Your module is now available in your dashboard and to the community",
+      });
+
+      // Force refresh the module list
+      await queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
+
+      // Navigate back to dashboard
+      navigate('/dashboard');
+      
+    } catch (error) {
+      console.error('Module publishing error:', error);
+      toast({
+        title: "Publishing Failed",
+        description: "There was an issue publishing your module. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
   // Add section to module
   const addSection = () => {
     setNewModule(prev => ({
@@ -2593,7 +2684,17 @@ Create a natural conversation between two podcast hosts discussing this specific
         content: '',
         videoUrl: '',
         imageUrl: '',
-        type: 'text' as const
+        type: 'text' as const,
+        duration: 5,
+        activities: [{
+          type: 'read' as const,
+          title: 'Activity',
+          duration: 5,
+          content: '',
+          videoUrl: '',
+          audioUrl: '',
+          interactionType: 'form' as const
+        }]
       }]
     }));
   };
@@ -4190,12 +4291,53 @@ Create a natural conversation between two podcast hosts discussing this specific
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               <h4 className="font-medium">Module Sections:</h4>
               {newModule.sections.map((section, index) => (
-                <div key={index} className="p-3 border rounded-lg">
-                  <div className="font-medium">{index + 1}. {section.title}</div>
-                  <div className="text-sm text-gray-600 mt-1">{section.type}</div>
+                <div key={index} className="p-4 border rounded-lg bg-white">
+                  <div className="font-medium text-lg mb-2">{index + 1}. {section.title}</div>
+                  <div className="text-sm text-blue-600 mb-3 capitalize">{section.type} Section</div>
+                  
+                  {/* Display actual content */}
+                  {section.content && (
+                    <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                      <div className="text-sm font-medium text-gray-700 mb-2">Content:</div>
+                      <div className="text-sm text-gray-600 whitespace-pre-wrap max-h-32 overflow-y-auto">
+                        {section.content.substring(0, 300)}
+                        {section.content.length > 300 && '...'}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Display video if present */}
+                  {section.videoUrl && (
+                    <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                      <div className="text-sm font-medium text-blue-700 mb-1">Video:</div>
+                      <div className="text-xs text-blue-600 truncate">{section.videoUrl}</div>
+                    </div>
+                  )}
+                  
+                  {/* Display quiz questions if present */}
+                  {section.questions && section.questions.length > 0 && (
+                    <div className="mt-3 p-3 bg-green-50 rounded-lg">
+                      <div className="text-sm font-medium text-green-700 mb-2">Quiz Questions: {section.questions.length}</div>
+                      <div className="text-xs text-green-600">
+                        {section.questions.map((q: any, qIndex: number) => (
+                          <div key={qIndex} className="mb-1">Q{qIndex + 1}: {q.question?.substring(0, 80)}...</div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Display activities if present */}
+                  {section.activities && section.activities.length > 0 && (
+                    <div className="mt-3 p-3 bg-purple-50 rounded-lg">
+                      <div className="text-sm font-medium text-purple-700 mb-1">Activities: {section.activities.length}</div>
+                      <div className="text-xs text-purple-600">
+                        Interactive learning activities included
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -4210,9 +4352,20 @@ Create a natural conversation between two podcast hosts discussing this specific
               </Button>
               <Button 
                 className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                onClick={handlePublishModule}
+                disabled={isPublishing}
               >
-                <CheckCircle2 className="h-4 w-4 mr-2" />
-                Publish Module
+                {isPublishing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Publishing...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    Publish Module
+                  </>
+                )}
               </Button>
             </div>
           </CardContent>
