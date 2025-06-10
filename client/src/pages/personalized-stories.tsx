@@ -441,6 +441,17 @@ export default function PersonalizedStoriesPage() {
                       </Select>
                     </div>
 
+                    {/* Usage Limitation Notice */}
+                    <div className="p-3 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                      <div className="flex items-center gap-2 text-amber-800 mb-1">
+                        <Star className="h-4 w-4" />
+                        <span className="font-bold text-sm">Voice Narration Limit</span>
+                      </div>
+                      <p className="text-amber-700 text-sm">
+                        Story creation is unlimited! Voice narration is limited to 1 per week due to service costs.
+                      </p>
+                    </div>
+
                     {/* Audio Generation */}
                     <Button
                       onClick={handleGenerateAudio}
