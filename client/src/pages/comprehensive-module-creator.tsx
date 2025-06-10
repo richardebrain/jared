@@ -3425,9 +3425,10 @@ Create a natural conversation between two podcast hosts discussing this specific
                                               videoTitle = 'Vimeo Video';
                                             }
                                             
-                                            // Add video directly to current section
-                                            updateSection(currentSectionIndex, 'videoUrl', url);
-                                            updateSection(currentSectionIndex, 'title', `${newModule.sections[currentSectionIndex]?.title} - ${videoTitle}`);
+                                            // Add video to the correct section
+                                            const targetIndex = selectedVideoForSection !== null ? selectedVideoForSection : currentSectionIndex;
+                                            updateSection(targetIndex, 'videoUrl', url);
+                                            updateSection(targetIndex, 'title', `${newModule.sections[targetIndex]?.title || 'Section'} - ${videoTitle}`);
                                             
                                             toast({
                                               title: "Custom Video Added",
@@ -3435,6 +3436,10 @@ Create a natural conversation between two podcast hosts discussing this specific
                                             });
                                             
                                             setShowVideoSearch(false);
+                                            setVideoSearchQuery('');
+                                            setVideoSearchResults([]);
+                                            setYoutubeSearchResults([]);
+                                            setSelectedVideoForSection(null);
                                           }
                                         }}
                                       >
@@ -3449,8 +3454,9 @@ Create a natural conversation between two podcast hosts discussing this specific
                                         {videoSearchResults.map((video, index) => (
                                           <div key={`library-${index}`} className="p-2 bg-white rounded border border-blue-200 cursor-pointer hover:bg-blue-50" 
                                                onClick={() => {
-                                                 updateSection(currentSectionIndex, 'videoUrl', video.url);
-                                                 updateSection(currentSectionIndex, 'title', `${newModule.sections[currentSectionIndex]?.title} - ${video.title}`);
+                                                 const targetIndex = selectedVideoForSection !== null ? selectedVideoForSection : currentSectionIndex;
+                                                 updateSection(targetIndex, 'videoUrl', video.url);
+                                                 updateSection(targetIndex, 'title', `${newModule.sections[targetIndex]?.title || 'Section'} - ${video.title}`);
                                                  
                                                  toast({
                                                    title: "Video Added",
@@ -3461,6 +3467,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                                                  setVideoSearchQuery('');
                                                  setVideoSearchResults([]);
                                                  setYoutubeSearchResults([]);
+                                                 setSelectedVideoForSection(null);
                                                }}>
                                             <p className="text-xs font-medium text-blue-900">{video.title}</p>
                                             <p className="text-xs text-blue-700">{video.description || video.category}</p>
@@ -3469,8 +3476,9 @@ Create a natural conversation between two podcast hosts discussing this specific
                                         {youtubeSearchResults.map((video, index) => (
                                           <div key={`youtube-${index}`} className="p-2 bg-white rounded border border-red-200 cursor-pointer hover:bg-red-50"
                                                onClick={() => {
-                                                 updateSection(currentSectionIndex, 'videoUrl', video.url);
-                                                 updateSection(currentSectionIndex, 'title', `${newModule.sections[currentSectionIndex]?.title} - ${video.title}`);
+                                                 const targetIndex = selectedVideoForSection !== null ? selectedVideoForSection : currentSectionIndex;
+                                                 updateSection(targetIndex, 'videoUrl', video.url);
+                                                 updateSection(targetIndex, 'title', `${newModule.sections[targetIndex]?.title || 'Section'} - ${video.title}`);
                                                  
                                                  toast({
                                                    title: "Video Added",
@@ -3481,6 +3489,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                                                  setVideoSearchQuery('');
                                                  setVideoSearchResults([]);
                                                  setYoutubeSearchResults([]);
+                                                 setSelectedVideoForSection(null);
                                                }}>
                                             <p className="text-xs font-medium text-red-900">{video.title}</p>
                                             <p className="text-xs text-red-700">YouTube - {video.channelTitle || video.channel}</p>
