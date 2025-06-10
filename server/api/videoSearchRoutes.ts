@@ -153,49 +153,62 @@ router.get('/youtube-search', async (req, res) => {
 
     // Enhanced search query for early childhood education
     const searchQuery = query.toString();
-    const enhancedQuery = `${searchQuery} early childhood education ECE preschool`;
+    const enhancedQuery = `${searchQuery} early childhood education ECE preschool teacher professional development`;
     
-    // Simulate YouTube search results (in production, this would use YouTube Data API)
-    const mockResults = [
-      {
-        id: 'yt1',
-        title: `${searchQuery} - Early Childhood Best Practices`,
-        url: `https://www.youtube.com/watch?v=example1`,
-        thumbnail: 'https://img.youtube.com/vi/example1/mqdefault.jpg',
-        duration: '8:30',
-        channelTitle: 'ECE Professional Development',
-        description: `Comprehensive guide to ${searchQuery} in early childhood settings`
-      },
-      {
-        id: 'yt2',
-        title: `Implementing ${searchQuery} in Your Classroom`,
-        url: `https://www.youtube.com/watch?v=example2`,
-        thumbnail: 'https://img.youtube.com/vi/example2/mqdefault.jpg',
-        duration: '12:45',
-        channelTitle: 'Teaching Strategies',
-        description: `Practical strategies for ${searchQuery} with young children`
-      },
-      {
-        id: 'yt3',
-        title: `${searchQuery} for Preschool Teachers`,
-        url: `https://www.youtube.com/watch?v=example3`,
-        thumbnail: 'https://img.youtube.com/vi/example3/mqdefault.jpg',
-        duration: '15:20',
-        channelTitle: 'Early Learning Center',
-        description: `Professional development on ${searchQuery} techniques`
-      },
-      {
-        id: 'yt4',
-        title: `Evidence-Based ${searchQuery} Approaches`,
-        url: `https://www.youtube.com/watch?v=example4`,
-        thumbnail: 'https://img.youtube.com/vi/example4/mqdefault.jpg',
-        duration: '18:15',
-        channelTitle: 'Research in ECE',
-        description: `Research-backed methods for ${searchQuery} in early childhood`
-      }
-    ];
+    // Use YouTube Data API to search for real videos
+    const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
+    
+    if (!YOUTUBE_API_KEY) {
+      console.error('YouTube API key not configured');
+      return res.status(500).json({ error: 'YouTube search not available' });
+    }
 
-    res.json(mockResults);
+    const youtubeSearchUrl = `https://www.googleapis.com/youtube/v3/search?` +
+      `part=snippet&type=video&maxResults=12&order=relevance&` +
+      `q=${encodeURIComponent(enhancedQuery)}&key=${YOUTUBE_API_KEY}&` +
+      `videoDuration=medium&videoDefinition=any&` +
+      `relevanceLanguage=en&safeSearch=strict`;
+
+    const response = await fetch(youtubeSearchUrl);
+    
+    if (!response.ok) {
+      console.error('YouTube API error:', response.status, response.statusText);
+      return res.status(500).json({ error: 'Failed to search YouTube' });
+    }
+
+    const data = await response.json();
+    
+    // Transform YouTube API response to our format
+    const results = data.items?.map((item: any) => ({
+      id: item.id.videoId,
+      title: item.snippet.title,
+      url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+      thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
+      channelTitle: item.snippet.channelTitle,
+      description: item.snippet.description,
+      publishedAt: item.snippet.publishedAt
+    })) || [];
+
+    // Filter for educational content
+    const educationalResults = results.filter((video: any) => {
+      const title = video.title.toLowerCase();
+      const description = video.description.toLowerCase();
+      const channel = video.channelTitle.toLowerCase();
+      
+      // Look for educational keywords
+      const educationalKeywords = [
+        'education', 'teaching', 'classroom', 'preschool', 'kindergarten',
+        'early childhood', 'development', 'learning', 'teacher', 'instruction',
+        'curriculum', 'student', 'child', 'kids', 'professional development',
+        'training', 'workshop', 'strategies', 'techniques', 'best practices'
+      ];
+      
+      return educationalKeywords.some(keyword => 
+        title.includes(keyword) || description.includes(keyword) || channel.includes(keyword)
+      );
+    });
+
+    res.json(educationalResults.slice(0, 8)); // Return top 8 educational results
   } catch (error) {
     console.error('YouTube search error:', error);
     res.status(500).json({ error: 'Failed to search YouTube' });
