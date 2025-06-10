@@ -461,21 +461,21 @@ export default function ComprehensiveModuleCreator() {
   };
 
   const selectVideoForSection = (videoUrl: string, videoTitle: string) => {
-    if (selectedVideoForSection !== null) {
-      updateSection(selectedVideoForSection, 'videoUrl', videoUrl);
-      updateSection(selectedVideoForSection, 'title', videoTitle);
-      
-      toast({
-        title: "Video Added",
-        description: `Added "${videoTitle}" to the section`,
-      });
-      
-      setShowVideoSearch(false);
-      setSelectedVideoForSection(null);
-      setVideoSearchQuery('');
-      setVideoSearchResults([]);
-      setYoutubeSearchResults([]);
-    }
+    // Use the same targeting logic as other video functions
+    const targetIndex = selectedVideoForSection !== null ? selectedVideoForSection : currentSectionIndex;
+    updateSection(targetIndex, 'videoUrl', videoUrl);
+    updateSection(targetIndex, 'title', `${newModule.sections[targetIndex]?.title || 'Section'} - ${videoTitle}`);
+    
+    toast({
+      title: "Video Added",
+      description: `Added "${videoTitle}" to the section`,
+    });
+    
+    setShowVideoSearch(false);
+    setSelectedVideoForSection(null);
+    setVideoSearchQuery('');
+    setVideoSearchResults([]);
+    setYoutubeSearchResults([]);
   };
 
   const addCustomVideoUrl = () => {
