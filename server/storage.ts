@@ -198,6 +198,13 @@ export interface IStorage {
   
   // Lesson plan operations
   getLessonPlan(id: number): Promise<LessonPlan | undefined>;
+  
+  // Module drafts operations
+  getModuleDraftsByUserId(userId: number): Promise<ModuleDraft[]>;
+  getModuleDraft(id: number): Promise<ModuleDraft | undefined>;
+  createModuleDraft(draft: InsertModuleDraft): Promise<ModuleDraft>;
+  updateModuleDraft(id: number, draftData: Partial<InsertModuleDraft>): Promise<ModuleDraft>;
+  deleteModuleDraft(id: number): Promise<void>;
   getLessonPlansByUserId(userId: number): Promise<LessonPlan[]>;
   createLessonPlan(lessonPlan: InsertLessonPlan): Promise<LessonPlan>;
   updateLessonPlan(id: number, lessonPlanData: Partial<InsertLessonPlan>): Promise<LessonPlan>;
@@ -2089,6 +2096,46 @@ export class DatabaseStorage implements IStorage {
       avgRating: result[0]?.avgRating || 0,
       totalRatings: result[0]?.totalRatings || 0
     };
+  }
+
+  // Module drafts operations
+  async getModuleDraftsByUserId(userId: number): Promise<ModuleDraft[]> {
+    return await db
+      .select()
+      .from(moduleDrafts)
+      .where(eq(moduleDrafts.userId, userId))
+      .orderBy(desc(moduleDrafts.updatedAt));
+  }
+
+  async getModuleDraft(id: number): Promise<ModuleDraft | undefined> {
+    const [draft] = await db
+      .select()
+      .from(moduleDrafts)
+      .where(eq(moduleDrafts.id, id));
+    return draft;
+  }
+
+  async createModuleDraft(draft: InsertModuleDraft): Promise<ModuleDraft> {
+    const [newDraft] = await db
+      .insert(moduleDrafts)
+      .values(draft)
+      .returning();
+    return newDraft;
+  }
+
+  async updateModuleDraft(id: number, draftData: Partial<InsertModuleDraft>): Promise<ModuleDraft> {
+    const [updatedDraft] = await db
+      .update(moduleDrafts)
+      .set({ ...draftData, updatedAt: new Date() })
+      .where(eq(moduleDrafts.id, id))
+      .returning();
+    return updatedDraft;
+  }
+
+  async deleteModuleDraft(id: number): Promise<void> {
+    await db
+      .delete(moduleDrafts)
+      .where(eq(moduleDrafts.id, id));
   }
   
   async updateGame(id: number, gameData: Partial<InsertEducationalGame>): Promise<EducationalGame> {

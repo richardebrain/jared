@@ -5319,5 +5319,107 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
   // Register video search routes
   app.use("/api/video-search", videoSearchRoutes);
 
+  // Module drafts API endpoints
+  app.get("/api/module-drafts", requireAuth, async (req, res) => {
+    try {
+      const drafts = await storage.getModuleDraftsByUserId(req.user!.id);
+      res.json(drafts);
+    } catch (error) {
+      console.error("Error fetching module drafts:", error);
+      res.status(500).json({ error: "Failed to fetch module drafts" });
+    }
+  });
+
+  app.get("/api/module-drafts/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const draft = await storage.getModuleDraft(id);
+      
+      if (!draft) {
+        return res.status(404).json({ error: "Draft not found" });
+      }
+      
+      // Ensure user owns this draft
+      if (draft.userId !== req.user!.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      res.json(draft);
+    } catch (error) {
+      console.error("Error fetching module draft:", error);
+      res.status(500).json({ error: "Failed to fetch module draft" });
+    }
+  });
+
+  app.post("/api/module-drafts", requireAuth, async (req, res) => {
+    try {
+      const { name, moduleData, creationMethod, aiWorkflowStep } = req.body;
+      
+      const draft = await storage.createModuleDraft({
+        userId: req.user!.id,
+        name,
+        moduleData,
+        creationMethod,
+        aiWorkflowStep
+      });
+      
+      res.json(draft);
+    } catch (error) {
+      console.error("Error creating module draft:", error);
+      res.status(500).json({ error: "Failed to create module draft" });
+    }
+  });
+
+  app.put("/api/module-drafts/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { name, moduleData, creationMethod, aiWorkflowStep } = req.body;
+      
+      // Verify draft exists and user owns it
+      const existingDraft = await storage.getModuleDraft(id);
+      if (!existingDraft) {
+        return res.status(404).json({ error: "Draft not found" });
+      }
+      
+      if (existingDraft.userId !== req.user!.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      const updatedDraft = await storage.updateModuleDraft(id, {
+        name,
+        moduleData,
+        creationMethod,
+        aiWorkflowStep
+      });
+      
+      res.json(updatedDraft);
+    } catch (error) {
+      console.error("Error updating module draft:", error);
+      res.status(500).json({ error: "Failed to update module draft" });
+    }
+  });
+
+  app.delete("/api/module-drafts/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Verify draft exists and user owns it
+      const existingDraft = await storage.getModuleDraft(id);
+      if (!existingDraft) {
+        return res.status(404).json({ error: "Draft not found" });
+      }
+      
+      if (existingDraft.userId !== req.user!.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      await storage.deleteModuleDraft(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting module draft:", error);
+      res.status(500).json({ error: "Failed to delete module draft" });
+    }
+  });
+
   return app;
 }
