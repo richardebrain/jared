@@ -198,6 +198,9 @@ app.post("/api/auth/register", async (req, res) => {
       firstName,
       lastName,
       email,
+      language: 'English',
+      nativeLanguage: 'English',
+      timeZone: 'UTC-05:00',
       points: 0,
       bearBucks: 0,
       streak: 0,
@@ -297,7 +300,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 // Setup Vite for development
-if (app.get("env") === "development") {
+if (process.env.NODE_ENV === "development") {
   setupVite(app, server);
 } else {
   serveStatic(app);
