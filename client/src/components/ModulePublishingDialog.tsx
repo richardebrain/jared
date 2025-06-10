@@ -105,7 +105,7 @@ export default function ModulePublishingDialog({
     mutationFn: async (publishData: any) => {
       return await apiRequest('/api/modules/publish', {
         method: 'POST',
-        body: JSON.stringify(publishData)
+        data: publishData
       });
     },
     onSuccess: () => {
@@ -131,7 +131,15 @@ export default function ModulePublishingDialog({
     
     const publishData = {
       moduleId: module.id,
-      module: module,
+      module: {
+        ...module,
+        moduleType: module.moduleType || "deep-dive",
+        customPoints: module.customPoints || "100",
+        shareWithCommunity: module.shareWithCommunity || false,
+        courseStructure: module.courseStructure || { modules: [], totalDuration: 0, prerequisites: [] },
+        interactiveElements: module.interactiveElements || { hasQuizzes: false, hasSimulations: false, hasDiscussions: false },
+        certificationSystem: module.certificationSystem || { enabled: false, passingScore: 80, certificateTemplate: null }
+      },
       type: publishingType,
       selectedTeachers,
       selectedGroups,
