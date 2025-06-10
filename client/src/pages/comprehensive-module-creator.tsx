@@ -3960,18 +3960,51 @@ Create a natural conversation between two podcast hosts discussing this specific
                                   size="sm"
                                   variant="outline" 
                                   onClick={generateAIContentForSection}
-                                  disabled={isGeneratingAIContent}
-                                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                                  disabled={isGeneratingAIContent || isRegenerating}
+                                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
                                 >
-                                  {isGeneratingAIContent ? (
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  {isGeneratingAIContent || isRegenerating ? (
+                                    <>
+                                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                      Generating...
+                                    </>
                                   ) : (
-                                    <Sparkles className="h-4 w-4 mr-2" />
+                                    <>
+                                      <Sparkles className="h-4 w-4 mr-2" />
+                                      Generate Content
+                                    </>
                                   )}
-                                  Generate Content
                                 </Button>
                               </div>
                             </div>
+                            
+                            {aiGeneratedBlocks.length > 0 && (
+                              <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg space-y-2">
+                                <div className="text-sm font-medium text-purple-800 mb-2">
+                                  Content Generated! ({aiGeneratedBlocks.length} blocks)
+                                </div>
+                                <Button 
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setShowRegenerateDialog(true)}
+                                  className="text-purple-700 border-purple-300 hover:bg-purple-50 w-full font-medium"
+                                >
+                                  <RefreshCw className="h-4 w-4 mr-2" />
+                                  Regenerate with Guidance
+                                </Button>
+                                <Button 
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setAiGeneratedBlocks([]);
+                                    setAiTopicInput('');
+                                  }}
+                                  className="text-gray-500 hover:text-gray-700 w-full"
+                                >
+                                  Clear Generated Content
+                                </Button>
+                              </div>
+                            )}
                             
                             <div className="text-center py-6 text-gray-500">
                               <FileText className="h-8 w-8 mx-auto mb-2 text-gray-400" />
