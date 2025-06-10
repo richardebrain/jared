@@ -80,6 +80,7 @@ import CertificateManager from "@/pages/certificate-manager";
 import NewsletterManager from "@/pages/newsletter-manager";
 import MessagesPage from "@/pages/messages";
 import SchoolSettingsPage from "@/pages/school-settings";
+import AdvancedVoiceFeatures from "@/components/AdvancedVoiceFeatures";
 
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
@@ -413,6 +414,18 @@ function Router(props: {
         )}
       </Route>
 
+      <Route path="/voice-features-demo">
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <AdvancedVoiceFeatures />
+        )}
+      </Route>
+
       <Route path="/core-values-shout-out">
         {!isAuthenticated && !isLoading ? (
           <Redirect to="/login" />
@@ -446,6 +459,18 @@ function Router(props: {
           </div>
         ) : (
           <VideoResourcesPage />
+        )}
+      </Route>
+
+      <Route path="/voice-features-demo">
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <AdvancedVoiceFeatures />
         )}
       </Route>
 
