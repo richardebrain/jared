@@ -479,7 +479,7 @@ export default function ComprehensiveModuleCreator() {
   };
 
   const addCustomVideoUrl = () => {
-    if (!customVideoUrl.trim() || selectedVideoForSection === null) return;
+    if (!customVideoUrl.trim()) return;
     
     // Extract title from URL or use placeholder
     let videoTitle = 'Custom Video';
@@ -489,17 +489,22 @@ export default function ComprehensiveModuleCreator() {
       videoTitle = 'Vimeo Video';
     }
     
-    updateSection(selectedVideoForSection, 'videoUrl', customVideoUrl);
-    updateSection(selectedVideoForSection, 'title', videoTitle);
+    // Use the same targeting logic as other video functions
+    const targetIndex = selectedVideoForSection !== null ? selectedVideoForSection : currentSectionIndex;
+    updateSection(targetIndex, 'videoUrl', customVideoUrl);
+    updateSection(targetIndex, 'title', `${newModule.sections[targetIndex]?.title || 'Section'} - ${videoTitle}`);
     
     toast({
       title: "Custom Video Added",
-      description: "Your custom video has been added to the section",
+      description: `Added "${videoTitle}" to the section`,
     });
     
     setShowVideoSearch(false);
     setSelectedVideoForSection(null);
     setCustomVideoUrl('');
+    setVideoSearchQuery('');
+    setVideoSearchResults([]);
+    setYoutubeSearchResults([]);
   };
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -5249,23 +5254,29 @@ Create a natural conversation between two podcast hosts discussing this specific
               {videoSearchResults.length > 0 && (
                 <div>
                   <h3 className="font-medium mb-3 text-blue-800">Video Library Results ({videoSearchResults.length})</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto">
+                  <div className="space-y-3 max-h-64 overflow-y-auto">
                     {videoSearchResults.map((video, index) => (
-                      <div key={index} className="border rounded-lg p-3 hover:bg-blue-50 cursor-pointer" 
-                           onClick={() => selectVideoForSection(video.url, video.title)}>
-                        <div className="flex items-start space-x-3">
-                          {video.thumbnail && (
-                            <img src={video.thumbnail} alt={video.title} className="w-16 h-12 rounded object-cover" />
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-sm truncate">{video.title}</h4>
-                            <p className="text-xs text-gray-600 mt-1">{video.category}</p>
-                            {video.duration && (
-                              <span className="text-xs bg-gray-200 px-2 py-1 rounded mt-1 inline-block">
-                                {video.duration}
-                              </span>
+                      <div key={index} className="border rounded-lg p-4 bg-white shadow-sm">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-start space-x-3 flex-1 min-w-0">
+                            {video.thumbnail && (
+                              <img src={video.thumbnail} alt={video.title} className="w-20 h-14 rounded object-cover flex-shrink-0" />
                             )}
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-sm text-blue-900 mb-1">{video.title}</h4>
+                              <p className="text-xs text-blue-700 mb-1">{video.category}</p>
+                              <p className="text-xs text-gray-500">Library Video • {video.duration || 'Duration unknown'}</p>
+                            </div>
                           </div>
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="ml-3 bg-blue-600 hover:bg-blue-700 text-white flex-shrink-0"
+                            onClick={() => selectVideoForSection(video.url, video.title)}
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Add Video
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -5277,23 +5288,40 @@ Create a natural conversation between two podcast hosts discussing this specific
               {youtubeSearchResults.length > 0 && (
                 <div>
                   <h3 className="font-medium mb-3 text-red-600">YouTube Results ({youtubeSearchResults.length})</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto">
+                  <div className="space-y-3 max-h-64 overflow-y-auto">
                     {youtubeSearchResults.map((video, index) => (
-                      <div key={index} className="border rounded-lg p-3 hover:bg-red-50 cursor-pointer"
-                           onClick={() => selectVideoForSection(video.url, video.title)}>
-                        <div className="flex items-start space-x-3">
-                          {video.thumbnail && (
-                            <img src={video.thumbnail} alt={video.title} className="w-16 h-12 rounded object-cover" />
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-sm truncate">{video.title}</h4>
-                            <p className="text-xs text-gray-600 mt-1">{video.channelTitle}</p>
-                            {video.duration && (
-                              <span className="text-xs bg-gray-200 px-2 py-1 rounded mt-1 inline-block">
-                                {video.duration}
-                              </span>
+                      <div key={index} className="border rounded-lg p-4 bg-white shadow-sm">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-start space-x-3 flex-1 min-w-0">
+                            {video.thumbnail && (
+                              <img src={video.thumbnail} alt={video.title} className="w-20 h-14 rounded object-cover flex-shrink-0" />
                             )}
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-sm text-red-900 mb-1">{video.title}</h4>
+                              <p className="text-xs text-red-700 mb-1">By {video.channelTitle || video.channel}</p>
+                              <p className="text-xs text-gray-500">
+                                YouTube • 
+                                <a 
+                                  href={video.url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:text-blue-800 underline ml-1"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  View on YouTube
+                                </a>
+                              </p>
+                            </div>
                           </div>
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="ml-3 bg-red-600 hover:bg-red-700 text-white flex-shrink-0"
+                            onClick={() => selectVideoForSection(video.url, video.title)}
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Add Video
+                          </Button>
                         </div>
                       </div>
                     ))}
