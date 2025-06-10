@@ -3778,13 +3778,13 @@ Create a natural conversation between two podcast hosts discussing this specific
                         );
                       }
                       
-                      if (isInteractiveSection) {
+                      if (isTextSection) {
                         return (
                           <>
                             <div className="flex items-center justify-between">
                               <h3 className="font-semibold flex items-center gap-2">
-                                <Zap className="h-5 w-5 text-purple-600" />
-                                Interactive Tools
+                                <FileText className="h-5 w-5 text-gray-600" />
+                                Content Tools
                               </h3>
                               <div className="flex gap-2">
                                 <Button 
@@ -3792,27 +3792,22 @@ Create a natural conversation between two podcast hosts discussing this specific
                                   variant="outline" 
                                   onClick={generateAIContentForSection}
                                   disabled={isGeneratingAIContent}
-                                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
                                 >
-                                  <Sparkles className="h-4 w-4 mr-2" />
-                                  Activity Ideas
-                                </Button>
-                                <Button 
-                                  size="sm"
-                                  variant="outline" 
-                                  onClick={startQuizBuilder}
-                                  className="border-green-300 text-green-700 hover:bg-green-50"
-                                >
-                                  <Trophy className="h-4 w-4 mr-2" />
-                                  Gamify
+                                  {isGeneratingAIContent ? (
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  ) : (
+                                    <Sparkles className="h-4 w-4 mr-2" />
+                                  )}
+                                  Generate Content
                                 </Button>
                               </div>
                             </div>
                             
                             <div className="text-center py-6 text-gray-500">
-                              <Zap className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                              <p className="text-sm font-medium">Interactive Activity Tools</p>
-                              <p className="text-xs mt-1">Create engaging activities and games</p>
+                              <FileText className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                              <p className="text-sm font-medium">Text Content Section</p>
+                              <p className="text-xs mt-1">Generate educational content and learning materials</p>
                             </div>
                           </>
                         );
