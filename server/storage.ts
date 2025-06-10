@@ -26,7 +26,8 @@ import {
   streakRewards, type StreakReward, type InsertStreakReward,
   lessonPlans, type LessonPlan, type InsertLessonPlan,
   earlyLearningStandards, type EarlyLearningStandard, type InsertEarlyLearningStandard,
-  videoRatings, type VideoRating, type InsertVideoRating
+  videoRatings, type VideoRating, type InsertVideoRating,
+  moduleDrafts, type ModuleDraft, type InsertModuleDraft
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, lt, or, sql } from "drizzle-orm";

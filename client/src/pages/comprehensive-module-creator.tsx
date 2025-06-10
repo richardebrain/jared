@@ -745,6 +745,12 @@ export default function ComprehensiveModuleCreator() {
   const [showPreview, setShowPreview] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   
+  // Draft saving functionality
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [currentDraftId, setCurrentDraftId] = useState<number | null>(null);
+  const [showDraftManager, setShowDraftManager] = useState(false);
+  const [savedDrafts, setSavedDrafts] = useState<any[]>([]);
+  
   // Initial setup phase for title and learning objective
   const [showInitialSetup, setShowInitialSetup] = useState(true);
   const [initialModuleData, setInitialModuleData] = useState({
@@ -765,6 +771,130 @@ export default function ComprehensiveModuleCreator() {
   const [isSearchingYoutube, setIsSearchingYoutube] = useState(false);
   const [customVideoUrl, setCustomVideoUrl] = useState('');
   const [selectedVideoForSection, setSelectedVideoForSection] = useState<number | null>(null);
+
+  // Draft saving functions
+  const saveDraft = async (name?: string) => {
+    if (!user?.id) return;
+    
+    setIsSavingDraft(true);
+    try {
+      const draftData = {
+        name: name || `Draft - ${newModule.title || 'Untitled'}`,
+        moduleData: newModule,
+        creationMethod,
+        aiWorkflowStep,
+        createdAt: new Date().toISOString(),
+        userId: user.id
+      };
+
+      const endpoint = currentDraftId 
+        ? `/api/module-drafts/${currentDraftId}`
+        : '/api/module-drafts';
+      
+      const method = currentDraftId ? 'PUT' : 'POST';
+      
+      const response = await apiRequest(endpoint, {
+        method,
+        body: JSON.stringify(draftData),
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (!currentDraftId) {
+        setCurrentDraftId(response.id);
+      }
+
+      toast({
+        title: "Draft Saved",
+        description: `Your module draft has been saved as "${draftData.name}"`,
+      });
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      toast({
+        title: "Save Failed",
+        description: "Unable to save draft. Please try again.",
+        variant: "destructive",
+      });
+    }
+    setIsSavingDraft(false);
+  };
+
+  const loadDraft = async (draftId: number) => {
+    try {
+      const draft = await apiRequest(`/api/module-drafts/${draftId}`);
+      
+      setNewModule(draft.moduleData);
+      setCreationMethod(draft.creationMethod);
+      setAiWorkflowStep(draft.aiWorkflowStep);
+      setCurrentDraftId(draft.id);
+      
+      toast({
+        title: "Draft Loaded",
+        description: `Loaded draft: ${draft.name}`,
+      });
+      
+      setShowDraftManager(false);
+    } catch (error) {
+      console.error('Error loading draft:', error);
+      toast({
+        title: "Load Failed",
+        description: "Unable to load draft. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteDraft = async (draftId: number) => {
+    try {
+      await apiRequest(`/api/module-drafts/${draftId}`, { method: 'DELETE' });
+      
+      setSavedDrafts(prev => prev.filter(draft => draft.id !== draftId));
+      
+      if (currentDraftId === draftId) {
+        setCurrentDraftId(null);
+      }
+      
+      toast({
+        title: "Draft Deleted",
+        description: "Draft has been removed",
+      });
+    } catch (error) {
+      console.error('Error deleting draft:', error);
+      toast({
+        title: "Delete Failed",
+        description: "Unable to delete draft. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Load saved drafts
+  const { data: drafts, refetch: refetchDrafts } = useQuery({
+    queryKey: ['/api/module-drafts'],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      return await apiRequest('/api/module-drafts');
+    },
+    enabled: !!user?.id && showDraftManager,
+  });
+
+  useEffect(() => {
+    if (drafts) {
+      setSavedDrafts(drafts);
+    }
+  }, [drafts]);
+
+  // Auto-save functionality
+  useEffect(() => {
+    if (!newModule.title && !newModule.description) return;
+    
+    const autoSaveTimer = setTimeout(() => {
+      if (currentDraftId && user?.id) {
+        saveDraft();
+      }
+    }, 30000); // Auto-save every 30 seconds
+
+    return () => clearTimeout(autoSaveTimer);
+  }, [newModule, currentDraftId, user?.id]);
 
 
 

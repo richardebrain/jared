@@ -684,6 +684,49 @@ export const newslettersRelations = relations(newsletters, ({ one }) => ({
 export type Newsletter = typeof newsletters.$inferSelect;
 export type InsertNewsletter = z.infer<typeof insertNewsletterSchema>;
 
+// Module drafts schema for save-and-resume functionality
+export const moduleDrafts = pgTable("module_drafts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  name: text("name").notNull(),
+  moduleData: json("module_data").$type<{
+    title: string;
+    description: string;
+    category: string;
+    difficulty: string;
+    estimatedTime: string;
+    customPoints?: string;
+    pointValue: number;
+    is_visible: boolean;
+    sections: any[];
+    shareWithCommunity?: boolean;
+    moduleType?: string;
+    courseStructure?: any;
+    interactiveElements?: any;
+    certificationSystem?: any;
+  }>().notNull(),
+  creationMethod: text("creation_method"),
+  aiWorkflowStep: text("ai_workflow_step"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertModuleDraftSchema = createInsertSchema(moduleDrafts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const moduleDraftsRelations = relations(moduleDrafts, ({ one }) => ({
+  user: one(users, {
+    fields: [moduleDrafts.userId],
+    references: [users.id]
+  })
+}));
+
+export type ModuleDraft = typeof moduleDrafts.$inferSelect;
+export type InsertModuleDraft = z.infer<typeof insertModuleDraftSchema>;
+
 export type EducationalGame = typeof educationalGames.$inferSelect;
 export type InsertEducationalGame = z.infer<typeof insertEducationalGameSchema>;
 export type GameCompletion = typeof gameCompletions.$inferSelect;
