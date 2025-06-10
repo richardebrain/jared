@@ -45,7 +45,13 @@ interface PublishingDialogProps {
     category: string;
     difficulty: string;
     estimatedTime: string;
+    customPoints?: string;
+    shareWithCommunity?: boolean;
+    moduleType?: string;
     sections: any[];
+    courseStructure?: any;
+    interactiveElements?: any;
+    certificationSystem?: any;
   };
   onPublishSuccess: () => void;
 }

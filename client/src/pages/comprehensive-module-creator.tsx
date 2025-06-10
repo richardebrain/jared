@@ -4849,9 +4849,9 @@ Create a natural conversation between two podcast hosts discussing this specific
                 <Card 
                   key={template.id} 
                   className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                    selectedTemplate === template.id ? 'ring-2 ring-purple-500 bg-purple-50' : template.color
+                    aiSelectedTemplate === template.id ? 'ring-2 ring-purple-500 bg-purple-50' : template.color
                   }`}
-                  onClick={() => setSelectedTemplate(template.id)}
+                  onClick={() => setAiSelectedTemplate(template.id)}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-2 mb-2">
@@ -4869,26 +4869,26 @@ Create a natural conversation between two podcast hosts discussing this specific
             </div>
 
             {/* Selected Template Info */}
-            {selectedTemplate && (
+            {aiSelectedTemplate && (
               <div className="bg-white p-4 rounded-lg border border-purple-200 mb-4">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="font-medium flex items-center">
-                    {React.createElement(moduleTemplates.find(t => t.id === selectedTemplate)?.icon || BookOpen, { className: "h-4 w-4 mr-2" })}
-                    {moduleTemplates.find(t => t.id === selectedTemplate)?.title}
+                    {React.createElement(moduleTemplates.find(t => t.id === aiSelectedTemplate)?.icon || BookOpen, { className: "h-4 w-4 mr-2" })}
+                    {moduleTemplates.find(t => t.id === aiSelectedTemplate)?.title}
                   </h4>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setSelectedTemplate(null)}
+                    onClick={() => setAiSelectedTemplate(null)}
                   >
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
                 <div className="text-sm text-gray-600 mb-3">
-                  AI will generate: {moduleTemplates.find(t => t.id === selectedTemplate)?.features.join(', ')}
+                  AI will generate: {moduleTemplates.find(t => t.id === aiSelectedTemplate)?.features.join(', ')}
                 </div>
                 <Button
-                  onClick={() => generateTemplateContent(selectedTemplate)}
+                  onClick={() => generateTemplateContent(aiSelectedTemplate)}
                   disabled={isGeneratingContent || !newModule.title || !newModule.description}
                   className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                 >
@@ -4900,7 +4900,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                   ) : (
                     <>
                       <Sparkles className="h-4 w-4 mr-2" />
-                      Generate {moduleTemplates.find(t => t.id === selectedTemplate)?.title} Content
+                      Generate {moduleTemplates.find(t => t.id === aiSelectedTemplate)?.title} Content
                     </>
                   )}
                 </Button>
@@ -6206,13 +6206,18 @@ Create a natural conversation between two podcast hosts discussing this specific
         isOpen={showPublishDialog}
         onClose={() => setShowPublishDialog(false)}
         module={{
-          id: newModule.id,
           title: newModule.title,
           description: newModule.description,
           category: newModule.category,
           difficulty: newModule.difficulty,
           estimatedTime: newModule.estimatedTime,
-          sections: newModule.sections
+          customPoints: newModule.customPoints,
+          shareWithCommunity: newModule.shareWithCommunity,
+          moduleType: "deep-dive",
+          sections: newModule.sections,
+          courseStructure: { modules: [], totalDuration: 0, prerequisites: [] },
+          interactiveElements: { hasQuizzes: false, hasSimulations: false, hasDiscussions: false },
+          certificationSystem: { enabled: false, passingScore: 80, certificateTemplate: null }
         }}
         onPublishSuccess={() => {
           toast({
@@ -6220,7 +6225,7 @@ Create a natural conversation between two podcast hosts discussing this specific
             description: "Your module has been saved and distributed.",
           });
           // Navigate back to dashboard after successful publish
-          setLocation('/');
+          navigate('/');
         }}
       />
     </div>
