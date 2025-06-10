@@ -5392,27 +5392,59 @@ Create a natural conversation between two podcast hosts discussing this specific
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
                           <button 
                             onClick={() => generateMnemonicDevice(index, 'song')}
-                            className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors"
+                            disabled={generatingContent === index}
+                            className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            🎵 Funny Song
+                            {generatingContent === index ? (
+                              <>
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin inline" />
+                                Thinking...
+                              </>
+                            ) : (
+                              '🎵 Funny Song'
+                            )}
                           </button>
                           <button 
                             onClick={() => generateMnemonicDevice(index, 'rap')}
-                            className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors"
+                            disabled={generatingContent === index}
+                            className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            🎤 Catchy Rap
+                            {generatingContent === index ? (
+                              <>
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin inline" />
+                                Thinking...
+                              </>
+                            ) : (
+                              '🎤 Catchy Rap'
+                            )}
                           </button>
                           <button 
                             onClick={() => generateMnemonicDevice(index, 'poem')}
-                            className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors"
+                            disabled={generatingContent === index}
+                            className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            📝 Funny Poem
+                            {generatingContent === index ? (
+                              <>
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin inline" />
+                                Thinking...
+                              </>
+                            ) : (
+                              '📝 Funny Poem'
+                            )}
                           </button>
                           <button 
                             onClick={() => generateMnemonicDevice(index, 'acronym')}
-                            className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors"
+                            disabled={generatingContent === index}
+                            className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            🔤 Acronym
+                            {generatingContent === index ? (
+                              <>
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin inline" />
+                                Thinking...
+                              </>
+                            ) : (
+                              '🔤 Acronym'
+                            )}
                           </button>
                         </div>
                         <p className="text-sm text-pink-700">
