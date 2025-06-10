@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { EnhancedModuleViewer } from "@/components/EnhancedModuleViewer";
+import { ModernModuleViewer } from "@/components/ModernModuleViewer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Play, BookOpen, Award } from "lucide-react";
+import { ArrowLeft, Play, BookOpen, Award, Star, Trophy, Zap, Users, Clock, Target } from "lucide-react";
 import Header from "@/components/Header";
+import { motion } from "framer-motion";
 
 // Sample module data with complete flow
 const sampleModule = {
@@ -387,7 +388,7 @@ export default function ModuleFlowTest() {
           </Button>
         </div>
 
-        <EnhancedModuleViewer
+        <ModernModuleViewer
           moduleId={sampleModule.id}
           onComplete={handleModuleComplete}
         />
