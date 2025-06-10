@@ -832,6 +832,45 @@ export default function Dashboard() {
                 </div>
               )}
               
+              {/* Recently Added Modules */}
+              {modules && Array.isArray(modules) && modules.length > 0 && (
+                <div className="space-y-4 mt-8">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                      <Sparkles className="h-5 w-5 mr-2 text-green-600" />
+                      Recently Added Modules
+                    </h2>
+                    <Link href="/modules">
+                      <Button variant="outline" size="sm" className="text-green-600 border-green-300 hover:bg-green-50">
+                        View All Modules
+                        <ArrowRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </Link>
+                  </div>
+                  <p className="text-neutral-600 mb-4">
+                    Explore the latest training modules and educational content added to the platform.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {modules
+                      .filter(module => module.isVisible)
+                      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+                      .slice(0, 6)
+                      .map((module) => (
+                        <CompactModuleCard 
+                          key={module.id}
+                          module={module}
+                          progress={
+                            Array.isArray(userProgress) 
+                              ? userProgress.find(p => p.moduleId === module.id)?.progress || 0
+                              : 0
+                          }
+                          onClick={(moduleId) => setSelectedModuleId(moduleId)}
+                        />
+                      ))}
+                  </div>
+                </div>
+              )}
+              
               {/* Continue Learning section removed - will be added back when we have more content */}
             </div>
             
