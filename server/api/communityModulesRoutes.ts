@@ -101,7 +101,6 @@ router.get("/", requireAuth, requirePaidAccess, async (req, res) => {
       JOIN learning_modules lm ON cm.module_id = lm.id
       JOIN schools s ON cm.shared_by_school_id = s.id
       WHERE cm.status = 'active' 
-        AND cm.shared_by_school_id != ${user.schoolId}
       ORDER BY lm.average_rating DESC, cm.shared_date DESC
     `);
     
