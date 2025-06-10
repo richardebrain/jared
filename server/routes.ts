@@ -1699,7 +1699,7 @@ Continue for all 5 questions...
   });
 
   // Learning modules routes
-  app.get("/api/modules", requireAuth, requirePaidAccess, async (req, res) => {
+  app.get("/api/modules", async (req, res) => {
     console.log('fetching modules result')
 
     try {
