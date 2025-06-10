@@ -165,7 +165,7 @@ export default function ToolsPage() {
     },
     {
       id: "personalized-stories",
-      title: "Personalized Stories",
+      title: "Stories",
       description: "Create custom behavioral stories with children's names and voice narration",
       icon: <Sparkles className="h-6 w-6" />,
       component: (
