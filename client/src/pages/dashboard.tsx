@@ -852,7 +852,10 @@ export default function Dashboard() {
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {modules
-                      .filter(module => module.isVisible)
+                      .filter(module => {
+                        console.log('Module filter check:', module.id, module.title, module.isVisible);
+                        return module.isVisible;
+                      })
                       .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
                       .slice(0, 6)
                       .map((module) => (
