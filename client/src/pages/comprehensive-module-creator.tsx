@@ -4131,13 +4131,18 @@ Create a natural conversation between two podcast hosts discussing this specific
                             </ul>
                           </div>
                           
-                          <Textarea
-                            value={regenerationGuidance}
-                            onChange={(e) => setRegenerationGuidance(e.target.value)}
-                            placeholder="e.g., Include ECERS block material checklist and specific examples for outdoor play areas"
-                            className="border-purple-300 focus:border-purple-500 min-h-20"
-                            rows={3}
-                          />
+                          <div>
+                            <Label className="text-sm font-medium text-purple-900 mb-2 block">
+                              Your specific guidance:
+                            </Label>
+                            <Textarea
+                              value={regenerationGuidance}
+                              onChange={(e) => setRegenerationGuidance(e.target.value)}
+                              placeholder="Type your specific instructions here, e.g., 'Include ECERS block material checklist and specific examples for outdoor play areas'"
+                              className="border-purple-300 focus:border-purple-500 min-h-32 text-base"
+                              rows={4}
+                            />
+                          </div>
                           
                           <div className="flex gap-2 justify-end">
                             <Button 
