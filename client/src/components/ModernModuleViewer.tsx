@@ -415,13 +415,47 @@ Start with one transition type and gradually expand your repertoire as children 
     if (!module?.content) return [];
     try {
       const parsed = JSON.parse(module.content);
-      return Array.isArray(parsed) ? parsed.map((section, index) => ({
+      
+      // Handle different content structures
+      let sections = [];
+      if (Array.isArray(parsed)) {
+        sections = parsed;
+      } else if (parsed.sections && Array.isArray(parsed.sections)) {
+        sections = parsed.sections;
+      } else if (typeof parsed === 'string') {
+        // Handle string content by creating text sections
+        const contentParts = parsed.split('\n\n').filter(part => part.trim());
+        sections = contentParts.map((part, index) => ({
+          id: `section-${index}`,
+          type: 'text',
+          title: `Section ${index + 1}`,
+          content: part.trim(),
+          duration: Math.max(2, Math.ceil(part.length / 200)),
+          required: true
+        }));
+      }
+      
+      return sections.map((section, index) => ({
         ...section,
         id: section.id || `section-${index}`,
-        required: section.required !== false
-      })) : [];
-    } catch {
-      return [];
+        type: section.type || 'text',
+        title: section.title || `Section ${index + 1}`,
+        content: section.content || '',
+        duration: section.duration || 5,
+        required: section.required !== false,
+        questions: section.questions || (section.type === 'quiz' ? [] : undefined)
+      }));
+    } catch (error) {
+      console.error('Error parsing module content:', error);
+      // Fallback: create a single text section from the raw content
+      return [{
+        id: 'section-0',
+        type: 'text',
+        title: 'Module Content',
+        content: module?.content || '',
+        duration: 10,
+        required: true
+      }];
     }
   })();
 

@@ -1725,13 +1725,19 @@ Continue for all 5 questions...
       if (!savedModule) {
         // Create the module
         const moduleData = {
-          title: module.title,
-          description: module.description,
-          category: module.category,
-          difficulty: module.difficulty,
+          title: module.title || "Untitled Module",
+          description: module.description || "Module description",
+          category: module.category || "professional-development",
+          difficulty: module.difficulty || "intermediate",
           duration: parseInt(module.estimatedTime) || 10,
-          pointValue: 100, // Default points
-          content: JSON.stringify(module.sections),
+          pointValue: parseInt(module.customPoints) || 100,
+          content: JSON.stringify({
+            sections: module.sections || [],
+            moduleType: module.moduleType || "deep-dive",
+            courseStructure: module.courseStructure || {},
+            interactiveElements: module.interactiveElements || {},
+            certificationSystem: module.certificationSystem || {}
+          }),
           is_visible: includeInLibrary
         };
         savedModule = await storage.createModule(moduleData);
