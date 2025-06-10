@@ -2723,6 +2723,28 @@ Create a natural conversation between two podcast hosts discussing this specific
                       <CardDescription className="text-green-700">
                         Build your quiz one question at a time. Add as many questions as you need.
                       </CardDescription>
+                      
+                      {/* Topic Context for AI */}
+                      <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Target className="h-4 w-4 text-blue-600" />
+                          <span className="text-sm font-medium text-blue-800">Quiz Topic Context</span>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <div className="text-blue-700">
+                            <strong>Module:</strong> {newModule.title || 'Professional Development Module'}
+                          </div>
+                          <div className="text-blue-700">
+                            <strong>Topic:</strong> {newModule.description || 'Building effective teaching strategies'}
+                          </div>
+                          <div className="text-blue-700">
+                            <strong>Section:</strong> {newModule.sections[currentSectionIndex]?.title}
+                          </div>
+                          <div className="text-blue-600 text-xs mt-2">
+                            AI will generate questions specifically about this topic and section
+                          </div>
+                        </div>
+                      </div>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       {/* Quiz Progress */}
