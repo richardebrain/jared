@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { 
   MessageSquare, BookOpen, Video, CalendarDays, ClipboardCheck, 
   GraduationCap, Lightbulb, Stars, BadgeHelp, PencilRuler, Timer,
-  Smartphone
+  Smartphone, Heart
 } from "lucide-react";
 
 // Example scenarios for parent communication
@@ -214,6 +214,32 @@ export default function ToolsPage() {
             <Smartphone className="h-5 w-5" />
             EduTok Experience Coming Soon
           </Button>
+        </div>
+      )
+    },
+    {
+      id: "personalized-stories",
+      title: "Personalized Stories",
+      description: "Create custom behavioral stories for children with character themes",
+      icon: <Heart className="h-6 w-6" />,
+      component: (
+        <div className="flex flex-col items-center justify-center py-8">
+          <h3 className="text-xl font-semibold mb-4">Personalized Stories for Children</h3>
+          <div className="text-center mb-6">
+            <p className="text-muted-foreground max-w-lg">
+              Create custom behavioral stories featuring beloved characters like Spider-Man and unicorns, 
+              with hero's journeys and mindful mornings techniques for children ages 2-5.
+            </p>
+          </div>
+          <Link href="/personalized-stories">
+            <Button 
+              size="lg" 
+              className="gap-2"
+            >
+              <Heart className="h-5 w-5" />
+              Open Story Creator
+            </Button>
+          </Link>
         </div>
       )
     },
