@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { 
   MessageSquare, BookOpen, Video, CalendarDays, ClipboardCheck, 
   GraduationCap, Lightbulb, Stars, BadgeHelp, PencilRuler, Timer,
-  Smartphone, Heart
+  Smartphone, Heart, Sparkles
 } from "lucide-react";
 
 // Example scenarios for parent communication
@@ -160,6 +160,27 @@ export default function ToolsPage() {
               </CardContent>
             </Card>
           </div>
+        </div>
+      )
+    },
+    {
+      id: "personalized-stories",
+      title: "Personalized Stories",
+      description: "Create custom behavioral stories with children's names and voice narration",
+      icon: <Sparkles className="h-6 w-6" />,
+      component: (
+        <div className="flex flex-col items-center justify-center py-8">
+          <h3 className="text-xl font-semibold mb-4">Personalized Stories Creator</h3>
+          <p className="text-gray-600 mb-6 text-center max-w-md">
+            Create custom stories featuring children's names with character themes like Spider-Man and unicorns. 
+            Stories include hero's journeys, mindful mornings techniques, and professional voice narration.
+          </p>
+          <Link href="/personalized-stories">
+            <Button className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              Open Personalized Stories
+            </Button>
+          </Link>
         </div>
       )
     },
