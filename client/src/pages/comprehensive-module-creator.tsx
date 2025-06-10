@@ -1576,24 +1576,23 @@ export default function ComprehensiveModuleCreator() {
     setIsGeneratingFlashcards(true);
     
     try {
-      const response = await apiRequest('/api/ai/generate-flashcards', {
-        method: 'POST',
-        data: {
-          moduleTitle: newModule.title,
-          moduleDescription: newModule.description,
-          sectionTitle: newModule.sections[currentSectionIndex]?.title || 'Key Terms',
-          category: newModule.category,
-          sectionType: 'flashcards'
-        }
+      const response = await apiRequest('POST', '/api/ai/generate-flashcards', {
+        moduleTitle: newModule.title,
+        moduleDescription: newModule.description,
+        sectionTitle: newModule.sections[currentSectionIndex]?.title || 'Key Terms',
+        category: newModule.category,
+        sectionType: 'flashcards'
       });
 
       if (response.flashcards) {
         // Format flashcards as content blocks that can be dragged
-        const flashcardBlocks = response.flashcards.map((card: any) => 
-          `**${card.term}**: ${card.definition}`
-        );
+        const flashcardBlocks = response.flashcards.map((card: any) => ({
+          type: 'Key Term',
+          content: `**${card.term}**: ${card.definition}`,
+          preview: `${card.term} - ${card.definition.substring(0, 100)}...`
+        }));
         
-        setAiGeneratedBlocks(flashcardBlocks);
+        setAiGeneratedBlocks(prev => [...prev, ...flashcardBlocks]);
         toast({
           title: "Key Terms Generated",
           description: `Generated ${response.flashcards.length} key terms and definitions`,
