@@ -707,292 +707,202 @@ router.post('/generate-content-blocks', async (req, res) => {
       return res.status(400).json({ error: 'Topic is required' });
     }
 
-    let contentBlocks = [];
+    console.log('Generating content blocks for:', { topic, sectionTitle, moduleTitle, sectionType });
 
-    // Helper function to create topic-specific scenarios
-    const createScenario = (situation: string) => {
-      return `It's a typical Tuesday morning in your preschool classroom. You're working with a small group when you notice 4-year-old Alex starting to show signs of ${topic.toLowerCase()}. ${situation} 
+    // Use OpenAI to generate topic-specific content blocks
+    const openai = new (await import("openai")).default({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
 
-The other children are beginning to notice. You have about 30 seconds to respond before this becomes a bigger situation.
+    const prompt = `
+You are an expert early childhood education content creator. Generate 5 diverse, engaging content blocks for a module about "${topic}" specifically focused on "${moduleTitle}".
 
-What's your next move?`;
-    };
+CRITICAL: The content must be specifically about "${topic}" - not generic early childhood education content. Use the exact topic throughout.
 
-    // Generate section-specific content based on section type
-    if (sectionType === 'quiz') {
-      // Create topic-specific quiz questions
-      contentBlocks = generateQuizContent(topic, sectionTitle || '');
-    } else if (sectionType === 'hook' || sectionType === 'scenario') {
-      // Generate hook/scenario-specific content blocks
-      contentBlocks = generateHookContent(topic, sectionTitle || '');
-    } else if (sectionType === 'introduction') {
-      contentBlocks = generateIntroContent(topic, sectionTitle || '');
-    } else if (sectionType === 'reflection') {
-      contentBlocks = generateReflectionContent(topic, sectionTitle || '');
-    } else {
-      // Generate general content blocks with humor and research
-      contentBlocks = [
+Create content blocks that are:
+1. Immediately practical and actionable
+2. Based on real early childhood education research and best practices
+3. Specifically focused on "${topic}" strategies and techniques
+4. Written in an engaging, conversational tone that connects with teachers
+5. Include specific scenarios, scripts, or examples related to "${topic}"
+
+Generate exactly 5 content blocks with these types:
+- Research Insight (latest findings about "${topic}")
+- Quick Strategy (immediate technique for "${topic}")
+- Real Scenario (classroom situation involving "${topic}")
+- Expert Tip (professional advice for "${topic}")
+- Reflection Prompt (thoughtful question about "${topic}")
+
+Format as JSON:
+{
+  "blocks": [
+    {
+      "type": "Research Insight",
+      "preview": "Brief preview text about ${topic}...",
+      "content": "Full content specifically about ${topic} with research citations and practical applications"
+    },
+    // ... 4 more blocks
+  ]
+}
+
+Ensure each block is substantial (200-400 words) and directly addresses "${topic}" with specific, actionable content.
+`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
         {
-          type: "Research Insight",
-          preview: `Evidence-based insights about ${topic.toLowerCase()} in early childhood settings...`,
-          content: `## Research Insight: The Science Behind ${topic}
-
-**Did you know?** Research from ${getRandomResearcher()} shows that children's brains are designed to respond to ${topic.toLowerCase()} in ways that make perfect developmental sense.
-
-When we approach ${topic.toLowerCase()} with evidence-based strategies, children's stress hormones decrease while their learning receptivity increases.
-
-**The bottom line:** Your response to ${topic.toLowerCase()} isn't just about managing the moment - you're supporting healthy brain development.
-
-**Try this:** Next time you encounter ${topic.toLowerCase()}, remember you're not just a teacher - you're a developmental ally.`
+          role: "system",
+          content: "You are an expert early childhood education content creator specializing in practical, research-based strategies."
         },
         {
-          type: "Quick Win Strategy",
-          preview: `Simple, effective strategy for ${topic.toLowerCase()} that works immediately...`,
-          content: `## The 2-Minute Strategy for ${topic}
-
-You need something that works NOW when ${topic.toLowerCase()} shows up unannounced.
-
-**The approach:** The "See, Name, Support" method proven effective in real classrooms.
-
-**Your script:**
-1. **See it:** "I notice you're having a big feeling about..."
-2. **Name it:** "That looks like frustration/excitement/worry..."
-3. **Support it:** "I'm here to help you through this."
-
-**Why this works:** Children feel seen rather than judged, their brains calm down faster, and you appear confident even when uncertain.
-
-**Practice tip:** Rehearse this during your commute so it becomes automatic.`
+          role: "user",
+          content: prompt
         }
-      ];
+      ],
+      temperature: 0.7,
+      max_tokens: 3000,
+      response_format: { type: "json_object" }
+    });
+
+    const result = JSON.parse(response.choices[0]?.message?.content || '{"blocks": []}');
+    
+    if (!result.blocks || result.blocks.length === 0) {
+      throw new Error('No content blocks generated');
     }
 
-    // Randomly select 4-5 blocks to provide variety
-    const selectedBlocks = contentBlocks
-      .sort(() => Math.random() - 0.5)
-      .slice(0, Math.floor(Math.random() * 2) + 4);
-
+    console.log(`Generated ${result.blocks.length} content blocks for topic: ${topic}`);
+    
     return res.json({
-      blocks: selectedBlocks
+      blocks: result.blocks
     });
 
   } catch (error) {
     console.error("Error generating content blocks:", error);
-    return res.status(500).json({
-      error: 'Failed to generate content blocks',
-      details: error instanceof Error ? error.message : 'Unknown error'
+    
+    // Topic-specific fallback content that uses the exact topic provided
+    const contentBlocks = [
+      {
+        type: "Research Insight",
+        preview: `Latest research findings about ${topic} in early childhood settings...`,
+        content: `## Current Research on ${topic}
+
+Recent studies in early childhood education have revealed important insights about ${topic} that directly impact your daily practice.
+
+**Key Finding:** Children experiencing ${topic} show significant improvement when educators use specific, evidence-based approaches rather than generic classroom management techniques.
+
+**What This Means for You:** Your response to ${topic} situations should be tailored to the specific context and individual child's needs. Research shows that understanding the underlying causes of ${topic} leads to more effective interventions.
+
+**Implementation Strategy:** 
+1. Observe patterns related to ${topic} in your classroom
+2. Document what triggers ${topic} behaviors or situations
+3. Apply targeted strategies based on current research
+4. Monitor outcomes and adjust approaches as needed
+
+This research-backed approach to ${topic} creates more positive outcomes for both children and educators.`
+      },
+      {
+        type: "Quick Strategy",
+        preview: `Immediate technique for handling ${topic} situations...`,
+        content: `## The 30-Second ${topic} Strategy
+
+When ${topic} appears in your classroom, you need an immediate, effective response.
+
+**The Strategy:** The "Pause, Assess, Respond" approach specifically designed for ${topic} situations.
+
+**Step 1 - Pause (5 seconds):** Take a breath and resist the urge to react immediately to ${topic}.
+
+**Step 2 - Assess (10 seconds):** Quickly evaluate what's driving the ${topic} behavior or situation.
+
+**Step 3 - Respond (15 seconds):** Use a targeted approach based on your assessment of the ${topic} context.
+
+**Your Script for ${topic}:**
+- "I notice you're dealing with ${topic}. Let's work through this together."
+- "I can see ${topic} is challenging right now. What do you need?"
+- "Let's find a way to handle ${topic} that works for everyone."
+
+**Why This Works:** This approach addresses ${topic} directly while maintaining your calm and showing children you're equipped to handle challenging situations.`
+      },
+      {
+        type: "Real Scenario",
+        preview: `Classroom situation involving ${topic} and how to respond...`,
+        content: `## Real Classroom Scenario: ${topic} Challenge
+
+**The Situation:** It's 10:30 AM during center time. You're facilitating a small group activity when ${topic} becomes an issue with several children. The situation is escalating and other children are starting to notice.
+
+**What's Happening:** The children involved in the ${topic} situation are showing signs of frustration, and you can see this might affect the entire classroom dynamic if not addressed quickly and effectively.
+
+**Your Immediate Response Options:**
+1. Address ${topic} directly with calm, clear communication
+2. Redirect the children while acknowledging their feelings about ${topic}
+3. Use environmental modifications to support better ${topic} management
+4. Implement a specific strategy you've planned for ${topic} situations
+
+**The Professional Approach:** Remember that ${topic} is a learning opportunity. Your response teaches children how to handle challenges and builds their confidence in your ability to support them.
+
+**Reflection Questions:**
+- How might you prevent similar ${topic} situations in the future?
+- What environmental or routine changes could support better ${topic} management?
+- How can you help children develop their own strategies for ${topic}?`
+      },
+      {
+        type: "Expert Tip",
+        preview: `Professional advice for managing ${topic} effectively...`,
+        content: `## Expert Advice on ${topic}
+
+**From Leading ECE Professionals:** Here's what experienced educators know about handling ${topic} that newer teachers often miss.
+
+**The Hidden Truth About ${topic}:** Most challenging ${topic} situations can be prevented through proactive strategies rather than reactive responses.
+
+**Professional Insights:**
+- ${topic} often signals unmet needs that children can't express verbally
+- Environmental factors play a huge role in ${topic} frequency and intensity
+- Consistency in responding to ${topic} builds children's sense of security
+- Family partnerships are crucial for addressing ${topic} effectively
+
+**The Expert Strategy:**
+1. **Prevention Focus:** Identify what typically triggers ${topic} in your classroom
+2. **Pattern Recognition:** Notice the early signs that ${topic} might occur
+3. **Responsive Planning:** Have specific strategies ready for different types of ${topic} situations
+4. **Reflective Practice:** Regularly evaluate what's working and what isn't with ${topic}
+
+**Remember:** Your confidence in handling ${topic} directly impacts how children respond. When you approach ${topic} with calm professionalism, children learn that challenges can be managed successfully.`
+      },
+      {
+        type: "Reflection Prompt",
+        preview: `Thoughtful questions to deepen your understanding of ${topic}...`,
+        content: `## Reflecting on Your ${topic} Practice
+
+Take a few minutes to consider your current approach to ${topic} and how you might strengthen your practice.
+
+**Current Practice Reflection:**
+- How do you typically respond when ${topic} occurs in your classroom?
+- What emotions do you experience when dealing with ${topic}?
+- Which ${topic} situations feel most challenging for you?
+
+**Growth Opportunities:**
+- What would you like to handle differently about ${topic}?
+- What additional knowledge or skills would help you with ${topic}?
+- How might your response to ${topic} impact children's learning and development?
+
+**Professional Development Questions:**
+- What does current research say about best practices for ${topic}?
+- How can you collaborate with families around ${topic}?
+- What environmental or programmatic changes might support better ${topic} outcomes?
+
+**Action Planning:**
+Based on your reflection, identify one specific area related to ${topic} that you'd like to focus on improving this week. What's one small step you can take to enhance your approach to ${topic}?
+
+**Remember:** Reflective practice is what transforms good teachers into great ones. Your willingness to examine and improve your approach to ${topic} demonstrates your commitment to professional growth.`
+      }
+    ];
+
+    return res.json({
+      blocks: contentBlocks
     });
   }
 });
 
-// Helper functions for generating topic-specific content
-function generateQuizContent(topic: string, sectionTitle: string) {
-  const scenarios = [
-    "during circle time when other children are watching",
-    "right before lunch when everyone is hungry", 
-    "during outdoor play transition",
-    "when a parent is visiting the classroom",
-    "during a fire drill practice"
-  ];
-  
-  const randomScenario = scenarios[Math.floor(Math.random() * scenarios.length)];
-  
-  return [
-    {
-      type: "Multiple Choice Question",
-      preview: `What should you do first when you notice ${topic} in your classroom?`,
-      content: `**Question:** When you first notice signs of ${topic} in your classroom, what should be your immediate priority?
-
-A) Immediately redirect the child to stop the behavior
-B) Take a moment to observe and understand what's happening
-C) Remove the child from the situation right away
-D) Continue with your planned activity and address it later
-
-**Correct Answer:** B) Take a moment to observe and understand what's happening
-
-**Why this works:** Research shows that taking 10-15 seconds to assess the situation leads to more effective interventions. You're gathering important information about triggers and the child's actual needs.
-
-**In practice:** Look for environmental triggers, the child's body language, and what happened just before ${topic} began.`
-    },
-    {
-      type: "Scenario Question", 
-      preview: `Real situation: ${topic} happens ${randomScenario}...`,
-      content: `**Scenario:** You notice 4-year-old Jamie showing signs of ${topic} ${randomScenario}. 
-
-**Question:** What's your best first response?
-
-A) Use a firm voice to get Jamie's attention immediately
-B) Get down to Jamie's eye level and speak calmly
-C) Ask another child to help distract Jamie
-D) Give Jamie space and wait to see what happens
-
-**Correct Answer:** B) Get down to Jamie's eye level and speak calmly
-
-**Why:** Physical positioning at the child's level shows respect and makes communication more effective. A calm tone helps regulate both your emotions and the child's.
-
-**Your script:** "Jamie, I can see you're having a big feeling. I'm here to help."`
-    },
-    {
-      type: "Knowledge Check",
-      preview: `What does research tell us about ${topic} in preschoolers?`,
-      content: `**Question:** According to child development research, ${topic} in preschool-age children is usually:
-
-A) A sign of poor parenting at home
-B) Normal brain development that needs adult support
-C) Something children should control on their own by age 4
-D) Best handled by ignoring the behavior
-
-**Correct Answer:** B) Normal brain development that needs adult support
-
-**The science:** The prefrontal cortex (executive function center) isn't fully developed until age 25. Preschoolers literally need adult help to regulate emotions and behavior.
-
-**What this means:** Your job isn't to eliminate ${topic} but to teach children skills for managing it appropriately.`
-    }
-  ];
-}
-
-function generateHookContent(topic: string, sectionTitle: string) {
-  return [
-    {
-      type: "Opening Question",
-      preview: `Gets teachers thinking about their own experience with ${topic}...`,
-      content: `Have you ever been in the middle of a perfectly planned activity when ${topic} suddenly appears in your classroom, and you think: "They definitely didn't cover THIS scenario in my training"?
-
-Take a moment to think about the last time this happened to you. What was your first instinct?
-
-We've all been there, and you're about to learn why these moments are actually opportunities in disguise.`
-    },
-    {
-      type: "Classroom Scenario",
-      preview: `Real moment every teacher recognizes involving ${topic}...`,
-      content: `It's 10:30 AM on a Wednesday. You're transitioning from circle time to centers when you notice Alex starting to show signs of ${topic}. 
-
-Alex's shoulders are getting tense, breathing is faster, and there's that look that says "I need help but don't know how to ask."
-
-The other 15 children haven't noticed yet, but they will in about 30 seconds. Your assistant stepped out to make copies. There's a parent observation this afternoon.
-
-This is where theory meets reality. What happens next depends on the tools you have and the confidence to use them.`
-    },
-    {
-      type: "Personal Reflection",
-      preview: `Connects to teachers' own experiences with ${topic}...`,
-      content: `Think about your most challenging moment with ${topic} this week:
-
-- What did you notice first - the child's behavior, body language, or something environmental?
-- What was your gut reaction? Did you act on it or pause to think?
-- How did it turn out? What worked? What would you do differently?
-- How did you feel afterward?
-
-Every teacher's experience is unique, but the feelings are universal. You're not alone in this.`
-    }
-  ];
-}
-
-function generateIntroContent(topic: string, sectionTitle: string) {
-  return [
-    {
-      type: "Welcome & Purpose",
-      preview: `Clear, practical introduction to learning about ${topic}...`,
-      content: `Welcome to this practical guide for handling ${topic} in early childhood settings.
-
-Whether you're here because you're facing new challenges, want to refresh your approach, or are building your confidence, you're in the right place.
-
-**What makes this different:** Real classroom strategies you can use immediately, backed by research but tested by teachers like you.
-
-**Time investment:** 15-20 minutes that will give you tools for countless future situations.
-
-**Our promise:** Every strategy has been used successfully in real preschool classrooms.`
-    },
-    {
-      type: "Learning Goals",
-      preview: `What teachers will master about ${topic} by the end...`,
-      content: `By the end of this module, you'll confidently:
-
-**Recognize the Signs**
-✓ Spot early indicators of ${topic} before situations escalate
-✓ Understand what triggers these behaviors in your specific environment
-✓ Know the difference between developmentally normal and concerning patterns
-
-**Respond Effectively**
-✓ Use 3-4 proven strategies that work in real classroom settings
-✓ Adapt your approach based on individual children's needs
-✓ Stay calm and confident during challenging moments
-
-**Support Growth**
-✓ Help children develop their own coping strategies
-✓ Communicate effectively with families about ${topic}
-✓ Create a classroom environment that prevents many issues`
-    }
-  ];
-}
-
-function generateReflectionContent(topic: string, sectionTitle: string) {
-  return [
-    {
-      type: "Self-Assessment",
-      preview: `Honest look at current confidence and skills with ${topic}...`,
-      content: `Take a moment to assess where you are right now with ${topic}:
-
-**Your current confidence level:**
-□ "I feel prepared and confident most of the time"
-□ "I have some strategies but they don't always work"
-□ "I often feel unsure about the best approach"
-□ "I'm looking for completely new strategies"
-
-**Your biggest challenge:**
-□ Knowing what to do in the moment
-□ Staying calm when ${topic} escalates
-□ Managing other children's reactions
-□ Following up effectively after incidents
-
-**What you most want to improve:**
-□ Prevention strategies
-□ In-the-moment responses
-□ Long-term behavior support
-□ Family communication about ${topic}
-
-Remember where you're starting - we'll return to this reflection.`
-    },
-    {
-      type: "Action Planning",
-      preview: `Practical next steps for implementing ${topic} strategies...`,
-      content: `Based on what you've learned, create your personal action plan:
-
-**This week, I will try:**
-Strategy: _________________________________
-When I'll practice it: _______________________
-How I'll remember to use it: __________________
-
-**Environmental changes I can make:**
-Physical space: ____________________________
-Daily schedule: ____________________________
-Materials or tools: ___________________________
-
-**Family communication:**
-What I'll share about ${topic}: __________________
-How I'll ask for their input: ____________________
-Ways to align home and school: _________________
-
-**Measuring success:**
-I'll know it's working when: ____________________
-I'll document progress by: _____________________
-I'll adjust my approach if: ______________________
-
-**My commitment:** I will practice _____________ for _____ days and reflect on progress on _______.`
-    }
-  ];
-}
-
-function getRandomResearcher() {
-  const researchers = [
-    'Dr. Daniel Siegel',
-    'Dr. Becky Bailey', 
-    'Dr. Ross Greene',
-    'Dr. Dan Hughes',
-    'Dr. Patty Wipfler',
-    'Dr. Stuart Shanker',
-    'Dr. Mona Delahooke'
-  ];
-  return researchers[Math.floor(Math.random() * researchers.length)];
-}
+// All content generation now handled by OpenAI in the main route above
 
 export default router;
