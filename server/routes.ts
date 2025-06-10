@@ -54,6 +54,7 @@ import adminRoutes from "./routes/admin";
 import { AIBearyService } from "./services/aiBearyService";
 import aiModuleDesignerRoutes from "./api/aiModuleDesignerRoutes";
 import personalizedStoriesRoutes from "./api/personalizedStoriesRoutes";
+import videoSearchRoutes from "./api/videoSearchRoutes";
 
 
 // For ESM __dirname equivalent

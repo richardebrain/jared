@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from '@/lib/queryClient';
@@ -4814,6 +4815,142 @@ Create a natural conversation between two podcast hosts discussing this specific
           </div>
         </CardContent>
       </Card>
+
+      {/* Video Search Dialog */}
+      {showVideoSearch && (
+        <Dialog open={showVideoSearch} onOpenChange={setShowVideoSearch}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Find Video for Your Module</DialogTitle>
+              <DialogDescription>
+                Search our video library, find videos on YouTube, or add your own video link
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-6">
+              {/* Search Input */}
+              <div className="flex space-x-2">
+                <Input
+                  value={videoSearchQuery}
+                  onChange={(e) => setVideoSearchQuery(e.target.value)}
+                  placeholder="Search for videos about your topic..."
+                  className="flex-1"
+                  onKeyPress={(e) => e.key === 'Enter' && handleVideoSearch()}
+                />
+                <Button 
+                  onClick={handleVideoSearch}
+                  disabled={isSearchingVideos || isSearchingYoutube || !videoSearchQuery.trim()}
+                >
+                  {(isSearchingVideos || isSearchingYoutube) ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Search className="h-4 w-4" />
+                  )}
+                  Search
+                </Button>
+              </div>
+
+              {/* Custom URL Input */}
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <h3 className="font-medium mb-2">Add Custom Video URL</h3>
+                <div className="flex space-x-2">
+                  <Input
+                    value={customVideoUrl}
+                    onChange={(e) => setCustomVideoUrl(e.target.value)}
+                    placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
+                    className="flex-1"
+                  />
+                  <Button 
+                    onClick={addCustomVideoUrl}
+                    disabled={!customVideoUrl.trim()}
+                    variant="outline"
+                  >
+                    <Link className="h-4 w-4 mr-2" />
+                    Add URL
+                  </Button>
+                </div>
+              </div>
+
+              {/* Video Library Results */}
+              {videoSearchResults.length > 0 && (
+                <div>
+                  <h3 className="font-medium mb-3 text-blue-800">Video Library Results ({videoSearchResults.length})</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto">
+                    {videoSearchResults.map((video, index) => (
+                      <div key={index} className="border rounded-lg p-3 hover:bg-blue-50 cursor-pointer" 
+                           onClick={() => selectVideoForSection(video.url, video.title)}>
+                        <div className="flex items-start space-x-3">
+                          {video.thumbnail && (
+                            <img src={video.thumbnail} alt={video.title} className="w-16 h-12 rounded object-cover" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-sm truncate">{video.title}</h4>
+                            <p className="text-xs text-gray-600 mt-1">{video.category}</p>
+                            {video.duration && (
+                              <span className="text-xs bg-gray-200 px-2 py-1 rounded mt-1 inline-block">
+                                {video.duration}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* YouTube Results */}
+              {youtubeSearchResults.length > 0 && (
+                <div>
+                  <h3 className="font-medium mb-3 text-red-600">YouTube Results ({youtubeSearchResults.length})</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto">
+                    {youtubeSearchResults.map((video, index) => (
+                      <div key={index} className="border rounded-lg p-3 hover:bg-red-50 cursor-pointer"
+                           onClick={() => selectVideoForSection(video.url, video.title)}>
+                        <div className="flex items-start space-x-3">
+                          {video.thumbnail && (
+                            <img src={video.thumbnail} alt={video.title} className="w-16 h-12 rounded object-cover" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-sm truncate">{video.title}</h4>
+                            <p className="text-xs text-gray-600 mt-1">{video.channelTitle}</p>
+                            {video.duration && (
+                              <span className="text-xs bg-gray-200 px-2 py-1 rounded mt-1 inline-block">
+                                {video.duration}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* No Results Message */}
+              {videoSearchQuery && videoSearchResults.length === 0 && youtubeSearchResults.length === 0 && 
+               !isSearchingVideos && !isSearchingYoutube && (
+                <div className="text-center py-8 text-gray-500">
+                  <Search className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                  <p>No videos found for "{videoSearchQuery}"</p>
+                  <p className="text-sm">Try different search terms or add a custom URL above</p>
+                </div>
+              )}
+
+              {/* Search Tips */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-medium text-blue-800 mb-2">Search Tips</h4>
+                <ul className="text-sm text-blue-700 space-y-1">
+                  <li>• Use specific terms like "classroom management" or "early literacy"</li>
+                  <li>• Include age groups: "preschool", "toddler", "kindergarten"</li>
+                  <li>• Try topic keywords: "social emotional learning", "STEM activities"</li>
+                  <li>• Use educator terms: "ECE", "developmentally appropriate", "scaffolding"</li>
+                </ul>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
