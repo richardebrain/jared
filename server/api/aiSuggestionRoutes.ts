@@ -827,48 +827,45 @@ FORMAT: Return a JSON object with "blocks" array. Each block should have:
     
     } else if (isHandsOnPracticeSection) {
       prompt = `
-Create PRINTABLE TOOLS for "${topic}" - NO STORIES OR NARRATIVES.
+CRITICAL: Create ONLY formatted lists, checklists, and worksheets - ZERO narrative content allowed.
 
-You must create actual documents teachers can print and use. Examples:
+REQUIRED OUTPUT FORMAT:
+- Start content with "CHECKLIST:" or "WORKSHEET:" or "AUDIT FORM:"
+- Use ONLY bullet points with □ checkbox symbols
+- Use ONLY numbered lists with blanks: _______
+- Use ONLY Yes/No questions with □ YES □ NO format
 
-CHECKLIST FORMAT:
-□ Item to check
-□ Another item to verify
-□ Third action to complete
+EXAMPLES OF CORRECT FORMAT:
 
-WORKSHEET FORMAT:
-1. Fill in: My classroom will _____________
-2. Complete: The first step I'll take is _____________
-3. List: Three materials I need: _________, _________, _________
+CHECKLIST: ECERS Environment Preparation
+□ Remove clutter from learning centers
+□ Organize materials at child height
+□ Check safety equipment is visible
+□ Update documentation boards
+□ Prepare assessment materials
 
-AUDIT TOOL FORMAT:
-Environment Check:
-□ YES □ NO - Are materials organized?
-□ YES □ NO - Is documentation current?
-□ YES □ NO - Are safety protocols visible?
+WORKSHEET: Pre-Assessment Planning
+1. My biggest concern about ECERS is: _________________
+2. I will prepare by: _______________________________
+3. Materials I need to organize: ____________________
 
-ABSOLUTELY FORBIDDEN:
-- No story beginnings like "Sarah walked into..."
-- No scenario descriptions 
-- No narrative text
-- No "imagine if" content
+AUDIT FORM: Room Readiness Check
+□ YES □ NO - Are learning centers clearly defined?
+□ YES □ NO - Is documentation current and visible?
+□ YES □ NO - Are materials age-appropriate and accessible?
 
-CREATE ONLY:
-- Lists with checkboxes
-- Forms with blanks to fill
-- Step-by-step procedures
-- Ready-to-print materials
+NEVER include:
+- Character names or stories
+- "Imagine" scenarios  
+- Narrative descriptions
+- Conversational text
 
-FOR ECERS SPECIFICALLY:
-- Environment preparation checklist
-- Documentation tracking form
-- Self-assessment audit
-- Question preparation worksheet
+CREATE 3 different tools using ONLY the formats above.
 
 FORMAT: Return a JSON object with "blocks" array. Each block should have:
-- "type": "Checklist" or "Worksheet" or "Audit Form" or "Template"
-- "preview": What tool this is (e.g., "Environment Preparation Checklist")
-- "content": Complete printable tool with □ checkboxes, _______ blanks, numbered steps`;
+- "type": Must be exactly "Checklist" or "Worksheet" or "Audit Form"
+- "preview": Brief tool description (e.g., "Environment Preparation Checklist")
+- "content": Must start with "CHECKLIST:" or "WORKSHEET:" or "AUDIT FORM:" followed by formatted lists only`;
 
     } else if (isReflectionSection) {
       prompt = `
