@@ -10,7 +10,8 @@ import { playSuccessSound, playWrongSound, playCelebrationSound } from '@/lib/so
 
 interface QuizQuestion {
   question: string;
-  options: string[];
+  options?: string[];
+  answers?: string[];
   correctAnswer: number;
   explanation?: string;
   points?: number;
@@ -32,9 +33,33 @@ export function GamefiedQuiz({ title, questions, onComplete, onClose }: Gamefied
   const [score, setScore] = useState(0);
   const [totalPoints, setTotalPoints] = useState(0);
 
+  // Ensure we have valid questions and current question
+  if (!questions || questions.length === 0) {
+    return (
+      <Card className="max-w-2xl mx-auto">
+        <CardContent className="text-center p-8">
+          <p>No quiz questions available.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const currentQuestion = questions[currentQuestionIndex];
+  if (!currentQuestion) {
+    return (
+      <Card className="max-w-2xl mx-auto">
+        <CardContent className="text-center p-8">
+          <p>Quiz question not found.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
+  
+  // Use answers or options, whichever is available
+  const questionOptions = currentQuestion.answers || currentQuestion.options || [];
 
   const handleAnswerSelect = (answerIndex: number) => {
     if (showExplanation) return;
@@ -175,7 +200,7 @@ export function GamefiedQuiz({ title, questions, onComplete, onClose }: Gamefied
           </h3>
           
           <div className="space-y-3">
-            {currentQuestion.options.map((option, index) => {
+            {questionOptions.map((option, index) => {
               const isSelected = selectedAnswer === index;
               const isCorrect = index === currentQuestion.correctAnswer;
               const showResult = showExplanation;
