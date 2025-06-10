@@ -178,4 +178,34 @@ What a wonderful story about ${childName}!`;
   }
 });
 
+/**
+ * Get current voice narration usage status for the authenticated user
+ */
+router.get('/voice-usage-status', async (req, res) => {
+  try {
+    if (!req.session?.userId) {
+      return res.status(401).json({ 
+        message: 'Authentication required' 
+      });
+    }
+
+    const usageCheck = await VoiceUsageService.canUseVoiceNarration(req.session.userId);
+    const stats = await VoiceUsageService.getUsageStats(req.session.userId);
+
+    res.json({
+      canUse: usageCheck.canUse,
+      usageCount: usageCheck.usageCount,
+      resetDate: usageCheck.resetDate,
+      weeklyLimit: 1,
+      stats: stats
+    });
+  } catch (error) {
+    console.error('Error checking voice usage status:', error);
+    res.status(500).json({ 
+      message: 'Error checking voice usage status',
+      error: error.message 
+    });
+  }
+});
+
 export default router;
