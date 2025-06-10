@@ -186,28 +186,28 @@ You are an expert in early childhood education creating assessment questions for
 
 Context:
 - Module: ${moduleTitle}
-- Description: ${moduleDescription}
-- Section: ${sectionTitle}
+- Main Topic: ${moduleDescription}
+- Current Section: ${sectionTitle}
 - Category: ${category}
 - Difficulty: ${difficulty}
 
-IMPORTANT: Your question MUST be specifically about "${sectionTitle}" and directly related to the content described. Do not create generic early childhood education questions.
+IMPORTANT: Your question MUST be specifically about the main topic "${moduleDescription}" and directly related to early childhood education practices. The section "${sectionTitle}" is just the current section - focus on the main module topic "${moduleDescription}".
 
-${difficultyPrompt} that is specifically focused on "${sectionTitle}" strategies, techniques, or concepts.
+${difficultyPrompt} that is specifically focused on "${moduleDescription}" strategies, techniques, or concepts in early childhood education.
 
 The question should test understanding of:
-- Specific practices related to "${sectionTitle}"
-- Real-world application of "${sectionTitle}" concepts
-- Professional knowledge about "${sectionTitle}"
+- Specific practices related to "${moduleDescription}"
+- Real-world application of "${moduleDescription}" concepts
+- Professional knowledge about "${moduleDescription}" in early childhood settings
 
 ${existingQuestions.length > 0 ? `Avoid creating questions similar to these existing ones: ${existingQuestions.join('; ')}` : ''}
 
-Create ONE multiple choice question with 4 answers that stays strictly on the topic of "${sectionTitle}". Format as JSON:
+Create ONE multiple choice question with 4 answers that stays strictly on the main topic of "${moduleDescription}". Format as JSON:
 {
-  "question": "Clear, specific question text that directly addresses ${sectionTitle}",
+  "question": "Clear, specific question text that directly addresses ${moduleDescription}",
   "answers": ["Option A", "Option B", "Option C", "Option D"],
   "correctAnswer": 0,
-  "explanation": "Brief explanation of why this answer is correct in the context of ${sectionTitle}"
+  "explanation": "Brief explanation of why this answer is correct in the context of ${moduleDescription}"
 }
 `;
 
