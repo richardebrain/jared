@@ -85,8 +85,8 @@ router.post('/generate-audio', async (req, res) => {
     console.log("Generating story audio for:", { voiceId, language, childName });
     
     // Enhance the story text for dramatic reading
-    const enhancedText = `${story}
-    
+    const enhancedText = `${text}
+
 The End! 
 What a wonderful story about ${childName}!`;
 
@@ -94,9 +94,21 @@ What a wonderful story about ${childName}!`;
     const { VoiceService } = await import('../services/voiceService');
     const voiceService = new VoiceService();
     
+    // Map voiceId to voiceType for the voice service
+    const voiceTypeMap = {
+      'charlotte': 'child-friendly',
+      'bella': 'professional-female', 
+      'adam': 'professional-male',
+      'dorothy': 'friendly-female',
+      'callum': 'storyteller',
+      'michael': 'storyteller'
+    };
+    
+    const voiceType = voiceTypeMap[voiceId] || 'child-friendly';
+    
     const audioBuffer = await voiceService.generateSpeech(
       enhancedText,
-      'child-friendly',
+      voiceType,
       {
         stability: 0.8,
         similarityBoost: 0.9,

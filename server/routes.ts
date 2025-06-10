@@ -164,6 +164,75 @@ async function ensureDefaultSchoolExists() {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Generate single quiz question for module builder
+  app.post("/api/ai/generate-single-quiz-question", async (req, res) => {
+    try {
+      const { moduleTitle, moduleDescription, sectionTitle, category, difficulty = 'medium', existingQuestions = [] } = req.body;
+
+      if (!sectionTitle) {
+        return res.status(400).json({ error: "Section title is required" });
+      }
+
+      const difficultyPrompts = {
+        'easy': 'Create a basic level question that tests fundamental understanding',
+        'medium': 'Create a medium difficulty question that requires practical application',
+        'hard': 'Create an advanced question that requires critical thinking and analysis'
+      };
+
+      const difficultyPrompt = difficultyPrompts[difficulty] || difficultyPrompts['medium'];
+
+      const prompt = `
+You are an expert in early childhood education creating assessment questions for professional development.
+
+Context:
+- Module: ${moduleTitle}
+- Description: ${moduleDescription}
+- Section: ${sectionTitle}
+- Category: ${category}
+- Difficulty: ${difficulty}
+
+${difficultyPrompt} about "${sectionTitle}" in the context of early childhood education.
+
+${existingQuestions.length > 0 ? `Avoid creating questions similar to these existing ones: ${existingQuestions.join('; ')}` : ''}
+
+Create ONE multiple choice question with 4 answers. Format as JSON:
+{
+  "question": "Clear, specific question text",
+  "answers": ["Option A", "Option B", "Option C", "Option D"],
+  "correctAnswer": 0,
+  "explanation": "Brief explanation of why this answer is correct"
+}
+`;
+
+      const openai = new (await import("openai")).default({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: prompt }],
+        response_format: { type: "json_object" },
+        temperature: 0.7,
+      });
+
+      const questionData = JSON.parse(response.choices[0].message.content || '{}');
+      
+      res.json({ question: questionData });
+
+    } catch (error) {
+      console.error('Single quiz question generation error:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate quiz question',
+        question: {
+          question: 'What is an important aspect of early childhood education?',
+          answers: ['Professional development', 'Classroom management', 'Child safety', 'All of the above'],
+          correctAnswer: 3,
+          explanation: 'All aspects are important in early childhood education.'
+        }
+      });
+    }
+  });
+
   // Generate quiz questions from video content
   app.post("/api/ai/generate-video-quiz", async (req, res) => {
     try {
