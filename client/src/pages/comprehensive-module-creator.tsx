@@ -523,7 +523,18 @@ export default function ComprehensiveModuleCreator() {
   const [customTemplate, setCustomTemplate] = useState<any>(null);
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [completedSections, setCompletedSections] = useState<number[]>([]);
-
+  
+  // Publishing dialog states
+  const [showPublishDialog, setShowPublishDialog] = useState(false);
+  const [publishOptions, setPublishOptions] = useState({
+    saveToModules: true,
+    shareWithCommunity: false,
+    sendToTeachers: false,
+    sendToGroups: false,
+    selectedTeachers: [] as number[],
+    selectedGroups: [] as number[],
+    notificationMessage: ''
+  });
 
   // Proven template types for AI-assisted workflow
   const PROVEN_TEMPLATES = [
@@ -2653,8 +2664,8 @@ Create a natural conversation between two podcast hosts discussing this specific
     }
   };
 
-  // Handle module publishing
-  const handlePublishModule = async () => {
+  // Handle opening publish dialog
+  const handleOpenPublishDialog = () => {
     if (!newModule.title.trim()) {
       toast({
         title: "Missing Title",
@@ -2673,6 +2684,11 @@ Create a natural conversation between two podcast hosts discussing this specific
       return;
     }
 
+    setShowPublishDialog(true);
+  };
+
+  // Handle module publishing with distribution options
+  const handlePublishModule = async () => {
     setIsPublishing(true);
     try {
       // Process sections to ensure they have all required fields
@@ -2701,11 +2717,12 @@ Create a natural conversation between two podcast hosts discussing this specific
         difficulty: newModule.difficulty,
         estimatedTime: newModule.estimatedTime,
         pointValue: finalPoints,
-        isVisible: true,
-        shareWithCommunity: newModule.shareWithCommunity || false,
+        isVisible: publishOptions.saveToModules,
+        shareWithCommunity: publishOptions.shareWithCommunity,
         sections: processedSections
       };
 
+      // Save module to database
       const response = await fetch('/api/modules', {
         method: 'POST',
         headers: {
@@ -2720,16 +2737,53 @@ Create a natural conversation between two podcast hosts discussing this specific
 
       const createdModule = await response.json();
 
+      // Handle teacher notifications if selected
+      if (publishOptions.sendToTeachers && publishOptions.selectedTeachers.length > 0) {
+        await Promise.all(publishOptions.selectedTeachers.map(teacherId => 
+          fetch('/api/teacher-messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              recipientId: teacherId,
+              subject: `New Module Available: ${newModule.title}`,
+              content: publishOptions.notificationMessage || `A new training module "${newModule.title}" has been shared with you.`,
+              moduleId: createdModule.id
+            })
+          })
+        ));
+      }
+
+      // Handle group notifications if selected
+      if (publishOptions.sendToGroups && publishOptions.selectedGroups.length > 0) {
+        // Implementation for group notifications would go here
+        console.log('Group notifications not yet implemented');
+      }
+
+      let successMessage = "Module published successfully!";
+      if (publishOptions.saveToModules) successMessage += " Available in Module Library.";
+      if (publishOptions.shareWithCommunity) successMessage += " Shared with Community.";
+      if (publishOptions.sendToTeachers) successMessage += ` Sent to ${publishOptions.selectedTeachers.length} teachers.`;
+
       toast({
-        title: "Module Published Successfully!",
-        description: "Your module is now available in your dashboard and to the community",
+        title: "Publishing Complete",
+        description: successMessage,
       });
 
-      // Force refresh the module list with multiple strategies
+      // Force refresh the module list
       await queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
       await queryClient.refetchQueries({ queryKey: ['/api/modules'] });
       
-      // Navigate back to dashboard
+      // Reset states and navigate
+      setShowPublishDialog(false);
+      setPublishOptions({
+        saveToModules: true,
+        shareWithCommunity: false,
+        sendToTeachers: false,
+        sendToGroups: false,
+        selectedTeachers: [],
+        selectedGroups: [],
+        notificationMessage: ''
+      });
       navigate('/dashboard');
       
     } catch (error) {
@@ -4642,7 +4696,7 @@ Create a natural conversation between two podcast hosts discussing this specific
               </Button>
               <Button 
                 className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-                onClick={handlePublishModule}
+                onClick={handleOpenPublishDialog}
                 disabled={isPublishing}
               >
                 {isPublishing ? (
