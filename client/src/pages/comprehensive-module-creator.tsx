@@ -606,6 +606,72 @@ export default function ComprehensiveModuleCreator() {
   };
 
   const nextSection = () => {
+    // Process current section before moving to next
+    const currentSection = newModule.sections[currentSectionIndex];
+    
+    // If current section is meant to be a quiz (like pre-check questions), convert content to quiz format
+    if (currentSection && (
+      currentSection.title.toLowerCase().includes('pre-check') || 
+      currentSection.title.toLowerCase().includes('quiz') ||
+      currentSection.title.toLowerCase().includes('question')
+    )) {
+      try {
+        // Check if content looks like quiz questions but isn't properly formatted
+        const content = currentSection.content;
+        if (content && typeof content === 'string' && !currentSection.type === 'quiz') {
+          // Parse AI-generated questions and convert to quiz format
+          const lines = content.split('\n').filter(line => line.trim());
+          const questions = [];
+          
+          let currentQuestion = null;
+          for (const line of lines) {
+            if (line.match(/^\d+\./) || line.toLowerCase().includes('question')) {
+              if (currentQuestion) questions.push(currentQuestion);
+              currentQuestion = {
+                question: line.replace(/^\d+\.?\s*/, '').replace(/question:\s*/i, ''),
+                answers: [],
+                correctAnswer: 0,
+                explanation: ''
+              };
+            } else if (line.match(/^[a-d]\)/i) && currentQuestion) {
+              currentQuestion.answers.push(line.replace(/^[a-d]\)\s*/i, ''));
+            } else if (line.toLowerCase().includes('answer:') && currentQuestion) {
+              const answerText = line.replace(/answer:\s*/i, '');
+              // Find which answer option matches
+              const matchIndex = currentQuestion.answers.findIndex(ans => 
+                ans.toLowerCase().includes(answerText.toLowerCase()) || 
+                answerText.toLowerCase().includes(ans.toLowerCase())
+              );
+              if (matchIndex !== -1) currentQuestion.correctAnswer = matchIndex;
+            } else if (line.toLowerCase().includes('explanation:') && currentQuestion) {
+              currentQuestion.explanation = line.replace(/explanation:\s*/i, '');
+            }
+          }
+          if (currentQuestion) questions.push(currentQuestion);
+          
+          // Update section to be a proper quiz
+          if (questions.length > 0) {
+            const updatedSections = [...newModule.sections];
+            updatedSections[currentSectionIndex] = {
+              ...currentSection,
+              type: 'quiz',
+              questions: questions,
+              content: `Quiz: ${currentSection.title}`
+            };
+            setNewModule(prev => ({ ...prev, sections: updatedSections }));
+            
+            toast({
+              title: "Quiz Created",
+              description: `Converted content to interactive quiz with ${questions.length} questions`,
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error processing quiz content:', error);
+      }
+    }
+    
+    // Move to next section or preview
     if (currentSectionIndex < newModule.sections.length - 1) {
       setCompletedSections(prev => [...prev, currentSectionIndex]);
       setCurrentSectionIndex(prev => prev + 1);
