@@ -63,7 +63,8 @@ import {
   HelpCircle,
   Gamepad,
   GripVertical,
-  Wrench
+  Wrench,
+  RefreshCw
 } from 'lucide-react';
 import StepByStepModuleBuilder from '@/components/StepByStepModuleBuilder';
 import PowerPointImporter from '@/components/PowerPointImporter';
@@ -1000,6 +1001,11 @@ export default function ComprehensiveModuleCreator() {
     content: string;
     preview: string;
   }>>([]);
+  
+  // Regeneration states
+  const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
+  const [regenerationGuidance, setRegenerationGuidance] = useState('');
+  const [isRegenerating, setIsRegenerating] = useState(false);
 
   // Interactive Quiz Builder State
   const [isQuizBuilder, setIsQuizBuilder] = useState(false);
@@ -1209,6 +1215,66 @@ export default function ComprehensiveModuleCreator() {
   const handleTopicSubmit = () => {
     if (aiTopicInput.trim()) {
       generateAIContentForSection();
+    }
+  };
+
+  // Regeneration function with additional guidance
+  const regenerateContentWithGuidance = async () => {
+    const currentSection = newModule.sections[currentSectionIndex];
+    if (!currentSection) return;
+
+    const primaryTopic = initialModuleData.title || newModule.title;
+    const learningObjective = initialModuleData.learningObjective || newModule.description;
+    
+    if (!primaryTopic) {
+      toast({
+        title: "Missing Topic",
+        description: "Please set a module title first to regenerate content.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsRegenerating(true);
+    
+    try {
+      const response = await apiRequest('POST', '/api/ai/generate-content-blocks', {
+        topic: `${primaryTopic} - ${learningObjective}`,
+        sectionTitle: currentSection.title,
+        moduleTitle: primaryTopic,
+        sectionType: currentSection.type,
+        learningObjective: learningObjective,
+        isRegeneration: true,
+        regenerationGuidance: regenerationGuidance
+      });
+
+      if (response.blocks && response.blocks.length > 0) {
+        const newBlocks = response.blocks.map((block: any) => ({
+          type: block.type,
+          content: block.content,
+          preview: block.preview
+        }));
+
+        // Replace existing blocks with regenerated ones
+        setAiGeneratedBlocks(newBlocks);
+        
+        toast({
+          title: 'Content Regenerated',
+          description: `Generated ${newBlocks.length} refined content blocks with your guidance.`,
+        });
+        
+        setShowRegenerateDialog(false);
+        setRegenerationGuidance('');
+      }
+    } catch (error) {
+      console.error('Regeneration error:', error);
+      toast({
+        title: 'Regeneration Failed',
+        description: 'Unable to regenerate content. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsRegenerating(false);
     }
   };
 
@@ -3957,17 +4023,28 @@ Create a natural conversation between two podcast hosts discussing this specific
                           </div>
                           
                           {aiGeneratedBlocks.length > 0 && (
-                            <Button 
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => {
-                                setAiGeneratedBlocks([]);
-                                setAiTopicInput('');
-                              }}
-                              className="text-gray-500 hover:text-gray-700 w-full"
-                            >
-                              Clear Generated Content
-                            </Button>
+                            <div className="space-y-2">
+                              <Button 
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setShowRegenerateDialog(true)}
+                                className="text-purple-700 border-purple-300 hover:bg-purple-50 w-full"
+                              >
+                                <RefreshCw className="h-4 w-4 mr-2" />
+                                Regenerate with Guidance
+                              </Button>
+                              <Button 
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  setAiGeneratedBlocks([]);
+                                  setAiTopicInput('');
+                                }}
+                                className="text-gray-500 hover:text-gray-700 w-full"
+                              >
+                                Clear Generated Content
+                              </Button>
+                            </div>
                           )}
                         </>
                       );
@@ -4022,6 +4099,72 @@ Create a natural conversation between two podcast hosts discussing this specific
                               className="bg-blue-600 hover:bg-blue-700"
                             >
                               Generate Content Ideas
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Regeneration Dialog */}
+                    {showRegenerateDialog && (
+                      <div className="p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
+                        <div className="space-y-4">
+                          <div>
+                            <Label className="text-sm font-medium text-purple-900">
+                              Provide additional guidance for regeneration
+                            </Label>
+                            <p className="text-xs text-purple-700 mt-1">
+                              Tell the AI how to improve the content. Be specific about what you want to see.
+                            </p>
+                          </div>
+                          
+                          <div className="bg-white p-3 rounded border border-purple-200">
+                            <h4 className="text-xs font-medium text-purple-800 mb-2">Example guidance:</h4>
+                            <ul className="text-xs text-purple-700 space-y-1">
+                              <li>• "Include ECERS block material checklist"</li>
+                              <li>• "Add more practical classroom examples"</li>
+                              <li>• "Focus on age-appropriate activities for 3-5 year olds"</li>
+                              <li>• "Include specific developmental milestones"</li>
+                            </ul>
+                          </div>
+                          
+                          <Textarea
+                            value={regenerationGuidance}
+                            onChange={(e) => setRegenerationGuidance(e.target.value)}
+                            placeholder="e.g., Include ECERS block material checklist and specific examples for outdoor play areas"
+                            className="border-purple-300 focus:border-purple-500 min-h-20"
+                            rows={3}
+                          />
+                          
+                          <div className="flex gap-2 justify-end">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setShowRegenerateDialog(false);
+                                setRegenerationGuidance('');
+                              }}
+                              disabled={isRegenerating}
+                            >
+                              Cancel
+                            </Button>
+                            <Button 
+                              size="sm"
+                              onClick={regenerateContentWithGuidance}
+                              disabled={isRegenerating || !regenerationGuidance.trim()}
+                              className="bg-purple-600 hover:bg-purple-700"
+                            >
+                              {isRegenerating ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Regenerating...
+                                </>
+                              ) : (
+                                <>
+                                  <RefreshCw className="h-4 w-4 mr-2" />
+                                  Regenerate Content
+                                </>
+                              )}
                             </Button>
                           </div>
                         </div>
