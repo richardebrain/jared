@@ -413,7 +413,7 @@ export default function ComprehensiveModuleCreator() {
     
     setIsSearchingVideos(true);
     try {
-      const response = await fetch(`/api/videos/search?q=${encodeURIComponent(query)}&topic=${encodeURIComponent(newModule.title || '')}`);
+      const response = await fetch(`/api/video-search/search?q=${encodeURIComponent(query)}&topic=${encodeURIComponent(newModule.title || '')}`);
       if (response.ok) {
         const results = await response.json();
         setVideoSearchResults(results);
@@ -434,7 +434,7 @@ export default function ComprehensiveModuleCreator() {
     
     setIsSearchingYoutube(true);
     try {
-      const response = await fetch(`/api/videos/youtube-search?q=${encodeURIComponent(query)}&topic=${encodeURIComponent(newModule.title || '')}`);
+      const response = await fetch(`/api/video-search/youtube-search?q=${encodeURIComponent(query)}&topic=${encodeURIComponent(newModule.title || '')}`);
       if (response.ok) {
         const results = await response.json();
         setYoutubeSearchResults(results);
@@ -3416,9 +3416,25 @@ Create a natural conversation between two podcast hosts discussing this specific
                                         className="border-green-300 text-green-700"
                                         onClick={() => {
                                           const url = prompt('Enter video URL:');
-                                          if (url) {
-                                            setCustomVideoUrl(url);
-                                            addCustomVideoUrl();
+                                          if (url && url.trim()) {
+                                            // Extract title from URL or use placeholder
+                                            let videoTitle = 'Custom Video';
+                                            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                                              videoTitle = 'YouTube Video';
+                                            } else if (url.includes('vimeo.com')) {
+                                              videoTitle = 'Vimeo Video';
+                                            }
+                                            
+                                            // Add video directly to current section
+                                            updateSection(currentSectionIndex, 'videoUrl', url);
+                                            updateSection(currentSectionIndex, 'title', `${newModule.sections[currentSectionIndex]?.title} - ${videoTitle}`);
+                                            
+                                            toast({
+                                              title: "Custom Video Added",
+                                              description: "Your custom video has been added to the section",
+                                            });
+                                            
+                                            setShowVideoSearch(false);
                                           }
                                         }}
                                       >
@@ -3432,16 +3448,42 @@ Create a natural conversation between two podcast hosts discussing this specific
                                         <h4 className="text-xs font-medium text-blue-800">Search Results:</h4>
                                         {videoSearchResults.map((video, index) => (
                                           <div key={`library-${index}`} className="p-2 bg-white rounded border border-blue-200 cursor-pointer hover:bg-blue-50" 
-                                               onClick={() => selectVideoForSection(video.url, video.title)}>
+                                               onClick={() => {
+                                                 updateSection(currentSectionIndex, 'videoUrl', video.url);
+                                                 updateSection(currentSectionIndex, 'title', `${newModule.sections[currentSectionIndex]?.title} - ${video.title}`);
+                                                 
+                                                 toast({
+                                                   title: "Video Added",
+                                                   description: `Added "${video.title}" to the section`,
+                                                 });
+                                                 
+                                                 setShowVideoSearch(false);
+                                                 setVideoSearchQuery('');
+                                                 setVideoSearchResults([]);
+                                                 setYoutubeSearchResults([]);
+                                               }}>
                                             <p className="text-xs font-medium text-blue-900">{video.title}</p>
-                                            <p className="text-xs text-blue-700">{video.description}</p>
+                                            <p className="text-xs text-blue-700">{video.description || video.category}</p>
                                           </div>
                                         ))}
                                         {youtubeSearchResults.map((video, index) => (
                                           <div key={`youtube-${index}`} className="p-2 bg-white rounded border border-red-200 cursor-pointer hover:bg-red-50"
-                                               onClick={() => selectVideoForSection(video.url, video.title)}>
+                                               onClick={() => {
+                                                 updateSection(currentSectionIndex, 'videoUrl', video.url);
+                                                 updateSection(currentSectionIndex, 'title', `${newModule.sections[currentSectionIndex]?.title} - ${video.title}`);
+                                                 
+                                                 toast({
+                                                   title: "Video Added",
+                                                   description: `Added "${video.title}" to the section`,
+                                                 });
+                                                 
+                                                 setShowVideoSearch(false);
+                                                 setVideoSearchQuery('');
+                                                 setVideoSearchResults([]);
+                                                 setYoutubeSearchResults([]);
+                                               }}>
                                             <p className="text-xs font-medium text-red-900">{video.title}</p>
-                                            <p className="text-xs text-red-700">YouTube - {video.channel}</p>
+                                            <p className="text-xs text-red-700">YouTube - {video.channelTitle || video.channel}</p>
                                           </div>
                                         ))}
                                       </div>
