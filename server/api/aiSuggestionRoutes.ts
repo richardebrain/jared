@@ -827,29 +827,48 @@ FORMAT: Return a JSON object with "blocks" array. Each block should have:
     
     } else if (isHandsOnPracticeSection) {
       prompt = `
-You are an expert early childhood education trainer creating hands-on practice activities for "${topic}".
+Create PRINTABLE TOOLS for "${topic}" - NO STORIES OR NARRATIVES.
 
-Generate 3-4 interactive practice activities that teachers can DO right now, not just read about:
+You must create actual documents teachers can print and use. Examples:
 
-PRACTICE ACTIVITY TYPES:
-1. ROLE-PLAY SCENARIOS - Specific situations to practice with colleagues
-2. CHECKLIST CREATION - Make actual tools they can use immediately  
-3. ENVIRONMENT AUDIT - Walk through their space and make changes
-4. CONVERSATION PRACTICE - Scripts and practice dialogues
-5. DOCUMENTATION EXERCISES - Practice forms, observations, or notes
+CHECKLIST FORMAT:
+□ Item to check
+□ Another item to verify
+□ Third action to complete
 
-Each activity should be:
-- Actionable (something to DO, not read)
-- Immediate (can be done right after the training)
-- Practical (directly applicable to their work)
-- Specific (detailed steps, not vague suggestions)
+WORKSHEET FORMAT:
+1. Fill in: My classroom will _____________
+2. Complete: The first step I'll take is _____________
+3. List: Three materials I need: _________, _________, _________
 
-NO STORIES OR CASE STUDIES - only hands-on activities they can practice.
+AUDIT TOOL FORMAT:
+Environment Check:
+□ YES □ NO - Are materials organized?
+□ YES □ NO - Is documentation current?
+□ YES □ NO - Are safety protocols visible?
+
+ABSOLUTELY FORBIDDEN:
+- No story beginnings like "Sarah walked into..."
+- No scenario descriptions 
+- No narrative text
+- No "imagine if" content
+
+CREATE ONLY:
+- Lists with checkboxes
+- Forms with blanks to fill
+- Step-by-step procedures
+- Ready-to-print materials
+
+FOR ECERS SPECIFICALLY:
+- Environment preparation checklist
+- Documentation tracking form
+- Self-assessment audit
+- Question preparation worksheet
 
 FORMAT: Return a JSON object with "blocks" array. Each block should have:
-- "type": "Practice Activity"
-- "preview": Brief description of what they'll practice
-- "content": Complete step-by-step activity instructions`;
+- "type": "Checklist" or "Worksheet" or "Audit Form" or "Template"
+- "preview": What tool this is (e.g., "Environment Preparation Checklist")
+- "content": Complete printable tool with □ checkboxes, _______ blanks, numbered steps`;
 
     } else if (isReflectionSection) {
       prompt = `
