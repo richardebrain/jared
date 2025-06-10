@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { OpenAIService } from '../services/OpenAIService';
+import { VoiceUsageService } from '../services/voiceUsageService';
 
 const router = Router();
 
@@ -81,6 +82,26 @@ router.post('/generate-audio', async (req, res) => {
         message: 'Story text is required' 
       });
     }
+
+    // Check authentication
+    if (!req.session?.userId) {
+      return res.status(401).json({ 
+        message: 'Authentication required' 
+      });
+    }
+
+    // Check weekly usage limit (1 per week due to ElevenLabs costs)
+    const usageCheck = await VoiceUsageService.canUseVoiceNarration(req.session.userId);
+    
+    if (!usageCheck.canUse) {
+      const resetDate = usageCheck.resetDate.toLocaleDateString();
+      return res.status(429).json({ 
+        message: `Voice narration limit reached. You can use this feature again on ${resetDate}.`,
+        usageCount: usageCheck.usageCount,
+        resetDate: usageCheck.resetDate,
+        limitType: 'weekly'
+      });
+    }
     
     console.log("Generating story audio for:", { voiceId, language, childName });
     
@@ -135,6 +156,9 @@ What a wonderful story about ${childName}!`;
     
     fs.writeFileSync(audioPath, audioBuffer);
     const audioUrl = `/uploads/${audioFilename}`;
+
+    // Record usage after successful generation
+    await VoiceUsageService.recordUsage(req.session.userId);
 
     res.json({ 
       audioUrl: audioUrl,

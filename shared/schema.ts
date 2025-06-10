@@ -971,6 +971,28 @@ export const assessmentConfig = pgTable("assessment_config", {
   platformConfigIdx: index("assessment_config_platform_idx").on(table.schoolId),
 }));
 
+// Voice Narration Usage Tracking for Cost Control
+export const voiceNarrationUsage = pgTable("voice_narration_usage", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  usageDate: date("usage_date").notNull(), // Date when voice narration was used
+  weekStart: date("week_start").notNull(), // Start of the week (Monday) for easy weekly limits
+  usageCount: integer("usage_count").default(1), // Number of narrations used on this date
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  // Index for weekly usage checks (most common query)
+  userWeekIdx: index("voice_narration_user_week_idx").on(table.userId, table.weekStart),
+  // Index for daily usage tracking
+  userDateIdx: index("voice_narration_user_date_idx").on(table.userId, table.usageDate),
+  // Index for usage analytics
+  weeklyUsageIdx: index("voice_narration_weekly_usage_idx").on(table.weekStart, table.usageCount),
+}));
+
+export const insertVoiceNarrationUsageSchema = createInsertSchema(voiceNarrationUsage).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Assessment Results Table with Mini-Lesson Focus
 export const assessmentResults = pgTable("assessment_results", {
   id: serial("id").primaryKey(),
