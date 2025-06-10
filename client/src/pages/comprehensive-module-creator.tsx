@@ -2889,17 +2889,132 @@ Create a natural conversation between two podcast hosts discussing this specific
             </div>
           )}
 
-          {/* Voice Narration Panel */}
-          <VoiceNarrationPanel
-            defaultText={`${newModule.title}\n\n${newModule.description}\n\nModule Sections:\n${newModule.sections.map((section, index) => `${index + 1}. ${section.title}: ${section.content}`).join('\n\n')}`}
-            onNarrationGenerated={(audioUrl, voiceType) => {
-              toast({
-                title: "Module Narration Generated",
-                description: `Professional narration created with ${voiceType} voice`,
-              });
-            }}
-            className="mb-6"
-          />
+          {/* Enhanced Voice Features Panel */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Volume2 className="w-5 h-5" />
+                Advanced Voice & Audio Features
+                <Badge variant="secondary">AI Enhanced</Badge>
+              </CardTitle>
+              <CardDescription>
+                Create multilingual narration, sound effects, and personalized audio content for your module
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="narration" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="narration">Module Narration</TabsTrigger>
+                  <TabsTrigger value="effects">Sound Effects</TabsTrigger>
+                  <TabsTrigger value="pronunciation">Pronunciation</TabsTrigger>
+                  <TabsTrigger value="storytelling">Storytelling</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="narration">
+                  <VoiceNarrationPanel
+                    defaultText={`${newModule.title}\n\n${newModule.description}\n\nModule Sections:\n${newModule.sections.map((section, index) => `${index + 1}. ${section.title}: ${section.content}`).join('\n\n')}`}
+                    onNarrationGenerated={(audioUrl, voiceType) => {
+                      toast({
+                        title: "Module Narration Generated",
+                        description: "Professional multilingual narration created",
+                      });
+                    }}
+                    className="mt-4"
+                  />
+                </TabsContent>
+                
+                <TabsContent value="effects">
+                  <div className="space-y-4 mt-4">
+                    <h4 className="font-medium">Generate Sound Effects</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Create custom audio effects for interactive content and games
+                    </p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => generateSoundEffect("Gentle classroom ambience with children learning quietly")}
+                        className="h-20 flex-col gap-2"
+                      >
+                        <span className="text-lg">🏫</span>
+                        <span className="text-xs">Classroom Ambience</span>
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => generateSoundEffect("Success chime and celebration sounds for correct answers")}
+                        className="h-20 flex-col gap-2"
+                      >
+                        <span className="text-lg">🎉</span>
+                        <span className="text-xs">Success Sounds</span>
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => generateSoundEffect("Nature sounds with birds chirping for outdoor learning")}
+                        className="h-20 flex-col gap-2"
+                      >
+                        <span className="text-lg">🌿</span>
+                        <span className="text-xs">Nature Sounds</span>
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => generateSoundEffect("Soft transition music for activity changes")}
+                        className="h-20 flex-col gap-2"
+                      >
+                        <span className="text-lg">🎵</span>
+                        <span className="text-xs">Transition Music</span>
+                      </Button>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="pronunciation">
+                  <div className="space-y-4 mt-4">
+                    <h4 className="font-medium">Create Pronunciation Guides</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Generate interactive pronunciation lessons for vocabulary building
+                    </p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Word</Label>
+                        <Input placeholder="e.g., butterfly" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Phonetic</Label>
+                        <Input placeholder="e.g., BUH-ter-fly" />
+                      </div>
+                    </div>
+                    <Button onClick={() => generatePronunciationGuide("butterfly", "BUH-ter-fly")}>
+                      Generate Pronunciation Guide
+                    </Button>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="storytelling">
+                  <div className="space-y-4 mt-4">
+                    <h4 className="font-medium">Emotional Storytelling</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Create engaging narratives with emotional voice modulation
+                    </p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <Select defaultValue="excited">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="excited">Excited</SelectItem>
+                          <SelectItem value="calm">Calm</SelectItem>
+                          <SelectItem value="mysterious">Mysterious</SelectItem>
+                          <SelectItem value="happy">Happy</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button onClick={() => generateStoryNarration("Once upon a time, there was a curious little learner who loved to explore new ideas...", "excited")}>
+                        Generate Story Narration
+                      </Button>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
 
           {/* Module Sections */}
           <div className="space-y-4">

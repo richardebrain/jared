@@ -42,12 +42,34 @@ const NARRATOR_VOICES = {
   }
 };
 
+const SUPPORTED_LANGUAGES = {
+  'en': { name: 'English', flag: '🇺🇸' },
+  'es': { name: 'Spanish', flag: '🇪🇸' },
+  'fr': { name: 'French', flag: '🇫🇷' },
+  'de': { name: 'German', flag: '🇩🇪' },
+  'it': { name: 'Italian', flag: '🇮🇹' },
+  'pt': { name: 'Portuguese', flag: '🇵🇹' },
+  'pl': { name: 'Polish', flag: '🇵🇱' },
+  'nl': { name: 'Dutch', flag: '🇳🇱' },
+  'ja': { name: 'Japanese', flag: '🇯🇵' },
+  'zh': { name: 'Chinese', flag: '🇨🇳' },
+  'ko': { name: 'Korean', flag: '🇰🇷' },
+  'hi': { name: 'Hindi', flag: '🇮🇳' },
+  'ar': { name: 'Arabic', flag: '🇸🇦' },
+  'ru': { name: 'Russian', flag: '🇷🇺' },
+  'sv': { name: 'Swedish', flag: '🇸🇪' },
+  'da': { name: 'Danish', flag: '🇩🇰' },
+  'no': { name: 'Norwegian', flag: '🇳🇴' },
+  'fi': { name: 'Finnish', flag: '🇫🇮' }
+};
+
 export function VoiceNarrationPanel({ 
   onNarrationGenerated, 
   defaultText = "",
   className = "" 
 }: VoiceNarrationPanelProps) {
   const [text, setText] = useState(defaultText);
+  const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [selectedVoice, setSelectedVoice] = useState<string>('professional-female');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -71,16 +93,29 @@ export function VoiceNarrationPanel({
     const startTime = Date.now();
 
     try {
-      const response = await fetch('/api/voice/generate-speech', {
+      // Use multilingual endpoint if language is not English
+      const endpoint = selectedLanguage === 'en' 
+        ? '/api/voice/generate-speech'
+        : '/api/voice/generate-multilingual-speech';
+      
+      const requestBody = selectedLanguage === 'en'
+        ? {
+            text: text.trim(),
+            voiceType: selectedVoice,
+            optimize: true
+          }
+        : {
+            text: text.trim(),
+            voiceType: selectedVoice,
+            targetLanguage: selectedLanguage
+          };
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          text: text.trim(),
-          voiceType: selectedVoice,
-          optimize: true
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -99,9 +134,12 @@ export function VoiceNarrationPanel({
         onNarrationGenerated(url, selectedVoice);
       }
 
+      const languageName = SUPPORTED_LANGUAGES[selectedLanguage as keyof typeof SUPPORTED_LANGUAGES].name;
+      const voiceName = NARRATOR_VOICES[selectedVoice as keyof typeof NARRATOR_VOICES].name;
+      
       toast({
         title: "Narration Generated",
-        description: `Successfully created narration with ${NARRATOR_VOICES[selectedVoice as keyof typeof NARRATOR_VOICES].name}`,
+        description: `Successfully created ${languageName} narration with ${voiceName}`,
       });
 
     } catch (error) {
@@ -179,6 +217,27 @@ export function VoiceNarrationPanel({
       </CardHeader>
       
       <CardContent className="space-y-6">
+        {/* Language Selection */}
+        <div className="space-y-3">
+          <label className="text-sm font-medium">Language</label>
+          <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+            <SelectTrigger>
+              <SelectValue placeholder="Choose language" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(SUPPORTED_LANGUAGES).map(([code, lang]) => (
+                <SelectItem key={code} value={code}>
+                  <div className="flex items-center gap-2">
+                    <span>{lang.flag}</span>
+                    <span>{lang.name}</span>
+                    {code !== 'en' && <Badge variant="secondary">Multilingual AI</Badge>}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* Voice Selection */}
         <div className="space-y-3">
           <label className="text-sm font-medium">Select Narrator Voice</label>
