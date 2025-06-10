@@ -58,6 +58,7 @@ import {
   Music,
   Zap,
   Play,
+  HelpCircle,
   Gamepad,
   GripVertical,
   Wrench
@@ -126,7 +127,7 @@ export default function ComprehensiveModuleCreator() {
       const lines = content.split('\n').filter(line => line.trim());
       const questions = [];
       
-      let currentQuestion = null;
+      let currentQuestion: any = null;
       for (const line of lines) {
         // Detect question lines
         if (line.match(/^\d+\./) || 
@@ -138,7 +139,7 @@ export default function ComprehensiveModuleCreator() {
             question: line.replace(/^\d+\.?\s*/, '')
                          .replace(/question:\s*/i, '')
                          .replace(/^q\d+[:.]\s*/i, ''),
-            answers: [],
+            answers: [] as string[],
             correctAnswer: 0,
             explanation: ''
           };
@@ -160,7 +161,7 @@ export default function ComprehensiveModuleCreator() {
                   line.toLowerCase().includes('correct:')) && currentQuestion) {
           const answerText = line.replace(/answer:\s*/i, '').replace(/correct:\s*/i, '');
           // Find which answer option matches
-          const matchIndex = currentQuestion.answers.findIndex(ans => 
+          const matchIndex = currentQuestion.answers.findIndex((ans: string) => 
             ans.toLowerCase().includes(answerText.toLowerCase()) || 
             answerText.toLowerCase().includes(ans.toLowerCase())
           );
