@@ -764,8 +764,7 @@ export default function ComprehensiveModuleCreator() {
   const [currentQuizQuestion, setCurrentQuizQuestion] = useState({
     question: '',
     answers: ['', '', '', ''],
-    correctAnswer: 0,
-    explanation: ''
+    correctAnswer: 0
   });
   const [builtQuizQuestions, setBuiltQuizQuestions] = useState<Array<{
     question: string;
@@ -779,8 +778,7 @@ export default function ComprehensiveModuleCreator() {
     setCurrentQuizQuestion({
       question: '',
       answers: ['', '', '', ''],
-      correctAnswer: 0,
-      explanation: ''
+      correctAnswer: 0
     });
     setBuiltQuizQuestions([]);
   };
@@ -804,8 +802,7 @@ export default function ComprehensiveModuleCreator() {
         setCurrentQuizQuestion({
           question: response.question.question || response.question,
           answers: response.question.answers || ['', '', '', ''],
-          correctAnswer: response.question.correctAnswer || 0,
-          explanation: response.question.explanation || ''
+          correctAnswer: response.question.correctAnswer || 0
         });
       }
     } catch (error) {
