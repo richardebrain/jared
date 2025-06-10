@@ -115,9 +115,44 @@ interface Module {
 
 export default function ComprehensiveModuleCreator() {
   const { user } = useAuth();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Extract URL parameters for AI-generated module data
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const aiGeneratedData = urlParams.get('ai-generated');
+    
+    if (aiGeneratedData) {
+      try {
+        const moduleData = JSON.parse(decodeURIComponent(aiGeneratedData));
+        console.log('Loading AI-generated module data:', moduleData);
+        
+        // Update newModule with the AI-generated data, preserving the original topic and description
+        setNewModule(prev => ({
+          ...prev,
+          title: moduleData.title || prev.title,
+          description: moduleData.description || moduleData.topic || prev.description,
+          category: moduleData.category || prev.category,
+          difficulty: moduleData.difficulty || prev.difficulty,
+          estimatedTime: moduleData.estimatedTime || prev.estimatedTime,
+          sections: moduleData.sections || prev.sections
+        }));
+        
+        // Set workflow to section builder mode
+        setCreationMethod('manual');
+        setAiWorkflowStep('section-builder');
+        
+        toast({
+          title: "AI Module Loaded",
+          description: "Your AI-generated module is ready for customization",
+        });
+      } catch (error) {
+        console.error('Error parsing AI-generated module data:', error);
+      }
+    }
+  }, [location]);
   
   // Universal quiz conversion function - applies to all module creation tools
   const convertContentToQuiz = (content: string, sectionTitle: string) => {
@@ -778,7 +813,8 @@ export default function ComprehensiveModuleCreator() {
   const [currentQuizQuestion, setCurrentQuizQuestion] = useState({
     question: '',
     answers: ['', '', '', ''],
-    correctAnswer: 0
+    correctAnswer: 0,
+    explanation: ''
   });
   const [builtQuizQuestions, setBuiltQuizQuestions] = useState<Array<{
     question: string;
