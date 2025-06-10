@@ -68,6 +68,7 @@ import {
 } from 'lucide-react';
 import StepByStepModuleBuilder from '@/components/StepByStepModuleBuilder';
 import PowerPointImporter from '@/components/PowerPointImporter';
+import ModulePublishingDialog from '@/components/ModulePublishingDialog';
 
 interface ModuleSection {
   title: string;
