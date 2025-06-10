@@ -538,9 +538,7 @@ export default function ComprehensiveModuleCreator() {
     notificationMessage: ''
   });
 
-  // Draft management states (removing duplicate isSavingDraft)
-  const [showDraftManager, setShowDraftManager] = useState(false);
-  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
+
 
   // Proven template types for AI-assisted workflow
   const PROVEN_TEMPLATES = [
@@ -750,7 +748,7 @@ export default function ComprehensiveModuleCreator() {
   const [showPreview, setShowPreview] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   
-  // Draft saving functionality
+  // Draft saving functionality  
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [currentDraftId, setCurrentDraftId] = useState<number | null>(null);
   const [showDraftManager, setShowDraftManager] = useState(false);
@@ -2260,11 +2258,27 @@ Create a natural conversation between two podcast hosts discussing this specific
     } else {
       // For other templates, parse as regular text sections
       const contentLines = content.split('\n').filter(Boolean);
-      const newSections = [];
+      const newSections: ModuleSection[] = [];
       
-      let currentSection = { title: '', content: '', videoUrl: '', imageUrl: '', type: 'text' as const };
+      let currentSection = { 
+        title: '', 
+        content: '', 
+        videoUrl: '', 
+        imageUrl: '', 
+        type: 'text' as const,
+        duration: 5,
+        activities: [{
+          type: 'read' as const,
+          title: 'Content',
+          duration: 5,
+          content: '',
+          videoUrl: '',
+          audioUrl: '',
+          interactionType: 'form' as const
+        }]
+      };
       
-      contentLines.forEach((line, index) => {
+      contentLines.forEach((line: string, index: number) => {
         if (line.includes(':') && line.length < 100) {
           // This looks like a section title
           if (currentSection.title || currentSection.content) {
@@ -2275,7 +2289,17 @@ Create a natural conversation between two podcast hosts discussing this specific
             content: '', 
             videoUrl: '', 
             imageUrl: '',
-            type: 'text' as const
+            type: 'text' as const,
+            duration: 5,
+            activities: [{
+              type: 'read' as const,
+              title: 'Content',
+              duration: 5,
+              content: '',
+              videoUrl: '',
+              audioUrl: '',
+              interactionType: 'form' as const
+            }]
           };
         } else {
           // This is content
