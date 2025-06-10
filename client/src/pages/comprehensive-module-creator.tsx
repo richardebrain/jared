@@ -971,8 +971,11 @@ export default function ComprehensiveModuleCreator() {
     const currentSection = newModule.sections[currentSectionIndex];
     if (!currentSection) return;
 
-    // Always require specific topic input for better content generation
-    if (!aiTopicInput.trim()) {
+    // Use the initial module data or fall back to asking for specific topic
+    const primaryTopic = initialModuleData.title || newModule.title;
+    const learningObjective = initialModuleData.learningObjective || newModule.description;
+    
+    if (!primaryTopic && !aiTopicInput.trim()) {
       setShowTopicInput(true);
       return;
     }
@@ -981,10 +984,11 @@ export default function ComprehensiveModuleCreator() {
     
     try {
       const response = await apiRequest('POST', '/api/ai/generate-content-blocks', {
-        topic: aiTopicInput,
+        topic: aiTopicInput.trim() || `${primaryTopic} - ${learningObjective}`,
         sectionTitle: currentSection.title,
-        moduleTitle: newModule.title || 'Professional Development Module',
-        sectionType: currentSection.type
+        moduleTitle: primaryTopic || 'Professional Development Module',
+        sectionType: currentSection.type,
+        learningObjective: learningObjective
       });
 
       if (response.blocks && response.blocks.length > 0) {
@@ -999,7 +1003,7 @@ export default function ComprehensiveModuleCreator() {
         
         toast({
           title: 'Content Generated',
-          description: `Generated ${newBlocks.length} engaging content blocks with research insights and practical humor.`,
+          description: `Generated ${newBlocks.length} engaging content blocks based on "${primaryTopic}".`,
         });
       }
     } catch (error) {
@@ -3191,12 +3195,14 @@ Create a natural conversation between two podcast hosts discussing this specific
                     )}
                     
                     {/* Current Topic Display */}
-                    {aiTopicInput && aiGeneratedBlocks.length > 0 && (
+                    {aiGeneratedBlocks.length > 0 && (
                       <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
                         <div className="flex items-center gap-2">
                           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                           <span className="text-sm font-medium text-green-800">Content generated for:</span>
-                          <span className="text-sm text-green-700">"{aiTopicInput}"</span>
+                          <span className="text-sm text-green-700">
+                            "{aiTopicInput || (initialModuleData.title && `${initialModuleData.title} - ${initialModuleData.learningObjective}`) || newModule.title}"
+                          </span>
                         </div>
                       </div>
                     )}
