@@ -794,19 +794,20 @@ FORMAT: Return a JSON object with "blocks" array. Each block should have:
       prompt = `
 You are an expert early childhood education instructor creating hands-on activities for "${topic}".
 
-Generate 5 step-by-step guided activities that teachers can immediately implement in their classrooms related to "${topic}".
+Generate 3-4 step-by-step guided activities that teachers can immediately implement in their classrooms related to "${topic}".
 
 Each activity should include:
 1. Clear step-by-step instructions (numbered steps)
-2. Materials needed (if any)
-3. Age-appropriate considerations for children 2-5
-4. Expected outcomes or learning goals
-5. Variations or adaptations for different situations
+2. Materials needed
+3. Age group recommendations
+4. Learning objectives
+5. Assessment opportunities
+6. Adaptations for different learning styles
 
 FORMAT: Return a JSON object with "blocks" array. Each block should have:
-- "type": "Step-by-Step Activity"
-- "preview": Brief description of the activity
-- "content": Full detailed activity content`;
+- "type": "Guided Activity"
+- "preview": Brief activity description
+- "content": Complete activity instructions ready to use`;
     
     } else {
       // Default generic content generation
