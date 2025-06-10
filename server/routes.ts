@@ -5160,5 +5160,8 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
   // Register personalized stories routes
   app.use("/api/personalized-stories", personalizedStoriesRoutes);
 
+  // Register video search routes
+  app.use("/api/video-search", videoSearchRoutes);
+
   return app;
 }
