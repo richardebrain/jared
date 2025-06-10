@@ -725,6 +725,16 @@ router.post('/generate-content-blocks', async (req, res) => {
                                  sectionTitle?.toLowerCase().includes('policy') ||
                                  sectionTitle?.toLowerCase().includes('research');
 
+    const isHandsOnPracticeSection = sectionTitle?.toLowerCase().includes('hands-on practice') || 
+                                    sectionTitle?.toLowerCase().includes('practice') ||
+                                    sectionTitle?.toLowerCase().includes('simulation') ||
+                                    sectionType === 'simulation';
+
+    const isReflectionSection = sectionTitle?.toLowerCase().includes('reflection') || 
+                               sectionTitle?.toLowerCase().includes('action plan') ||
+                               sectionTitle?.toLowerCase().includes('implementation') ||
+                               sectionTitle?.toLowerCase().includes('review');
+
     // Use OpenAI to generate topic-specific content blocks
     const openai = new (await import("openai")).default({
       apiKey: process.env.OPENAI_API_KEY,
@@ -773,22 +783,28 @@ FORMAT: Return a JSON object with "blocks" array. Each block should have:
     
     } else if (isWhyItMattersSection) {
       prompt = `
-You are an expert early childhood education researcher explaining the importance of "${topic}" using science and policy.
+You are an expert early childhood education researcher explaining the importance of "${topic}" using varied levels of complexity.
 
-Generate comprehensive content explaining why "${topic}" matters, including:
-1. Research-backed evidence and key studies
-2. Child development science that supports this approach
-3. Policy implications and regulatory considerations
-4. Long-term outcomes for children and families
-5. Professional standards and best practices
-6. Connection to licensing requirements or quality frameworks
+Generate 4-6 content blocks with different complexity levels:
 
-Use specific researcher names, study findings, and policy documents. Make the science accessible but credible for practicing teachers.
+SIMPLE BLOCKS (2-3 blocks):
+- Basic, easy-to-understand explanations
+- Simple bullet points
+- Practical "why this matters to you" content
+- Quick facts teachers can remember
+
+COMPLEX BLOCKS (2-3 blocks):
+- Detailed research citations with specific researcher names
+- Policy implications and regulatory connections
+- Scientific explanations of child development
+- Connection to licensing standards and quality frameworks
+
+Mix simple and complex content so teachers can choose their preferred depth level.
 
 FORMAT: Return a JSON object with "blocks" array. Each block should have:
-- "type": "Research & Policy"
-- "preview": Brief description of the key evidence
-- "content": Full detailed research and policy content`;
+- "type": "Why It Matters - Simple" or "Why It Matters - Research"
+- "preview": Brief description indicating complexity level
+- "content": Content matching the complexity level indicated in type`;
     
     } else if (isActivitySection) {
       prompt = `
@@ -808,6 +824,62 @@ FORMAT: Return a JSON object with "blocks" array. Each block should have:
 - "type": "Guided Activity"
 - "preview": Brief activity description
 - "content": Complete activity instructions ready to use`;
+    
+    } else if (isHandsOnPracticeSection) {
+      prompt = `
+You are an expert early childhood education trainer creating hands-on practice activities for "${topic}".
+
+Generate 3-4 interactive practice activities that teachers can DO right now, not just read about:
+
+PRACTICE ACTIVITY TYPES:
+1. ROLE-PLAY SCENARIOS - Specific situations to practice with colleagues
+2. CHECKLIST CREATION - Make actual tools they can use immediately  
+3. ENVIRONMENT AUDIT - Walk through their space and make changes
+4. CONVERSATION PRACTICE - Scripts and practice dialogues
+5. DOCUMENTATION EXERCISES - Practice forms, observations, or notes
+
+Each activity should be:
+- Actionable (something to DO, not read)
+- Immediate (can be done right after the training)
+- Practical (directly applicable to their work)
+- Specific (detailed steps, not vague suggestions)
+
+NO STORIES OR CASE STUDIES - only hands-on activities they can practice.
+
+FORMAT: Return a JSON object with "blocks" array. Each block should have:
+- "type": "Practice Activity"
+- "preview": Brief description of what they'll practice
+- "content": Complete step-by-step activity instructions`;
+
+    } else if (isReflectionSection) {
+      prompt = `
+You are creating a comprehensive reflection and action planning section for the "${topic}" training module.
+
+Create a review of ALL previous sections with implementation planning:
+
+SECTION 1: TRAINING REVIEW
+- Quick bullet point summary of each previous section
+- Key takeaways from the entire module
+- Most important concepts to remember
+
+SECTION 2: FILL-IN-THE-BLANKS ACTION PLANNING
+Create specific prompts like:
+"In my classroom, I will implement _____________ by ____________"
+"The first change I'll make this week is ____________"
+"To prepare for this, I need to ____________"
+"I will know this is working when I see ____________"
+
+SECTION 3: IMPLEMENTATION TIMELINE
+- This week: ____________
+- This month: ____________  
+- This quarter: ____________
+
+Make it practical and specific to their classroom implementation.
+
+FORMAT: Return a JSON object with "blocks" array. Each block should have:
+- "type": "Module Review" or "Action Planning" or "Implementation Timeline"
+- "preview": Brief description of reflection focus
+- "content": Complete review and planning content with fill-in-the-blanks`;
     
     } else {
       // Default generic content generation
