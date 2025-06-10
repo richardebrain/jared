@@ -702,9 +702,11 @@ export default function ComprehensiveModuleCreator() {
     setCurrentSectionIndex(0);
   };
 
-  const nextSection = () => {
-    // Process current section before moving to next
+  // Save current section content before navigating
+  const saveCurrentSectionContent = () => {
+    // This function ensures content is preserved when navigating between sections
     const currentSection = newModule.sections[currentSectionIndex];
+    if (!currentSection) return;
     
     // Apply universal quiz conversion to any section that might contain quiz content
     if (currentSection && (
@@ -732,6 +734,10 @@ export default function ComprehensiveModuleCreator() {
         });
       }
     }
+  };
+
+  const nextSection = () => {
+    saveCurrentSectionContent();
     
     // Move to next section or preview
     if (currentSectionIndex < newModule.sections.length - 1) {
@@ -744,9 +750,17 @@ export default function ComprehensiveModuleCreator() {
   };
 
   const previousSection = () => {
+    saveCurrentSectionContent();
     if (currentSectionIndex > 0) {
       setCurrentSectionIndex(prev => prev - 1);
     }
+  };
+
+  // Jump to specific section (for editing)
+  const jumpToSection = (sectionIndex: number) => {
+    saveCurrentSectionContent();
+    setCurrentSectionIndex(sectionIndex);
+    setAiWorkflowStep('section-builder');
   };
 
   // AI Content Generation for Section Builder
@@ -795,6 +809,7 @@ export default function ComprehensiveModuleCreator() {
         moduleDescription: newModule.description,
         sectionTitle: currentSection.title,
         category: newModule.category,
+        difficulty: quizDifficulty,
         existingQuestions: builtQuizQuestions.map(q => q.question)
       });
 
@@ -2634,7 +2649,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                           ? 'border-green-300 bg-green-50'
                           : 'border-gray-200 bg-gray-50 hover:border-gray-300'
                       }`}
-                      onClick={() => setCurrentSectionIndex(index)}
+                      onClick={() => jumpToSection(index)}
                     >
                       <div className="flex items-center gap-2">
                         <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
@@ -2660,11 +2675,40 @@ Create a natural conversation between two podcast hosts discussing this specific
 
           {/* Main Section Builder */}
           <div className="col-span-9">
+            {/* Module Context Header */}
+            <Card className="mb-4 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-3">
+                  <Target className="h-6 w-6 text-blue-600" />
+                  <div className="flex-1">
+                    <CardTitle className="text-lg text-blue-900">
+                      {newModule.title || 'Professional Development Module'}
+                    </CardTitle>
+                    <CardDescription className="text-blue-700 mt-1">
+                      <strong>Topic:</strong> {newModule.description || 'Building effective teaching strategies'}
+                    </CardDescription>
+                    <div className="flex items-center gap-4 mt-2 text-sm">
+                      <Badge variant="outline" className="border-blue-300 text-blue-700">
+                        {newModule.category}
+                      </Badge>
+                      <Badge variant="outline" className="border-purple-300 text-purple-700">
+                        {newModule.difficulty} level
+                      </Badge>
+                      <span className="text-blue-600">
+                        <Clock className="h-4 w-4 inline mr-1" />
+                        {newModule.estimatedTime} min
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Build Section {currentSectionIndex + 1}: {newModule.sections[currentSectionIndex]?.title}</CardTitle>
                 <CardDescription>
-                  Drag content blocks from AI suggestions to build your section
+                  AI will use the module topic above to generate relevant content for this section
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
