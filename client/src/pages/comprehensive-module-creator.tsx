@@ -1576,6 +1576,14 @@ export default function ComprehensiveModuleCreator() {
     setIsGeneratingFlashcards(true);
     
     try {
+      console.log('Generating flashcards with data:', {
+        moduleTitle: newModule.title,
+        moduleDescription: newModule.description,
+        sectionTitle: newModule.sections[currentSectionIndex]?.title || 'Key Terms',
+        category: newModule.category,
+        sectionType: 'flashcards'
+      });
+
       const response = await apiRequest('POST', '/api/ai/generate-flashcards', {
         moduleTitle: newModule.title,
         moduleDescription: newModule.description,
@@ -1584,7 +1592,9 @@ export default function ComprehensiveModuleCreator() {
         sectionType: 'flashcards'
       });
 
-      if (response.flashcards) {
+      console.log('Flashcards API response:', response);
+
+      if (response.flashcards && response.flashcards.length > 0) {
         // Format flashcards as content blocks that can be dragged
         const flashcardBlocks = response.flashcards.map((card: any) => ({
           type: 'Key Term',
@@ -1592,10 +1602,24 @@ export default function ComprehensiveModuleCreator() {
           preview: `${card.term} - ${card.definition.substring(0, 100)}...`
         }));
         
-        setAiGeneratedBlocks(prev => [...prev, ...flashcardBlocks]);
+        console.log('Formatted flashcard blocks:', flashcardBlocks);
+        
+        setAiGeneratedBlocks(prev => {
+          const newBlocks = [...prev, ...flashcardBlocks];
+          console.log('Updated AI generated blocks:', newBlocks);
+          return newBlocks;
+        });
+        
         toast({
           title: "Key Terms Generated",
           description: `Generated ${response.flashcards.length} key terms and definitions`,
+        });
+      } else {
+        console.log('No flashcards in response or empty array');
+        toast({
+          title: "No Terms Generated",
+          description: "No key terms were generated. Please try again.",
+          variant: "destructive",
         });
       }
     } catch (error) {
