@@ -30,6 +30,7 @@ export const NARRATOR_VOICES = {
 export class VoiceService {
   private isInitialized = false;
   private apiKey: string | null = null;
+  private baseUrl = 'https://api.elevenlabs.io/v1';
 
   constructor() {
     this.initializeClient();
@@ -208,6 +209,193 @@ export class VoiceService {
       question: questionAudio,
       explanation: explanationAudio
     };
+  }
+
+  // Voice cloning for custom teacher voices
+  async cloneVoice(audioFile: Buffer, voiceName: string, description?: string): Promise<string | null> {
+    if (!this.isInitialized) {
+      throw new Error('Voice service not initialized');
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('name', voiceName);
+      formData.append('files', new Blob([audioFile]), 'voice_sample.mp3');
+      if (description) {
+        formData.append('description', description);
+      }
+
+      const response = await fetch(`${this.baseUrl}/voices/add`, {
+        method: 'POST',
+        headers: {
+          'xi-api-key': this.apiKey!,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Voice cloning failed: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data.voice_id;
+    } catch (error) {
+      console.error('Voice cloning error:', error);
+      return null;
+    }
+  }
+
+  // Generate multilingual content for ESL learners
+  async generateMultilingualSpeech(
+    text: string,
+    voiceType: string,
+    targetLanguage: string = 'en'
+  ): Promise<Buffer | null> {
+    if (!this.isInitialized) {
+      throw new Error('Voice service not initialized');
+    }
+
+    const voice = NARRATOR_VOICES[voiceType as keyof typeof NARRATOR_VOICES];
+    if (!voice) {
+      throw new Error(`Voice type ${voiceType} not found`);
+    }
+
+    try {
+      const response = await fetch(`${this.baseUrl}/text-to-speech/${voice.voiceId}`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'audio/mpeg',
+          'Content-Type': 'application/json',
+          'xi-api-key': this.apiKey!,
+        },
+        body: JSON.stringify({
+          text: text,
+          model_id: 'eleven_multilingual_v2',
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.75,
+            style: 0.4,
+            use_speaker_boost: true
+          },
+          language_code: targetLanguage
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`TTS request failed: ${response.statusText}`);
+      }
+
+      return Buffer.from(await response.arrayBuffer());
+    } catch (error) {
+      console.error('Multilingual TTS error:', error);
+      return null;
+    }
+  }
+
+  // Create sound effects for educational games
+  async generateSoundEffect(description: string, duration: number = 3): Promise<Buffer | null> {
+    if (!this.isInitialized) {
+      throw new Error('Voice service not initialized');
+    }
+
+    try {
+      const response = await fetch(`${this.baseUrl}/sound-generation`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'audio/mpeg',
+          'Content-Type': 'application/json',
+          'xi-api-key': this.apiKey!,
+        },
+        body: JSON.stringify({
+          text: description,
+          duration_seconds: duration,
+          prompt_influence: 0.3
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Sound generation failed: ${response.statusText}`);
+      }
+
+      return Buffer.from(await response.arrayBuffer());
+    } catch (error) {
+      console.error('Sound generation error:', error);
+      return null;
+    }
+  }
+
+  // Create interactive pronunciation guides
+  async generatePronunciationGuide(
+    word: string,
+    phonetic: string,
+    voiceType: string = 'professional-female'
+  ): Promise<Buffer | null> {
+    const pronunciationText = `The word is ${word}. Listen carefully: ${word}. The pronunciation is ${phonetic}. Let's practice: ${word}, ${word}, ${word}.`;
+    
+    return await this.generateSpeech(pronunciationText, voiceType, {
+      stability: 0.3,
+      similarity_boost: 0.8,
+      style: 0.2
+    });
+  }
+
+  // Generate emotional storytelling with voice modulation
+  async generateStorytellingNarration(
+    story: string,
+    emotion: 'excited' | 'calm' | 'mysterious' | 'happy' = 'happy',
+    voiceType: string = 'storyteller'
+  ): Promise<Buffer | null> {
+    const emotionSettings = {
+      excited: { stability: 0.2, similarity_boost: 0.9, style: 0.8 },
+      calm: { stability: 0.8, similarity_boost: 0.6, style: 0.2 },
+      mysterious: { stability: 0.4, similarity_boost: 0.7, style: 0.6 },
+      happy: { stability: 0.5, similarity_boost: 0.8, style: 0.5 }
+    };
+
+    return await this.generateSpeech(story, voiceType, emotionSettings[emotion]);
+  }
+
+  // Create personalized reading companions
+  async generatePersonalizedReading(
+    text: string,
+    childName: string,
+    readingLevel: 'beginner' | 'intermediate' | 'advanced' = 'beginner'
+  ): Promise<Buffer | null> {
+    const personalizedText = `Hello ${childName}! Today we're going to read together. Are you ready? Let's begin: ${text}. Great job reading with me, ${childName}!`;
+    
+    const levelSettings = {
+      beginner: { stability: 0.6, similarity_boost: 0.7, style: 0.3 },
+      intermediate: { stability: 0.5, similarity_boost: 0.75, style: 0.4 },
+      advanced: { stability: 0.4, similarity_boost: 0.8, style: 0.5 }
+    };
+
+    return await this.generateSpeech(personalizedText, 'child-friendly', levelSettings[readingLevel]);
+  }
+
+  // Generate assessment feedback with emotional intelligence
+  async generateAssessmentFeedback(
+    score: number,
+    totalQuestions: number,
+    encouragement: boolean = true
+  ): Promise<Buffer | null> {
+    const percentage = Math.round((score / totalQuestions) * 100);
+    let feedbackText = '';
+
+    if (percentage >= 90) {
+      feedbackText = encouragement 
+        ? `Excellent work! You got ${score} out of ${totalQuestions} questions correct. That's ${percentage}%! You're doing amazing!`
+        : `You scored ${score} out of ${totalQuestions}, which is ${percentage}%.`;
+    } else if (percentage >= 70) {
+      feedbackText = encouragement
+        ? `Great job! You got ${score} out of ${totalQuestions} questions correct. That's ${percentage}%! Keep up the good work!`
+        : `You scored ${score} out of ${totalQuestions}, which is ${percentage}%.`;
+    } else {
+      feedbackText = encouragement
+        ? `You got ${score} out of ${totalQuestions} questions correct. That's ${percentage}%. Don't worry, learning takes practice. You're doing great by trying!`
+        : `You scored ${score} out of ${totalQuestions}, which is ${percentage}%.`;
+    }
+
+    return await this.generateSpeech(feedbackText, 'friendly-female');
   }
 
   getAvailableVoices(): typeof NARRATOR_VOICES {

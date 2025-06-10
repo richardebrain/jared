@@ -137,4 +137,183 @@ router.get('/test', requireAuth, async (req, res) => {
   }
 });
 
+// Voice cloning endpoint
+router.post('/clone-voice', requireAuth, async (req, res) => {
+  try {
+    const { voiceName, description } = req.body;
+    const audioFile = req.file?.buffer;
+
+    if (!audioFile) {
+      return res.status(400).json({ error: 'Audio file is required' });
+    }
+
+    const voiceId = await voiceService.cloneVoice(audioFile, voiceName, description);
+    
+    if (!voiceId) {
+      return res.status(500).json({ error: 'Voice cloning failed' });
+    }
+
+    res.json({ success: true, voiceId, message: 'Voice cloned successfully' });
+  } catch (error) {
+    console.error('Voice cloning error:', error);
+    res.status(500).json({ error: 'Voice cloning failed' });
+  }
+});
+
+// Multilingual speech generation
+router.post('/generate-multilingual-speech', requireAuth, async (req, res) => {
+  try {
+    const { text, voiceType, targetLanguage = 'en' } = req.body;
+
+    if (!text || !voiceType) {
+      return res.status(400).json({ error: 'Text and voice type are required' });
+    }
+
+    const audioBuffer = await voiceService.generateMultilingualSpeech(text, voiceType, targetLanguage);
+    
+    if (!audioBuffer) {
+      return res.status(500).json({ error: 'Multilingual speech generation failed' });
+    }
+
+    res.set({
+      'Content-Type': 'audio/mpeg',
+      'Content-Length': audioBuffer.length.toString()
+    });
+    res.send(audioBuffer);
+  } catch (error) {
+    console.error('Multilingual speech generation error:', error);
+    res.status(500).json({ error: 'Multilingual speech generation failed' });
+  }
+});
+
+// Sound effects generation
+router.post('/generate-sound-effect', requireAuth, async (req, res) => {
+  try {
+    const { description, duration = 3 } = req.body;
+
+    if (!description) {
+      return res.status(400).json({ error: 'Sound description is required' });
+    }
+
+    const audioBuffer = await voiceService.generateSoundEffect(description, duration);
+    
+    if (!audioBuffer) {
+      return res.status(500).json({ error: 'Sound effect generation failed' });
+    }
+
+    res.set({
+      'Content-Type': 'audio/mpeg',
+      'Content-Length': audioBuffer.length.toString()
+    });
+    res.send(audioBuffer);
+  } catch (error) {
+    console.error('Sound effect generation error:', error);
+    res.status(500).json({ error: 'Sound effect generation failed' });
+  }
+});
+
+// Pronunciation guide generation
+router.post('/generate-pronunciation-guide', requireAuth, async (req, res) => {
+  try {
+    const { word, phonetic, voiceType = 'professional-female' } = req.body;
+
+    if (!word || !phonetic) {
+      return res.status(400).json({ error: 'Word and phonetic spelling are required' });
+    }
+
+    const audioBuffer = await voiceService.generatePronunciationGuide(word, phonetic, voiceType);
+    
+    if (!audioBuffer) {
+      return res.status(500).json({ error: 'Pronunciation guide generation failed' });
+    }
+
+    res.set({
+      'Content-Type': 'audio/mpeg',
+      'Content-Length': audioBuffer.length.toString()
+    });
+    res.send(audioBuffer);
+  } catch (error) {
+    console.error('Pronunciation guide generation error:', error);
+    res.status(500).json({ error: 'Pronunciation guide generation failed' });
+  }
+});
+
+// Emotional storytelling narration
+router.post('/generate-storytelling-narration', requireAuth, async (req, res) => {
+  try {
+    const { story, emotion = 'happy', voiceType = 'storyteller' } = req.body;
+
+    if (!story) {
+      return res.status(400).json({ error: 'Story text is required' });
+    }
+
+    const audioBuffer = await voiceService.generateStorytellingNarration(story, emotion, voiceType);
+    
+    if (!audioBuffer) {
+      return res.status(500).json({ error: 'Storytelling narration generation failed' });
+    }
+
+    res.set({
+      'Content-Type': 'audio/mpeg',
+      'Content-Length': audioBuffer.length.toString()
+    });
+    res.send(audioBuffer);
+  } catch (error) {
+    console.error('Storytelling narration generation error:', error);
+    res.status(500).json({ error: 'Storytelling narration generation failed' });
+  }
+});
+
+// Personalized reading companion
+router.post('/generate-personalized-reading', requireAuth, async (req, res) => {
+  try {
+    const { text, childName, readingLevel = 'beginner' } = req.body;
+
+    if (!text || !childName) {
+      return res.status(400).json({ error: 'Text and child name are required' });
+    }
+
+    const audioBuffer = await voiceService.generatePersonalizedReading(text, childName, readingLevel);
+    
+    if (!audioBuffer) {
+      return res.status(500).json({ error: 'Personalized reading generation failed' });
+    }
+
+    res.set({
+      'Content-Type': 'audio/mpeg',
+      'Content-Length': audioBuffer.length.toString()
+    });
+    res.send(audioBuffer);
+  } catch (error) {
+    console.error('Personalized reading generation error:', error);
+    res.status(500).json({ error: 'Personalized reading generation failed' });
+  }
+});
+
+// Assessment feedback generation
+router.post('/generate-assessment-feedback', requireAuth, async (req, res) => {
+  try {
+    const { score, totalQuestions, encouragement = true } = req.body;
+
+    if (score === undefined || !totalQuestions) {
+      return res.status(400).json({ error: 'Score and total questions are required' });
+    }
+
+    const audioBuffer = await voiceService.generateAssessmentFeedback(score, totalQuestions, encouragement);
+    
+    if (!audioBuffer) {
+      return res.status(500).json({ error: 'Assessment feedback generation failed' });
+    }
+
+    res.set({
+      'Content-Type': 'audio/mpeg',
+      'Content-Length': audioBuffer.length.toString()
+    });
+    res.send(audioBuffer);
+  } catch (error) {
+    console.error('Assessment feedback generation error:', error);
+    res.status(500).json({ error: 'Assessment feedback generation failed' });
+  }
+});
+
 export default router;
