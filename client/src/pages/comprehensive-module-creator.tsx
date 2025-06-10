@@ -56,7 +56,6 @@ import {
   Link,
   Target,
   Music,
-  HelpCircle,
   Zap,
   Play,
   Gamepad,
