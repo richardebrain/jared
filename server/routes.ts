@@ -1885,7 +1885,6 @@ Continue for all 5 questions...
   app.get(
     "/api/modules/:id",
     requireAuth,
-    requirePaidAccess,
     async (req, res, next) => {
       try {
         // Special case: Skip this handler for management route
