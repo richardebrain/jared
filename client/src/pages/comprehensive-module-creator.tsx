@@ -3380,7 +3380,12 @@ Create a natural conversation between two podcast hosts discussing this specific
                       const isVideoSection = sectionType === 'video' || 
                                            sectionTitle.includes('video') || 
                                            sectionTitle.includes('foundational');
-                      const isQuizSection = sectionType === 'quiz' || sectionTitle.includes('quiz');
+                      const isQuizSection = sectionType === 'quiz' || 
+                                           sectionTitle.includes('quiz') || 
+                                           sectionTitle.includes('key terms') || 
+                                           sectionTitle.includes('flash cards') || 
+                                           sectionTitle.includes('flashcards') ||
+                                           sectionTitle.includes('definitions');
                       const isScenarioSection = sectionType === 'scenario' || sectionType === 'story' || 
                                               sectionTitle.includes('scenario') || sectionTitle.includes('case study');
                       const isInteractiveSection = sectionType === 'matching' || sectionType === 'simulation' || 
