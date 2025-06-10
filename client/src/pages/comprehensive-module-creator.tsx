@@ -2703,7 +2703,7 @@ Create a natural conversation between two podcast hosts discussing this specific
         pointValue: finalPoints,
         isVisible: true,
         shareWithCommunity: newModule.shareWithCommunity || false,
-        sections: JSON.stringify(processedSections)
+        sections: processedSections
       };
 
       const response = await fetch('/api/modules', {
