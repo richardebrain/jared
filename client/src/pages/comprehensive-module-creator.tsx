@@ -747,6 +747,8 @@ export default function ComprehensiveModuleCreator() {
   const [customVideoUrl, setCustomVideoUrl] = useState('');
   const [selectedVideoForSection, setSelectedVideoForSection] = useState<number | null>(null);
 
+
+
   // Initialize speech recognition
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -3379,20 +3381,71 @@ Create a natural conversation between two podcast hosts discussing this specific
                                       </p>
                                     </div>
                                     
+                                    <Input
+                                      value={videoSearchQuery}
+                                      onChange={(e) => setVideoSearchQuery(e.target.value)}
+                                      placeholder="Search for educational videos..."
+                                      className="border-blue-300 focus:border-blue-500"
+                                      onKeyPress={(e) => e.key === 'Enter' && handleVideoSearch()}
+                                    />
+                                    
                                     <div className="grid grid-cols-3 gap-2">
-                                      <Button size="sm" variant="outline" className="border-blue-300 text-blue-700">
+                                      <Button 
+                                        size="sm" 
+                                        variant="outline" 
+                                        className="border-blue-300 text-blue-700"
+                                        onClick={() => searchVideoLibrary(videoSearchQuery)}
+                                        disabled={isSearchingVideos || !videoSearchQuery.trim()}
+                                      >
                                         <BookOpen className="h-3 w-3 mr-1" />
-                                        Library
+                                        {isSearchingVideos ? 'Searching...' : 'Library'}
                                       </Button>
-                                      <Button size="sm" variant="outline" className="border-red-300 text-red-700">
+                                      <Button 
+                                        size="sm" 
+                                        variant="outline" 
+                                        className="border-red-300 text-red-700"
+                                        onClick={() => searchYouTube(videoSearchQuery)}
+                                        disabled={isSearchingYoutube || !videoSearchQuery.trim()}
+                                      >
                                         <Search className="h-3 w-3 mr-1" />
-                                        YouTube
+                                        {isSearchingYoutube ? 'Searching...' : 'YouTube'}
                                       </Button>
-                                      <Button size="sm" variant="outline" className="border-green-300 text-green-700">
+                                      <Button 
+                                        size="sm" 
+                                        variant="outline" 
+                                        className="border-green-300 text-green-700"
+                                        onClick={() => {
+                                          const url = prompt('Enter video URL:');
+                                          if (url) {
+                                            setCustomVideoUrl(url);
+                                            addCustomVideoUrl();
+                                          }
+                                        }}
+                                      >
                                         <Link2 className="h-3 w-3 mr-1" />
                                         Custom URL
                                       </Button>
                                     </div>
+                                    
+                                    {(videoSearchResults.length > 0 || youtubeSearchResults.length > 0) && (
+                                      <div className="max-h-48 overflow-y-auto space-y-2">
+                                        <h4 className="text-xs font-medium text-blue-800">Search Results:</h4>
+                                        {videoSearchResults.map((video, index) => (
+                                          <div key={`library-${index}`} className="p-2 bg-white rounded border border-blue-200 cursor-pointer hover:bg-blue-50" 
+                                               onClick={() => selectVideoForSection(video.url, video.title)}>
+                                            <p className="text-xs font-medium text-blue-900">{video.title}</p>
+                                            <p className="text-xs text-blue-700">{video.description}</p>
+                                          </div>
+                                        ))}
+                                        {youtubeSearchResults.map((video, index) => (
+                                          <div key={`youtube-${index}`} className="p-2 bg-white rounded border border-red-200 cursor-pointer hover:bg-red-50"
+                                               onClick={() => selectVideoForSection(video.url, video.title)}>
+                                            <p className="text-xs font-medium text-red-900">{video.title}</p>
+                                            <p className="text-xs text-red-700">YouTube - {video.channel}</p>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
                                     
                                     <Button 
                                       variant="outline" 
