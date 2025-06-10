@@ -4023,12 +4023,15 @@ Create a natural conversation between two podcast hosts discussing this specific
                           </div>
                           
                           {aiGeneratedBlocks.length > 0 && (
-                            <div className="space-y-2">
+                            <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg space-y-2">
+                              <div className="text-sm font-medium text-purple-800 mb-2">
+                                Content Generated! ({aiGeneratedBlocks.length} blocks)
+                              </div>
                               <Button 
                                 size="sm"
                                 variant="outline"
                                 onClick={() => setShowRegenerateDialog(true)}
-                                className="text-purple-700 border-purple-300 hover:bg-purple-50 w-full"
+                                className="text-purple-700 border-purple-300 hover:bg-purple-50 w-full font-medium"
                               >
                                 <RefreshCw className="h-4 w-4 mr-2" />
                                 Regenerate with Guidance
