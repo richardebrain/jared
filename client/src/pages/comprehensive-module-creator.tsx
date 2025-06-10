@@ -46,6 +46,7 @@ import {
   MessageSquare,
   FileText,
   Mic,
+  MicOff,
   X,
   ChevronRight,
   Wand2,
@@ -634,6 +635,71 @@ export default function ComprehensiveModuleCreator() {
     title: '',
     learningObjective: ''
   });
+
+  // Voice input states
+  const [isListening, setIsListening] = useState<{[key: string]: boolean}>({});
+  const [recognition, setRecognition] = useState<any>(null);
+
+  // Initialize speech recognition
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognitionInstance = new SpeechRecognition();
+        recognitionInstance.continuous = false;
+        recognitionInstance.interimResults = false;
+        recognitionInstance.lang = 'en-US';
+        setRecognition(recognitionInstance);
+      }
+    }
+  }, []);
+
+  // Voice input handler
+  const startVoiceInput = (fieldName: string, currentValue: string, onUpdate: (value: string) => void) => {
+    if (!recognition) {
+      toast({
+        title: "Voice Not Supported",
+        description: "Your browser doesn't support voice input. Please type your text.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsListening(prev => ({ ...prev, [fieldName]: true }));
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      const newValue = currentValue ? `${currentValue} ${transcript}` : transcript;
+      onUpdate(newValue);
+      
+      toast({
+        title: "Voice Input Added",
+        description: `Added: "${transcript}"`,
+      });
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      toast({
+        title: "Voice Input Error",
+        description: "Could not capture voice input. Please try again.",
+        variant: "destructive",
+      });
+    };
+
+    recognition.onend = () => {
+      setIsListening(prev => ({ ...prev, [fieldName]: false }));
+    };
+
+    recognition.start();
+  };
+
+  const stopVoiceInput = (fieldName: string) => {
+    if (recognition) {
+      recognition.stop();
+    }
+    setIsListening(prev => ({ ...prev, [fieldName]: false }));
+  };
   const [aiSuggestions, setAiSuggestions] = useState<{
     questions: string[];
     strategies: string[];
@@ -2587,26 +2653,74 @@ Create a natural conversation between two podcast hosts discussing this specific
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="moduleTitle" className="text-base font-medium">Module Title</Label>
-                  <Input
-                    id="moduleTitle"
-                    placeholder="e.g., Managing Playground Transitions, Effective Communication Skills"
-                    value={initialModuleData.title}
-                    onChange={(e) => setInitialModuleData(prev => ({ ...prev, title: e.target.value }))}
-                    className="mt-2"
-                  />
+                  <div className="relative mt-2">
+                    <Input
+                      id="moduleTitle"
+                      placeholder="e.g., Managing Playground Transitions, Effective Communication Skills"
+                      value={initialModuleData.title}
+                      onChange={(e) => setInitialModuleData(prev => ({ ...prev, title: e.target.value }))}
+                      className="pr-12"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
+                      onClick={() => {
+                        if (isListening.title) {
+                          stopVoiceInput('title');
+                        } else {
+                          startVoiceInput('title', initialModuleData.title, (value) => 
+                            setInitialModuleData(prev => ({ ...prev, title: value }))
+                          );
+                        }
+                      }}
+                      disabled={!recognition}
+                    >
+                      {isListening.title ? (
+                        <MicOff className="h-4 w-4 text-red-500" />
+                      ) : (
+                        <Mic className="h-4 w-4 text-gray-500" />
+                      )}
+                    </Button>
+                  </div>
                   <p className="text-sm text-gray-600 mt-1">Choose a clear, descriptive title for your learning module</p>
                 </div>
 
                 <div>
                   <Label htmlFor="learningObjective" className="text-base font-medium">Primary Learning Objective</Label>
-                  <Textarea
-                    id="learningObjective"
-                    placeholder="e.g., Teachers will learn effective strategies to smoothly transition children from high-energy playground activities to focused classroom learning, reducing disruptions and improving student readiness."
-                    value={initialModuleData.learningObjective}
-                    onChange={(e) => setInitialModuleData(prev => ({ ...prev, learningObjective: e.target.value }))}
-                    rows={4}
-                    className="mt-2"
-                  />
+                  <div className="relative mt-2">
+                    <Textarea
+                      id="learningObjective"
+                      placeholder="e.g., Teachers will learn effective strategies to smoothly transition children from high-energy playground activities to focused classroom learning, reducing disruptions and improving student readiness."
+                      value={initialModuleData.learningObjective}
+                      onChange={(e) => setInitialModuleData(prev => ({ ...prev, learningObjective: e.target.value }))}
+                      rows={4}
+                      className="pr-12"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-2 top-2 h-8 w-8 p-0"
+                      onClick={() => {
+                        if (isListening.learningObjective) {
+                          stopVoiceInput('learningObjective');
+                        } else {
+                          startVoiceInput('learningObjective', initialModuleData.learningObjective, (value) => 
+                            setInitialModuleData(prev => ({ ...prev, learningObjective: value }))
+                          );
+                        }
+                      }}
+                      disabled={!recognition}
+                    >
+                      {isListening.learningObjective ? (
+                        <MicOff className="h-4 w-4 text-red-500" />
+                      ) : (
+                        <Mic className="h-4 w-4 text-gray-500" />
+                      )}
+                    </Button>
+                  </div>
                   <p className="text-sm text-gray-600 mt-1">Describe what learners will achieve after completing this module</p>
                 </div>
 
