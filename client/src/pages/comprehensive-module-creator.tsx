@@ -901,12 +901,12 @@ export default function ComprehensiveModuleCreator() {
         }));
       }
     } else {
-      // Handle proven template structure
+      // Handle proven template structure - preserve user's title if already set
       setNewModule(prev => ({
         ...prev,
-        title: template.title,
-        description: template.description,
-        estimatedTime: template.duration.replace(' min', ''),
+        title: prev.title.trim() ? prev.title : template.title,
+        description: prev.description.trim() ? prev.description : template.description,
+        estimatedTime: prev.estimatedTime.trim() ? prev.estimatedTime : template.duration.replace(' min', ''),
         sections: template.sections.map((section: any) => ({
           title: section.title,
           content: '',

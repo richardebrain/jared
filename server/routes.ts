@@ -1773,6 +1773,29 @@ Continue for all 5 questions...
     }
   });
 
+  // Update existing module
+  app.put("/api/modules/:id", requireAuth, async (req, res) => {
+    try {
+      const moduleId = parseInt(req.params.id);
+      const { title, description, content, category, difficulty, duration, pointValue } = req.body;
+      
+      const updatedModule = await storage.updateModule(moduleId, {
+        title,
+        description,
+        content,
+        category,
+        difficulty,
+        duration: duration || 10,
+        pointValue: pointValue || 100
+      });
+      
+      res.json(updatedModule);
+    } catch (error) {
+      console.error('Module update error:', error);
+      res.status(500).json({ message: "Failed to update module" });
+    }
+  });
+
   // Get teachers for publishing dialog
   app.get("/api/teachers", async (req, res) => {
     try {
