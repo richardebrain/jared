@@ -180,7 +180,17 @@ export default function AIModuleDesigner({ onModuleComplete, onBack }: AIModuleD
       }
 
       const detailedModule = await response.json();
-      onModuleComplete(detailedModule);
+      
+      // Ensure the original form data is preserved in the module data
+      const moduleWithFormData = {
+        ...detailedModule,
+        originalTopic: formData.topic,
+        originalGoals: formData.goals,
+        originalContext: formData.context,
+        formData: formData // Include full form data for reference
+      };
+      
+      onModuleComplete(moduleWithFormData);
       
       toast({
         title: "Module Generated!",

@@ -132,12 +132,14 @@ export default function ComprehensiveModuleCreator() {
         // Update newModule with the AI-generated data, preserving the original topic and description
         setNewModule(prev => ({
           ...prev,
-          title: moduleData.title || prev.title,
-          description: moduleData.description || moduleData.topic || prev.description,
+          title: moduleData.title || moduleData.originalTopic || prev.title,
+          description: moduleData.originalTopic || moduleData.description || prev.description,
           category: moduleData.category || prev.category,
           difficulty: moduleData.difficulty || prev.difficulty,
           estimatedTime: moduleData.estimatedTime || prev.estimatedTime,
-          sections: moduleData.sections || prev.sections
+          sections: moduleData.sections || prev.sections,
+          // Store original form data for quiz builder reference
+          originalFormData: moduleData.formData
         }));
         
         // Set workflow to section builder mode
@@ -2768,10 +2770,13 @@ Create a natural conversation between two podcast hosts discussing this specific
                         </div>
                         <div className="text-sm space-y-1">
                           <div className="text-blue-700">
-                            <strong>Module:</strong> {newModule.title || 'Professional Development Module'}
+                            <strong>Module:</strong> {newModule.originalFormData?.topic || newModule.title || 'Professional Development Module'}
                           </div>
                           <div className="text-blue-700">
-                            <strong>Topic:</strong> {newModule.description || 'Building effective teaching strategies'}
+                            <strong>Topic:</strong> {newModule.originalFormData?.topic || newModule.description || 'Building effective teaching strategies'}
+                          </div>
+                          <div className="text-blue-700">
+                            <strong>Goals:</strong> {newModule.originalFormData?.goals || 'Improve learning outcomes'}
                           </div>
                           <div className="text-blue-700">
                             <strong>Section:</strong> {newModule.sections[currentSectionIndex]?.title}
