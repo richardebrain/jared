@@ -405,6 +405,101 @@ export default function ComprehensiveModuleCreator() {
       });
     }
   };
+
+  // Video search functions
+  const searchVideoLibrary = async (query: string) => {
+    if (!query.trim()) return;
+    
+    setIsSearchingVideos(true);
+    try {
+      const response = await fetch(`/api/videos/search?q=${encodeURIComponent(query)}&topic=${encodeURIComponent(newModule.title || '')}`);
+      if (response.ok) {
+        const results = await response.json();
+        setVideoSearchResults(results);
+      }
+    } catch (error) {
+      console.error('Video library search error:', error);
+      toast({
+        title: "Search Failed",
+        description: "Unable to search video library. Please try again.",
+        variant: "destructive",
+      });
+    }
+    setIsSearchingVideos(false);
+  };
+
+  const searchYouTube = async (query: string) => {
+    if (!query.trim()) return;
+    
+    setIsSearchingYoutube(true);
+    try {
+      const response = await fetch(`/api/videos/youtube-search?q=${encodeURIComponent(query)}&topic=${encodeURIComponent(newModule.title || '')}`);
+      if (response.ok) {
+        const results = await response.json();
+        setYoutubeSearchResults(results);
+      }
+    } catch (error) {
+      console.error('YouTube search error:', error);
+      toast({
+        title: "YouTube Search Failed",
+        description: "Unable to search YouTube. Please try again.",
+        variant: "destructive",
+      });
+    }
+    setIsSearchingYoutube(false);
+  };
+
+  const handleVideoSearch = async () => {
+    if (!videoSearchQuery.trim()) return;
+    
+    // Search both library and YouTube simultaneously
+    await Promise.all([
+      searchVideoLibrary(videoSearchQuery),
+      searchYouTube(videoSearchQuery)
+    ]);
+  };
+
+  const selectVideoForSection = (videoUrl: string, videoTitle: string) => {
+    if (selectedVideoForSection !== null) {
+      updateSection(selectedVideoForSection, 'videoUrl', videoUrl);
+      updateSection(selectedVideoForSection, 'title', videoTitle);
+      
+      toast({
+        title: "Video Added",
+        description: `Added "${videoTitle}" to the section`,
+      });
+      
+      setShowVideoSearch(false);
+      setSelectedVideoForSection(null);
+      setVideoSearchQuery('');
+      setVideoSearchResults([]);
+      setYoutubeSearchResults([]);
+    }
+  };
+
+  const addCustomVideoUrl = () => {
+    if (!customVideoUrl.trim() || selectedVideoForSection === null) return;
+    
+    // Extract title from URL or use placeholder
+    let videoTitle = 'Custom Video';
+    if (customVideoUrl.includes('youtube.com') || customVideoUrl.includes('youtu.be')) {
+      videoTitle = 'YouTube Video';
+    } else if (customVideoUrl.includes('vimeo.com')) {
+      videoTitle = 'Vimeo Video';
+    }
+    
+    updateSection(selectedVideoForSection, 'videoUrl', customVideoUrl);
+    updateSection(selectedVideoForSection, 'title', videoTitle);
+    
+    toast({
+      title: "Custom Video Added",
+      description: "Your custom video has been added to the section",
+    });
+    
+    setShowVideoSearch(false);
+    setSelectedVideoForSection(null);
+    setCustomVideoUrl('');
+  };
   
   const [searchTerm, setSearchTerm] = useState('');
   const [editingModule, setEditingModule] = useState<Module | null>(null);
@@ -421,6 +516,16 @@ export default function ComprehensiveModuleCreator() {
   const [customTemplate, setCustomTemplate] = useState<any>(null);
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [completedSections, setCompletedSections] = useState<number[]>([]);
+  
+  // Video search states
+  const [videoSearchQuery, setVideoSearchQuery] = useState('');
+  const [videoSearchResults, setVideoSearchResults] = useState<any[]>([]);
+  const [youtubeSearchResults, setYoutubeSearchResults] = useState<any[]>([]);
+  const [isSearchingVideos, setIsSearchingVideos] = useState(false);
+  const [isSearchingYoutube, setIsSearchingYoutube] = useState(false);
+  const [customVideoUrl, setCustomVideoUrl] = useState('');
+  const [showVideoSearch, setShowVideoSearch] = useState(false);
+  const [selectedVideoForSection, setSelectedVideoForSection] = useState<number | null>(null);
 
   // Proven template types for AI-assisted workflow
   const PROVEN_TEMPLATES = [
@@ -4400,13 +4505,46 @@ Create a natural conversation between two podcast hosts discussing this specific
                         />
                       </div>
                       <div>
-                        <Label>Video URL</Label>
+                        <Label>Video Selection</Label>
                         <div className="space-y-3">
-                          <Input
-                            value={section.videoUrl}
-                            onChange={(e) => updateSection(index, 'videoUrl', e.target.value)}
-                            placeholder="https://youtube.com/watch?v=... or generate with AI"
-                          />
+                          {/* Current Video Display */}
+                          {section.videoUrl ? (
+                            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <div className="text-sm font-medium text-green-800">Video Selected</div>
+                                  <div className="text-xs text-green-600 truncate max-w-md">{section.videoUrl}</div>
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedVideoForSection(index);
+                                    setShowVideoSearch(true);
+                                    setVideoSearchQuery(newModule.title || '');
+                                  }}
+                                  className="border-green-300 text-green-700 hover:bg-green-100"
+                                >
+                                  Change Video
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedVideoForSection(index);
+                                setShowVideoSearch(true);
+                                setVideoSearchQuery(newModule.title || '');
+                              }}
+                              className="w-full border-dashed border-gray-300 text-gray-600 hover:bg-gray-50 py-6"
+                            >
+                              <Search className="h-5 w-5 mr-2" />
+                              Find Video for This Section
+                            </Button>
+                          )}
                           
                           {/* AI Video Generation */}
                           <div className="flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
