@@ -823,23 +823,6 @@ Focus specifically on "${topic}" - make each content block directly address this
       temperature: 0.7,
     });
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert early childhood education content creator specializing in practical, research-based strategies."
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 3000,
-      response_format: { type: "json_object" }
-    });
-
     const result = JSON.parse(response.choices[0]?.message?.content || '{"blocks": []}');
     
     if (!result.blocks || result.blocks.length === 0) {
@@ -855,120 +838,17 @@ Focus specifically on "${topic}" - make each content block directly address this
   } catch (error) {
     console.error("Error generating content blocks:", error);
     
-    // Topic-specific fallback content that uses the exact topic provided
+    // Topic-specific fallback content
     const contentBlocks = [
       {
         type: "Research Insight",
         preview: `Latest research findings about ${topic} in early childhood settings...`,
-        content: `## Current Research on ${topic}
-
-Recent studies in early childhood education have revealed important insights about ${topic} that directly impact your daily practice.
-
-**Key Finding:** Children experiencing ${topic} show significant improvement when educators use specific, evidence-based approaches rather than generic classroom management techniques.
-
-**What This Means for You:** Your response to ${topic} situations should be tailored to the specific context and individual child's needs. Research shows that understanding the underlying causes of ${topic} leads to more effective interventions.
-
-**Implementation Strategy:** 
-1. Observe patterns related to ${topic} in your classroom
-2. Document what triggers ${topic} behaviors or situations
-3. Apply targeted strategies based on current research
-4. Monitor outcomes and adjust approaches as needed
-
-This research-backed approach to ${topic} creates more positive outcomes for both children and educators.`
+        content: `## Current Research on ${topic}\n\nRecent studies in early childhood education have revealed important insights about ${topic} that directly impact your daily practice.\n\n**Key Finding:** Children experiencing ${topic} show significant improvement when educators use specific, evidence-based approaches rather than generic classroom management techniques.\n\n**What This Means for You:** Your response to ${topic} situations should be tailored to the specific context and individual child's needs. Research shows that understanding the underlying causes of ${topic} leads to more effective interventions.\n\n**Implementation Strategy:**\n1. Observe patterns related to ${topic} in your classroom\n2. Document what triggers ${topic} behaviors or situations\n3. Apply targeted strategies based on current research\n4. Monitor outcomes and adjust approaches as needed\n\nThis research-backed approach to ${topic} creates more positive outcomes for both children and educators.`
       },
       {
         type: "Quick Strategy",
         preview: `Immediate technique for handling ${topic} situations...`,
-        content: `## The 30-Second ${topic} Strategy
-
-When ${topic} appears in your classroom, you need an immediate, effective response.
-
-**The Strategy:** The "Pause, Assess, Respond" approach specifically designed for ${topic} situations.
-
-**Step 1 - Pause (5 seconds):** Take a breath and resist the urge to react immediately to ${topic}.
-
-**Step 2 - Assess (10 seconds):** Quickly evaluate what's driving the ${topic} behavior or situation.
-
-**Step 3 - Respond (15 seconds):** Use a targeted approach based on your assessment of the ${topic} context.
-
-**Your Script for ${topic}:**
-- "I notice you're dealing with ${topic}. Let's work through this together."
-- "I can see ${topic} is challenging right now. What do you need?"
-- "Let's find a way to handle ${topic} that works for everyone."
-
-**Why This Works:** This approach addresses ${topic} directly while maintaining your calm and showing children you're equipped to handle challenging situations.`
-      },
-      {
-        type: "Real Scenario",
-        preview: `Classroom situation involving ${topic} and how to respond...`,
-        content: `## Real Classroom Scenario: ${topic} Challenge
-
-**The Situation:** It's 10:30 AM during center time. You're facilitating a small group activity when ${topic} becomes an issue with several children. The situation is escalating and other children are starting to notice.
-
-**What's Happening:** The children involved in the ${topic} situation are showing signs of frustration, and you can see this might affect the entire classroom dynamic if not addressed quickly and effectively.
-
-**Your Immediate Response Options:**
-1. Address ${topic} directly with calm, clear communication
-2. Redirect the children while acknowledging their feelings about ${topic}
-3. Use environmental modifications to support better ${topic} management
-4. Implement a specific strategy you've planned for ${topic} situations
-
-**The Professional Approach:** Remember that ${topic} is a learning opportunity. Your response teaches children how to handle challenges and builds their confidence in your ability to support them.
-
-**Reflection Questions:**
-- How might you prevent similar ${topic} situations in the future?
-- What environmental or routine changes could support better ${topic} management?
-- How can you help children develop their own strategies for ${topic}?`
-      },
-      {
-        type: "Expert Tip",
-        preview: `Professional advice for managing ${topic} effectively...`,
-        content: `## Expert Advice on ${topic}
-
-**From Leading ECE Professionals:** Here's what experienced educators know about handling ${topic} that newer teachers often miss.
-
-**The Hidden Truth About ${topic}:** Most challenging ${topic} situations can be prevented through proactive strategies rather than reactive responses.
-
-**Professional Insights:**
-- ${topic} often signals unmet needs that children can't express verbally
-- Environmental factors play a huge role in ${topic} frequency and intensity
-- Consistency in responding to ${topic} builds children's sense of security
-- Family partnerships are crucial for addressing ${topic} effectively
-
-**The Expert Strategy:**
-1. **Prevention Focus:** Identify what typically triggers ${topic} in your classroom
-2. **Pattern Recognition:** Notice the early signs that ${topic} might occur
-3. **Responsive Planning:** Have specific strategies ready for different types of ${topic} situations
-4. **Reflective Practice:** Regularly evaluate what's working and what isn't with ${topic}
-
-**Remember:** Your confidence in handling ${topic} directly impacts how children respond. When you approach ${topic} with calm professionalism, children learn that challenges can be managed successfully.`
-      },
-      {
-        type: "Reflection Prompt",
-        preview: `Thoughtful questions to deepen your understanding of ${topic}...`,
-        content: `## Reflecting on Your ${topic} Practice
-
-Take a few minutes to consider your current approach to ${topic} and how you might strengthen your practice.
-
-**Current Practice Reflection:**
-- How do you typically respond when ${topic} occurs in your classroom?
-- What emotions do you experience when dealing with ${topic}?
-- Which ${topic} situations feel most challenging for you?
-
-**Growth Opportunities:**
-- What would you like to handle differently about ${topic}?
-- What additional knowledge or skills would help you with ${topic}?
-- How might your response to ${topic} impact children's learning and development?
-
-**Professional Development Questions:**
-- What does current research say about best practices for ${topic}?
-- How can you collaborate with families around ${topic}?
-- What environmental or programmatic changes might support better ${topic} outcomes?
-
-**Action Planning:**
-Based on your reflection, identify one specific area related to ${topic} that you'd like to focus on improving this week. What's one small step you can take to enhance your approach to ${topic}?
-
-**Remember:** Reflective practice is what transforms good teachers into great ones. Your willingness to examine and improve your approach to ${topic} demonstrates your commitment to professional growth.`
+        content: `## The 30-Second ${topic} Strategy\n\nWhen ${topic} appears in your classroom, you need an immediate, effective response.\n\n**The Strategy:** The "Pause, Assess, Respond" approach specifically designed for ${topic} situations.\n\n**Step 1 - Pause (5 seconds):** Take a breath and resist the urge to react immediately to ${topic}.\n\n**Step 2 - Assess (10 seconds):** Quickly evaluate what's driving the ${topic} behavior or situation.\n\n**Step 3 - Respond (15 seconds):** Use a targeted approach based on your assessment of the ${topic} context.\n\n**Your Script for ${topic}:**\n- "I notice you're dealing with ${topic}. Let's work through this together."\n- "I can see ${topic} is challenging right now. What do you need?"\n- "Let's find a way to handle ${topic} that works for everyone."\n\n**Why This Works:** This approach addresses ${topic} directly while maintaining your calm and showing children you're equipped to handle challenging situations.`
       }
     ];
 
