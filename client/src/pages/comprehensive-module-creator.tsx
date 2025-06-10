@@ -517,16 +517,7 @@ export default function ComprehensiveModuleCreator() {
   const [customTemplate, setCustomTemplate] = useState<any>(null);
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [completedSections, setCompletedSections] = useState<number[]>([]);
-  
-  // Video search states
-  const [videoSearchQuery, setVideoSearchQuery] = useState('');
-  const [videoSearchResults, setVideoSearchResults] = useState<any[]>([]);
-  const [youtubeSearchResults, setYoutubeSearchResults] = useState<any[]>([]);
-  const [isSearchingVideos, setIsSearchingVideos] = useState(false);
-  const [isSearchingYoutube, setIsSearchingYoutube] = useState(false);
-  const [customVideoUrl, setCustomVideoUrl] = useState('');
-  const [showVideoSearch, setShowVideoSearch] = useState(false);
-  const [selectedVideoForSection, setSelectedVideoForSection] = useState<number | null>(null);
+
 
   // Proven template types for AI-assisted workflow
   const PROVEN_TEMPLATES = [
@@ -745,6 +736,16 @@ export default function ComprehensiveModuleCreator() {
   // Voice input states
   const [isListening, setIsListening] = useState<{[key: string]: boolean}>({});
   const [recognition, setRecognition] = useState<any>(null);
+
+  // Video search states
+  const [showVideoSearch, setShowVideoSearch] = useState(false);
+  const [videoSearchQuery, setVideoSearchQuery] = useState('');
+  const [videoSearchResults, setVideoSearchResults] = useState<any[]>([]);
+  const [youtubeSearchResults, setYoutubeSearchResults] = useState<any[]>([]);
+  const [isSearchingVideos, setIsSearchingVideos] = useState(false);
+  const [isSearchingYoutube, setIsSearchingYoutube] = useState(false);
+  const [customVideoUrl, setCustomVideoUrl] = useState('');
+  const [selectedVideoForSection, setSelectedVideoForSection] = useState<number | null>(null);
 
   // Initialize speech recognition
   useEffect(() => {
@@ -3311,54 +3312,280 @@ Create a natural conversation between two podcast hosts discussing this specific
                 {/* Drag and Drop Content Area */}
                 {!isQuizBuilder && (
                   <div className="grid grid-cols-2 gap-6">
-                  {/* AI Content Suggestions */}
+                  {/* Dynamic AI Tools Based on Section Type */}
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold">AI Content Suggestions</h3>
-                      <div className="flex gap-2">
-                        <Button 
-                          size="sm"
-                          variant="outline" 
-                          onClick={generateAIContentForSection}
-                          disabled={isGeneratingAIContent}
-                          className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                        >
-                          {isGeneratingAIContent ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Generating...
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles className="h-4 w-4 mr-2" />
-                              {aiGeneratedBlocks.length > 0 ? 'Generate More Ideas' : 'Generate Ideas'}
-                            </>
+                    {(() => {
+                      const currentSection = newModule.sections[currentSectionIndex];
+                      const sectionType = currentSection?.type || 'text';
+                      const sectionTitle = currentSection?.title?.toLowerCase() || '';
+                      
+                      // Determine section category
+                      const isVideoSection = sectionType === 'video' || 
+                                           sectionTitle.includes('video') || 
+                                           sectionTitle.includes('foundational');
+                      const isQuizSection = sectionType === 'quiz' || sectionTitle.includes('quiz');
+                      const isScenarioSection = sectionType === 'scenario' || sectionType === 'story' || 
+                                              sectionTitle.includes('scenario') || sectionTitle.includes('case study');
+                      const isInteractiveSection = sectionType === 'matching' || sectionType === 'simulation' || 
+                                                  sectionTitle.includes('interactive') || sectionTitle.includes('activity');
+                      
+                      if (isVideoSection) {
+                        return (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold flex items-center gap-2">
+                                <Video className="h-5 w-5 text-blue-600" />
+                                Video Tools
+                              </h3>
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={() => setShowVideoSearch(true)}
+                                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                                >
+                                  <Search className="h-4 w-4 mr-2" />
+                                  Find Videos
+                                </Button>
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={generateAIContentForSection}
+                                  disabled={isGeneratingAIContent}
+                                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                                >
+                                  <Sparkles className="h-4 w-4 mr-2" />
+                                  Discussion Questions
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-3">
+                              {!showVideoSearch ? (
+                                <div className="text-center py-6 text-gray-500">
+                                  <Video className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                                  <p className="text-sm font-medium">Video Section Tools</p>
+                                  <p className="text-xs mt-1">Search educational videos or generate discussion questions</p>
+                                </div>
+                              ) : (
+                                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                  <div className="space-y-4">
+                                    <div>
+                                      <Label className="text-sm font-medium text-blue-900">
+                                        Find educational videos
+                                      </Label>
+                                      <p className="text-xs text-blue-700 mt-1">
+                                        Search our curated library, YouTube, or add custom links
+                                      </p>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-3 gap-2">
+                                      <Button size="sm" variant="outline" className="border-blue-300 text-blue-700">
+                                        <BookOpen className="h-3 w-3 mr-1" />
+                                        Library
+                                      </Button>
+                                      <Button size="sm" variant="outline" className="border-red-300 text-red-700">
+                                        <Search className="h-3 w-3 mr-1" />
+                                        YouTube
+                                      </Button>
+                                      <Button size="sm" variant="outline" className="border-green-300 text-green-700">
+                                        <Link2 className="h-3 w-3 mr-1" />
+                                        Custom URL
+                                      </Button>
+                                    </div>
+                                    
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm"
+                                      onClick={() => setShowVideoSearch(false)}
+                                      className="w-full"
+                                    >
+                                      Cancel
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        );
+                      }
+                      
+                      if (isQuizSection) {
+                        return (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold flex items-center gap-2">
+                                <HelpCircle className="h-5 w-5 text-green-600" />
+                                Quiz Tools
+                              </h3>
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={startQuizBuilder}
+                                  className="border-green-300 text-green-700 hover:bg-green-50"
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Build Quiz
+                                </Button>
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={generateAIContentForSection}
+                                  disabled={isGeneratingAIContent}
+                                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                                >
+                                  <Sparkles className="h-4 w-4 mr-2" />
+                                  AI Questions
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <div className="text-center py-6 text-gray-500">
+                              <HelpCircle className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                              <p className="text-sm font-medium">Quiz Assessment Tools</p>
+                              <p className="text-xs mt-1">Build interactive quizzes or generate AI questions</p>
+                            </div>
+                          </>
+                        );
+                      }
+                      
+                      if (isScenarioSection) {
+                        return (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold flex items-center gap-2">
+                                <Users className="h-5 w-5 text-orange-600" />
+                                Scenario Tools
+                              </h3>
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={generateAIContentForSection}
+                                  disabled={isGeneratingAIContent}
+                                  className="border-orange-300 text-orange-700 hover:bg-orange-50"
+                                >
+                                  <Sparkles className="h-4 w-4 mr-2" />
+                                  Generate Scenarios
+                                </Button>
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={startQuizBuilder}
+                                  className="border-green-300 text-green-700 hover:bg-green-50"
+                                >
+                                  <MessageSquare className="h-4 w-4 mr-2" />
+                                  Discussion Points
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <div className="text-center py-6 text-gray-500">
+                              <Users className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                              <p className="text-sm font-medium">Scenario Building Tools</p>
+                              <p className="text-xs mt-1">Create realistic scenarios and case studies</p>
+                            </div>
+                          </>
+                        );
+                      }
+                      
+                      if (isInteractiveSection) {
+                        return (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold flex items-center gap-2">
+                                <Zap className="h-5 w-5 text-purple-600" />
+                                Interactive Tools
+                              </h3>
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={generateAIContentForSection}
+                                  disabled={isGeneratingAIContent}
+                                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                                >
+                                  <Sparkles className="h-4 w-4 mr-2" />
+                                  Activity Ideas
+                                </Button>
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={startQuizBuilder}
+                                  className="border-green-300 text-green-700 hover:bg-green-50"
+                                >
+                                  <Trophy className="h-4 w-4 mr-2" />
+                                  Gamify
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <div className="text-center py-6 text-gray-500">
+                              <Zap className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                              <p className="text-sm font-medium">Interactive Activity Tools</p>
+                              <p className="text-xs mt-1">Create engaging activities and games</p>
+                            </div>
+                          </>
+                        );
+                      }
+                      
+                      // Default text content tools
+                      return (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-semibold flex items-center gap-2">
+                              <FileText className="h-5 w-5 text-gray-600" />
+                              Content Tools
+                            </h3>
+                            <div className="flex gap-2">
+                              <Button 
+                                size="sm"
+                                variant="outline" 
+                                onClick={generateAIContentForSection}
+                                disabled={isGeneratingAIContent}
+                                className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                              >
+                                {isGeneratingAIContent ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    Generating...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Sparkles className="h-4 w-4 mr-2" />
+                                    Generate Content
+                                  </>
+                                )}
+                              </Button>
+                              <Button 
+                                size="sm"
+                                variant="outline" 
+                                onClick={startQuizBuilder}
+                                className="border-green-300 text-green-700 hover:bg-green-50"
+                              >
+                                <HelpCircle className="h-4 w-4 mr-2" />
+                                Add Quiz
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          {aiGeneratedBlocks.length > 0 && (
+                            <Button 
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                setAiGeneratedBlocks([]);
+                                setAiTopicInput('');
+                              }}
+                              className="text-gray-500 hover:text-gray-700 w-full"
+                            >
+                              Clear Generated Content
+                            </Button>
                           )}
-                        </Button>
-                        <Button 
-                          size="sm"
-                          variant="outline" 
-                          onClick={startQuizBuilder}
-                          className="border-green-300 text-green-700 hover:bg-green-50"
-                        >
-                          <HelpCircle className="h-4 w-4 mr-2" />
-                          Build Quiz
-                        </Button>
-                        {aiGeneratedBlocks.length > 0 && (
-                          <Button 
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => {
-                              setAiGeneratedBlocks([]);
-                              setAiTopicInput('');
-                            }}
-                            className="text-gray-500 hover:text-gray-700"
-                          >
-                            Clear All
-                          </Button>
-                        )}
-                      </div>
-                    </div>
+                        </>
+                      );
+                    })()}
                     
                     {/* Topic Input Dialog */}
                     {showTopicInput && (
