@@ -757,6 +757,129 @@ export default function ComprehensiveModuleCreator() {
     preview: string;
   }>>([]);
 
+  // Interactive Quiz Builder State
+  const [isQuizBuilder, setIsQuizBuilder] = useState(false);
+  const [currentQuizQuestion, setCurrentQuizQuestion] = useState({
+    question: '',
+    answers: ['', '', '', ''],
+    correctAnswer: 0,
+    explanation: ''
+  });
+  const [builtQuizQuestions, setBuiltQuizQuestions] = useState<Array<{
+    question: string;
+    answers: string[];
+    correctAnswer: number;
+    explanation: string;
+  }>>([]);
+  const [isGeneratingQuizQuestion, setIsGeneratingQuizQuestion] = useState(false);
+
+  // Interactive Quiz Builder Functions
+  const startQuizBuilder = () => {
+    setIsQuizBuilder(true);
+    setCurrentQuizQuestion({
+      question: '',
+      answers: ['', '', '', ''],
+      correctAnswer: 0,
+      explanation: ''
+    });
+    setBuiltQuizQuestions([]);
+  };
+
+  const generateSingleQuizQuestion = async () => {
+    const currentSection = newModule.sections[currentSectionIndex];
+    if (!currentSection) return;
+
+    setIsGeneratingQuizQuestion(true);
+    
+    try {
+      const response = await apiRequest('POST', '/api/ai/generate-single-quiz-question', {
+        moduleTitle: newModule.title,
+        moduleDescription: newModule.description,
+        sectionTitle: currentSection.title,
+        category: newModule.category,
+        existingQuestions: builtQuizQuestions.map(q => q.question)
+      });
+
+      if (response.question) {
+        setCurrentQuizQuestion({
+          question: response.question.question || response.question,
+          answers: response.question.answers || ['', '', '', ''],
+          correctAnswer: response.question.correctAnswer || 0,
+          explanation: response.question.explanation || ''
+        });
+      }
+    } catch (error) {
+      console.error('Error generating quiz question:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Unable to generate quiz question. Please create manually.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingQuizQuestion(false);
+    }
+  };
+
+  const addQuestionToQuiz = () => {
+    if (!currentQuizQuestion.question.trim() || 
+        currentQuizQuestion.answers.filter(a => a.trim()).length < 2) {
+      toast({
+        title: "Incomplete Question",
+        description: "Please add a question and at least 2 answers.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setBuiltQuizQuestions(prev => [...prev, { ...currentQuizQuestion }]);
+    setCurrentQuizQuestion({
+      question: '',
+      answers: ['', '', '', ''],
+      correctAnswer: 0,
+      explanation: ''
+    });
+
+    toast({
+      title: "Question Added",
+      description: `Quiz now has ${builtQuizQuestions.length + 1} questions`,
+    });
+  };
+
+  const finishQuizAndSave = () => {
+    if (builtQuizQuestions.length === 0) {
+      toast({
+        title: "No Questions",
+        description: "Please add at least one question to the quiz.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const updatedSections = [...newModule.sections];
+    updatedSections[currentSectionIndex] = {
+      ...updatedSections[currentSectionIndex],
+      type: 'quiz',
+      questions: builtQuizQuestions,
+      content: `Interactive Quiz: ${updatedSections[currentSectionIndex].title}`
+    };
+    setNewModule(prev => ({ ...prev, sections: updatedSections }));
+    
+    setIsQuizBuilder(false);
+    setBuiltQuizQuestions([]);
+    
+    toast({
+      title: "Quiz Created Successfully",
+      description: `Created interactive quiz with ${builtQuizQuestions.length} questions`,
+    });
+    
+    // Auto-advance to next section
+    nextSection();
+  };
+
+  const removeQuestionFromQuiz = (index: number) => {
+    setBuiltQuizQuestions(prev => prev.filter((_, i) => i !== index));
+  };
+
   const generateAIContentForSection = async () => {
     const currentSection = newModule.sections[currentSectionIndex];
     if (!currentSection) return;
@@ -2548,8 +2671,189 @@ Create a natural conversation between two podcast hosts discussing this specific
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Interactive Quiz Builder */}
+                {isQuizBuilder && (
+                  <Card className="border-green-200 bg-green-50">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-green-800">
+                        <HelpCircle className="h-5 w-5" />
+                        Interactive Quiz Builder
+                      </CardTitle>
+                      <CardDescription className="text-green-700">
+                        Build your quiz one question at a time. Add as many questions as you need.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {/* Quiz Progress */}
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-green-200">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-semibold">
+                            {builtQuizQuestions.length}
+                          </div>
+                          <span className="text-sm font-medium">Questions Built</span>
+                        </div>
+                        {builtQuizQuestions.length > 0 && (
+                          <Button
+                            size="sm"
+                            onClick={finishQuizAndSave}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            Quiz Finished - Save & Move On
+                          </Button>
+                        )}
+                      </div>
+
+                      {/* Current Question Builder */}
+                      <div className="space-y-4 p-4 bg-white rounded-lg border border-green-200">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold">Question {builtQuizQuestions.length + 1}</h4>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={generateSingleQuizQuestion}
+                              disabled={isGeneratingQuizQuestion}
+                              className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                            >
+                              {isGeneratingQuizQuestion ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Generating...
+                                </>
+                              ) : (
+                                <>
+                                  <Sparkles className="h-4 w-4 mr-2" />
+                                  AI Generate
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Question Input */}
+                        <div>
+                          <Label className="text-sm font-medium">Question</Label>
+                          <Textarea
+                            value={currentQuizQuestion.question}
+                            onChange={(e) => setCurrentQuizQuestion(prev => ({ ...prev, question: e.target.value }))}
+                            placeholder="Enter your quiz question..."
+                            className="mt-1"
+                            rows={2}
+                          />
+                        </div>
+
+                        {/* Answer Options */}
+                        <div className="grid grid-cols-2 gap-3">
+                          {currentQuizQuestion.answers.map((answer, index) => (
+                            <div key={index}>
+                              <Label className="text-sm font-medium flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  name="correctAnswer"
+                                  checked={currentQuizQuestion.correctAnswer === index}
+                                  onChange={() => setCurrentQuizQuestion(prev => ({ ...prev, correctAnswer: index }))}
+                                  className="text-green-600"
+                                />
+                                Answer {String.fromCharCode(65 + index)} {currentQuizQuestion.correctAnswer === index && "(Correct)"}
+                              </Label>
+                              <Input
+                                value={answer}
+                                onChange={(e) => {
+                                  const newAnswers = [...currentQuizQuestion.answers];
+                                  newAnswers[index] = e.target.value;
+                                  setCurrentQuizQuestion(prev => ({ ...prev, answers: newAnswers }));
+                                }}
+                                placeholder={`Answer option ${String.fromCharCode(65 + index)}`}
+                                className="mt-1"
+                              />
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Explanation */}
+                        <div>
+                          <Label className="text-sm font-medium">Explanation (Optional)</Label>
+                          <Input
+                            value={currentQuizQuestion.explanation}
+                            onChange={(e) => setCurrentQuizQuestion(prev => ({ ...prev, explanation: e.target.value }))}
+                            placeholder="Explain why this answer is correct..."
+                            className="mt-1"
+                          />
+                        </div>
+
+                        {/* Add Question Button */}
+                        <Button
+                          onClick={addQuestionToQuiz}
+                          className="w-full bg-green-600 hover:bg-green-700"
+                          disabled={!currentQuizQuestion.question.trim() || currentQuizQuestion.answers.filter(a => a.trim()).length < 2}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Question to Quiz
+                        </Button>
+                      </div>
+
+                      {/* Built Questions List */}
+                      {builtQuizQuestions.length > 0 && (
+                        <div className="space-y-3">
+                          <h4 className="font-semibold">Quiz Questions ({builtQuizQuestions.length})</h4>
+                          {builtQuizQuestions.map((question, index) => (
+                            <div key={index} className="p-3 bg-white rounded-lg border border-green-200">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="font-medium text-sm">Q{index + 1}: {question.question}</div>
+                                  <div className="text-xs text-gray-600 mt-1">
+                                    Correct: {String.fromCharCode(65 + question.correctAnswer)}) {question.answers[question.correctAnswer]}
+                                  </div>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => removeQuestionFromQuiz(index)}
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Exit Quiz Builder */}
+                      <div className="flex justify-between pt-4 border-t border-green-200">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setIsQuizBuilder(false);
+                            setCurrentQuizQuestion({
+                              question: '',
+                              answers: ['', '', '', ''],
+                              correctAnswer: 0,
+                              explanation: ''
+                            });
+                            setBuiltQuizQuestions([]);
+                          }}
+                        >
+                          Cancel Quiz Builder
+                        </Button>
+                        
+                        {builtQuizQuestions.length > 0 && (
+                          <Button
+                            onClick={finishQuizAndSave}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            Finish Quiz & Continue
+                            <ArrowRight className="h-4 w-4 ml-2" />
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Drag and Drop Content Area */}
-                <div className="grid grid-cols-2 gap-6">
+                {!isQuizBuilder && (
+                  <div className="grid grid-cols-2 gap-6">
                   {/* AI Content Suggestions */}
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
@@ -2573,6 +2877,15 @@ Create a natural conversation between two podcast hosts discussing this specific
                               {aiGeneratedBlocks.length > 0 ? 'Generate More Ideas' : 'Generate Ideas'}
                             </>
                           )}
+                        </Button>
+                        <Button 
+                          size="sm"
+                          variant="outline" 
+                          onClick={startQuizBuilder}
+                          className="border-green-300 text-green-700 hover:bg-green-50"
+                        >
+                          <HelpCircle className="h-4 w-4 mr-2" />
+                          Build Quiz
                         </Button>
                         {aiGeneratedBlocks.length > 0 && (
                           <Button 
@@ -2758,7 +3071,8 @@ Create a natural conversation between two podcast hosts discussing this specific
                       />
                     </div>
                   </div>
-                </div>
+                  </div>
+                )}
 
                 {/* Section Actions */}
                 <div className="flex justify-between items-center pt-4 border-t">
