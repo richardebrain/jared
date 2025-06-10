@@ -181,7 +181,7 @@ export function ModernModuleViewer({ moduleId, onComplete }: ModernModuleViewerP
   const { toast } = useToast();
 
   // Get module data with enhanced handling
-  const { data: module, isLoading: isModuleLoading } = useQuery<LearningModuleType>({
+  const { data: module, isLoading: isModuleLoading } = useQuery<any>({
     queryKey: ['/api/modules', moduleId],
     queryFn: async () => {
       if (!moduleId) {
@@ -414,13 +414,25 @@ Start with one transition type and gradually expand your repertoire as children 
   const moduleSections: ModuleSection[] = (() => {
     if (!module?.content) return [];
     try {
-      const parsed = JSON.parse(module.content);
+      // First, try to parse the JSON content
+      let parsed;
+      try {
+        parsed = JSON.parse(module.content);
+      } catch (parseError) {
+        console.error('Initial JSON parse failed:', parseError);
+        // Try to handle escaped JSON
+        const unescapedContent = module.content.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+        parsed = JSON.parse(unescapedContent);
+      }
       
       // Handle different content structures
       let sections = [];
       if (Array.isArray(parsed)) {
         sections = parsed;
       } else if (parsed.sections && Array.isArray(parsed.sections)) {
+        sections = parsed.sections;
+      } else if (parsed.moduleType && parsed.sections) {
+        // Handle wrapped module structure
         sections = parsed.sections;
       } else if (typeof parsed === 'string') {
         // Handle string content by creating text sections
@@ -435,7 +447,9 @@ Start with one transition type and gradually expand your repertoire as children 
         }));
       }
       
-      return sections.map((section, index) => ({
+      console.log('Parsed sections:', sections);
+      
+      return sections.map((section: any, index: number) => ({
         ...section,
         id: section.id || `section-${index}`,
         type: section.type || 'text',
@@ -446,7 +460,7 @@ Start with one transition type and gradually expand your repertoire as children 
         questions: section.questions || (section.type === 'quiz' ? [] : undefined)
       }));
     } catch (error) {
-      console.error('Error parsing module content:', error);
+      console.error('Error parsing module content:', error, 'Raw content:', module?.content);
       // Fallback: create a single text section from the raw content
       return [{
         id: 'section-0',
