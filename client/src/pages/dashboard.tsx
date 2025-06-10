@@ -68,9 +68,15 @@ export default function Dashboard() {
   });
   
   // Fetch modules
-  const { data: modules } = useQuery({
+  const { data: modules, refetch: refetchModules } = useQuery({
     queryKey: ["/api/modules"],
+    staleTime: 0,
+    cacheTime: 0,
   });
+  
+  // Debug logging to see what modules are returned
+  console.log('Dashboard modules:', modules?.length || 0, 'modules loaded');
+  console.log('Recent modules for display:', modules?.filter(module => module.isVisible).slice(0, 6));
   
   // Fetch assessments
   const { data: assessments } = useQuery({

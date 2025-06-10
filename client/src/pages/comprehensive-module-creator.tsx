@@ -2725,9 +2725,10 @@ Create a natural conversation between two podcast hosts discussing this specific
         description: "Your module is now available in your dashboard and to the community",
       });
 
-      // Force refresh the module list
+      // Force refresh the module list with multiple strategies
       await queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
-
+      await queryClient.refetchQueries({ queryKey: ['/api/modules'] });
+      
       // Navigate back to dashboard
       navigate('/dashboard');
       
