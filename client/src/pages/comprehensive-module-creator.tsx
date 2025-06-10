@@ -119,6 +119,101 @@ export default function ComprehensiveModuleCreator() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
+  // Universal quiz conversion function - applies to all module creation tools
+  const convertContentToQuiz = (content: string, sectionTitle: string) => {
+    if (!content || typeof content !== 'string') return null;
+    
+    try {
+      const lines = content.split('\n').filter(line => line.trim());
+      const questions = [];
+      
+      let currentQuestion = null;
+      for (const line of lines) {
+        // Detect question lines
+        if (line.match(/^\d+\./) || 
+            line.toLowerCase().includes('question') || 
+            line.match(/^q\d+/i) ||
+            line.endsWith('?')) {
+          if (currentQuestion) questions.push(currentQuestion);
+          currentQuestion = {
+            question: line.replace(/^\d+\.?\s*/, '')
+                         .replace(/question:\s*/i, '')
+                         .replace(/^q\d+[:.]\s*/i, ''),
+            answers: [],
+            correctAnswer: 0,
+            explanation: ''
+          };
+        } 
+        // Detect answer options
+        else if (line.match(/^[a-d]\)/i) && currentQuestion) {
+          currentQuestion.answers.push(line.replace(/^[a-d]\)\s*/i, ''));
+        }
+        // Alternative answer format: A. B. C. D.
+        else if (line.match(/^[A-D]\./i) && currentQuestion) {
+          currentQuestion.answers.push(line.replace(/^[A-D]\.\s*/i, ''));
+        }
+        // Numbered answers: 1. 2. 3. 4.
+        else if (line.match(/^\d+\.\s/) && currentQuestion && currentQuestion.answers.length < 4) {
+          currentQuestion.answers.push(line.replace(/^\d+\.\s*/, ''));
+        }
+        // Detect correct answer
+        else if ((line.toLowerCase().includes('answer:') || 
+                  line.toLowerCase().includes('correct:')) && currentQuestion) {
+          const answerText = line.replace(/answer:\s*/i, '').replace(/correct:\s*/i, '');
+          // Find which answer option matches
+          const matchIndex = currentQuestion.answers.findIndex(ans => 
+            ans.toLowerCase().includes(answerText.toLowerCase()) || 
+            answerText.toLowerCase().includes(ans.toLowerCase())
+          );
+          if (matchIndex !== -1) currentQuestion.correctAnswer = matchIndex;
+          
+          // Handle letter-based answers (a, b, c, d)
+          const letterMatch = answerText.match(/^[a-d]/i);
+          if (letterMatch) {
+            const letterIndex = letterMatch[0].toLowerCase().charCodeAt(0) - 'a'.charCodeAt(0);
+            if (letterIndex >= 0 && letterIndex < currentQuestion.answers.length) {
+              currentQuestion.correctAnswer = letterIndex;
+            }
+          }
+        }
+        // Detect explanation
+        else if (line.toLowerCase().includes('explanation:') && currentQuestion) {
+          currentQuestion.explanation = line.replace(/explanation:\s*/i, '');
+        }
+        // If we have a question but no specific markers, treat as part of question text
+        else if (currentQuestion && !currentQuestion.answers.length && !line.toLowerCase().includes('answer')) {
+          currentQuestion.question += ' ' + line;
+        }
+      }
+      
+      // Add the last question
+      if (currentQuestion && currentQuestion.question.trim()) {
+        questions.push(currentQuestion);
+      }
+      
+      // Validate questions have minimum required data
+      const validQuestions = questions.filter(q => 
+        q.question.trim() && 
+        q.answers.length >= 2 && 
+        q.correctAnswer >= 0 && 
+        q.correctAnswer < q.answers.length
+      );
+      
+      if (validQuestions.length > 0) {
+        return {
+          type: 'quiz',
+          questions: validQuestions,
+          content: `Interactive Quiz: ${sectionTitle}`,
+          title: sectionTitle
+        };
+      }
+    } catch (error) {
+      console.error('Error parsing quiz content:', error);
+    }
+    
+    return null;
+  };
+  
   // Voice feature helper functions for workshop
   const generateQuickVoice = async (text: string, language: string) => {
     try {
@@ -609,65 +704,30 @@ export default function ComprehensiveModuleCreator() {
     // Process current section before moving to next
     const currentSection = newModule.sections[currentSectionIndex];
     
-    // If current section is meant to be a quiz (like pre-check questions), convert content to quiz format
+    // Apply universal quiz conversion to any section that might contain quiz content
     if (currentSection && (
       currentSection.title.toLowerCase().includes('pre-check') || 
       currentSection.title.toLowerCase().includes('quiz') ||
-      currentSection.title.toLowerCase().includes('question')
+      currentSection.title.toLowerCase().includes('question') ||
+      currentSection.type === 'quiz' ||
+      (currentSection.content && typeof currentSection.content === 'string' && 
+       (currentSection.content.includes('a)') || currentSection.content.includes('1.') ||
+        currentSection.content.toLowerCase().includes('question')))
     )) {
-      try {
-        // Check if content looks like quiz questions but isn't properly formatted
-        const content = currentSection.content;
-        if (content && typeof content === 'string' && !currentSection.type === 'quiz') {
-          // Parse AI-generated questions and convert to quiz format
-          const lines = content.split('\n').filter(line => line.trim());
-          const questions = [];
-          
-          let currentQuestion = null;
-          for (const line of lines) {
-            if (line.match(/^\d+\./) || line.toLowerCase().includes('question')) {
-              if (currentQuestion) questions.push(currentQuestion);
-              currentQuestion = {
-                question: line.replace(/^\d+\.?\s*/, '').replace(/question:\s*/i, ''),
-                answers: [],
-                correctAnswer: 0,
-                explanation: ''
-              };
-            } else if (line.match(/^[a-d]\)/i) && currentQuestion) {
-              currentQuestion.answers.push(line.replace(/^[a-d]\)\s*/i, ''));
-            } else if (line.toLowerCase().includes('answer:') && currentQuestion) {
-              const answerText = line.replace(/answer:\s*/i, '');
-              // Find which answer option matches
-              const matchIndex = currentQuestion.answers.findIndex(ans => 
-                ans.toLowerCase().includes(answerText.toLowerCase()) || 
-                answerText.toLowerCase().includes(ans.toLowerCase())
-              );
-              if (matchIndex !== -1) currentQuestion.correctAnswer = matchIndex;
-            } else if (line.toLowerCase().includes('explanation:') && currentQuestion) {
-              currentQuestion.explanation = line.replace(/explanation:\s*/i, '');
-            }
-          }
-          if (currentQuestion) questions.push(currentQuestion);
-          
-          // Update section to be a proper quiz
-          if (questions.length > 0) {
-            const updatedSections = [...newModule.sections];
-            updatedSections[currentSectionIndex] = {
-              ...currentSection,
-              type: 'quiz',
-              questions: questions,
-              content: `Quiz: ${currentSection.title}`
-            };
-            setNewModule(prev => ({ ...prev, sections: updatedSections }));
-            
-            toast({
-              title: "Quiz Created",
-              description: `Converted content to interactive quiz with ${questions.length} questions`,
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Error processing quiz content:', error);
+      const quizData = convertContentToQuiz(currentSection.content as string, currentSection.title);
+      
+      if (quizData) {
+        const updatedSections = [...newModule.sections];
+        updatedSections[currentSectionIndex] = {
+          ...currentSection,
+          ...quizData
+        };
+        setNewModule(prev => ({ ...prev, sections: updatedSections }));
+        
+        toast({
+          title: "Quiz Created",
+          description: `Converted content to interactive quiz with ${quizData.questions.length} questions`,
+        });
       }
     }
     
@@ -1069,11 +1129,30 @@ export default function ComprehensiveModuleCreator() {
       });
 
       if (response.questions) {
-        updateSection(sectionIndex, 'content', JSON.stringify(response.questions, null, 2));
-        toast({
-          title: "Quiz Generated!",
-          description: "AI has created quiz questions for your section.",
-        });
+        // Convert AI response to proper quiz format using universal function
+        const quizData = convertContentToQuiz(response.questions, newModule.sections[sectionIndex].title);
+        
+        if (quizData) {
+          // Update section with proper quiz structure
+          const updatedSections = [...newModule.sections];
+          updatedSections[sectionIndex] = {
+            ...updatedSections[sectionIndex],
+            ...quizData
+          };
+          setNewModule(prev => ({ ...prev, sections: updatedSections }));
+          
+          toast({
+            title: "Interactive Quiz Generated!",
+            description: `Created ${quizData.questions.length} interactive quiz questions`,
+          });
+        } else {
+          // Fallback to raw content if parsing fails
+          updateSection(sectionIndex, 'content', response.questions);
+          toast({
+            title: "Quiz Content Generated",
+            description: "AI has created quiz questions. Use 'Save & Next Section' to convert to interactive format.",
+          });
+        }
       }
     } catch (error) {
       console.error('Error generating quiz:', error);
