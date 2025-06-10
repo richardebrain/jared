@@ -53,6 +53,7 @@ import emailRoutes from "./api/emailRoutes";
 import adminRoutes from "./routes/admin";
 import { AIBearyService } from "./services/aiBearyService";
 import aiModuleDesignerRoutes from "./api/aiModuleDesignerRoutes";
+import personalizedStoriesRoutes from "./api/personalizedStoriesRoutes";
 
 
 // For ESM __dirname equivalent
@@ -5073,6 +5074,9 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
 
   // Register voice routes for AI narration
   app.use("/api/voice", voiceRoutes);
+
+  // Register personalized stories routes
+  app.use("/api/personalized-stories", personalizedStoriesRoutes);
 
   return app;
 }

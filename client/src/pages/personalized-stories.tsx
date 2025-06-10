@@ -27,64 +27,76 @@ import {
 
 const STORY_TOPICS = [
   {
+    id: 'hero-journey-brave',
+    title: 'The Little Hero\'s Big Adventure',
+    description: 'A hero\'s journey of courage and self-discovery',
+    prompt: 'going on a magical hero\'s journey where they discover they are braver than they thought. Starting as a shy little one, they help a lost puppy, comfort a sad friend, and realize their kindness makes them a true hero. Include a moment where they use mindful breathing to stay calm during the adventure.'
+  },
+  {
+    id: 'mindful-morning-magic',
+    title: 'Mindful Morning Magic',
+    description: 'Using mindful breathing to start the day perfectly',
+    prompt: 'discovering the secret of Mindful Morning Magic - taking three deep belly breaths like a sleepy bear waking up, stretching like a happy cat, and setting an intention for a wonderful day. The story shows how this morning routine helps them feel calm, happy, and ready for any adventure.'
+  },
+  {
     id: 'spiderman-walking-feet',
-    title: 'Spider-Man Uses Walking Feet',
-    description: 'Spider-Man shows how to use walking feet inside',
-    prompt: 'learning from Spider-Man how to use walking feet inside the classroom, just like how Spider-Man is careful when he walks on walls. Spider-Man teaches that walking feet keep everyone safe indoors.'
+    title: 'Spider-Man\'s Walking Feet Adventure',
+    description: 'Spider-Man teaches gentle movement indoors',
+    prompt: 'joining Spider-Man on a special mission where he shows how walking feet are his secret power indoors. Spider-Man explains that just like he\'s careful swinging between buildings, walking feet help keep everyone safe and happy in the classroom.'
   },
   {
-    id: 'unicorn-feelings',
-    title: 'When Unicorns Get Upset',
-    description: 'A magical unicorn learns about big feelings',
-    prompt: 'meeting a beautiful unicorn who sometimes gets upset and mad, just like everyone does. The unicorn learns to take deep breaths and use calming strategies when feeling big emotions.'
+    id: 'unicorn-feelings-rainbow',
+    title: 'The Unicorn\'s Feeling Rainbow',
+    description: 'A magical unicorn learns about emotions',
+    prompt: 'meeting Luna the Unicorn who discovers that feelings are like rainbow colors - red for mad, blue for sad, yellow for happy. When Luna feels big emotions, she uses her special unicorn breathing (in through the nose like smelling flowers, out through the mouth like blowing bubbles) to help her rainbow feelings settle.'
   },
   {
-    id: 'teeth-not-biting',
-    title: 'Dinosaur Teeth Are For Eating',
-    description: 'A friendly dinosaur shows proper teeth use',
-    prompt: 'learning from a gentle dinosaur that teeth are for eating yummy plants and food, not for biting friends. The dinosaur loves crunching on leaves and berries with happy chomping sounds.'
+    id: 'little-gardener-hero',
+    title: 'The Little Gardener Hero',
+    description: 'A hero\'s journey of growing and nurturing',
+    prompt: 'becoming a Little Gardener Hero who discovers that just like plants need gentle care, friends need gentle hands and kind words. The journey shows them planting seeds of kindness, watering them with patience, and watching friendship flowers bloom.'
   },
   {
-    id: 'princess-gentle-hands',
-    title: 'Princess Gentle Hands',
-    description: 'A kind princess uses gentle hands',
-    prompt: 'meeting a beautiful princess who has the most gentle hands that pet unicorns softly, help friends up when they fall, and give the warmest hugs to everyone in the kingdom.'
+    id: 'dragon-deep-breaths',
+    title: 'The Friendly Dragon\'s Deep Breaths',
+    description: 'A dragon learns mindful breathing for big feelings',
+    prompt: 'meeting Ember the Friendly Dragon who used to breathe fire when upset, but learned to take deep, slow breaths instead. Ember teaches the mindful breathing technique: breathe in peace like a gentle breeze, breathe out worry like blowing away dandelion seeds.'
   },
   {
-    id: 'superhero-sharing',
-    title: 'Superhero Sharing Powers',
-    description: 'Superheroes share to save the day',
-    prompt: 'discovering that the best superheroes have sharing powers - they share their toys, snacks, and kindness to make everyone happy and save the day with friendship.'
+    id: 'space-explorer-sharing',
+    title: 'Space Explorer\'s Sharing Mission',
+    description: 'An astronaut hero discovers the power of sharing',
+    prompt: 'blasting off as a Space Explorer on a mission to Planet Friendship, where they discover that sharing their space snacks, tools, and kindness with alien friends makes the whole galaxy happier. The hero learns that sharing multiplies joy like stars in the sky.'
   },
   {
-    id: 'robot-cleanup',
-    title: 'Robot Cleanup Helper',
-    description: 'A helpful robot makes cleanup fun',
-    prompt: 'meeting a friendly robot who makes cleanup time super fun by beeping happily while putting toys away in their special homes. The robot shows that cleanup is like a fun game.'
+    id: 'mermaid-listening-waves',
+    title: 'The Mermaid\'s Listening Waves',
+    description: 'A mermaid teaches the art of listening',
+    prompt: 'diving deep with Marina the Mermaid who has the most amazing listening powers. She can hear the ocean\'s whispers, dolphins singing, and friends\' feelings. Marina teaches how listening ears work like ocean waves - quiet, patient, and full of understanding.'
   },
   {
-    id: 'elephant-listening-ears',
-    title: 'Elephant\'s Big Listening Ears',
-    description: 'An elephant uses big ears for listening',
-    prompt: 'learning from a wise elephant with huge ears who shows how to listen carefully to teachers, friends, and all the wonderful sounds around like birds singing and friends laughing.'
+    id: 'puppy-potty-adventure',
+    title: 'Puppy\'s Big Kid Potty Adventure',
+    description: 'A brave puppy\'s potty training journey',
+    prompt: 'following Max the Puppy on his hero\'s journey to become a Big Kid Potty Champion. Max feels scared at first, but with encouragement and practice, he discovers he\'s braver than he knew. The story celebrates every small step and big achievements.'
   },
   {
-    id: 'bunny-potty-champion',
-    title: 'Bunny Potty Champion',
-    description: 'A brave bunny learns potty skills',
-    prompt: 'following a little bunny who becomes a potty champion and feels so proud and grown-up. The bunny hops with joy after using the potty like a big kid.'
+    id: 'fairy-cleanup-magic',
+    title: 'The Cleanup Fairy\'s Magic',
+    description: 'A fairy makes tidying up magical',
+    prompt: 'meeting Sparkle the Cleanup Fairy who shows that putting toys away is like casting magic spells. Each toy finds its special home, and when everything is tidy, the room sparkles with happiness. The fairy teaches that being a cleanup helper makes the whole world more beautiful.'
   },
   {
-    id: 'teddy-bear-bedtime',
-    title: 'Teddy Bear\'s Sleepy Time',
-    description: 'A cuddly teddy bear\'s bedtime routine',
-    prompt: 'joining a soft teddy bear for a magical bedtime routine with brushing teeth, putting on cozy pajamas, and snuggling up for sweet dreams with favorite stuffed animal friends.'
+    id: 'sleepy-owl-bedtime',
+    title: 'Wise Owl\'s Sleepy Time Wisdom',
+    description: 'An owl guides peaceful bedtime routines',
+    prompt: 'learning bedtime wisdom from Oliver the Wise Owl, who teaches the secret of peaceful sleep. Oliver shows the bedtime breathing technique: breathe in like smelling lavender flowers, breathe out like a gentle nighttime breeze. The routine includes gratitude for the day\'s adventures.'
   },
   {
-    id: 'monkey-food-explorer',
-    title: 'Brave Monkey Food Explorer',
-    description: 'A curious monkey tries new foods',
-    prompt: 'going on a food adventure with a brave monkey who tries new fruits, vegetables, and healthy foods like a food explorer discovering delicious treasures in the jungle.'
+    id: 'butterfly-transformation',
+    title: 'The Butterfly\'s Beautiful Change',
+    description: 'A caterpillar\'s hero journey of growth',
+    prompt: 'following Bella the Caterpillar on her amazing transformation journey. Just like how Bella grows into a beautiful butterfly, the story shows how trying new foods, learning new skills, and being brave helps them grow into their most wonderful self. The journey includes mindful moments of patience and self-love.'
   }
 ];
 
@@ -190,11 +202,10 @@ export default function PersonalizedStories() {
     setIsGeneratingAudio(true);
     
     try {
-      const response = await apiRequest('POST', '/api/voice/generate-dramatic-story', {
-        text: generatedStory,
+      const response = await apiRequest('POST', '/api/personalized-stories/generate-audio', {
+        story: generatedStory,
         voice: selectedVoice,
         language: selectedLanguage,
-        style: 'dramatic_storytelling',
         childName: childName
       });
 
