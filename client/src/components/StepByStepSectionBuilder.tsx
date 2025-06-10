@@ -103,7 +103,7 @@ export default function StepByStepSectionBuilder({
         })
       };
 
-      const response = await fetch('/api/ai-suggestions/content-blocks', {
+      const response = await fetch('/api/ai/generate-content-blocks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

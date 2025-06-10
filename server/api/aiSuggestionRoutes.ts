@@ -883,7 +883,7 @@ FORMAT: Return a JSON object with "blocks" array. Each block should have:
 
     } else if (isReflectionSection) {
       prompt = `
-You are creating a comprehensive reflection and action planning section for the "${topic}" training module.
+You are creating a comprehensive reflection and action planning section for the "${topic}" training module.${guidanceText}
 
 Create a review of ALL previous sections with implementation planning:
 
@@ -914,7 +914,7 @@ FORMAT: Return a JSON object with "blocks" array. Each block should have:
     } else {
       // Default generic content generation
       prompt = `
-You are an expert early childhood education instructor creating educational content for "${topic}".
+You are an expert early childhood education instructor creating educational content for "${topic}".${guidanceText}
 
 Generate 3-5 educational content blocks that help teachers understand and implement concepts related to "${topic}".
 

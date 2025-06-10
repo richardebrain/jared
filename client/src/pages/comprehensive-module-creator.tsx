@@ -1173,7 +1173,9 @@ export default function ComprehensiveModuleCreator() {
         sectionTitle: currentSection.title,
         moduleTitle: primaryTopic || 'Professional Development Module',
         sectionType: currentSection.type,
-        learningObjective: learningObjective
+        learningObjective: learningObjective,
+        isRegeneration: false,
+        regenerationGuidance: ''
       });
 
       if (response.blocks && response.blocks.length > 0) {
