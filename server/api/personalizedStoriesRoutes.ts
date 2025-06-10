@@ -40,7 +40,9 @@ ${language !== 'en' ? `Write the story in ${language} language, keeping the same
 
 Make this story special for ${childName}!`;
 
-    const story = await OpenAIService.generateContent(prompt);
+    const openaiService = OpenAIService.getInstance();
+    const result = await openaiService.generateContent({ prompt });
+    const story = result.content;
     
     // Clean up the story formatting
     const cleanedStory = story
@@ -82,23 +84,42 @@ The End!
 What a wonderful story about ${childName}!`;
 
     // Use the existing voice service for story narration
-    const { generateAdvancedSpeech } = await import('../services/voiceService');
+    const { VoiceService } = await import('../services/voiceService');
+    const voiceService = new VoiceService();
     
-    const audioResult = await generateAdvancedSpeech(
+    const audioBuffer = await voiceService.generateSpeech(
       enhancedText,
-      language || 'en',
+      'child-friendly',
       {
-        voice: voice || 'rachel',
-        style: 'storytelling',
-        emotion: 'happy',
-        pace: 'slow',
-        emphasis: 'high'
+        stability: 0.8,
+        similarityBoost: 0.9,
+        style: 0.2,
+        useSpeakerBoost: true
       }
     );
 
+    if (!audioBuffer) {
+      throw new Error('Failed to generate audio');
+    }
+
+    // Save audio to temporary file and return URL
+    const fs = await import('fs');
+    const path = await import('path');
+    const audioFilename = `story-${Date.now()}.mp3`;
+    const audioPath = path.join(process.cwd(), 'uploads', audioFilename);
+    
+    // Ensure uploads directory exists
+    const uploadsDir = path.join(process.cwd(), 'uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+    
+    fs.writeFileSync(audioPath, audioBuffer);
+    const audioUrl = `/uploads/${audioFilename}`;
+
     res.json({ 
-      audioUrl: audioResult.audioUrl,
-      duration: audioResult.duration || 0
+      audioUrl: audioUrl,
+      duration: 0
     });
   } catch (error) {
     console.error('Error generating story audio:', error);

@@ -27,64 +27,64 @@ import {
 
 const STORY_TOPICS = [
   {
+    id: 'spiderman-walking-feet',
+    title: 'Spider-Man Uses Walking Feet',
+    description: 'Spider-Man shows how to use walking feet inside',
+    prompt: 'learning from Spider-Man how to use walking feet inside the classroom, just like how Spider-Man is careful when he walks on walls. Spider-Man teaches that walking feet keep everyone safe indoors.'
+  },
+  {
+    id: 'unicorn-feelings',
+    title: 'When Unicorns Get Upset',
+    description: 'A magical unicorn learns about big feelings',
+    prompt: 'meeting a beautiful unicorn who sometimes gets upset and mad, just like everyone does. The unicorn learns to take deep breaths and use calming strategies when feeling big emotions.'
+  },
+  {
     id: 'teeth-not-biting',
-    title: 'Teeth Are Not For Biting',
-    description: 'A gentle story about using teeth for eating yummy food',
-    prompt: 'using teeth for eating delicious snacks and meals, not for biting friends. Make it fun with silly food sounds and happy eating.'
+    title: 'Dinosaur Teeth Are For Eating',
+    description: 'A friendly dinosaur shows proper teeth use',
+    prompt: 'learning from a gentle dinosaur that teeth are for eating yummy plants and food, not for biting friends. The dinosaur loves crunching on leaves and berries with happy chomping sounds.'
   },
   {
-    id: 'walking-feet',
-    title: 'Walking Feet Adventures',
-    description: 'Fun story about slow walking feet inside',
-    prompt: 'using walking feet inside like a quiet mouse, and running feet outside like a happy puppy. Include fun animal movements.'
+    id: 'princess-gentle-hands',
+    title: 'Princess Gentle Hands',
+    description: 'A kind princess uses gentle hands',
+    prompt: 'meeting a beautiful princess who has the most gentle hands that pet unicorns softly, help friends up when they fall, and give the warmest hugs to everyone in the kingdom.'
   },
   {
-    id: 'gentle-hands',
-    title: 'Magic Gentle Hands',
-    description: 'Sweet story about hands that help and hug',
-    prompt: 'having magic gentle hands that give the best hugs, pet soft animals, and help friends. Make the hands feel special and magical.'
+    id: 'superhero-sharing',
+    title: 'Superhero Sharing Powers',
+    description: 'Superheroes share to save the day',
+    prompt: 'discovering that the best superheroes have sharing powers - they share their toys, snacks, and kindness to make everyone happy and save the day with friendship.'
   },
   {
-    id: 'listening-ears',
-    title: 'Super Listening Ears',
-    description: 'Story about ears that hear wonderful things',
-    prompt: 'having super listening ears that can hear birds singing, friends laughing, and important words. Make listening fun and exciting.'
+    id: 'robot-cleanup',
+    title: 'Robot Cleanup Helper',
+    description: 'A helpful robot makes cleanup fun',
+    prompt: 'meeting a friendly robot who makes cleanup time super fun by beeping happily while putting toys away in their special homes. The robot shows that cleanup is like a fun game.'
   },
   {
-    id: 'sharing-caring',
-    title: 'The Sharing Star',
-    description: 'Happy story about sharing makes everyone smile',
-    prompt: 'being a sharing star who makes friends happy by sharing toys and snacks. Include how good it feels to share.'
+    id: 'elephant-listening-ears',
+    title: 'Elephant\'s Big Listening Ears',
+    description: 'An elephant uses big ears for listening',
+    prompt: 'learning from a wise elephant with huge ears who shows how to listen carefully to teachers, friends, and all the wonderful sounds around like birds singing and friends laughing.'
   },
   {
-    id: 'cleanup-helper',
-    title: 'Cleanup Superhero',
-    description: 'Fun story about being a cleanup superhero',
-    prompt: 'being a cleanup superhero who saves the day by putting toys in their homes. Make cleanup feel like a fun game.'
+    id: 'bunny-potty-champion',
+    title: 'Bunny Potty Champion',
+    description: 'A brave bunny learns potty skills',
+    prompt: 'following a little bunny who becomes a potty champion and feels so proud and grown-up. The bunny hops with joy after using the potty like a big kid.'
   },
   {
-    id: 'big-feelings',
-    title: 'Feeling Rainbow',
-    description: 'Colorful story about different feelings',
-    prompt: 'having different colored feelings like red mad, blue sad, and yellow happy. Include simple ways to feel better with deep breaths.'
+    id: 'teddy-bear-bedtime',
+    title: 'Teddy Bear\'s Sleepy Time',
+    description: 'A cuddly teddy bear\'s bedtime routine',
+    prompt: 'joining a soft teddy bear for a magical bedtime routine with brushing teeth, putting on cozy pajamas, and snuggling up for sweet dreams with favorite stuffed animal friends.'
   },
   {
-    id: 'potty-time',
-    title: 'Potty Champion',
-    description: 'Celebrating being a big kid',
-    prompt: 'becoming a potty champion and feeling so proud and grown-up. Include a happy celebration and big kid pride.'
-  },
-  {
-    id: 'bedtime-routine',
-    title: 'Sleepy Time Adventure',
-    description: 'Cozy story about bedtime routines',
-    prompt: 'having a magical bedtime routine with brushing teeth, putting on pajamas, and snuggling with favorite stuffed animals.'
-  },
-  {
-    id: 'trying-new-foods',
-    title: 'Food Explorer',
-    description: 'Brave story about trying new foods',
-    prompt: 'being a brave food explorer who tries new foods like a superhero. Make trying new foods feel like an exciting adventure.'
+    id: 'monkey-food-explorer',
+    title: 'Brave Monkey Food Explorer',
+    description: 'A curious monkey tries new foods',
+    prompt: 'going on a food adventure with a brave monkey who tries new fruits, vegetables, and healthy foods like a food explorer discovering delicious treasures in the jungle.'
   }
 ];
 
