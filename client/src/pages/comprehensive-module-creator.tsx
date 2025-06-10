@@ -832,6 +832,8 @@ export default function ComprehensiveModuleCreator() {
   const [quizDifficulty, setQuizDifficulty] = useState('medium');
   const [isGeneratingQuizQuestion, setIsGeneratingQuizQuestion] = useState(false);
   const [isGeneratingFlashcards, setIsGeneratingFlashcards] = useState(false);
+  const [generatedFlashcards, setGeneratedFlashcards] = useState<any[]>([]);
+  const [showFlashcardPreview, setShowFlashcardPreview] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<any>(null);
   const [useStepByStep, setUseStepByStep] = useState(false);
   const [generatingContent, setGeneratingContent] = useState<number | null>(null);
@@ -1595,40 +1597,14 @@ export default function ComprehensiveModuleCreator() {
       console.log('Flashcards API response:', response);
 
       if (response.flashcards && response.flashcards.length > 0) {
-        // Update the current section to include the flashcards as interactive quiz questions
-        const currentSection = newModule.sections[currentSectionIndex];
-        if (currentSection) {
-          const flashcardQuestions = response.flashcards.map((card: any) => ({
-            question: `What is the definition of: ${card.term}?`,
-            answers: [
-              card.definition,
-              "This is an incorrect definition",
-              "This is another incorrect definition", 
-              "This is also incorrect"
-            ],
-            correctAnswer: 0,
-            explanation: `${card.term}: ${card.definition}`
-          }));
-          
-          setNewModule(prev => ({
-            ...prev,
-            sections: prev.sections.map((section, index) => 
-              index === currentSectionIndex 
-                ? { 
-                    ...section, 
-                    type: 'quiz' as const,
-                    questions: flashcardQuestions,
-                    content: `This section contains ${response.flashcards.length} interactive flashcards to help you learn key terms and definitions.`
-                  }
-                : section
-            )
-          }));
-          
-          toast({
-            title: "Interactive Flashcards Created",
-            description: `Added ${response.flashcards.length} flashcard questions to this section`,
-          });
-        }
+        // Store the flashcards for preview instead of immediately applying
+        setGeneratedFlashcards(response.flashcards);
+        setShowFlashcardPreview(true);
+        
+        toast({
+          title: "Flashcards Generated",
+          description: `Generated ${response.flashcards.length} flashcards. Review and apply them to your section.`,
+        });
       } else {
         console.log('No flashcards in response or empty array');
         toast({
@@ -5504,6 +5480,105 @@ Create a natural conversation between two podcast hosts discussing this specific
                   <li>• Try topic keywords: "social emotional learning", "STEM activities"</li>
                   <li>• Use educator terms: "ECE", "developmentally appropriate", "scaffolding"</li>
                 </ul>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Flashcard Preview Dialog */}
+      {showFlashcardPreview && (
+        <Dialog open={showFlashcardPreview} onOpenChange={setShowFlashcardPreview}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Review Generated Flashcards</DialogTitle>
+              <DialogDescription>
+                Review the {generatedFlashcards.length} flashcards before adding them to your section
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {generatedFlashcards.map((card, index) => (
+                <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-purple-700 mb-2">{card.term}</h4>
+                      <p className="text-gray-700">{card.definition}</p>
+                    </div>
+                    <div className="text-xs text-gray-500 ml-4">
+                      #{index + 1}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="flex justify-between pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowFlashcardPreview(false);
+                  setGeneratedFlashcards([]);
+                }}
+              >
+                Cancel
+              </Button>
+              <div className="space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    // Regenerate flashcards
+                    setShowFlashcardPreview(false);
+                    setGeneratedFlashcards([]);
+                    generateFlashcards();
+                  }}
+                >
+                  Regenerate
+                </Button>
+                <Button
+                  onClick={() => {
+                    // Apply flashcards to section
+                    const currentSection = newModule.sections[currentSectionIndex];
+                    if (currentSection) {
+                      const flashcardQuestions = generatedFlashcards.map((card: any) => ({
+                        question: `What is the definition of: ${card.term}?`,
+                        answers: [
+                          card.definition,
+                          "This is an incorrect definition",
+                          "This is another incorrect definition", 
+                          "This is also incorrect"
+                        ],
+                        correctAnswer: 0,
+                        explanation: `${card.term}: ${card.definition}`
+                      }));
+                      
+                      setNewModule(prev => ({
+                        ...prev,
+                        sections: prev.sections.map((section, index) => 
+                          index === currentSectionIndex 
+                            ? { 
+                                ...section, 
+                                type: 'quiz' as const,
+                                questions: flashcardQuestions,
+                                content: `This section contains ${generatedFlashcards.length} interactive flashcards to help you learn key terms and definitions.`
+                              }
+                            : section
+                        )
+                      }));
+                      
+                      toast({
+                        title: "Flashcards Applied",
+                        description: `Added ${generatedFlashcards.length} interactive flashcards to this section`,
+                      });
+                    }
+                    
+                    setShowFlashcardPreview(false);
+                    setGeneratedFlashcards([]);
+                  }}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  Apply to Section
+                </Button>
               </div>
             </div>
           </DialogContent>
