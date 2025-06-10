@@ -72,11 +72,14 @@ export default function StepByStepSectionBuilder({
   const [sectionTitle, setSectionTitle] = useState(currentSectionTitle);
   const [isGenerating, setIsGenerating] = useState(false);
   const [step, setStep] = useState<'input' | 'generate' | 'select' | 'finalize'>('input');
+  const [showRegenerateOptions, setShowRegenerateOptions] = useState<number | null>(null);
+  const [regenerateGuidance, setRegenerateGuidance] = useState('');
+  const [isRegenerating, setIsRegenerating] = useState(false);
   const { toast } = useToast();
 
   const currentSection = SECTION_TYPES.find(s => s.id === currentSectionType);
 
-  const handleGenerateContent = async () => {
+  const handleGenerateContent = async (isRegeneration = false, additionalGuidance = '') => {
     if (!contentTopic.trim()) {
       toast({
         title: "Content topic required",
@@ -88,17 +91,23 @@ export default function StepByStepSectionBuilder({
 
     setIsGenerating(true);
     try {
+      const requestBody = {
+        topic: contentTopic,
+        sectionType: currentSectionType,
+        sectionTitle: sectionTitle,
+        moduleTopic: moduleTopic,
+        ...(isRegeneration && additionalGuidance && {
+          regenerationGuidance: additionalGuidance,
+          isRegeneration: true
+        })
+      };
+
       const response = await fetch('/api/ai-suggestions/content-blocks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          topic: contentTopic,
-          sectionType: currentSectionType,
-          sectionTitle: sectionTitle,
-          moduleTopic: moduleTopic
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
@@ -110,9 +119,11 @@ export default function StepByStepSectionBuilder({
       if (data.blocks && data.blocks.length > 0) {
         setGeneratedBlocks(data.blocks);
         setStep('select');
+        setShowRegenerateOptions(null);
+        setRegenerateGuidance('');
         toast({
-          title: "Content generated!",
-          description: `Generated ${data.blocks.length} content options for your ${currentSection?.name.toLowerCase()}`
+          title: isRegeneration ? "Content regenerated!" : "Content generated!",
+          description: `Generated ${data.blocks.length} ${isRegeneration ? 'refined' : ''} content options for your ${currentSection?.name.toLowerCase()}`
         });
       } else {
         throw new Error('No content blocks received');
@@ -126,7 +137,22 @@ export default function StepByStepSectionBuilder({
       });
     } finally {
       setIsGenerating(false);
+      setIsRegenerating(false);
     }
+  };
+
+  const handleRegenerateWithGuidance = async (blockIndex: number) => {
+    if (!regenerateGuidance.trim()) {
+      toast({
+        title: "Additional guidance required",
+        description: "Please provide specific guidance for how to improve the content",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsRegenerating(true);
+    await handleGenerateContent(true, regenerateGuidance);
   };
 
   const handleSelectContent = (content: string) => {
@@ -351,22 +377,93 @@ export default function StepByStepSectionBuilder({
                 {generatedBlocks.map((block, index) => (
                   <Card 
                     key={index}
-                    className="cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
-                    onClick={() => handleSelectContent(block.content)}
+                    className="border-2 hover:border-blue-300 transition-all"
                   >
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
                         <Badge variant="secondary">{block.type}</Badge>
-                        <Button size="sm" variant="outline">
-                          Select This Content
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleSelectContent(block.content)}
+                          >
+                            Select This Content
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="border-orange-300 text-orange-700 hover:bg-orange-50"
+                            onClick={() => setShowRegenerateOptions(index)}
+                          >
+                            <RefreshCw className="w-3 h-3 mr-1" />
+                            Regenerate
+                          </Button>
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-gray-600 mb-2">{block.preview}</p>
-                      <div className="max-h-32 overflow-y-auto text-xs bg-gray-50 p-3 rounded">
+                      <div className="max-h-32 overflow-y-auto text-xs bg-gray-50 p-3 rounded mb-3">
                         {block.content.substring(0, 200)}...
                       </div>
+
+                      {/* Regeneration Options */}
+                      {showRegenerateOptions === index && (
+                        <div className="border-t pt-3 space-y-3">
+                          <div className="bg-orange-50 p-3 rounded-lg">
+                            <h4 className="font-medium text-orange-900 mb-2">
+                              Regenerate with Additional Guidance
+                            </h4>
+                            <p className="text-sm text-orange-800 mb-3">
+                              Provide specific instructions to refine this content. For example:
+                            </p>
+                            <ul className="text-xs text-orange-700 space-y-1 mb-3">
+                              <li>• "Include a specific ECERS block material checklist"</li>
+                              <li>• "Add more practical classroom examples"</li>
+                              <li>• "Make it more suitable for toddler classrooms"</li>
+                              <li>• "Include step-by-step implementation guide"</li>
+                            </ul>
+                            <Textarea
+                              placeholder="What would you like to see improved or added to this content?"
+                              value={regenerateGuidance}
+                              onChange={(e) => setRegenerateGuidance(e.target.value)}
+                              rows={3}
+                              className="mb-3"
+                            />
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => handleRegenerateWithGuidance(index)}
+                                disabled={isRegenerating || !regenerateGuidance.trim()}
+                                className="bg-orange-600 hover:bg-orange-700 text-white"
+                              >
+                                {isRegenerating ? (
+                                  <>
+                                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                    Regenerating...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Wand2 className="w-3 h-3 mr-1" />
+                                    Regenerate Content
+                                  </>
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setShowRegenerateOptions(null);
+                                  setRegenerateGuidance('');
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
