@@ -709,12 +709,46 @@ router.post('/generate-content-blocks', async (req, res) => {
 
     console.log('Generating content blocks for:', { topic, sectionTitle, moduleTitle, sectionType });
 
+    // Check if this is for guided activities or step-by-step content
+    const isActivitySection = sectionTitle?.toLowerCase().includes('activity') || 
+                             sectionTitle?.toLowerCase().includes('step-by-step') ||
+                             sectionTitle?.toLowerCase().includes('guided') ||
+                             sectionType === 'example';
+
     // Use OpenAI to generate topic-specific content blocks
     const openai = new (await import("openai")).default({
       apiKey: process.env.OPENAI_API_KEY,
     });
 
-    const prompt = `
+    const prompt = isActivitySection ? `
+You are an expert early childhood education instructor creating hands-on activities for "${topic}".
+
+Generate 5 step-by-step guided activities that teachers can immediately implement in their classrooms related to "${topic}".
+
+Each activity should include:
+1. Clear step-by-step instructions (numbered steps)
+2. Materials needed (if any)
+3. Age-appropriate considerations for children 2-5
+4. Expected outcomes or learning goals
+5. Variations or adaptations for different situations
+
+FORMAT: Return a JSON object with "blocks" array. Each block should have:
+- "type": "Step-by-Step Activity"
+- "preview": Brief description of the activity
+- "content": Detailed activity instructions with clear numbered steps
+
+Focus specifically on "${topic}" - make each activity directly address this topic with practical implementation.
+
+Example format:
+{
+  "blocks": [
+    {
+      "type": "Step-by-Step Activity",
+      "preview": "Activity name and brief description...",
+      "content": "## Activity Name\\n\\n**Materials Needed:** List items\\n\\n**Steps:**\\n1. First step...\\n2. Second step...\\n\\n**Learning Goals:** What children will gain\\n\\n**Adaptations:** How to modify for different needs"
+    }
+  ]
+}` : `
 You are an expert early childhood education content creator. Generate 5 diverse, engaging content blocks for a module about "${topic}" specifically focused on "${moduleTitle}".
 
 CRITICAL: The content must be specifically about "${topic}" - not generic early childhood education content. Use the exact topic throughout.

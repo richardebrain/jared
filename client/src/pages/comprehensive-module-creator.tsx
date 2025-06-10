@@ -1595,25 +1595,40 @@ export default function ComprehensiveModuleCreator() {
       console.log('Flashcards API response:', response);
 
       if (response.flashcards && response.flashcards.length > 0) {
-        // Format flashcards as content blocks that can be dragged
-        const flashcardBlocks = response.flashcards.map((card: any) => ({
-          type: 'Key Term',
-          content: `**${card.term}**: ${card.definition}`,
-          preview: `${card.term} - ${card.definition.substring(0, 100)}...`
-        }));
-        
-        console.log('Formatted flashcard blocks:', flashcardBlocks);
-        
-        setAiGeneratedBlocks(prev => {
-          const newBlocks = [...prev, ...flashcardBlocks];
-          console.log('Updated AI generated blocks:', newBlocks);
-          return newBlocks;
-        });
-        
-        toast({
-          title: "Key Terms Generated",
-          description: `Generated ${response.flashcards.length} key terms and definitions`,
-        });
+        // Update the current section to include the flashcards as interactive quiz questions
+        const currentSection = newModule.sections[currentSectionIndex];
+        if (currentSection) {
+          const flashcardQuestions = response.flashcards.map((card: any) => ({
+            question: `What is the definition of: ${card.term}?`,
+            answers: [
+              card.definition,
+              "This is an incorrect definition",
+              "This is another incorrect definition", 
+              "This is also incorrect"
+            ],
+            correctAnswer: 0,
+            explanation: `${card.term}: ${card.definition}`
+          }));
+          
+          setNewModule(prev => ({
+            ...prev,
+            sections: prev.sections.map((section, index) => 
+              index === currentSectionIndex 
+                ? { 
+                    ...section, 
+                    type: 'quiz' as const,
+                    questions: flashcardQuestions,
+                    content: `This section contains ${response.flashcards.length} interactive flashcards to help you learn key terms and definitions.`
+                  }
+                : section
+            )
+          }));
+          
+          toast({
+            title: "Interactive Flashcards Created",
+            description: `Added ${response.flashcards.length} flashcard questions to this section`,
+          });
+        }
       } else {
         console.log('No flashcards in response or empty array');
         toast({
