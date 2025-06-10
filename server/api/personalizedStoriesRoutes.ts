@@ -67,15 +67,22 @@ Make this story special for ${childName}!`;
  */
 router.post('/generate-audio', async (req, res) => {
   try {
-    const { story, voice, language, childName } = req.body;
+    const { text, voiceId, language, childName } = req.body;
     
-    if (!story) {
+    console.log('Voice generation request received:', { 
+      textLength: text?.length, 
+      voiceId, 
+      language, 
+      childName 
+    });
+    
+    if (!text) {
       return res.status(400).json({ 
         message: 'Story text is required' 
       });
     }
     
-    console.log("Generating story audio for:", { voice, language, childName });
+    console.log("Generating story audio for:", { voiceId, language, childName });
     
     // Enhance the story text for dramatic reading
     const enhancedText = `${story}
@@ -123,7 +130,12 @@ What a wonderful story about ${childName}!`;
     });
   } catch (error) {
     console.error('Error generating story audio:', error);
-    res.status(500).json({ 
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      requestBody: req.body
+    });
+    res.status(400).json({ 
       message: 'Failed to generate audio',
       error: error.message 
     });
