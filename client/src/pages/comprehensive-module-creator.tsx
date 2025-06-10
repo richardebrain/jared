@@ -605,6 +605,8 @@ export default function ComprehensiveModuleCreator() {
   });
 
   const [isGeneratingContent, setIsGeneratingContent] = useState(false);
+  const [quizDifficulty, setQuizDifficulty] = useState('medium');
+  const [isGeneratingQuizQuestion, setIsGeneratingQuizQuestion] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<any>(null);
   const [useStepByStep, setUseStepByStep] = useState(false);
   const [generatingContent, setGeneratingContent] = useState<number | null>(null);
@@ -769,9 +771,7 @@ export default function ComprehensiveModuleCreator() {
     question: string;
     answers: string[];
     correctAnswer: number;
-    explanation: string;
   }>>([]);
-  const [isGeneratingQuizQuestion, setIsGeneratingQuizQuestion] = useState(false);
 
   // Interactive Quiz Builder Functions
   const startQuizBuilder = () => {
@@ -2728,6 +2728,21 @@ Create a natural conversation between two podcast hosts discussing this specific
                               )}
                             </Button>
                           </div>
+                        </div>
+
+                        {/* Difficulty Selector for AI Generation */}
+                        <div>
+                          <Label className="text-sm font-medium">Question Difficulty</Label>
+                          <Select value={quizDifficulty} onValueChange={setQuizDifficulty}>
+                            <SelectTrigger className="mt-1">
+                              <SelectValue placeholder="Select difficulty level" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="easy">Easy - Basic understanding</SelectItem>
+                              <SelectItem value="medium">Medium - Practical application</SelectItem>
+                              <SelectItem value="hard">Hard - Critical thinking</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
 
                         {/* Question Input */}
