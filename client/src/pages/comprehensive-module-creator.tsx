@@ -3449,50 +3449,93 @@ Create a natural conversation between two podcast hosts discussing this specific
                                     </div>
                                     
                                     {(videoSearchResults.length > 0 || youtubeSearchResults.length > 0) && (
-                                      <div className="max-h-48 overflow-y-auto space-y-2">
-                                        <h4 className="text-xs font-medium text-blue-800">Search Results:</h4>
+                                      <div className="max-h-64 overflow-y-auto space-y-3">
+                                        <h4 className="text-sm font-medium text-blue-800">Choose a video to add:</h4>
+                                        
+                                        {/* Library Videos */}
                                         {videoSearchResults.map((video, index) => (
-                                          <div key={`library-${index}`} className="p-2 bg-white rounded border border-blue-200 cursor-pointer hover:bg-blue-50" 
-                                               onClick={() => {
-                                                 const targetIndex = selectedVideoForSection !== null ? selectedVideoForSection : currentSectionIndex;
-                                                 updateSection(targetIndex, 'videoUrl', video.url);
-                                                 updateSection(targetIndex, 'title', `${newModule.sections[targetIndex]?.title || 'Section'} - ${video.title}`);
-                                                 
-                                                 toast({
-                                                   title: "Video Added",
-                                                   description: `Added "${video.title}" to the section`,
-                                                 });
-                                                 
-                                                 setShowVideoSearch(false);
-                                                 setVideoSearchQuery('');
-                                                 setVideoSearchResults([]);
-                                                 setYoutubeSearchResults([]);
-                                                 setSelectedVideoForSection(null);
-                                               }}>
-                                            <p className="text-xs font-medium text-blue-900">{video.title}</p>
-                                            <p className="text-xs text-blue-700">{video.description || video.category}</p>
+                                          <div key={`library-${index}`} className="p-3 bg-white rounded-lg border border-blue-200 shadow-sm">
+                                            <div className="flex items-center justify-between">
+                                              <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-blue-900 truncate">{video.title}</p>
+                                                <p className="text-xs text-blue-700 mt-1">{video.description || video.category}</p>
+                                                <p className="text-xs text-gray-500 mt-1">Library Video • {video.duration || 'Duration unknown'}</p>
+                                              </div>
+                                              <Button
+                                                type="button"
+                                                size="sm"
+                                                className="ml-3 bg-blue-600 hover:bg-blue-700 text-white"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  const targetIndex = selectedVideoForSection !== null ? selectedVideoForSection : currentSectionIndex;
+                                                  updateSection(targetIndex, 'videoUrl', video.url);
+                                                  updateSection(targetIndex, 'title', `${newModule.sections[targetIndex]?.title || 'Section'} - ${video.title}`);
+                                                  
+                                                  toast({
+                                                    title: "Video Added",
+                                                    description: `Added "${video.title}" to the section`,
+                                                  });
+                                                  
+                                                  setShowVideoSearch(false);
+                                                  setVideoSearchQuery('');
+                                                  setVideoSearchResults([]);
+                                                  setYoutubeSearchResults([]);
+                                                  setSelectedVideoForSection(null);
+                                                }}
+                                              >
+                                                <Plus className="h-3 w-3 mr-1" />
+                                                Add Video
+                                              </Button>
+                                            </div>
                                           </div>
                                         ))}
+                                        
+                                        {/* YouTube Videos */}
                                         {youtubeSearchResults.map((video, index) => (
-                                          <div key={`youtube-${index}`} className="p-2 bg-white rounded border border-red-200 cursor-pointer hover:bg-red-50"
-                                               onClick={() => {
-                                                 const targetIndex = selectedVideoForSection !== null ? selectedVideoForSection : currentSectionIndex;
-                                                 updateSection(targetIndex, 'videoUrl', video.url);
-                                                 updateSection(targetIndex, 'title', `${newModule.sections[targetIndex]?.title || 'Section'} - ${video.title}`);
-                                                 
-                                                 toast({
-                                                   title: "Video Added",
-                                                   description: `Added "${video.title}" to the section`,
-                                                 });
-                                                 
-                                                 setShowVideoSearch(false);
-                                                 setVideoSearchQuery('');
-                                                 setVideoSearchResults([]);
-                                                 setYoutubeSearchResults([]);
-                                                 setSelectedVideoForSection(null);
-                                               }}>
-                                            <p className="text-xs font-medium text-red-900">{video.title}</p>
-                                            <p className="text-xs text-red-700">YouTube - {video.channelTitle || video.channel}</p>
+                                          <div key={`youtube-${index}`} className="p-3 bg-white rounded-lg border border-red-200 shadow-sm">
+                                            <div className="flex items-center justify-between">
+                                              <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-red-900 truncate">{video.title}</p>
+                                                <p className="text-xs text-red-700 mt-1">By {video.channelTitle || video.channel}</p>
+                                                <p className="text-xs text-gray-500 mt-1">
+                                                  YouTube • 
+                                                  <a 
+                                                    href={video.url} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:text-blue-800 underline ml-1"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                  >
+                                                    View on YouTube
+                                                  </a>
+                                                </p>
+                                              </div>
+                                              <Button
+                                                type="button"
+                                                size="sm"
+                                                className="ml-3 bg-red-600 hover:bg-red-700 text-white"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  const targetIndex = selectedVideoForSection !== null ? selectedVideoForSection : currentSectionIndex;
+                                                  updateSection(targetIndex, 'videoUrl', video.url);
+                                                  updateSection(targetIndex, 'title', `${newModule.sections[targetIndex]?.title || 'Section'} - ${video.title}`);
+                                                  
+                                                  toast({
+                                                    title: "YouTube Video Added",
+                                                    description: `Added "${video.title}" to the section`,
+                                                  });
+                                                  
+                                                  setShowVideoSearch(false);
+                                                  setVideoSearchQuery('');
+                                                  setVideoSearchResults([]);
+                                                  setYoutubeSearchResults([]);
+                                                  setSelectedVideoForSection(null);
+                                                }}
+                                              >
+                                                <Plus className="h-3 w-3 mr-1" />
+                                                Add Video
+                                              </Button>
+                                            </div>
                                           </div>
                                         ))}
                                       </div>
