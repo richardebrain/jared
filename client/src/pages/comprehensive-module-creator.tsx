@@ -753,6 +753,8 @@ export default function ComprehensiveModuleCreator() {
   // Draft saving functionality
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [currentDraftId, setCurrentDraftId] = useState<number | null>(null);
+  const [showDraftManager, setShowDraftManager] = useState(false);
+  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   
   // Initial setup phase for title and learning objective
   const [showInitialSetup, setShowInitialSetup] = useState(true);
@@ -2852,9 +2854,7 @@ Create a natural conversation between two podcast hosts discussing this specific
     }));
   };
 
-  // Draft management state
-  const [showDraftManager, setShowDraftManager] = useState(false);
-  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
+
 
   // Draft management functions
   const saveDraft = async (name?: string) => {

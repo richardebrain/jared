@@ -226,6 +226,13 @@ export interface IStorage {
   createVideoRating(rating: InsertVideoRating): Promise<VideoRating>;
   updateVideoRating(userId: number, videoId: string, ratingData: Partial<InsertVideoRating>): Promise<VideoRating>;
   getVideoAverageRating(videoId: string): Promise<{ avgRating: number; totalRatings: number }>;
+  
+  // Module Drafts operations
+  getModuleDraftsByUserId(userId: number): Promise<ModuleDraft[]>;
+  getModuleDraft(id: number): Promise<ModuleDraft | undefined>;
+  createModuleDraft(draft: InsertModuleDraft): Promise<ModuleDraft>;
+  updateModuleDraft(id: number, draftData: Partial<InsertModuleDraft>): Promise<ModuleDraft>;
+  deleteModuleDraft(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2511,6 +2518,46 @@ export class DatabaseStorage implements IStorage {
       .from(earlyLearningStandards)
       .where(eq(earlyLearningStandards.id, id));
     return standard || undefined;
+  }
+
+  // Module Drafts operations
+  async getModuleDraftsByUserId(userId: number): Promise<ModuleDraft[]> {
+    return await db
+      .select()
+      .from(moduleDrafts)
+      .where(eq(moduleDrafts.userId, userId))
+      .orderBy(desc(moduleDrafts.updatedAt));
+  }
+
+  async getModuleDraft(id: number): Promise<ModuleDraft | undefined> {
+    const [draft] = await db
+      .select()
+      .from(moduleDrafts)
+      .where(eq(moduleDrafts.id, id));
+    return draft || undefined;
+  }
+
+  async createModuleDraft(draft: InsertModuleDraft): Promise<ModuleDraft> {
+    const [newDraft] = await db
+      .insert(moduleDrafts)
+      .values(draft)
+      .returning();
+    return newDraft;
+  }
+
+  async updateModuleDraft(id: number, draftData: Partial<InsertModuleDraft>): Promise<ModuleDraft> {
+    const [updatedDraft] = await db
+      .update(moduleDrafts)
+      .set({ ...draftData, updatedAt: new Date() })
+      .where(eq(moduleDrafts.id, id))
+      .returning();
+    return updatedDraft;
+  }
+
+  async deleteModuleDraft(id: number): Promise<void> {
+    await db
+      .delete(moduleDrafts)
+      .where(eq(moduleDrafts.id, id));
   }
 }
 
