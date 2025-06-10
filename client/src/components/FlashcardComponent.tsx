@@ -34,7 +34,7 @@ export function FlashcardComponent({ flashcards, title = "Key Terms", onComplete
     try {
       setIsNarrating(true);
       
-      const response = await apiRequest('/api/voice/generate', {
+      const response = await fetch('/api/voice/generate', {
         method: 'POST',
         body: JSON.stringify({
           text: `${currentCard.term}. ${text}`,
@@ -46,11 +46,13 @@ export function FlashcardComponent({ flashcards, title = "Key Terms", onComplete
         }
       });
 
-      if (response.audioUrl) {
-        setAudioBlob(response.audioUrl);
+      const data = await response.json();
+
+      if (data.audioUrl) {
+        setAudioBlob(data.audioUrl);
         // Auto-play the audio
         if (audioRef.current) {
-          audioRef.current.src = response.audioUrl;
+          audioRef.current.src = data.audioUrl;
           audioRef.current.play();
         }
       }
