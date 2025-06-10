@@ -1584,7 +1584,7 @@ export default function ComprehensiveModuleCreator() {
         sectionType: 'flashcards'
       });
 
-      const response = await apiRequest('POST', '/api/ai/generate-flashcards', {
+      const response = await apiRequest('POST', '/api/flashcards/generate-flashcards', {
         moduleTitle: newModule.title,
         moduleDescription: newModule.description,
         sectionTitle: newModule.sections[currentSectionIndex]?.title || 'Key Terms',

@@ -5148,14 +5148,14 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
     }
   });
 
-  // Register AI Module Designer routes
-  app.use("/api/ai", aiModuleDesignerRoutes);
-  
-  // Register AI suggestion routes (includes flashcards)
-  app.use("/api/ai", aiSuggestionRoutes);
+  // Register AI suggestion routes under specific paths to avoid conflicts
+  app.use("/api/flashcards", aiSuggestionRoutes);
   
   // Register new AI suggestion routes (includes parent response)
   app.use("/api/ai", newAiSuggestionRoutes);
+  
+  // Register AI Module Designer routes
+  app.use("/api/ai", aiModuleDesignerRoutes);
 
   // Register voice routes for AI narration
   app.use("/api/voice", voiceRoutes);
