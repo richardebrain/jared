@@ -538,11 +538,9 @@ export default function ComprehensiveModuleCreator() {
     notificationMessage: ''
   });
 
-  // Draft management states
+  // Draft management states (removing duplicate isSavingDraft)
   const [showDraftManager, setShowDraftManager] = useState(false);
-  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
-  const [savedDrafts, setSavedDrafts] = useState<any[]>([]);
 
   // Proven template types for AI-assisted workflow
   const PROVEN_TEMPLATES = [
@@ -755,8 +753,6 @@ export default function ComprehensiveModuleCreator() {
   // Draft saving functionality
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [currentDraftId, setCurrentDraftId] = useState<number | null>(null);
-  const [showDraftManager, setShowDraftManager] = useState(false);
-  const [savedDrafts, setSavedDrafts] = useState<any[]>([]);
   
   // Initial setup phase for title and learning objective
   const [showInitialSetup, setShowInitialSetup] = useState(true);
@@ -779,129 +775,7 @@ export default function ComprehensiveModuleCreator() {
   const [customVideoUrl, setCustomVideoUrl] = useState('');
   const [selectedVideoForSection, setSelectedVideoForSection] = useState<number | null>(null);
 
-  // Draft saving functions
-  const saveDraft = async (name?: string) => {
-    if (!user?.id) return;
-    
-    setIsSavingDraft(true);
-    try {
-      const draftData = {
-        name: name || `Draft - ${newModule.title || 'Untitled'}`,
-        moduleData: newModule,
-        creationMethod,
-        aiWorkflowStep,
-        createdAt: new Date().toISOString(),
-        userId: user.id
-      };
 
-      const endpoint = currentDraftId 
-        ? `/api/module-drafts/${currentDraftId}`
-        : '/api/module-drafts';
-      
-      const method = currentDraftId ? 'PUT' : 'POST';
-      
-      const response = await apiRequest(endpoint, {
-        method,
-        body: JSON.stringify(draftData),
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      if (!currentDraftId) {
-        setCurrentDraftId(response.id);
-      }
-
-      toast({
-        title: "Draft Saved",
-        description: `Your module draft has been saved as "${draftData.name}"`,
-      });
-    } catch (error) {
-      console.error('Error saving draft:', error);
-      toast({
-        title: "Save Failed",
-        description: "Unable to save draft. Please try again.",
-        variant: "destructive",
-      });
-    }
-    setIsSavingDraft(false);
-  };
-
-  const loadDraft = async (draftId: number) => {
-    try {
-      const draft = await apiRequest(`/api/module-drafts/${draftId}`);
-      
-      setNewModule(draft.moduleData);
-      setCreationMethod(draft.creationMethod);
-      setAiWorkflowStep(draft.aiWorkflowStep);
-      setCurrentDraftId(draft.id);
-      
-      toast({
-        title: "Draft Loaded",
-        description: `Loaded draft: ${draft.name}`,
-      });
-      
-      setShowDraftManager(false);
-    } catch (error) {
-      console.error('Error loading draft:', error);
-      toast({
-        title: "Load Failed",
-        description: "Unable to load draft. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const deleteDraft = async (draftId: number) => {
-    try {
-      await apiRequest(`/api/module-drafts/${draftId}`, { method: 'DELETE' });
-      
-      setSavedDrafts(prev => prev.filter(draft => draft.id !== draftId));
-      
-      if (currentDraftId === draftId) {
-        setCurrentDraftId(null);
-      }
-      
-      toast({
-        title: "Draft Deleted",
-        description: "Draft has been removed",
-      });
-    } catch (error) {
-      console.error('Error deleting draft:', error);
-      toast({
-        title: "Delete Failed",
-        description: "Unable to delete draft. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Load saved drafts
-  const { data: drafts, refetch: refetchDrafts } = useQuery({
-    queryKey: ['/api/module-drafts'],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      return await apiRequest('/api/module-drafts');
-    },
-    enabled: !!user?.id && showDraftManager,
-  });
-
-  useEffect(() => {
-    if (drafts) {
-      setSavedDrafts(drafts);
-    }
-  }, [drafts]);
-
-  // Auto-save functionality
-  useEffect(() => {
-    if (!newModule.title && !newModule.description) return;
-    
-    const autoSaveTimer = setTimeout(() => {
-      if (currentDraftId && user?.id) {
-        saveDraft();
-      }
-    }, 30000); // Auto-save every 30 seconds
-
-    return () => clearTimeout(autoSaveTimer);
-  }, [newModule, currentDraftId, user?.id]);
 
 
 
@@ -2977,6 +2851,113 @@ Create a natural conversation between two podcast hosts discussing this specific
       )
     }));
   };
+
+  // Draft management state
+  const [showDraftManager, setShowDraftManager] = useState(false);
+  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
+
+  // Draft management functions
+  const saveDraft = async (name?: string) => {
+    if (!user?.id) return;
+    
+    setIsSavingDraft(true);
+    try {
+      const draftName = name || `${newModule.title || 'Untitled Module'} - ${new Date().toLocaleDateString()}`;
+      
+      const draftData = {
+        name: draftName,
+        moduleData: {
+          ...newModule,
+          initialModuleData,
+          currentSectionIndex,
+          completedSections,
+          aiWorkflowStep,
+          creationMethod
+        },
+        creationMethod: creationMethod,
+        aiWorkflowStep: aiWorkflowStep
+      };
+
+      await apiRequest('/api/module-drafts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data: draftData
+      });
+      
+      toast({
+        title: "Draft Saved",
+        description: `Your module draft "${draftName}" has been saved successfully.`,
+      });
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      toast({
+        title: "Save Failed",
+        description: "Unable to save draft. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
+
+  const loadDraft = async (draftId: number) => {
+    setIsLoadingDraft(true);
+    try {
+      const draft = await apiRequest(`/api/module-drafts/${draftId}`);
+      
+      // Restore module state
+      setNewModule(draft.moduleData);
+      setInitialModuleData(draft.moduleData.initialModuleData || { title: '', learningObjective: '' });
+      setCurrentSectionIndex(draft.moduleData.currentSectionIndex || 0);
+      setCompletedSections(draft.moduleData.completedSections || []);
+      setAiWorkflowStep(draft.moduleData.aiWorkflowStep || 'section-builder');
+      setCreationMethod(draft.moduleData.creationMethod || 'manual');
+      
+      setShowDraftManager(false);
+      setShowInitialSetup(false);
+      
+      toast({
+        title: "Draft Loaded",
+        description: `Module "${draft.name}" has been loaded successfully.`,
+      });
+    } catch (error) {
+      console.error('Error loading draft:', error);
+      toast({
+        title: "Load Failed",
+        description: "Unable to load draft. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingDraft(false);
+    }
+  };
+
+  const deleteDraft = async (draftId: number) => {
+    try {
+      await apiRequest(`/api/module-drafts/${draftId}`, { method: 'DELETE' });
+      
+      toast({
+        title: "Draft Deleted",
+        description: "Draft has been deleted successfully.",
+      });
+      
+      // Refresh drafts list
+      queryClient.invalidateQueries({ queryKey: ['/api/module-drafts'] });
+    } catch (error) {
+      console.error('Error deleting draft:', error);
+      toast({
+        title: "Delete Failed",
+        description: "Unable to delete draft. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Fetch user drafts
+  const { data: drafts } = useQuery({
+    queryKey: ['/api/module-drafts'],
+    enabled: showDraftManager && !!user?.id
+  });
 
   // Fetch all modules including hidden ones
   const { data: modules, isLoading, error } = useQuery({
@@ -6388,6 +6369,73 @@ Create a natural conversation between two podcast hosts discussing this specific
           navigate('/');
         }}
       />
+
+      {/* Draft Manager Dialog */}
+      <Dialog open={showDraftManager} onOpenChange={setShowDraftManager}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FolderOpen className="h-5 w-5" />
+              Load Saved Draft
+            </DialogTitle>
+            <DialogDescription>
+              Continue working on a previously saved module draft
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {isLoadingDraft ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                <span className="ml-2">Loading draft...</span>
+              </div>
+            ) : drafts && drafts.length > 0 ? (
+              <div className="space-y-3">
+                {drafts.map((draft: any) => (
+                  <div key={draft.id} className="border rounded-lg p-4 bg-white shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900">{draft.name}</h4>
+                        <div className="text-sm text-gray-600 mt-1">
+                          <div>Method: {draft.creation_method === 'manual' ? 'Manual Creation' : 'AI-Assisted'}</div>
+                          <div>Last updated: {new Date(draft.updated_at).toLocaleDateString()}</div>
+                          {draft.module_data?.sections && (
+                            <div>Sections: {draft.module_data.sections.length}</div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex gap-2 ml-4">
+                        <Button
+                          size="sm"
+                          onClick={() => loadDraft(draft.id)}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          <FolderOpen className="h-4 w-4 mr-1" />
+                          Load
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => deleteDraft(draft.id)}
+                          className="text-red-600 border-red-300 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <FolderOpen className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                <p className="text-lg font-medium">No saved drafts found</p>
+                <p className="text-sm">Create and save a module to see your drafts here</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
