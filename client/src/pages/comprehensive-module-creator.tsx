@@ -48,6 +48,7 @@ import {
   FileText,
   Mic,
   MicOff,
+  FolderOpen,
   X,
   ChevronRight,
   Wand2,
@@ -536,6 +537,12 @@ export default function ComprehensiveModuleCreator() {
     selectedGroups: [] as number[],
     notificationMessage: ''
   });
+
+  // Draft management states
+  const [showDraftManager, setShowDraftManager] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
+  const [savedDrafts, setSavedDrafts] = useState<any[]>([]);
 
   // Proven template types for AI-assisted workflow
   const PROVEN_TEMPLATES = [
@@ -3305,14 +3312,37 @@ Create a natural conversation between two podcast hosts discussing this specific
         </div>
         <div className="flex gap-3">
           {creationMethod === 'manual' && (
-            <Button
-              onClick={() => setCreationMethod('selection')}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Change Creation Method
-            </Button>
+            <>
+              <Button
+                onClick={() => saveDraft()}
+                variant="outline"
+                className="flex items-center gap-2 text-blue-600 border-blue-300 hover:bg-blue-50"
+                disabled={isSavingDraft}
+              >
+                {isSavingDraft ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                Save Draft
+              </Button>
+              <Button
+                onClick={() => setShowDraftManager(true)}
+                variant="outline"
+                className="flex items-center gap-2 text-green-600 border-green-300 hover:bg-green-50"
+              >
+                <FolderOpen className="h-4 w-4" />
+                Load Draft
+              </Button>
+              <Button
+                onClick={() => setCreationMethod('selection')}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Change Creation Method
+              </Button>
+            </>
           )}
           <Button 
             variant="outline" 
