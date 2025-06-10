@@ -627,6 +627,13 @@ export default function ComprehensiveModuleCreator() {
   const [isCreatingModule, setIsCreatingModule] = useState(false);
   const [isGeneratingIdeas, setIsGeneratingIdeas] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  
+  // Initial setup phase for title and learning objective
+  const [showInitialSetup, setShowInitialSetup] = useState(true);
+  const [initialModuleData, setInitialModuleData] = useState({
+    title: '',
+    learningObjective: ''
+  });
   const [aiSuggestions, setAiSuggestions] = useState<{
     questions: string[];
     strategies: string[];
@@ -928,6 +935,36 @@ export default function ComprehensiveModuleCreator() {
 
   const removeQuestionFromQuiz = (index: number) => {
     setBuiltQuizQuestions(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const completeInitialSetup = () => {
+    if (!initialModuleData.title.trim() || !initialModuleData.learningObjective.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide both a title and learning objective.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Update the module with the initial data
+    setNewModule(prev => ({
+      ...prev,
+      title: initialModuleData.title,
+      description: initialModuleData.learningObjective,
+      // Store this as the primary context for all AI operations
+      moduleContext: {
+        title: initialModuleData.title,
+        learningObjective: initialModuleData.learningObjective
+      }
+    }));
+
+    setShowInitialSetup(false);
+    
+    toast({
+      title: "Module Setup Complete",
+      description: "Your title and learning objective will guide all AI content generation.",
+    });
   };
 
   const generateAIContentForSection = async () => {
@@ -2529,11 +2566,90 @@ Create a natural conversation between two podcast hosts discussing this specific
 
   return (
     <div className="container mx-auto p-6 space-y-8">
+      {/* Initial Setup Modal */}
+      {showInitialSetup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-2xl mx-4">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5" />
+                Module Setup - Title & Learning Objective
+              </CardTitle>
+              <CardDescription>
+                Before we begin, let's establish the core foundation of your module. This information will guide all AI content generation.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="moduleTitle" className="text-base font-medium">Module Title</Label>
+                  <Input
+                    id="moduleTitle"
+                    placeholder="e.g., Managing Playground Transitions, Effective Communication Skills"
+                    value={initialModuleData.title}
+                    onChange={(e) => setInitialModuleData(prev => ({ ...prev, title: e.target.value }))}
+                    className="mt-2"
+                  />
+                  <p className="text-sm text-gray-600 mt-1">Choose a clear, descriptive title for your learning module</p>
+                </div>
+
+                <div>
+                  <Label htmlFor="learningObjective" className="text-base font-medium">Primary Learning Objective</Label>
+                  <Textarea
+                    id="learningObjective"
+                    placeholder="e.g., Teachers will learn effective strategies to smoothly transition children from high-energy playground activities to focused classroom learning, reducing disruptions and improving student readiness."
+                    value={initialModuleData.learningObjective}
+                    onChange={(e) => setInitialModuleData(prev => ({ ...prev, learningObjective: e.target.value }))}
+                    rows={4}
+                    className="mt-2"
+                  />
+                  <p className="text-sm text-gray-600 mt-1">Describe what learners will achieve after completing this module</p>
+                </div>
+
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Brain className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-800">AI Context</span>
+                  </div>
+                  <p className="text-sm text-blue-700">
+                    This title and objective will be used by AI to generate relevant content, questions, and activities throughout your module creation process.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-between pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/admin')}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={completeInitialSetup}
+                  disabled={!initialModuleData.title.trim() || !initialModuleData.learningObjective.trim()}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Continue to Module Builder
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Comprehensive Module Creator</h1>
           <p className="text-gray-600 mt-2">Create engaging learning modules with AI assistance and professional templates</p>
+          {!showInitialSetup && initialModuleData.title && (
+            <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div className="text-sm">
+                <div className="font-medium text-green-800">Working on: {initialModuleData.title}</div>
+                <div className="text-green-700 mt-1">{initialModuleData.learningObjective}</div>
+              </div>
+            </div>
+          )}
         </div>
         <div className="flex gap-3">
           {creationMethod === 'manual' && (
@@ -2770,13 +2886,10 @@ Create a natural conversation between two podcast hosts discussing this specific
                         </div>
                         <div className="text-sm space-y-1">
                           <div className="text-blue-700">
-                            <strong>Module:</strong> {newModule.originalFormData?.topic || newModule.title || 'Professional Development Module'}
+                            <strong>Module:</strong> {initialModuleData.title || newModule.title || 'Professional Development Module'}
                           </div>
                           <div className="text-blue-700">
-                            <strong>Topic:</strong> {newModule.originalFormData?.topic || newModule.description || 'Building effective teaching strategies'}
-                          </div>
-                          <div className="text-blue-700">
-                            <strong>Goals:</strong> {newModule.originalFormData?.goals || 'Improve learning outcomes'}
+                            <strong>Learning Objective:</strong> {initialModuleData.learningObjective || newModule.description || 'Building effective teaching strategies'}
                           </div>
                           <div className="text-blue-700">
                             <strong>Section:</strong> {newModule.sections[currentSectionIndex]?.title}
