@@ -717,7 +717,7 @@ router.post('/generate-content-blocks', async (req, res) => {
 
     const isCaseStudySection = sectionTitle?.toLowerCase().includes('case study') || 
                               sectionTitle?.toLowerCase().includes('story') ||
-                              sectionTitle?.toLowerCase().includes('scenario') ||
+                              (sectionTitle?.toLowerCase().includes('scenario') && !sectionTitle?.toLowerCase().includes('ai-guided')) ||
                               sectionType === 'story';
 
     const isWhyItMattersSection = sectionTitle?.toLowerCase().includes('why it matters') || 
@@ -726,14 +726,24 @@ router.post('/generate-content-blocks', async (req, res) => {
                                  sectionTitle?.toLowerCase().includes('research');
 
     const isHandsOnPracticeSection = sectionTitle?.toLowerCase().includes('hands-on practice') || 
-                                    sectionTitle?.toLowerCase().includes('practice') ||
-                                    sectionTitle?.toLowerCase().includes('simulation') ||
+                                    sectionTitle?.toLowerCase().includes('hands-on') ||
+                                    sectionTitle?.toLowerCase().includes('ai-guided scenario') ||
+                                    (sectionTitle?.toLowerCase().includes('practice') && !sectionTitle?.toLowerCase().includes('case study')) ||
                                     sectionType === 'simulation';
 
     const isReflectionSection = sectionTitle?.toLowerCase().includes('reflection') || 
                                sectionTitle?.toLowerCase().includes('action plan') ||
                                sectionTitle?.toLowerCase().includes('implementation') ||
                                sectionTitle?.toLowerCase().includes('review');
+
+    console.log('Section detection:', {
+      isActivitySection,
+      isCaseStudySection, 
+      isWhyItMattersSection,
+      isHandsOnPracticeSection,
+      isReflectionSection,
+      sectionTitle: sectionTitle?.toLowerCase()
+    });
 
     // Use OpenAI to generate topic-specific content blocks
     const openai = new (await import("openai")).default({
