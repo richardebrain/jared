@@ -3804,338 +3804,63 @@ Create a natural conversation between two podcast hosts discussing this specific
         </CardContent>
       </Card>
 
-      {/* Multilingual Voice Features Deep Dive Workshop */}
+      {/* Step-by-Step Voice Workshop */}
       <Card className="mt-8">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Mic className="h-6 w-6 text-primary" />
-            Multilingual Voice Features Workshop
-            <Badge variant="secondary" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-              Live Demo
+            Voice Workshop - Step 1: Basic Voice Generation
+            <Badge variant="secondary" className="bg-blue-500 text-white">
+              Getting Started
             </Badge>
           </CardTitle>
           <CardDescription>
-            Experience all 7 advanced ElevenLabs voice capabilities with real-time multilingual AI assistance. 
-            This workshop demonstrates voice generation, sound effects, pronunciation guides, and more in 29+ languages.
+            Let's start with the fundamentals. First, we'll generate a simple voice message to test the basic functionality.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-8">
-          {/* BearyAI Assistant Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <Brain className="h-5 w-5 text-blue-500" />
-                Multilingual BearyAI Assistant
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Ask BearyAI questions about early childhood education in any supported language. 
-                Responses include voice narration in your selected language.
-              </p>
-              <div className="h-[500px]">
-                <MultilingualBearyAI 
-                  enableVoiceGeneration={true}
-                  onLanguageChange={(lang) => {
-                    toast({
-                      title: "Language Changed",
-                      description: `BearyAI now responds in ${lang}`,
-                    });
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Voice Features Demo Panel */}
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-purple-500" />
-                Advanced Voice Capabilities
-              </h3>
-              
-              {/* Quick Voice Tests */}
-              <div className="space-y-4">
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-medium mb-2">1. Multilingual Speech Generation</h4>
-                  <p className="text-sm text-muted-foreground mb-3">Generate the same text in different languages</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => generateQuickVoice("Welcome to our learning platform", "en")}
-                    >
-                      🇺🇸 English
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => generateQuickVoice("Bienvenido a nuestra plataforma de aprendizaje", "es")}
-                    >
-                      🇪🇸 Spanish
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => generateQuickVoice("Bienvenue sur notre plateforme d'apprentissage", "fr")}
-                    >
-                      🇫🇷 French
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => generateQuickVoice("学習プラットフォームへようこそ", "ja")}
-                    >
-                      🇯🇵 Japanese
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-medium mb-2">2. AI Sound Effects</h4>
-                  <p className="text-sm text-muted-foreground mb-3">Create custom classroom audio environments</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => generateSoundEffect("Gentle classroom ambience with children learning")}
-                    >
-                      🏫 Classroom
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => generateSoundEffect("Success celebration sounds for correct answers")}
-                    >
-                      🎉 Success
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => generateSoundEffect("Nature sounds with birds for outdoor learning")}
-                    >
-                      🌿 Nature
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => generateSoundEffect("Soft transition music for activity changes")}
-                    >
-                      🎵 Transitions
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-medium mb-2">3. Pronunciation Guides</h4>
-                  <p className="text-sm text-muted-foreground mb-3">Interactive vocabulary building tools</p>
-                  <div className="space-y-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="w-full justify-start"
-                      onClick={() => generatePronunciationGuide("butterfly", "BUH-ter-fly")}
-                    >
-                      🦋 "Butterfly" → BUH-ter-fly
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="w-full justify-start"
-                      onClick={() => generatePronunciationGuide("education", "eh-joo-KAY-shun")}
-                    >
-                      📚 "Education" → eh-joo-KAY-shun
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-medium mb-2">4. Emotional Storytelling</h4>
-                  <p className="text-sm text-muted-foreground mb-3">Engaging narratives with voice modulation</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => generateEmotionalStory("excited", "Once upon a time, there was a curious little learner who discovered the magic of reading!")}
-                    >
-                      😊 Excited
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => generateEmotionalStory("calm", "In a peaceful classroom, children learned the gentle art of mindfulness and focus.")}
-                    >
-                      😌 Calm
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => generateEmotionalStory("mysterious", "What could be hiding in the school library after hours? Let's find out together...")}
-                    >
-                      🔍 Mysterious
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => generateEmotionalStory("happy", "Today we're going to have the most wonderful learning adventure together!")}
-                    >
-                      🎈 Happy
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Interactive Workshop Section */}
-          <Separator />
-          <div className="space-y-6">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Wand2 className="h-5 w-5 text-green-500" />
-              Interactive Workshop: Create Your Own Content
+        <CardContent className="space-y-6">
+          {/* Step 1: Basic Voice Test */}
+          <div className="p-6 border-2 border-blue-200 rounded-lg bg-blue-50">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">1</span>
+              Test Basic Voice Generation
             </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Custom Voice Generation</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label>Your Text</Label>
-                    <Textarea 
-                      placeholder="Enter text to convert to speech in any language..."
-                      className="min-h-[100px]"
-                      id="customVoiceText"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <Label>Language</Label>
-                      <Select defaultValue="en">
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="en">🇺🇸 English</SelectItem>
-                          <SelectItem value="es">🇪🇸 Spanish</SelectItem>
-                          <SelectItem value="fr">🇫🇷 French</SelectItem>
-                          <SelectItem value="de">🇩🇪 German</SelectItem>
-                          <SelectItem value="ja">🇯🇵 Japanese</SelectItem>
-                          <SelectItem value="zh">🇨🇳 Chinese</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>Voice Style</Label>
-                      <Select defaultValue="friendly">
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="friendly">Friendly</SelectItem>
-                          <SelectItem value="professional">Professional</SelectItem>
-                          <SelectItem value="storytelling">Storytelling</SelectItem>
-                          <SelectItem value="excited">Excited</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <Button 
-                    className="w-full" 
-                    onClick={() => {
-                      const text = (document.getElementById('customVoiceText') as HTMLTextAreaElement)?.value;
-                      if (text) generateCustomVoice(text);
-                    }}
-                  >
-                    <Mic className="h-4 w-4 mr-2" />
-                    Generate Voice
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Sound Effect Creator</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label>Describe Your Sound</Label>
-                    <Textarea 
-                      placeholder="Describe the sound effect you want to create (e.g., 'gentle rain for relaxation time')..."
-                      className="min-h-[100px]"
-                      id="customSoundText"
-                    />
-                  </div>
-                  <div>
-                    <Label>Duration</Label>
-                    <Select defaultValue="short">
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="short">Short (3-5 seconds)</SelectItem>
-                        <SelectItem value="medium">Medium (10-15 seconds)</SelectItem>
-                        <SelectItem value="long">Long (30+ seconds)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button 
-                    className="w-full" 
-                    onClick={() => {
-                      const description = (document.getElementById('customSoundText') as HTMLTextAreaElement)?.value;
-                      if (description) generateSoundEffect(description);
-                    }}
-                  >
-                    <Volume2 className="h-4 w-4 mr-2" />
-                    Create Sound Effect
-                  </Button>
-                </CardContent>
-              </Card>
+            <p className="text-sm text-muted-foreground mb-4">
+              Click the button below to generate a welcome message using our AI voice technology.
+            </p>
+            <div className="space-y-4">
+              <div className="p-4 bg-white rounded border">
+                <p className="text-sm mb-3"><strong>Text to generate:</strong></p>
+                <p className="italic">"Welcome to our advanced multilingual learning platform. This is a demonstration of AI-powered voice generation."</p>
+              </div>
+              <Button 
+                onClick={() => generateQuickVoice("Welcome to our advanced multilingual learning platform. This is a demonstration of AI-powered voice generation.", "en")}
+                className="w-full"
+                size="lg"
+              >
+                <Mic className="h-4 w-4 mr-2" />
+                Generate Welcome Message
+              </Button>
             </div>
           </div>
 
-          {/* Workshop Summary */}
-          <div className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
-            <h4 className="font-semibold mb-3 flex items-center gap-2">
-              <Award className="h-5 w-5 text-blue-600" />
-              Workshop Complete - What You've Experienced
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <span>Multilingual voice generation (29+ languages)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <span>AI-powered sound effects creation</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <span>Interactive pronunciation guides</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <span>Emotional voice modulation</span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <span>Multilingual BearyAI assistance</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <span>Voice-enabled module creation</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <span>Real-time language switching</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <span>Advanced ElevenLabs integration</span>
-                </div>
-              </div>
-            </div>
+          {/* Step Instructions */}
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <h4 className="font-medium mb-2">What happens when you click:</h4>
+            <ol className="text-sm space-y-1 list-decimal list-inside text-muted-foreground">
+              <li>The text is sent to ElevenLabs AI voice service</li>
+              <li>AI generates high-quality speech audio</li>
+              <li>Audio automatically plays in your browser</li>
+              <li>You'll see a success notification</li>
+            </ol>
+          </div>
+
+          {/* Next Step Preview */}
+          <div className="border rounded-lg p-4 bg-gray-50">
+            <h4 className="font-medium mb-2">Coming up in Step 2:</h4>
+            <p className="text-sm text-muted-foreground">
+              We'll explore multilingual capabilities by generating the same message in Spanish, French, and Japanese.
+            </p>
           </div>
         </CardContent>
       </Card>
