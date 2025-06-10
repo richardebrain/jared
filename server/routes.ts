@@ -191,16 +191,23 @@ Context:
 - Category: ${category}
 - Difficulty: ${difficulty}
 
-${difficultyPrompt} about "${sectionTitle}" in the context of early childhood education.
+IMPORTANT: Your question MUST be specifically about "${sectionTitle}" and directly related to the content described. Do not create generic early childhood education questions.
+
+${difficultyPrompt} that is specifically focused on "${sectionTitle}" strategies, techniques, or concepts.
+
+The question should test understanding of:
+- Specific practices related to "${sectionTitle}"
+- Real-world application of "${sectionTitle}" concepts
+- Professional knowledge about "${sectionTitle}"
 
 ${existingQuestions.length > 0 ? `Avoid creating questions similar to these existing ones: ${existingQuestions.join('; ')}` : ''}
 
-Create ONE multiple choice question with 4 answers. Format as JSON:
+Create ONE multiple choice question with 4 answers that stays strictly on the topic of "${sectionTitle}". Format as JSON:
 {
-  "question": "Clear, specific question text",
+  "question": "Clear, specific question text that directly addresses ${sectionTitle}",
   "answers": ["Option A", "Option B", "Option C", "Option D"],
   "correctAnswer": 0,
-  "explanation": "Brief explanation of why this answer is correct"
+  "explanation": "Brief explanation of why this answer is correct in the context of ${sectionTitle}"
 }
 `;
 
