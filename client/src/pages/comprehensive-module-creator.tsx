@@ -831,6 +831,7 @@ export default function ComprehensiveModuleCreator() {
   const [isGeneratingContent, setIsGeneratingContent] = useState(false);
   const [quizDifficulty, setQuizDifficulty] = useState('medium');
   const [isGeneratingQuizQuestion, setIsGeneratingQuizQuestion] = useState(false);
+  const [isGeneratingFlashcards, setIsGeneratingFlashcards] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<any>(null);
   const [useStepByStep, setUseStepByStep] = useState(false);
   const [generatingContent, setGeneratingContent] = useState<number | null>(null);
@@ -1558,6 +1559,55 @@ export default function ComprehensiveModuleCreator() {
       });
     } finally {
       setGeneratingContent(null);
+    }
+  };
+
+  // Generate AI flashcards/key terms
+  const generateFlashcards = async () => {
+    if (!newModule.title || !newModule.description) {
+      toast({
+        title: "Missing Information",
+        description: "Please add a module title and description first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGeneratingFlashcards(true);
+    
+    try {
+      const response = await apiRequest('/api/ai/generate-flashcards', {
+        method: 'POST',
+        data: {
+          moduleTitle: newModule.title,
+          moduleDescription: newModule.description,
+          sectionTitle: newModule.sections[currentSectionIndex]?.title || 'Key Terms',
+          category: newModule.category,
+          sectionType: 'flashcards'
+        }
+      });
+
+      if (response.flashcards) {
+        // Format flashcards as content blocks that can be dragged
+        const flashcardBlocks = response.flashcards.map((card: any) => 
+          `**${card.term}**: ${card.definition}`
+        );
+        
+        setAiGeneratedBlocks(flashcardBlocks);
+        toast({
+          title: "Key Terms Generated",
+          description: `Generated ${response.flashcards.length} key terms and definitions`,
+        });
+      }
+    } catch (error) {
+      console.error('Error generating flashcards:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate key terms. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingFlashcards(false);
     }
   };
 
@@ -3579,6 +3629,20 @@ Create a natural conversation between two podcast hosts discussing this specific
                                 >
                                   <Plus className="h-4 w-4 mr-2" />
                                   Build Quiz
+                                </Button>
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={generateFlashcards}
+                                  disabled={isGeneratingFlashcards}
+                                  className="border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+                                >
+                                  {isGeneratingFlashcards ? (
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  ) : (
+                                    <BookOpen className="h-4 w-4 mr-2" />
+                                  )}
+                                  Key Terms
                                 </Button>
                                 <Button 
                                   size="sm"

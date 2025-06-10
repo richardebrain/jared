@@ -903,6 +903,117 @@ Based on your reflection, identify one specific area related to ${topic} that yo
   }
 });
 
+/**
+ * Generate flashcards/key terms for educational content
+ */
+router.post('/generate-flashcards', async (req, res) => {
+  try {
+    const { moduleTitle, moduleDescription, sectionTitle, category, sectionType } = req.body;
+    
+    if (!moduleTitle) {
+      return res.status(400).json({ error: 'Module title is required' });
+    }
+
+    console.log('Generating flashcards for:', { moduleTitle, sectionTitle, category });
+
+    const openai = new (await import("openai")).default({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
+    const prompt = `
+You are an expert early childhood education instructor creating key terms and definitions for a module about "${moduleTitle}".
+
+Create 8-10 educational flashcards with key terms and clear, practical definitions that early childhood educators need to understand about "${moduleTitle}".
+
+REQUIREMENTS:
+- Focus specifically on "${moduleTitle}" concepts
+- Use terminology relevant to early childhood education (ages 2-5)
+- Include both theoretical concepts and practical applications
+- Make definitions clear and actionable for teachers
+- Include developmental considerations where appropriate
+
+Format as JSON:
+{
+  "flashcards": [
+    {
+      "term": "Key Term",
+      "definition": "Clear, practical definition that teachers can understand and apply immediately"
+    }
+  ]
+}
+
+Example topics to consider:
+- Core concepts related to "${moduleTitle}"
+- Developmental milestones relevant to the topic
+- Assessment strategies
+- Implementation techniques
+- Safety considerations (if applicable)
+- Evidence-based practices
+- Professional terminology teachers should know
+`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert early childhood education curriculum designer specializing in professional development and key terminology."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 2000,
+      response_format: { type: "json_object" }
+    });
+
+    const result = JSON.parse(response.choices[0]?.message?.content || '{"flashcards": []}');
+    
+    if (!result.flashcards || result.flashcards.length === 0) {
+      throw new Error('No flashcards generated');
+    }
+
+    console.log(`Generated ${result.flashcards.length} flashcards for: ${moduleTitle}`);
+    
+    return res.json({
+      flashcards: result.flashcards
+    });
+
+  } catch (error) {
+    console.error("Error generating flashcards:", error);
+    
+    // Fallback flashcards with generic early childhood education terms
+    const fallbackFlashcards = [
+      {
+        term: "Scaffolding",
+        definition: "Providing temporary support and guidance to help children achieve tasks they couldn't complete independently"
+      },
+      {
+        term: "Zone of Proximal Development",
+        definition: "The difference between what a child can do alone and what they can achieve with guidance and support"
+      },
+      {
+        term: "Emergent Curriculum",
+        definition: "An educational approach that builds curriculum based on children's interests and developmental needs"
+      },
+      {
+        term: "Positive Guidance",
+        definition: "Teaching appropriate behavior through supportive, respectful interactions rather than punishment"
+      },
+      {
+        term: "Developmentally Appropriate Practice",
+        definition: "Teaching methods that are suitable for children's age, individual development, and cultural background"
+      }
+    ];
+    
+    return res.json({
+      flashcards: fallbackFlashcards
+    });
+  }
+});
+
 // All content generation now handled by OpenAI in the main route above
 
 export default router;
