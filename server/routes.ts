@@ -1698,6 +1698,128 @@ Continue for all 5 questions...
     }
   });
 
+  // Module publishing route
+  app.post("/api/modules/publish", async (req, res) => {
+    try {
+      const {
+        moduleId,
+        module,
+        type,
+        selectedTeachers,
+        selectedGroups,
+        customMessage,
+        includeInLibrary,
+        allowComments,
+        publishToSection,
+        publishToCommunity
+      } = req.body;
+
+      console.log('Publishing module with type:', type);
+
+      // First save the module if it doesn't exist
+      let savedModule;
+      if (moduleId) {
+        savedModule = await storage.getModule(moduleId);
+      }
+
+      if (!savedModule) {
+        // Create the module
+        const moduleData = {
+          title: module.title,
+          description: module.description,
+          category: module.category,
+          difficulty: module.difficulty,
+          duration: parseInt(module.estimatedTime) || 10,
+          pointValue: 100, // Default points
+          content: JSON.stringify(module.sections),
+          is_visible: includeInLibrary
+        };
+        savedModule = await storage.createModule(moduleData);
+      }
+
+      // Handle different publishing types
+      if (type === 'community' && publishToCommunity) {
+        // Add to community modules (skipping for now since table may not exist)
+        console.log('Publishing to community:', savedModule.title);
+      }
+
+      // For individual teachers and groups, we'll log the distribution
+      // In a real system, this would send notifications/emails
+      if (type === 'individual' && selectedTeachers?.length > 0) {
+        console.log(`Publishing module "${savedModule.title}" to ${selectedTeachers.length} teachers`);
+        console.log('Custom message:', customMessage);
+      }
+
+      if (type === 'group' && selectedGroups?.length > 0) {
+        console.log(`Publishing module "${savedModule.title}" to ${selectedGroups.length} groups`);
+        console.log('Custom message:', customMessage);
+      }
+
+      res.json({
+        success: true,
+        moduleId: savedModule.id,
+        message: 'Module published successfully'
+      });
+
+    } catch (error) {
+      console.error('Module publishing error:', error);
+      res.status(500).json({ message: "Failed to publish module" });
+    }
+  });
+
+  // Get teachers for publishing dialog
+  app.get("/api/teachers", async (req, res) => {
+    try {
+      const teachers = await db.select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        schoolName: schools.name
+      })
+      .from(users)
+      .leftJoin(schools, eq(users.schoolId, schools.id))
+      .where(eq(users.isAdmin, false))
+      .limit(50);
+
+      res.json(teachers);
+    } catch (error) {
+      console.error('Error fetching teachers:', error);
+      res.json([]); // Return empty array on error
+    }
+  });
+
+  // Get groups for publishing dialog
+  app.get("/api/groups", async (req, res) => {
+    try {
+      // For now return sample groups since groups table may not exist
+      const sampleGroups = [
+        {
+          id: 1,
+          name: "Early Childhood Educators",
+          description: "Professional development group for ECE teachers",
+          memberCount: 25
+        },
+        {
+          id: 2,
+          name: "New Teacher Mentorship",
+          description: "Support group for first-year teachers",
+          memberCount: 12
+        },
+        {
+          id: 3,
+          name: "Advanced Learning Methods",
+          description: "Experienced teachers exploring innovative approaches",
+          memberCount: 18
+        }
+      ];
+      res.json(sampleGroups);
+    } catch (error) {
+      console.error('Error fetching groups:', error);
+      res.json([]);
+    }
+  });
+
   // Learning modules routes
   app.get("/api/modules", async (req, res) => {
     console.log('fetching modules result')

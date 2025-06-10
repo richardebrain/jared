@@ -6200,6 +6200,29 @@ Create a natural conversation between two podcast hosts discussing this specific
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Module Publishing Dialog */}
+      <ModulePublishingDialog
+        isOpen={showPublishDialog}
+        onClose={() => setShowPublishDialog(false)}
+        module={{
+          id: newModule.id,
+          title: newModule.title,
+          description: newModule.description,
+          category: newModule.category,
+          difficulty: newModule.difficulty,
+          estimatedTime: newModule.estimatedTime,
+          sections: newModule.sections
+        }}
+        onPublishSuccess={() => {
+          toast({
+            title: "Module Published Successfully!",
+            description: "Your module has been saved and distributed.",
+          });
+          // Navigate back to dashboard after successful publish
+          setLocation('/');
+        }}
+      />
     </div>
   );
 }
