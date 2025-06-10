@@ -3946,7 +3946,21 @@ Create a natural conversation between two podcast hosts discussing this specific
                           className="p-3 bg-gray-50 border border-gray-200 rounded-lg cursor-move hover:bg-gray-100 transition-colors group"
                           draggable
                           onDragStart={(e) => {
-                            e.dataTransfer.setData('text/plain', block.content);
+                            // Ensure content is properly formatted as a string
+                            let contentString = block.content;
+                            if (typeof block.content === 'object' && block.content !== null) {
+                              // Convert object to formatted string
+                              if (block.content.content) {
+                                contentString = block.content.content;
+                              } else if (block.content.text) {
+                                contentString = block.content.text;
+                              } else {
+                                contentString = Object.entries(block.content)
+                                  .map(([key, value]) => `**${key}:** ${value}`)
+                                  .join('\n\n');
+                              }
+                            }
+                            e.dataTransfer.setData('text/plain', contentString);
                             e.dataTransfer.setData('block-type', block.type);
                           }}
                         >
@@ -3997,8 +4011,32 @@ Create a natural conversation between two podcast hosts discussing this specific
                       onDrop={(e) => {
                         e.preventDefault();
                         e.currentTarget.classList.remove('border-purple-400', 'bg-purple-50');
-                        const content = e.dataTransfer.getData('text/plain');
+                        const rawContent = e.dataTransfer.getData('text/plain');
                         const blockType = e.dataTransfer.getData('block-type');
+                        
+                        // Handle different content types properly
+                        let content = rawContent;
+                        try {
+                          // If content is a JSON object, parse and format it
+                          const parsedContent = JSON.parse(rawContent);
+                          if (typeof parsedContent === 'object' && parsedContent !== null) {
+                            // Format object content as readable text
+                            if (parsedContent.content) {
+                              content = parsedContent.content;
+                            } else if (parsedContent.text) {
+                              content = parsedContent.text;
+                            } else {
+                              // Convert object to formatted string
+                              content = Object.entries(parsedContent)
+                                .map(([key, value]) => `**${key}:** ${value}`)
+                                .join('\n\n');
+                            }
+                          }
+                        } catch (err) {
+                          // If not JSON, use the raw content as is
+                          content = rawContent;
+                        }
+                        
                         const currentContent = newModule.sections[currentSectionIndex]?.content || '';
                         const updatedSections = [...newModule.sections];
                         updatedSections[currentSectionIndex] = {

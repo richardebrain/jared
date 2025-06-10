@@ -734,24 +734,42 @@ router.post('/generate-content-blocks', async (req, res) => {
     
     if (isCaseStudySection) {
       prompt = `
-You are an expert early childhood education professional creating realistic case studies for "${topic}".
+You are an expert early childhood education storyteller creating compelling case studies and hero's journey stories for "${topic}".
 
-Generate 3-5 detailed case studies that help teachers understand real-world scenarios involving "${topic}".
+Create 3-4 emotionally engaging options that teachers can choose from:
 
-Each case study should include:
-1. Realistic scenario description with specific children (ages 2-5)
-2. Classroom context and environmental factors
-3. What the teacher observes happening
-4. Multiple response options with outcomes
-5. Best practice recommendations
-6. Reflection questions for professional growth
+OPTION 1: REALISTIC CASE STUDY
+Create a detailed case study with:
+- Real classroom scenario involving "${topic}"
+- Specific teacher character facing challenges
+- Children's names, ages, and behaviors
+- Emotional stakes and tension
+- Step-by-step problem-solving
+- Successful resolution with lessons learned
 
-Make these authentic, relatable situations that preschool teachers actually encounter. Include specific dialogue, actions, and decision points.
+OPTION 2: HERO'S JOURNEY STORY
+Create an inspiring narrative with:
+- Teacher protagonist facing "${topic}" challenge
+- Call to adventure (the problem arises)
+- Resistance and obstacles
+- Mentor guidance or learning moment
+- Transformation and growth
+- Return with new wisdom to help others
+
+OPTION 3: EMOTIONAL TRANSFORMATION STORY
+Create a touching story about:
+- Teacher's initial struggles with "${topic}"
+- Personal doubts and fears
+- Breakthrough moment
+- Positive impact on children
+- Renewed confidence and purpose
+
+Each option should be a complete, standalone story (400-600 words) that teachers can directly use in their module sections.
 
 FORMAT: Return a JSON object with "blocks" array. Each block should have:
-- "type": "Case Study"
-- "preview": Brief description of the scenario
-- "content": Full detailed case study content`;
+- "type": "Story Option"
+- "preview": Brief engaging description 
+- "content": Complete formatted story text ready to use`;
     
     } else if (isWhyItMattersSection) {
       prompt = `
