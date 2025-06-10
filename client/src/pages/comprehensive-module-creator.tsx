@@ -3390,20 +3390,17 @@ Create a natural conversation between two podcast hosts discussing this specific
                       const sectionType = currentSection?.type || 'text';
                       const sectionTitle = currentSection?.title?.toLowerCase() || '';
                       
-                      // Determine section category
-                      const isVideoSection = sectionType === 'video' || 
-                                           sectionTitle.includes('video') || 
-                                           sectionTitle.includes('foundational');
-                      const isQuizSection = sectionType === 'quiz' || 
-                                           sectionTitle.includes('quiz') || 
-                                           sectionTitle.includes('key terms') || 
-                                           sectionTitle.includes('flash cards') || 
-                                           sectionTitle.includes('flashcards') ||
-                                           sectionTitle.includes('definitions');
+                      // Specific section type detection for targeted tools
+                      const isVideoSection = sectionType === 'video' || sectionTitle.includes('video') || sectionTitle.includes('foundational');
+                      const isFlashcardSection = sectionTitle.includes('flash cards') || sectionTitle.includes('flashcards') ||
+                                               sectionTitle.includes('definitions') || sectionTitle.includes('key terms');
+                      const isQuizSection = sectionType === 'quiz' || sectionTitle.includes('quiz') || sectionTitle.includes('assessment');
+                      const isActivitySection = sectionTitle.includes('guided activity') || sectionTitle.includes('step-by-step') ||
+                                              (sectionTitle.includes('activity') && !sectionTitle.includes('flash'));
                       const isScenarioSection = sectionType === 'scenario' || sectionType === 'story' || 
                                               sectionTitle.includes('scenario') || sectionTitle.includes('case study');
-                      const isInteractiveSection = sectionType === 'matching' || sectionType === 'simulation' || 
-                                                  sectionTitle.includes('interactive') || sectionTitle.includes('activity');
+                      const isTextSection = sectionType === 'text' || (!isVideoSection && !isQuizSection && !isFlashcardSection && 
+                                          !isActivitySection && !isScenarioSection);
                       
                       if (isVideoSection) {
                         return (
@@ -3631,6 +3628,76 @@ Create a natural conversation between two podcast hosts discussing this specific
                         );
                       }
                       
+                      if (isFlashcardSection) {
+                        return (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold flex items-center gap-2">
+                                <BookOpen className="h-5 w-5 text-purple-600" />
+                                Flashcard Tools
+                              </h3>
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={generateFlashcards}
+                                  disabled={isGeneratingFlashcards}
+                                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                                >
+                                  {isGeneratingFlashcards ? (
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  ) : (
+                                    <BookOpen className="h-4 w-4 mr-2" />
+                                  )}
+                                  Generate Flashcards
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <div className="text-center py-6 text-gray-500">
+                              <BookOpen className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                              <p className="text-sm font-medium">Flashcard Section</p>
+                              <p className="text-xs mt-1">Generate interactive flashcards for key terms and definitions</p>
+                            </div>
+                          </>
+                        );
+                      }
+                      
+                      if (isActivitySection) {
+                        return (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold flex items-center gap-2">
+                                <FileEdit className="h-5 w-5 text-blue-600" />
+                                Activity Tools
+                              </h3>
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={generateAIContentForSection}
+                                  disabled={isGeneratingAIContent}
+                                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                                >
+                                  {isGeneratingAIContent ? (
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  ) : (
+                                    <Sparkles className="h-4 w-4 mr-2" />
+                                  )}
+                                  Generate Activity Steps
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <div className="text-center py-6 text-gray-500">
+                              <FileEdit className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                              <p className="text-sm font-medium">Guided Activity Section</p>
+                              <p className="text-xs mt-1">Generate step-by-step classroom activities and exercises</p>
+                            </div>
+                          </>
+                        );
+                      }
+                      
                       if (isQuizSection) {
                         return (
                           <>
@@ -3648,20 +3715,6 @@ Create a natural conversation between two podcast hosts discussing this specific
                                 >
                                   <Plus className="h-4 w-4 mr-2" />
                                   Build Quiz
-                                </Button>
-                                <Button 
-                                  size="sm"
-                                  variant="outline" 
-                                  onClick={generateFlashcards}
-                                  disabled={isGeneratingFlashcards}
-                                  className="border-indigo-300 text-indigo-700 hover:bg-indigo-50"
-                                >
-                                  {isGeneratingFlashcards ? (
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                  ) : (
-                                    <BookOpen className="h-4 w-4 mr-2" />
-                                  )}
-                                  Key Terms
                                 </Button>
                                 <Button 
                                   size="sm"
