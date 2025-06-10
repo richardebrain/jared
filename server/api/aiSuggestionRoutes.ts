@@ -701,13 +701,13 @@ Take time to consider how this learning connects to your professional goals and 
  */
 router.post('/generate-content-blocks', async (req, res) => {
   try {
-    const { topic, sectionTitle, moduleTitle, sectionType } = req.body;
+    const { topic, sectionTitle, moduleTitle, sectionType, regenerationGuidance, isRegeneration } = req.body;
     
     if (!topic) {
       return res.status(400).json({ error: 'Topic is required' });
     }
 
-    console.log('Generating content blocks for:', { topic, sectionTitle, moduleTitle, sectionType });
+    console.log('Generating content blocks for:', { topic, sectionTitle, moduleTitle, sectionType, isRegeneration, regenerationGuidance });
 
     // Check section type for specific content generation
     const isActivitySection = sectionTitle?.toLowerCase().includes('activity') || 
@@ -752,9 +752,13 @@ router.post('/generate-content-blocks', async (req, res) => {
 
     let prompt;
     
+    // Add regeneration guidance to all prompts if provided
+    const guidanceText = isRegeneration && regenerationGuidance ? 
+      `\n\nIMPORTANT REGENERATION GUIDANCE: ${regenerationGuidance}\nPlease incorporate this specific guidance into your content generation.\n` : '';
+    
     if (isCaseStudySection) {
       prompt = `
-You are an expert early childhood education storyteller creating compelling case studies and hero's journey stories for "${topic}".
+You are an expert early childhood education storyteller creating compelling case studies and hero's journey stories for "${topic}".${guidanceText}
 
 Create 3-4 emotionally engaging options that teachers can choose from:
 
@@ -793,7 +797,7 @@ FORMAT: Return a JSON object with "blocks" array. Each block should have:
     
     } else if (isWhyItMattersSection) {
       prompt = `
-You are an expert early childhood education researcher explaining the importance of "${topic}" using varied levels of complexity.
+You are an expert early childhood education researcher explaining the importance of "${topic}" using varied levels of complexity.${guidanceText}
 
 Generate 4-6 content blocks with different complexity levels:
 

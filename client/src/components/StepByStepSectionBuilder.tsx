@@ -16,7 +16,8 @@ import {
   Loader2,
   GripVertical,
   Edit,
-  Trash2
+  Trash2,
+  RefreshCw
 } from 'lucide-react';
 
 interface ContentBlock {
@@ -338,7 +339,7 @@ export default function StepByStepSectionBuilder({
           {step === 'generate' && (
             <div className="text-center space-y-4">
               <Button 
-                onClick={handleGenerateContent}
+                onClick={() => handleGenerateContent()}
                 disabled={isGenerating}
                 size="lg"
                 className="px-8"
