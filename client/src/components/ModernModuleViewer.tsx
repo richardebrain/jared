@@ -165,6 +165,7 @@ const AchievementToast = ({ achievement }: { achievement: string }) => (
 );
 
 export function ModernModuleViewer({ moduleId, onComplete }: ModernModuleViewerProps) {
+  const [currentView, setCurrentView] = useState<'welcome' | 'content' | 'quiz' | 'results'>('welcome');
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [completedSections, setCompletedSections] = useState<Set<number>>(new Set());
   const [quizResults, setQuizResults] = useState<{ [sectionId: string]: QuizResult }>({});
@@ -177,6 +178,8 @@ export function ModernModuleViewer({ moduleId, onComplete }: ModernModuleViewerP
   const [sectionStartTime, setSectionStartTime] = useState<number>(Date.now());
   const [streakCount, setStreakCount] = useState(0);
   const [showSectionOutline, setShowSectionOutline] = useState(true);
+  const [currentQuizSection, setCurrentQuizSection] = useState<ModuleSection | null>(null);
+  const [showQuizResults, setShowQuizResults] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const { toast } = useToast();
 
