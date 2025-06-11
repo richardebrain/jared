@@ -8,8 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { FlashcardComponent } from "./FlashcardComponent";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/lib/auth-context";
 import { 
   CheckCircle, 
   Circle, 
@@ -40,7 +45,10 @@ import {
   Target,
   Users,
   Flame,
-  Medal
+  Medal,
+  Edit,
+  Save,
+  X
 } from "lucide-react";
 
 interface ModuleSection {
@@ -180,10 +188,17 @@ export function ModernModuleViewer({ moduleId, onComplete }: ModernModuleViewerP
   const [showSectionOutline, setShowSectionOutline] = useState(true);
   const [currentQuizSection, setCurrentQuizSection] = useState<ModuleSection | null>(null);
   const [showQuizResults, setShowQuizResults] = useState(false);
+  
+  // Edit mode state
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editedModule, setEditedModule] = useState<any>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  
   const audioRef = useRef<HTMLAudioElement>(null);
   const progressSoundRef = useRef<HTMLAudioElement>(null);
   const completionSoundRef = useRef<HTMLAudioElement>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Sound effects for gamification
   const playProgressSound = () => {
@@ -209,6 +224,31 @@ export function ModernModuleViewer({ moduleId, onComplete }: ModernModuleViewerP
       // Silently fail
     }
   };
+
+  // Save module mutation
+  const saveModuleMutation = useMutation({
+    mutationFn: async (moduleData: any) => {
+      return apiRequest(`/api/modules/${moduleId}`, {
+        method: 'PUT',
+        data: moduleData
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Module Updated",
+        description: "Your module has been successfully updated.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/modules', moduleId] });
+      setShowEditDialog(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update module. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
 
   // Get module data with enhanced handling
   const { data: module, isLoading: isModuleLoading } = useQuery<any>({
@@ -670,10 +710,7 @@ Start with one transition type and gradually expand your repertoire as children 
     );
   }
 
-  // Get user data for personalized greeting
-  const { data: user } = useQuery({
-    queryKey: ['/api/auth/me'],
-  });
+  // User data is already available from useAuth hook above
 
   // Welcome screen view
   if (currentView === 'welcome') {

@@ -144,6 +144,7 @@ export const learningModules = pgTable("learning_modules", {
   ratingCount: integer("rating_count").default(0), // Number of ratings received
   isSharedToCommunity: boolean("is_shared_to_community").default(false), // Whether shared to community
   schoolId: integer("school_id").references(() => schools.id), // School that created this module
+  creatorId: integer("creator_id").references(() => users.id), // User who created this module
   
   // Enhanced features for advanced module types
   moduleType: text("module_type").default("single"), // single, course, interactive
