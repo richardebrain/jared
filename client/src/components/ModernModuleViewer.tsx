@@ -1,20 +1,16 @@
 import { useState, useEffect, useRef } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { LearningModule as LearningModuleType } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { FlashcardComponent } from "./FlashcardComponent";
+import { ModuleEditButton } from "./ModuleEditButton";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from "@/lib/auth-context";
 import { 
   CheckCircle, 
   Circle, 
@@ -189,16 +185,10 @@ export function ModernModuleViewer({ moduleId, onComplete }: ModernModuleViewerP
   const [currentQuizSection, setCurrentQuizSection] = useState<ModuleSection | null>(null);
   const [showQuizResults, setShowQuizResults] = useState(false);
   
-  // Edit mode state
-  const [showEditDialog, setShowEditDialog] = useState(false);
-  const [editedModule, setEditedModule] = useState<any>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  
   const audioRef = useRef<HTMLAudioElement>(null);
   const progressSoundRef = useRef<HTMLAudioElement>(null);
   const completionSoundRef = useRef<HTMLAudioElement>(null);
   const { toast } = useToast();
-  const { user } = useAuth();
 
   // Sound effects for gamification
   const playProgressSound = () => {
@@ -225,30 +215,7 @@ export function ModernModuleViewer({ moduleId, onComplete }: ModernModuleViewerP
     }
   };
 
-  // Save module mutation
-  const saveModuleMutation = useMutation({
-    mutationFn: async (moduleData: any) => {
-      return apiRequest(`/api/modules/${moduleId}`, {
-        method: 'PUT',
-        data: moduleData
-      });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Module Updated",
-        description: "Your module has been successfully updated.",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/modules', moduleId] });
-      setShowEditDialog(false);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Update Failed",
-        description: error.message || "Failed to update module. Please try again.",
-        variant: "destructive",
-      });
-    }
-  });
+  // Edit functionality is handled by ModuleEditButton component
 
   // Get module data with enhanced handling
   const { data: module, isLoading: isModuleLoading } = useQuery<any>({
@@ -475,7 +442,11 @@ Start with one transition type and gradually expand your repertoire as children 
       if (isNaN(moduleId)) {
         throw new Error('Invalid module ID');
       }
-      return await apiRequest(`/api/modules/${moduleId}`);
+      const response = await fetch(`/api/modules/${moduleId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch module');
+      }
+      return response.json();
     },
     enabled: !!moduleId,
   });
@@ -731,11 +702,16 @@ Start with one transition type and gradually expand your repertoire as children 
                     <Star className="w-10 h-10 text-white" />
                   </div>
                   <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
-                    Hello {(user as any)?.firstName || 'there'}! 
+                    Ready to Learn? 
                   </h1>
                   <p className="text-xl text-gray-600 mb-6">
                     Thanks for starting the "{module.title}" training
                   </p>
+                  
+                  {/* Edit button for module creators */}
+                  <div className="mb-4">
+                    <ModuleEditButton module={module} className="mb-4" />
+                  </div>
                 </div>
 
                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-8 border border-blue-200">

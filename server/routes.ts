@@ -2011,11 +2011,11 @@ Continue for all 5 questions...
       const result = await db.execute(sql`
         INSERT INTO learning_modules (
           title, description, category, difficulty, duration, point_value, 
-          content, school_id, is_visible, featured,image_url,quiz,is_shared_to_community
+          content, school_id, creator_id, is_visible, featured,image_url,quiz,is_shared_to_community
         ) VALUES (
           ${title}, ${description}, ${category}, 
           ${difficulty}, ${parseInt(estimatedTime)}, ${pointValue},
-          ${JSON.stringify(sections)}, ${user.schoolId}, ${true}, 
+          ${JSON.stringify(sections)}, ${user?.schoolId || 1}, ${userId}, ${true}, 
           ${false}, ${null}, ${null}, ${shareWithCommunity || false}
         ) RETURNING *
       `);
