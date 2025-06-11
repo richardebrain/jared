@@ -23,6 +23,193 @@ import { Separator } from "@/components/ui/separator";
 import { GamefiedQuiz } from "@/components/GamefiedQuiz";
 import { AIBearyModal } from "@/components/AIBearyModal";
 
+// QuizSection component for handling quiz interactions
+interface QuizSectionProps {
+  section: any;
+  onComplete: () => void;
+  isCompleted: boolean;
+}
+
+function QuizSection({ section, onComplete, isCompleted }: QuizSectionProps) {
+  const [selectedAnswers, setSelectedAnswers] = useState<{[key: number]: number}>({});
+  const [showResults, setShowResults] = useState(false);
+  const [quizScore, setQuizScore] = useState(0);
+
+  // Parse quiz questions from section content
+  const getQuizQuestions = () => {
+    try {
+      let questions = [];
+      if (typeof section.content === "string") {
+        const parsed = JSON.parse(section.content);
+        questions = parsed.questions || [];
+      } else if (section.content && section.content.questions) {
+        questions = section.content.questions;
+      }
+      return questions;
+    } catch {
+      return [];
+    }
+  };
+
+  const questions = getQuizQuestions();
+
+  const handleAnswerSelect = (questionIndex: number, answerIndex: number) => {
+    if (showResults) return; // Prevent changes after submission
+    setSelectedAnswers(prev => ({
+      ...prev,
+      [questionIndex]: answerIndex
+    }));
+  };
+
+  const submitQuiz = () => {
+    let correctCount = 0;
+    questions.forEach((question: any, index: number) => {
+      if (selectedAnswers[index] === question.correctAnswer) {
+        correctCount++;
+      }
+    });
+    
+    const score = Math.round((correctCount / questions.length) * 100);
+    setQuizScore(score);
+    setShowResults(true);
+    
+    // Mark as complete if score is above 70%
+    if (score >= 70) {
+      setTimeout(() => {
+        onComplete();
+      }, 2000);
+    }
+  };
+
+  const resetQuiz = () => {
+    setSelectedAnswers({});
+    setShowResults(false);
+    setQuizScore(0);
+  };
+
+  if (isCompleted) {
+    return (
+      <div className="mb-6">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+          <h4 className="font-semibold text-green-800 mb-4 text-lg flex items-center">
+            <i className="ri-check-circle-fill mr-2"></i>
+            Knowledge Check - Completed
+          </h4>
+          <p className="text-green-700">You have successfully completed this quiz section.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mb-6">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h4 className="font-semibold text-blue-800 mb-6 text-lg">
+          Knowledge Check
+        </h4>
+        
+        {questions.length > 0 ? (
+          <div className="space-y-6">
+            {questions.map((question: any, questionIndex: number) => (
+              <div key={questionIndex} className="bg-white rounded-lg p-4 border">
+                <h5 className="font-medium text-gray-900 mb-4">
+                  {questionIndex + 1}. {question.question}
+                </h5>
+                
+                <div className="space-y-2">
+                  {question.answers.map((answer: string, answerIndex: number) => {
+                    const isSelected = selectedAnswers[questionIndex] === answerIndex;
+                    const isCorrect = answerIndex === question.correctAnswer;
+                    const isIncorrect = showResults && isSelected && !isCorrect;
+                    const shouldShowCorrect = showResults && isCorrect;
+                    
+                    return (
+                      <button
+                        key={answerIndex}
+                        onClick={() => handleAnswerSelect(questionIndex, answerIndex)}
+                        disabled={showResults}
+                        className={`w-full text-left p-3 rounded-lg border transition-all ${
+                          isSelected && !showResults
+                            ? 'border-blue-500 bg-blue-50'
+                            : shouldShowCorrect
+                            ? 'border-green-500 bg-green-50 text-green-800'
+                            : isIncorrect
+                            ? 'border-red-500 bg-red-50 text-red-800'
+                            : 'border-gray-200 hover:border-gray-300'
+                        } ${showResults ? 'cursor-default' : 'cursor-pointer'}`}
+                      >
+                        <div className="flex items-center">
+                          <div className={`w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center ${
+                            isSelected && !showResults
+                              ? 'border-blue-500 bg-blue-500'
+                              : shouldShowCorrect
+                              ? 'border-green-500 bg-green-500'
+                              : isIncorrect
+                              ? 'border-red-500 bg-red-500'
+                              : 'border-gray-300'
+                          }`}>
+                            {(isSelected || shouldShowCorrect) && (
+                              <i className={`ri-check-line text-white text-sm ${
+                                isIncorrect ? 'ri-close-line' : 'ri-check-line'
+                              }`}></i>
+                            )}
+                          </div>
+                          <span>{answer}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+            
+            {!showResults ? (
+              <div className="flex justify-center pt-4">
+                <Button
+                  onClick={submitQuiz}
+                  disabled={Object.keys(selectedAnswers).length !== questions.length}
+                  className="px-8"
+                >
+                  Submit Quiz
+                </Button>
+              </div>
+            ) : (
+              <div className="text-center pt-4">
+                <div className={`inline-flex items-center px-4 py-2 rounded-lg ${
+                  quizScore >= 70 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-yellow-100 text-yellow-800'
+                }`}>
+                  <i className={`mr-2 ${
+                    quizScore >= 70 ? 'ri-check-circle-fill' : 'ri-information-fill'
+                  }`}></i>
+                  <span className="font-medium">
+                    Quiz Score: {quizScore}% ({Object.values(selectedAnswers).filter((answer, index) => 
+                      answer === questions[index]?.correctAnswer
+                    ).length}/{questions.length} correct)
+                  </span>
+                </div>
+                
+                {quizScore < 70 && (
+                  <div className="mt-4">
+                    <Button onClick={resetQuiz} variant="outline">
+                      Retake Quiz
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-gray-500">
+            No quiz questions available for this section.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // Define module-specific lessons
 const getModuleLessons = (moduleId: number) => {
   // Special case for CORE Values module (ID: 33)
@@ -597,16 +784,11 @@ export default function LearningModulePage() {
 
                                       {/* Quiz Section */}
                                       {moduleSections[currentSectionIndex].type === "quiz" && (
-                                        <div className="mb-6">
-                                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                                            <h4 className="font-semibold text-blue-800 mb-4 text-lg">
-                                              Knowledge Check
-                                            </h4>
-                                            <div className="whitespace-pre-line text-gray-700 text-lg leading-relaxed">
-                                              {moduleSections[currentSectionIndex].content}
-                                            </div>
-                                          </div>
-                                        </div>
+                                        <QuizSection 
+                                          section={moduleSections[currentSectionIndex]}
+                                          onComplete={() => markCurrentSectionCompleted()}
+                                          isCompleted={completedSections.has(currentSectionIndex)}
+                                        />
                                       )}
 
                                       {/* Section Completion Status */}

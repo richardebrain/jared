@@ -1,0 +1,42 @@
+"questions": [
+        {
+          "question": "During a routine fire drill in an early childhood education setting, a staff member notices that one of the fire extinguishers is missing from its designated spot. What is the most appropriate action the staff member should take to effectively manage this safety equipment?",
+          "answers": [
+            "Report the missing fire extinguisher to the administration immediately and ensure it is replaced promptly.",
+            "Ignore the issue for now as the drill is more important and address it later.",
+            "Try to find another fire extinguisher from a different area to replace the missing one temporarily.",
+            "Wait until the end of the day to check if it was moved by another staff member and then report it."
+          ],
+          "correctAnswer": 0
+        },
+        {
+          "question": "During a routine classroom inspection, an early childhood educator discovers that the first aid kit is not fully stocked. Which of the following actions should the educator prioritize to effectively manage the safety equipment?",
+          "answers": [
+            "Immediately restock the first aid kit with necessary supplies and document any items that need to be replenished regularly.",
+            "Notify the director about the missing items and wait for them to address the issue.",
+            "Inform the parents about the incomplete first aid kit during pick-up time.",
+            "Continue with the day's activities and plan to address the issue after school hours."
+          ],
+          "correctAnswer": 0
+        },
+        {
+          "question": "During an outdoor play session, a staff member notices that a piece of playground safety equipment, a safety mat, is damaged and poses a potential risk to the children. What is the most appropriate action the staff member should take to effectively manage this safety equipment?",
+          "answers": [
+            "Immediately cordon off the area and inform the appropriate maintenance staff to repair or replace the damaged mat.",
+            "Continue allowing children to play on the equipment and make a note to report the damage at the end of the day.",
+            "Move the damaged mat to a less visible area and inform the maintenance team once a week.",
+            "Attempt to repair the mat temporarily using classroom supplies and continue using it until proper repairs can be made."
+          ],
+          "correctAnswer": 0
+        },
+        {
+          "question": "During a routine classroom activity, a staff member notices that the carbon monoxide detector is beeping intermittently, indicating a low battery. What should the staff member do to effectively manage this safety equipment?",
+          "answers": [
+            "Immediately replace the battery to ensure the detector is functioning properly.",
+            "Ignore the beeping and wait for the monthly safety inspection to address it.",
+            "Inform the classroom teacher and continue with the activity, as it is not an emergency.",
+            "Turn off the detector to stop the beeping until maintenance can check it."
+          ],
+          "correctAnswer": 0
+        }
+      ],
