@@ -508,11 +508,90 @@ export default function LearningModulePage() {
                               Lesson Content
                             </h4>
                             <div className="lesson-content">
-                              <div className="mb-4">
-                                This is where the specific lesson content would be displayed,
-                                including text explanations, interactive elements, and
-                                learning activities for this lesson.
-                              </div>
+                              {moduleSections.length > 0 ? (
+                                <div className="space-y-6">
+                                  {moduleSections.map((section: any, index: number) => (
+                                    <div
+                                      key={index}
+                                      className="bg-card p-4 rounded-lg"
+                                      data-section-index={index}
+                                    >
+                                      <h3 className="text-xl font-heading font-bold mb-4">
+                                        {section.title}
+                                      </h3>
+
+                                      {/* Video Section */}
+                                      {section.type === "video" && section.videoUrl && (
+                                        <div className="mb-6">
+                                          <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                                            <iframe
+                                              src={section.videoUrl.replace(
+                                                "watch?v=",
+                                                "embed/",
+                                              )}
+                                              title={section.title}
+                                              className="w-full h-full"
+                                              frameBorder="0"
+                                              allowFullScreen
+                                            />
+                                          </div>
+                                          {section.content && (
+                                            <div className="mt-4 text-gray-700">
+                                              {section.content}
+                                            </div>
+                                          )}
+                                        </div>
+                                      )}
+
+                                      {/* Text Section */}
+                                      {section.type === "text" && (
+                                        <div className="mb-6">
+                                          <div className="whitespace-pre-line text-gray-700 mb-4">
+                                            {section.content}
+                                          </div>
+                                          <div className="flex justify-between items-center">
+                                            {completedSections.has(index) ? (
+                                              <span className="text-green-600 font-medium flex items-center">
+                                                <span className="mr-2">✓</span>
+                                                Section Complete
+                                              </span>
+                                            ) : (
+                                              <Button
+                                                onClick={() =>
+                                                  markSectionCompleted(index)
+                                                }
+                                                variant="outline"
+                                                size="sm"
+                                                className="border-green-600 text-green-600 hover:bg-green-50"
+                                              >
+                                                Mark as Complete
+                                              </Button>
+                                            )}
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {/* Quiz Section */}
+                                      {section.type === "quiz" && (
+                                        <div className="mb-6">
+                                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                            <h4 className="font-semibold text-blue-800 mb-3">
+                                              Quiz Questions
+                                            </h4>
+                                            <div className="whitespace-pre-line text-gray-700">
+                                              {section.content}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="mb-4">
+                                  This lesson contains interactive content and activities to help you learn the key concepts.
+                                </div>
+                              )}
                             </div>
                           </div>
 
