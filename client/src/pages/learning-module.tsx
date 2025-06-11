@@ -118,6 +118,7 @@ export default function LearningModulePage() {
   const [completedSections, setCompletedSections] = useState<Set<number>>(
     new Set(),
   );
+  const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
 
   // Get module data
   const { data: module, isLoading: isModuleLoading } =
@@ -197,6 +198,29 @@ export default function LearningModulePage() {
       newSet.add(sectionIndex);
       return newSet;
     });
+  };
+
+  // Navigation functions for stepper
+  const goToNextSection = () => {
+    if (currentSectionIndex < moduleSections.length - 1) {
+      setCurrentSectionIndex(currentSectionIndex + 1);
+    }
+  };
+
+  const goToPreviousSection = () => {
+    if (currentSectionIndex > 0) {
+      setCurrentSectionIndex(currentSectionIndex - 1);
+    }
+  };
+
+  const markCurrentSectionCompleted = () => {
+    markSectionCompleted(currentSectionIndex);
+    // Auto-advance to next section if not the last one
+    if (currentSectionIndex < moduleSections.length - 1) {
+      setTimeout(() => {
+        goToNextSection();
+      }, 1000); // Small delay to show completion status
+    }
   };
 
   // Get module-specific lessons (fallback for older modules)
@@ -504,92 +528,150 @@ export default function LearningModulePage() {
                           </div>
 
                           <div className="mb-8">
-                            <h4 className="font-heading font-semibold mb-3">
-                              Lesson Content
-                            </h4>
+                            {/* Progress Stepper */}
+                            {moduleSections.length > 0 && (
+                              <div className="mb-6">
+                                <div className="flex items-center justify-between mb-4">
+                                  <h4 className="font-heading font-semibold">
+                                    Section {currentSectionIndex + 1} of {moduleSections.length}
+                                  </h4>
+                                  <div className="text-sm text-muted-foreground">
+                                    {Math.round(((currentSectionIndex + 1) / moduleSections.length) * 100)}% Complete
+                                  </div>
+                                </div>
+                                
+                                {/* Progress bar */}
+                                <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
+                                  <div 
+                                    className="bg-primary h-2 rounded-full transition-all duration-300"
+                                    style={{ width: `${((currentSectionIndex + 1) / moduleSections.length) * 100}%` }}
+                                  ></div>
+                                </div>
+                              </div>
+                            )}
+
                             <div className="lesson-content">
                               {moduleSections.length > 0 ? (
                                 <div className="space-y-6">
-                                  {moduleSections.map((section: any, index: number) => (
+                                  {/* Current Section */}
+                                  {moduleSections[currentSectionIndex] && (
                                     <div
-                                      key={index}
-                                      className="bg-card p-4 rounded-lg"
-                                      data-section-index={index}
+                                      className="bg-card p-6 rounded-lg border"
+                                      data-section-index={currentSectionIndex}
                                     >
-                                      <h3 className="text-xl font-heading font-bold mb-4">
-                                        {section.title}
+                                      <h3 className="text-2xl font-heading font-bold mb-6">
+                                        {moduleSections[currentSectionIndex].title}
                                       </h3>
 
                                       {/* Video Section */}
-                                      {section.type === "video" && section.videoUrl && (
+                                      {moduleSections[currentSectionIndex].type === "video" && moduleSections[currentSectionIndex].videoUrl && (
                                         <div className="mb-6">
                                           <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
                                             <iframe
-                                              src={section.videoUrl.replace(
+                                              src={moduleSections[currentSectionIndex].videoUrl.replace(
                                                 "watch?v=",
                                                 "embed/",
                                               )}
-                                              title={section.title}
+                                              title={moduleSections[currentSectionIndex].title}
                                               className="w-full h-full"
                                               frameBorder="0"
                                               allowFullScreen
                                             />
                                           </div>
-                                          {section.content && (
-                                            <div className="mt-4 text-gray-700">
-                                              {section.content}
+                                          {moduleSections[currentSectionIndex].content && (
+                                            <div className="mt-4 text-gray-700 text-lg leading-relaxed">
+                                              {moduleSections[currentSectionIndex].content}
                                             </div>
                                           )}
                                         </div>
                                       )}
 
                                       {/* Text Section */}
-                                      {section.type === "text" && (
+                                      {moduleSections[currentSectionIndex].type === "text" && (
                                         <div className="mb-6">
-                                          <div className="whitespace-pre-line text-gray-700 mb-4">
-                                            {section.content}
-                                          </div>
-                                          <div className="flex justify-between items-center">
-                                            {completedSections.has(index) ? (
-                                              <span className="text-green-600 font-medium flex items-center">
-                                                <span className="mr-2">✓</span>
-                                                Section Complete
-                                              </span>
-                                            ) : (
-                                              <Button
-                                                onClick={() =>
-                                                  markSectionCompleted(index)
-                                                }
-                                                variant="outline"
-                                                size="sm"
-                                                className="border-green-600 text-green-600 hover:bg-green-50"
-                                              >
-                                                Mark as Complete
-                                              </Button>
-                                            )}
+                                          <div className="whitespace-pre-line text-gray-700 text-lg leading-relaxed mb-6">
+                                            {moduleSections[currentSectionIndex].content}
                                           </div>
                                         </div>
                                       )}
 
                                       {/* Quiz Section */}
-                                      {section.type === "quiz" && (
+                                      {moduleSections[currentSectionIndex].type === "quiz" && (
                                         <div className="mb-6">
-                                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                            <h4 className="font-semibold text-blue-800 mb-3">
-                                              Quiz Questions
+                                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                                            <h4 className="font-semibold text-blue-800 mb-4 text-lg">
+                                              Knowledge Check
                                             </h4>
-                                            <div className="whitespace-pre-line text-gray-700">
-                                              {section.content}
+                                            <div className="whitespace-pre-line text-gray-700 text-lg leading-relaxed">
+                                              {moduleSections[currentSectionIndex].content}
                                             </div>
                                           </div>
                                         </div>
                                       )}
+
+                                      {/* Section Completion Status */}
+                                      <div className="mt-6 flex justify-between items-center">
+                                        {completedSections.has(currentSectionIndex) ? (
+                                          <span className="text-green-600 font-medium flex items-center text-lg">
+                                            <i className="ri-check-circle-fill mr-2"></i>
+                                            Section Complete
+                                          </span>
+                                        ) : (
+                                          <Button
+                                            onClick={markCurrentSectionCompleted}
+                                            className="bg-green-600 hover:bg-green-700 text-white"
+                                          >
+                                            <i className="ri-check-line mr-2"></i>
+                                            Mark as Complete
+                                          </Button>
+                                        )}
+                                      </div>
                                     </div>
-                                  ))}
+                                  )}
+
+                                  {/* Navigation Buttons */}
+                                  <div className="flex justify-between items-center pt-6">
+                                    <Button
+                                      variant="outline"
+                                      onClick={goToPreviousSection}
+                                      disabled={currentSectionIndex === 0}
+                                      className="flex items-center"
+                                    >
+                                      <i className="ri-arrow-left-line mr-2"></i>
+                                      Previous
+                                    </Button>
+
+                                    <div className="flex space-x-2">
+                                      {moduleSections.map((_, index) => (
+                                        <button
+                                          key={index}
+                                          className={`w-3 h-3 rounded-full transition-all ${
+                                            index === currentSectionIndex
+                                              ? 'bg-primary'
+                                              : completedSections.has(index)
+                                              ? 'bg-green-500'
+                                              : 'bg-gray-300'
+                                          }`}
+                                          onClick={() => setCurrentSectionIndex(index)}
+                                        />
+                                      ))}
+                                    </div>
+
+                                    <Button
+                                      onClick={goToNextSection}
+                                      disabled={currentSectionIndex === moduleSections.length - 1}
+                                      className="flex items-center"
+                                    >
+                                      Next
+                                      <i className="ri-arrow-right-line ml-2"></i>
+                                    </Button>
+                                  </div>
                                 </div>
                               ) : (
-                                <div className="mb-4">
-                                  This lesson contains interactive content and activities to help you learn the key concepts.
+                                <div className="mb-4 text-center p-8">
+                                  <div className="text-gray-500 mb-4">
+                                    This lesson contains interactive content and activities to help you learn the key concepts.
+                                  </div>
                                 </div>
                               )}
                             </div>
