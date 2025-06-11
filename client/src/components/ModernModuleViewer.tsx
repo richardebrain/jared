@@ -181,7 +181,34 @@ export function ModernModuleViewer({ moduleId, onComplete }: ModernModuleViewerP
   const [currentQuizSection, setCurrentQuizSection] = useState<ModuleSection | null>(null);
   const [showQuizResults, setShowQuizResults] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const progressSoundRef = useRef<HTMLAudioElement>(null);
+  const completionSoundRef = useRef<HTMLAudioElement>(null);
   const { toast } = useToast();
+
+  // Sound effects for gamification
+  const playProgressSound = () => {
+    try {
+      const audio = new Audio();
+      audio.volume = 0.3;
+      // Simple positive beep sound data URI
+      audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAcBi+J0fLNfS4EIW++7d2VQQUNYJ7t7rV2GgUS';
+      audio.play().catch(() => {}); // Ignore errors
+    } catch (error) {
+      // Silently fail
+    }
+  };
+
+  const playCompletionSound = () => {
+    try {
+      const audio = new Audio();
+      audio.volume = 0.4;
+      // Simple completion chime sound data URI
+      audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAcBi+J0fLNfS4EIW++7d2VQQUNYJ7t7rV2GgUSRLl9pGwPAAAOQJ9tYa0XAAA1nO5kIW0cBw8AAAA=';
+      audio.play().catch(() => {}); // Ignore errors
+    } catch (error) {
+      // Silently fail
+    }
+  };
 
   // Get module data with enhanced handling
   const { data: module, isLoading: isModuleLoading } = useQuery<any>({
@@ -643,8 +670,424 @@ Start with one transition type and gradually expand your repertoire as children 
     );
   }
 
+  // Get user data for personalized greeting
+  const { data: user } = useQuery({
+    queryKey: ['/api/auth/me'],
+  });
+
+  // Welcome screen view
+  if (currentView === 'welcome') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-100 via-blue-50 to-green-100">
+        <div className="max-w-6xl mx-auto p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-12">
+            {/* Main Welcome Section */}
+            <div className="lg:col-span-2">
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="bg-white rounded-3xl shadow-2xl p-8 border-2 border-purple-200"
+              >
+                <div className="text-center mb-8">
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mb-6 shadow-lg">
+                    <Star className="w-10 h-10 text-white" />
+                  </div>
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
+                    Hello {(user as any)?.firstName || 'there'}! 
+                  </h1>
+                  <p className="text-xl text-gray-600 mb-6">
+                    Thanks for starting the "{module.title}" training
+                  </p>
+                </div>
+
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-8 border border-blue-200">
+                  <h2 className="text-2xl font-semibold bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent mb-4 flex items-center gap-2">
+                    <Trophy className="w-6 h-6 text-yellow-500" />
+                    In this training you will learn about:
+                  </h2>
+                  <p className="text-lg text-gray-700 leading-relaxed">
+                    {module.description || "ECERS preparation, some tips and tricks to help you feel confident and ready for your assessment."}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 mb-8">
+                  <div className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl p-4 text-center border border-green-200">
+                    <Clock className="w-6 h-6 text-green-600 mx-auto mb-2" />
+                    <div className="text-lg font-bold text-green-700">{module.duration || 20}</div>
+                    <div className="text-sm text-green-600">minutes</div>
+                  </div>
+                  <div className="bg-gradient-to-r from-blue-100 to-cyan-100 rounded-xl p-4 text-center border border-blue-200">
+                    <Users className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+                    <div className="text-lg font-bold text-blue-700">{moduleSections.length}</div>
+                    <div className="text-sm text-blue-600">steps</div>
+                  </div>
+                  <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-xl p-4 text-center border border-yellow-200">
+                    <Award className="w-6 h-6 text-yellow-600 mx-auto mb-2" />
+                    <div className="text-lg font-bold text-yellow-700">{module.pointValue || 50}</div>
+                    <div className="text-sm text-yellow-600">points</div>
+                  </div>
+                </div>
+
+                <div className="text-center">
+                  <Button
+                    onClick={() => {
+                      setCurrentView('content');
+                      playProgressSound();
+                    }}
+                    size="lg"
+                    className="bg-gradient-to-r from-purple-600 via-blue-600 to-green-600 hover:from-purple-700 hover:via-blue-700 hover:to-green-700 px-12 py-4 text-xl font-bold shadow-xl transform hover:scale-105 transition-all duration-200 rounded-xl"
+                  >
+                    <Play className="w-6 h-6 mr-3" />
+                    Start Training
+                  </Button>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Training Outline Sidebar */}
+            <div className="lg:col-span-1">
+              <motion.div
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="bg-white rounded-3xl shadow-2xl p-6 sticky top-6 border-2 border-purple-200"
+              >
+                <h3 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-6 flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-purple-600" />
+                  Training Outline
+                </h3>
+                
+                <div className="space-y-3">
+                  {moduleSections.map((section, index) => (
+                    <motion.div
+                      key={section.id}
+                      whileHover={{ scale: 1.02 }}
+                      className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${
+                        completedSections.has(index) 
+                          ? 'bg-gradient-to-r from-green-100 to-emerald-100 border border-green-300' 
+                          : 'bg-gradient-to-r from-gray-50 to-gray-100 hover:from-purple-50 hover:to-blue-50 border border-gray-200 hover:border-purple-300'
+                      }`}
+                    >
+                      <div className="flex-shrink-0">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm shadow-md ${
+                          completedSections.has(index)
+                            ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
+                            : 'bg-gradient-to-r from-purple-500 to-blue-500 text-white'
+                        }`}>
+                          {completedSections.has(index) ? (
+                            <CheckCircle className="w-4 h-4" />
+                          ) : (
+                            index + 1
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <SectionTypeIcon type={section.type} completed={completedSections.has(index)} />
+                          <span className="text-sm font-medium text-gray-900 truncate">
+                            {section.title}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <Clock className="w-3 h-3" />
+                          <span>{section.duration || 5} min</span>
+                        </div>
+                      </div>
+                      <div className="flex-shrink-0">
+                        {completedSections.has(index) ? (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center"
+                          >
+                            <Trophy className="w-3 h-3 text-white" />
+                          </motion.div>
+                        ) : (
+                          <Circle className="w-4 h-4 text-gray-300" />
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+                
+                <div className="mt-6 pt-4 border-t border-purple-200">
+                  <div className="flex items-center justify-between text-sm font-medium">
+                    <span className="text-purple-700">Progress</span>
+                    <span className="text-blue-700">{completedSections.size}/{moduleSections.length}</span>
+                  </div>
+                  <div className="mt-3">
+                    <Progress 
+                      value={progressPercentage} 
+                      className="h-3 bg-gray-200 rounded-full overflow-hidden"
+                    />
+                    <div className="text-center mt-2 text-xs font-medium text-purple-600">
+                      {Math.round(progressPercentage)}% Complete
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Quiz view
+  if (currentView === 'quiz' && currentQuizSection) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-100 via-blue-50 to-green-100">
+        <div className="max-w-4xl mx-auto p-6">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="bg-white rounded-3xl shadow-2xl p-8 mt-12 border-2 border-purple-200"
+          >
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-full mb-4 shadow-lg">
+                <Target className="w-8 h-8 text-white" />
+              </div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-2">
+                Implementation Check
+              </h1>
+              <p className="text-gray-600">Test your understanding of the concepts you just learned</p>
+            </div>
+
+            {currentQuizSection.questions && currentQuizSection.questions.map((question, questionIndex) => (
+              <motion.div
+                key={questionIndex}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: questionIndex * 0.1 }}
+                className="mb-8 bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl p-6 border border-blue-200"
+              >
+                <h3 className="text-xl font-semibold mb-6 flex items-center gap-3">
+                  <span className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-full flex items-center justify-center font-bold">
+                    {questionIndex + 1}
+                  </span>
+                  {question.question}
+                </h3>
+                
+                <div className="space-y-3">
+                  {question.answers.map((answer, answerIndex) => (
+                    <motion.button
+                      key={answerIndex}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setCurrentQuizAnswers(prev => ({
+                          ...prev,
+                          [questionIndex]: answerIndex
+                        }));
+                        playProgressSound();
+                      }}
+                      className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-200 ${
+                        currentQuizAnswers[questionIndex] === answerIndex
+                          ? 'border-purple-500 bg-purple-100 text-purple-800'
+                          : 'border-gray-200 bg-white hover:border-purple-300 hover:bg-purple-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-sm font-bold ${
+                          currentQuizAnswers[questionIndex] === answerIndex
+                            ? 'border-purple-500 bg-purple-500 text-white'
+                            : 'border-gray-300'
+                        }`}>
+                          {String.fromCharCode(65 + answerIndex)}
+                        </span>
+                        {answer}
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+
+            <div className="text-center mt-8">
+              <Button
+                onClick={() => {
+                  // Calculate quiz results
+                  const totalQuestions = currentQuizSection.questions?.length || 0;
+                  let correctAnswers = 0;
+                  
+                  currentQuizSection.questions?.forEach((question, index) => {
+                    if (currentQuizAnswers[index] === question.correctAnswer) {
+                      correctAnswers++;
+                    }
+                  });
+                  
+                  const percentage = (correctAnswers / totalQuestions) * 100;
+                  const passed = percentage >= 80;
+                  
+                  setQuizResults({
+                    [currentQuizSection.id]: {
+                      score: correctAnswers,
+                      totalQuestions,
+                      percentage,
+                      passed,
+                      answers: Object.entries(currentQuizAnswers).map(([questionIndex, selectedAnswer]) => ({
+                        questionIndex: parseInt(questionIndex),
+                        selectedAnswer,
+                        correct: selectedAnswer === currentQuizSection.questions![parseInt(questionIndex)].correctAnswer
+                      }))
+                    }
+                  });
+                  
+                  setCurrentView('results');
+                  if (passed) {
+                    playCompletionSound();
+                  }
+                }}
+                disabled={Object.keys(currentQuizAnswers).length < (currentQuizSection.questions?.length || 0)}
+                size="lg"
+                className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 px-12 py-4 text-xl font-bold shadow-xl transform hover:scale-105 transition-all duration-200 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              >
+                <CheckCircle className="w-6 h-6 mr-3" />
+                Submit Quiz
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
+  // Quiz results view
+  if (currentView === 'results' && currentQuizSection) {
+    const result = quizResults[currentQuizSection.id];
+    if (!result) return null;
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-100 via-blue-50 to-green-100">
+        <div className="max-w-4xl mx-auto p-6">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6 }}
+            className="bg-white rounded-3xl shadow-2xl p-8 mt-12 border-2 border-purple-200"
+          >
+            <div className="text-center mb-8">
+              <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full mb-6 shadow-lg ${
+                result.passed 
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-500' 
+                  : 'bg-gradient-to-r from-red-500 to-orange-500'
+              }`}>
+                {result.passed ? (
+                  <Trophy className="w-10 h-10 text-white" />
+                ) : (
+                  <RefreshCw className="w-10 h-10 text-white" />
+                )}
+              </div>
+              
+              <h1 className={`text-4xl font-bold mb-4 ${
+                result.passed 
+                  ? 'bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent'
+                  : 'bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent'
+              }`}>
+                {result.passed ? 'Excellent Work!' : 'Keep Learning!'}
+              </h1>
+              
+              <div className="text-6xl font-bold mb-4">
+                <span className={result.passed ? 'text-green-600' : 'text-red-600'}>
+                  {Math.round(result.percentage)}%
+                </span>
+              </div>
+              
+              <p className="text-xl text-gray-600 mb-6">
+                You got {result.score} out of {result.totalQuestions} questions correct
+              </p>
+            </div>
+
+            {/* Question explanations */}
+            <div className="space-y-6 mb-8">
+              {currentQuizSection.questions?.map((question, index) => {
+                const userAnswer = result.answers.find(a => a.questionIndex === index);
+                const isCorrect = userAnswer?.correct || false;
+                
+                return (
+                  <div key={index} className={`p-6 rounded-2xl border-2 ${
+                    isCorrect 
+                      ? 'bg-green-50 border-green-200' 
+                      : 'bg-red-50 border-red-200'
+                  }`}>
+                    <div className="flex items-start gap-3 mb-4">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${
+                        isCorrect ? 'bg-green-500' : 'bg-red-500'
+                      }`}>
+                        {index + 1}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900 mb-2">{question.question}</h4>
+                        <p className={`text-sm ${isCorrect ? 'text-green-700' : 'text-red-700'}`}>
+                          <strong>Correct Answer:</strong> {question.answers[question.correctAnswer]}
+                        </p>
+                        {question.explanation && (
+                          <p className="text-gray-600 mt-2 text-sm">
+                            <strong>Explanation:</strong> {question.explanation}
+                          </p>
+                        )}
+                      </div>
+                      {isCorrect ? (
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <Target className="w-5 h-5 text-red-600" />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="text-center">
+              <Button
+                onClick={() => {
+                  if (result.passed) {
+                    // Move to next section
+                    if (currentSectionIndex < moduleSections.length - 1) {
+                      setCurrentSectionIndex(currentSectionIndex + 1);
+                      setCurrentView('content');
+                      setCurrentQuizAnswers({});
+                      playProgressSound();
+                    } else {
+                      setModuleCompleted(true);
+                      playCompletionSound();
+                    }
+                  } else {
+                    // Retry quiz
+                    setCurrentQuizAnswers({});
+                    setCurrentView('quiz');
+                  }
+                }}
+                size="lg"
+                className={`px-12 py-4 text-xl font-bold shadow-xl transform hover:scale-105 transition-all duration-200 rounded-xl ${
+                  result.passed
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
+                    : 'bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700'
+                }`}
+              >
+                {result.passed ? (
+                  <>
+                    <ArrowRight className="w-6 h-6 mr-3" />
+                    Continue Module
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-6 h-6 mr-3" />
+                    Try Again
+                  </>
+                )}
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-blue-50 to-green-100">
       <audio ref={audioRef} />
       
       {/* Achievement Toast */}
@@ -837,21 +1280,54 @@ Start with one transition type and gradually expand your repertoire as children 
                   </CardHeader>
 
                   <CardContent className="p-8">
-                    {/* Section content rendering */}
+                    {/* Section content rendering with gamified design */}
                     {currentSection?.type === 'text' && (
-                      <div className="prose max-w-none">
-                        <div 
-                          className="text-gray-700 leading-relaxed whitespace-pre-wrap"
-                          dangerouslySetInnerHTML={{ 
-                            __html: currentSection.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                          }} 
-                        />
+                      <div className="space-y-6">
+                        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 border-2 border-blue-200">
+                          <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent mb-6">
+                            Implementation Best Practices
+                          </h2>
+                          <div 
+                            className="text-gray-700 leading-relaxed whitespace-pre-wrap text-lg"
+                            dangerouslySetInnerHTML={{ 
+                              __html: currentSection.content.replace(/\*\*(.*?)\*\*/g, '<strong class="text-purple-700 font-semibold">$1</strong>')
+                            }} 
+                          />
+                        </div>
                         
-                        <div className="mt-8 flex justify-end">
-                          <Button onClick={markSectionComplete} className="bg-blue-600 hover:bg-blue-700">
-                            Complete Section
-                            <ArrowRight className="w-4 h-4 ml-2" />
+                        <div className="text-center space-y-4">
+                          <Button 
+                            onClick={() => {
+                              markSectionComplete();
+                              playProgressSound();
+                            }}
+                            size="lg"
+                            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-8 py-3 text-lg font-semibold shadow-lg transform hover:scale-105 transition-all duration-200 rounded-xl"
+                          >
+                            <CheckCircle className="w-5 h-5 mr-2" />
+                            Mark as Complete
                           </Button>
+                          
+                          {completedSections.has(currentSectionIndex) && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              className="mt-4"
+                            >
+                              <Button
+                                onClick={() => {
+                                  setCurrentView('quiz');
+                                  setCurrentQuizSection(currentSection);
+                                  playProgressSound();
+                                }}
+                                size="lg"
+                                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-8 py-3 text-lg font-semibold shadow-lg transform hover:scale-105 transition-all duration-200 rounded-xl"
+                              >
+                                <Target className="w-5 h-5 mr-2" />
+                                Progress to Implementation Check
+                              </Button>
+                            </motion.div>
+                          )}
                         </div>
                       </div>
                     )}
