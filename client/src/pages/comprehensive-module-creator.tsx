@@ -16,6 +16,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
 import { VoiceNarrationPanel } from "@/components/VoiceNarrationPanel";
 import MultilingualBearyAI from "@/components/MultilingualBearyAI";
+import ActivityBlockComponent from "@/components/ActivityBlockComponent";
 import {
   Video,
   Link2,
@@ -4552,44 +4553,70 @@ Create a natural conversation between two podcast hosts discussing this specific
 
                     {/* AI Generated Content Blocks */}
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {aiGeneratedBlocks.map((block, index) => (
-                        <div 
-                          key={index}
-                          className="p-3 bg-gray-50 border border-gray-200 rounded-lg cursor-move hover:bg-gray-100 transition-colors group"
-                          draggable
-                          onDragStart={(e) => {
-                            // Ensure content is properly formatted as a string
-                            let contentString = block.content;
-                            if (typeof block.content === 'object' && block.content !== null) {
-                              // Convert object to formatted string
-                              if (block.content.content) {
-                                contentString = block.content.content;
-                              } else if (block.content.text) {
-                                contentString = block.content.text;
-                              } else {
-                                contentString = Object.entries(block.content)
-                                  .map(([key, value]) => `**${key}:** ${value}`)
-                                  .join('\n\n');
-                              }
-                            }
-                            e.dataTransfer.setData('text/plain', contentString);
-                            e.dataTransfer.setData('block-type', block.type);
-                          }}
-                        >
-                          <div className="flex items-start gap-2">
-                            <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
-                              <GripVertical className="h-4 w-4 text-purple-600" />
+                      {aiGeneratedBlocks.map((block, index) => {
+                        // Check if this is a Guided Activity block
+                        const isGuidedActivity = block.type === 'Guided Activity' || 
+                                                block.type?.toLowerCase().includes('guided activity') ||
+                                                block.type?.toLowerCase().includes('interactive activity');
+                        
+                        if (isGuidedActivity) {
+                          return (
+                            <div 
+                              key={index}
+                              draggable
+                              onDragStart={(e) => {
+                                e.dataTransfer.setData('text/plain', block.content);
+                                e.dataTransfer.setData('block-type', block.type);
+                              }}
+                            >
+                              <ActivityBlockComponent 
+                                block={block}
+                                isDragging={false}
+                              />
                             </div>
-                            <div className="flex-1">
-                              <div className="font-medium text-sm text-purple-700 mb-1">{block.type}</div>
-                              <div className="text-sm text-gray-700 line-clamp-3">{block.preview}</div>
-                              <div className="text-xs text-gray-500 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                Drag to section content area →
+                          );
+                        }
+                        
+                        // Default rendering for other block types
+                        return (
+                          <div 
+                            key={index}
+                            className="p-3 bg-gray-50 border border-gray-200 rounded-lg cursor-move hover:bg-gray-100 transition-colors group"
+                            draggable
+                            onDragStart={(e) => {
+                              // Ensure content is properly formatted as a string
+                              let contentString = block.content;
+                              if (typeof block.content === 'object' && block.content !== null) {
+                                // Convert object to formatted string
+                                if (block.content.content) {
+                                  contentString = block.content.content;
+                                } else if (block.content.text) {
+                                  contentString = block.content.text;
+                                } else {
+                                  contentString = Object.entries(block.content)
+                                    .map(([key, value]) => `**${key}:** ${value}`)
+                                    .join('\n\n');
+                                }
+                              }
+                              e.dataTransfer.setData('text/plain', contentString);
+                              e.dataTransfer.setData('block-type', block.type);
+                            }}
+                          >
+                            <div className="flex items-start gap-2">
+                              <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                                <GripVertical className="h-4 w-4 text-purple-600" />
+                              </div>
+                              <div className="flex-1">
+                                <div className="font-medium text-sm text-purple-700 mb-1">{block.type}</div>
+                                <div className="text-sm text-gray-700 line-clamp-3">{block.preview}</div>
+                                <div className="text-xs text-gray-500 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  Drag to section content area →
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                       {aiGeneratedBlocks.length === 0 && (
                         <div className="text-center py-8 text-gray-500">
                           <Sparkles className="h-8 w-8 mx-auto mb-2 text-gray-400" />
