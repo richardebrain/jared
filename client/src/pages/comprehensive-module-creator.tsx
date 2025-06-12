@@ -1051,17 +1051,25 @@ export default function ComprehensiveModuleCreator() {
     title: '',
     activityType: 'drag-and-match',
     instructions: '',
-    items: ['', ''],
-    answers: ['', ''],
-    preview: ''
+    promptItems: ['', '', '', ''],
+    answerKey: ['', '', '', ''],
+    preview: '',
+    uiHints: {
+      leftColumnTitle: 'Items to Match',
+      rightColumnTitle: 'Categories',
+      dragInstruction: 'Drag items to their matching categories'
+    },
+    imageSupport: false
   });
   const [builtActivities, setBuiltActivities] = useState<Array<{
     title: string;
     activityType: string;
     instructions: string;
-    items: string[];
-    answers: string[];
+    promptItems: string[];
+    answerKey: string[];
     preview: string;
+    uiHints: any;
+    imageSupport: boolean;
   }>>([]);
   const [isGeneratingActivity, setIsGeneratingActivity] = useState(false);
 
@@ -1180,11 +1188,112 @@ export default function ComprehensiveModuleCreator() {
       title: '',
       activityType: 'drag-and-match',
       instructions: '',
-      items: ['', ''],
-      answers: ['', ''],
-      preview: ''
+      promptItems: ['', '', '', ''],
+      answerKey: ['', '', '', ''],
+      preview: '',
+      uiHints: {
+        leftColumnTitle: 'Items to Match',
+        rightColumnTitle: 'Categories',
+        dragInstruction: 'Drag items to their matching categories'
+      },
+      imageSupport: false
     });
     setBuiltActivities([]);
+  };
+
+  const addActivityItem = () => {
+    setCurrentActivity(prev => ({
+      ...prev,
+      promptItems: [...prev.promptItems, ''],
+      answerKey: [...prev.answerKey, '']
+    }));
+  };
+
+  const addCurrentActivityToList = () => {
+    if (!currentActivity.title.trim() || !currentActivity.instructions.trim()) {
+      toast({
+        title: "Incomplete Activity",
+        description: "Please provide both title and instructions for the activity.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const validItems = currentActivity.promptItems.filter(item => item.trim());
+    const validAnswers = currentActivity.answerKey.filter(answer => answer.trim());
+
+    if (validItems.length < 2 || validAnswers.length < 2) {
+      toast({
+        title: "Insufficient Content",
+        description: "Please provide at least 2 items and 2 answer options.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newActivity = {
+      ...currentActivity,
+      promptItems: validItems,
+      answerKey: validAnswers,
+      preview: `${currentActivity.activityType}: ${currentActivity.title}`
+    };
+
+    setBuiltActivities(prev => [...prev, newActivity]);
+    
+    // Reset current activity for next one
+    setCurrentActivity({
+      title: '',
+      activityType: 'drag-and-match',
+      instructions: '',
+      promptItems: ['', '', '', ''],
+      answerKey: ['', '', '', ''],
+      preview: '',
+      uiHints: {
+        leftColumnTitle: 'Items to Match',
+        rightColumnTitle: 'Categories',
+        dragInstruction: 'Drag items to their matching categories'
+      },
+      imageSupport: false
+    });
+
+    toast({
+      title: "Activity Added",
+      description: `${newActivity.title} has been added to your activity list.`,
+    });
+  };
+
+  const finishActivityAndSave = () => {
+    const activityContent = {
+      activities: builtActivities,
+      totalActivities: builtActivities.length,
+      sectionType: 'interactive-activities'
+    };
+
+    const updatedSections = [...newModule.sections];
+    updatedSections[currentSectionIndex] = {
+      ...updatedSections[currentSectionIndex],
+      type: 'matching',
+      content: JSON.stringify(activityContent),
+      activities: [{
+        type: 'practice' as const,
+        title: `Interactive Activities: ${updatedSections[currentSectionIndex].title}`,
+        duration: 5,
+        content: JSON.stringify(activityContent),
+        interactionType: 'activity' as const
+      }]
+    };
+    setNewModule(prev => ({ ...prev, sections: updatedSections }));
+    
+    setIsActivityBuilder(false);
+    setBuiltActivities([]);
+    
+    toast({
+      title: "Activities Created Successfully",
+      description: `Created interactive section with ${builtActivities.length} activities`,
+    });
+    
+    // Auto-advance to next section
+    nextSection();
   };
 
   const generateSingleActivity = async () => {

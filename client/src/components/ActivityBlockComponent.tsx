@@ -33,9 +33,24 @@ const ActivityBlockComponent: React.FC<ActivityBlockComponentProps> = ({
 }) => {
   
   const parseActivityContent = (content: string): ParsedActivity => {
-    console.log(content,'content from parseactivitycontent')
-    return content as ParsedActivity
-    // this is wrongly formatted , the content itself is an object with type ParsedActivity
+    console.log('ActivityBlock content:', content);
+    
+    // Handle if content is already an object
+    if (typeof content === 'object' && content !== null) {
+      return content as ParsedActivity;
+    }
+    
+    // Handle if content is a JSON string
+    try {
+      const parsed = JSON.parse(content);
+      if (parsed && typeof parsed === 'object') {
+        return parsed as ParsedActivity;
+      }
+    } catch (error) {
+      console.log('Content is not JSON, parsing as text');
+    }
+    
+    // Parse as structured text format - fallback
     const lines = content.split('\n').filter(line => line.trim());
     const parsed: ParsedActivity = {};
     
