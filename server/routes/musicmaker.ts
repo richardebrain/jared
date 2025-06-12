@@ -117,53 +117,39 @@ router.post('/generate', async (req, res) => {
       });
     }
 
-    // Call GoAPI to generate the song using the music endpoint
+    // Call GoAPI to generate the song using Udio music generation
     try {
-      // Test multiple possible endpoint formats
-      const endpoints = [
-        'https://api.goapi.ai/api/v1/music',
-        'https://api.goapi.ai/api/suno/v1/music',
-        'https://api.goapi.ai/v1/music',
-        'https://goapi.ai/api/v1/music'
-      ];
-
-      let response = null;
-      let lastError = null;
-
-      for (const endpoint of endpoints) {
-        try {
-          response = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-              'X-API-Key': process.env.GOAPI_KEY,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              prompt: `Create a fun, educational children's song about: ${prompt}. Make it appropriate for preschoolers with simple words and a catchy melody.`,
-              make_instrumental: false,
-              wait_audio: true
-            })
-          });
-
-          if (response.ok) {
-            break; // Found working endpoint
-          } else {
-            lastError = await response.text();
-            console.log(`Endpoint ${endpoint} failed with status ${response.status}: ${lastError}`);
-            response = null;
+      const response = await fetch('https://api.goapi.ai/api/v1/task', {
+        method: 'POST',
+        headers: {
+          'X-API-Key': process.env.GOAPI_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'music-u',
+          task_type: 'generate_music',
+          input: {
+            gpt_description_prompt: `Create a fun, educational children's song about: ${prompt}. Make it appropriate for preschoolers with simple words and a catchy melody. Use upbeat, cheerful music that kids will love to sing along with.`,
+            negative_tags: 'scary, violent, inappropriate, adult content',
+            lyrics_type: 'generate',
+            seed: -1
+          },
+          config: {
+            service_mode: 'public',
+            webhook_config: {
+              endpoint: '',
+              secret: ''
+            }
           }
-        } catch (err) {
-          console.log(`Endpoint ${endpoint} failed with error:`, err.message);
-          lastError = err.message;
-          response = null;
-        }
-      }
+        })
+      });
 
-      if (!response || !response.ok) {
-        console.error('All GoAPI endpoints failed. Last error:', lastError);
-        return res.status(503).json({ 
-          error: 'Music generation service is temporarily unavailable. Please check your GoAPI configuration or try again later.',
-          details: 'Unable to connect to music generation API'
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('GoAPI error:', response.status, errorData);
+        return res.status(500).json({ 
+          error: 'Failed to generate song. Please try again.',
+          details: 'Music generation service error'
         });
       }
 
@@ -182,23 +168,35 @@ router.post('/generate', async (req, res) => {
         // Continue with song generation even if usage tracking fails
       }
 
-      if (result.status === 'completed' && result.data?.[0]?.audio_url) {
-        // Song is ready immediately
-        res.json({
-          success: true,
-          audioUrl: result.data[0].audio_url,
-          status: 'completed'
-        });
-      } else if (result.task_id) {
-        // Song is being processed
-        res.json({
-          success: true,
-          taskId: result.task_id,
-          status: 'processing'
-        });
+      // Handle GoAPI task response format
+      if (result.code === 200 && result.data) {
+        const taskData = result.data;
+        
+        if (taskData.status === 'completed' && taskData.output?.audio_url) {
+          // Song is ready immediately
+          res.json({
+            success: true,
+            audioUrl: taskData.output.audio_url,
+            status: 'completed'
+          });
+        } else if (taskData.task_id) {
+          // Song is being processed
+          res.json({
+            success: true,
+            taskId: taskData.task_id,
+            status: taskData.status || 'processing'
+          });
+        } else {
+          res.status(500).json({ 
+            error: 'Song generation started but no task ID received',
+            details: 'Please try again'
+          });
+        }
       } else {
+        console.error('Unexpected GoAPI response:', result);
         res.status(500).json({ 
-          error: 'Unexpected response from music generation service' 
+          error: result.message || 'Unexpected response from music generation service',
+          details: 'Please check your API configuration'
         });
       }
 
