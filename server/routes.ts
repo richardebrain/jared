@@ -248,6 +248,121 @@ Create ONE multiple choice question with 4 realistic answers that directly tests
     }
   });
 
+  // Generate single interactive activity for module builder
+  app.post("/api/ai/generate-single-activity", async (req, res) => {
+    try {
+      const { moduleTitle, moduleDescription, sectionTitle, category, activityType = 'drag-and-match', existingActivities = [], learningObjective } = req.body;
+
+      console.log('single activity -->', moduleTitle, moduleDescription, sectionTitle, category, activityType, existingActivities);
+
+      if (!sectionTitle) {
+        return res.status(400).json({ error: "Section title is required" });
+      }
+
+      const activityTypePrompts = {
+        'drag-and-match': 'Create a drag-and-match activity where learners match concepts to their definitions or examples',
+        'scenario-challenge': 'Create a scenario-based challenge with realistic classroom situations and response options',
+        'categorization': 'Create a categorization activity where learners sort items into appropriate groups',
+        'sequence-ordering': 'Create a sequence ordering activity where learners arrange steps in the correct order'
+      };
+
+      const activityPrompt = activityTypePrompts[activityType] || activityTypePrompts['drag-and-match'];
+
+      // Use the learning objective as the primary focus, fall back to module description if not available
+      const mainTopic = learningObjective || moduleDescription;
+      const topicContext = learningObjective ? "learning objective" : "module description";
+
+      const prompt = `
+You are an expert in early childhood education creating interactive learning activities for professional development.
+
+Context:
+- Module Title: ${moduleTitle}
+- Main Learning Focus: ${mainTopic}
+- Current Section: ${sectionTitle}
+- Category: ${category}
+- Activity Type: ${activityType}
+
+CRITICAL: Your activity MUST be specifically about "${mainTopic}" and directly engage early childhood educators in hands-on learning about this topic.
+
+${activityPrompt} that specifically teaches practical application of "${mainTopic}" in real early childhood education settings.
+
+The activity should focus on:
+- Real classroom scenarios related to "${mainTopic}"
+- Practical strategies teachers can implement for "${mainTopic}"
+- Evidence-based practices for "${mainTopic}"
+- Problem-solving skills for "${mainTopic}"
+
+${existingActivities.length > 0 ? `Avoid creating activities similar to these existing ones: ${existingActivities.join('; ')}` : ''}
+
+Create ONE interactive activity that directly teaches "${mainTopic}" with 4-6 items to match/categorize/sequence. Format as JSON:
+{
+  "activityType": "${activityType}",
+  "title": "Engaging title about ${mainTopic}",
+  "instructions": "Clear instructions for completing the ${activityType} activity",
+  "promptItems": ["Item 1 to match/sort", "Item 2 to match/sort", "Item 3 to match/sort", "Item 4 to match/sort"],
+  "answerKey": ["Correct match 1", "Correct match 2", "Correct match 3", "Correct match 4"],
+  "uiHints": {
+    "leftColumnTitle": "Items to Match",
+    "rightColumnTitle": "Categories",
+    "dragInstruction": "Drag items to their matching categories"
+  },
+  "imageSupport": false
+}`;
+
+      const openai = new (await import("openai")).default({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You are an expert early childhood education instructor creating interactive learning activities. Always respond with valid JSON only."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        max_tokens: 1000,
+        temperature: 0.7,
+      });
+
+      const content = response.choices[0].message.content?.trim();
+      if (!content) {
+        throw new Error('No content generated');
+      }
+
+      // Parse the JSON response
+      const activityData = JSON.parse(content);
+      
+      res.json({ 
+        activity: activityData,
+        success: true 
+      });
+
+    } catch (error) {
+      console.error('Error generating activity:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate activity',
+        activity: {
+          activityType: 'drag-and-match',
+          title: 'Classroom Management Strategies',
+          instructions: 'Match each classroom management technique with its appropriate use case.',
+          promptItems: ['Positive reinforcement', 'Clear expectations', 'Consistent routines', 'Redirect behavior'],
+          answerKey: ['Encouraging good behavior', 'Setting boundaries', 'Creating stability', 'Managing disruptions'],
+          uiHints: {
+            leftColumnTitle: 'Management Techniques',
+            rightColumnTitle: 'Use Cases',
+            dragInstruction: 'Drag techniques to their appropriate use cases'
+          },
+          imageSupport: false
+        }
+      });
+    }
+  });
+
   // Generate quiz questions from video content
   app.post("/api/ai/generate-video-quiz", async (req, res) => {
     try {
