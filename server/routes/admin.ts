@@ -10,7 +10,8 @@ import { eq, desc, and } from 'drizzle-orm';
 // import { openAIService } from '../services/OpenAIService';
 
 const router = Router();
-const questionService = new QuestionManagementService();
+// Question management service temporarily disabled
+// const questionService = new QuestionManagementService();
 // Pool analysis service temporarily disabled
 // const poolAnalysisService = new QuestionPoolAnalysisService();
 
