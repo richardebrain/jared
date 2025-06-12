@@ -92,11 +92,17 @@ router.post('/generate-audio', async (req, res) => {
       });
     }
 
-    // Check weekly usage limit (1 per week due to ElevenLabs costs)
-    const usageCheck = await VoiceUsageService.canUseVoiceNarration(req.session.userId);
+    // Voice usage service temporarily disabled
+    const usageCheck = { 
+      canUse: false, 
+      reason: "Voice service temporarily unavailable",
+      usageCount: 0,
+      resetDate: new Date()
+    };
     
     if (!usageCheck.canUse) {
-      const resetDate = usageCheck.resetDate.toLocaleDateString();
+      // const resetDate = usageCheck.resetDate.toLocaleDateString();
+      const resetDate = "Service temporarily unavailable";
       return res.status(429).json({ 
         message: `Voice narration limit reached. You can use this feature again on ${resetDate}.`,
         usageCount: usageCheck.usageCount,
@@ -113,9 +119,9 @@ router.post('/generate-audio', async (req, res) => {
 The End! 
 What a wonderful story about ${childName}!`;
 
-    // Use the existing voice service for story narration
-    const { VoiceService } = await import('../services/voiceService');
-    const voiceService = new VoiceService();
+    // Voice service temporarily disabled
+    // const { VoiceService } = await import('../services/voiceService');
+    // const voiceService = new VoiceService();
     
     // Map voiceId to voiceType for the voice service
     const voiceTypeMap = {
@@ -129,38 +135,8 @@ What a wonderful story about ${childName}!`;
     
     const voiceType = voiceTypeMap[voiceId] || 'child-friendly';
     
-    const audioBuffer = await voiceService.generateSpeech(
-      enhancedText,
-      voiceType,
-      {
-        stability: 0.8,
-        similarityBoost: 0.9,
-        style: 0.2,
-        useSpeakerBoost: true
-      }
-    );
-
-    if (!audioBuffer) {
-      throw new Error('Failed to generate audio');
-    }
-
-    // Save audio to temporary file and return URL
-    const fs = await import('fs');
-    const path = await import('path');
-    const audioFilename = `story-${Date.now()}.mp3`;
-    const audioPath = path.join(process.cwd(), 'uploads', audioFilename);
-    
-    // Ensure uploads directory exists
-    const uploadsDir = path.join(process.cwd(), 'uploads');
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-    
-    fs.writeFileSync(audioPath, audioBuffer);
-    const audioUrl = `/uploads/${audioFilename}`;
-
-    // Record usage after successful generation
-    await VoiceUsageService.recordUsage(req.session.userId);
+    // Voice service temporarily disabled - return placeholder response
+    const audioUrl = null; // Audio generation temporarily unavailable
 
     res.json({ 
       audioUrl: audioUrl,
