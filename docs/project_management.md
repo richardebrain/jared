@@ -749,6 +749,63 @@ This document serves as the central project management framework for MentorMe, t
      - Consider implementing progressive enhancement for better user experience
      - May need to create new API endpoint for aggregated dashboard data if individual API calls are inefficient
 
+15. ⬜ [EP-001-15] **Dashboard Assessment Results Overview**
+   - **Description:** Enhance the PersonalizedLearningPath component to display a compact assessment results overview for users who have completed their initial assessment, providing key insights with a clear call-to-action to view detailed results.
+   - **Requirements:**
+     - **Two-Section Layout**: Split PersonalizedLearningPath into "Initial Assessment Results" and "Growth Priorities" sections
+     - **Assessment Results Overview Section**:
+       - **Time Taken Display**: Show total assessment duration (e.g., "Completed in 34 minutes")
+       - **Accuracy Percentage**: Display overall accuracy rate (e.g., "82.5%") with visual indicator
+       - **Completion Summary**: Show completion date and assessment status
+       - **Strengths Summary**: List top 2-3 strength areas (domains with ≥80% accuracy) with brief descriptions
+       - **Growth Areas Preview**: List top 2-3 growth areas (domains with <80% accuracy) as preview
+       - **Detailed Results CTA**: Prominent "View Full Assessment Results" button linking to `/assessment-results`
+     - **Growth Priorities Section**: Keep existing growth priorities functionality unchanged
+     - **Visual Design**:
+       - Clean, card-based layout consistent with existing MentorMe design
+       - Clear visual separation between the two sections
+       - Appropriate icons and visual indicators for duration and domains
+       - Responsive design for mobile and desktop viewing
+     - **Data Integration**:
+       - Fetch assessment results from existing APIs (likely from EP-001-09 results data)
+       - Calculate summary statistics from detailed assessment data
+       - Handle loading states and error scenarios gracefully
+   - **Dependencies:** EP-001-09 (Answer Processing and Evaluation), EP-001-13 (Assessment Results Display)
+   - **Technical Implementation:**
+     - **Component Updates**: 
+       - Update `PersonalizedLearningPath.tsx` to split into two sections when assessment completed
+       - Create `AssessmentResultsOverview.tsx` subcomponent for results summary
+       - Keep existing growth priorities logic in separate section
+     - **API Integration**:
+       - Use existing assessment results endpoints to fetch summary data
+       - Calculate strength/growth area summaries from domain performance data
+       - Handle cases where detailed results might not be available
+     - **Data Processing**:
+       - Calculate assessment duration from start/completion timestamps
+       - Calculate overall accuracy percentage from assessment responses
+       - Identify top strength domains (≥80% accuracy)
+       - Identify top growth domains (<80% accuracy)
+       - Format completion date and duration for display
+     - **Navigation**:
+       - Ensure "View Full Assessment Results" button properly navigates to `/assessment-results`
+       - Handle authentication and route protection appropriately
+   - **Success Criteria:**
+     - Users who completed assessment see clear, informative results overview on dashboard
+     - Assessment duration and accuracy percentage display correctly based on assessment data
+     - Strength and growth areas accurately reflect assessment performance by domain
+     - "View Full Assessment Results" button successfully navigates to detailed results page
+     - Two-section layout clearly separates results overview from growth priorities
+     - Component gracefully handles users who haven't completed assessment (existing functionality)
+     - Interface is fully responsive and matches existing design patterns
+     - Loading states and error handling work properly
+   - **Dependencies:** EP-001-09, EP-001-13
+   - **Technical Notes:**
+     - Build on existing PersonalizedLearningPath.tsx structure and conditional rendering
+     - Reuse assessment results data structure from EP-001-09 where possible
+     - Ensure component remains performant with additional data fetching
+     - Consider caching assessment results data to avoid repeated API calls
+     - Follow existing patterns for duration display and domain categorization
+
 ## Tracking Progress
 
 Weekly status updates will be added below to track overall project progress.
@@ -1300,3 +1357,104 @@ OUTPUT FORMAT: JSON object with text, options, correctAnswer, miniLesson`;
 - Using existing schema without modifications
 
 ### 🔴 [EP-003] JWT Authentication & Authorization System
+
+### 🔴 [EP-004] Admin UI for Assessment Results
+
+**Description:** Create comprehensive administrative interfaces for managing and analyzing assessment results across the platform. This epic focuses on providing administrators with powerful tools to monitor assessment performance, track user progress, and gain insights into learning patterns across the educational platform.
+
+**Business Value:** Enables platform administrators to monitor assessment effectiveness, track user progress, and identify learning trends across the platform. Critical for educational oversight, data-driven decision making, and quality assurance of the assessment system.
+
+**Success Criteria:**
+- Administrators can view and filter all assessment results with comprehensive search capabilities
+- Results display provides meaningful insights including performance analytics and growth area identification
+- Interface follows existing admin UI patterns and maintains consistency with question management
+- Performance remains acceptable with large numbers of assessment results
+- Data export capabilities for further analysis and reporting
+- Future extensibility for additional analytics and reporting features
+
+**Implementation Approach:**
+- **Phase 1**: Core Results Management Interface (Task 1)
+- **Phase 2**: Advanced Analytics and Reporting (Future tasks)
+- **Phase 3**: Data Export and Integration Features (Future tasks)
+
+**Dependencies:**
+- EP-001 (Assessment System) - Requires completed assessment results data
+- EP-002 (Admin UI for Question Management) - Leverages existing admin interface patterns
+
+**Tasks:**
+
+1. ⬜ [EP-004-01] **Assessment Results Management Interface**
+   - **Description:** Create a comprehensive admin interface for viewing and managing all user assessment results, providing administrators with oversight capabilities and analytics for assessment submissions across the platform.
+   - **Requirements:**
+     - **New Admin Tab Structure**:
+       - Rename existing "Assessments" tab to "Assessment Questions"
+       - Add new "Assessment Results" tab in admin dashboard
+       - Update tab navigation to handle two-tab layout efficiently
+     - **Assessment Results Table**:
+       - **Core Data Columns**: User name, email, completion date, accuracy percentage, assessment duration, top growth areas
+       - **Sortable Columns**: Name (alphabetical), completion date (newest/oldest), accuracy percentage (high/low)
+       - **Pagination**: 20 results per page with standard pagination controls
+       - **Visual Formatting**: Consistent with existing QuestionManagement.tsx table design
+     - **Filtering Capabilities**:
+       - **Name Filter**: Search by user's first/last name (text input)
+       - **Email Filter**: Search by user's email address (text input)
+       - **Date Range Filter**: Select completion date range with date pickers
+       - **Accuracy Range Filter**: Select accuracy percentage range with range sliders or inputs
+       - **Filter Reset**: Clear all filters button to return to unfiltered view
+     - **Results Display Format**:
+       - **User Info**: Display name and email in single cell or adjacent cells
+       - **Completion Date**: Human-readable format (e.g., "Dec 15, 2024")
+       - **Accuracy Percentage**: Visual percentage with color coding (green for high, red for low)
+       - **Duration**: Assessment time in readable format (e.g., "34 minutes")
+       - **Top Growth Areas**: Display 2-3 primary growth domains as badges or compact list
+     - **Table Interactions**:
+       - **Row Selection**: Visual hover states and selection feedback
+       - **No Individual Actions**: Per requirements, detailed view is out of scope for this task
+       - **Loading States**: Proper loading indicators during data fetching
+       - **Empty States**: Helpful messaging when no results match filters
+   - **Dependencies:** EP-001-09 (Answer Processing and Evaluation), EP-002-02 (Admin Interface Components)
+   - **Technical Implementation:**
+     - **Backend API Enhancement**:
+       - Create `GET /api/admin/assessment-results` endpoint with filtering and pagination
+       - Include query parameters for all filter types (name, email, dateRange, accuracyRange)
+       - Return aggregated results data with computed fields (duration, top growth areas)
+       - Implement efficient database queries with proper indexing for performance
+     - **Frontend Components**:
+       - Update `AppOwnerDashboard.tsx` to include two-tab layout for assessments
+       - Create `AssessmentResultsManagement.tsx` component following QuestionManagement.tsx patterns
+       - Create `ResultsTable.tsx` and `ResultsFilters.tsx` subcomponents
+       - Reuse existing UI components (Table, filters, pagination) for consistency
+     - **Data Processing**:
+       - Calculate assessment duration from start/completion timestamps
+       - Identify top growth areas from domain performance data
+       - Format accuracy percentages for display
+       - Handle edge cases (incomplete assessments, missing data)
+     - **Filter Implementation**:
+       - Text-based filters for name and email with debounced search
+       - Date range picker component for completion date filtering
+       - Range input component for accuracy percentage filtering
+       - URL parameter synchronization for filter state persistence
+   - **Success Criteria:**
+     - Admin users can access new "Assessment Results" tab alongside renamed "Assessment Questions" tab
+     - Table displays all required columns with proper formatting and visual hierarchy
+     - Filtering works accurately for all specified filter types (name, email, date range, accuracy range)
+     - Sorting functions correctly for name, date, and accuracy columns
+     - Pagination handles large result sets efficiently with standard navigation controls
+     - Interface matches existing admin UI patterns and remains fully responsive
+     - Performance remains acceptable with large numbers of assessment results
+     - Empty and loading states provide helpful user feedback
+   - **Dependencies:** EP-001-09, EP-002-02
+   - **Technical Notes:**
+     - Follow existing admin authentication and authorization patterns from EP-002
+     - Reuse table and filter components from QuestionManagement.tsx where possible
+     - Ensure database queries are optimized for potentially large assessment results datasets
+     - Consider implementing data export functionality in future iterations
+     - Use React Query for efficient data fetching and caching of results data
+     - Maintain consistency with existing admin interface design and interaction patterns
+
+**Status Updates:**
+
+**Week of [Current Date]**
+- Epic created to organize assessment results management features
+- Moved EP-001-16 to EP-004-01 for better organization and future extensibility
+- Focused on core results management interface as foundation for future analytics features
