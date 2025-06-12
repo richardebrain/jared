@@ -3,7 +3,8 @@ import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import { storage } from '../storage';
 import { eq, and } from 'drizzle-orm';
-import { teacherInvitations } from '@shared/schema';
+// Teacher invitations schema temporarily disabled
+const teacherInvitations = null;
 import { db } from '../db';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';

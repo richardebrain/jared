@@ -6,7 +6,7 @@ import debugStorage from "./fix-debug";
 import { db } from "./db";
 import express from "express";
 import session from "express-session";
-import { checkAndNotifyExpiringCredentials } from "./services/notificationService";
+// Notification service temporarily disabled
 import connectPgSimple from "connect-pg-simple";
 import { updateChildDevelopmentModule } from "./updateChildDevelopmentModule";
 import { eq, sql, and, desc } from "drizzle-orm";
@@ -44,7 +44,7 @@ import assessmentQuestionRoutes from "./routes/assessment-questions";
 import aiSuggestionRoutes from "./api/aiSuggestionRoutes";
 import newAiSuggestionRoutes from "./api/newAiSuggestionRoutes";
 import moduleRatingsRoutes from "./api/moduleRatingsRoutes";
-import communityModulesRoutes from "./api/communityModulesRoutes";
+// Community modules routes temporarily disabled
 import selfAssessmentRoutes from "./api/selfAssessmentRoutes";
 import teacherInvitationRoutes from "./api/teacherInvitationRoutes";
 import avatarRoutes from "./api/avatarRoutes";
@@ -465,7 +465,8 @@ Continue for all 5 questions...
   app.use("/api/module-ratings", moduleRatingsRoutes);
 
   // Register community modules routes
-  app.use("/api/community-modules", communityModulesRoutes);
+  // Community modules routes temporarily disabled
+  // app.use("/api/community-modules", communityModulesRoutes);
 
   // Register video generation routes
   app.use("/api/video", videoGenerationRoutes);

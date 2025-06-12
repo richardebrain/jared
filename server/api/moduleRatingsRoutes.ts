@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { storage } from "../storage";
-import { insertModuleRatingSchema } from "@shared/schema";
+// Module rating schema temporarily disabled
 import { db } from "../db";
 import { eq, sql } from "drizzle-orm";
 
