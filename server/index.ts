@@ -289,25 +289,36 @@ app.get('/api/games/leaderboard', (req, res) => {
   res.json([]);
 });
 
-// Register all comprehensive routes from routes.ts
-await registerRoutes(app);
+// Main server initialization function
+async function startServer() {
+  try {
+    // Register all comprehensive routes from routes.ts
+    await registerRoutes(app);
 
-// Error handling middleware
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  const status = err.status || err.statusCode || 500;
-  const message = err.message || "Internal Server Error";
-  res.status(status).json({ message });
-});
+    // Error handling middleware
+    app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
+      res.status(status).json({ message });
+    });
 
-// Setup Vite for development
-if (process.env.NODE_ENV === "development") {
-  setupVite(app, server);
-} else {
-  serveStatic(app);
+    // Setup Vite for development
+    if (process.env.NODE_ENV === "development") {
+      setupVite(app, server);
+    } else {
+      serveStatic(app);
+    }
+
+    // Start server
+    const port = parseInt(process.env.PORT || "3000", 10);
+    server.listen(port, "0.0.0.0", () => {
+      log(`Educational game server running on port ${port}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
 }
 
-// Start server
-const port = process.env.PORT || 3000;
-server.listen(port, "0.0.0.0", () => {
-  log(`Educational game server running on port ${port}`);
-});
+// Start the server
+startServer();

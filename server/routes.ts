@@ -164,7 +164,7 @@ async function ensureDefaultSchoolExists() {
   }
 }
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export async function registerRoutes(app: Express): Promise<void> {
   // Generate single quiz question for module builder
   app.post("/api/ai/generate-single-quiz-question", async (req, res) => {
     try {
@@ -5423,5 +5423,5 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
     }
   });
 
-  return app;
+  // Routes registered successfully
 }
