@@ -119,16 +119,20 @@ router.post('/generate', async (req, res) => {
 
     // Call GoAPI to generate the song
     try {
-      const response = await fetch('https://api.goapi.ai/api/suno/v1/music', {
+      const response = await fetch('https://api.goapi.ai/api/v1/task', {
         method: 'POST',
         headers: {
           'X-API-Key': process.env.GOAPI_KEY,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          prompt: `Create a fun, educational children's song about: ${prompt}. Make it appropriate for preschoolers with simple words and a catchy melody.`,
-          make_instrumental: false,
-          wait_audio: true
+          model: 'suno-v3',
+          task_type: 'suno_music',
+          input: {
+            prompt: `Create a fun, educational children's song about: ${prompt}. Make it appropriate for preschoolers with simple words and a catchy melody.`,
+            make_instrumental: false,
+            wait_audio: true
+          }
         })
       });
 
