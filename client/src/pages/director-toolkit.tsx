@@ -102,6 +102,16 @@ const directorTools: ToolkitTool[] = [
     badgeVariant: 'outline',
     category: 'content'
   },
+  {
+    id: 'music-maker-prek',
+    title: 'MusicMakerPrek',
+    description: 'Generate custom songs for your classroom with AI - one song per week limit',
+    icon: Sparkles,
+    route: '/music-maker',
+    badge: 'New',
+    badgeVariant: 'destructive',
+    category: 'content'
+  },
   
   // Communication
   {

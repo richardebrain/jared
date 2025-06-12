@@ -56,6 +56,7 @@ import aiModuleDesignerRoutes from "./api/aiModuleDesignerRoutes";
 import personalizedStoriesRoutes from "./api/personalizedStoriesRoutes";
 import videoSearchRoutes from "./api/videoSearchRoutes";
 import podcastRoutes from "./routes/podcast";
+import musicMakerRoutes from "./routes/musicmaker";
 
 
 // For ESM __dirname equivalent
@@ -5439,6 +5440,9 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
 
   // Register podcast generation routes
   app.use("/api/podcast", podcastRoutes);
+  
+  // Register music maker routes for director toolkit
+  app.use("/api/musicmaker", musicMakerRoutes);
 
   // Module drafts API endpoints
   app.get("/api/module-drafts", requireAuth, async (req, res) => {

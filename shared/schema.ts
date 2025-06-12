@@ -81,6 +81,9 @@ export const users = pgTable("users", {
   jobTitle: text("job_title"), // Teacher, Lead Teacher, Director, etc.
   designations: json("designations").$type<string[]>(), // Special qualifications or designations
   hasUnreadMessages: boolean("has_unread_messages").default(false), // Flag for unread welcome messages
+  // Song generation tracking fields for MusicMakerPrek
+  songRequestsThisWeek: integer("song_requests_this_week").default(0),
+  lastRequestWeekStart: text("last_request_week_start"), // Format: "YYYY-WW"
   createdAt: timestamp("created_at").defaultNow(),
 });
 
