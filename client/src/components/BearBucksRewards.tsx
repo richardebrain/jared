@@ -199,10 +199,17 @@ const BearBucksRewards: React.FC<BearBucksRewardsProps> = ({
           </div>
           
           <div className="mt-4 text-center">
-            <p className="text-sm text-blue-700">
-              You currently have <span className="font-bold">{points} points</span>, 
-              which could convert to <span className="font-bold">{potentialBearBucks} Bear Bucks</span>
-            </p>
+            <div className="bg-blue-50 p-3 rounded-lg mb-3">
+              <p className="text-sm text-blue-800 font-medium mb-2">Points Conversion</p>
+              <p className="text-sm text-blue-700">
+                You currently have <span className="font-bold">{points || 0} current points</span>, 
+                which could convert to <span className="font-bold">{potentialBearBucks} Bear Bucks</span>
+              </p>
+              <p className="text-xs text-blue-600 mt-2">
+                <strong>Important:</strong> Converting points to Bear Bucks will reduce your current points 
+                but will <strong>not</strong> affect your lifetime points used for level progression.
+              </p>
+            </div>
             
             {showConversionSuccess && (
               <Alert className="my-2 bg-green-50 border-green-200">

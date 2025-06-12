@@ -475,25 +475,23 @@ Continue for all 5 questions...
 
   // Set up credential expiration check to run daily
   const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-  // Schedule first check at server startup
-  setTimeout(() => {
-    console.log("Running initial credential expiration check...");
-    checkAndNotifyExpiringCredentials(30) // Check credentials expiring within 30 days
-      .then(() => console.log("Initial credential expiration check complete"))
-      .catch((err) =>
-        console.error("Error in credential expiration check:", err),
-      );
-  }, 5000); // Wait 5 seconds after server start before first check
-
-  // Then schedule regular daily checks
-  setInterval(() => {
+  
+  // Temporarily disable startup credential check to resolve startup hanging issue
+  // This can be re-enabled once the performance issue is resolved
+  console.log("Credential expiration checks temporarily disabled during startup");
+  
+  // Schedule regular daily checks only (not on startup)
+  /* Disabled until performance issue is resolved
+  setInterval(async () => {
     console.log("Running scheduled credential expiration check...");
-    checkAndNotifyExpiringCredentials(30) // Check credentials expiring within 30 days
-      .then(() => console.log("Scheduled credential expiration check complete"))
-      .catch((err) =>
-        console.error("Error in credential expiration check:", err),
-      );
+    try {
+      await checkAndNotifyExpiringCredentials(30); // Check credentials expiring within 30 days
+      console.log("Scheduled credential expiration check complete");
+    } catch (err) {
+      console.error("Error in credential expiration check:", err);
+    }
   }, ONE_DAY_MS);
+  */
 
   // Register welcome message routes - for teacher notifications and shout-outs
   registerWelcomeMessageRoutes(app);
