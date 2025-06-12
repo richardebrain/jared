@@ -84,6 +84,7 @@ import AdvancedVoiceFeatures from "@/components/AdvancedVoiceFeatures";
 import PersonalizedStories from "@/pages/personalized-stories";
 import ModuleFlowTest from "@/pages/module-flow-test";
 import PodcastGenerator from "@/pages/podcast-generator";
+import MusicMaker from "@/pages/music-maker";
 
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
@@ -824,6 +825,12 @@ function Router(props: {
       <Route path="/podcast-generator">
         <ProtectedRoute adminOnly={true}>
           <PodcastGenerator />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/music-maker">
+        <ProtectedRoute adminOnly={true}>
+          <MusicMaker />
         </ProtectedRoute>
       </Route>
 

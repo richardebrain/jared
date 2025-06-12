@@ -1,215 +1,236 @@
 import { Router } from 'express';
-import axios from 'axios';
-import { storage } from '../storage';
+import { z } from 'zod';
+import { db } from '../db';
+import { users } from '../../shared/schema';
+import { eq } from 'drizzle-orm';
 
 const router = Router();
 
-// Helper function to get current week code in YYYY-WW format
+// Generate a week code (YYYY-WW format)
 function getWeekCode(): string {
-  const d = new Date();
-  const year = d.getUTCFullYear();
-  const week = String(Math.ceil((((d.getTime() - new Date(year, 0, 1).getTime()) / 86400000) + new Date(year, 0, 1).getUTCDay() + 1) / 7)).padStart(2, "0");
-  return `${year}-${week}`;
+  const now = new Date();
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+  const pastDaysOfYear = (now.getTime() - startOfYear.getTime()) / 86400000;
+  const weekNumber = Math.ceil((pastDaysOfYear + startOfYear.getDay() + 1) / 7);
+  return `${now.getFullYear()}-${weekNumber.toString().padStart(2, '0')}`;
 }
 
-// Content filter for inappropriate language
-const inappropriateWords = [
-  "damn", "hell", "stupid", "idiot", "shut up", "hate", "kill", "die", 
-  "dumb", "loser", "suck", "crap", "piss", "fart", "butt", "poop"
-];
-
+// Check for inappropriate content
 function containsInappropriateContent(text: string): boolean {
+  const inappropriateWords = [
+    'violence', 'violent', 'kill', 'death', 'hate', 'scary', 'nightmare',
+    'monster', 'ghost', 'devil', 'hell', 'damn', 'stupid', 'dumb', 'idiot',
+    'fight', 'punch', 'kick', 'hurt', 'pain', 'blood', 'gun', 'weapon'
+  ];
+  
   const lowerText = text.toLowerCase();
   return inappropriateWords.some(word => lowerText.includes(word));
 }
 
-// Get user's song generation status
+// Get song generation status for current user
 router.get('/status', async (req, res) => {
   try {
-    if (!req.session?.userId) {
+    const userId = req.session.userId;
+    if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    const user = await storage.getUserById(req.session.userId);
-    if (!user) {
+    const currentWeek = getWeekCode();
+    
+    // Check user's current song usage
+    const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    
+    if (!user.length) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Check if user is a director/admin
-    if (!user.isSchoolAdmin && !user.isAdmin && !user.isOwner) {
-      return res.status(403).json({ error: 'Director access required' });
-    }
-
-    const currentWeek = getWeekCode();
-    let usedThisWeek = false;
-
-    if (user.lastRequestWeekStart === currentWeek && user.songRequestsThisWeek >= 1) {
-      usedThisWeek = true;
-    }
+    const userData = user[0];
+    
+    // Handle missing columns gracefully
+    const songRequestsThisWeek = userData.songRequestsThisWeek || 0;
+    const lastSongWeek = userData.lastRequestWeekStart || '';
+    
+    const usedThisWeek = lastSongWeek === currentWeek && songRequestsThisWeek >= 1;
 
     res.json({
       usedThisWeek,
-      requestsThisWeek: user.songRequestsThisWeek || 0,
+      requestsThisWeek: lastSongWeek === currentWeek ? songRequestsThisWeek : 0,
       currentWeek
     });
-
   } catch (error) {
-    console.error('Error getting song status:', error);
-    res.status(500).json({ error: 'Failed to get song status' });
+    console.error('Error fetching song status:', error);
+    res.status(500).json({ error: 'Failed to fetch song status' });
   }
 });
 
 // Generate a new song
 router.post('/generate', async (req, res) => {
   try {
-    if (!req.session?.userId) {
+    const userId = req.session.userId;
+    if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    const { prompt } = req.body;
-    
-    if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
-      return res.status(400).json({ error: 'Song prompt is required' });
+    const { prompt } = z.object({
+      prompt: z.string().min(1, 'Prompt is required').max(500, 'Prompt too long')
+    }).parse(req.body);
+
+    // Check for inappropriate content
+    if (containsInappropriateContent(prompt)) {
+      return res.status(400).json({ 
+        error: 'Content not appropriate for children. Please try a different theme.' 
+      });
     }
 
-    const user = await storage.getUserById(req.session.userId);
-    if (!user) {
+    const currentWeek = getWeekCode();
+    
+    // Check user's current usage
+    const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    
+    if (!user.length) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Check if user is a director/admin
-    if (!user.isSchoolAdmin && !user.isAdmin && !user.isOwner) {
-      return res.status(403).json({ error: 'Director access required' });
-    }
-
-    // Check weekly limit
-    const currentWeek = getWeekCode();
-    if (user.lastRequestWeekStart !== currentWeek) {
-      // New week, reset counter
-      user.songRequestsThisWeek = 0;
-      user.lastRequestWeekStart = currentWeek;
-    }
-
-    if (user.songRequestsThisWeek >= 1) {
+    const userData = user[0];
+    const songRequestsThisWeek = userData.songRequestsThisWeek || 0;
+    const lastSongWeek = userData.lastRequestWeekStart || '';
+    
+    // Check if user has already used their weekly allowance
+    if (lastSongWeek === currentWeek && songRequestsThisWeek >= 1) {
       return res.status(429).json({ 
-        error: 'Weekly song limit reached. You can generate one song per week.' 
+        error: 'You have already generated your song for this week. Please try again next week.' 
       });
     }
 
-    // Content filter
-    if (containsInappropriateContent(prompt)) {
-      return res.status(400).json({ 
-        error: 'Please remove inappropriate language and try again.' 
-      });
-    }
-
-    // Check for GoAPI key
+    // Check if GOAPI_KEY is available
     if (!process.env.GOAPI_KEY) {
       return res.status(500).json({ 
-        error: 'Song generation service is not configured. Please contact support.' 
+        error: 'Music generation service not configured' 
       });
     }
 
-    // Call GoAPI Suno endpoint
-    console.log('Generating song with prompt:', prompt);
-    
-    const goResponse = await axios.post(
-      'https://api.goapi.ai/api/suno/v1/music',
-      {
-        custom_mode: false,
-        input: { 
-          gpt_description_prompt: `Create a fun, educational children's song about: ${prompt}. Make it upbeat, positive, and appropriate for preschool children aged 3-5.` 
-        }
-      },
-      { 
-        headers: { 
+    // Call GoAPI to generate the song
+    try {
+      const response = await fetch('https://api.goapi.ai/api/suno/v1/music', {
+        method: 'POST',
+        headers: {
           'X-API-Key': process.env.GOAPI_KEY,
           'Content-Type': 'application/json'
         },
-        timeout: 30000 // 30 second timeout
+        body: JSON.stringify({
+          prompt: `Create a fun, educational children's song about: ${prompt}. Make it appropriate for preschoolers with simple words and a catchy melody.`,
+          make_instrumental: false,
+          wait_audio: true
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('GoAPI error:', response.status, errorData);
+        return res.status(500).json({ 
+          error: 'Failed to generate song. Please try again.' 
+        });
       }
-    );
 
-    console.log('GoAPI response:', goResponse.data);
+      const result = await response.json();
+      
+      // Update user's usage count
+      try {
+        await db.update(users)
+          .set({
+            songRequestsThisWeek: lastSongWeek === currentWeek ? songRequestsThisWeek + 1 : 1,
+            lastRequestWeekStart: currentWeek
+          })
+          .where(eq(users.id, userId));
+      } catch (updateError) {
+        console.warn('Failed to update user song usage:', updateError);
+        // Continue with song generation even if usage tracking fails
+      }
 
-    // Update user usage counter
-    user.songRequestsThisWeek = (user.songRequestsThisWeek || 0) + 1;
-    user.lastRequestWeekStart = currentWeek;
-    
-    await storage.updateUser(user.id, {
-      songRequestsThisWeek: user.songRequestsThisWeek,
-      lastRequestWeekStart: user.lastRequestWeekStart
-    });
+      if (result.status === 'completed' && result.data?.[0]?.audio_url) {
+        // Song is ready immediately
+        res.json({
+          success: true,
+          audioUrl: result.data[0].audio_url,
+          status: 'completed'
+        });
+      } else if (result.task_id) {
+        // Song is being processed
+        res.json({
+          success: true,
+          taskId: result.task_id,
+          status: 'processing'
+        });
+      } else {
+        res.status(500).json({ 
+          error: 'Unexpected response from music generation service' 
+        });
+      }
 
-    // Return the audio URL or task ID from GoAPI response
-    res.json({
-      success: true,
-      audioUrl: goResponse.data.audio_url || null,
-      taskId: goResponse.data.task_id || null,
-      status: goResponse.data.status || 'processing',
-      message: 'Song generation started successfully!'
-    });
+    } catch (apiError) {
+      console.error('GoAPI request failed:', apiError);
+      res.status(500).json({ 
+        error: 'Music generation service unavailable. Please try again later.' 
+      });
+    }
 
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ 
+        error: error.errors[0]?.message || 'Invalid input' 
+      });
+    }
+    
     console.error('Error generating song:', error);
-    
-    if (error.response?.status === 401) {
-      return res.status(500).json({ 
-        error: 'Song generation service authentication failed. Please contact support.' 
-      });
-    }
-    
-    if (error.response?.status === 429) {
-      return res.status(429).json({ 
-        error: 'Song generation service is busy. Please try again in a moment.' 
-      });
-    }
-
-    res.status(500).json({ 
-      error: 'Song generation failed. Please try again later.',
-      details: error.message
-    });
+    res.status(500).json({ error: 'Failed to generate song' });
   }
 });
 
-// Check song generation status (for async processing)
+// Check status of a specific task
 router.get('/status/:taskId', async (req, res) => {
   try {
-    if (!req.session?.userId) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-
     const { taskId } = req.params;
     
     if (!process.env.GOAPI_KEY) {
       return res.status(500).json({ 
-        error: 'Song generation service is not configured.' 
+        error: 'Music generation service not configured' 
       });
     }
 
-    const goResponse = await axios.get(
-      `https://api.goapi.ai/api/suno/v1/music/${taskId}`,
-      { 
-        headers: { 
-          'X-API-Key': process.env.GOAPI_KEY 
-        },
-        timeout: 10000
+    const response = await fetch(`https://api.goapi.ai/api/suno/v1/music/${taskId}`, {
+      headers: {
+        'X-API-Key': process.env.GOAPI_KEY
       }
-    );
-
-    res.json({
-      status: goResponse.data.status,
-      audioUrl: goResponse.data.audio_url || null,
-      progress: goResponse.data.progress || null
     });
+
+    if (!response.ok) {
+      return res.status(500).json({ 
+        error: 'Failed to check song status' 
+      });
+    }
+
+    const result = await response.json();
+    
+    if (result.status === 'completed' && result.data?.[0]?.audio_url) {
+      res.json({
+        status: 'completed',
+        audioUrl: result.data[0].audio_url
+      });
+    } else if (result.status === 'failed') {
+      res.json({
+        status: 'failed',
+        error: 'Song generation failed'
+      });
+    } else {
+      res.json({
+        status: 'processing'
+      });
+    }
 
   } catch (error) {
     console.error('Error checking song status:', error);
-    res.status(500).json({ 
-      error: 'Failed to check song status',
-      details: error.message
-    });
+    res.status(500).json({ error: 'Failed to check song status' });
   }
 });
 
-export default router;
+export { router as musicmakerRouter };
