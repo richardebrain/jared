@@ -33,6 +33,9 @@ const ActivityBlockComponent: React.FC<ActivityBlockComponentProps> = ({
 }) => {
   
   const parseActivityContent = (content: string): ParsedActivity => {
+    console.log(content,'content from parseactivitycontent')
+    return content as ParsedActivity
+    // this is wrongly formatted , the content itself is an object with type ParsedActivity
     const lines = content.split('\n').filter(line => line.trim());
     const parsed: ParsedActivity = {};
     

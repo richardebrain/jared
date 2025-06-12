@@ -1153,6 +1153,218 @@ export default function ComprehensiveModuleCreator() {
     setBuiltQuizQuestions(prev => prev.filter((_, i) => i !== index));
   };
 
+  // Interactive Activity Builder State
+  const [isActivityBuilder, setIsActivityBuilder] = useState(false);
+  const [currentActivity, setCurrentActivity] = useState({
+    activityType: 'drag-and-match',
+    title: '',
+    instructions: '',
+    promptItems: ['', '', '', ''],
+    answerKey: ['', '', '', ''],
+    uiHints: {
+      leftColumnTitle: 'Items to Match',
+      rightColumnTitle: 'Categories',
+      dragInstruction: 'Drag items to their matching categories'
+    },
+    imageSupport: false
+  });
+  const [builtActivities, setBuiltActivities] = useState<Array<{
+    activityType: string;
+    title: string;
+    instructions: string;
+    promptItems: string[];
+    answerKey: string[];
+    uiHints: any;
+  }>>([]);
+
+  // Interactive Activity Builder Functions
+  const startActivityBuilder = () => {
+    setIsActivityBuilder(true);
+    setCurrentActivity({
+      activityType: 'drag-and-match',
+      title: '',
+      instructions: '',
+      promptItems: ['', '', '', ''],
+      answerKey: ['', '', '', ''],
+      uiHints: {
+        leftColumnTitle: 'Items to Match',
+        rightColumnTitle: 'Categories',
+        dragInstruction: 'Drag items to their matching categories'
+      },
+      imageSupport: false
+    });
+    setBuiltActivities([]);
+  };
+
+  const addActivityItem = () => {
+    setCurrentActivity(prev => ({
+      ...prev,
+      promptItems: [...prev.promptItems, ''],
+      answerKey: [...prev.answerKey, '']
+    }));
+  };
+
+  const removeActivityItem = (index: number) => {
+    setCurrentActivity(prev => ({
+      ...prev,
+      promptItems: prev.promptItems.filter((_, i) => i !== index),
+      answerKey: prev.answerKey.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateActivityItem = (index: number, field: 'promptItems' | 'answerKey', value: string) => {
+    setCurrentActivity(prev => ({
+      ...prev,
+      [field]: prev[field].map((item, i) => i === index ? value : item)
+    }));
+  };
+
+  const addCurrentActivityToList = () => {
+    if (!currentActivity.title.trim() || !currentActivity.instructions.trim()) {
+      toast({
+        title: "Incomplete Activity",
+        description: "Please provide both title and instructions for the activity.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const validItems = currentActivity.promptItems.filter(item => item.trim());
+    const validAnswers = currentActivity.answerKey.filter(answer => answer.trim());
+
+    if (validItems.length < 2 || validAnswers.length < 2) {
+      toast({
+        title: "Insufficient Content",
+        description: "Please provide at least 2 items and 2 answer options.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setBuiltActivities(prev => [...prev, {
+      ...currentActivity,
+      promptItems: validItems,
+      answerKey: validAnswers
+    }]);
+
+    // Reset for next activity
+    setCurrentActivity({
+      activityType: 'drag-and-match',
+      title: '',
+      instructions: '',
+      promptItems: ['', '', '', ''],
+      answerKey: ['', '', '', ''],
+      uiHints: {
+        leftColumnTitle: 'Items to Match',
+        rightColumnTitle: 'Categories',
+        dragInstruction: 'Drag items to their matching categories'
+      },
+      imageSupport: false
+    });
+
+    toast({
+      title: "Activity Added",
+      description: `Added "${currentActivity.title}" to your activity list.`,
+    });
+  };
+
+  const generateSingleActivity = async () => {
+    const currentSection = newModule.sections[currentSectionIndex];
+    if (!currentSection) return;
+
+    setIsGeneratingAIContent(true);
+    
+    try {
+      const response = await apiRequest('POST', '/api/ai/generate-single-activity', {
+        moduleTitle: initialModuleData.title || newModule.title,
+        moduleDescription: initialModuleData.learningObjective || newModule.description,
+        sectionTitle: currentSection.title,
+        category: newModule.category,
+        activityType: currentActivity.activityType,
+        existingActivities: builtActivities.map(a => a.title),
+        learningObjective: initialModuleData.learningObjective
+      });
+
+      if (response.activity) {
+        setCurrentActivity({
+          activityType: response.activity.activityType || 'drag-and-match',
+          title: response.activity.title || '',
+          instructions: response.activity.instructions || '',
+          promptItems: response.activity.promptItems || ['', '', '', ''],
+          answerKey: response.activity.answerKey || ['', '', '', ''],
+          uiHints: response.activity.uiHints || {
+            leftColumnTitle: 'Items to Match',
+            rightColumnTitle: 'Categories',
+            dragInstruction: 'Drag items to their matching categories'
+          },
+          imageSupport: response.activity.imageSupport || false
+        });
+
+        toast({
+          title: "AI Activity Generated",
+          description: "Review and modify the generated activity as needed.",
+        });
+      }
+    } catch (error) {
+      console.error('Error generating activity:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Could not generate activity. Please try again.",
+        variant: "destructive",
+      });
+    }
+    
+    setIsGeneratingAIContent(false);
+  };
+
+  const finishActivityAndSave = () => {
+    if (builtActivities.length === 0) {
+      toast({
+        title: "No Activities Created",
+        description: "Please create at least one activity before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create the activity content in the expected format
+    const activityContent = {
+      activities: builtActivities,
+      totalActivities: builtActivities.length,
+      interactionType: 'guided-activity'
+    };
+
+    // Update the current section with the activity content
+    setNewModule(prev => ({
+      ...prev,
+      sections: prev.sections.map((section, index) => 
+        index === currentSectionIndex 
+          ? { 
+              ...section, 
+              content: JSON.stringify(activityContent),
+              type: 'scenario-match' as const
+            }
+          : section
+      )
+    }));
+
+    // Reset activity builder state
+    setIsActivityBuilder(false);
+    setBuiltActivities([]);
+    
+    toast({
+      title: "Activities Created Successfully",
+      description: `Created interactive activity section with ${builtActivities.length} activities`,
+    });
+    
+    // Auto-advance to next section
+    nextSection();
+  };
+
+  const removeActivityFromList = (index: number) => {
+    setBuiltActivities(prev => prev.filter((_, i) => i !== index));
+  };
+
   const completeInitialSetup = () => {
     if (!initialModuleData.title.trim() || !initialModuleData.learningObjective.trim()) {
       toast({
@@ -1208,8 +1420,10 @@ export default function ComprehensiveModuleCreator() {
         isRegeneration: false,
         regenerationGuidance: ''
       });
+      setAiGeneratedBlocks([])
 
       if (response.blocks && response.blocks.length > 0) {
+        console.log('content block generated',response.blocks)
         // Add new content blocks with humor and evidence-based content
         const newBlocks = response.blocks.map(block => ({
           type: block.type,
@@ -3772,8 +3986,267 @@ Create a natural conversation between two podcast hosts discussing this specific
                   </Card>
                 )}
 
+                {/* Interactive Activity Builder */}
+                {isActivityBuilder && (
+                  <Card className="border-blue-200 bg-blue-50">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-blue-800">
+                        <Gamepad className="h-5 w-5" />
+                        Interactive Activity Builder
+                      </CardTitle>
+                      <CardDescription className="text-blue-700">
+                        Create engaging interactive activities for adult learners. Build drag-and-match, scenarios, or categorization games.
+                      </CardDescription>
+                      
+                      {/* Topic Context for AI */}
+                      <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Target className="h-4 w-4 text-green-600" />
+                          <span className="text-sm font-medium text-green-800">Activity Topic Context</span>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <div className="text-green-700">
+                            <strong>Module:</strong> {initialModuleData.title || newModule.title || 'Professional Development Module'}
+                          </div>
+                          <div className="text-green-700">
+                            <strong>Learning Objective:</strong> {initialModuleData.learningObjective || newModule.description || 'Building effective teaching strategies'}
+                          </div>
+                          <div className="text-green-700">
+                            <strong>Section:</strong> {newModule.sections[currentSectionIndex]?.title}
+                          </div>
+                          <div className="text-green-600 text-xs mt-2">
+                            AI will generate interactive activities specifically about this topic and section
+                          </div>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {/* Activity Progress */}
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-blue-200">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold">
+                            {builtActivities.length}
+                          </div>
+                          <span className="text-sm font-medium">Activities Built</span>
+                        </div>
+                        {builtActivities.length > 0 && (
+                          <Button
+                            size="sm"
+                            onClick={finishActivityAndSave}
+                            className="bg-blue-600 hover:bg-blue-700"
+                          >
+                            Activities Finished - Save & Move On
+                          </Button>
+                        )}
+                      </div>
+
+                      {/* Current Activity Builder */}
+                      <div className="space-y-4 p-4 bg-white rounded-lg border border-blue-200">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold">Activity {builtActivities.length + 1}</h4>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={generateSingleActivity}
+                              disabled={isGeneratingAIContent}
+                              className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                            >
+                              {isGeneratingAIContent ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Generating...
+                                </>
+                              ) : (
+                                <>
+                                  <Sparkles className="h-4 w-4 mr-2" />
+                                  AI Generate
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Activity Type Selection */}
+                        <div className="space-y-2">
+                          <Label>Activity Type</Label>
+                          <Select 
+                            value={currentActivity.activityType} 
+                            onValueChange={(value) => setCurrentActivity(prev => ({ ...prev, activityType: value }))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select activity type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="drag-and-match">Drag and Match</SelectItem>
+                              <SelectItem value="scenario-challenge">Scenario Challenge</SelectItem>
+                              <SelectItem value="categorization">Categorization Game</SelectItem>
+                              <SelectItem value="sequence-ordering">Sequence Ordering</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Activity Title */}
+                        <div className="space-y-2">
+                          <Label>Activity Title</Label>
+                          <Input
+                            value={currentActivity.title}
+                            onChange={(e) => setCurrentActivity(prev => ({ ...prev, title: e.target.value }))}
+                            placeholder="Enter activity title..."
+                          />
+                        </div>
+
+                        {/* Activity Instructions */}
+                        <div className="space-y-2">
+                          <Label>Instructions</Label>
+                          <Textarea
+                            value={currentActivity.instructions}
+                            onChange={(e) => setCurrentActivity(prev => ({ ...prev, instructions: e.target.value }))}
+                            placeholder="Provide clear instructions for learners..."
+                            rows={3}
+                          />
+                        </div>
+
+                        {/* Activity Items */}
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <Label>Activity Items & Answers</Label>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={addActivityItem}
+                              className="text-xs"
+                            >
+                              <Plus className="h-3 w-3 mr-1" />
+                              Add Item
+                            </Button>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label className="text-xs font-medium">Items to Match</Label>
+                              {currentActivity.promptItems.map((item, index) => (
+                                <div key={index} className="flex gap-2">
+                                  <Input
+                                    value={item}
+                                    onChange={(e) => updateActivityItem(index, 'promptItems', e.target.value)}
+                                    placeholder={`Item ${index + 1}...`}
+                                    className="text-sm"
+                                  />
+                                  {currentActivity.promptItems.length > 2 && (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => removeActivityItem(index)}
+                                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label className="text-xs font-medium">Correct Matches</Label>
+                              {currentActivity.answerKey.map((answer, index) => (
+                                <div key={index} className="flex gap-2">
+                                  <Input
+                                    value={answer}
+                                    onChange={(e) => updateActivityItem(index, 'answerKey', e.target.value)}
+                                    placeholder={`Answer ${index + 1}...`}
+                                    className="text-sm"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Add Activity Button */}
+                        <div className="flex justify-end pt-4 border-t border-blue-200">
+                          <Button
+                            onClick={addCurrentActivityToList}
+                            disabled={!currentActivity.title.trim() || !currentActivity.instructions.trim()}
+                            className="bg-blue-600 hover:bg-blue-700"
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Activity
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Built Activities List */}
+                      {builtActivities.length > 0 && (
+                        <div className="space-y-3">
+                          <h4 className="font-semibold">Built Activities ({builtActivities.length})</h4>
+                          {builtActivities.map((activity, index) => (
+                            <div key={index} className="p-3 bg-white rounded-lg border border-blue-200">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="font-medium text-sm">{activity.title}</div>
+                                  <div className="text-xs text-gray-600 mt-1">
+                                    Type: {activity.activityType} • Items: {activity.promptItems.length}
+                                  </div>
+                                  <div className="text-xs text-gray-500 mt-1">
+                                    {activity.instructions.substring(0, 80)}...
+                                  </div>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => removeActivityFromList(index)}
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Exit Activity Builder */}
+                      <div className="flex justify-between pt-4 border-t border-blue-200">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setIsActivityBuilder(false);
+                            setCurrentActivity({
+                              activityType: 'drag-and-match',
+                              title: '',
+                              instructions: '',
+                              promptItems: ['', '', '', ''],
+                              answerKey: ['', '', '', ''],
+                              uiHints: {
+                                leftColumnTitle: 'Items to Match',
+                                rightColumnTitle: 'Categories',
+                                dragInstruction: 'Drag items to their matching categories'
+                              },
+                              imageSupport: false
+                            });
+                            setBuiltActivities([]);
+                          }}
+                        >
+                          Cancel Activity Builder
+                        </Button>
+                        
+                        {builtActivities.length > 0 && (
+                          <Button
+                            onClick={finishActivityAndSave}
+                            className="bg-blue-600 hover:bg-blue-700"
+                          >
+                            Finish Activities & Continue
+                            <ArrowRight className="h-4 w-4 ml-2" />
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Drag and Drop Content Area */}
-                {!isQuizBuilder && (
+                {!isQuizBuilder && !isActivityBuilder && (
                   <div className="grid grid-cols-2 gap-6">
                   {/* Dynamic AI Tools Based on Section Type */}
                   <div className="space-y-4">
@@ -4377,6 +4850,15 @@ Create a natural conversation between two podcast hosts discussing this specific
                               >
                                 <HelpCircle className="h-4 w-4 mr-2" />
                                 Add Quiz
+                              </Button>
+                              <Button 
+                                size="sm"
+                                variant="outline" 
+                                onClick={startActivityBuilder}
+                                className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                              >
+                                <Gamepad className="h-4 w-4 mr-2" />
+                                Add Activity
                               </Button>
                             </div>
                           </div>
