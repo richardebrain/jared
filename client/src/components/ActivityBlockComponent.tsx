@@ -33,70 +33,10 @@ const ActivityBlockComponent: React.FC<ActivityBlockComponentProps> = ({
 }) => {
   
   const parseActivityContent = (content: string): ParsedActivity => {
-    console.log('ActivityBlock content:', content);
-    
-    // Handle if content is already an object
-    if (typeof content === 'object' && content !== null) {
-      return content as ParsedActivity;
-    }
-    
-    // Handle if content is a JSON string
-    try {
-      const parsed = JSON.parse(content);
-      if (parsed && typeof parsed === 'object') {
-        return parsed as ParsedActivity;
-      }
-    } catch (error) {
-      console.log('Content is not JSON, parsing as text');
-    }
-    
-    // Parse as structured text format - fallback
-    const lines = content.split('\n').filter(line => line.trim());
-    const parsed: ParsedActivity = {};
-    
-    lines.forEach(line => {
-      const trimmed = line.trim();
-      
-      if (trimmed.startsWith('activityType:')) {
-        parsed.activityType = trimmed.replace('activityType:', '').trim();
-      } else if (trimmed.startsWith('title:')) {
-        parsed.title = trimmed.replace('title:', '').trim();
-      } else if (trimmed.startsWith('preview:')) {
-        parsed.preview = trimmed.replace('preview:', '').trim();
-      } else if (trimmed.startsWith('instructions:')) {
-        parsed.instructions = trimmed.replace('instructions:', '').trim();
-      } else if (trimmed.startsWith('promptItems:')) {
-        const itemsStr = trimmed.replace('promptItems:', '').trim();
-        try {
-          // Try to parse as JSON array
-          if (itemsStr.startsWith('[') && itemsStr.endsWith(']')) {
-            parsed.promptItems = JSON.parse(itemsStr);
-          } else {
-            // Parse as comma-separated string
-            parsed.promptItems = itemsStr.split(',').map(item => item.trim().replace(/["\[\]]/g, ''));
-          }
-        } catch {
-          parsed.promptItems = ['Activity items will be generated'];
-        }
-      } else if (trimmed.startsWith('answerKey:')) {
-        const keyStr = trimmed.replace('answerKey:', '').trim();
-        try {
-          if (keyStr.startsWith('{') && keyStr.endsWith('}')) {
-            parsed.answerKey = JSON.parse(keyStr);
-          } else {
-            parsed.answerKey = { note: 'Answer key will be generated' };
-          }
-        } catch {
-          parsed.answerKey = { note: 'Answer key will be generated' };
-        }
-      } else if (trimmed.startsWith('uiHints:')) {
-        parsed.uiHints = trimmed.replace('uiHints:', '').trim();
-      } else if (trimmed.startsWith('imageSupport:')) {
-        parsed.imageSupport = trimmed.replace('imageSupport:', '').trim();
-      }
-    });
-    
-    return parsed;
+    console.log(content,'content from parseactivitycontent')
+      return content as ParsedActivity
+    // this is wrongly formatted , the content itself is an object with type ParsedActivity
+
   };
 
   const getActivityIcon = (activityType: string) => {
