@@ -37,13 +37,77 @@ router.get('/voices', async (req, res) => {
   }
 });
 
-// Generate podcast script
+// Generate source content (Step 1)
+router.post('/generate-source-content', async (req, res) => {
+  try {
+    const { request } = req.body;
+
+    if (!request || typeof request !== 'string') {
+      return res.status(400).json({ error: 'Content request is required and must be a string' });
+    }
+
+    // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert content generator specializing in creating educational materials for early childhood education. Generate detailed, well-structured documents based on user requests. These could be:
+
+- Educational handbooks or policy documents
+- Training materials and guidelines
+- Dialogue examples between educators
+- Lists of best practices or procedures
+- Case studies or scenarios
+- Reference materials for teachers
+
+Create content that is clear, professional, and directly applicable to early childhood education settings.`
+        },
+        {
+          role: "user",
+          content: `Generate a detailed textual document based on the following request. This could be a set of rules, a handbook section, a dialogue between educators, a list of facts, training material, or any other relevant educational content.
+
+Ensure the output is well-structured, clear, and relevant to early childhood education. Make it comprehensive enough to serve as source material for analysis and discussion.
+
+Request: "${request}"
+
+Please generate the document:`
+        }
+      ],
+      max_tokens: 2500,
+      temperature: 0.7
+    });
+
+    const content = completion.choices[0]?.message?.content;
+
+    if (!content) {
+      throw new Error('No content generated');
+    }
+
+    res.json({ content });
+
+  } catch (error) {
+    console.error('Error generating source content:', error);
+    
+    if (error instanceof Error && error.message.includes('API key')) {
+      return res.status(401).json({ 
+        error: 'OpenAI API key is not configured. Please contact your administrator.' 
+      });
+    }
+
+    res.status(500).json({ 
+      error: 'Failed to generate source content. Please try again.' 
+    });
+  }
+});
+
+// Generate analytical podcast script (Step 2)
 router.post('/generate-script', async (req, res) => {
   try {
-    const { prompt, length = 5 } = req.body;
+    const { sourceContent, podcastTopic, length = 5 } = req.body;
 
-    if (!prompt || typeof prompt !== 'string') {
-      return res.status(400).json({ error: 'Prompt is required and must be a string' });
+    if (!sourceContent || typeof sourceContent !== 'string') {
+      return res.status(400).json({ error: 'Source content is required to generate the podcast script' });
     }
 
     const scriptLength = parseInt(length);
@@ -77,22 +141,32 @@ Format the script clearly with speaker labels (e.g., 'HOST:', 'EXPERT:') and nat
         },
         {
           role: "user",
-          content: `Create a VERY CONCISE interview-style podcast script (approximately ${scriptLength} minutes, MAXIMUM ${Math.min(maxWords, 450)} words) on the topic: "${prompt}" for early childhood educators. 
+          content: `Create an analytical podcast script (approximately ${scriptLength} minutes, MAXIMUM ${Math.min(maxWords, 400)} words) that discusses and analyzes the provided source content.
 
 CRITICAL: Keep the entire script under 3500 characters for audio compatibility.
 
-The script should feature a 'HOST' and an 'EXPERT'. Include:
-- Brief intro where HOST introduces topic and EXPERT (1-2 sentences)
-- Main discussion with 3-4 short exchanges (2-3 sentences per response)
-- Quick conclusion with key takeaways (1-2 sentences)
+The script should feature:
+- HOST: Introduces the source content and guides discussion
+- EXPERT: Provides analytical insights and interpretations
+
+Structure:
+- Brief intro referencing the source document (1-2 sentences)
+- 3-4 analytical exchanges discussing key points from the source
+- Quick conclusion with takeaways (1-2 sentences)
+
+Topic Context: ${podcastTopic || 'Analysis of educational content'}
+
+--- SOURCE CONTENT TO ANALYZE ---
+${sourceContent}
+--------------------------------
 
 Requirements:
-- Each speaker response must be 1-3 sentences maximum
-- Focus only on the most essential practical insights
-- Use concise, direct language
-- Target exactly ${Math.min(maxWords, 450)} words - NO MORE
+- Each response must be 1-3 sentences maximum
+- Focus on analyzing and interpreting the source content
+- Provide practical insights for educators
+- Keep under ${Math.min(maxWords, 400)} words total
 
-Keep it tight and impactful.`
+Generate the analytical podcast script:`
         }
       ],
       max_tokens: 2000,

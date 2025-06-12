@@ -1,0 +1,514 @@
+Two-Step AI Podcast Generator: Content Generation & Analysis
+This update transforms your podcast generator into a two-stage process: first, generating a source document, and then creating an analytical podcast based on that document.
+
+1. Update main.py (Backend)
+We will add a new endpoint for generating the initial content and modify the existing script generation endpoint to analyze this content.
+
+# main.py
+
+import os
+from flask import Flask, render_template, request, jsonify
+import google.generativeai as genai
+import uuid # For generating unique filenames
+import math # For calculating word count from minutes
+
+app = Flask(__name__)
+
+# Configure Google Gemini API
+genai.configure()
+
+# Ensure the static/audio directory exists
+AUDIO_DIR = os.path.join(app.root_path, 'static', 'audio')
+os.makedirs(AUDIO_DIR, exist_ok=True)
+
+# Define available voices for the frontend dropdown.
+# These are example voice names and their characteristics from Gemini API documentation (Gemini 2.5 Flash Preview TTS).
+# You can find a more comprehensive list and their characteristics in the official Gemini API documentation
+# under "Speech generation (text-to-speech) models" section.
+# The 'name' field is what you pass to the API.
+# The 'label' field is what's displayed to the user.
+AVAILABLE_VOICES = [
+    {"name": "en-US-Zephyr", "label": "Zephyr (Bright)", "language": "en-US"},
+    {"name": "en-US-Puck", "label": "Puck (Upbeat)", "language": "en-US"},
+    {"name": "en-US-Charon", "label": "Charon (Informative)", "language": "en-US"},
+    {"name": "en-US-Kore", "label": "Kore (Firm)", "language": "en-US"},
+    {"name": "en-US-Fenrir", "label": "Fenrir (Excitable)", "language": "en-US"},
+    {"name": "en-US-Leda", "label": "Leda (Youthful)", "language": "en-US"},
+    {"name": "en-US-Aoede", "label": "Aoede (Breezy)", "language": "en-US"},
+    {"name": "en-US-Autonoe", "label": "Autonoe (Bright)", "language": "en-US"},
+    {"name": "en-US-Schedar", "label": "Schedar (Even)", "language": "en-US"},
+]
+
+
+@app.route('/')
+def index():
+    # Pass voices to the template so JavaScript can populate the dropdown
+    return render_template('index.html', voices=AVAILABLE_VOICES)
+
+# --- API Endpoints ---
+
+@app.route('/generate_source_content', methods=['POST'])
+def generate_source_content():
+    """
+    Generates a source document (e.g., rules, handbook, dialogue) based on a user request.
+    """
+    user_request = request.json.get('request')
+    if not user_request:
+        return jsonify({"error": "Content request is required"}), 400
+
+    try:
+        model = genai.GenerativeModel('gemini-2.0-flash')
+        
+        # Prompt to generate diverse content based on user's request
+        content_prompt = (
+            f"Generate a detailed textual document based on the following request. "
+            f"This could be a set of rules, a handbook section, a dialogue between "
+            f"two people, a list of facts, a short story, or any other textual format. "
+            f"Ensure the output is well-structured, clear, and relevant to the request. "
+            f"Example Request: '{user_request}'\n\n"
+            f"Please generate the document here:\n"
+        )
+        
+        response = model.generate_content(content_prompt)
+        generated_content = response.candidates[0].content.parts[0].text
+        
+        return jsonify({"content": generated_content})
+
+    except Exception as e:
+        print(f"Error generating source content: {e}")
+        return jsonify({"error": f"Failed to generate source content: {str(e)}"}), 500
+
+
+@app.route('/generate_podcast_script', methods=['POST'])
+def generate_podcast_script():
+    """
+    Generates an analytical podcast script based on provided source content.
+    """
+    source_content = request.json.get('source_content')
+    podcast_topic = request.json.get('podcast_topic') # Optional, for context
+    script_length_minutes = int(request.json.get('length', 5)) # Default to 5 minutes
+    
+    if not source_content:
+        return jsonify({"error": "Source content is required to generate the podcast script"}), 400
+
+    # Convert minutes to approximate word count range for the podcast script
+    # Average speaking rate is 120-150 words per minute
+    min_words = math.ceil(script_length_minutes * 120 * 0.9) # 90% of lower estimate
+    max_words = math.floor(script_length_minutes * 150 * 1.1) # 110% of higher estimate
+
+    try:
+        model = genai.GenerativeModel('gemini-2.0-flash')
+        
+        # Craft a specific prompt for podcast script generation to encourage interview style analysis
+        full_podcast_prompt = (
+            f"You are a podcast script generator. Your task is to create an interview-style podcast script "
+            f"(approximately {script_length_minutes} minutes, which is about {min_words}-{max_words} words) "
+            f"that *analyzes and discusses the provided source content*. "
+            f"The podcast should feature a 'HOST' and an 'EXPERT'. "
+            f"The HOST will introduce the source content (briefly, and state that the full content will be provided to listeners) "
+            f"and guide the discussion, asking insightful questions about it. "
+            f"The EXPERT will provide analytical insights, explanations, interpretations, and key takeaways "
+            f"*based directly on the source content*. "
+            f"Conclude with a summary of the analysis and a call to action or a thought-provoking closing remark. "
+            f"Format it clearly with speaker labels (e.g., 'HOST:', 'EXPERT:').\n\n"
+            f"Podcast Topic/Context: {podcast_topic if podcast_topic else 'Analysis of the provided document'}\n\n"
+            f"--- Source Content to Analyze ---\n"
+            f"{source_content}\n"
+            f"------------------------------\n\n"
+            f"Please generate the podcast script here:\n"
+        )
+        
+        response = model.generate_content(full_podcast_prompt)
+        podcast_script = response.candidates[0].content.parts[0].text
+        
+        return jsonify({"script": podcast_script})
+
+    except Exception as e:
+        print(f"Error generating podcast script: {e}")
+        return jsonify({"error": f"Failed to generate podcast script: {str(e)}"}), 500
+
+@app.route('/generate_audio', methods=['POST'])
+def generate_audio():
+    """
+    Generates audio from the podcast script using Gemini's text-to-speech.
+    """
+    script_text = request.json.get('script')
+    selected_voice_name = request.json.get('voice_name') # Get selected voice from frontend
+
+    if not script_text:
+        return jsonify({"error": "Script text is required"}), 400
+    if not selected_voice_name:
+        return jsonify({"error": "Voice selection is required"}), 400
+
+    try:
+        tts_model = genai.GenerativeModel('gemini-2.5-flash-preview-tts')
+        
+        # Construct the SpeechConfig with the selected voice name
+        speech_config = genai.types.SpeechConfig(
+            voice=genai.types.VoiceConfig(name=selected_voice_name)
+        )
+
+        response = tts_model.generate_content(
+            script_text,
+            stream=False, # We want the full audio in one go
+            config=genai.types.GenerateContentConfig(
+                response_modalities=["AUDIO"],
+                speech_config=speech_config
+            )
+        )
+        
+        audio_data = b''
+        for chunk in response:
+             if hasattr(chunk, 'audio_segments') and chunk.audio_segments:
+                for segment in chunk.audio_segments:
+                    audio_data += segment.data
+
+        if not audio_data:
+            raise ValueError("No audio data received from TTS API.")
+
+        # Generate a unique filename for the audio (MP3 is common for podcasts)
+        audio_filename = f"{uuid.uuid4()}.mp3"
+        audio_filepath = os.path.join(AUDIO_DIR, audio_filename)
+
+        with open(audio_filepath, 'wb') as f:
+            f.write(audio_data)
+
+        # Return the URL to access the audio file
+        audio_url = f"/static/audio/{audio_filename}"
+        return jsonify({"audio_url": audio_url})
+
+    except Exception as e:
+        print(f"Error generating audio: {e}")
+        return jsonify({"error": f"Failed to generate audio: {str(e)}"}), 500
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=os.environ.get('PORT', 8080), debug=True)
+
+2. Update templates/index.html (Frontend HTML)
+The HTML will be significantly restructured to accommodate the two-step workflow. We'll have a section for content generation and another section for podcast generation, with the latter initially disabled.
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Podcast Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+        }
+        .container {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .section-disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        /* Spinner CSS */
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="container bg-white p-8 rounded-xl shadow-lg w-full max-w-3xl">
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-6 text-center">Your AI Podcast Studio 🎤</h1>
+        <p class="text-gray-600 mb-8 text-center">First, generate content. Then, create an analytical podcast based on it!</p>
+
+        <!-- Step 1: Generate Source Content -->
+        <div class="mb-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
+            <h2 class="text-2xl font-semibold text-blue-800 mb-4">Step 1: Generate Your Source Document</h2>
+            <div class="mb-4">
+                <label for="contentRequest" class="block text-gray-700 text-lg font-medium mb-2">What kind of document or content do you need?</label>
+                <textarea id="contentRequest" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" placeholder="e.g., 'A 5-point list of rules for a cooperative game', 'A dialogue between two employees discussing a new company policy', 'A short summary of quantum physics for beginners'"></textarea>
+            </div>
+            <button id="generateContentBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-bold py-3 px-6 rounded-lg hover:from-blue-700 hover:to-indigo-800 transition duration-300 ease-in-out transform hover:scale-105 shadow-md flex items-center justify-center">
+                <span id="contentBtnText">Generate Document</span>
+                <div id="contentLoadingSpinner" class="hidden spinner ml-2"></div>
+            </button>
+
+            <div id="sourceContentContainer" class="bg-white p-6 rounded-lg border border-gray-200 mt-6 hidden">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Generated Source Document:</h3>
+                <pre id="sourceContentDisplay" class="whitespace-pre-wrap text-gray-700 text-base leading-relaxed max-h-64 overflow-y-auto"></pre>
+            </div>
+        </div>
+
+        <!-- Step 2: Generate Podcast Script and Audio -->
+        <div id="podcastGenerationSection" class="p-6 bg-green-50 rounded-lg border border-green-200 section-disabled">
+            <h2 class="text-2xl font-semibold text-green-800 mb-4">Step 2: Create Your Analytical Podcast</h2>
+            <p class="text-gray-600 mb-4">The podcast will analyze the document generated above.</p>
+
+            <div class="mb-4">
+                <label for="podcastTopic" class="block text-gray-700 text-lg font-medium mb-2">Podcast Overall Topic (Optional, for context):</label>
+                <input type="text" id="podcastTopic" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" placeholder="e.g., 'Analyzing game mechanics', 'Understanding workplace communication'"/>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <div>
+                    <label for="scriptLength" class="block text-gray-700 text-lg font-medium mb-2">Podcast Length (minutes):</label>
+                    <input type="number" id="scriptLength" min="3" max="15" value="5" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800">
+                </div>
+                <div>
+                    <label for="voiceSelect" class="block text-gray-700 text-lg font-medium mb-2">Select Voice:</label>
+                    <select id="voiceSelect" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800">
+                        <!-- Voices will be populated by JavaScript -->
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-8">
+                <button id="generatePodcastScriptBtn" class="flex-1 bg-gradient-to-r from-purple-500 to-pink-600 text-white font-bold py-3 px-6 rounded-lg hover:from-purple-600 hover:to-pink-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-md flex items-center justify-center">
+                    <span id="podcastScriptBtnText">Generate Podcast Script</span>
+                    <div id="podcastScriptLoadingSpinner" class="hidden spinner ml-2"></div>
+                </button>
+                <button id="generateAudioBtn" class="flex-1 bg-gradient-to-r from-green-500 to-teal-600 text-white font-bold py-3 px-6 rounded-lg hover:from-green-600 hover:to-teal-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-md flex items-center justify-center" disabled>
+                    <span id="audioBtnText">Generate Audio</span>
+                    <div id="audioLoadingSpinner" class="hidden spinner ml-2"></div>
+                </button>
+            </div>
+
+            <div id="podcastScriptContainer" class="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-8 hidden">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Generated Podcast Script:</h3>
+                <pre id="podcastScriptDisplay" class="whitespace-pre-wrap text-gray-700 text-base leading-relaxed max-h-64 overflow-y-auto"></pre>
+            </div>
+
+            <div id="audioPlayerContainer" class="bg-gray-50 p-4 rounded-lg border border-gray-200 flex items-center justify-center hidden">
+                <audio id="podcastAudio" controls class="w-full"></audio>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data passed from Flask to JavaScript via Jinja2
+        const availableVoices = {{ voices | tojson }}; 
+    </script>
+    <script src="/static/script.js"></script>
+</body>
+</html>
+
+3. Update static/script.js (Frontend JavaScript)
+The JavaScript will manage the new two-step flow, enabling/disabling sections and buttons as content is generated.
+
+document.addEventListener('DOMContentLoaded', () => {
+    const contentRequestInput = document.getElementById('contentRequest');
+    const generateContentBtn = document.getElementById('generateContentBtn');
+    const contentBtnText = document.getElementById('contentBtnText');
+    const contentLoadingSpinner = document.getElementById('contentLoadingSpinner');
+    const sourceContentContainer = document.getElementById('sourceContentContainer');
+    const sourceContentDisplay = document.getElementById('sourceContentDisplay');
+
+    const podcastGenerationSection = document.getElementById('podcastGenerationSection');
+    const podcastTopicInput = document.getElementById('podcastTopic');
+    const scriptLengthInput = document.getElementById('scriptLength');
+    const voiceSelect = document.getElementById('voiceSelect');
+    const generatePodcastScriptBtn = document.getElementById('generatePodcastScriptBtn');
+    const podcastScriptBtnText = document.getElementById('podcastScriptBtnText');
+    const podcastScriptLoadingSpinner = document.getElementById('podcastScriptLoadingSpinner');
+    const generateAudioBtn = document.getElementById('generateAudioBtn');
+    const audioBtnText = document.getElementById('audioBtnText');
+    const audioLoadingSpinner = document.getElementById('audioLoadingSpinner');
+    const podcastScriptContainer = document.getElementById('podcastScriptContainer');
+    const podcastScriptDisplay = document.getElementById('podcastScriptDisplay'); // Changed ID to avoid conflict
+    const audioPlayerContainer = document.getElementById('audioPlayerContainer');
+    const podcastAudio = document.getElementById('podcastAudio');
+
+    // --- Populate Voice Dropdown ---
+    if (typeof availableVoices !== 'undefined' && availableVoices.length > 0) {
+        availableVoices.forEach(voice => {
+            const option = document.createElement('option');
+            option.value = voice.name;
+            option.textContent = voice.label;
+            voiceSelect.appendChild(option);
+        });
+    } else {
+        console.warn("No voices available. Check if 'voices' data is passed correctly from Flask.");
+        generateAudioBtn.disabled = true; // Disable audio generation if no voices
+    }
+
+    // --- Helper functions for UI state ---
+    function showLoading(button, textSpan, spinner) {
+        button.disabled = true;
+        textSpan.textContent = 'Generating...';
+        spinner.classList.remove('hidden');
+    }
+
+    function hideLoading(button, originalText, spinner) {
+        button.disabled = false;
+        textSpan.textContent = originalText;
+        spinner.classList.add('hidden');
+    }
+
+    function showMessage(message, type = 'info') {
+        const messageDiv = document.createElement('div');
+        messageDiv.textContent = message;
+        messageDiv.className = `message-display p-3 rounded-lg mt-4 text-center text-sm ${type === 'error' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`;
+        
+        // Remove any existing messages
+        const existingMessages = document.querySelectorAll('.message-display');
+        existingMessages.forEach(msg => msg.remove());
+
+        // Insert message below the relevant input field
+        if (type === 'error' || type === 'info') {
+             contentRequestInput.parentNode.insertBefore(messageDiv, contentRequestInput.nextSibling);
+        } else { // For success messages, place it more generally
+            generateContentBtn.parentNode.insertBefore(messageDiv, generateContentBtn.nextSibling);
+        }
+       
+        setTimeout(() => messageDiv.remove(), 5000); 
+    }
+
+    // --- Event Listeners ---
+
+    generateContentBtn.addEventListener('click', async () => {
+        const request = contentRequestInput.value.trim();
+        if (!request) {
+            showMessage("Please describe the content you want to generate.", "error");
+            return;
+        }
+
+        showLoading(generateContentBtn, contentBtnText, contentLoadingSpinner);
+        sourceContentContainer.classList.add('hidden');
+        podcastGenerationSection.classList.add('section-disabled'); // Disable podcast section
+        podcastScriptContainer.classList.add('hidden');
+        audioPlayerContainer.classList.add('hidden');
+        podcastAudio.src = ''; 
+        generatePodcastScriptBtn.disabled = true;
+        generateAudioBtn.disabled = true;
+
+        try {
+            const response = await fetch('/generate_source_content', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ request: request }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                sourceContentDisplay.textContent = data.content;
+                sourceContentContainer.classList.remove('hidden');
+                podcastGenerationSection.classList.remove('section-disabled'); // Enable podcast section
+                generatePodcastScriptBtn.disabled = false; // Enable podcast script generation
+                showMessage("Source document generated! Now create your podcast.", "success");
+            } else {
+                showMessage(`Error: ${data.error || 'Failed to generate source content.'}`, "error");
+            }
+        } catch (error) {
+            console.error('Error generating source content:', error);
+            showMessage("An unexpected error occurred while generating source content.", "error");
+        } finally {
+            hideLoading(generateContentBtn, 'Generate Document', contentLoadingSpinner);
+        }
+    });
+
+    generatePodcastScriptBtn.addEventListener('click', async () => {
+        const sourceContent = sourceContentDisplay.textContent.trim();
+        const podcastTopic = podcastTopicInput.value.trim(); // Get optional podcast topic
+        const length = scriptLengthInput.value;
+        
+        if (!sourceContent) {
+            showMessage("Please generate source content first.", "error");
+            return;
+        }
+        if (length < 3 || length > 15) {
+            showMessage("Podcast length must be between 3 and 15 minutes.", "error");
+            return;
+        }
+
+        showLoading(generatePodcastScriptBtn, podcastScriptBtnText, podcastScriptLoadingSpinner);
+        podcastScriptContainer.classList.add('hidden');
+        audioPlayerContainer.classList.add('hidden');
+        podcastAudio.src = '';
+        generateAudioBtn.disabled = true;
+
+        try {
+            const response = await fetch('/generate_podcast_script', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    source_content: sourceContent, 
+                    podcast_topic: podcastTopic, // Pass optional topic
+                    length: length 
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                podcastScriptDisplay.textContent = data.script;
+                podcastScriptContainer.classList.remove('hidden');
+                generateAudioBtn.disabled = false; // Enable audio generation
+                showMessage("Podcast script generated! Ready for audio.", "success");
+            } else {
+                showMessage(`Error: ${data.error || 'Failed to generate podcast script.'}`, "error");
+            }
+        } catch (error) {
+            console.error('Error generating podcast script:', error);
+            showMessage("An unexpected error occurred while generating podcast script.", "error");
+        } finally {
+            hideLoading(generatePodcastScriptBtn, 'Generate Podcast Script', podcastScriptLoadingSpinner);
+        }
+    });
+
+    generateAudioBtn.addEventListener('click', async () => {
+        const script = podcastScriptDisplay.textContent.trim();
+        const selectedVoice = voiceSelect.value;
+        
+        if (!script) {
+            showMessage("Please generate a podcast script first.", "error");
+            return;
+        }
+        if (!selectedVoice) {
+            showMessage("Please select a voice.", "error");
+            return;
+        }
+
+        showLoading(generateAudioBtn, audioBtnText, audioLoadingSpinner);
+        audioPlayerContainer.classList.add('hidden');
+        podcastAudio.src = '';
+
+        try {
+            const response = await fetch('/generate_audio', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ script: script, voice_name: selectedVoice }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                podcastAudio.src = data.audio_url;
+                audioPlayerContainer.classList.remove('hidden');
+                podcastAudio.load();
+                podcastAudio.play();
+                showMessage("Podcast audio generated and playing!", "success");
+            } else {
+                showMessage(`Error: ${data.error || 'Failed to generate audio.'}`, "error");
+            }
+        } catch (error) {
+            console.error('Error generating audio:', error);
+            showMessage("An unexpected error occurred while generating audio.", "error");
+        } finally {
+            hideLoading(generateAudioBtn, 'Generate Audio', audioLoadingSpinner);
+        }
+    });
+});

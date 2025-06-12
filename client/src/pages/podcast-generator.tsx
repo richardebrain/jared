@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Mic, Play, Download, Loader2, FileAudio, Sparkles, Clock, Volume2 } from 'lucide-react';
+import { Mic, Play, Download, Loader2, FileAudio, Sparkles, Clock, Volume2, FileText, MessageSquare, ChevronRight } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -17,7 +18,13 @@ interface Voice {
 }
 
 export default function PodcastGenerator() {
-  const [prompt, setPrompt] = useState('');
+  // Step 1: Source Content Generation
+  const [contentRequest, setContentRequest] = useState('');
+  const [sourceContent, setSourceContent] = useState('');
+  const [isGeneratingContent, setIsGeneratingContent] = useState(false);
+  
+  // Step 2: Podcast Generation
+  const [podcastTopic, setPodcastTopic] = useState('');
   const [script, setScript] = useState('');
   const [audioUrl, setAudioUrl] = useState('');
   const [length, setLength] = useState('5');
@@ -25,6 +32,7 @@ export default function PodcastGenerator() {
   const [voices, setVoices] = useState<Voice[]>([]);
   const [isGeneratingScript, setIsGeneratingScript] = useState(false);
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
+  const [isPodcastSectionEnabled, setIsPodcastSectionEnabled] = useState(false);
   const { toast } = useToast();
 
   // Fetch available voices on component mount
@@ -48,15 +56,57 @@ export default function PodcastGenerator() {
         ]);
       }
     };
-    
+
     fetchVoices();
   }, []);
 
-  const generateScript = async () => {
-    if (!prompt.trim()) {
+  const generateSourceContent = async () => {
+    if (!contentRequest.trim()) {
       toast({
-        title: "Topic Required",
-        description: "Please enter a podcast topic to generate a script.",
+        title: "Content Request Required",
+        description: "Please describe the content you want to generate.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsGeneratingContent(true);
+    setSourceContent('');
+    setIsPodcastSectionEnabled(false);
+    setScript('');
+    setAudioUrl('');
+
+    try {
+      const response = await apiRequest('/api/podcast/generate-source-content', {
+        method: 'POST',
+        body: JSON.stringify({ request: contentRequest.trim() })
+      });
+
+      setSourceContent(response.content);
+      setIsPodcastSectionEnabled(true);
+      
+      toast({
+        title: "Source Document Generated",
+        description: "Ready to create your analytical podcast!",
+      });
+
+    } catch (error: any) {
+      console.error('Error generating source content:', error);
+      toast({
+        title: "Generation Failed",
+        description: error?.message || "Failed to generate source content. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingContent(false);
+    }
+  };
+
+  const generateScript = async () => {
+    if (!sourceContent.trim()) {
+      toast({
+        title: "Source Content Required",
+        description: "Please generate source content first.",
         variant: "destructive"
       });
       return;
@@ -79,26 +129,25 @@ export default function PodcastGenerator() {
     try {
       const response = await apiRequest('/api/podcast/generate-script', {
         method: 'POST',
-        data: { 
-          prompt: prompt.trim(),
+        body: JSON.stringify({ 
+          sourceContent: sourceContent.trim(),
+          podcastTopic: podcastTopic.trim(),
           length: scriptLength
-        }
+        })
       });
 
-      if (response.script) {
-        setScript(response.script);
-        toast({
-          title: "Script Generated",
-          description: `Your ${scriptLength}-minute podcast script has been created successfully!`
-        });
-      } else {
-        throw new Error('No script returned from API');
-      }
-    } catch (error) {
+      setScript(response.script);
+      
+      toast({
+        title: "Script Generated",
+        description: "Your analytical podcast script is ready!",
+      });
+
+    } catch (error: any) {
       console.error('Error generating script:', error);
       toast({
         title: "Generation Failed",
-        description: "Unable to generate podcast script. Please try again.",
+        description: error?.message || "Failed to generate podcast script. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -110,7 +159,7 @@ export default function PodcastGenerator() {
     if (!script.trim()) {
       toast({
         title: "Script Required",
-        description: "Please generate a script first before creating audio.",
+        description: "Please generate a podcast script first.",
         variant: "destructive"
       });
       return;
@@ -119,7 +168,7 @@ export default function PodcastGenerator() {
     if (!selectedVoice) {
       toast({
         title: "Voice Required",
-        description: "Please select a voice for audio generation.",
+        description: "Please select a voice for the podcast.",
         variant: "destructive"
       });
       return;
@@ -131,27 +180,24 @@ export default function PodcastGenerator() {
     try {
       const response = await apiRequest('/api/podcast/generate-audio', {
         method: 'POST',
-        data: { 
+        body: JSON.stringify({ 
           script: script.trim(),
           voice: selectedVoice
-        }
+        })
       });
 
-      if (response.audioUrl) {
-        setAudioUrl(response.audioUrl);
-        const selectedVoiceLabel = voices.find(v => v.name === selectedVoice)?.label || selectedVoice;
-        toast({
-          title: "Audio Generated",
-          description: `Your podcast audio with ${selectedVoiceLabel} voice is ready to play!`
-        });
-      } else {
-        throw new Error('No audio URL returned from API');
-      }
-    } catch (error) {
+      setAudioUrl(response.audioUrl);
+      
+      toast({
+        title: "Audio Generated",
+        description: "Your podcast is ready to listen!",
+      });
+
+    } catch (error: any) {
       console.error('Error generating audio:', error);
       toast({
         title: "Audio Generation Failed",
-        description: "Unable to generate podcast audio. Please try again.",
+        description: error?.message || "Failed to generate audio. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -159,86 +205,126 @@ export default function PodcastGenerator() {
     }
   };
 
-  const downloadAudio = () => {
-    if (audioUrl) {
-      const link = document.createElement('a');
-      link.href = audioUrl;
-      link.download = `podcast-${Date.now()}.mp3`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4">
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold text-gray-900 flex items-center justify-center gap-3">
-            <Mic className="h-10 w-10 text-purple-600" />
-            AI Podcast Generator
-          </h1>
-          <p className="text-gray-600 text-lg">
-            Create engaging educational podcasts with AI-powered script generation and narration
-          </p>
-          <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-            <Sparkles className="h-3 w-3 mr-1" />
-            Director Toolkit
-          </Badge>
-        </div>
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-3">
+          <Mic className="h-10 w-10 text-blue-600" />
+          AI Podcast Studio
+        </h1>
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          Generate educational content, then create analytical podcasts with professional AI voices
+        </p>
+      </div>
 
-        {/* Podcast Configuration */}
-        <Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Step 1: Generate Source Content */}
+        <Card className="border-2 border-blue-200 bg-blue-50/50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileAudio className="h-5 w-5 text-purple-600" />
-              Podcast Configuration
+            <CardTitle className="text-2xl text-blue-800 flex items-center gap-2">
+              <FileText className="h-6 w-6" />
+              Step 1: Generate Source Document
             </CardTitle>
+            <p className="text-gray-600">Create educational content for analysis</p>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="topic" className="text-sm font-medium text-gray-700">
-                Podcast Topic
+              <Label htmlFor="contentRequest" className="text-base font-medium">
+                What kind of document do you need?
               </Label>
               <Textarea
-                id="topic"
-                placeholder="Enter your podcast topic (e.g., 'The importance of play in early childhood development', 'Building positive classroom environments', 'Supporting children with special needs')"
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                rows={3}
-                className="w-full mt-1"
+                id="contentRequest"
+                value={contentRequest}
+                onChange={(e) => setContentRequest(e.target.value)}
+                placeholder="e.g., 'A 5-point list of classroom management techniques', 'A dialogue between teachers discussing behavior strategies', 'Guidelines for parent-teacher conferences'"
+                className="mt-2 min-h-[120px]"
+                disabled={isGeneratingContent}
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Button 
+              onClick={generateSourceContent}
+              disabled={isGeneratingContent || !contentRequest.trim()}
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
+              size="lg"
+            >
+              {isGeneratingContent ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Generating Document...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Generate Document
+                </>
+              )}
+            </Button>
+
+            {sourceContent && (
+              <div className="bg-white p-4 rounded-lg border border-gray-200">
+                <h3 className="font-semibold text-gray-800 mb-2">Generated Source Document:</h3>
+                <div className="max-h-48 overflow-y-auto text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 p-3 rounded">
+                  {sourceContent}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Step 2: Generate Analytical Podcast */}
+        <Card className={`border-2 ${isPodcastSectionEnabled ? 'border-green-200 bg-green-50/50' : 'border-gray-200 bg-gray-50 opacity-60'}`}>
+          <CardHeader>
+            <CardTitle className={`text-2xl flex items-center gap-2 ${isPodcastSectionEnabled ? 'text-green-800' : 'text-gray-500'}`}>
+              <MessageSquare className="h-6 w-6" />
+              Step 2: Create Analytical Podcast
+              {!isPodcastSectionEnabled && <Badge variant="secondary">Disabled</Badge>}
+            </CardTitle>
+            <p className="text-gray-600">Generate a podcast analyzing your source document</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="podcastTopic" className="text-base font-medium">
+                Podcast Topic (Optional)
+              </Label>
+              <Input
+                id="podcastTopic"
+                value={podcastTopic}
+                onChange={(e) => setPodcastTopic(e.target.value)}
+                placeholder="e.g., 'Analyzing effective classroom strategies'"
+                disabled={!isPodcastSectionEnabled}
+                className="mt-2"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="length" className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                <Label htmlFor="length" className="text-base font-medium flex items-center gap-1">
                   <Clock className="h-4 w-4" />
-                  Podcast Length (minutes)
+                  Length (minutes)
                 </Label>
-                <Select value={length} onValueChange={setLength}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select length" />
+                <Select value={length} onValueChange={setLength} disabled={!isPodcastSectionEnabled}>
+                  <SelectTrigger className="mt-2">
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="3">3 minutes (Quick)</SelectItem>
-                    <SelectItem value="5">5 minutes (Standard)</SelectItem>
-                    <SelectItem value="7">7 minutes (Detailed)</SelectItem>
-                    <SelectItem value="10">10 minutes (Comprehensive)</SelectItem>
-                    <SelectItem value="15">15 minutes (In-depth)</SelectItem>
+                    <SelectItem value="3">3 minutes</SelectItem>
+                    <SelectItem value="5">5 minutes</SelectItem>
+                    <SelectItem value="7">7 minutes</SelectItem>
+                    <SelectItem value="10">10 minutes</SelectItem>
+                    <SelectItem value="15">15 minutes</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label htmlFor="voice" className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                <Label htmlFor="voice" className="text-base font-medium flex items-center gap-1">
                   <Volume2 className="h-4 w-4" />
-                  Narrator Voice
+                  Voice
                 </Label>
-                <Select value={selectedVoice} onValueChange={setSelectedVoice}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select voice" />
+                <Select value={selectedVoice} onValueChange={setSelectedVoice} disabled={!isPodcastSectionEnabled}>
+                  <SelectTrigger className="mt-2">
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {voices.map((voice) => (
@@ -251,153 +337,102 @@ export default function PodcastGenerator() {
               </div>
             </div>
 
-            <Button 
-              onClick={generateScript}
-              disabled={isGeneratingScript || !prompt.trim()}
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-            >
-              {isGeneratingScript ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Generating {length}-minute Script...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Generate {length}-Minute Podcast Script
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
+            <div className="flex gap-2">
+              <Button 
+                onClick={generateScript}
+                disabled={!isPodcastSectionEnabled || isGeneratingScript || !sourceContent.trim()}
+                className="flex-1 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700"
+                size="lg"
+              >
+                {isGeneratingScript ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Generating Script...
+                  </>
+                ) : (
+                  <>
+                    <FileText className="w-4 h-4 mr-2" />
+                    Generate Script
+                  </>
+                )}
+              </Button>
 
-        {/* Generated Script */}
-        {script && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <FileAudio className="h-5 w-5 text-green-600" />
-                  Generated Script
-                </span>
-                <Badge variant="outline" className="text-green-600 border-green-600">
-                  Ready for Audio
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-gray-50 p-4 rounded-lg border max-h-96 overflow-y-auto">
-                <pre className="whitespace-pre-wrap text-sm text-gray-700 font-sans leading-relaxed">
-                  {script}
-                </pre>
-              </div>
               <Button 
                 onClick={generateAudio}
-                disabled={isGeneratingAudio}
-                className="w-full bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600"
+                disabled={!isPodcastSectionEnabled || isGeneratingAudio || !script.trim()}
+                className="flex-1 bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700"
+                size="lg"
               >
                 {isGeneratingAudio ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Generating Audio...
                   </>
                 ) : (
                   <>
-                    <Mic className="h-4 w-4 mr-2" />
-                    Generate Podcast Audio
+                    <FileAudio className="w-4 h-4 mr-2" />
+                    Generate Audio
                   </>
                 )}
               </Button>
-            </CardContent>
-          </Card>
-        )}
+            </div>
 
-        {/* Audio Player */}
-        {audioUrl && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <Play className="h-5 w-5 text-blue-600" />
-                  Your Podcast
-                </span>
-                <Button
-                  onClick={downloadAudio}
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-2"
-                >
-                  <Download className="h-4 w-4" />
-                  Download
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg border">
-                <audio 
-                  controls 
-                  className="w-full"
-                  src={audioUrl}
-                  onLoadedData={() => {
-                    // Auto-play when loaded
-                    const audio = document.querySelector('audio');
-                    if (audio) audio.play().catch(() => {
-                      // Handle autoplay restrictions
-                      console.log('Autoplay prevented - user interaction required');
-                    });
-                  }}
-                >
+            {script && (
+              <div className="bg-white p-4 rounded-lg border border-gray-200">
+                <h3 className="font-semibold text-gray-800 mb-2">Generated Podcast Script:</h3>
+                <div className="max-h-48 overflow-y-auto text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 p-3 rounded">
+                  {script}
+                </div>
+              </div>
+            )}
+
+            {audioUrl && (
+              <div className="bg-white p-4 rounded-lg border border-gray-200">
+                <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <Play className="h-5 w-5 text-green-600" />
+                  Your Podcast is Ready!
+                </h3>
+                <audio controls className="w-full mb-3">
+                  <source src={audioUrl} type="audio/mpeg" />
                   Your browser does not support the audio element.
                 </audio>
+                <Button asChild className="w-full" variant="outline">
+                  <a href={audioUrl} download="podcast.mp3" className="flex items-center justify-center gap-2">
+                    <Download className="h-4 w-4" />
+                    Download Podcast
+                  </a>
+                </Button>
               </div>
-              <Alert className="mt-4">
-                <FileAudio className="h-4 w-4" />
-                <AlertDescription>
-                  Your podcast has been generated successfully! You can play it above or download it for future use.
-                </AlertDescription>
-              </Alert>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Usage Tips */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Enhanced Podcast Features</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-3 gap-4 text-sm text-gray-600">
-              <div>
-                <h4 className="font-semibold text-gray-800 mb-2">Length Options:</h4>
-                <ul className="space-y-1">
-                  <li>• <strong>3 min:</strong> Quick tips & highlights</li>
-                  <li>• <strong>5 min:</strong> Standard format</li>
-                  <li>• <strong>7 min:</strong> Detailed discussion</li>
-                  <li>• <strong>10-15 min:</strong> Comprehensive coverage</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold text-gray-800 mb-2">Voice Styles:</h4>
-                <ul className="space-y-1">
-                  <li>• <strong>Nova:</strong> Warm & professional</li>
-                  <li>• <strong>Alloy:</strong> Neutral & clear</li>
-                  <li>• <strong>Echo:</strong> Confident & dynamic</li>
-                  <li>• <strong>Fable:</strong> Engaging storytelling</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold text-gray-800 mb-2">Topic Ideas:</h4>
-                <ul className="space-y-1">
-                  <li>• Classroom management strategies</li>
-                  <li>• Child development milestones</li>
-                  <li>• Parent communication tips</li>
-                  <li>• Learning through play activities</li>
-                </ul>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Workflow Instructions */}
+      <Card className="mt-8 border-amber-200 bg-amber-50">
+        <CardContent className="pt-6">
+          <h3 className="font-semibold text-amber-800 mb-3 flex items-center gap-2">
+            <Sparkles className="h-5 w-5" />
+            How It Works
+          </h3>
+          <div className="flex items-center gap-4 text-sm text-amber-700">
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="bg-blue-100 text-blue-800">1</Badge>
+              <span>Generate educational content</span>
+            </div>
+            <ChevronRight className="h-4 w-4" />
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="bg-green-100 text-green-800">2</Badge>
+              <span>Create analytical podcast</span>
+            </div>
+            <ChevronRight className="h-4 w-4" />
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="bg-purple-100 text-purple-800">3</Badge>
+              <span>Listen & download</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
