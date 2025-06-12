@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import { OpenAIService } from '../services/OpenAIService';
-import { VoiceUsageService } from '../services/voiceUsageService';
+// OpenAI and Voice services temporarily disabled
+// import { OpenAIService } from '../services/OpenAIService';
+// import { VoiceUsageService } from '../services/voiceUsageService';
 
 const router = Router();
 
@@ -41,9 +42,10 @@ ${language !== 'en' ? `Write the story in ${language} language, keeping the same
 
 Make this story special for ${childName}!`;
 
-    const openaiService = OpenAIService.getInstance();
-    const result = await openaiService.generateContent({ prompt });
-    const story = result.content;
+    // OpenAI service temporarily disabled
+    // const openaiService = OpenAIService.getInstance();
+    // const result = await openaiService.generateContent({ prompt });
+    const story = `Here's a special story for ${childName}! (Story generation temporarily unavailable)`;
     
     // Clean up the story formatting
     const cleanedStory = story

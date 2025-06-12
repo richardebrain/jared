@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { PersonalizationService } from '../services/personalizationService';
+// Personalization service temporarily disabled
+// import { PersonalizationService } from '../services/personalizationService';
 
 const router = Router();
 
@@ -15,7 +16,8 @@ router.get('/personalized-modules/:userId', async (req, res) => {
       return res.status(400).json({ error: 'Invalid user ID' });
     }
     
-    const personalizedModules = await PersonalizationService.generatePersonalizedPath(userId);
+    // Personalization service temporarily disabled
+    const personalizedModules = { modules: [], message: "Personalization service temporarily unavailable" };
     
     return res.json(personalizedModules);
   } catch (error) {

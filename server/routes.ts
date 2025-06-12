@@ -5407,8 +5407,8 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
       // Import the BearyAI service
       // const { AIBearyService } = await import("./services/aiBearyService");
       
-      // Process the query through BearyAI
-      const response = await AIBearyService.processQuery(query);
+      // AI Beary service temporarily disabled
+      const response = { message: "AI Beary service is temporarily unavailable" };
       
       res.json(response);
     } catch (error) {

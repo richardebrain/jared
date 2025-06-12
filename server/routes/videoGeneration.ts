@@ -32,13 +32,13 @@ router.post('/generate', async (req: Request, res: Response) => {
     console.log('Video generation request:', validatedData);
     
     // Video generation service temporarily disabled
-    const result = { message: "Video generation service is temporarily unavailable" };
+    const result = { id: "temp-id", status: "unavailable", message: "Video generation service is temporarily unavailable" };
     
     res.json({
       success: true,
       videoId: result.id,
       status: result.status,
-      message: 'Video generation started successfully'
+      message: 'Video generation service is temporarily unavailable'
     });
   } catch (error) {
     console.error('Video generation error:', error);
@@ -73,7 +73,8 @@ router.get('/status/:videoId', async (req: Request, res: Response) => {
       });
     }
     
-    const status = await videoGenerationService.checkVideoStatus(videoId);
+    // Video generation service temporarily disabled
+    const status = { status: "unavailable", message: "Video generation service is temporarily unavailable" };
     
     res.json({
       success: true,
@@ -98,13 +99,14 @@ router.post('/generate-scenario', async (req: Request, res: Response) => {
     
     console.log('Scenario video generation request:', validatedData);
     
-    const result = await videoGenerationService.generateScenarioVideo(validatedData);
+    // Video generation service temporarily disabled
+    const result = { id: "temp-scenario-id", status: "unavailable", message: "Video generation service is temporarily unavailable" };
     
     res.json({
       success: true,
       videoId: result.id,
       status: result.status,
-      message: 'Scenario video generation started successfully'
+      message: 'Video generation service is temporarily unavailable'
     });
   } catch (error) {
     console.error('Scenario video generation error:', error);
