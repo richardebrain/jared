@@ -48,6 +48,7 @@ import communityModulesRoutes from "./api/communityModulesRoutes";
 import selfAssessmentRoutes from "./api/selfAssessmentRoutes";
 import teacherInvitationRoutes from "./api/teacherInvitationRoutes";
 import avatarRoutes from "./api/avatarRoutes";
+import podcastRoutes from "./routes/podcast";
 import voiceRoutes from "./api/voiceRoutes";
 import emailRoutes from "./api/emailRoutes";
 import adminRoutes from "./routes/admin";
