@@ -1,7 +1,6 @@
 import { Router } from 'express';
-// OpenAI and Voice services temporarily disabled
-// import { OpenAIService } from '../services/OpenAIService';
-// import { VoiceUsageService } from '../services/voiceUsageService';
+import { OpenAIService } from '../services/OpenAIService';
+import { VoiceUsageService } from '../services/voiceUsageService';
 
 const router = Router();
 
@@ -42,10 +41,9 @@ ${language !== 'en' ? `Write the story in ${language} language, keeping the same
 
 Make this story special for ${childName}!`;
 
-    // OpenAI service temporarily disabled
-    // const openaiService = OpenAIService.getInstance();
-    // const result = await openaiService.generateContent({ prompt });
-    const story = `Here's a special story for ${childName}! (Story generation temporarily unavailable)`;
+    const openaiService = OpenAIService.getInstance();
+    const result = await openaiService.generateContent({ prompt });
+    const story = result.content;
     
     // Clean up the story formatting
     const cleanedStory = story
@@ -92,17 +90,11 @@ router.post('/generate-audio', async (req, res) => {
       });
     }
 
-    // Voice usage service temporarily disabled
-    const usageCheck = { 
-      canUse: false, 
-      reason: "Voice service temporarily unavailable",
-      usageCount: 0,
-      resetDate: new Date()
-    };
+    // Check weekly usage limit (1 per week due to ElevenLabs costs)
+    const usageCheck = await VoiceUsageService.canUseVoiceNarration(req.session.userId);
     
     if (!usageCheck.canUse) {
-      // const resetDate = usageCheck.resetDate.toLocaleDateString();
-      const resetDate = "Service temporarily unavailable";
+      const resetDate = usageCheck.resetDate.toLocaleDateString();
       return res.status(429).json({ 
         message: `Voice narration limit reached. You can use this feature again on ${resetDate}.`,
         usageCount: usageCheck.usageCount,
@@ -119,9 +111,9 @@ router.post('/generate-audio', async (req, res) => {
 The End! 
 What a wonderful story about ${childName}!`;
 
-    // Voice service temporarily disabled
-    // const { VoiceService } = await import('../services/voiceService');
-    // const voiceService = new VoiceService();
+    // Use the existing voice service for story narration
+    const { VoiceService } = await import('../services/voiceService');
+    const voiceService = new VoiceService();
     
     // Map voiceId to voiceType for the voice service
     const voiceTypeMap = {
@@ -135,8 +127,38 @@ What a wonderful story about ${childName}!`;
     
     const voiceType = voiceTypeMap[voiceId] || 'child-friendly';
     
-    // Voice service temporarily disabled - return placeholder response
-    const audioUrl = null; // Audio generation temporarily unavailable
+    const audioBuffer = await voiceService.generateSpeech(
+      enhancedText,
+      voiceType,
+      {
+        stability: 0.8,
+        similarityBoost: 0.9,
+        style: 0.2,
+        useSpeakerBoost: true
+      }
+    );
+
+    if (!audioBuffer) {
+      throw new Error('Failed to generate audio');
+    }
+
+    // Save audio to temporary file and return URL
+    const fs = await import('fs');
+    const path = await import('path');
+    const audioFilename = `story-${Date.now()}.mp3`;
+    const audioPath = path.join(process.cwd(), 'uploads', audioFilename);
+    
+    // Ensure uploads directory exists
+    const uploadsDir = path.join(process.cwd(), 'uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+    
+    fs.writeFileSync(audioPath, audioBuffer);
+    const audioUrl = `/uploads/${audioFilename}`;
+
+    // Record usage after successful generation
+    await VoiceUsageService.recordUsage(req.session.userId);
 
     res.json({ 
       audioUrl: audioUrl,

@@ -6,7 +6,7 @@ import debugStorage from "./fix-debug";
 import { db } from "./db";
 import express from "express";
 import session from "express-session";
-// Notification service temporarily disabled
+import { checkAndNotifyExpiringCredentials } from "./services/notificationService";
 import connectPgSimple from "connect-pg-simple";
 import { updateChildDevelopmentModule } from "./updateChildDevelopmentModule";
 import { eq, sql, and, desc } from "drizzle-orm";
@@ -28,7 +28,7 @@ import { registerWelcomeMessageRoutes } from "./welcomeMessageRoutes";
 import { registerModuleManagementRoutes } from "./module-management/moduleRoutes";
 import { registerModuleRoutes } from "./registerModuleRoutes";
 import { registerQuestionImportRoutes } from "./api-routes/question-import";
-// Assessment routes temporarily disabled
+import { registerAssessmentRoutes } from "./registerAssessmentRoutes";
 import * as notebookLmPlugin from "./notebookLmPlugin";
 import credentialRoutes from "./api/credentialRoutes";
 import videoGenerationRoutes from "./routes/videoGeneration";
@@ -44,14 +44,14 @@ import assessmentQuestionRoutes from "./routes/assessment-questions";
 import aiSuggestionRoutes from "./api/aiSuggestionRoutes";
 import newAiSuggestionRoutes from "./api/newAiSuggestionRoutes";
 import moduleRatingsRoutes from "./api/moduleRatingsRoutes";
-// Community modules routes temporarily disabled
+import communityModulesRoutes from "./api/communityModulesRoutes";
 import selfAssessmentRoutes from "./api/selfAssessmentRoutes";
 import teacherInvitationRoutes from "./api/teacherInvitationRoutes";
 import avatarRoutes from "./api/avatarRoutes";
 import voiceRoutes from "./api/voiceRoutes";
 import emailRoutes from "./api/emailRoutes";
 import adminRoutes from "./routes/admin";
-// AI Beary service temporarily disabled
+import { AIBearyService } from "./services/aiBearyService";
 import aiModuleDesignerRoutes from "./api/aiModuleDesignerRoutes";
 import personalizedStoriesRoutes from "./api/personalizedStoriesRoutes";
 import videoSearchRoutes from "./api/videoSearchRoutes";
@@ -465,8 +465,7 @@ Continue for all 5 questions...
   app.use("/api/module-ratings", moduleRatingsRoutes);
 
   // Register community modules routes
-  // Community modules routes temporarily disabled
-  // app.use("/api/community-modules", communityModulesRoutes);
+  app.use("/api/community-modules", communityModulesRoutes);
 
   // Register video generation routes
   app.use("/api/video", videoGenerationRoutes);
@@ -592,25 +591,24 @@ Continue for all 5 questions...
   // Set up credential expiration check to run daily
   const ONE_DAY_MS = 24 * 60 * 60 * 1000;
   // Schedule first check at server startup
-  // Credential expiration checks temporarily disabled
-  // setTimeout(() => {
-  //   console.log("Running initial credential expiration check...");
-  //   checkAndNotifyExpiringCredentials(30) // Check credentials expiring within 30 days
-  //     .then(() => console.log("Initial credential expiration check complete"))
-  //     .catch((err) =>
-  //       console.error("Error in credential expiration check:", err),
-  //     );
-  // }, 5000); // Wait 5 seconds after server start before first check
+  setTimeout(() => {
+    console.log("Running initial credential expiration check...");
+    checkAndNotifyExpiringCredentials(30) // Check credentials expiring within 30 days
+      .then(() => console.log("Initial credential expiration check complete"))
+      .catch((err) =>
+        console.error("Error in credential expiration check:", err),
+      );
+  }, 5000); // Wait 5 seconds after server start before first check
 
-  // // Then schedule regular daily checks
-  // setInterval(() => {
-  //   console.log("Running scheduled credential expiration check...");
-  //   checkAndNotifyExpiringCredentials(30) // Check credentials expiring within 30 days
-  //     .then(() => console.log("Scheduled credential expiration check complete"))
-  //     .catch((err) =>
-  //       console.error("Error in credential expiration check:", err),
-  //     );
-  // }, ONE_DAY_MS);
+  // Then schedule regular daily checks
+  setInterval(() => {
+    console.log("Running scheduled credential expiration check...");
+    checkAndNotifyExpiringCredentials(30) // Check credentials expiring within 30 days
+      .then(() => console.log("Scheduled credential expiration check complete"))
+      .catch((err) =>
+        console.error("Error in credential expiration check:", err),
+      );
+  }, ONE_DAY_MS);
 
   // Register welcome message routes - for teacher notifications and shout-outs
   registerWelcomeMessageRoutes(app);
@@ -618,8 +616,8 @@ Continue for all 5 questions...
   // Register ECE question import routes
   registerQuestionImportRoutes(app);
 
-  // Assessment routes temporarily disabled
-  // registerAssessmentRoutes(app);
+  // Register enhanced assessment routes
+  registerAssessmentRoutes(app);
 
 
 
@@ -3756,8 +3754,7 @@ Continue for all 5 questions...
         return res.status(400).json({ message: "Query is required" });
       }
 
-      // AI Beary service temporarily disabled
-      const response = { message: "AI Beary service is temporarily unavailable" };
+      const response = await AIBearyService.processQuery(query, moduleContext);
       res.status(200).json(response);
     } catch (error) {
       console.error("AI Beary service error:", error);
@@ -5405,10 +5402,10 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
       }
 
       // Import the BearyAI service
-      // const { AIBearyService } = await import("./services/aiBearyService");
+      const { AIBearyService } = await import("./services/aiBearyService");
       
-      // AI Beary service temporarily disabled
-      const response = { message: "AI Beary service is temporarily unavailable" };
+      // Process the query through BearyAI
+      const response = await AIBearyService.processQuery(query);
       
       res.json(response);
     } catch (error) {

@@ -1,19 +1,15 @@
 import { Router, type Request, type Response, NextFunction } from 'express';
-// Question management service temporarily disabled
-// import { QuestionManagementService, QuestionFiltersSchema, CreateQuestionSchema, UpdateQuestionSchema } from '../services/admin/QuestionManagementService';
+import { QuestionManagementService, QuestionFiltersSchema, CreateQuestionSchema, UpdateQuestionSchema } from '../services/admin/QuestionManagementService';
 import { z } from 'zod';
 import { db } from '../db';
 import { teacherMessages, users, insertTeacherMessageSchema } from '@shared/schema';
 import { eq, desc, and } from 'drizzle-orm';
-// Question pool analysis and OpenAI services temporarily disabled
-// import { QuestionPoolAnalysisService } from '../services/admin/QuestionPoolAnalysisService';
-// import { openAIService } from '../services/OpenAIService';
+import { QuestionPoolAnalysisService } from '../services/admin/QuestionPoolAnalysisService';
+import { openAIService } from '../services/OpenAIService';
 
 const router = Router();
-// Question management service temporarily disabled
-// const questionService = new QuestionManagementService();
-// Pool analysis service temporarily disabled
-// const poolAnalysisService = new QuestionPoolAnalysisService();
+const questionService = new QuestionManagementService();
+const poolAnalysisService = new QuestionPoolAnalysisService();
 
 // TODO: Replace with proper authentication system
 // This is a temporary solution for local development only

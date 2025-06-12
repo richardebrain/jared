@@ -1,6 +1,5 @@
 import { Router, type Request, type Response } from 'express';
-// Video generation service temporarily disabled
-// import { videoGenerationService } from '../services/videoGenerationService';
+import { videoGenerationService } from '../services/videoGenerationService';
 import { z } from 'zod';
 
 const router = Router();
@@ -31,14 +30,13 @@ router.post('/generate', async (req: Request, res: Response) => {
     
     console.log('Video generation request:', validatedData);
     
-    // Video generation service temporarily disabled
-    const result = { id: "temp-id", status: "unavailable", message: "Video generation service is temporarily unavailable" };
+    const result = await videoGenerationService.generateTrainingVideo(validatedData);
     
     res.json({
       success: true,
       videoId: result.id,
       status: result.status,
-      message: 'Video generation service is temporarily unavailable'
+      message: 'Video generation started successfully'
     });
   } catch (error) {
     console.error('Video generation error:', error);
@@ -73,8 +71,7 @@ router.get('/status/:videoId', async (req: Request, res: Response) => {
       });
     }
     
-    // Video generation service temporarily disabled
-    const status = { status: "unavailable", message: "Video generation service is temporarily unavailable" };
+    const status = await videoGenerationService.checkVideoStatus(videoId);
     
     res.json({
       success: true,
@@ -99,14 +96,13 @@ router.post('/generate-scenario', async (req: Request, res: Response) => {
     
     console.log('Scenario video generation request:', validatedData);
     
-    // Video generation service temporarily disabled
-    const result = { id: "temp-scenario-id", status: "unavailable", message: "Video generation service is temporarily unavailable" };
+    const result = await videoGenerationService.generateScenarioVideo(validatedData);
     
     res.json({
       success: true,
       videoId: result.id,
       status: result.status,
-      message: 'Video generation service is temporarily unavailable'
+      message: 'Scenario video generation started successfully'
     });
   } catch (error) {
     console.error('Scenario video generation error:', error);
