@@ -363,26 +363,35 @@ export default function PodcastGenerator() {
         {/* Usage Tips */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Tips for Better Podcasts</CardTitle>
+            <CardTitle className="text-lg">Enhanced Podcast Features</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-600">
+            <div className="grid md:grid-cols-3 gap-4 text-sm text-gray-600">
+              <div>
+                <h4 className="font-semibold text-gray-800 mb-2">Length Options:</h4>
+                <ul className="space-y-1">
+                  <li>• <strong>3 min:</strong> Quick tips & highlights</li>
+                  <li>• <strong>5 min:</strong> Standard format</li>
+                  <li>• <strong>7 min:</strong> Detailed discussion</li>
+                  <li>• <strong>10-15 min:</strong> Comprehensive coverage</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-800 mb-2">Voice Styles:</h4>
+                <ul className="space-y-1">
+                  <li>• <strong>Nova:</strong> Warm & professional</li>
+                  <li>• <strong>Alloy:</strong> Neutral & clear</li>
+                  <li>• <strong>Echo:</strong> Confident & dynamic</li>
+                  <li>• <strong>Fable:</strong> Engaging storytelling</li>
+                </ul>
+              </div>
               <div>
                 <h4 className="font-semibold text-gray-800 mb-2">Topic Ideas:</h4>
                 <ul className="space-y-1">
                   <li>• Classroom management strategies</li>
                   <li>• Child development milestones</li>
                   <li>• Parent communication tips</li>
-                  <li>• Learning through play</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold text-gray-800 mb-2">Best Practices:</h4>
-                <ul className="space-y-1">
-                  <li>• Be specific with your topics</li>
-                  <li>• Include target age groups</li>
-                  <li>• Mention practical applications</li>
-                  <li>• Consider your audience level</li>
+                  <li>• Learning through play activities</li>
                 </ul>
               </div>
             </div>
