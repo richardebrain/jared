@@ -28,7 +28,7 @@ import { registerWelcomeMessageRoutes } from "./welcomeMessageRoutes";
 import { registerModuleManagementRoutes } from "./module-management/moduleRoutes";
 import { registerModuleRoutes } from "./registerModuleRoutes";
 import { registerQuestionImportRoutes } from "./api-routes/question-import";
-import { registerAssessmentRoutes } from "./registerAssessmentRoutes";
+// Assessment routes temporarily disabled
 import * as notebookLmPlugin from "./notebookLmPlugin";
 import credentialRoutes from "./api/credentialRoutes";
 import videoGenerationRoutes from "./routes/videoGeneration";
@@ -616,8 +616,8 @@ Continue for all 5 questions...
   // Register ECE question import routes
   registerQuestionImportRoutes(app);
 
-  // Register enhanced assessment routes
-  registerAssessmentRoutes(app);
+  // Assessment routes temporarily disabled
+  // registerAssessmentRoutes(app);
 
 
 
