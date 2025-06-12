@@ -17,14 +17,43 @@ if (!fs.existsSync(AUDIO_DIR)) {
   fs.mkdirSync(AUDIO_DIR, { recursive: true });
 }
 
+// Available voice options for OpenAI TTS
+const AVAILABLE_VOICES = [
+  { name: 'nova', label: 'Nova (Warm & Professional)', language: 'en-US' },
+  { name: 'alloy', label: 'Alloy (Neutral & Clear)', language: 'en-US' },
+  { name: 'echo', label: 'Echo (Confident & Dynamic)', language: 'en-US' },
+  { name: 'fable', label: 'Fable (Engaging & Storytelling)', language: 'en-US' },
+  { name: 'onyx', label: 'Onyx (Deep & Authoritative)', language: 'en-US' },
+  { name: 'shimmer', label: 'Shimmer (Friendly & Upbeat)', language: 'en-US' }
+];
+
+// Get available voices
+router.get('/voices', async (req, res) => {
+  try {
+    res.json({ voices: AVAILABLE_VOICES });
+  } catch (error) {
+    console.error('Error fetching voices:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Generate podcast script
 router.post('/generate-script', async (req, res) => {
   try {
-    const { prompt } = req.body;
+    const { prompt, length = 5 } = req.body;
 
     if (!prompt || typeof prompt !== 'string') {
       return res.status(400).json({ error: 'Prompt is required and must be a string' });
     }
+
+    const scriptLength = parseInt(length);
+    if (scriptLength < 3 || scriptLength > 15) {
+      return res.status(400).json({ error: 'Podcast length must be between 3 and 15 minutes' });
+    }
+
+    // Calculate word count based on length (average 150 words per minute)
+    const minWords = Math.ceil(scriptLength * 120 * 0.9); // 90% of lower estimate
+    const maxWords = Math.floor(scriptLength * 150 * 1.1); // 110% of higher estimate
 
     // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
     const completion = await openai.chat.completions.create({
@@ -32,30 +61,33 @@ router.post('/generate-script', async (req, res) => {
       messages: [
         {
           role: "system",
-          content: `You are an expert educational content creator specializing in early childhood education. Create engaging, informative podcast scripts for teachers, directors, and education professionals. Your scripts should be:
+          content: `You are an expert educational content creator specializing in early childhood education. Create engaging, informative podcast scripts in interview format for teachers, directors, and education professionals. Your scripts should be:
 
 - Professional yet conversational in tone
-- 300-500 words in length
-- Include clear sections: Introduction, Main Content, Key Takeaways, and Conclusion
+- Feature a 'HOST' and an 'EXPERT' in interview format
+- Include clear sections: Introduction, Main Discussion, Key Takeaways, and Conclusion
 - Focus on practical, actionable insights
 - Be appropriate for audio consumption
 - Include natural speaking patterns and transitions
 
-Format the script with clear speaker labels (HOST:) and natural pauses indicated by ellipses where appropriate.`
+Format the script clearly with speaker labels (e.g., 'HOST:', 'EXPERT:') and natural pauses indicated by ellipses where appropriate.`
         },
         {
           role: "user",
-          content: `Create a podcast script on the topic: "${prompt}". 
+          content: `Create an interview-style podcast script (approximately ${scriptLength} minutes, about ${minWords}-${maxWords} words) on the topic: "${prompt}" for early childhood educators. 
 
-Make sure to:
-- Start with an engaging hook
-- Provide practical strategies or insights
-- Include specific examples relevant to early childhood education
-- End with clear action items or key takeaways
-- Keep the tone professional but warm and approachable`
+The script should feature a 'HOST' and an 'EXPERT'. Include:
+- An intro where the HOST introduces the topic and the EXPERT
+- A main discussion section where the HOST asks questions and the EXPERT provides analytical insights
+- A conclusion summarizing key points
+- Practical strategies or insights relevant to early childhood education
+- Natural conversational flow between speakers
+- Clear action items or takeaways
+
+Keep the tone professional but warm and approachable.`
         }
       ],
-      max_tokens: 1000,
+      max_tokens: 2000,
       temperature: 0.7
     });
 
@@ -85,16 +117,22 @@ Make sure to:
 // Generate podcast audio
 router.post('/generate-audio', async (req, res) => {
   try {
-    const { script } = req.body;
+    const { script, voice = 'nova' } = req.body;
 
     if (!script || typeof script !== 'string') {
       return res.status(400).json({ error: 'Script is required and must be a string' });
     }
 
+    // Validate voice selection
+    const selectedVoice = AVAILABLE_VOICES.find(v => v.name === voice);
+    if (!selectedVoice) {
+      return res.status(400).json({ error: 'Invalid voice selection' });
+    }
+
     // Generate audio using OpenAI's text-to-speech
     const mp3 = await openai.audio.speech.create({
       model: "tts-1",
-      voice: "nova", // Professional, clear female voice suitable for educational content
+      voice: selectedVoice.name as any, // Use selected voice
       input: script,
       speed: 0.9 // Slightly slower for better comprehension
     });

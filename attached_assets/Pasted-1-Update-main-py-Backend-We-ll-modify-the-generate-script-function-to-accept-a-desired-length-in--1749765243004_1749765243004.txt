@@ -1,0 +1,398 @@
+1. Update main.py (Backend)
+We'll modify the generate_script function to accept a desired length in minutes and adjust the prompt accordingly. We'll also update the generate_audio function to accept a selected voice and pass it to the Gemini TTS model.
+
+Python
+
+# main.py
+
+import os
+from flask import Flask, render_template, request, jsonify, send_from_directory
+import google.generativeai as genai
+import uuid # For generating unique filenames
+import math # For calculating word count from minutes
+
+app = Flask(__name__)
+
+# Configure Google Gemini API
+genai.configure()
+
+# Ensure the static/audio directory exists
+AUDIO_DIR = os.path.join(app.root_path, 'static', 'audio')
+os.makedirs(AUDIO_DIR, exist_ok=True)
+
+# Define available voices for the frontend dropdown.
+# These are example voice names and their characteristics from Gemini API documentation (Gemini 2.5 Flash Preview TTS).
+# You can find a more comprehensive list and their characteristics in the official Gemini API documentation
+# under "Speech generation (text-to-speech) models" section.
+# The 'name' field is what you pass to the API.
+# The 'label' field is what's displayed to the user.
+AVAILABLE_VOICES = [
+    {"name": "en-US-Zephyr", "label": "Zephyr (Bright)", "language": "en-US"},
+    {"name": "en-US-Puck", "label": "Puck (Upbeat)", "language": "en-US"},
+    {"name": "en-US-Charon", "label": "Charon (Informative)", "language": "en-US"},
+    {"name": "en-US-Kore", "label": "Kore (Firm)", "language": "en-US"},
+    {"name": "en-US-Fenrir", "label": "Fenrir (Excitable)", "language": "en-US"},
+    {"name": "en-US-Leda", "label": "Leda (Youthful)", "language": "en-US"},
+    {"name": "en-US-Aoede", "label": "Aoede (Breezy)", "language": "en-US"},
+    {"name": "en-US-Autonoe", "label": "Autonoe (Bright)", "language": "en-US"},
+    {"name": "en-US-Schedar", "label": "Schedar (Even)", "language": "en-US"},
+]
+
+
+@app.route('/')
+def index():
+    # Pass voices to the template so JavaScript can populate the dropdown
+    return render_template('index.html', voices=AVAILABLE_VOICES)
+
+# --- API Endpoints ---
+
+@app.route('/generate_script', methods=['POST'])
+def generate_script():
+    user_prompt = request.json.get('prompt')
+    script_length_minutes = int(request.json.get('length', 5)) # Default to 5 minutes
+    
+    if not user_prompt:
+        return jsonify({"error": "Prompt is required"}), 400
+
+    # Convert minutes to approximate word count range
+    # Average speaking rate is 120-150 words per minute
+    min_words = math.ceil(script_length_minutes * 120 * 0.9) # 90% of lower estimate
+    max_words = math.floor(script_length_minutes * 150 * 1.1) # 110% of higher estimate
+
+    try:
+        # Use gemini-2.0-flash for text generation
+        model = genai.GenerativeModel('gemini-2.0-flash')
+        
+        # Craft a specific prompt for podcast script generation to encourage interview style
+        full_prompt = (
+            f"Generate an interview-style podcast script (approximately {script_length_minutes} minutes, "
+            f"which is about {min_words}-{max_words} words) "
+            f"that analyzes the topic: '{user_prompt}'. "
+            f"The podcast should feature a 'HOST' and an 'EXPERT'. "
+            f"Include an intro where the HOST introduces the topic and the EXPERT, "
+            f"a main discussion section where the HOST asks questions and the EXPERT provides analytical insights, "
+            f"and a conclusion summarizing the key points. "
+            f"Format it clearly with speaker labels (e.g., 'HOST:', 'EXPERT:')."
+        )
+        
+        response = model.generate_content(full_prompt)
+        podcast_script = response.candidates[0].content.parts[0].text
+        
+        return jsonify({"script": podcast_script})
+
+    except Exception as e:
+        print(f"Error generating script: {e}")
+        return jsonify({"error": "Failed to generate script"}), 500
+
+@app.route('/generate_audio', methods=['POST'])
+def generate_audio():
+    script_text = request.json.get('script')
+    selected_voice_name = request.json.get('voice_name') # Get selected voice from frontend
+
+    if not script_text:
+        return jsonify({"error": "Script text is required"}), 400
+    if not selected_voice_name:
+        return jsonify({"error": "Voice selection is required"}), 400
+
+    try:
+        # Use gemini-2.5-flash-preview-tts for text-to-speech
+        tts_model = genai.GenerativeModel('gemini-2.5-flash-preview-tts')
+        
+        # Construct the SpeechConfig with the selected voice name
+        # The Gemini API expects this structure for controlling voice.
+        speech_config = genai.types.SpeechConfig(
+            voice=genai.types.VoiceConfig(name=selected_voice_name)
+        )
+
+        response = tts_model.generate_content(
+            script_text,
+            stream=False, # We want the full audio in one go
+            # Pass the speech_config in the config argument
+            config=genai.types.GenerateContentConfig(
+                response_modalities=["AUDIO"],
+                speech_config=speech_config
+            )
+        )
+        
+        audio_data = b''
+        for chunk in response:
+             if hasattr(chunk, 'audio_segments') and chunk.audio_segments:
+                for segment in chunk.audio_segments:
+                    audio_data += segment.data
+
+        if not audio_data:
+            raise ValueError("No audio data received from TTS API.")
+
+        # Generate a unique filename for the audio (MP3 is common for podcasts)
+        audio_filename = f"{uuid.uuid4()}.mp3"
+        audio_filepath = os.path.join(AUDIO_DIR, audio_filename)
+
+        with open(audio_filepath, 'wb') as f:
+            f.write(audio_data)
+
+        # Return the URL to access the audio file
+        audio_url = f"/static/audio/{audio_filename}"
+        return jsonify({"audio_url": audio_url})
+
+    except Exception as e:
+        print(f"Error generating audio: {e}")
+        return jsonify({"error": f"Failed to generate audio: {str(e)}"}), 500
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=os.environ.get('PORT', 8080), debug=True)
+
+2. Update templates/index.html (Frontend HTML)
+We'll add a new input for the podcast length and a dropdown for voice selection.
+
+HTML
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Podcast Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+        }
+        .container {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="container bg-white p-8 rounded-xl shadow-lg w-full max-w-2xl">
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-6 text-center">Spill the AI Tea! ☕️</h1>
+        <p class="text-gray-600 mb-8 text-center">Enter a topic, and let our AI generate a podcast script and audio for you!</p>
+
+        <div class="mb-4">
+            <label for="podcastPrompt" class="block text-gray-700 text-lg font-medium mb-2">Podcast Topic:</label>
+            <textarea id="podcastPrompt" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" placeholder="e.g., 'The future of space travel', 'Healthy breakfast ideas for kids', 'The history of video games'"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <div>
+                <label for="scriptLength" class="block text-gray-700 text-lg font-medium mb-2">Podcast Length (minutes):</label>
+                <input type="number" id="scriptLength" min="3" max="15" value="5" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800">
+            </div>
+            <div>
+                <label for="voiceSelect" class="block text-gray-700 text-lg font-medium mb-2">Select Voice:</label>
+                <select id="voiceSelect" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800">
+                    <!-- Voices will be populated by JavaScript -->
+                </select>
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-8">
+            <button id="generateScriptBtn" class="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:from-blue-600 hover:to-indigo-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-md">
+                <span id="scriptBtnText">Generate Script</span>
+                <div id="scriptLoadingSpinner" class="hidden spinner ml-2"></div>
+            </button>
+            <button id="generateAudioBtn" class="flex-1 bg-gradient-to-r from-green-500 to-teal-600 text-white font-bold py-3 px-6 rounded-lg hover:from-green-600 hover:to-teal-700 transition duration-300 ease-in-out transform hover:scale-105 shadow-md" disabled>
+                <span id="audioBtnText">Generate Audio</span>
+                <div id="audioLoadingSpinner" class="hidden spinner ml-2"></div>
+            </button>
+        </div>
+
+        <div id="podcastScriptContainer" class="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-8 hidden">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Generated Podcast Script:</h3>
+            <pre id="podcastScript" class="whitespace-pre-wrap text-gray-700 text-base leading-relaxed"></pre>
+        </div>
+
+        <div id="audioPlayerContainer" class="bg-gray-50 p-4 rounded-lg border border-gray-200 flex items-center justify-center hidden">
+            <audio id="podcastAudio" controls class="w-full"></audio>
+        </div>
+
+        <!-- Spinner CSS -->
+        <style>
+            .spinner {
+                border: 4px solid rgba(255, 255, 255, 0.3);
+                border-top: 4px solid #fff;
+                border-radius: 50%;
+                width: 24px;
+                height: 24px;
+                animation: spin 1s linear infinite;
+                display: inline-block;
+            }
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        </style>
+    </div>
+
+    <script>
+        // Data passed from Flask to JavaScript via Jinja2
+        // This is safe because it's application-specific data.
+        const availableVoices = {{ voices | tojson }}; 
+    </script>
+    <script src="/static/script.js"></script>
+</body>
+</html>
+3. Update static/script.js (Frontend JavaScript)
+We'll add logic to populate the voice dropdown, retrieve the selected length and voice, and send them to the backend API calls.
+
+JavaScript
+
+document.addEventListener('DOMContentLoaded', () => {
+    const podcastPromptInput = document.getElementById('podcastPrompt');
+    const scriptLengthInput = document.getElementById('scriptLength');
+    const voiceSelect = document.getElementById('voiceSelect');
+    const generateScriptBtn = document.getElementById('generateScriptBtn');
+    const generateAudioBtn = document.getElementById('generateAudioBtn');
+    const podcastScriptContainer = document.getElementById('podcastScriptContainer');
+    const podcastScriptDisplay = document.getElementById('podcastScript');
+    const audioPlayerContainer = document.getElementById('audioPlayerContainer');
+    const podcastAudio = document.getElementById('podcastAudio');
+    const scriptBtnText = document.getElementById('scriptBtnText');
+    const audioBtnText = document.getElementById('audioBtnText');
+    const scriptLoadingSpinner = document.getElementById('scriptLoadingSpinner');
+    const audioLoadingSpinner = document.getElementById('audioLoadingSpinner');
+
+    // --- Populate Voice Dropdown ---
+    // availableVoices is passed from the Flask template (index.html)
+    if (typeof availableVoices !== 'undefined' && availableVoices.length > 0) {
+        availableVoices.forEach(voice => {
+            const option = document.createElement('option');
+            option.value = voice.name;
+            option.textContent = voice.label;
+            voiceSelect.appendChild(option);
+        });
+    } else {
+        console.warn("No voices available. Check if 'voices' data is passed correctly from Flask.");
+        // Optionally disable audio generation if no voices are available
+        generateAudioBtn.disabled = true;
+    }
+
+    // --- Helper functions for UI state ---
+    function showLoading(button, textSpan, spinner) {
+        button.disabled = true;
+        textSpan.textContent = 'Generating...';
+        spinner.classList.remove('hidden');
+    }
+
+    function hideLoading(button, originalText, spinner) {
+        button.disabled = false;
+        textSpan.textContent = originalText;
+        spinner.classList.add('hidden');
+    }
+
+    function showMessage(message, type = 'info') {
+        const messageDiv = document.createElement('div');
+        messageDiv.textContent = message;
+        messageDiv.className = `p-3 rounded-lg mt-4 text-center text-sm ${type === 'error' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`;
+        
+        // Find a good place to insert the message, e.g., before the prompt input
+        const existingMessages = document.querySelector('.message-display');
+        if (existingMessages) existingMessages.remove(); // Remove previous message
+
+        messageDiv.classList.add('message-display'); // Add a class for easy removal
+        podcastPromptInput.parentNode.insertBefore(messageDiv, podcastPromptInput);
+        setTimeout(() => messageDiv.remove(), 5000); // Remove after 5 seconds
+    }
+
+    // --- Event Listeners ---
+
+    generateScriptBtn.addEventListener('click', async () => {
+        const prompt = podcastPromptInput.value.trim();
+        const length = scriptLengthInput.value; // Get selected length
+        
+        if (!prompt) {
+            showMessage("Please enter a podcast topic.", "error");
+            return;
+        }
+        if (length < 3 || length > 15) {
+            showMessage("Podcast length must be between 3 and 15 minutes.", "error");
+            return;
+        }
+
+        showLoading(generateScriptBtn, scriptBtnText, scriptLoadingSpinner);
+        podcastScriptContainer.classList.add('hidden');
+        audioPlayerContainer.classList.add('hidden');
+        podcastAudio.src = ''; // Clear previous audio
+        generateAudioBtn.disabled = true; // Disable audio button until script is ready
+
+        try {
+            const response = await fetch('/generate_script', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ prompt: prompt, length: length }), // Pass length to backend
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                podcastScriptDisplay.textContent = data.script;
+                podcastScriptContainer.classList.remove('hidden');
+                generateAudioBtn.disabled = false; // Enable audio generation
+                showMessage("Podcast script generated successfully!", "success");
+            } else {
+                showMessage(`Error: ${data.error || 'Failed to generate script.'}`, "error");
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showMessage("An unexpected error occurred while generating script.", "error");
+        } finally {
+            hideLoading(generateScriptBtn, 'Generate Script', scriptLoadingSpinner);
+        }
+    });
+
+    generateAudioBtn.addEventListener('click', async () => {
+        const script = podcastScriptDisplay.textContent.trim();
+        const selectedVoice = voiceSelect.value; // Get selected voice
+        
+        if (!script) {
+            showMessage("Please generate a script first.", "error");
+            return;
+        }
+        if (!selectedVoice) {
+            showMessage("Please select a voice.", "error");
+            return;
+        }
+
+        showLoading(generateAudioBtn, audioBtnText, audioLoadingSpinner);
+        audioPlayerContainer.classList.add('hidden');
+        podcastAudio.src = ''; // Clear previous audio
+
+        try {
+            const response = await fetch('/generate_audio', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ script: script, voice_name: selectedVoice }), // Pass voice name to backend
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                podcastAudio.src = data.audio_url;
+                audioPlayerContainer.classList.remove('hidden');
+                podcastAudio.load(); // Load the new audio
+                podcastAudio.play(); // Auto-play the audio
+                showMessage("Podcast audio generated and playing!", "success");
+            } else {
+                showMessage(`Error: ${data.error || 'Failed to generate audio.'}`, "error");
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showMessage("An unexpected error occurred while generating audio.", "error");
+        } finally {
+            hideLoading(generateAudioBtn, 'Generate Audio', audioLoadingSpinner);
+        }
+    });
+});
+
+Sources
+
+
+
+
+
+

@@ -2,8 +2,8 @@ import { Router, type Request, type Response, NextFunction } from 'express';
 import { QuestionManagementService, QuestionFiltersSchema, CreateQuestionSchema, UpdateQuestionSchema } from '../services/admin/QuestionManagementService';
 import { z } from 'zod';
 import { db } from '../db';
-import { teacherMessages, users, insertTeacherMessageSchema } from '@shared/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { teacherMessages, users, insertTeacherMessageSchema, assessments, assessmentResults, assessmentDomains, assessmentQuestions, questionAvailability, QuestionAvailability, InsertQuestionAvailability, learningPaths } from '@shared/schema';
+import { eq, desc, and, or, like, gte, lte, asc, sql, count } from 'drizzle-orm';
 import { QuestionPoolAnalysisService } from '../services/admin/QuestionPoolAnalysisService';
 import { openAIService } from '../services/OpenAIService';
 
@@ -892,6 +892,194 @@ router.post('/questions/generate', async (req, res) => {
       success: false,
       error: 'An unexpected error occurred during question generation. Please try again.',
       code: 'INTERNAL_SERVER_ERROR'
+    });
+  }
+});
+
+// Assessment Results endpoint
+router.get("/assessment-results", async (req, res) => {
+  try {
+    const adminPassword = req.query.admin_password as string;
+    
+    if (!adminPassword || adminPassword !== TEMP_ADMIN_PASSWORD) {
+      return res.status(403).json({ 
+        success: false, 
+        error: "Forbidden: Admin access required. Password incorrect." 
+      });
+    }
+
+    // Parse query parameters
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
+    const offset = (page - 1) * limit;
+    
+    // Filtering parameters
+    const nameFilter = req.query.name as string;
+    const emailFilter = req.query.email as string;
+    const dateFrom = req.query.dateFrom as string;
+    const dateTo = req.query.dateTo as string;
+    const accuracyMin = req.query.accuracyMin ? parseFloat(req.query.accuracyMin as string) : undefined;
+    const accuracyMax = req.query.accuracyMax ? parseFloat(req.query.accuracyMax as string) : undefined;
+    
+    // Sorting parameters
+    const sortBy = req.query.sortBy as string || 'calculatedAt';
+    const sortOrder = req.query.sortOrder as string || 'desc';
+
+    // Build the base query with joins
+    let query = db
+      .select({
+        id: assessmentResults.id,
+        overallScore: assessmentResults.overallScore,
+        totalQuestions: assessmentResults.totalQuestions,
+        totalCorrect: assessmentResults.totalCorrect,
+        accuracyRate: assessmentResults.accuracyRate,
+        totalTimeSeconds: assessmentResults.totalTimeSeconds,
+        domainBreakdown: assessmentResults.domainBreakdown,
+        strengthAreas: assessmentResults.strengthAreas,
+        growthAreas: assessmentResults.growthAreas,
+        calculatedAt: assessmentResults.calculatedAt,
+        // User information
+        userId: users.id,
+        userName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`.as('userName'),
+        userEmail: users.email,
+        // Assessment information
+        assessmentId: assessments.id,
+        assessmentCompletedAt: assessments.completedAt,
+      })
+      .from(assessmentResults)
+      .innerJoin(assessments, eq(assessmentResults.assessmentId, assessments.id))
+      .innerJoin(users, eq(assessments.userId, users.id));
+
+    // Apply filters
+    const conditions = [];
+
+    if (nameFilter) {
+      conditions.push(
+        or(
+          like(users.firstName, `%${nameFilter}%`),
+          like(users.lastName, `%${nameFilter}%`),
+          like(sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`, `%${nameFilter}%`)
+        )
+      );
+    }
+
+    if (emailFilter) {
+      conditions.push(like(users.email, `%${emailFilter}%`));
+    }
+
+    if (dateFrom) {
+      conditions.push(gte(assessmentResults.calculatedAt, new Date(dateFrom)));
+    }
+
+    if (dateTo) {
+      const toDate = new Date(dateTo);
+      toDate.setHours(23, 59, 59, 999); // Include the entire day
+      conditions.push(lte(assessmentResults.calculatedAt, toDate));
+    }
+
+    if (accuracyMin !== undefined) {
+      conditions.push(gte(assessmentResults.accuracyRate, accuracyMin));
+    }
+
+    if (accuracyMax !== undefined) {
+      conditions.push(lte(assessmentResults.accuracyRate, accuracyMax));
+    }
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    // Apply sorting
+    const sortColumn = {
+      'userName': sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+      'calculatedAt': assessmentResults.calculatedAt,
+      'accuracyRate': assessmentResults.accuracyRate,
+      'overallScore': assessmentResults.overallScore,
+      'totalTimeSeconds': assessmentResults.totalTimeSeconds,
+    }[sortBy] || assessmentResults.calculatedAt;
+
+    if (sortOrder === 'desc') {
+      query = query.orderBy(desc(sortColumn));
+    } else {
+      query = query.orderBy(asc(sortColumn));
+    }
+
+    // Get total count for pagination
+    let countQuery = db
+      .select({ count: count() })
+      .from(assessmentResults)
+      .innerJoin(assessments, eq(assessmentResults.assessmentId, assessments.id))
+      .innerJoin(users, eq(assessments.userId, users.id));
+
+    if (conditions.length > 0) {
+      countQuery = countQuery.where(and(...conditions));
+    }
+
+    const [results, totalCountResult] = await Promise.all([
+      query.limit(limit).offset(offset),
+      countQuery
+    ]);
+
+    const totalCount = totalCountResult[0]?.count || 0;
+    
+    // Process results to format for frontend
+    const processedResults = results.map(result => {
+      // Calculate duration in minutes
+      const durationMinutes = result.totalTimeSeconds ? Math.round(result.totalTimeSeconds / 60) : 0;
+      
+      // Extract top 2-3 growth areas from domain breakdown
+      const domainBreakdown = result.domainBreakdown as Array<{
+        domainId: number;
+        domainName: string;
+        totalQuestions: number;
+        correctAnswers: number;
+        accuracyRate: number;
+        strengthLevel: 'strength' | 'neutral' | 'growth';
+      }>;
+      
+      const topGrowthAreas = domainBreakdown
+        ?.filter(domain => domain.strengthLevel === 'growth')
+        .sort((a, b) => a.accuracyRate - b.accuracyRate) // Sort by lowest accuracy first
+        .slice(0, 3)
+        .map(domain => domain.domainName) || [];
+
+      return {
+        id: result.id,
+        userId: result.userId,
+        userName: result.userName,
+        userEmail: result.userEmail,
+        completedAt: result.assessmentCompletedAt || result.calculatedAt,
+        accuracyRate: result.accuracyRate,
+        overallScore: result.overallScore,
+        totalQuestions: result.totalQuestions,
+        totalCorrect: result.totalCorrect,
+        durationMinutes,
+        topGrowthAreas,
+        strengthAreas: result.strengthAreas,
+        growthAreas: result.growthAreas,
+      };
+    });
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    res.json({
+      success: true,
+      data: processedResults,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        pages: totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      }
+    });
+
+  } catch (error) {
+    console.error("Error fetching assessment results:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: "Failed to fetch assessment results" 
     });
   }
 });

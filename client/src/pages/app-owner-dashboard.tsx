@@ -40,6 +40,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { QuestionManagement } from "@/components/admin/QuestionManagement";
+import { AssessmentResultsManagement } from "@/components/admin/AssessmentResultsManagement";
 import React from "react";
 
 export default function AppOwnerDashboard() {
@@ -49,6 +50,16 @@ export default function AppOwnerDashboard() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [userSearchTerm, setUserSearchTerm] = useState("");
   const [expandedSchools, setExpandedSchools] = useState<number[]>([]);
+
+  // Handle backwards compatibility for old "assessments" tab
+  const handleTabChange = (value: string) => {
+    // Redirect old "assessments" tab to new "questions" tab
+    if (value === "assessments") {
+      setActiveTab("questions");
+    } else {
+      setActiveTab(value);
+    }
+  };
 
   // Fetch app metrics
   const { data: metrics, isLoading: isLoadingMetrics } = useQuery({
@@ -231,13 +242,14 @@ export default function AppOwnerDashboard() {
         </div>
       </div>
       
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-        <TabsList className="grid w-full grid-cols-5">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-8">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="schools">Schools</TabsTrigger>
           <TabsTrigger value="plans">Payment Plans</TabsTrigger>
           <TabsTrigger value="owners">App Owners</TabsTrigger>
-          <TabsTrigger value="assessments">Assessments</TabsTrigger>
+          <TabsTrigger value="questions">Assessment Questions</TabsTrigger>
+          <TabsTrigger value="results">Assessment Results</TabsTrigger>
         </TabsList>
         
         {/* Overview Tab */}
@@ -814,9 +826,14 @@ export default function AppOwnerDashboard() {
           </Card>
         </TabsContent>
         
-        {/* Assessments Tab */}
-        <TabsContent value="assessments">
+        {/* Assessment Questions Tab (renamed from Assessments) */}
+        <TabsContent value="questions">
           <QuestionManagement />
+        </TabsContent>
+
+        {/* Assessment Results Tab (new) */}
+        <TabsContent value="results">
+          <AssessmentResultsManagement />
         </TabsContent>
       </Tabs>
     </div>

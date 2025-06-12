@@ -1,26 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Mic, Play, Download, Loader2, FileAudio, Sparkles } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Mic, Play, Download, Loader2, FileAudio, Sparkles, Clock, Volume2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+
+interface Voice {
+  name: string;
+  label: string;
+  language: string;
+}
 
 export default function PodcastGenerator() {
   const [prompt, setPrompt] = useState('');
   const [script, setScript] = useState('');
   const [audioUrl, setAudioUrl] = useState('');
+  const [length, setLength] = useState('5');
+  const [selectedVoice, setSelectedVoice] = useState('nova');
+  const [voices, setVoices] = useState<Voice[]>([]);
   const [isGeneratingScript, setIsGeneratingScript] = useState(false);
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const { toast } = useToast();
+
+  // Fetch available voices on component mount
+  useEffect(() => {
+    const fetchVoices = async () => {
+      try {
+        const response = await apiRequest('/api/podcast/voices');
+        if (response.voices) {
+          setVoices(response.voices);
+        }
+      } catch (error) {
+        console.error('Error fetching voices:', error);
+        // Set default voices if API fails
+        setVoices([
+          { name: 'nova', label: 'Nova (Warm & Professional)', language: 'en-US' },
+          { name: 'alloy', label: 'Alloy (Neutral & Clear)', language: 'en-US' },
+          { name: 'echo', label: 'Echo (Confident & Dynamic)', language: 'en-US' },
+          { name: 'fable', label: 'Fable (Engaging & Storytelling)', language: 'en-US' },
+          { name: 'onyx', label: 'Onyx (Deep & Authoritative)', language: 'en-US' },
+          { name: 'shimmer', label: 'Shimmer (Friendly & Upbeat)', language: 'en-US' }
+        ]);
+      }
+    };
+    
+    fetchVoices();
+  }, []);
 
   const generateScript = async () => {
     if (!prompt.trim()) {
       toast({
         title: "Topic Required",
         description: "Please enter a podcast topic to generate a script.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const scriptLength = parseInt(length);
+    if (scriptLength < 3 || scriptLength > 15) {
+      toast({
+        title: "Invalid Length",
+        description: "Podcast length must be between 3 and 15 minutes.",
         variant: "destructive"
       });
       return;
@@ -33,14 +79,17 @@ export default function PodcastGenerator() {
     try {
       const response = await apiRequest('/api/podcast/generate-script', {
         method: 'POST',
-        data: { prompt: prompt.trim() }
+        data: { 
+          prompt: prompt.trim(),
+          length: scriptLength
+        }
       });
 
       if (response.script) {
         setScript(response.script);
         toast({
           title: "Script Generated",
-          description: "Your podcast script has been created successfully!"
+          description: `Your ${scriptLength}-minute podcast script has been created successfully!`
         });
       } else {
         throw new Error('No script returned from API');
@@ -67,20 +116,33 @@ export default function PodcastGenerator() {
       return;
     }
 
+    if (!selectedVoice) {
+      toast({
+        title: "Voice Required",
+        description: "Please select a voice for audio generation.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsGeneratingAudio(true);
     setAudioUrl('');
 
     try {
       const response = await apiRequest('/api/podcast/generate-audio', {
         method: 'POST',
-        data: { script: script.trim() }
+        data: { 
+          script: script.trim(),
+          voice: selectedVoice
+        }
       });
 
       if (response.audioUrl) {
         setAudioUrl(response.audioUrl);
+        const selectedVoiceLabel = voices.find(v => v.name === selectedVoice)?.label || selectedVoice;
         toast({
           title: "Audio Generated",
-          description: "Your podcast audio is ready to play!"
+          description: `Your podcast audio with ${selectedVoiceLabel} voice is ready to play!`
         });
       } else {
         throw new Error('No audio URL returned from API');
@@ -126,22 +188,69 @@ export default function PodcastGenerator() {
           </Badge>
         </div>
 
-        {/* Topic Input */}
+        {/* Podcast Configuration */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileAudio className="h-5 w-5 text-purple-600" />
-              Podcast Topic
+              Podcast Configuration
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Textarea
-              placeholder="Enter your podcast topic (e.g., 'The importance of play in early childhood development', 'Building positive classroom environments', 'Supporting children with special needs')"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              rows={3}
-              className="w-full"
-            />
+            <div>
+              <Label htmlFor="topic" className="text-sm font-medium text-gray-700">
+                Podcast Topic
+              </Label>
+              <Textarea
+                id="topic"
+                placeholder="Enter your podcast topic (e.g., 'The importance of play in early childhood development', 'Building positive classroom environments', 'Supporting children with special needs')"
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                rows={3}
+                className="w-full mt-1"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="length" className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                  <Clock className="h-4 w-4" />
+                  Podcast Length (minutes)
+                </Label>
+                <Select value={length} onValueChange={setLength}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select length" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="3">3 minutes (Quick)</SelectItem>
+                    <SelectItem value="5">5 minutes (Standard)</SelectItem>
+                    <SelectItem value="7">7 minutes (Detailed)</SelectItem>
+                    <SelectItem value="10">10 minutes (Comprehensive)</SelectItem>
+                    <SelectItem value="15">15 minutes (In-depth)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="voice" className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                  <Volume2 className="h-4 w-4" />
+                  Narrator Voice
+                </Label>
+                <Select value={selectedVoice} onValueChange={setSelectedVoice}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select voice" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {voices.map((voice) => (
+                      <SelectItem key={voice.name} value={voice.name}>
+                        {voice.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <Button 
               onClick={generateScript}
               disabled={isGeneratingScript || !prompt.trim()}
@@ -150,12 +259,12 @@ export default function PodcastGenerator() {
               {isGeneratingScript ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Generating Script...
+                  Generating {length}-minute Script...
                 </>
               ) : (
                 <>
                   <Sparkles className="h-4 w-4 mr-2" />
-                  Generate Podcast Script
+                  Generate {length}-Minute Podcast Script
                 </>
               )}
             </Button>
