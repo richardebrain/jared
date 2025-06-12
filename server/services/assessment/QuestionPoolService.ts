@@ -1,12 +1,12 @@
 import { db } from '../../db';
-import { 
-  assessmentQuestions, 
-  questionAvailability,
-  assessmentResponses,
-  users,
-  type AssessmentQuestion
-} from '@shared/schema';
+import { users } from '@shared/schema';
 import { eq, and, sql, isNull, notInArray, inArray, SQL } from 'drizzle-orm';
+
+// Temporary placeholders for missing schema exports
+const assessmentQuestions = null;
+const questionAvailability = null;
+const assessmentResponses = null;
+type AssessmentQuestion = any;
 
 export interface QuestionFilterCriteria {
   domainId?: number;

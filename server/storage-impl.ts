@@ -80,7 +80,7 @@ class DatabaseStorage {
     return result[0];
   }
 
-  async updateSchool(id: number, schoolData: any): Promise<School> {
+  async updateSchool(id: number, schoolData: Partial<School>): Promise<School> {
     const result = await db.update(schools)
       .set(schoolData)
       .where(eq(schools.id, id))
@@ -103,7 +103,7 @@ class DatabaseStorage {
     return result[0];
   }
 
-  async updateModule(id: number, moduleData: any): Promise<LearningModule> {
+  async updateModule(id: number, moduleData: Partial<LearningModule>): Promise<LearningModule> {
     const result = await db.update(learningModules)
       .set(moduleData)
       .where(eq(learningModules.id, id))
