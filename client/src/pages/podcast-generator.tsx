@@ -180,10 +180,10 @@ export default function PodcastGenerator() {
     try {
       const response = await apiRequest('/api/podcast/generate-audio', {
         method: 'POST',
-        body: JSON.stringify({ 
+        data: { 
           script: script.trim(),
           voice: selectedVoice
-        })
+        }
       });
 
       setAudioUrl(response.audioUrl);
