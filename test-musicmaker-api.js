@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 // Test script to verify MusicMaker API functionality
-const https = require('https');
-const querystring = require('querystring');
+import https from 'https';
+import querystring from 'querystring';
 
 async function testMusicMakerAPI() {
   console.log('🎵 Testing MusicMaker API with Udio integration...');
