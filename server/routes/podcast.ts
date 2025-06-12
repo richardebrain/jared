@@ -52,8 +52,11 @@ router.post('/generate-script', async (req, res) => {
     }
 
     // Calculate word count based on length (average 150 words per minute)
-    const minWords = Math.ceil(scriptLength * 120 * 0.9); // 90% of lower estimate
-    const maxWords = Math.floor(scriptLength * 150 * 1.1); // 110% of higher estimate
+    // Adjusted for TTS character limits - keeping scripts more concise
+    const wordsPerMinute = 130; // Conservative estimate for better audio generation
+    const targetWords = scriptLength * wordsPerMinute;
+    const minWords = Math.ceil(targetWords * 0.8);
+    const maxWords = Math.floor(targetWords * 1.0); // Keep closer to target for TTS limits
 
     // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
     const completion = await openai.chat.completions.create({
@@ -129,11 +132,32 @@ router.post('/generate-audio', async (req, res) => {
       return res.status(400).json({ error: 'Invalid voice selection' });
     }
 
+    // OpenAI TTS has a 4096 character limit, so we need to truncate or chunk the script
+    const MAX_TTS_LENGTH = 4000; // Leave some buffer
+    let processedScript = script;
+
+    if (script.length > MAX_TTS_LENGTH) {
+      // Truncate the script intelligently - try to end at a sentence or paragraph
+      const truncated = script.substring(0, MAX_TTS_LENGTH);
+      const lastSentence = truncated.lastIndexOf('.');
+      const lastParagraph = truncated.lastIndexOf('\n');
+      
+      if (lastSentence > MAX_TTS_LENGTH * 0.8) {
+        processedScript = truncated.substring(0, lastSentence + 1);
+      } else if (lastParagraph > MAX_TTS_LENGTH * 0.7) {
+        processedScript = truncated.substring(0, lastParagraph);
+      } else {
+        processedScript = truncated + '...';
+      }
+      
+      console.log(`Script truncated from ${script.length} to ${processedScript.length} characters`);
+    }
+
     // Generate audio using OpenAI's text-to-speech
     const mp3 = await openai.audio.speech.create({
       model: "tts-1",
       voice: selectedVoice.name as any, // Use selected voice
-      input: script,
+      input: processedScript,
       speed: 0.9 // Slightly slower for better comprehension
     });
 
@@ -156,6 +180,12 @@ router.post('/generate-audio', async (req, res) => {
     if (error instanceof Error && error.message.includes('API key')) {
       return res.status(401).json({ 
         error: 'OpenAI API key is not configured. Please contact your administrator.' 
+      });
+    }
+
+    if (error instanceof Error && error.message.includes('maximum context length')) {
+      return res.status(400).json({ 
+        error: 'Script is too long for audio generation. Please try a shorter podcast length.' 
       });
     }
 
