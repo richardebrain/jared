@@ -22,6 +22,7 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { GamefiedQuiz } from "@/components/GamefiedQuiz";
 import { AIBearyModal } from "@/components/AIBearyModal";
+import { ActivitySection } from "@/components/ActivitySection";
 
 // QuizSection component for handling quiz interactions
 interface QuizSectionProps {
@@ -852,6 +853,28 @@ export default function LearningModulePage() {
                                       {moduleSections[currentSectionIndex]
                                         .type === "quiz" && (
                                         <QuizSection
+                                          section={
+                                            moduleSections[currentSectionIndex]
+                                          }
+                                          onComplete={() =>
+                                            markCurrentSectionCompleted()
+                                          }
+                                          isCompleted={completedSections.has(
+                                            currentSectionIndex,
+                                          )}
+                                        />
+                                      )}
+
+                                      {/* Activity Section */}
+                                      {(moduleSections[currentSectionIndex]
+                                        .type === "activity" ||
+                                        moduleSections[currentSectionIndex]
+                                          .title?.toLowerCase().includes("guided activity") ||
+                                        moduleSections[currentSectionIndex]
+                                          .title?.toLowerCase().includes("interactive activity") ||
+                                        moduleSections[currentSectionIndex]
+                                          .title?.toLowerCase().includes("hands-on activity")) && (
+                                        <ActivitySection
                                           section={
                                             moduleSections[currentSectionIndex]
                                           }
