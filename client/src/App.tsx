@@ -83,6 +83,7 @@ import SchoolSettingsPage from "@/pages/school-settings";
 import AdvancedVoiceFeatures from "@/components/AdvancedVoiceFeatures";
 import PersonalizedStories from "@/pages/personalized-stories";
 import ModuleFlowTest from "@/pages/module-flow-test";
+import PodcastGenerator from "@/pages/podcast-generator";
 
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
@@ -818,6 +819,12 @@ function Router(props: {
         ) : (
           <ModuleWizard />
         )}
+      </Route>
+
+      <Route path="/podcast-generator">
+        <ProtectedRoute adminOnly={true}>
+          <PodcastGenerator />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/step-by-step-creator">
