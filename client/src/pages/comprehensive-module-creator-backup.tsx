@@ -1,76 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
-import { VoiceNarrationPanel } from "@/components/VoiceNarrationPanel";
-import MultilingualBearyAI from "@/components/MultilingualBearyAI";
-import ActivityBlockComponent from "@/components/ActivityBlockComponent";
 import {
-  Video,
-  Link2,
-  BookOpen,
-  Brain,
-  Eye,
-  Sparkles,
-  Lightbulb,
-  Loader2,
   ArrowLeft,
-  Trophy,
-  Award,
-  Medal,
-  FileEdit,
   Save,
-  PlusCircle,
-  Trash2,
-  Image,
-  FileQuestion,
-  Plus,
-  Info,
-  CheckCircle2,
-  XCircle,
-  Edit,
-  Search,
-  Filter,
-  Clock,
-  Users,
-  MessageSquare,
-  FileText,
-  Mic,
-  MicOff,
-  FolderOpen,
-  X,
-  ChevronRight,
-  Wand2,
+  Loader2,
   Upload,
-  ArrowRight,
-  Building,
-  Heart,
-  Link,
-  Target,
-  Music,
-  Zap,
-  Play,
-  HelpCircle,
-  Gamepad,
-  GripVertical,
-  Wrench,
-  RefreshCw
+  Wand2
 } from 'lucide-react';
 import StepByStepModuleBuilder from '@/components/StepByStepModuleBuilder';
 import PowerPointImporter from '@/components/PowerPointImporter';
 import ModulePublishingDialog from '@/components/ModulePublishingDialog';
+import ModuleBasicInfo from '@/components/ModuleCreator/ModuleBasicInfo';
+import ModuleSectionManager from '@/components/ModuleCreator/ModuleSectionManager';
+import ModuleAIGeneration from '@/components/ModuleCreator/ModuleAIGeneration';
 
 interface ModuleSection {
   title: string;
