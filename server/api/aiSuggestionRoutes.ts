@@ -824,15 +824,23 @@ FORMAT: Return a JSON object with "blocks" array. Each block should have:
       prompt = `
 You are an expert early childhood education instructor creating hands-on activities for "${topic}".
 
-Generate 3-4 step-by-step guided activities that teachers can immediately implement in their classrooms related to "${topic}".
+These are not lessons for children — they are **adult-learning games** that help teachers **test and apply their understanding** through visually engaging interactions.
 
-Each activity should include:
-1. Clear step-by-step instructions (numbered steps)
-2. Materials needed
-3. Age group recommendations
-4. Learning objectives
-5. Assessment opportunities
-6. Adaptations for different learning styles
+Create 3–4 game-like activity blocks using formats such as:
+- ✅ **Drag-and-Match** (e.g., match strategy to situation)
+- 🧠 **Scenario Challenge** (select best response to a classroom dilemma)
+- 📦 **Categorization/Sorting Game** (e.g., sort examples into correct categories)
+
+🔧 For each game block, include:
+1. **activityType** – e.g., "Drag-and-Match", "Scenario Challenge"
+2. **title** – Short, engaging name for the activity
+3. **preview** – 1–2 sentence summary of what the teacher will do
+4. **instructions** – Clear steps for how the interaction works
+5. **promptItems** – List of scenarios, terms, options, or categories
+6. **answerKey** – Mapping of correct answers for feedback
+7. **uiHints** – Optional UI hints (e.g., "Use draggable cards with icons", "Use image of a calm-down corner as drop zone")
+8. **imageSupport** – Optional image URLs or descriptions (e.g., icons, scene illustrations, visual aids) and must be real image urls.
+
 
 FORMAT: Return a JSON object with "blocks" array. Each block should have:
 - "type": "Guided Activity"
