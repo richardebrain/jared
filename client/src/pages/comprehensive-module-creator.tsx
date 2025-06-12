@@ -1262,78 +1262,40 @@ export default function ComprehensiveModuleCreator() {
     });
   };
 
-  const finishActivityAndSave = () => {
-    const activityContent = {
-      activities: builtActivities,
-      totalActivities: builtActivities.length,
-      sectionType: 'interactive-activities'
-    };
+  // const finishActivityAndSave = () => {
+  //   const activityContent = {
+  //     activities: builtActivities,
+  //     totalActivities: builtActivities.length,
+  //     sectionType: 'interactive-activities'
+  //   };
 
-    const updatedSections = [...newModule.sections];
-    updatedSections[currentSectionIndex] = {
-      ...updatedSections[currentSectionIndex],
-      type: 'matching',
-      content: JSON.stringify(activityContent),
-      activities: [{
-        type: 'practice' as const,
-        title: `Interactive Activities: ${updatedSections[currentSectionIndex].title}`,
-        duration: 5,
-        content: JSON.stringify(activityContent),
-        interactionType: 'activity' as const
-      }]
-    };
-    setNewModule(prev => ({ ...prev, sections: updatedSections }));
+  //   const updatedSections = [...newModule.sections];
+  //   updatedSections[currentSectionIndex] = {
+  //     ...updatedSections[currentSectionIndex],
+  //     type: 'matching',
+  //     content: JSON.stringify(activityContent),
+  //     activities: [{
+  //       type: 'practice' as const,
+  //       title: `Interactive Activities: ${updatedSections[currentSectionIndex].title}`,
+  //       duration: 5,
+  //       content: JSON.stringify(activityContent),
+  //       interactionType: 'activity' as const
+  //     }]
+  //   };
+  //   setNewModule(prev => ({ ...prev, sections: updatedSections }));
     
-    setIsActivityBuilder(false);
-    setBuiltActivities([]);
+  //   setIsActivityBuilder(false);
+  //   setBuiltActivities([]);
     
-    toast({
-      title: "Activities Created Successfully",
-      description: `Created interactive section with ${builtActivities.length} activities`,
-    });
+  //   toast({
+  //     title: "Activities Created Successfully",
+  //     description: `Created interactive section with ${builtActivities.length} activities`,
+  //   });
     
-    // Auto-advance to next section
-    nextSection();
-  };
+  //   // Auto-advance to next section
+  //   nextSection();
+  // };
 
-  const generateSingleActivity = async () => {
-    const currentSection = newModule.sections[currentSectionIndex];
-    if (!currentSection) return;
-
-    setIsGeneratingActivity(true);
-    
-    try {
-      const response = await apiRequest('POST', '/api/ai/generate-single-activity', {
-        moduleTitle: initialModuleData.title || newModule.title,
-        moduleDescription: initialModuleData.learningObjective || newModule.description,
-        sectionTitle: currentSection.title,
-        category: newModule.category,
-        activityType: currentActivity.activityType,
-        existingActivities: builtActivities.map(a => a.title),
-        learningObjective: initialModuleData.learningObjective
-      });
-
-      if (response.activity) {
-        setCurrentActivity({
-          title: response.activity.title || '',
-          activityType: response.activity.activityType || currentActivity.activityType,
-          instructions: response.activity.instructions || '',
-          items: response.activity.items || ['', ''],
-          answers: response.activity.answers || ['', ''],
-          preview: response.activity.preview || ''
-        });
-      }
-    } catch (error) {
-      console.error('Error generating activity:', error);
-      toast({
-        title: "Generation Failed",
-        description: "Unable to generate activity. Please create manually.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingActivity(false);
-    }
-  };
 
   const addActivityToList = () => {
     if (!currentActivity.title.trim() || 
@@ -1426,24 +1388,6 @@ export default function ComprehensiveModuleCreator() {
     }
   };
 
-  const removeActivityFromList = (index: number) => {
-    setBuiltActivities(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const removeActivityItem = (index: number) => {
-    setCurrentActivity(prev => ({
-      ...prev,
-      promptItems: prev.promptItems.filter((_, i) => i !== index),
-      answerKey: prev.answerKey.filter((_, i) => i !== index)
-    }));
-  };
-
-  const updateActivityItem = (index: number, field: 'promptItems' | 'answerKey', value: string) => {
-    setCurrentActivity(prev => ({
-      ...prev,
-      [field]: prev[field].map((item, i) => i === index ? value : item)
-    }));
-  };
 
   const generateActivityList = async () => {
     const currentSection = newModule.sections[currentSectionIndex];
@@ -1483,54 +1427,7 @@ export default function ComprehensiveModuleCreator() {
     }
   };
 
-  const generateSingleActivity = async () => {
-    const currentSection = newModule.sections[currentSectionIndex];
-    if (!currentSection) return;
 
-    setIsGeneratingAIContent(true);
-    
-    try {
-      const response = await apiRequest('POST', '/api/ai/generate-single-activity', {
-        moduleTitle: initialModuleData.title || newModule.title,
-        moduleDescription: initialModuleData.learningObjective || newModule.description,
-        sectionTitle: currentSection.title,
-        category: newModule.category,
-        activityType: currentActivity.activityType,
-        existingActivities: builtActivities.map(a => a.title),
-        learningObjective: initialModuleData.learningObjective
-      });
-
-      if (response.activity) {
-        setCurrentActivity({
-          activityType: response.activity.activityType || 'drag-and-match',
-          title: response.activity.title || '',
-          instructions: response.activity.instructions || '',
-          promptItems: response.activity.promptItems || ['', '', '', ''],
-          answerKey: response.activity.answerKey || ['', '', '', ''],
-          uiHints: response.activity.uiHints || {
-            leftColumnTitle: 'Items to Match',
-            rightColumnTitle: 'Categories',
-            dragInstruction: 'Drag items to their matching categories'
-          },
-          imageSupport: response.activity.imageSupport || false
-        });
-
-        toast({
-          title: "AI Activity Generated",
-          description: "Review and modify the generated activity as needed.",
-        });
-      }
-    } catch (error) {
-      console.error('Error generating activity:', error);
-      toast({
-        title: "Generation Failed",
-        description: "Could not generate activity. Please try again.",
-        variant: "destructive",
-      });
-    }
-    
-    setIsGeneratingAIContent(false);
-  };
 
   const finishActivityAndSave = () => {
     if (builtActivities.length === 0) {
@@ -1574,10 +1471,6 @@ export default function ComprehensiveModuleCreator() {
     
     // Auto-advance to next section
     nextSection();
-  };
-
-  const removeActivityFromList = (index: number) => {
-    setBuiltActivities(prev => prev.filter((_, i) => i !== index));
   };
 
   const completeInitialSetup = () => {
