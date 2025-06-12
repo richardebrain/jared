@@ -31,19 +31,19 @@ interface QuizSectionProps {
 }
 
 function QuizSection({ section, onComplete, isCompleted }: QuizSectionProps) {
-  const [selectedAnswers, setSelectedAnswers] = useState<{[key: number]: number}>({});
+  const [selectedAnswers, setSelectedAnswers] = useState<{
+    [key: number]: number;
+  }>({});
   const [showResults, setShowResults] = useState(false);
   const [quizScore, setQuizScore] = useState(0);
 
   // Parse quiz questions from section content
+  console.log(section, "section from quiz");
   const getQuizQuestions = () => {
     try {
       let questions = [];
-      if (typeof section.content === "string") {
-        const parsed = JSON.parse(section.content);
-        questions = parsed.questions || [];
-      } else if (section.content && section.content.questions) {
-        questions = section.content.questions;
+      if (section.questions && section.questions.length > 0) {
+        questions = section.questions;
       }
       return questions;
     } catch {
@@ -52,12 +52,13 @@ function QuizSection({ section, onComplete, isCompleted }: QuizSectionProps) {
   };
 
   const questions = getQuizQuestions();
+  console.log(questions, "quiz questions");
 
   const handleAnswerSelect = (questionIndex: number, answerIndex: number) => {
     if (showResults) return; // Prevent changes after submission
-    setSelectedAnswers(prev => ({
+    setSelectedAnswers((prev) => ({
       ...prev,
-      [questionIndex]: answerIndex
+      [questionIndex]: answerIndex,
     }));
   };
 
@@ -68,11 +69,11 @@ function QuizSection({ section, onComplete, isCompleted }: QuizSectionProps) {
         correctCount++;
       }
     });
-    
+
     const score = Math.round((correctCount / questions.length) * 100);
     setQuizScore(score);
     setShowResults(true);
-    
+
     // Mark as complete if score is above 70%
     if (score >= 70) {
       setTimeout(() => {
@@ -95,7 +96,9 @@ function QuizSection({ section, onComplete, isCompleted }: QuizSectionProps) {
             <i className="ri-check-circle-fill mr-2"></i>
             Knowledge Check - Completed
           </h4>
-          <p className="text-green-700">You have successfully completed this quiz section.</p>
+          <p className="text-green-700">
+            You have successfully completed this quiz section.
+          </p>
         </div>
       </div>
     );
@@ -107,67 +110,84 @@ function QuizSection({ section, onComplete, isCompleted }: QuizSectionProps) {
         <h4 className="font-semibold text-blue-800 mb-6 text-lg">
           Knowledge Check
         </h4>
-        
-        {questions.length > 0 ? (
+
+        {questions?.length > 0 ? (
           <div className="space-y-6">
-            {questions.map((question: any, questionIndex: number) => (
-              <div key={questionIndex} className="bg-white rounded-lg p-4 border">
+            {questions?.map((question: any, questionIndex: number) => (
+              <div
+                key={questionIndex}
+                className="bg-white rounded-lg p-4 border"
+              >
                 <h5 className="font-medium text-gray-900 mb-4">
                   {questionIndex + 1}. {question.question}
                 </h5>
-                
+
                 <div className="space-y-2">
-                  {question.answers.map((answer: string, answerIndex: number) => {
-                    const isSelected = selectedAnswers[questionIndex] === answerIndex;
-                    const isCorrect = answerIndex === question.correctAnswer;
-                    const isIncorrect = showResults && isSelected && !isCorrect;
-                    const shouldShowCorrect = showResults && isCorrect;
-                    
-                    return (
-                      <button
-                        key={answerIndex}
-                        onClick={() => handleAnswerSelect(questionIndex, answerIndex)}
-                        disabled={showResults}
-                        className={`w-full text-left p-3 rounded-lg border transition-all ${
-                          isSelected && !showResults
-                            ? 'border-blue-500 bg-blue-50'
-                            : shouldShowCorrect
-                            ? 'border-green-500 bg-green-50 text-green-800'
-                            : isIncorrect
-                            ? 'border-red-500 bg-red-50 text-red-800'
-                            : 'border-gray-200 hover:border-gray-300'
-                        } ${showResults ? 'cursor-default' : 'cursor-pointer'}`}
-                      >
-                        <div className="flex items-center">
-                          <div className={`w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center ${
+                  {question?.answers.map(
+                    (answer: string, answerIndex: number) => {
+                      const isSelected =
+                        selectedAnswers[questionIndex] === answerIndex;
+                      const isCorrect = answerIndex === question.correctAnswer;
+                      const isIncorrect =
+                        showResults && isSelected && !isCorrect;
+                      const shouldShowCorrect = showResults && isCorrect;
+
+                      return (
+                        <button
+                          key={answerIndex}
+                          onClick={() =>
+                            handleAnswerSelect(questionIndex, answerIndex)
+                          }
+                          disabled={showResults}
+                          className={`w-full text-left p-3 rounded-lg border transition-all ${
                             isSelected && !showResults
-                              ? 'border-blue-500 bg-blue-500'
+                              ? "border-blue-500 bg-blue-50"
                               : shouldShowCorrect
-                              ? 'border-green-500 bg-green-500'
-                              : isIncorrect
-                              ? 'border-red-500 bg-red-500'
-                              : 'border-gray-300'
-                          }`}>
-                            {(isSelected || shouldShowCorrect) && (
-                              <i className={`ri-check-line text-white text-sm ${
-                                isIncorrect ? 'ri-close-line' : 'ri-check-line'
-                              }`}></i>
-                            )}
+                                ? "border-green-500 bg-green-50 text-green-800"
+                                : isIncorrect
+                                  ? "border-red-500 bg-red-50 text-red-800"
+                                  : "border-gray-200 hover:border-gray-300"
+                          } ${showResults ? "cursor-default" : "cursor-pointer"}`}
+                        >
+                          <div className="flex items-center">
+                            <div
+                              className={`w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center ${
+                                isSelected && !showResults
+                                  ? "border-blue-500 bg-blue-500"
+                                  : shouldShowCorrect
+                                    ? "border-green-500 bg-green-500"
+                                    : isIncorrect
+                                      ? "border-red-500 bg-red-500"
+                                      : "border-gray-300"
+                              }`}
+                            >
+                              {(isSelected || shouldShowCorrect) && (
+                                <i
+                                  className={`ri-check-line text-white text-sm ${
+                                    isIncorrect
+                                      ? "ri-close-line"
+                                      : "ri-check-line"
+                                  }`}
+                                ></i>
+                              )}
+                            </div>
+                            <span>{answer}</span>
                           </div>
-                          <span>{answer}</span>
-                        </div>
-                      </button>
-                    );
-                  })}
+                        </button>
+                      );
+                    },
+                  )}
                 </div>
               </div>
             ))}
-            
+
             {!showResults ? (
               <div className="flex justify-center pt-4">
                 <Button
                   onClick={submitQuiz}
-                  disabled={Object.keys(selectedAnswers).length !== questions.length}
+                  disabled={
+                    Object.keys(selectedAnswers).length !== questions.length
+                  }
                   className="px-8"
                 >
                   Submit Quiz
@@ -175,21 +195,32 @@ function QuizSection({ section, onComplete, isCompleted }: QuizSectionProps) {
               </div>
             ) : (
               <div className="text-center pt-4">
-                <div className={`inline-flex items-center px-4 py-2 rounded-lg ${
-                  quizScore >= 70 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-yellow-100 text-yellow-800'
-                }`}>
-                  <i className={`mr-2 ${
-                    quizScore >= 70 ? 'ri-check-circle-fill' : 'ri-information-fill'
-                  }`}></i>
+                <div
+                  className={`inline-flex items-center px-4 py-2 rounded-lg ${
+                    quizScore >= 70
+                      ? "bg-green-100 text-green-800"
+                      : "bg-yellow-100 text-yellow-800"
+                  }`}
+                >
+                  <i
+                    className={`mr-2 ${
+                      quizScore >= 70
+                        ? "ri-check-circle-fill"
+                        : "ri-information-fill"
+                    }`}
+                  ></i>
                   <span className="font-medium">
-                    Quiz Score: {quizScore}% ({Object.values(selectedAnswers).filter((answer, index) => 
-                      answer === questions[index]?.correctAnswer
-                    ).length}/{questions.length} correct)
+                    Quiz Score: {quizScore}% (
+                    {
+                      Object.values(selectedAnswers).filter(
+                        (answer, index) =>
+                          answer === questions[index]?.correctAnswer,
+                      ).length
+                    }
+                    /{questions.length} correct)
                   </span>
                 </div>
-                
+
                 {quizScore < 70 && (
                   <div className="mt-4">
                     <Button onClick={resetQuiz} variant="outline">
@@ -516,7 +547,7 @@ export default function LearningModulePage() {
       </div>
     );
   }
-
+  console.log(moduleSections, "module sections");
   // Module not found
   if (!module) {
     return (
@@ -652,12 +683,13 @@ export default function LearningModulePage() {
                         Lesson Outline
                       </h3>
                       <p className="text-muted-foreground mb-6">
-                        Complete each lesson in order to progress through the module.
+                        Complete each lesson in order to progress through the
+                        module.
                       </p>
-                      
+
                       <div className="space-y-3 mb-6">
                         {moduleLessons.map((lesson, index) => (
-                          <div 
+                          <div
                             key={lesson.id}
                             className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
                           >
@@ -671,7 +703,9 @@ export default function LearningModulePage() {
                                   <i className="ri-time-line mr-1"></i>
                                   <span>{lesson.duration} minutes</span>
                                   <span className="mx-2">•</span>
-                                  <span className="capitalize">{lesson.type}</span>
+                                  <span className="capitalize">
+                                    {lesson.type}
+                                  </span>
                                 </div>
                               </div>
                             </div>
@@ -682,14 +716,16 @@ export default function LearningModulePage() {
                                   Complete
                                 </span>
                               ) : (
-                                <span className="text-gray-400">Not started</span>
+                                <span className="text-gray-400">
+                                  Not started
+                                </span>
                               )}
                             </div>
                           </div>
                         ))}
                       </div>
 
-                      <Button 
+                      <Button
                         onClick={() => setCurrentLessonId(moduleLessons[0]?.id)}
                         className="w-full py-3 text-lg"
                         size="lg"
@@ -720,18 +756,26 @@ export default function LearningModulePage() {
                               <div className="mb-6">
                                 <div className="flex items-center justify-between mb-4">
                                   <h4 className="font-heading font-semibold">
-                                    Section {currentSectionIndex + 1} of {moduleSections.length}
+                                    Section {currentSectionIndex + 1} of{" "}
+                                    {moduleSections.length}
                                   </h4>
                                   <div className="text-sm text-muted-foreground">
-                                    {Math.round(((currentSectionIndex + 1) / moduleSections.length) * 100)}% Complete
+                                    {Math.round(
+                                      ((currentSectionIndex + 1) /
+                                        moduleSections.length) *
+                                        100,
+                                    )}
+                                    % Complete
                                   </div>
                                 </div>
-                                
+
                                 {/* Progress bar */}
                                 <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
-                                  <div 
+                                  <div
                                     className="bg-primary h-2 rounded-full transition-all duration-300"
-                                    style={{ width: `${((currentSectionIndex + 1) / moduleSections.length) * 100}%` }}
+                                    style={{
+                                      width: `${((currentSectionIndex + 1) / moduleSections.length) * 100}%`,
+                                    }}
                                   ></div>
                                 </div>
                               </div>
@@ -747,60 +791,93 @@ export default function LearningModulePage() {
                                       data-section-index={currentSectionIndex}
                                     >
                                       <h3 className="text-2xl font-heading font-bold mb-6">
-                                        {moduleSections[currentSectionIndex].title}
+                                        {
+                                          moduleSections[currentSectionIndex]
+                                            .title
+                                        }
                                       </h3>
 
                                       {/* Video Section */}
-                                      {moduleSections[currentSectionIndex].type === "video" && moduleSections[currentSectionIndex].videoUrl && (
-                                        <div className="mb-6">
-                                          <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                                            <iframe
-                                              src={moduleSections[currentSectionIndex].videoUrl.replace(
-                                                "watch?v=",
-                                                "embed/",
-                                              )}
-                                              title={moduleSections[currentSectionIndex].title}
-                                              className="w-full h-full"
-                                              frameBorder="0"
-                                              allowFullScreen
-                                            />
-                                          </div>
-                                          {moduleSections[currentSectionIndex].content && (
-                                            <div className="mt-4 text-gray-700 text-lg leading-relaxed">
-                                              {moduleSections[currentSectionIndex].content}
+                                      {moduleSections[currentSectionIndex]
+                                        .type === "video" &&
+                                        moduleSections[currentSectionIndex]
+                                          .videoUrl && (
+                                          <div className="mb-6">
+                                            <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                                              <iframe
+                                                src={moduleSections[
+                                                  currentSectionIndex
+                                                ].videoUrl.replace(
+                                                  "watch?v=",
+                                                  "embed/",
+                                                )}
+                                                title={
+                                                  moduleSections[
+                                                    currentSectionIndex
+                                                  ].title
+                                                }
+                                                className="w-full h-full"
+                                                frameBorder="0"
+                                                allowFullScreen
+                                              />
                                             </div>
-                                          )}
-                                        </div>
-                                      )}
+                                            {moduleSections[currentSectionIndex]
+                                              .content && (
+                                              <div className="mt-4 text-gray-700 text-lg leading-relaxed">
+                                                {
+                                                  moduleSections[
+                                                    currentSectionIndex
+                                                  ].content
+                                                }
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
 
                                       {/* Text Section */}
-                                      {moduleSections[currentSectionIndex].type === "text" && (
+                                      {moduleSections[currentSectionIndex]
+                                        .type === "text" && (
                                         <div className="mb-6">
                                           <div className="whitespace-pre-line text-gray-700 text-lg leading-relaxed mb-6">
-                                            {moduleSections[currentSectionIndex].content}
+                                            {
+                                              moduleSections[
+                                                currentSectionIndex
+                                              ].content
+                                            }
                                           </div>
                                         </div>
                                       )}
 
                                       {/* Quiz Section */}
-                                      {moduleSections[currentSectionIndex].type === "quiz" && (
-                                        <QuizSection 
-                                          section={moduleSections[currentSectionIndex]}
-                                          onComplete={() => markCurrentSectionCompleted()}
-                                          isCompleted={completedSections.has(currentSectionIndex)}
+                                      {moduleSections[currentSectionIndex]
+                                        .type === "quiz" && (
+                                        <QuizSection
+                                          section={
+                                            moduleSections[currentSectionIndex]
+                                          }
+                                          onComplete={() =>
+                                            markCurrentSectionCompleted()
+                                          }
+                                          isCompleted={completedSections.has(
+                                            currentSectionIndex,
+                                          )}
                                         />
                                       )}
 
                                       {/* Section Completion Status */}
                                       <div className="mt-6 flex justify-between items-center">
-                                        {completedSections.has(currentSectionIndex) ? (
+                                        {completedSections.has(
+                                          currentSectionIndex,
+                                        ) ? (
                                           <span className="text-green-600 font-medium flex items-center text-lg">
                                             <i className="ri-check-circle-fill mr-2"></i>
                                             Section Complete
                                           </span>
                                         ) : (
                                           <Button
-                                            onClick={markCurrentSectionCompleted}
+                                            onClick={
+                                              markCurrentSectionCompleted
+                                            }
                                             className="bg-green-600 hover:bg-green-700 text-white"
                                           >
                                             <i className="ri-check-line mr-2"></i>
@@ -829,19 +906,24 @@ export default function LearningModulePage() {
                                           key={index}
                                           className={`w-3 h-3 rounded-full transition-all ${
                                             index === currentSectionIndex
-                                              ? 'bg-primary'
+                                              ? "bg-primary"
                                               : completedSections.has(index)
-                                              ? 'bg-green-500'
-                                              : 'bg-gray-300'
+                                                ? "bg-green-500"
+                                                : "bg-gray-300"
                                           }`}
-                                          onClick={() => setCurrentSectionIndex(index)}
+                                          onClick={() =>
+                                            setCurrentSectionIndex(index)
+                                          }
                                         />
                                       ))}
                                     </div>
 
                                     <Button
                                       onClick={goToNextSection}
-                                      disabled={currentSectionIndex === moduleSections.length - 1}
+                                      disabled={
+                                        currentSectionIndex ===
+                                        moduleSections.length - 1
+                                      }
                                       className="flex items-center"
                                     >
                                       Next
@@ -852,7 +934,9 @@ export default function LearningModulePage() {
                               ) : (
                                 <div className="mb-4 text-center p-8">
                                   <div className="text-gray-500 mb-4">
-                                    This lesson contains interactive content and activities to help you learn the key concepts.
+                                    This lesson contains interactive content and
+                                    activities to help you learn the key
+                                    concepts.
                                   </div>
                                 </div>
                               )}

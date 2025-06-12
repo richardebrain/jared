@@ -1076,7 +1076,8 @@ export default function ComprehensiveModuleCreator() {
         setCurrentQuizQuestion({
           question: response.question.question || response.question,
           answers: response.question.answers || ['', '', '', ''],
-          correctAnswer: response.question.correctAnswer || 0
+          correctAnswer: response.question.correctAnswer || 0,
+          explanation:  response.question.explanation || ''
         });
       }
     } catch (error) {

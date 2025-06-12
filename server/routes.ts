@@ -170,6 +170,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { moduleTitle, moduleDescription, sectionTitle, category, difficulty = 'medium', existingQuestions = [], learningObjective } = req.body;
 
+      console.log('single quiz -->',moduleTitle, moduleDescription, sectionTitle, category, difficulty, existingQuestions)
+
       if (!sectionTitle) {
         return res.status(400).json({ error: "Section title is required" });
       }
@@ -208,7 +210,7 @@ The question should assess:
 
 ${existingQuestions.length > 0 ? `Avoid creating questions similar to these existing ones: ${existingQuestions.join('; ')}` : ''}
 
-Create ONE multiple choice question with 4 realistic answers that directly tests knowledge of "${mainTopic}". Focus on practical scenarios teachers actually face. Format as JSON:
+Create ONE multiple choice question with 4 realistic answers that directly tests knowledge of "${mainTopic}" and make sure that the answers can be either 0,1,2 or 3 while making sure the answer is within the range of 0-3. Focus on practical scenarios teachers actually face. Format as JSON:
 {
   "question": "Specific, scenario-based question about ${mainTopic}",
   "answers": ["Realistic option A", "Realistic option B", "Realistic option C", "Realistic option D"],
