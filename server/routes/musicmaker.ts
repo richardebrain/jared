@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../db';
 import { users } from '../../shared/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 const router = Router();
 
@@ -48,11 +48,11 @@ router.get('/status', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const userData = userResult.rows[0];
+    const userData = userResult.rows[0] as any;
     
     // Handle missing columns gracefully
-    const songRequestsThisWeek = userData.song_requests_this_week || 0;
-    const lastSongWeek = userData.last_song_week || '';
+    const songRequestsThisWeek = Number(userData.song_requests_this_week) || 0;
+    const lastSongWeek = String(userData.last_song_week) || '';
     
     const usedThisWeek = lastSongWeek === currentWeek && songRequestsThisWeek >= 1;
 
@@ -99,9 +99,9 @@ router.post('/generate', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const userData = userResult.rows[0];
-    const songRequestsThisWeek = userData.song_requests_this_week || 0;
-    const lastSongWeek = userData.last_song_week || '';
+    const userData = userResult.rows[0] as any;
+    const songRequestsThisWeek = Number(userData.song_requests_this_week) || 0;
+    const lastSongWeek = String(userData.last_song_week) || '';
     
     // Check if user has already used their weekly allowance
     if (lastSongWeek === currentWeek && songRequestsThisWeek >= 1) {
