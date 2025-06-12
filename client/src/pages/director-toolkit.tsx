@@ -18,7 +18,8 @@ import {
   Clock,
   ArrowLeft,
   Sparkles,
-  Zap
+  Zap,
+  Mic
 } from 'lucide-react';
 import { Link } from 'wouter';
 
@@ -89,6 +90,16 @@ const directorTools: ToolkitTool[] = [
     description: 'Manage video resources, add custom content, and organize collections',
     icon: FileText,
     route: '/admin/video-library',
+    category: 'content'
+  },
+  {
+    id: 'podcast-generator',
+    title: 'Podcast Generator',
+    description: 'Create educational podcasts with AI-generated scripts and professional narration',
+    icon: Mic,
+    route: '/podcast-generator',
+    badge: 'AI-Powered',
+    badgeVariant: 'outline',
     category: 'content'
   },
   

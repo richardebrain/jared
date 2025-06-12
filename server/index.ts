@@ -292,6 +292,11 @@ app.get('/api/games/leaderboard', (req, res) => {
 // Main server initialization function
 async function startServer() {
   try {
+    // Serve audio files from public/audio directory
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    app.use('/audio', express.static(path.join(__dirname, "../public/audio")));
+    
     // Register all comprehensive routes from routes.ts
     await registerRoutes(app);
 

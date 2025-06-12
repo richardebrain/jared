@@ -48,7 +48,6 @@ import communityModulesRoutes from "./api/communityModulesRoutes";
 import selfAssessmentRoutes from "./api/selfAssessmentRoutes";
 import teacherInvitationRoutes from "./api/teacherInvitationRoutes";
 import avatarRoutes from "./api/avatarRoutes";
-import podcastRoutes from "./routes/podcast";
 import voiceRoutes from "./api/voiceRoutes";
 import emailRoutes from "./api/emailRoutes";
 import adminRoutes from "./routes/admin";
@@ -56,6 +55,7 @@ import { AIBearyService } from "./services/aiBearyService";
 import aiModuleDesignerRoutes from "./api/aiModuleDesignerRoutes";
 import personalizedStoriesRoutes from "./api/personalizedStoriesRoutes";
 import videoSearchRoutes from "./api/videoSearchRoutes";
+import podcastRoutes from "./routes/podcast";
 
 
 // For ESM __dirname equivalent
@@ -5436,6 +5436,9 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
 
   // Register video search routes
   app.use("/api/video-search", videoSearchRoutes);
+
+  // Register podcast generation routes
+  app.use("/api/podcast", podcastRoutes);
 
   // Module drafts API endpoints
   app.get("/api/module-drafts", requireAuth, async (req, res) => {
