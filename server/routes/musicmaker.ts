@@ -142,14 +142,14 @@ router.post('/generate', async (req, res) => {
 
       const result = await response.json();
       
-      // Update user's usage count
+      // Update user's usage count using raw SQL
       try {
-        await db.update(users)
-          .set({
-            song_requests_this_week: lastSongWeek === currentWeek ? songRequestsThisWeek + 1 : 1,
-            last_song_week: currentWeek
-          })
-          .where(eq(users.id, userId));
+        const newRequestCount = lastSongWeek === currentWeek ? songRequestsThisWeek + 1 : 1;
+        await db.execute(sql`
+          UPDATE users 
+          SET song_requests_this_week = ${newRequestCount}, last_song_week = ${currentWeek}
+          WHERE id = ${userId}
+        `);
       } catch (updateError) {
         console.warn('Failed to update user song usage:', updateError);
         // Continue with song generation even if usage tracking fails
