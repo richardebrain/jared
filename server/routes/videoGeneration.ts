@@ -1,5 +1,6 @@
 import { Router, type Request, type Response } from 'express';
-import { videoGenerationService } from '../services/videoGenerationService';
+// Video generation service temporarily disabled
+// import { videoGenerationService } from '../services/videoGenerationService';
 import { z } from 'zod';
 
 const router = Router();
@@ -30,7 +31,8 @@ router.post('/generate', async (req: Request, res: Response) => {
     
     console.log('Video generation request:', validatedData);
     
-    const result = await videoGenerationService.generateTrainingVideo(validatedData);
+    // Video generation service temporarily disabled
+    const result = { message: "Video generation service is temporarily unavailable" };
     
     res.json({
       success: true,

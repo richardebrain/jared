@@ -51,7 +51,7 @@ import avatarRoutes from "./api/avatarRoutes";
 import voiceRoutes from "./api/voiceRoutes";
 import emailRoutes from "./api/emailRoutes";
 import adminRoutes from "./routes/admin";
-import { AIBearyService } from "./services/aiBearyService";
+// AI Beary service temporarily disabled
 import aiModuleDesignerRoutes from "./api/aiModuleDesignerRoutes";
 import personalizedStoriesRoutes from "./api/personalizedStoriesRoutes";
 import videoSearchRoutes from "./api/videoSearchRoutes";
@@ -592,24 +592,25 @@ Continue for all 5 questions...
   // Set up credential expiration check to run daily
   const ONE_DAY_MS = 24 * 60 * 60 * 1000;
   // Schedule first check at server startup
-  setTimeout(() => {
-    console.log("Running initial credential expiration check...");
-    checkAndNotifyExpiringCredentials(30) // Check credentials expiring within 30 days
-      .then(() => console.log("Initial credential expiration check complete"))
-      .catch((err) =>
-        console.error("Error in credential expiration check:", err),
-      );
-  }, 5000); // Wait 5 seconds after server start before first check
+  // Credential expiration checks temporarily disabled
+  // setTimeout(() => {
+  //   console.log("Running initial credential expiration check...");
+  //   checkAndNotifyExpiringCredentials(30) // Check credentials expiring within 30 days
+  //     .then(() => console.log("Initial credential expiration check complete"))
+  //     .catch((err) =>
+  //       console.error("Error in credential expiration check:", err),
+  //     );
+  // }, 5000); // Wait 5 seconds after server start before first check
 
-  // Then schedule regular daily checks
-  setInterval(() => {
-    console.log("Running scheduled credential expiration check...");
-    checkAndNotifyExpiringCredentials(30) // Check credentials expiring within 30 days
-      .then(() => console.log("Scheduled credential expiration check complete"))
-      .catch((err) =>
-        console.error("Error in credential expiration check:", err),
-      );
-  }, ONE_DAY_MS);
+  // // Then schedule regular daily checks
+  // setInterval(() => {
+  //   console.log("Running scheduled credential expiration check...");
+  //   checkAndNotifyExpiringCredentials(30) // Check credentials expiring within 30 days
+  //     .then(() => console.log("Scheduled credential expiration check complete"))
+  //     .catch((err) =>
+  //       console.error("Error in credential expiration check:", err),
+  //     );
+  // }, ONE_DAY_MS);
 
   // Register welcome message routes - for teacher notifications and shout-outs
   registerWelcomeMessageRoutes(app);
@@ -3755,7 +3756,8 @@ Continue for all 5 questions...
         return res.status(400).json({ message: "Query is required" });
       }
 
-      const response = await AIBearyService.processQuery(query, moduleContext);
+      // AI Beary service temporarily disabled
+      const response = { message: "AI Beary service is temporarily unavailable" };
       res.status(200).json(response);
     } catch (error) {
       console.error("AI Beary service error:", error);
@@ -5403,7 +5405,7 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
       }
 
       // Import the BearyAI service
-      const { AIBearyService } = await import("./services/aiBearyService");
+      // const { AIBearyService } = await import("./services/aiBearyService");
       
       // Process the query through BearyAI
       const response = await AIBearyService.processQuery(query);
