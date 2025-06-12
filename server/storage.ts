@@ -1414,8 +1414,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user || undefined;
+    try {
+      const result = await db.execute(sql`
+        SELECT id, school_id, username, password, first_name, last_name, email, 
+               language, native_language, time_zone, profile_picture, is_admin, 
+               is_school_admin, is_owner, job_title, designations, points, bear_bucks, 
+               level, streak, last_active, achievement_count, lifetime_points, 
+               learning_style, active_avatar_id, cpr_expiration, first_aid_expiration, 
+               food_handler_expiration, fingerprint_expiration, has_unread_messages, 
+               song_requests_this_week, last_song_week, created_at
+        FROM users WHERE username = ${username} LIMIT 1
+      `);
+      return result.rows[0] as User || undefined;
+    } catch (error) {
+      console.error('Error in getUserByUsername:', error);
+      return undefined;
+    }
   }
   
   async getUserByEmail(email: string): Promise<User | undefined> {

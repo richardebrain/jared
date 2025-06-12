@@ -83,7 +83,7 @@ export const users = pgTable("users", {
   hasUnreadMessages: boolean("has_unread_messages").default(false), // Flag for unread welcome messages
   // Song generation tracking fields for MusicMakerPrek
   songRequestsThisWeek: integer("song_requests_this_week").default(0),
-  lastRequestWeekStart: text("last_request_week_start"), // Format: "YYYY-WW"
+  lastSongWeek: text("last_song_week"), // Format: "YYYY-WW"
   createdAt: timestamp("created_at").defaultNow(),
 });
 
