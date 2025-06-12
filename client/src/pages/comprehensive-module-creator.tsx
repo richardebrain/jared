@@ -4558,7 +4558,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                         const isGuidedActivity = block.type === 'Guided Activity' || 
                                                 block.type?.toLowerCase().includes('guided activity') ||
                                                 block.type?.toLowerCase().includes('interactive activity');
-                        
+                        console.log('block' ,block,index)
                         if (isGuidedActivity) {
                           return (
                             <div 
