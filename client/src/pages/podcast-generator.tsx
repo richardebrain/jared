@@ -79,7 +79,7 @@ export default function PodcastGenerator() {
     try {
       const response = await apiRequest('/api/podcast/generate-source-content', {
         method: 'POST',
-        body: JSON.stringify({ request: contentRequest.trim() })
+        data: { request: contentRequest.trim() }
       });
 
       setSourceContent(response.content);
@@ -129,11 +129,11 @@ export default function PodcastGenerator() {
     try {
       const response = await apiRequest('/api/podcast/generate-script', {
         method: 'POST',
-        body: JSON.stringify({ 
+        data: { 
           sourceContent: sourceContent.trim(),
           podcastTopic: podcastTopic.trim(),
           length: scriptLength
-        })
+        }
       });
 
       setScript(response.script);

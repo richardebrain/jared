@@ -88,6 +88,11 @@ Please generate the document:`
 
   } catch (error) {
     console.error('Error generating source content:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
     
     if (error instanceof Error && error.message.includes('API key')) {
       return res.status(401).json({ 
@@ -95,8 +100,10 @@ Please generate the document:`
       });
     }
 
+    // Return more detailed error information for debugging
     res.status(500).json({ 
-      error: 'Failed to generate source content. Please try again.' 
+      error: 'Failed to generate source content. Please try again.',
+      details: error.message || 'Unknown error'
     });
   }
 });
