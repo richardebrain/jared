@@ -1,34 +1,41 @@
-// @ts-nocheck - Temporarily disable type checking for this file while we fix database schema issues
 import { 
-  users, type User, type InsertUser,
-  schools, type School, type InsertSchool,
-  learningModules, type LearningModule, type InsertLearningModule,
-  userProgress, type UserProgress, type InsertUserProgress,
-  meetings, type Meeting, type InsertMeeting,
-  assessments, type Assessment, type InsertAssessment,
-  storeItems, type StoreItem, type InsertStoreItem,
-  userItems, type UserItem, type InsertUserItem,
-  discussionThreads, type DiscussionThread, type InsertDiscussionThread,
-  discussionComments, type DiscussionComment, type InsertDiscussionComment,
-  commentVotes, type CommentVote, type InsertCommentVote,
-  coreValuesShoutOuts, type CoreValuesShoutOut, type InsertCoreValuesShoutOut,
-  educationalGames, type EducationalGame, type InsertEducationalGame,
-  gameCompletions, type GameCompletion, type InsertGameCompletion,
-  videoQuizCompletions, type VideoQuizCompletion, type InsertVideoQuizCompletion,
-  moduleRatings, type ModuleRating, type InsertModuleRating,
-  communityModules, type CommunityModule, type InsertCommunityModule,
-  teacherSelfAssessments, type TeacherSelfAssessment, type InsertTeacherSelfAssessment,
-  teacherInvitations, type TeacherInvitation, type InsertTeacherInvitation,
-  avatarCategories, type AvatarCategory, type InsertAvatarCategory,
-  avatarItems, type AvatarItem, type InsertAvatarItem,
-  userAvatars, type UserAvatar, type InsertUserAvatar,
-  userAvatarItems, type UserAvatarItem, type InsertUserAvatarItem,
-  streakRewards, type StreakReward, type InsertStreakReward,
-  lessonPlans, type LessonPlan, type InsertLessonPlan,
-  earlyLearningStandards, type EarlyLearningStandard, type InsertEarlyLearningStandard,
-  videoRatings, type VideoRating, type InsertVideoRating,
-  moduleDrafts, type ModuleDraft, type InsertModuleDraft
+  users, 
+  schools, 
+  learningModules,
+  meetings,
+  assessments,
+  videoQuizCompletions,
+  coreValuesShoutOuts,
+  educationalGames,
+  gameCompletions,
+  moduleRatings,
+  communityModules,
+  teacherSelfAssessments,
+  teacherInvitations,
+  avatarCategories,
+  avatarItems,
+  userAvatars,
+  userAvatarItems,
+  streakRewards,
+  lessonPlans,
+  earlyLearningStandards,
+  videoRatings,
+  moduleDrafts,
+  userProgress,
+  storeItems,
+  userItems,
+  discussionThreads,
+  discussionComments,
+  commentVotes
 } from "@shared/schema";
+
+// Type definitions
+export type User = typeof users.$inferSelect;
+export type InsertUser = typeof users.$inferInsert;
+export type School = typeof schools.$inferSelect;
+export type InsertSchool = typeof schools.$inferInsert;
+export type LearningModule = typeof learningModules.$inferSelect;
+export type InsertLearningModule = typeof learningModules.$inferInsert;
 import { db } from "./db";
 import { eq, and, desc, gte, lt, or, sql } from "drizzle-orm";
 
