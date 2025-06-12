@@ -230,13 +230,15 @@ router.get('/status/:taskId', async (req, res) => {
       });
     }
 
-    const response = await fetch(`https://api.goapi.ai/api/suno/v1/music/${taskId}`, {
+    const response = await fetch(`https://api.goapi.ai/api/v1/task/${taskId}`, {
       headers: {
         'X-API-Key': process.env.GOAPI_KEY
       }
     });
 
     if (!response.ok) {
+      const errorData = await response.text();
+      console.error('GoAPI status check failed:', response.status, errorData);
       return res.status(500).json({ 
         error: 'Failed to check song status' 
       });
@@ -244,19 +246,32 @@ router.get('/status/:taskId', async (req, res) => {
 
     const result = await response.json();
     
-    if (result.status === 'completed' && result.data?.[0]?.audio_url) {
-      res.json({
-        status: 'completed',
-        audioUrl: result.data[0].audio_url
-      });
-    } else if (result.status === 'failed') {
-      res.json({
-        status: 'failed',
-        error: 'Song generation failed'
-      });
+    // Handle GoAPI task response format
+    if (result.code === 200 && result.data) {
+      const taskData = result.data;
+      
+      if (taskData.status === 'completed' && taskData.output?.songs?.length > 0) {
+        // Song is completed - get the first song's audio URL
+        const firstSong = taskData.output.songs[0];
+        res.json({
+          status: 'completed',
+          audioUrl: firstSong.audio_url || firstSong.song_url
+        });
+      } else if (taskData.status === 'failed') {
+        res.json({
+          status: 'failed',
+          error: taskData.error?.message || 'Song generation failed'
+        });
+      } else {
+        // Still processing
+        res.json({
+          status: taskData.status || 'processing'
+        });
+      }
     } else {
-      res.json({
-        status: 'processing'
+      console.error('Unexpected status response:', result);
+      res.status(500).json({
+        error: 'Unexpected response from music service'
       });
     }
 
