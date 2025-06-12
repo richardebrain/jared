@@ -1045,6 +1045,26 @@ export default function ComprehensiveModuleCreator() {
     correctAnswer: number;
   }>>([]);
 
+  // Interactive Activity Builder State
+  const [isActivityBuilder, setIsActivityBuilder] = useState(false);
+  const [currentActivity, setCurrentActivity] = useState({
+    title: '',
+    activityType: 'drag-and-match',
+    instructions: '',
+    items: ['', ''],
+    answers: ['', ''],
+    preview: ''
+  });
+  const [builtActivities, setBuiltActivities] = useState<Array<{
+    title: string;
+    activityType: string;
+    instructions: string;
+    items: string[];
+    answers: string[];
+    preview: string;
+  }>>([]);
+  const [isGeneratingActivity, setIsGeneratingActivity] = useState(false);
+
   // Interactive Quiz Builder Functions
   const startQuizBuilder = () => {
     setIsQuizBuilder(true);
@@ -1153,55 +1173,147 @@ export default function ComprehensiveModuleCreator() {
     setBuiltQuizQuestions(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Interactive Activity Builder State
-  const [isActivityBuilder, setIsActivityBuilder] = useState(false);
-  const [currentActivity, setCurrentActivity] = useState({
-    activityType: 'drag-and-match',
-    title: '',
-    instructions: '',
-    promptItems: ['', '', '', ''],
-    answerKey: ['', '', '', ''],
-    uiHints: {
-      leftColumnTitle: 'Items to Match',
-      rightColumnTitle: 'Categories',
-      dragInstruction: 'Drag items to their matching categories'
-    },
-    imageSupport: false
-  });
-  const [builtActivities, setBuiltActivities] = useState<Array<{
-    activityType: string;
-    title: string;
-    instructions: string;
-    promptItems: string[];
-    answerKey: string[];
-    uiHints: any;
-  }>>([]);
-
   // Interactive Activity Builder Functions
   const startActivityBuilder = () => {
     setIsActivityBuilder(true);
     setCurrentActivity({
-      activityType: 'drag-and-match',
       title: '',
+      activityType: 'drag-and-match',
       instructions: '',
-      promptItems: ['', '', '', ''],
-      answerKey: ['', '', '', ''],
-      uiHints: {
-        leftColumnTitle: 'Items to Match',
-        rightColumnTitle: 'Categories',
-        dragInstruction: 'Drag items to their matching categories'
-      },
-      imageSupport: false
+      items: ['', ''],
+      answers: ['', ''],
+      preview: ''
     });
     setBuiltActivities([]);
   };
 
-  const addActivityItem = () => {
-    setCurrentActivity(prev => ({
-      ...prev,
-      promptItems: [...prev.promptItems, ''],
-      answerKey: [...prev.answerKey, '']
-    }));
+  const generateSingleActivity = async () => {
+    const currentSection = newModule.sections[currentSectionIndex];
+    if (!currentSection) return;
+
+    setIsGeneratingActivity(true);
+    
+    try {
+      const response = await apiRequest('POST', '/api/ai/generate-single-activity', {
+        moduleTitle: initialModuleData.title || newModule.title,
+        moduleDescription: initialModuleData.learningObjective || newModule.description,
+        sectionTitle: currentSection.title,
+        category: newModule.category,
+        activityType: currentActivity.activityType,
+        existingActivities: builtActivities.map(a => a.title),
+        learningObjective: initialModuleData.learningObjective
+      });
+
+      if (response.activity) {
+        setCurrentActivity({
+          title: response.activity.title || '',
+          activityType: response.activity.activityType || currentActivity.activityType,
+          instructions: response.activity.instructions || '',
+          items: response.activity.items || ['', ''],
+          answers: response.activity.answers || ['', ''],
+          preview: response.activity.preview || ''
+        });
+      }
+    } catch (error) {
+      console.error('Error generating activity:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Unable to generate activity. Please create manually.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingActivity(false);
+    }
+  };
+
+  const addActivityToList = () => {
+    if (!currentActivity.title.trim() || 
+        currentActivity.items.filter(i => i.trim()).length < 2 ||
+        currentActivity.answers.filter(a => a.trim()).length < 2) {
+      toast({
+        title: "Incomplete Activity",
+        description: "Please add a title and at least 2 items with answers.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setBuiltActivities(prev => [...prev, { ...currentActivity }]);
+    setCurrentActivity({
+      title: '',
+      activityType: currentActivity.activityType,
+      instructions: '',
+      items: ['', ''],
+      answers: ['', ''],
+      preview: ''
+    });
+
+    toast({
+      title: "Activity Added",
+      description: `Activity list now has ${builtActivities.length + 1} activities`,
+    });
+  };
+
+  const finishActivityAndSave = () => {
+    if (builtActivities.length === 0) {
+      toast({
+        title: "No Activities",
+        description: "Please add at least one activity.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const updatedSections = [...newModule.sections];
+    const activityContent = {
+      blocks: builtActivities.map(activity => ({
+        type: 'Guided Activity',
+        preview: activity.preview || `${activity.activityType}: ${activity.title}`,
+        content: {
+          activityType: activity.activityType,
+          title: activity.title,
+          instructions: activity.instructions,
+          promptItems: activity.items,
+          answerKey: activity.answers.reduce((acc, answer, index) => {
+            if (activity.items[index] && answer) {
+              acc[activity.items[index]] = answer;
+            }
+            return acc;
+          }, {} as Record<string, string>),
+          preview: activity.preview || `${activity.activityType}: ${activity.title}`,
+          uiHints: `Interactive ${activity.activityType} activity for adult learners`
+        }
+      }))
+    };
+
+    updatedSections[currentSectionIndex] = {
+      ...updatedSections[currentSectionIndex],
+      type: 'matching',
+      content: JSON.stringify(activityContent),
+      activities: [{
+        type: 'practice' as const,
+        title: `Interactive Activities: ${updatedSections[currentSectionIndex].title}`,
+        duration: 5,
+        content: JSON.stringify(activityContent),
+        interactionType: 'activity' as const
+      }]
+    };
+    setNewModule(prev => ({ ...prev, sections: updatedSections }));
+    
+    setIsActivityBuilder(false);
+    setBuiltActivities([]);
+    
+    toast({
+      title: "Activities Created Successfully",
+      description: `Created interactive section with ${builtActivities.length} activities`,
+    });
+    
+    // Auto-advance to next section
+    nextSection();
+  };
+
+  const removeActivityFromList = (index: number) => {
+    setBuiltActivities(prev => prev.filter((_, i) => i !== index));
   };
 
   const removeActivityItem = (index: number) => {
@@ -5047,6 +5159,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                               key={index}
                               draggable
                               onDragStart={(e) => {
+                                console.log('isgudided dropped',e)
                                 e.dataTransfer.setData('text/plain', block.content);
                                 e.dataTransfer.setData('block-type', block.type);
                               }}
@@ -5067,6 +5180,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                             draggable
                             onDragStart={(e) => {
                               // Ensure content is properly formatted as a string
+                              console.log(e,'dragged content')
                               let contentString = block.content;
                               if (typeof block.content === 'object' && block.content !== null) {
                                 // Convert object to formatted string
