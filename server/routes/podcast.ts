@@ -77,17 +77,22 @@ Format the script clearly with speaker labels (e.g., 'HOST:', 'EXPERT:') and nat
         },
         {
           role: "user",
-          content: `Create an interview-style podcast script (approximately ${scriptLength} minutes, about ${minWords}-${maxWords} words) on the topic: "${prompt}" for early childhood educators. 
+          content: `Create a VERY CONCISE interview-style podcast script (approximately ${scriptLength} minutes, MAXIMUM ${Math.min(maxWords, 450)} words) on the topic: "${prompt}" for early childhood educators. 
+
+CRITICAL: Keep the entire script under 3500 characters for audio compatibility.
 
 The script should feature a 'HOST' and an 'EXPERT'. Include:
-- An intro where the HOST introduces the topic and the EXPERT
-- A main discussion section where the HOST asks questions and the EXPERT provides analytical insights
-- A conclusion summarizing key points
-- Practical strategies or insights relevant to early childhood education
-- Natural conversational flow between speakers
-- Clear action items or takeaways
+- Brief intro where HOST introduces topic and EXPERT (1-2 sentences)
+- Main discussion with 3-4 short exchanges (2-3 sentences per response)
+- Quick conclusion with key takeaways (1-2 sentences)
 
-Keep the tone professional but warm and approachable.`
+Requirements:
+- Each speaker response must be 1-3 sentences maximum
+- Focus only on the most essential practical insights
+- Use concise, direct language
+- Target exactly ${Math.min(maxWords, 450)} words - NO MORE
+
+Keep it tight and impactful.`
         }
       ],
       max_tokens: 2000,
@@ -132,37 +137,47 @@ router.post('/generate-audio', async (req, res) => {
       return res.status(400).json({ error: 'Invalid voice selection' });
     }
 
-    // OpenAI TTS has a 4096 character limit, so we need to truncate the script more aggressively
-    const MAX_TTS_LENGTH = 3800; // More conservative buffer
+    // OpenAI TTS has a strict 4096 character limit - implement hard truncation
+    const MAX_TTS_LENGTH = 3500; // Conservative limit to ensure compatibility
     let processedScript = script;
 
     if (script.length > MAX_TTS_LENGTH) {
       console.log(`Script too long: ${script.length} characters, truncating to ${MAX_TTS_LENGTH}`);
       
-      // More aggressive truncation - try to end at natural breakpoints
-      const truncated = script.substring(0, MAX_TTS_LENGTH);
-      const lastSentence = truncated.lastIndexOf('.');
-      const lastQuestion = truncated.lastIndexOf('?');
-      const lastExclamation = truncated.lastIndexOf('!');
-      const lastParagraph = truncated.lastIndexOf('\n\n');
+      // Hard truncate with smart ending
+      processedScript = script.substring(0, MAX_TTS_LENGTH);
       
-      // Find the best cutoff point
-      const cutoffPoints = [lastSentence, lastQuestion, lastExclamation, lastParagraph].filter(point => point > MAX_TTS_LENGTH * 0.6);
+      // Try to end at a natural breakpoint within the last 200 characters
+      const searchEnd = Math.max(MAX_TTS_LENGTH - 200, MAX_TTS_LENGTH * 0.8);
+      const endSection = processedScript.substring(searchEnd);
       
-      if (cutoffPoints.length > 0) {
-        const bestCutoff = Math.max(...cutoffPoints);
-        processedScript = script.substring(0, bestCutoff + 1);
+      const lastSentence = endSection.lastIndexOf('.');
+      const lastQuestion = endSection.lastIndexOf('?');
+      const lastExclamation = endSection.lastIndexOf('!');
+      
+      const bestEnd = Math.max(lastSentence, lastQuestion, lastExclamation);
+      
+      if (bestEnd > 0) {
+        processedScript = processedScript.substring(0, searchEnd + bestEnd + 1);
       } else {
-        // Last resort - hard truncate at word boundary
-        const words = script.substring(0, MAX_TTS_LENGTH).split(' ');
-        words.pop(); // Remove potentially incomplete last word
-        processedScript = words.join(' ') + '.';
+        // Force end with period
+        processedScript = processedScript.trim() + '.';
+      }
+      
+      // Final safety check
+      if (processedScript.length > MAX_TTS_LENGTH) {
+        processedScript = processedScript.substring(0, MAX_TTS_LENGTH - 1) + '.';
       }
       
       console.log(`Script truncated from ${script.length} to ${processedScript.length} characters`);
     }
 
     console.log(`Final script length: ${processedScript.length} characters`);
+    
+    // Double-check character count before API call
+    if (processedScript.length > 4000) {
+      throw new Error(`Script still too long: ${processedScript.length} characters`);
+    }
 
     // Generate audio using OpenAI's text-to-speech
     const mp3 = await openai.audio.speech.create({
