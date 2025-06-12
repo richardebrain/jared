@@ -51,12 +51,12 @@ router.post('/generate-script', async (req, res) => {
       return res.status(400).json({ error: 'Podcast length must be between 3 and 15 minutes' });
     }
 
-    // Calculate word count based on length (average 150 words per minute)
-    // Adjusted for TTS character limits - keeping scripts more concise
-    const wordsPerMinute = 130; // Conservative estimate for better audio generation
+    // Calculate word count based on length - heavily optimized for TTS limits
+    // Conservative approach to ensure scripts stay under 3800 characters
+    const wordsPerMinute = scriptLength <= 5 ? 100 : 90; // Even more conservative for longer scripts
     const targetWords = scriptLength * wordsPerMinute;
-    const minWords = Math.ceil(targetWords * 0.8);
-    const maxWords = Math.floor(targetWords * 1.0); // Keep closer to target for TTS limits
+    const minWords = Math.ceil(targetWords * 0.7);
+    const maxWords = Math.floor(targetWords * 0.9); // Much more conservative
 
     // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
     const completion = await openai.chat.completions.create({
@@ -132,26 +132,37 @@ router.post('/generate-audio', async (req, res) => {
       return res.status(400).json({ error: 'Invalid voice selection' });
     }
 
-    // OpenAI TTS has a 4096 character limit, so we need to truncate or chunk the script
-    const MAX_TTS_LENGTH = 4000; // Leave some buffer
+    // OpenAI TTS has a 4096 character limit, so we need to truncate the script more aggressively
+    const MAX_TTS_LENGTH = 3800; // More conservative buffer
     let processedScript = script;
 
     if (script.length > MAX_TTS_LENGTH) {
-      // Truncate the script intelligently - try to end at a sentence or paragraph
+      console.log(`Script too long: ${script.length} characters, truncating to ${MAX_TTS_LENGTH}`);
+      
+      // More aggressive truncation - try to end at natural breakpoints
       const truncated = script.substring(0, MAX_TTS_LENGTH);
       const lastSentence = truncated.lastIndexOf('.');
-      const lastParagraph = truncated.lastIndexOf('\n');
+      const lastQuestion = truncated.lastIndexOf('?');
+      const lastExclamation = truncated.lastIndexOf('!');
+      const lastParagraph = truncated.lastIndexOf('\n\n');
       
-      if (lastSentence > MAX_TTS_LENGTH * 0.8) {
-        processedScript = truncated.substring(0, lastSentence + 1);
-      } else if (lastParagraph > MAX_TTS_LENGTH * 0.7) {
-        processedScript = truncated.substring(0, lastParagraph);
+      // Find the best cutoff point
+      const cutoffPoints = [lastSentence, lastQuestion, lastExclamation, lastParagraph].filter(point => point > MAX_TTS_LENGTH * 0.6);
+      
+      if (cutoffPoints.length > 0) {
+        const bestCutoff = Math.max(...cutoffPoints);
+        processedScript = script.substring(0, bestCutoff + 1);
       } else {
-        processedScript = truncated + '...';
+        // Last resort - hard truncate at word boundary
+        const words = script.substring(0, MAX_TTS_LENGTH).split(' ');
+        words.pop(); // Remove potentially incomplete last word
+        processedScript = words.join(' ') + '.';
       }
       
       console.log(`Script truncated from ${script.length} to ${processedScript.length} characters`);
     }
+
+    console.log(`Final script length: ${processedScript.length} characters`);
 
     // Generate audio using OpenAI's text-to-speech
     const mp3 = await openai.audio.speech.create({

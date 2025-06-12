@@ -135,6 +135,82 @@ export function AssessmentResultsManagement() {
     setPage(1);
   };
 
+  // Validation helpers
+  const today = new Date();
+  today.setHours(23, 59, 59, 999); // End of today
+
+  // Handle date changes with validation
+  const handleDateFromChange = (date: Date | undefined) => {
+    if (!date) {
+      setDateFrom(undefined);
+      return;
+    }
+
+    // Prevent future dates
+    if (date > today) {
+      return; // Don't set future dates
+    }
+
+    // If there's a dateTo and the new dateFrom is after it, adjust dateTo
+    if (dateTo && date > dateTo) {
+      setDateTo(date);
+    }
+    
+    setDateFrom(date);
+  };
+
+  const handleDateToChange = (date: Date | undefined) => {
+    if (!date) {
+      setDateTo(undefined);
+      return;
+    }
+
+    // Prevent future dates
+    if (date > today) {
+      return; // Don't set future dates
+    }
+
+    // If there's a dateFrom and the new dateTo is before it, adjust dateFrom
+    if (dateFrom && date < dateFrom) {
+      setDateFrom(date);
+    }
+    
+    setDateTo(date);
+  };
+
+  // Handle accuracy changes with validation
+  const handleAccuracyMinChange = (value: string) => {
+    const numValue = value ? parseFloat(value) : undefined;
+    
+    if (numValue !== undefined) {
+      // Ensure value is between 0 and 100
+      if (numValue < 0 || numValue > 100) return;
+      
+      // If there's a max value and min is greater, adjust max
+      if (accuracyMax !== undefined && numValue > accuracyMax) {
+        setAccuracyMax(numValue);
+      }
+    }
+    
+    setAccuracyMin(numValue);
+  };
+
+  const handleAccuracyMaxChange = (value: string) => {
+    const numValue = value ? parseFloat(value) : undefined;
+    
+    if (numValue !== undefined) {
+      // Ensure value is between 0 and 100
+      if (numValue < 0 || numValue > 100) return;
+      
+      // If there's a min value and max is less, adjust min
+      if (accuracyMin !== undefined && numValue < accuracyMin) {
+        setAccuracyMin(numValue);
+      }
+    }
+    
+    setAccuracyMax(numValue);
+  };
+
   // Handle sorting
   const handleSort = (column: string) => {
     if (sortBy === column) {
@@ -254,11 +330,13 @@ export function AssessmentResultsManagement() {
                   <Calendar
                     mode="single"
                     selected={dateFrom}
-                    onSelect={setDateFrom}
+                    onSelect={handleDateFromChange}
+                    disabled={(date) => date > today}
                     initialFocus
                   />
                 </PopoverContent>
               </Popover>
+              <p className="text-xs text-muted-foreground">No future dates allowed</p>
             </div>
 
             {/* Date To Filter */}
@@ -281,11 +359,13 @@ export function AssessmentResultsManagement() {
                   <Calendar
                     mode="single"
                     selected={dateTo}
-                    onSelect={setDateTo}
+                    onSelect={handleDateToChange}
+                    disabled={(date) => date > today}
                     initialFocus
                   />
                 </PopoverContent>
               </Popover>
+              <p className="text-xs text-muted-foreground">No future dates allowed</p>
             </div>
 
             {/* Accuracy Min Filter */}
@@ -296,10 +376,12 @@ export function AssessmentResultsManagement() {
                 type="number"
                 min="0"
                 max="100"
+                step="0.1"
                 placeholder="0"
                 value={accuracyMin || ""}
-                onChange={(e) => setAccuracyMin(e.target.value ? parseFloat(e.target.value) : undefined)}
+                onChange={(e) => handleAccuracyMinChange(e.target.value)}
               />
+              <p className="text-xs text-muted-foreground">Range: 0-100%</p>
             </div>
 
             {/* Accuracy Max Filter */}
@@ -310,10 +392,12 @@ export function AssessmentResultsManagement() {
                 type="number"
                 min="0"
                 max="100"
+                step="0.1"
                 placeholder="100"
                 value={accuracyMax || ""}
-                onChange={(e) => setAccuracyMax(e.target.value ? parseFloat(e.target.value) : undefined)}
+                onChange={(e) => handleAccuracyMaxChange(e.target.value)}
               />
+              <p className="text-xs text-muted-foreground">Range: 0-100%</p>
             </div>
           </div>
         </div>
