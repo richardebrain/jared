@@ -99,7 +99,7 @@ const AssessmentResultsOverview: React.FC<AssessmentResultsOverviewProps> = ({
               <div>
                 <div className="text-sm text-green-600 font-medium">Accuracy Rate</div>
                 <div className="text-lg font-bold text-green-800">
-                  {(results.accuracyRate * 100).toFixed(1)}%
+                  {results.accuracyRate}%
                 </div>
               </div>
             </div>
