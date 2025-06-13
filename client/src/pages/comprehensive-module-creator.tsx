@@ -1249,7 +1249,7 @@ export default function ComprehensiveModuleCreator() {
     }
   };
 
-  const finishActivityAndSave = () => {
+  const saveActivityAndContinue = () => {
     if (builtActivities.length === 0) {
       toast({
         title: "No Activities",
@@ -1477,6 +1477,14 @@ export default function ComprehensiveModuleCreator() {
     setBuiltActivities([]);
   };
 
+  // Activity helper functions
+  const updateActivityField = (field: string, value: any) => {
+    setCurrentActivity(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   const addActivityItem = () => {
     setCurrentActivity(prev => ({
       ...prev,
@@ -1495,8 +1503,8 @@ export default function ComprehensiveModuleCreator() {
       return;
     }
 
-    const validItems = currentActivity.promptItems.filter(item => item.trim());
-    const validAnswers = currentActivity.answerKey.filter(answer => answer.trim());
+    const validItems = currentActivity.promptItems.filter((item: string) => item.trim());
+    const validAnswers = currentActivity.answerKey.filter((answer: string) => answer.trim());
 
     if (validItems.length < 2 || validAnswers.length < 2) {
       toast({
@@ -1534,7 +1542,7 @@ export default function ComprehensiveModuleCreator() {
 
     toast({
       title: "Activity Added",
-      description: `${newActivity.title} has been added to your activity list.`,
+      description: `Activity builder now has ${builtActivities.length + 1} activities`,
     });
   };
 
@@ -1573,43 +1581,11 @@ export default function ComprehensiveModuleCreator() {
   // };
 
 
-  const addActivityToList = () => {
-    if (!currentActivity.title.trim() || 
-        currentActivity.items.filter(i => i.trim()).length < 2 ||
-        currentActivity.answers.filter(a => a.trim()).length < 2) {
-      toast({
-        title: "Incomplete Activity",
-        description: "Please add a title and at least 2 items with answers.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setBuiltActivities(prev => [...prev, { ...currentActivity }]);
-    setCurrentActivity({
-      title: '',
-      activityType: currentActivity.activityType,
-      instructions: '',
-      items: ['', ''],
-      answers: ['', ''],
-      preview: ''
-    });
-
-    toast({
-      title: "Activity Added",
-      description: `Activity list now has ${builtActivities.length + 1} activities`,
-    });
-  };
-
-  const removeActivityFromList = (index: number) => {
-    setBuiltActivities(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const removeActivityItem = (index: number) => {
+  const updateActivityItem = (field: 'promptItems' | 'answerKey', index: number, value: string) => {
     setCurrentActivity(prev => ({
       ...prev,
-      promptItems: prev.promptItems.filter((_, i) => i !== index),
-      answerKey: prev.answerKey.filter((_, i) => i !== index)
+      [field]: prev[field].map((item: string, i: number) => i === index ? value : item)
+    }));
     }));
   };
 
