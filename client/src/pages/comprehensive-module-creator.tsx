@@ -6233,81 +6233,29 @@ Create a natural conversation between two podcast hosts discussing this specific
                   {/* Mnemonic Device Builder Template */}
                   {section.type === 'mnemonic' && (
                     <div className="space-y-4">
-                      <div>
-                        <Label>Memory Content</Label>
-                        <Textarea
-                          value={section.content}
-                          onChange={(e) => updateSection(index, 'content', e.target.value)}
-                          placeholder="Enter the information learners need to memorize (steps, lists, key points)..."
-                          rows={4}
-                        />
-                      </div>
                       <div className="p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border border-pink-200">
-                        <div className="flex items-center mb-3">
-                          <Music className="h-5 w-5 text-pink-600 mr-2" />
-                          <span className="text-sm font-medium text-pink-800">Fun Memory Device Builder</span>
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
-                          <button 
-                            onClick={() => generateMnemonicDevice(index, 'song')}
-                            disabled={generatingContent === index}
-                            className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <Brain className="h-4 w-4 text-pink-600 mr-2" />
+                            <span className="text-sm font-medium text-pink-800">Memory Techniques Builder</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => openBuilder('mnemonic', index)}
+                            className="bg-pink-600 hover:bg-pink-700"
                           >
-                            {generatingContent === index ? (
-                              <>
-                                <Loader2 className="h-3 w-3 mr-1 animate-spin inline" />
-                                Thinking...
-                              </>
-                            ) : (
-                              '🎵 Funny Song'
-                            )}
-                          </button>
-                          <button 
-                            onClick={() => generateMnemonicDevice(index, 'rap')}
-                            disabled={generatingContent === index}
-                            className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {generatingContent === index ? (
-                              <>
-                                <Loader2 className="h-3 w-3 mr-1 animate-spin inline" />
-                                Thinking...
-                              </>
-                            ) : (
-                              '🎤 Catchy Rap'
-                            )}
-                          </button>
-                          <button 
-                            onClick={() => generateMnemonicDevice(index, 'poem')}
-                            disabled={generatingContent === index}
-                            className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {generatingContent === index ? (
-                              <>
-                                <Loader2 className="h-3 w-3 mr-1 animate-spin inline" />
-                                Thinking...
-                              </>
-                            ) : (
-                              '📝 Funny Poem'
-                            )}
-                          </button>
-                          <button 
-                            onClick={() => generateMnemonicDevice(index, 'acronym')}
-                            disabled={generatingContent === index}
-                            className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {generatingContent === index ? (
-                              <>
-                                <Loader2 className="h-3 w-3 mr-1 animate-spin inline" />
-                                Thinking...
-                              </>
-                            ) : (
-                              '🔤 Acronym'
-                            )}
-                          </button>
+                            <Wrench className="h-3 w-3 mr-1" />
+                            Open Builder
+                          </Button>
                         </div>
                         <p className="text-sm text-pink-700">
-                          AI will create fun, memorable devices like poems, raps, songs, or acronyms to help learners remember important information. Perfect for procedures, safety steps, or key concepts!
+                          Create memorable devices like acronyms, songs, rhymes, and visual associations to help learners remember key information.
                         </p>
+                        {section.builderData && (
+                          <div className="mt-2 text-xs text-pink-600">
+                            Activity configured with {section.builderData.devices?.length || 0} memory techniques
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -6315,23 +6263,89 @@ Create a natural conversation between two podcast hosts discussing this specific
                   {/* Role-Play Simulation Template */}
                   {section.type === 'simulation' && (
                     <div className="space-y-4">
-                      <div>
-                        <Label>Simulation Setup</Label>
-                        <Textarea
-                          value={section.content}
-                          onChange={(e) => updateSection(index, 'content', e.target.value)}
-                          placeholder="Describe the role-play scenario, characters, and objectives..."
-                          rows={4}
-                        />
-                      </div>
                       <div className="p-4 bg-indigo-50 rounded-lg">
-                        <div className="flex items-center mb-2">
-                          <Users className="h-4 w-4 text-indigo-600 mr-2" />
-                          <span className="text-sm font-medium text-indigo-800">Interactive Simulation</span>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <Gamepad2 className="h-4 w-4 text-indigo-600 mr-2" />
+                            <span className="text-sm font-medium text-indigo-800">Interactive Simulation Builder</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => openBuilder('simulation', index)}
+                            className="bg-indigo-600 hover:bg-indigo-700"
+                          >
+                            <Wrench className="h-3 w-3 mr-1" />
+                            Open Builder
+                          </Button>
                         </div>
                         <p className="text-sm text-indigo-700">
-                          Create immersive role-playing experiences where learners practice skills in realistic situations. Include character roles and interaction guidelines.
+                          Create immersive role-playing simulations with decision points, branching paths, and realistic scenarios.
                         </p>
+                        {section.builderData && (
+                          <div className="mt-2 text-xs text-indigo-600">
+                            Activity configured with {section.builderData.steps?.length || 0} simulation steps
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Real-World Examples Template */}
+                  {section.type === 'example' && (
+                    <div className="space-y-4">
+                      <div className="p-4 bg-amber-50 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <Lightbulb className="h-4 w-4 text-amber-600 mr-2" />
+                            <span className="text-sm font-medium text-amber-800">Examples & Case Studies Builder</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => openBuilder('example', index)}
+                            className="bg-amber-600 hover:bg-amber-700"
+                          >
+                            <Wrench className="h-3 w-3 mr-1" />
+                            Open Builder
+                          </Button>
+                        </div>
+                        <p className="text-sm text-amber-700">
+                          Create real-world examples with good vs poor practices, explanations, and key takeaways.
+                        </p>
+                        {section.builderData && (
+                          <div className="mt-2 text-xs text-amber-600">
+                            Activity configured with {section.builderData.examples?.length || 0} examples
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Slide Presentation Template */}
+                  {section.type === 'slide' && (
+                    <div className="space-y-4">
+                      <div className="p-4 bg-cyan-50 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <Presentation className="h-4 w-4 text-cyan-600 mr-2" />
+                            <span className="text-sm font-medium text-cyan-800">Interactive Slide Presentation Builder</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => openBuilder('slide', index)}
+                            className="bg-cyan-600 hover:bg-cyan-700"
+                          >
+                            <Wrench className="h-3 w-3 mr-1" />
+                            Open Builder
+                          </Button>
+                        </div>
+                        <p className="text-sm text-cyan-700">
+                          Create interactive slide presentations with navigation, animations, and engagement features.
+                        </p>
+                        {section.builderData && (
+                          <div className="mt-2 text-xs text-cyan-600">
+                            Activity configured with {section.builderData.slides?.length || 0} slides
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -6339,63 +6353,29 @@ Create a natural conversation between two podcast hosts discussing this specific
                   {/* Scenario Match Template */}
                   {section.type === 'scenario-match' && (
                     <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label className="text-blue-600 font-semibold">Scenarios (Left Column)</Label>
-                          <Textarea
-                            value={section.content?.scenarios || ''}
-                            onChange={(e) => {
-                              const currentContent = section.content || {};
-                              updateSection(index, 'content', {
-                                ...currentContent,
-                                scenarios: e.target.value
-                              });
-                            }}
-                            placeholder="Enter scenarios, one per line:&#10;&#10;A child is having a meltdown during circle time&#10;Two children are fighting over a toy&#10;A shy child won't participate in group activities"
-                            rows={6}
-                            className="font-mono text-sm"
-                          />
+                      <div className="p-4 bg-emerald-50 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <Target className="h-4 w-4 text-emerald-600 mr-2" />
+                            <span className="text-sm font-medium text-emerald-800">Scenario Matching Builder</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => openBuilder('scenario-match', index)}
+                            className="bg-emerald-600 hover:bg-emerald-700"
+                          >
+                            <Wrench className="h-3 w-3 mr-1" />
+                            Open Builder
+                          </Button>
                         </div>
-                        <div>
-                          <Label className="text-green-600 font-semibold">Response Options (Right Column)</Label>
-                          <Textarea
-                            value={section.content?.responses || ''}
-                            onChange={(e) => {
-                              const currentContent = section.content || {};
-                              updateSection(index, 'content', {
-                                ...currentContent,
-                                responses: e.target.value
-                              });
-                            }}
-                            placeholder="Enter response options, one per line:&#10;&#10;Offer a calm-down corner with sensory tools&#10;Implement a sharing timer system&#10;Use gentle encouragement and offer choices"
-                            rows={6}
-                            className="font-mono text-sm"
-                          />
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between mb-4">
-                        <Button
-                          onClick={() => generateScenarioMatchContent(index)}
-                          disabled={generatingContent === index}
-                          className="bg-purple-600 hover:bg-purple-700 text-white"
-                        >
-                          {generatingContent === index ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              AI Thinking...
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles className="h-4 w-4 mr-2" />
-                              Generate Scenarios & Responses
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                      <div className="p-4 bg-green-50 rounded-lg">
-                        <p className="text-sm text-green-700">
-                          🎯 AI will create an interactive matching game where teachers drag scenarios to their best response options. Each line becomes a separate item to match.
+                        <p className="text-sm text-emerald-700">
+                          Create scenario-based matching activities where learners connect situations with appropriate responses.
                         </p>
+                        {section.builderData && (
+                          <div className="mt-2 text-xs text-emerald-600">
+                            Activity configured with {section.builderData.pairs?.length || 0} scenario pairs
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
