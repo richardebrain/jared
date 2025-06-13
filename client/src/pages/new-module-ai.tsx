@@ -21,63 +21,99 @@ import {
   Mic,
   MessageSquare,
   ArrowRight,
-  Wand2
+  Wand2,
+  Zap,
+  BookOpen,
+  Target,
+  Wrench
 } from 'lucide-react';
 
-const moduleTemplates = [
+const PROVEN_TEMPLATES = [
   {
-    id: 'mini-video',
-    title: 'Mini Video Lessons',
-    description: 'Short, focused video content with key takeaways',
-    icon: Video,
+    id: 'lightning',
+    title: 'Lightning Module',
+    description: 'A super-condensed, single-idea burst perfect for quick refreshers (3-4 sections, ~5 min)',
+    duration: '5 min',
+    modules: 1,
+    icon: Zap,
+    color: 'bg-yellow-50 border-yellow-200',
+    sections: [
+      { type: 'scenario', title: 'Hook (scenario or question)', duration: 1 },
+      { type: 'text', title: 'Core Concept (AI-generated key points)', duration: 2 },
+      { type: 'example', title: 'Micro-Activity (2-step interactive prompt)', duration: 1 },
+      { type: 'quiz', title: 'Quick Quiz (1-2 questions)', duration: 1 }
+    ]
+  },
+  {
+    id: 'standard',
+    title: 'Standard Module',
+    description: 'Your go-to template for everyday trainings (5-6 sections, ~10 min)',
+    duration: '10 min',
+    modules: 1,
+    icon: BookOpen,
     color: 'bg-blue-50 border-blue-200',
-    duration: '5-10 minutes',
-    features: ['Video script generation', 'Key points summary', 'Discussion questions', 'Follow-up activities']
+    sections: [
+      { type: 'text', title: 'Intro & Objectives', duration: 1 },
+      { type: 'video', title: 'Video or Case Story', duration: 3 },
+      { type: 'matching', title: 'Interactive Activity (matching, drag-and-drop)', duration: 2 },
+      { type: 'example', title: 'Why & Science (rationale slide)', duration: 2 },
+      { type: 'text', title: 'Reflection Prompt (text or journal)', duration: 1 },
+      { type: 'quiz', title: 'Quiz & Feedback', duration: 1 }
+    ]
   },
   {
-    id: 'interactive-scenario',
-    title: 'Interactive Scenarios',
-    description: 'Real-world situations with decision-making branches',
-    icon: Users,
+    id: 'deep-dive',
+    title: 'Deep-Dive Workshop',
+    description: 'A thorough exploration, great for new topics or certifications (8-10 sections, ~15 min)',
+    duration: '15 min',
+    modules: 1,
+    icon: Target,
     color: 'bg-green-50 border-green-200',
-    duration: '10-15 minutes',
-    features: ['Scenario narratives', 'Decision points', 'Outcome explanations', 'Learning objectives']
+    sections: [
+      { type: 'text', title: 'Welcome & Agenda', duration: 1 },
+      { type: 'quiz', title: 'Pre-Check Question (knowledge gauge)', duration: 1 },
+      { type: 'video', title: 'Foundational Video', duration: 3 },
+      { type: 'mnemonic', title: 'Key Terms & Definitions (flash cards)', duration: 1 },
+      { type: 'example', title: 'Guided Activity (step-by-step)', duration: 2 },
+      { type: 'story', title: 'Case Study / Story', duration: 2 },
+      { type: 'text', title: 'Why It Matters (science + policy)', duration: 2 },
+      { type: 'simulation', title: 'Hands-On Practice (AI-guided scenario)', duration: 2 },
+      { type: 'text', title: 'Reflection & Action Plan', duration: 1 },
+      { type: 'quiz', title: 'Post-Test Quiz (certification)', duration: 2 }
+    ]
   },
   {
-    id: 'slide-storyboard',
-    title: 'Slide/GIF Storyboards',
-    description: 'Visual learning with animated content and explanations',
-    icon: FileText,
+    id: 'toolkit',
+    title: 'Toolkit Module',
+    description: 'Focuses on giving managers a "kit" of resources they can reuse (variable sections, ~5-12 min)',
+    duration: '8 min',
+    modules: 1,
+    icon: Wrench,
     color: 'bg-purple-50 border-purple-200',
-    duration: '8-12 minutes',
-    features: ['Slide content', 'Visual descriptions', 'Animation suggestions', 'Presenter notes']
+    sections: [
+      { type: 'text', title: 'Resource Gallery (videos, PDFs, links)', duration: 2 },
+      { type: 'example', title: 'Template Launcher (lesson-plan, email-scripts)', duration: 2 },
+      { type: 'text', title: 'Best-Practice Snippets (AI-written talking points)', duration: 2 },
+      { type: 'text', title: 'FAQ Chatbot (embedded "Ask AI" widget)', duration: 2 }
+    ]
   },
   {
-    id: 'quiz-teachback',
-    title: 'Quick Quiz + Teachback',
-    description: 'Knowledge check followed by teaching reinforcement',
-    icon: CheckCircle2,
-    color: 'bg-orange-50 border-orange-200',
-    duration: '6-10 minutes',
-    features: ['Quiz questions', 'Answer explanations', 'Teaching strategies', 'Practice scenarios']
-  },
-  {
-    id: 'podcast-audio',
-    title: 'Podcast-Style Audio Nuggets',
-    description: 'Upload your content and AI creates engaging podcast conversations',
-    icon: Mic,
-    color: 'bg-pink-50 border-pink-200',
-    duration: '3-8 minutes',
-    features: ['Upload your materials', 'AI podcast generation', 'Natural conversations', 'Professional audio script']
-  },
-  {
-    id: 'roleplay-reels',
-    title: 'Roleplay Reels',
-    description: 'Short practice scenarios with role-playing elements',
-    icon: MessageSquare,
+    id: 'scenario-driven',
+    title: 'Scenario-Driven Module',
+    description: 'Learners work through a single extended scenario (4-7 sections, ~8 min)',
+    duration: '8 min',
+    modules: 1,
+    icon: Users,
     color: 'bg-indigo-50 border-indigo-200',
-    duration: '5-8 minutes',
-    features: ['Character roles', 'Dialogue scripts', 'Learning outcomes', 'Debrief questions']
+    sections: [
+      { type: 'story', title: 'Scenario Setup (video or text)', duration: 2 },
+      { type: 'triage', title: 'Decision Point #1 (choose A/B/C → AI-branch)', duration: 1 },
+      { type: 'text', title: 'Feedback & Micro-Lesson', duration: 1 },
+      { type: 'triage', title: 'Decision Point #2', duration: 1 },
+      { type: 'example', title: 'Why Behind It', duration: 2 },
+      { type: 'text', title: 'Reflection', duration: 1 },
+      { type: 'quiz', title: 'Knowledge Check', duration: 1 }
+    ]
   }
 ];
 
@@ -86,20 +122,18 @@ export default function NewModuleAI() {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
 
-  const [currentStep, setCurrentStep] = useState<'template' | 'config' | 'generate' | 'preview'>('template');
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState<'template' | 'topic' | 'sections' | 'preview'>('template');
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+  const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
+  const [sectionContents, setSectionContents] = useState<any[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedContent, setGeneratedContent] = useState<any>(null);
 
   const [moduleConfig, setModuleConfig] = useState({
     title: '',
     description: '',
+    topic: '',
     targetAudience: 'preschool-teachers',
-    difficulty: 'intermediate',
-    estimatedTime: '15',
-    learningObjectives: '',
-    keyTopics: '',
-    practicalApplications: ''
+    difficulty: 'intermediate'
   });
 
   if (!isAuthenticated) {
@@ -108,44 +142,48 @@ export default function NewModuleAI() {
   }
 
   const handleTemplateSelect = (templateId: string) => {
-    setSelectedTemplate(templateId);
-    const template = moduleTemplates.find(t => t.id === templateId);
+    const template = PROVEN_TEMPLATES.find(t => t.id === templateId);
     if (template) {
+      setSelectedTemplate(template);
       setModuleConfig(prev => ({
         ...prev,
-        title: prev.title || `${template.title} Module`,
+        title: prev.title || `${template.title}`,
         description: prev.description || template.description
       }));
+      // Initialize empty content for each section
+      setSectionContents(new Array(template.sections.length).fill(null));
     }
-    setCurrentStep('config');
+    setCurrentStep('topic');
   };
 
-  const handleConfigComplete = () => {
-    if (!moduleConfig.title || !moduleConfig.description) {
+  const handleTopicComplete = () => {
+    if (!moduleConfig.topic) {
       toast({
-        title: "Missing Information",
-        description: "Please provide at least a title and description for your module.",
+        title: "Missing Topic",
+        description: "Please provide a topic for your module.",
         variant: "destructive"
       });
       return;
     }
-    setCurrentStep('generate');
+    setCurrentStep('sections');
   };
 
-  const generateModule = async () => {
+  const generateSectionContent = async (sectionIndex: number) => {
+    if (!selectedTemplate) return;
+    
     setIsGenerating(true);
     try {
-      const template = moduleTemplates.find(t => t.id === selectedTemplate);
+      const section = selectedTemplate.sections[sectionIndex];
       
       const response = await fetch('/api/ai/generate-content-blocks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          topic: moduleConfig.title,
-          sectionTitle: template?.title || 'AI Generated Module',
-          moduleTitle: moduleConfig.title,
-          sectionType: selectedTemplate,
-          templateType: selectedTemplate,
+          topic: moduleConfig.topic,
+          sectionTitle: section.title,
+          moduleTitle: `${selectedTemplate.title} - ${moduleConfig.topic}`,
+          sectionType: section.type,
+          templateType: selectedTemplate.id,
           config: moduleConfig,
           isRegeneration: false
         })
@@ -154,17 +192,22 @@ export default function NewModuleAI() {
       if (!response.ok) throw new Error('Failed to generate content');
       
       const data = await response.json();
-      setGeneratedContent(data);
-      setCurrentStep('preview');
+      
+      // Update the specific section content
+      setSectionContents(prev => {
+        const newContents = [...prev];
+        newContents[sectionIndex] = data;
+        return newContents;
+      });
 
       toast({
-        title: "Module Generated!",
-        description: "AI has created your module content. Review and customize as needed."
+        title: "Section Generated!",
+        description: `AI has created content for "${section.title}".`
       });
     } catch (error) {
       toast({
         title: "Generation Error",
-        description: "Failed to generate module content. Please try again.",
+        description: "Failed to generate section content. Please try again.",
         variant: "destructive"
       });
     } finally {

@@ -1851,9 +1851,9 @@ Continue for all 5 questions...
           const assessmentInfo = assessmentMap.get(user.id);
           
           if (assessmentInfo) {
-            // Get top 3 growth areas
+            // Get all growth areas (not limited to 3)
             const topGrowthAreas = Array.isArray(assessmentInfo.growthAreas) 
-              ? assessmentInfo.growthAreas.slice(0, 3)
+              ? assessmentInfo.growthAreas
               : [];
 
             return {

@@ -1041,7 +1041,6 @@ router.get("/assessment-results", async (req, res) => {
       const topGrowthAreas = domainBreakdown
         ?.filter(domain => domain.strengthLevel === 'growth')
         .sort((a, b) => a.accuracyRate - b.accuracyRate) // Sort by lowest accuracy first
-        .slice(0, 3)
         .map(domain => domain.domainName) || [];
 
       return {
