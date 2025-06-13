@@ -6162,7 +6162,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                       <div className="p-4 bg-red-50 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center">
-                            <AlertTriangle className="h-4 w-4 text-red-600 mr-2" />
+                            <Target className="h-4 w-4 text-red-600 mr-2" />
                             <span className="text-sm font-medium text-red-800">Triage & Priority Assessment Builder</span>
                           </div>
                           <Button
@@ -6266,7 +6266,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                       <div className="p-4 bg-indigo-50 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center">
-                            <Gamepad2 className="h-4 w-4 text-indigo-600 mr-2" />
+                            <Gamepad className="h-4 w-4 text-indigo-600 mr-2" />
                             <span className="text-sm font-medium text-indigo-800">Interactive Simulation Builder</span>
                           </div>
                           <Button
@@ -6326,7 +6326,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                       <div className="p-4 bg-cyan-50 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center">
-                            <Presentation className="h-4 w-4 text-cyan-600 mr-2" />
+                            <FileText className="h-4 w-4 text-cyan-600 mr-2" />
                             <span className="text-sm font-medium text-cyan-800">Interactive Slide Presentation Builder</span>
                           </div>
                           <Button
