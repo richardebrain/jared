@@ -4703,8 +4703,19 @@ Create a natural conversation between two podcast hosts discussing this specific
                                               (sectionTitle.includes('activity') && !sectionTitle.includes('flash'));
                       const isScenarioSection = sectionType === 'scenario' || sectionType === 'story' || 
                                               sectionTitle.includes('scenario') || sectionTitle.includes('case study');
+                      
+                      // Specialized builder type detection
+                      const isScenarioMatchSection = sectionType === 'scenario-match';
+                      const isSlideSection = sectionType === 'slide';
+                      const isExampleSection = sectionType === 'example';
+                      const isMatchingSection = sectionType === 'matching';
+                      const isTriageSection = sectionType === 'triage';
+                      const isMnemonicSection = sectionType === 'mnemonic';
+                      const isSimulationSection = sectionType === 'simulation';
+                      
                       const isTextSection = sectionType === 'text' || (!isVideoSection && !isQuizSection && !isFlashcardSection && 
-                                          !isActivitySection && !isScenarioSection);
+                                          !isActivitySection && !isScenarioSection && !isScenarioMatchSection && !isSlideSection && 
+                                          !isExampleSection && !isMatchingSection && !isTriageSection && !isMnemonicSection && !isSimulationSection);
                       
                       if (isVideoSection) {
                         return (
@@ -5108,6 +5119,237 @@ Create a natural conversation between two podcast hosts discussing this specific
                         );
                       }
                       
+                      if (isScenarioMatchSection) {
+                        return (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold flex items-center gap-2">
+                                <Users className="h-5 w-5 text-purple-600" />
+                                Scenario Match Tools
+                              </h3>
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={() => {
+                                    setActiveBuilder('scenario-match');
+                                    setBuilderData(null);
+                                  }}
+                                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Build Scenario Match
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <div className="text-center py-6 text-gray-500">
+                              <Users className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                              <p className="text-sm font-medium">Scenario Matching Builder</p>
+                              <p className="text-xs mt-1">Create scenario-response matching activities with AI and manual input</p>
+                            </div>
+                          </>
+                        );
+                      }
+
+                      if (isSlideSection) {
+                        return (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold flex items-center gap-2">
+                                <FileText className="h-5 w-5 text-blue-600" />
+                                Slide Tools
+                              </h3>
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={() => {
+                                    setActiveBuilder('slide');
+                                    setBuilderData(null);
+                                  }}
+                                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Build Slides
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <div className="text-center py-6 text-gray-500">
+                              <FileText className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                              <p className="text-sm font-medium">Slide Presentation Builder</p>
+                              <p className="text-xs mt-1">Create interactive slide presentations with AI and manual input</p>
+                            </div>
+                          </>
+                        );
+                      }
+
+                      if (isExampleSection) {
+                        return (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold flex items-center gap-2">
+                                <Lightbulb className="h-5 w-5 text-yellow-600" />
+                                Example Tools
+                              </h3>
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={() => {
+                                    setActiveBuilder('example');
+                                    setBuilderData(null);
+                                  }}
+                                  className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Build Examples
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <div className="text-center py-6 text-gray-500">
+                              <Lightbulb className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                              <p className="text-sm font-medium">Example Builder</p>
+                              <p className="text-xs mt-1">Create real-world examples and case studies with AI and manual input</p>
+                            </div>
+                          </>
+                        );
+                      }
+
+                      if (isMatchingSection) {
+                        return (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold flex items-center gap-2">
+                                <Link className="h-5 w-5 text-green-600" />
+                                Matching Tools
+                              </h3>
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={() => {
+                                    setActiveBuilder('matching');
+                                    setBuilderData(null);
+                                  }}
+                                  className="border-green-300 text-green-700 hover:bg-green-50"
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Build Matching
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <div className="text-center py-6 text-gray-500">
+                              <Link className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                              <p className="text-sm font-medium">Matching Exercise Builder</p>
+                              <p className="text-xs mt-1">Create interactive drag-and-drop matching activities</p>
+                            </div>
+                          </>
+                        );
+                      }
+
+                      if (isTriageSection) {
+                        return (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold flex items-center gap-2">
+                                <Zap className="h-5 w-5 text-red-600" />
+                                Triage Tools
+                              </h3>
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={() => {
+                                    setActiveBuilder('triage');
+                                    setBuilderData(null);
+                                  }}
+                                  className="border-red-300 text-red-700 hover:bg-red-50"
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Build Triage
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <div className="text-center py-6 text-gray-500">
+                              <Zap className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                              <p className="text-sm font-medium">Decision Triage Builder</p>
+                              <p className="text-xs mt-1">Create priority assessment and decision-making exercises</p>
+                            </div>
+                          </>
+                        );
+                      }
+
+                      if (isMnemonicSection) {
+                        return (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold flex items-center gap-2">
+                                <Brain className="h-5 w-5 text-indigo-600" />
+                                Memory Tools
+                              </h3>
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={() => {
+                                    setActiveBuilder('mnemonic');
+                                    setBuilderData(null);
+                                  }}
+                                  className="border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Build Memory Aids
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <div className="text-center py-6 text-gray-500">
+                              <Brain className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                              <p className="text-sm font-medium">Memory Techniques Builder</p>
+                              <p className="text-xs mt-1">Create mnemonic devices and memory aids with AI assistance</p>
+                            </div>
+                          </>
+                        );
+                      }
+
+                      if (isSimulationSection) {
+                        return (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold flex items-center gap-2">
+                                <Gamepad className="h-5 w-5 text-pink-600" />
+                                Simulation Tools
+                              </h3>
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={() => {
+                                    setActiveBuilder('simulation');
+                                    setBuilderData(null);
+                                  }}
+                                  className="border-pink-300 text-pink-700 hover:bg-pink-50"
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Build Simulation
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <div className="text-center py-6 text-gray-500">
+                              <Gamepad className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                              <p className="text-sm font-medium">Role-Play Simulation Builder</p>
+                              <p className="text-xs mt-1">Create immersive role-playing scenarios with decision points</p>
+                            </div>
+                          </>
+                        );
+                      }
+
                       if (isScenarioSection) {
                         return (
                           <>
@@ -5120,66 +5362,22 @@ Create a natural conversation between two podcast hosts discussing this specific
                                 <Button 
                                   size="sm"
                                   variant="outline" 
-                                  onClick={generateAIContentForSection}
-                                  disabled={isGeneratingAIContent || isRegenerating}
-                                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                                  onClick={() => {
+                                    setActiveBuilder('scenario');
+                                    setBuilderData(null);
+                                  }}
+                                  className="border-orange-300 text-orange-700 hover:bg-orange-50"
                                 >
-                                  {isGeneratingAIContent || isRegenerating ? (
-                                    <>
-                                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                      Generating...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Sparkles className="h-4 w-4 mr-2" />
-                                      Generate Scenarios
-                                    </>
-                                  )}
-                                </Button>
-                                <Button 
-                                  size="sm"
-                                  variant="outline" 
-                                  onClick={startQuizBuilder}
-                                  className="border-green-300 text-green-700 hover:bg-green-50"
-                                >
-                                  <MessageSquare className="h-4 w-4 mr-2" />
-                                  Discussion Points
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Build Scenarios
                                 </Button>
                               </div>
                             </div>
                             
-                            {aiGeneratedBlocks.length > 0 && (
-                              <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg space-y-2">
-                                <div className="text-sm font-medium text-purple-800 mb-2">
-                                  Content Generated! ({aiGeneratedBlocks.length} blocks)
-                                </div>
-                                <Button 
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => setShowRegenerateDialog(true)}
-                                  className="text-purple-700 border-purple-300 hover:bg-purple-50 w-full font-medium"
-                                >
-                                  <RefreshCw className="h-4 w-4 mr-2" />
-                                  Regenerate with Guidance
-                                </Button>
-                                <Button 
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => {
-                                    setAiGeneratedBlocks([]);
-                                    setAiTopicInput('');
-                                  }}
-                                  className="text-gray-500 hover:text-gray-700 w-full"
-                                >
-                                  Clear Generated Content
-                                </Button>
-                              </div>
-                            )}
-                            
                             <div className="text-center py-6 text-gray-500">
                               <Users className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                              <p className="text-sm font-medium">Scenario Building Tools</p>
-                              <p className="text-xs mt-1">Create realistic scenarios and case studies</p>
+                              <p className="text-sm font-medium">Scenario Practice Builder</p>
+                              <p className="text-xs mt-1">Create realistic practice scenarios with feedback</p>
                             </div>
                           </>
                         );
