@@ -58,6 +58,9 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
   // State for matching activities
   const [matchingStates, setMatchingStates] = useState<{ [key: number]: { matches: { [key: string]: string }; selectedLeft: string | null } }>({});
   
+  // State for categorization activities
+  const [categorizationStates, setCategorizationStates] = useState<{ [key: number]: { itemCategories: { [key: string]: string } } }>({});
+  
   const { toast } = useToast();
 
   // Parse activity content from section
@@ -429,16 +432,19 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
   const handleCategorizationActivity = (activity: ParsedActivity, activityIndex: number) => {
     const categories = Object.keys(activity.answerKey);
     const items = activity.promptItems;
-    const [itemCategories, setItemCategories] = useState<{ [key: string]: string }>({});
+    const state = categorizationStates[activityIndex] || { itemCategories: {} };
 
     const handleCategorySelect = (item: string, category: string) => {
-      setItemCategories(prev => ({ ...prev, [item]: category }));
+      setCategorizationStates(prev => ({
+        ...prev,
+        [activityIndex]: { itemCategories: { ...state.itemCategories, [item]: category } }
+      }));
     };
 
     const handleSubmit = () => {
       let correctCount = 0;
       
-      Object.entries(itemCategories).forEach(([item, category]) => {
+      Object.entries(state.itemCategories).forEach(([item, category]) => {
         const categoryValue = activity.answerKey[category];
         if ((typeof categoryValue === 'string' && categoryValue.includes(item)) || 
             (Array.isArray(categoryValue) && categoryValue.includes(item)) || 
@@ -469,7 +475,7 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
                 {category}
               </h4>
               <div className="space-y-2 min-h-[100px]">
-                {Object.entries(itemCategories)
+                {Object.entries(state.itemCategories)
                   .filter(([_, cat]) => cat === category)
                   .map(([item, _]) => (
                     <div key={item} className="bg-purple-50 p-2 rounded text-sm">
@@ -484,7 +490,7 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
         <div className="space-y-2">
           <h4 className="font-semibold">Items to categorize:</h4>
           <div className="flex flex-wrap gap-2">
-            {items.filter(item => !itemCategories[item]).map(item => (
+            {items.filter(item => !state.itemCategories[item]).map(item => (
               <div key={item} className="relative">
                 <div className="bg-blue-100 border border-blue-200 rounded px-3 py-2 text-sm">
                   {item}
@@ -519,7 +525,7 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
         {!showResults[activityIndex] && (
           <Button 
             onClick={handleSubmit} 
-            disabled={Object.keys(itemCategories).length === 0}
+            disabled={Object.keys(state.itemCategories).length === 0}
             className="w-full"
           >
             Submit Categories
