@@ -48,6 +48,16 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
   const [userResponses, setUserResponses] = useState<{ [key: number]: any }>({});
   const [activityResults, setActivityResults] = useState<{ [key: number]: boolean }>({});
   const [showResults, setShowResults] = useState<{ [key: number]: boolean }>({});
+  
+  // State for scenario activities
+  const [scenarioStates, setScenarioStates] = useState<{ [key: number]: { selectedOption: string | null; showFeedback: boolean } }>({});
+  
+  // State for simulation activities
+  const [simulationStates, setSimulationStates] = useState<{ [key: number]: { currentStep: number; completedSteps: number[] } }>({});
+  
+  // State for matching activities
+  const [matchingStates, setMatchingStates] = useState<{ [key: number]: { matches: { [key: string]: string }; selectedLeft: string | null } }>({});
+  
   const { toast } = useToast();
 
   // Parse activity content from section
@@ -538,12 +548,13 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
   };
 
   const renderScenarioActivity = (activity: ParsedActivity, index: number) => {
-    const [selectedOption, setSelectedOption] = useState<string | null>(null);
-    const [showFeedback, setShowFeedback] = useState(false);
+    const state = scenarioStates[index] || { selectedOption: null, showFeedback: false };
 
     const handleOptionSelect = (option: string) => {
-      setSelectedOption(option);
-      setShowFeedback(true);
+      setScenarioStates(prev => ({
+        ...prev,
+        [index]: { selectedOption: option, showFeedback: true }
+      }));
       
       // Mark as completed after selection
       setTimeout(() => {
@@ -563,16 +574,16 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
               <button
                 key={optIndex}
                 onClick={() => handleOptionSelect(option)}
-                disabled={showFeedback}
+                disabled={state.showFeedback}
                 className={`w-full text-left p-4 rounded-lg border transition-colors ${
-                  selectedOption === option
+                  state.selectedOption === option
                     ? 'bg-blue-100 border-blue-300 text-blue-900'
                     : 'bg-white border-gray-200 hover:bg-gray-50'
-                } ${showFeedback ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}`}
+                } ${state.showFeedback ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}`}
               >
                 <div className="flex items-center">
                   <div className="w-6 h-6 rounded-full border border-gray-300 mr-3 flex items-center justify-center">
-                    {selectedOption === option && (
+                    {state.selectedOption === option && (
                       <div className="w-3 h-3 rounded-full bg-blue-600"></div>
                     )}
                   </div>
@@ -582,7 +593,7 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
             ))}
           </div>
 
-          {showFeedback && (
+          {state.showFeedback && (
             <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex items-center">
                 <CheckCircle2 className="h-5 w-5 text-green-600 mr-2" />
@@ -598,13 +609,18 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
   };
 
   const renderSimulationActivity = (activity: ParsedActivity, index: number) => {
-    const [currentStep, setCurrentStep] = useState(0);
-    const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+    const state = simulationStates[index] || { currentStep: 0, completedSteps: [] };
     const steps = activity.promptItems;
 
     const handleStepComplete = (stepIndex: number) => {
-      if (!completedSteps.includes(stepIndex)) {
-        setCompletedSteps(prev => [...prev, stepIndex]);
+      if (!state.completedSteps.includes(stepIndex)) {
+        const newCompletedSteps = [...state.completedSteps, stepIndex];
+        const newCurrentStep = stepIndex < steps.length - 1 ? stepIndex + 1 : state.currentStep;
+        
+        setSimulationStates(prev => ({
+          ...prev,
+          [index]: { currentStep: newCurrentStep, completedSteps: newCompletedSteps }
+        }));
         
         if (stepIndex === steps.length - 1) {
           setActivityResults(prev => ({ ...prev, [index]: true }));
@@ -613,10 +629,6 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
             description: "You've successfully completed all simulation steps.",
           });
         }
-      }
-      
-      if (stepIndex < steps.length - 1) {
-        setCurrentStep(stepIndex + 1);
       }
     };
 
@@ -628,9 +640,9 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
               <div
                 key={stepIndex}
                 className={`border rounded-lg p-4 transition-all ${
-                  stepIndex === currentStep
+                  stepIndex === state.currentStep
                     ? 'bg-white border-green-300 shadow-sm'
-                    : stepIndex < currentStep
+                    : stepIndex < state.currentStep
                     ? 'bg-gray-50 border-gray-200'
                     : 'bg-gray-50 border-gray-200 opacity-60'
                 }`}
@@ -638,13 +650,13 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
-                      completedSteps.includes(stepIndex)
+                      state.completedSteps.includes(stepIndex)
                         ? 'bg-green-100 text-green-600'
-                        : stepIndex === currentStep
+                        : stepIndex === state.currentStep
                         ? 'bg-blue-100 text-blue-600'
                         : 'bg-gray-100 text-gray-400'
                     }`}>
-                      {completedSteps.includes(stepIndex) ? (
+                      {state.completedSteps.includes(stepIndex) ? (
                         <CheckCircle2 className="h-5 w-5" />
                       ) : (
                         <span className="font-bold">{stepIndex + 1}</span>
@@ -656,7 +668,7 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
                     </div>
                   </div>
                   
-                  {stepIndex === currentStep && !completedSteps.includes(stepIndex) && (
+                  {stepIndex === state.currentStep && !state.completedSteps.includes(stepIndex) && (
                     <Button
                       onClick={() => handleStepComplete(stepIndex)}
                       size="sm"
@@ -678,20 +690,25 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
     const totalItems = activity.promptItems.length;
     const leftItems = activity.promptItems.slice(0, Math.floor(totalItems / 2));
     const rightItems = activity.promptItems.slice(Math.floor(totalItems / 2));
-    const [matches, setMatches] = useState<{ [key: string]: string }>({});
-    const [selectedLeft, setSelectedLeft] = useState<string | null>(null);
+    const state = matchingStates[index] || { matches: {}, selectedLeft: null };
 
     const handleLeftSelect = (item: string) => {
-      setSelectedLeft(item);
+      setMatchingStates(prev => ({
+        ...prev,
+        [index]: { ...state, selectedLeft: item }
+      }));
     };
 
     const handleRightSelect = (item: string) => {
-      if (selectedLeft) {
-        setMatches(prev => ({ ...prev, [selectedLeft]: item }));
-        setSelectedLeft(null);
+      if (state.selectedLeft) {
+        const newMatches = { ...state.matches, [state.selectedLeft]: item };
+        setMatchingStates(prev => ({
+          ...prev,
+          [index]: { matches: newMatches, selectedLeft: null }
+        }));
         
         // Check if all matches are made
-        if (Object.keys(matches).length + 1 >= leftItems.length) {
+        if (Object.keys(newMatches).length >= leftItems.length) {
           setTimeout(() => {
             setActivityResults(prev => ({ ...prev, [index]: true }));
             toast({
@@ -715,17 +732,17 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
                   <button
                     key={itemIndex}
                     onClick={() => handleLeftSelect(item)}
-                    disabled={matches[item]}
+                    disabled={state.matches[item]}
                     className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                      matches[item]
+                      state.matches[item]
                         ? 'bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed'
-                        : selectedLeft === item
+                        : state.selectedLeft === item
                         ? 'bg-teal-100 border-teal-300 text-teal-900'
                         : 'bg-white border-gray-200 hover:bg-gray-50'
                     }`}
                   >
                     {item}
-                    {matches[item] && (
+                    {state.matches[item] && (
                       <span className="text-xs text-gray-500 ml-2">✓ Matched</span>
                     )}
                   </button>
@@ -741,17 +758,17 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
                   <button
                     key={itemIndex}
                     onClick={() => handleRightSelect(item)}
-                    disabled={!selectedLeft || Object.values(matches).includes(item)}
+                    disabled={!state.selectedLeft || Object.values(state.matches).includes(item)}
                     className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                      Object.values(matches).includes(item)
+                      Object.values(state.matches).includes(item)
                         ? 'bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed'
-                        : selectedLeft
+                        : state.selectedLeft
                         ? 'bg-white border-gray-200 hover:bg-cyan-50'
                         : 'bg-gray-50 border-gray-200 cursor-not-allowed text-gray-400'
                     }`}
                   >
                     {item}
-                    {Object.values(matches).includes(item) && (
+                    {Object.values(state.matches).includes(item) && (
                       <span className="text-xs text-gray-500 ml-2">✓ Matched</span>
                     )}
                   </button>
@@ -760,10 +777,10 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
             </div>
           </div>
 
-          {selectedLeft && (
+          {state.selectedLeft && (
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-blue-800 text-sm">
-                Selected: <strong>{selectedLeft}</strong> - Now choose its match from the right column.
+                Selected: <strong>{state.selectedLeft}</strong> - Now choose its match from the right column.
               </p>
             </div>
           )}
