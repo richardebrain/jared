@@ -17,8 +17,15 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
   const [textContent, setTextContent] = useState('');
 
   useEffect(() => {
+    // Handle different content formats from AI generation
     if (content?.blocks?.[0]?.content) {
       setTextContent(content.blocks[0].content);
+    } else if (content?.content) {
+      // Direct content from AI response
+      setTextContent(content.content);
+    } else if (typeof content === 'string') {
+      // Plain string content
+      setTextContent(content);
     }
   }, [content]);
 

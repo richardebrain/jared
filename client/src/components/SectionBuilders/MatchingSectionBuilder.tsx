@@ -24,11 +24,20 @@ export default function MatchingSectionBuilder({ content, onContentChange, isEdi
   const [instructions, setInstructions] = useState('Match each item on the left with its corresponding item on the right.');
 
   useEffect(() => {
+    // Handle different content formats from AI generation
+    let aiContent = '';
     if (content?.blocks?.[0]?.content) {
+      aiContent = content.blocks[0].content;
+    } else if (content?.content) {
+      aiContent = content.content;
+    } else if (typeof content === 'string') {
+      aiContent = content;
+    }
+    
+    if (aiContent) {
       try {
-        const aiContent = content.blocks[0].content;
         const parsedPairs = parseAIContentToPairs(aiContent);
-        setPairs(parsedPairs);
+        setPairs(parsedPairs.length > 0 ? parsedPairs : [createEmptyPair()]);
         
         // Extract instructions if present
         if (aiContent.toLowerCase().includes('match') || aiContent.toLowerCase().includes('connect')) {

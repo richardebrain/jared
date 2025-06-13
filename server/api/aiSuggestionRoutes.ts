@@ -1340,7 +1340,24 @@ router.post('/generate-section', async (req, res) => {
       messages: [
         {
           role: "system", 
-          content: "You are an expert early childhood education content creator. Create high-quality, practical content that teachers can immediately use. Always return valid JSON format with a 'blocks' array containing the generated content."
+          content: `You are an expert early childhood education content creator. Create high-quality, practical content that teachers can immediately use. 
+
+IMPORTANT: Always return valid JSON in this exact format:
+{
+  "blocks": [
+    {
+      "type": "${sectionType}",
+      "title": "${sectionTitle}",
+      "content": "YOUR_GENERATED_CONTENT_HERE",
+      "preview": "Brief preview of the content"
+    }
+  ]
+}
+
+For different section types:
+- text/example/scenario/story: Put the full educational content in the "content" field
+- quiz: Generate multiple choice questions with answers and explanations in the "content" field
+- matching: Generate matching pairs in the "content" field with clear left-right relationships`
         },
         {
           role: "user",

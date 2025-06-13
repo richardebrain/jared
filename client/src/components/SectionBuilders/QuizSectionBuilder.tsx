@@ -27,12 +27,20 @@ export default function QuizSectionBuilder({ content, onContentChange, isEditing
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
 
   useEffect(() => {
+    // Handle different content formats from AI generation
+    let aiContent = '';
     if (content?.blocks?.[0]?.content) {
+      aiContent = content.blocks[0].content;
+    } else if (content?.content) {
+      aiContent = content.content;
+    } else if (typeof content === 'string') {
+      aiContent = content;
+    }
+    
+    if (aiContent) {
       try {
-        // Parse AI-generated content into quiz questions
-        const aiContent = content.blocks[0].content;
         const parsedQuestions = parseAIContentToQuestions(aiContent);
-        setQuestions(parsedQuestions);
+        setQuestions(parsedQuestions.length > 0 ? parsedQuestions : [createEmptyQuestion()]);
       } catch (error) {
         console.error('Error parsing quiz content:', error);
         setQuestions([createEmptyQuestion()]);
