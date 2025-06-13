@@ -88,11 +88,19 @@ This document tracks the current status of all tasks across all epics. For detai
 
 ## EP-004: Admin UI for Assessment Results
 
-**Overall Progress:** 0/1 tasks completed (0%)
+**Overall Progress:** 0/3 tasks completed (0%)
 
 | Task | Status | Summary |
 |------|--------|---------|
 | EP-004-01 | ⬜ | Assessment Results Management Interface |
+| EP-004-02 | ⬜ | Teacher Assessment Results on Profile Cards |
+| EP-004-03 | ⬜ | Detailed Teacher Assessment Results View |
+
+**Key Features:**
+- ⬜ Comprehensive admin interface for viewing assessment results across all users
+- ⬜ Teacher profile cards with Initial Assessment summary (completion status, key metrics, growth areas)
+- ⬜ Detailed teacher assessment results view with role-based access control
+- ⬜ Director permissions limited to their school's teachers, Owners see all results
 
 **Dependencies:** Waiting for EP-001 completion and EP-002 patterns established.
 
