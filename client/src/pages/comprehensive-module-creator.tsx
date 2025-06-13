@@ -3563,7 +3563,6 @@ Create a natural conversation between two podcast hosts discussing this specific
     );
   }
 
-
   return (
     <div className="container mx-auto p-6 space-y-8">
       {/* Initial Setup Modal */}
@@ -3851,7 +3850,6 @@ Create a natural conversation between two podcast hosts discussing this specific
           </CardContent>
         </Card>
       )}
-
       {/* Step-by-Step Section Builder */}
       {creationMethod === 'manual' && aiWorkflowStep === 'section-builder' && (
         <div className="grid grid-cols-12 gap-6">
