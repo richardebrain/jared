@@ -332,30 +332,7 @@ export default function AdminTeachersPage() {
                 {/* Assessment Results Summary */}
                 <TeacherAssessmentSummary assessmentResults={teacher.assessmentResults} />
                 
-                <div className="flex gap-2 pt-2">
-                  <Link href={`/admin/messaging?teacherId=${teacher.id}`}>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1 w-full"
-                    >
-                      <Mail className="h-3 w-3 mr-1" />
-                      Message
-                    </Button>
-                  </Link>
-                  <Link href={`/director-messages?schedule=true&teacherId=${teacher.id}`}>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1 w-full"
-                    >
-                      <Calendar className="h-3 w-3 mr-1" />
-                      Schedule
-                    </Button>
-                  </Link>
-                </div>
-                
-                {/* View Assessment Results Button */}
+                {/* View Assessment Results Button - replaces Message and Schedule buttons */}
                 {teacher.assessmentResults?.completed && (
                   <div className="pt-2">
                     <Link href={`/admin/teachers/${teacher.id}/assessment-results`}>
