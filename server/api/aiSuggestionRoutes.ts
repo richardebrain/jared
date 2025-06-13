@@ -1533,4 +1533,303 @@ Focus on memorable devices for "${moduleTitle}" concepts.`;
   }
 });
 
+// Generate matching pairs for drag-and-drop activities
+router.post('/generate-matching', async (req, res) => {
+  try {
+    const { topic, description, category, difficulty, estimatedTime } = req.body;
+    
+    const prompt = `Create a drag-and-drop matching activity for the topic: "${topic}".
+    
+Context: ${description || 'Early childhood education module'}
+Category: ${category}
+Difficulty: ${difficulty}
+Time: ${estimatedTime}
+
+Generate a JSON response with:
+{
+  "title": "Activity title",
+  "instructions": "Clear instructions for learners",
+  "pairs": [
+    {"left": "Item to drag", "right": "Matching target"},
+    // 6-8 matching pairs total
+  ]
+}
+
+Focus on educational concepts that early childhood educators need to understand and apply.`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert in early childhood education and instructional design. Create engaging, age-appropriate matching activities that help educators learn key concepts."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.7
+    });
+
+    const content = response.choices[0].message.content;
+    const matchingData = JSON.parse(content);
+
+    res.json({
+      success: true,
+      ...matchingData
+    });
+
+  } catch (error) {
+    console.error('Error generating matching activity:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to generate matching activity' 
+    });
+  }
+});
+
+// Generate examples focused on current module topic
+router.post('/generate-examples', async (req, res) => {
+  try {
+    const { topic, description, category, difficulty, estimatedTime } = req.body;
+    
+    const prompt = `Create a practical example for the topic: "${topic}".
+    
+Context: ${description || 'Early childhood education module'}
+Category: ${category}
+Difficulty: ${difficulty}
+Time: ${estimatedTime}
+
+Generate a JSON response with:
+{
+  "title": "Example title",
+  "scenario": "Realistic classroom scenario",
+  "explanation": "How this example demonstrates key concepts",
+  "keyPoints": ["Key learning point 1", "Key learning point 2", "Key learning point 3"]
+}
+
+Create real-world scenarios that early childhood educators can relate to and learn from.`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert in early childhood education. Create realistic, practical examples that help educators understand and apply concepts in their daily work."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.7
+    });
+
+    const content = response.choices[0].message.content;
+    const exampleData = JSON.parse(content);
+
+    res.json({
+      success: true,
+      ...exampleData
+    });
+
+  } catch (error) {
+    console.error('Error generating examples:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to generate examples' 
+    });
+  }
+});
+
+// Generate mnemonic devices for key terms and definitions
+router.post('/generate-mnemonics', async (req, res) => {
+  try {
+    const { topic, description, category, difficulty, estimatedTime } = req.body;
+    
+    const prompt = `Create mnemonic devices for key terms related to: "${topic}".
+    
+Context: ${description || 'Early childhood education module'}
+Category: ${category}
+Difficulty: ${difficulty}
+Time: ${estimatedTime}
+
+Generate a JSON response with:
+{
+  "title": "Set title for key terms",
+  "description": "Brief description of the term set",
+  "items": [
+    {
+      "term": "Key term",
+      "definition": "Clear definition",
+      "mnemonic": "Memory device or acronym",
+      "explanation": "How the mnemonic helps remember",
+      "memoryTip": "Additional memory strategy"
+    }
+    // 5-8 terms total
+  ]
+}
+
+Focus on important terminology that early childhood educators need to master.`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert in early childhood education and memory techniques. Create effective mnemonic devices that help educators remember important concepts and terminology."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.7
+    });
+
+    const content = response.choices[0].message.content;
+    const mnemonicData = JSON.parse(content);
+
+    res.json({
+      success: true,
+      ...mnemonicData
+    });
+
+  } catch (error) {
+    console.error('Error generating mnemonics:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to generate mnemonics' 
+    });
+  }
+});
+
+// Generate text-based stories relating to the topic
+router.post('/generate-story', async (req, res) => {
+  try {
+    const { topic, description, category, difficulty, estimatedTime } = req.body;
+    
+    const prompt = `Create an engaging story related to: "${topic}".
+    
+Context: ${description || 'Early childhood education module'}
+Category: ${category}
+Difficulty: ${difficulty}
+Time: ${estimatedTime}
+
+Generate a JSON response with:
+{
+  "title": "Story title",
+  "content": "Complete narrative story (800-1200 words)",
+  "learningObjectives": ["Objective 1", "Objective 2", "Objective 3"],
+  "reflectionQuestions": ["Question 1", "Question 2", "Question 3"],
+  "keyThemes": ["Theme 1", "Theme 2", "Theme 3"]
+}
+
+Create an engaging narrative that illustrates key concepts through storytelling, making the learning memorable and relatable for early childhood educators.`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert storyteller and early childhood education specialist. Create compelling narratives that teach important concepts through engaging stories."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.8
+    });
+
+    const content = response.choices[0].message.content;
+    const storyData = JSON.parse(content);
+
+    res.json({
+      success: true,
+      ...storyData
+    });
+
+  } catch (error) {
+    console.error('Error generating story:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to generate story' 
+    });
+  }
+});
+
+// Generate AI-guided hands-on practice simulations
+router.post('/generate-simulation', async (req, res) => {
+  try {
+    const { topic, description, category, difficulty, estimatedTime } = req.body;
+    
+    const prompt = `Create an AI-guided hands-on practice simulation for: "${topic}".
+    
+Context: ${description || 'Early childhood education module'}
+Category: ${category}
+Difficulty: ${difficulty}
+Time: ${estimatedTime}
+
+Generate a JSON response with:
+{
+  "title": "Simulation title",
+  "description": "Overview of the simulation",
+  "objective": "What learners will practice",
+  "difficulty": "${difficulty}",
+  "estimatedTime": "${estimatedTime}",
+  "steps": [
+    {
+      "title": "Step title",
+      "scenario": "Scenario setup",
+      "challenge": "Challenge to address",
+      "expectedAction": "What learner should do",
+      "aiGuidance": "How AI will guide",
+      "feedback": "Success feedback",
+      "successCriteria": ["Criterion 1", "Criterion 2"]
+    }
+    // 3-5 steps total
+  ]
+}
+
+Create realistic practice scenarios that allow educators to apply concepts in simulated situations with AI guidance.`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert in early childhood education and simulation-based learning. Create realistic practice scenarios that help educators develop skills through guided practice."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.7
+    });
+
+    const content = response.choices[0].message.content;
+    const simulationData = JSON.parse(content);
+
+    res.json({
+      success: true,
+      ...simulationData
+    });
+
+  } catch (error) {
+    console.error('Error generating simulation:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to generate simulation' 
+    });
+  }
+});
+
 export default router;
