@@ -1,0 +1,83 @@
+  const PROVEN_TEMPLATES = [
+    {
+      id: 'lightning',
+      title: 'Lightning Module',
+      description: 'A super-condensed, single-idea burst perfect for quick refreshers (3-4 sections, ~5 min)',
+      duration: '5 min',
+      modules: 1,
+      icon: Zap,
+      sections: [
+        { type: 'scenario', title: 'Hook (scenario or question)', duration: 1 },
+        { type: 'text', title: 'Core Concept (AI-generated key points)', duration: 2 },
+        { type: 'example', title: 'Micro-Activity (2-step interactive prompt)', duration: 1 },
+        { type: 'quiz', title: 'Quick Quiz (1-2 questions)', duration: 1 }
+      ]
+    },
+    {
+      id: 'standard',
+      title: 'Standard Module',
+      description: 'Your go-to template for everyday trainings (5-6 sections, ~10 min)',
+      duration: '10 min',
+      modules: 1,
+      icon: BookOpen,
+      sections: [
+        { type: 'text', title: 'Intro & Objectives', duration: 1 },
+        { type: 'video', title: 'Video or Case Story', duration: 3 },
+        { type: 'matching', title: 'Interactive Activity (matching, drag-and-drop)', duration: 2 },
+        { type: 'example', title: 'Why & Science (rationale slide)', duration: 2 },
+        { type: 'text', title: 'Reflection Prompt (text or journal)', duration: 1 },
+        { type: 'quiz', title: 'Quiz & Feedback', duration: 1 }
+      ]
+    },
+    {
+      id: 'deep-dive',
+      title: 'Deep-Dive Workshop',
+      description: 'A thorough exploration, great for new topics or certifications (8-10 sections, ~15 min)',
+      duration: '15 min',
+      modules: 1,
+      icon: Target,
+      sections: [
+        { type: 'text', title: 'Welcome & Agenda', duration: 1 },
+        { type: 'quiz', title: 'Pre-Check Question (knowledge gauge)', duration: 1 },
+        { type: 'video', title: 'Foundational Video', duration: 3 },
+        { type: 'mnemonic', title: 'Key Terms & Definitions (flash cards)', duration: 1 },
+        { type: 'example', title: 'Guided Activity (step-by-step)', duration: 2 },
+        { type: 'story', title: 'Case Study / Story', duration: 2 },
+        { type: 'text', title: 'Why It Matters (science + policy)', duration: 2 },
+        { type: 'simulation', title: 'Hands-On Practice (AI-guided scenario)', duration: 2 },
+        { type: 'text', title: 'Reflection & Action Plan', duration: 1 },
+        { type: 'quiz', title: 'Post-Test Quiz (certification)', duration: 2 }
+      ]
+    },
+    {
+      id: 'toolkit',
+      title: 'Toolkit Module',
+      description: 'Focuses on giving managers a "kit" of resources they can reuse (variable sections, ~5-12 min)',
+      duration: '8 min',
+      modules: 1,
+      icon: Wrench,
+      sections: [
+        { type: 'text', title: 'Resource Gallery (videos, PDFs, links)', duration: 2 },
+        { type: 'example', title: 'Template Launcher (lesson-plan, email-scripts)', duration: 2 },
+        { type: 'text', title: 'Best-Practice Snippets (AI-written talking points)', duration: 2 },
+        { type: 'text', title: 'FAQ Chatbot (embedded "Ask AI" widget)', duration: 2 }
+      ]
+    },
+    {
+      id: 'scenario-driven',
+      title: 'Scenario-Driven Module',
+      description: 'Learners work through a single extended scenario (4-7 sections, ~8 min)',
+      duration: '8 min',
+      modules: 1,
+      icon: Users,
+      sections: [
+        { type: 'story', title: 'Scenario Setup (video or text)', duration: 2 },
+        { type: 'triage', title: 'Decision Point #1 (choose A/B/C → AI-branch)', duration: 1 },
+        { type: 'text', title: 'Feedback & Micro-Lesson', duration: 1 },
+        { type: 'triage', title: 'Decision Point #2', duration: 1 },
+        { type: 'example', title: 'Why Behind It', duration: 2 },
+        { type: 'text', title: 'Reflection', duration: 1 },
+        { type: 'quiz', title: 'Knowledge Check', duration: 1 }
+      ]
+    }
+  ];
