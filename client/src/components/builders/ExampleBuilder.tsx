@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,50 +7,27 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
 import { 
   Plus, 
-  Trash2, 
-  Wand2, 
+  X, 
+  Sparkles, 
   Loader2, 
-  Save,
-  Eye,
-  CheckCircle2,
-  XCircle,
-  Lightbulb
+  ArrowRight,
+  Target,
+  Clock,
+  BookOpen
 } from 'lucide-react';
-
-interface Example {
-  title: string;
-  description: string;
-  scenario: string;
-  goodExample: {
-    content: string;
-    explanation: string;
-  };
-  badExample: {
-    content: string;
-    explanation: string;
-  };
-  keyTakeaways: string[];
-  category: 'behavior-management' | 'communication' | 'safety' | 'curriculum' | 'assessment' | 'general';
-}
-
-interface ExampleData {
-  title: string;
-  instructions: string;
-  examples: Example[];
-  showComparisons: boolean;
-  interactiveMode: boolean;
-}
 
 interface ExampleBuilderProps {
   moduleTitle: string;
   moduleDescription: string;
   sectionTitle: string;
-  onSave: (data: ExampleData) => void;
+  onSave: (data: any) => void;
   onCancel: () => void;
-  initialData?: ExampleData;
+  initialData?: any;
+  category?: string;
+  difficulty?: string;
+  estimatedTime?: string;
 }
 
 export default function ExampleBuilder({
@@ -59,416 +36,337 @@ export default function ExampleBuilder({
   sectionTitle,
   onSave,
   onCancel,
-  initialData
+  initialData,
+  category = 'classroom-management',
+  difficulty = 'intermediate',
+  estimatedTime = '15 min'
 }: ExampleBuilderProps) {
   const { toast } = useToast();
+  const [builtExamples, setBuiltExamples] = useState<Array<{ title: string; description: string; type: 'good' | 'poor'; explanation: string }>>([]);
+  const [currentExample, setCurrentExample] = useState({ title: '', description: '', type: 'good' as 'good' | 'poor', explanation: '' });
   const [isGenerating, setIsGenerating] = useState(false);
-  
-  const [data, setData] = useState<ExampleData>(initialData || {
-    title: `${sectionTitle} - Examples & Case Studies`,
-    instructions: 'Review these examples to understand best practices and common mistakes.',
-    examples: [],
-    showComparisons: true,
-    interactiveMode: false
-  });
 
-  const [currentExample, setCurrentExample] = useState<Example>({
-    title: '',
-    description: '',
-    scenario: '',
-    goodExample: { content: '', explanation: '' },
-    badExample: { content: '', explanation: '' },
-    keyTakeaways: [''],
-    category: 'general'
-  });
-
-  const generateAIExamples = async () => {
-    if (!moduleTitle || !moduleDescription) {
-      toast({
-        title: "Missing Information",
-        description: "Module title and description are required for AI generation.",
-        variant: "destructive",
-      });
-      return;
+  useEffect(() => {
+    if (initialData?.examples) {
+      setBuiltExamples(initialData.examples);
     }
+  }, [initialData]);
 
+  const generateSingleExample = async () => {
     setIsGenerating(true);
     try {
-      const response = await apiRequest('/api/ai/generate-examples', {
+      const response = await fetch('/api/ai/generate-examples', {
         method: 'POST',
-        data: {
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           moduleTitle,
           moduleDescription,
           sectionTitle,
-          exampleType: 'comparative',
-          includeScenarios: true,
-          count: 4,
-          targetAudience: 'early-childhood-educators'
-        }
+          count: 1,
+          existingExamples: builtExamples
+        })
       });
 
-      if (response.examples && response.examples.length > 0) {
-        setData(prev => ({
-          ...prev,
-          examples: [...prev.examples, ...response.examples]
-        }));
-        
-        toast({
-          title: "Examples Generated",
-          description: `Added ${response.examples.length} new examples with comparisons.`,
-        });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.examples && data.examples.length > 0) {
+          setCurrentExample(data.examples[0]);
+          toast({
+            title: "AI Content Generated",
+            description: "Example has been generated successfully.",
+          });
+        }
       }
     } catch (error) {
-      console.error('Error generating examples:', error);
       toast({
         title: "Generation Failed",
-        description: "Unable to generate examples. Please create manually.",
-        variant: "destructive",
+        description: "Failed to generate example content.",
+        variant: "destructive"
       });
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const addExample = () => {
-    if (!currentExample.title.trim() || !currentExample.scenario.trim()) {
+  const addExampleToBuilder = () => {
+    if (!currentExample.title.trim() || !currentExample.description.trim()) {
       toast({
-        title: "Incomplete Example",
-        description: "Please add at least a title and scenario.",
-        variant: "destructive",
+        title: "Validation Error",
+        description: "Please fill in title and description fields.",
+        variant: "destructive"
       });
       return;
     }
 
-    if (!currentExample.goodExample.content.trim()) {
-      toast({
-        title: "Missing Good Example",
-        description: "Please provide a good example with explanation.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const validTakeaways = currentExample.keyTakeaways.filter(t => t.trim());
+    setBuiltExamples([...builtExamples, { ...currentExample }]);
+    setCurrentExample({ title: '', description: '', type: 'good', explanation: '' });
     
-    setData(prev => ({
-      ...prev,
-      examples: [...prev.examples, { ...currentExample, keyTakeaways: validTakeaways }]
-    }));
-
-    setCurrentExample({
-      title: '',
-      description: '',
-      scenario: '',
-      goodExample: { content: '', explanation: '' },
-      badExample: { content: '', explanation: '' },
-      keyTakeaways: [''],
-      category: 'general'
-    });
-
     toast({
       title: "Example Added",
-      description: `Collection now has ${data.examples.length + 1} examples.`,
+      description: "Example has been added to the builder.",
     });
   };
 
-  const removeExample = (index: number) => {
-    setData(prev => ({
-      ...prev,
-      examples: prev.examples.filter((_, i) => i !== index)
-    }));
+  const removeExampleFromBuilder = (index: number) => {
+    setBuiltExamples(builtExamples.filter((_, i) => i !== index));
   };
 
-  const addTakeaway = () => {
-    setCurrentExample(prev => ({
-      ...prev,
-      keyTakeaways: [...prev.keyTakeaways, '']
-    }));
-  };
-
-  const updateTakeaway = (index: number, value: string) => {
-    setCurrentExample(prev => ({
-      ...prev,
-      keyTakeaways: prev.keyTakeaways.map((takeaway, i) => 
-        i === index ? value : takeaway
-      )
-    }));
-  };
-
-  const removeTakeaway = (index: number) => {
-    setCurrentExample(prev => ({
-      ...prev,
-      keyTakeaways: prev.keyTakeaways.filter((_, i) => i !== index)
-    }));
-  };
-
-  const handleSave = () => {
-    if (data.examples.length === 0) {
+  const finishAndSave = () => {
+    if (builtExamples.length === 0) {
       toast({
-        title: "No Examples",
-        description: "Please add at least one example.",
-        variant: "destructive",
+        title: "Validation Error",
+        description: "Please add at least one example before saving.",
+        variant: "destructive"
       });
       return;
     }
 
-    onSave(data);
+    onSave({ examples: builtExamples });
   };
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Lightbulb className="h-5 w-5" />
-            Examples & Case Studies Builder
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="title">Collection Title</Label>
-              <Input
-                id="title"
-                value={data.title}
-                onChange={(e) => setData(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Enter title for examples collection"
-              />
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="showComparisons"
-                  checked={data.showComparisons}
-                  onChange={(e) => setData(prev => ({ ...prev, showComparisons: e.target.checked }))}
-                />
-                <Label htmlFor="showComparisons">Show good vs bad comparisons</Label>
+      {/* Module Context Header */}
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-3">
+            <Target className="h-6 w-6 text-blue-600" />
+            <div className="flex-1">
+              <CardTitle className="text-lg text-blue-900">
+                {moduleTitle || 'Professional Development Module'}
+              </CardTitle>
+              <CardDescription className="text-blue-700 mt-1">
+                <strong>Topic:</strong> {moduleDescription || 'Building effective teaching strategies'}
+              </CardDescription>
+              <div className="flex items-center gap-4 mt-2 text-sm">
+                <Badge variant="outline" className="border-blue-300 text-blue-700">
+                  {category}
+                </Badge>
+                <Badge variant="outline" className="border-purple-300 text-purple-700">
+                  {difficulty} level
+                </Badge>
+                <span className="text-blue-600">
+                  <Clock className="h-4 w-4 inline mr-1" />
+                  {estimatedTime}
+                </span>
               </div>
             </div>
           </div>
-
-          <div>
-            <Label htmlFor="instructions">Instructions</Label>
-            <Textarea
-              id="instructions"
-              value={data.instructions}
-              onChange={(e) => setData(prev => ({ ...prev, instructions: e.target.value }))}
-              placeholder="Explain how learners should use these examples"
-              rows={2}
-            />
-          </div>
-
-          <div className="flex gap-2">
-            <Button
-              onClick={generateAIExamples}
-              disabled={isGenerating}
-              variant="outline"
-            >
-              {isGenerating ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Wand2 className="h-4 w-4 mr-2" />
-              )}
-              Generate with AI
-            </Button>
-          </div>
-        </CardContent>
+        </CardHeader>
       </Card>
 
-      {/* Manual Example Builder */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            Add New Example
-          </CardTitle>
+          <CardTitle>Build Section: {sectionTitle}</CardTitle>
+          <CardDescription>
+            AI will use the module topic above to generate relevant content for this section
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="exampleTitle">Example Title</Label>
-              <Input
-                id="exampleTitle"
-                value={currentExample.title}
-                onChange={(e) => setCurrentExample(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Enter example title"
-              />
-            </div>
-            <div>
-              <Label htmlFor="category">Category</Label>
-              <Select
-                value={currentExample.category}
-                onValueChange={(value) => setCurrentExample(prev => ({ ...prev, category: value as any }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="behavior-management">Behavior Management</SelectItem>
-                  <SelectItem value="communication">Communication</SelectItem>
-                  <SelectItem value="safety">Safety</SelectItem>
-                  <SelectItem value="curriculum">Curriculum</SelectItem>
-                  <SelectItem value="assessment">Assessment</SelectItem>
-                  <SelectItem value="general">General</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="scenario">Scenario Context</Label>
-            <Textarea
-              id="scenario"
-              value={currentExample.scenario}
-              onChange={(e) => setCurrentExample(prev => ({ ...prev, scenario: e.target.value }))}
-              placeholder="Describe the situation or context for this example"
-              rows={3}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-                Good Example
-              </Label>
-              <Textarea
-                value={currentExample.goodExample.content}
-                onChange={(e) => setCurrentExample(prev => ({ 
-                  ...prev, 
-                  goodExample: { ...prev.goodExample, content: e.target.value }
-                }))}
-                placeholder="Describe the effective approach"
-                rows={3}
-              />
-              <Textarea
-                value={currentExample.goodExample.explanation}
-                onChange={(e) => setCurrentExample(prev => ({ 
-                  ...prev, 
-                  goodExample: { ...prev.goodExample, explanation: e.target.value }
-                }))}
-                placeholder="Explain why this approach works well"
-                rows={2}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <XCircle className="h-4 w-4 text-red-600" />
-                Poor Example (Optional)
-              </Label>
-              <Textarea
-                value={currentExample.badExample.content}
-                onChange={(e) => setCurrentExample(prev => ({ 
-                  ...prev, 
-                  badExample: { ...prev.badExample, content: e.target.value }
-                }))}
-                placeholder="Describe the ineffective approach"
-                rows={3}
-              />
-              <Textarea
-                value={currentExample.badExample.explanation}
-                onChange={(e) => setCurrentExample(prev => ({ 
-                  ...prev, 
-                  badExample: { ...prev.badExample, explanation: e.target.value }
-                }))}
-                placeholder="Explain why this approach doesn't work"
-                rows={2}
-              />
-            </div>
-          </div>
-
-          <div>
-            <div className="flex justify-between items-center">
-              <Label>Key Takeaways</Label>
-              <Button variant="outline" size="sm" onClick={addTakeaway}>
-                <Plus className="h-4 w-4 mr-1" />
-                Add Takeaway
-              </Button>
-            </div>
-            {currentExample.keyTakeaways.map((takeaway, index) => (
-              <div key={index} className="flex gap-2 mt-2">
-                <Input
-                  value={takeaway}
-                  onChange={(e) => updateTakeaway(index, e.target.value)}
-                  placeholder={`Key takeaway ${index + 1}`}
-                />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeTakeaway(index)}
-                  disabled={currentExample.keyTakeaways.length === 1}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+        <CardContent className="space-y-6">
+          {/* Interactive Example Builder */}
+          <Card className="border-green-200 bg-green-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-green-800">
+                <BookOpen className="h-5 w-5" />
+                Interactive Example Builder
+              </CardTitle>
+              <CardDescription className="text-green-700">
+                Build your examples one at a time. Add both good and poor practice examples.
+              </CardDescription>
+              
+              {/* Topic Context for AI */}
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Target className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-800">Example Topic Context</span>
+                </div>
+                <div className="text-sm space-y-1">
+                  <div className="text-blue-700">
+                    <strong>Module:</strong> {moduleTitle || 'Professional Development Module'}
+                  </div>
+                  <div className="text-blue-700">
+                    <strong>Learning Objective:</strong> {moduleDescription || 'Building effective teaching strategies'}
+                  </div>
+                  <div className="text-blue-700">
+                    <strong>Section:</strong> {sectionTitle}
+                  </div>
+                  <div className="text-blue-600 text-xs mt-2">
+                    AI will generate examples specifically about this topic and section
+                  </div>
+                </div>
               </div>
-            ))}
-          </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Progress */}
+              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-green-200">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-semibold">
+                    {builtExamples.length}
+                  </div>
+                  <span className="text-sm font-medium">Examples Built</span>
+                </div>
+                {builtExamples.length > 0 && (
+                  <Button
+                    size="sm"
+                    onClick={finishAndSave}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    Examples Finished - Save & Move On
+                  </Button>
+                )}
+              </div>
 
-          <Button onClick={addExample} className="w-full">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Example
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Current Examples List */}
-      {data.examples.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Created Examples ({data.examples.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {data.examples.map((example, index) => (
-                <div key={index} className="border rounded p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <Badge variant="outline">{example.category}</Badge>
-                      <h4 className="font-medium mt-1">{example.title}</h4>
-                    </div>
+              {/* Current Example Builder */}
+              <div className="space-y-4 p-4 bg-white rounded-lg border border-green-200">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold">Example {builtExamples.length + 1}</h4>
+                  <div className="flex gap-2">
                     <Button
-                      variant="ghost"
                       size="sm"
-                      onClick={() => removeExample(index)}
+                      variant="outline"
+                      onClick={generateSingleExample}
+                      disabled={isGenerating}
+                      className="border-purple-300 text-purple-700 hover:bg-purple-50"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          AI Generate
+                        </>
+                      )}
                     </Button>
                   </div>
-                  <p className="text-sm text-gray-600 mb-2">{example.scenario}</p>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="text-green-600">
-                      <strong>Good:</strong> {example.goodExample.content.substring(0, 100)}...
-                    </div>
-                    {example.badExample.content && (
-                      <div className="text-red-600">
-                        <strong>Poor:</strong> {example.badExample.content.substring(0, 100)}...
-                      </div>
-                    )}
-                  </div>
-                  {example.keyTakeaways.length > 0 && (
-                    <div className="mt-2 text-sm">
-                      <strong>Takeaways:</strong> {example.keyTakeaways.join(', ')}
-                    </div>
-                  )}
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
-      {/* Action Buttons */}
-      <div className="flex gap-2 justify-end">
-        <Button variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button onClick={handleSave}>
-          <Save className="h-4 w-4 mr-2" />
-          Save Examples Collection
-        </Button>
-      </div>
+                {/* Example Type */}
+                <div>
+                  <Label className="text-sm font-medium">Example Type</Label>
+                  <Select value={currentExample.type} onValueChange={(value: 'good' | 'poor') => setCurrentExample(prev => ({ ...prev, type: value }))}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select example type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="good">Good Practice</SelectItem>
+                      <SelectItem value="poor">Poor Practice</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Title Input */}
+                <div>
+                  <Label className="text-sm font-medium">Example Title</Label>
+                  <Input
+                    value={currentExample.title}
+                    onChange={(e) => setCurrentExample(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="Enter example title..."
+                    className="mt-1"
+                  />
+                </div>
+
+                {/* Description Input */}
+                <div>
+                  <Label className="text-sm font-medium">Example Description</Label>
+                  <Textarea
+                    value={currentExample.description}
+                    onChange={(e) => setCurrentExample(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Describe the example scenario..."
+                    className="mt-1"
+                    rows={3}
+                  />
+                </div>
+
+                {/* Explanation */}
+                <div>
+                  <Label className="text-sm font-medium">Explanation (Optional)</Label>
+                  <Textarea
+                    value={currentExample.explanation}
+                    onChange={(e) => setCurrentExample(prev => ({ ...prev, explanation: e.target.value }))}
+                    placeholder="Explain why this is a good or poor practice..."
+                    className="mt-1"
+                    rows={2}
+                  />
+                </div>
+
+                {/* Add Example Button */}
+                <Button
+                  onClick={addExampleToBuilder}
+                  className="w-full bg-green-600 hover:bg-green-700"
+                  disabled={!currentExample.title.trim() || !currentExample.description.trim()}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Example to Activity
+                </Button>
+              </div>
+
+              {/* Built Examples List */}
+              {builtExamples.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold">Examples ({builtExamples.length})</h4>
+                  {builtExamples.map((example, index) => (
+                    <div key={index} className="p-3 bg-white rounded-lg border border-green-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className="font-medium text-sm">{example.title}</div>
+                            <Badge variant={example.type === 'good' ? 'default' : 'destructive'}>
+                              {example.type === 'good' ? 'Good Practice' : 'Poor Practice'}
+                            </Badge>
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            {example.description}
+                          </div>
+                          {example.explanation && (
+                            <div className="text-xs text-blue-600 mt-1">
+                              <strong>Explanation:</strong> {example.explanation}
+                            </div>
+                          )}
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => removeExampleFromBuilder(index)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Exit Builder */}
+              <div className="flex justify-between pt-4 border-t border-green-200">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setCurrentExample({ title: '', description: '', type: 'good', explanation: '' });
+                    setBuiltExamples([]);
+                    onCancel();
+                  }}
+                >
+                  Cancel Builder
+                </Button>
+                
+                {builtExamples.length > 0 && (
+                  <Button
+                    onClick={finishAndSave}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    Finish Activity & Continue
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </CardContent>
+      </Card>
     </div>
   );
 }

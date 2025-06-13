@@ -1,48 +1,31 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
 import { 
   Plus, 
-  Trash2, 
-  Wand2, 
+  X, 
+  Sparkles, 
   Loader2, 
-  Save,
   ArrowRight,
-  GripVertical,
+  Target,
+  Clock,
   Link
 } from 'lucide-react';
-
-interface MatchingPair {
-  left: string;
-  right: string;
-  explanation?: string;
-}
-
-interface MatchingData {
-  title: string;
-  instructions: string;
-  pairs: MatchingPair[];
-  matchingType: 'drag-drop' | 'click-connect' | 'multiple-choice';
-  leftColumnTitle: string;
-  rightColumnTitle: string;
-  shuffleItems: boolean;
-  showExplanations: boolean;
-}
 
 interface MatchingBuilderProps {
   moduleTitle: string;
   moduleDescription: string;
   sectionTitle: string;
-  onSave: (data: MatchingData) => void;
+  onSave: (data: any) => void;
   onCancel: () => void;
-  initialData?: MatchingData;
+  initialData?: any;
+  category?: string;
+  difficulty?: string;
+  estimatedTime?: string;
 }
 
 export default function MatchingBuilder({
@@ -51,397 +34,303 @@ export default function MatchingBuilder({
   sectionTitle,
   onSave,
   onCancel,
-  initialData
+  initialData,
+  category = 'classroom-management',
+  difficulty = 'intermediate',
+  estimatedTime = '15 min'
 }: MatchingBuilderProps) {
   const { toast } = useToast();
+  const [builtPairs, setBuiltPairs] = useState<Array<{ term: string; definition: string }>>([]);
+  const [currentPair, setCurrentPair] = useState({ term: '', definition: '' });
   const [isGenerating, setIsGenerating] = useState(false);
-  
-  const [data, setData] = useState<MatchingData>(initialData || {
-    title: `${sectionTitle} - Matching Activity`,
-    instructions: 'Match each item in the left column with its corresponding item in the right column.',
-    pairs: [],
-    matchingType: 'drag-drop',
-    leftColumnTitle: 'Terms',
-    rightColumnTitle: 'Definitions',
-    shuffleItems: true,
-    showExplanations: true
-  });
 
-  const [currentPair, setCurrentPair] = useState<MatchingPair>({
-    left: '',
-    right: '',
-    explanation: ''
-  });
-
-  const generateAIMatching = async () => {
-    if (!moduleTitle || !moduleDescription) {
-      toast({
-        title: "Missing Information",
-        description: "Module title and description are required for AI generation.",
-        variant: "destructive",
-      });
-      return;
+  useEffect(() => {
+    if (initialData?.pairs) {
+      setBuiltPairs(initialData.pairs);
     }
+  }, [initialData]);
 
+  const generateSinglePair = async () => {
     setIsGenerating(true);
     try {
-      const response = await apiRequest('/api/ai/generate-matching', {
+      const response = await fetch('/api/ai/generate-matching', {
         method: 'POST',
-        data: {
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           moduleTitle,
           moduleDescription,
           sectionTitle,
-          pairCount: 8,
-          matchingType: data.matchingType,
-          includeExplanations: data.showExplanations,
-          leftColumnType: data.leftColumnTitle.toLowerCase(),
-          rightColumnType: data.rightColumnTitle.toLowerCase()
-        }
+          count: 1,
+          existingPairs: builtPairs
+        })
       });
 
-      if (response.pairs && response.pairs.length > 0) {
-        setData(prev => ({
-          ...prev,
-          pairs: [...prev.pairs, ...response.pairs]
-        }));
-        
-        toast({
-          title: "Matching Pairs Generated",
-          description: `Added ${response.pairs.length} new matching pairs.`,
-        });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.pairs && data.pairs.length > 0) {
+          setCurrentPair(data.pairs[0]);
+          toast({
+            title: "AI Content Generated",
+            description: "Term-definition pair has been generated successfully.",
+          });
+        }
       }
     } catch (error) {
-      console.error('Error generating matching pairs:', error);
       toast({
         title: "Generation Failed",
-        description: "Unable to generate matching pairs. Please create manually.",
-        variant: "destructive",
+        description: "Failed to generate matching content.",
+        variant: "destructive"
       });
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const addPair = () => {
-    if (!currentPair.left.trim() || !currentPair.right.trim()) {
+  const addPairToBuilder = () => {
+    if (!currentPair.term.trim() || !currentPair.definition.trim()) {
       toast({
-        title: "Incomplete Pair",
-        description: "Please add both left and right items.",
-        variant: "destructive",
+        title: "Validation Error",
+        description: "Please fill in both term and definition fields.",
+        variant: "destructive"
       });
       return;
     }
 
-    setData(prev => ({
-      ...prev,
-      pairs: [...prev.pairs, { ...currentPair }]
-    }));
-
-    setCurrentPair({
-      left: '',
-      right: '',
-      explanation: ''
-    });
-
+    setBuiltPairs([...builtPairs, { ...currentPair }]);
+    setCurrentPair({ term: '', definition: '' });
+    
     toast({
       title: "Pair Added",
-      description: `Activity now has ${data.pairs.length + 1} matching pairs.`,
+      description: "Term-definition pair has been added to the builder.",
     });
   };
 
-  const removePair = (index: number) => {
-    setData(prev => ({
-      ...prev,
-      pairs: prev.pairs.filter((_, i) => i !== index)
-    }));
+  const removePairFromBuilder = (index: number) => {
+    setBuiltPairs(builtPairs.filter((_, i) => i !== index));
   };
 
-  const updatePair = (index: number, field: keyof MatchingPair, value: string) => {
-    setData(prev => ({
-      ...prev,
-      pairs: prev.pairs.map((pair, i) => 
-        i === index ? { ...pair, [field]: value } : pair
-      )
-    }));
-  };
-
-  const movePair = (index: number, direction: 'up' | 'down') => {
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= data.pairs.length) return;
-
-    setData(prev => {
-      const newPairs = [...prev.pairs];
-      [newPairs[index], newPairs[newIndex]] = [newPairs[newIndex], newPairs[index]];
-      return { ...prev, pairs: newPairs };
-    });
-  };
-
-  const handleSave = () => {
-    if (data.pairs.length < 3) {
+  const finishAndSave = () => {
+    if (builtPairs.length === 0) {
       toast({
-        title: "Need More Pairs",
-        description: "Please add at least 3 matching pairs.",
-        variant: "destructive",
+        title: "Validation Error",
+        description: "Please add at least one term-definition pair before saving.",
+        variant: "destructive"
       });
       return;
     }
 
-    onSave(data);
+    onSave({ pairs: builtPairs });
   };
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Link className="h-5 w-5" />
-            Matching Activity Builder
-          </CardTitle>
+      {/* Module Context Header */}
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-3">
+            <Target className="h-6 w-6 text-blue-600" />
+            <div className="flex-1">
+              <CardTitle className="text-lg text-blue-900">
+                {moduleTitle || 'Professional Development Module'}
+              </CardTitle>
+              <CardDescription className="text-blue-700 mt-1">
+                <strong>Topic:</strong> {moduleDescription || 'Building effective teaching strategies'}
+              </CardDescription>
+              <div className="flex items-center gap-4 mt-2 text-sm">
+                <Badge variant="outline" className="border-blue-300 text-blue-700">
+                  {category}
+                </Badge>
+                <Badge variant="outline" className="border-purple-300 text-purple-700">
+                  {difficulty} level
+                </Badge>
+                <span className="text-blue-600">
+                  <Clock className="h-4 w-4 inline mr-1" />
+                  {estimatedTime}
+                </span>
+              </div>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="title">Activity Title</Label>
-              <Input
-                id="title"
-                value={data.title}
-                onChange={(e) => setData(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Enter activity title"
-              />
-            </div>
-            <div>
-              <Label htmlFor="matchingType">Interaction Type</Label>
-              <Select
-                value={data.matchingType}
-                onValueChange={(value) => setData(prev => ({ ...prev, matchingType: value as any }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select interaction type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="drag-drop">Drag & Drop</SelectItem>
-                  <SelectItem value="click-connect">Click to Connect</SelectItem>
-                  <SelectItem value="multiple-choice">Multiple Choice</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="instructions">Instructions</Label>
-            <Textarea
-              id="instructions"
-              value={data.instructions}
-              onChange={(e) => setData(prev => ({ ...prev, instructions: e.target.value }))}
-              placeholder="Explain how learners should complete this matching activity"
-              rows={2}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="leftTitle">Left Column Title</Label>
-              <Input
-                id="leftTitle"
-                value={data.leftColumnTitle}
-                onChange={(e) => setData(prev => ({ ...prev, leftColumnTitle: e.target.value }))}
-                placeholder="e.g., Terms, Concepts"
-              />
-            </div>
-            <div>
-              <Label htmlFor="rightTitle">Right Column Title</Label>
-              <Input
-                id="rightTitle"
-                value={data.rightColumnTitle}
-                onChange={(e) => setData(prev => ({ ...prev, rightColumnTitle: e.target.value }))}
-                placeholder="e.g., Definitions, Examples"
-              />
-            </div>
-          </div>
-
-          <div className="flex gap-4">
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="shuffleItems"
-                checked={data.shuffleItems}
-                onChange={(e) => setData(prev => ({ ...prev, shuffleItems: e.target.checked }))}
-              />
-              <Label htmlFor="shuffleItems">Shuffle items</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="showExplanations"
-                checked={data.showExplanations}
-                onChange={(e) => setData(prev => ({ ...prev, showExplanations: e.target.checked }))}
-              />
-              <Label htmlFor="showExplanations">Show explanations</Label>
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <Button
-              onClick={generateAIMatching}
-              disabled={isGenerating}
-              variant="outline"
-            >
-              {isGenerating ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Wand2 className="h-4 w-4 mr-2" />
-              )}
-              Generate with AI
-            </Button>
-          </div>
-        </CardContent>
       </Card>
 
-      {/* Manual Pair Builder */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            Add Matching Pair
-          </CardTitle>
+          <CardTitle>Build Section: {sectionTitle}</CardTitle>
+          <CardDescription>
+            AI will use the module topic above to generate relevant content for this section
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="leftItem">{data.leftColumnTitle}</Label>
-              <Textarea
-                id="leftItem"
-                value={currentPair.left}
-                onChange={(e) => setCurrentPair(prev => ({ ...prev, left: e.target.value }))}
-                placeholder={`Enter ${data.leftColumnTitle.toLowerCase()}`}
-                rows={2}
-              />
-            </div>
-            <div>
-              <Label htmlFor="rightItem">{data.rightColumnTitle}</Label>
-              <Textarea
-                id="rightItem"
-                value={currentPair.right}
-                onChange={(e) => setCurrentPair(prev => ({ ...prev, right: e.target.value }))}
-                placeholder={`Enter ${data.rightColumnTitle.toLowerCase()}`}
-                rows={2}
-              />
-            </div>
-          </div>
-
-          {data.showExplanations && (
-            <div>
-              <Label htmlFor="explanation">Explanation (Optional)</Label>
-              <Textarea
-                id="explanation"
-                value={currentPair.explanation}
-                onChange={(e) => setCurrentPair(prev => ({ ...prev, explanation: e.target.value }))}
-                placeholder="Explain why these items match"
-                rows={2}
-              />
-            </div>
-          )}
-
-          <Button onClick={addPair} className="w-full">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Matching Pair
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Current Pairs List */}
-      {data.pairs.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Matching Pairs ({data.pairs.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {data.pairs.map((pair, index) => (
-                <div key={index} className="border rounded p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <Badge variant="outline">Pair {index + 1}</Badge>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => movePair(index, 'up')}
-                        disabled={index === 0}
-                      >
-                        ↑
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => movePair(index, 'down')}
-                        disabled={index === data.pairs.length - 1}
-                      >
-                        ↓
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removePair(index)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+        <CardContent className="space-y-6">
+          {/* Interactive Matching Builder */}
+          <Card className="border-blue-200 bg-blue-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-blue-800">
+                <Link className="h-5 w-5" />
+                Interactive Matching Builder
+              </CardTitle>
+              <CardDescription className="text-blue-700">
+                Build your matching activity one term-definition pair at a time. Add as many pairs as you need.
+              </CardDescription>
+              
+              {/* Topic Context for AI */}
+              <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Target className="h-4 w-4 text-green-600" />
+                  <span className="text-sm font-medium text-green-800">Matching Topic Context</span>
+                </div>
+                <div className="text-sm space-y-1">
+                  <div className="text-green-700">
+                    <strong>Module:</strong> {moduleTitle || 'Professional Development Module'}
                   </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-sm font-medium">{data.leftColumnTitle}</Label>
-                      <Textarea
-                        value={pair.left}
-                        onChange={(e) => updatePair(index, 'left', e.target.value)}
-                        rows={2}
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium">{data.rightColumnTitle}</Label>
-                      <Textarea
-                        value={pair.right}
-                        onChange={(e) => updatePair(index, 'right', e.target.value)}
-                        rows={2}
-                        className="mt-1"
-                      />
-                    </div>
+                  <div className="text-green-700">
+                    <strong>Learning Objective:</strong> {moduleDescription || 'Building effective teaching strategies'}
                   </div>
-
-                  {data.showExplanations && (
-                    <div className="mt-3">
-                      <Label className="text-sm font-medium">Explanation</Label>
-                      <Textarea
-                        value={pair.explanation || ''}
-                        onChange={(e) => updatePair(index, 'explanation', e.target.value)}
-                        placeholder="Explain why these items match"
-                        rows={2}
-                        className="mt-1"
-                      />
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-center mt-3 text-gray-400">
-                    <ArrowRight className="h-4 w-4" />
+                  <div className="text-green-700">
+                    <strong>Section:</strong> {sectionTitle}
+                  </div>
+                  <div className="text-green-600 text-xs mt-2">
+                    AI will generate term-definition pairs specifically about this topic and section
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Progress */}
+              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-blue-200">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold">
+                    {builtPairs.length}
+                  </div>
+                  <span className="text-sm font-medium">Pairs Built</span>
+                </div>
+                {builtPairs.length > 0 && (
+                  <Button
+                    size="sm"
+                    onClick={finishAndSave}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Pairs Finished - Save & Move On
+                  </Button>
+                )}
+              </div>
 
-      {/* Action Buttons */}
-      <div className="flex gap-2 justify-end">
-        <Button variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button onClick={handleSave}>
-          <Save className="h-4 w-4 mr-2" />
-          Save Matching Activity
-        </Button>
-      </div>
+              {/* Current Pair Builder */}
+              <div className="space-y-4 p-4 bg-white rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold">Pair {builtPairs.length + 1}</h4>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={generateSinglePair}
+                      disabled={isGenerating}
+                      className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          AI Generate
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Term Input */}
+                <div>
+                  <Label className="text-sm font-medium">Term</Label>
+                  <Input
+                    value={currentPair.term}
+                    onChange={(e) => setCurrentPair(prev => ({ ...prev, term: e.target.value }))}
+                    placeholder="Enter the term or concept..."
+                    className="mt-1"
+                  />
+                </div>
+
+                {/* Definition Input */}
+                <div>
+                  <Label className="text-sm font-medium">Definition</Label>
+                  <Input
+                    value={currentPair.definition}
+                    onChange={(e) => setCurrentPair(prev => ({ ...prev, definition: e.target.value }))}
+                    placeholder="Enter the definition or explanation..."
+                    className="mt-1"
+                  />
+                </div>
+
+                {/* Add Pair Button */}
+                <Button
+                  onClick={addPairToBuilder}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  disabled={!currentPair.term.trim() || !currentPair.definition.trim()}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Pair to Activity
+                </Button>
+              </div>
+
+              {/* Built Pairs List */}
+              {builtPairs.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold">Matching Pairs ({builtPairs.length})</h4>
+                  {builtPairs.map((pair, index) => (
+                    <div key={index} className="p-3 bg-white rounded-lg border border-blue-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">Pair {index + 1}</div>
+                          <div className="text-xs text-gray-600 mt-1">
+                            <strong>Term:</strong> {pair.term}
+                          </div>
+                          <div className="text-xs text-gray-600 mt-1">
+                            <strong>Definition:</strong> {pair.definition}
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => removePairFromBuilder(index)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Exit Builder */}
+              <div className="flex justify-between pt-4 border-t border-blue-200">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setCurrentPair({ term: '', definition: '' });
+                    setBuiltPairs([]);
+                    onCancel();
+                  }}
+                >
+                  Cancel Builder
+                </Button>
+                
+                {builtPairs.length > 0 && (
+                  <Button
+                    onClick={finishAndSave}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Finish Activity & Continue
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </CardContent>
+      </Card>
     </div>
   );
 }

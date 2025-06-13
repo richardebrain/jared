@@ -1,48 +1,32 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
 import { 
   Plus, 
-  Trash2, 
-  Wand2, 
+  X, 
+  Sparkles, 
   Loader2, 
-  Save,
-  Image,
-  FileText,
-  ChevronLeft,
-  ChevronRight,
+  ArrowRight,
+  Target,
+  Clock,
   Presentation
 } from 'lucide-react';
-
-interface Slide {
-  title: string;
-  content: string;
-  imageUrl?: string;
-  notes?: string;
-  duration?: number;
-}
-
-interface SlideData {
-  title: string;
-  slides: Slide[];
-  totalDuration: number;
-  autoAdvance: boolean;
-  showNotes: boolean;
-}
 
 interface SlideBuilderProps {
   moduleTitle: string;
   moduleDescription: string;
   sectionTitle: string;
-  onSave: (data: SlideData) => void;
+  onSave: (data: any) => void;
   onCancel: () => void;
-  initialData?: SlideData;
+  initialData?: any;
+  category?: string;
+  difficulty?: string;
+  estimatedTime?: string;
 }
 
 export default function SlideBuilder({
@@ -51,347 +35,317 @@ export default function SlideBuilder({
   sectionTitle,
   onSave,
   onCancel,
-  initialData
+  initialData,
+  category = 'classroom-management',
+  difficulty = 'intermediate',
+  estimatedTime = '15 min'
 }: SlideBuilderProps) {
   const { toast } = useToast();
+  const [builtSlides, setBuiltSlides] = useState<Array<{ title: string; content: string; imageUrl: string }>>([]);
+  const [currentSlide, setCurrentSlide] = useState({ title: '', content: '', imageUrl: '' });
   const [isGenerating, setIsGenerating] = useState(false);
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-  
-  const [data, setData] = useState<SlideData>(initialData || {
-    title: `${sectionTitle} - Presentation`,
-    slides: [],
-    totalDuration: 0,
-    autoAdvance: false,
-    showNotes: true
-  });
 
-  const [currentSlide, setCurrentSlide] = useState<Slide>({
-    title: '',
-    content: '',
-    imageUrl: '',
-    notes: '',
-    duration: 30
-  });
-
-  const generateAISlides = async () => {
-    if (!moduleTitle || !moduleDescription) {
-      toast({
-        title: "Missing Information",
-        description: "Module title and description are required for AI generation.",
-        variant: "destructive",
-      });
-      return;
+  useEffect(() => {
+    if (initialData?.slides) {
+      setBuiltSlides(initialData.slides);
     }
+  }, [initialData]);
 
+  const generateSingleSlide = async () => {
     setIsGenerating(true);
     try {
-      const response = await apiRequest('/api/ai/generate-slides', {
+      const response = await fetch('/api/ai/generate-slides', {
         method: 'POST',
-        data: {
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           moduleTitle,
           moduleDescription,
           sectionTitle,
-          slideCount: 8,
-          includeImages: true,
-          presentationStyle: 'educational'
-        }
+          count: 1,
+          existingSlides: builtSlides
+        })
       });
 
-      if (response.slides && response.slides.length > 0) {
-        setData(prev => ({
-          ...prev,
-          slides: response.slides,
-          totalDuration: response.slides.reduce((total: number, slide: Slide) => total + (slide.duration || 30), 0)
-        }));
-        
-        toast({
-          title: "Slides Generated",
-          description: `Created ${response.slides.length} presentation slides.`,
-        });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.slides && data.slides.length > 0) {
+          setCurrentSlide(data.slides[0]);
+          toast({
+            title: "AI Content Generated",
+            description: "Slide has been generated successfully.",
+          });
+        }
       }
     } catch (error) {
-      console.error('Error generating slides:', error);
       toast({
         title: "Generation Failed",
-        description: "Unable to generate slides. Please create manually.",
-        variant: "destructive",
+        description: "Failed to generate slide content.",
+        variant: "destructive"
       });
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const addSlide = () => {
+  const addSlideToBuilder = () => {
     if (!currentSlide.title.trim() || !currentSlide.content.trim()) {
       toast({
-        title: "Incomplete Slide",
-        description: "Please add both title and content for the slide.",
-        variant: "destructive",
+        title: "Validation Error",
+        description: "Please fill in title and content fields.",
+        variant: "destructive"
       });
       return;
     }
 
-    setData(prev => ({
-      ...prev,
-      slides: [...prev.slides, { ...currentSlide }],
-      totalDuration: prev.totalDuration + (currentSlide.duration || 30)
-    }));
-
-    setCurrentSlide({
-      title: '',
-      content: '',
-      imageUrl: '',
-      notes: '',
-      duration: 30
-    });
-
+    setBuiltSlides([...builtSlides, { ...currentSlide }]);
+    setCurrentSlide({ title: '', content: '', imageUrl: '' });
+    
     toast({
       title: "Slide Added",
-      description: `Presentation now has ${data.slides.length + 1} slides.`,
+      description: "Slide has been added to the presentation.",
     });
   };
 
-  const removeSlide = (index: number) => {
-    const slideToRemove = data.slides[index];
-    setData(prev => ({
-      ...prev,
-      slides: prev.slides.filter((_, i) => i !== index),
-      totalDuration: prev.totalDuration - (slideToRemove.duration || 30)
-    }));
+  const removeSlideFromBuilder = (index: number) => {
+    setBuiltSlides(builtSlides.filter((_, i) => i !== index));
   };
 
-  const updateSlide = (index: number, field: keyof Slide, value: string | number) => {
-    setData(prev => ({
-      ...prev,
-      slides: prev.slides.map((slide, i) => 
-        i === index ? { ...slide, [field]: value } : slide
-      )
-    }));
-  };
-
-  const moveSlide = (index: number, direction: 'up' | 'down') => {
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= data.slides.length) return;
-
-    setData(prev => {
-      const newSlides = [...prev.slides];
-      [newSlides[index], newSlides[newIndex]] = [newSlides[newIndex], newSlides[index]];
-      return { ...prev, slides: newSlides };
-    });
-  };
-
-  const handleSave = () => {
-    if (data.slides.length === 0) {
+  const finishAndSave = () => {
+    if (builtSlides.length === 0) {
       toast({
-        title: "No Slides",
-        description: "Please add at least one slide to the presentation.",
-        variant: "destructive",
+        title: "Validation Error",
+        description: "Please add at least one slide before saving.",
+        variant: "destructive"
       });
       return;
     }
 
-    onSave(data);
+    onSave({ slides: builtSlides });
   };
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Presentation className="h-5 w-5" />
-            Slide Presentation Builder
-          </CardTitle>
+      {/* Module Context Header */}
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-3">
+            <Target className="h-6 w-6 text-blue-600" />
+            <div className="flex-1">
+              <CardTitle className="text-lg text-blue-900">
+                {moduleTitle || 'Professional Development Module'}
+              </CardTitle>
+              <CardDescription className="text-blue-700 mt-1">
+                <strong>Topic:</strong> {moduleDescription || 'Building effective teaching strategies'}
+              </CardDescription>
+              <div className="flex items-center gap-4 mt-2 text-sm">
+                <Badge variant="outline" className="border-blue-300 text-blue-700">
+                  {category}
+                </Badge>
+                <Badge variant="outline" className="border-purple-300 text-purple-700">
+                  {difficulty} level
+                </Badge>
+                <span className="text-blue-600">
+                  <Clock className="h-4 w-4 inline mr-1" />
+                  {estimatedTime}
+                </span>
+              </div>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="title">Presentation Title</Label>
-              <Input
-                id="title"
-                value={data.title}
-                onChange={(e) => setData(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Enter presentation title"
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="autoAdvance"
-                checked={data.autoAdvance}
-                onChange={(e) => setData(prev => ({ ...prev, autoAdvance: e.target.checked }))}
-              />
-              <Label htmlFor="autoAdvance">Auto-advance slides</Label>
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <Button
-              onClick={generateAISlides}
-              disabled={isGenerating}
-              variant="outline"
-            >
-              {isGenerating ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Wand2 className="h-4 w-4 mr-2" />
-              )}
-              Generate with AI
-            </Button>
-          </div>
-        </CardContent>
       </Card>
 
-      {/* Manual Slide Builder */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            Add New Slide
-          </CardTitle>
+          <CardTitle>Build Section: {sectionTitle}</CardTitle>
+          <CardDescription>
+            AI will use the module topic above to generate relevant content for this section
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="slideTitle">Slide Title</Label>
-            <Input
-              id="slideTitle"
-              value={currentSlide.title}
-              onChange={(e) => setCurrentSlide(prev => ({ ...prev, title: e.target.value }))}
-              placeholder="Enter slide title"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="slideContent">Slide Content</Label>
-            <Textarea
-              id="slideContent"
-              value={currentSlide.content}
-              onChange={(e) => setCurrentSlide(prev => ({ ...prev, content: e.target.value }))}
-              placeholder="Enter slide content (bullet points, key information)"
-              rows={4}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="imageUrl">Image URL (Optional)</Label>
-              <Input
-                id="imageUrl"
-                value={currentSlide.imageUrl}
-                onChange={(e) => setCurrentSlide(prev => ({ ...prev, imageUrl: e.target.value }))}
-                placeholder="https://example.com/image.jpg"
-              />
-            </div>
-            <div>
-              <Label htmlFor="duration">Duration (seconds)</Label>
-              <Input
-                id="duration"
-                type="number"
-                value={currentSlide.duration}
-                onChange={(e) => setCurrentSlide(prev => ({ ...prev, duration: parseInt(e.target.value) || 30 }))}
-                placeholder="30"
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="notes">Speaker Notes (Optional)</Label>
-            <Textarea
-              id="notes"
-              value={currentSlide.notes}
-              onChange={(e) => setCurrentSlide(prev => ({ ...prev, notes: e.target.value }))}
-              placeholder="Add notes for the presenter"
-              rows={2}
-            />
-          </div>
-
-          <Button onClick={addSlide} className="w-full">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Slide
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Current Slides List */}
-      {data.slides.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Presentation Slides ({data.slides.length}) - Total: {Math.round(data.totalDuration / 60)} minutes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {data.slides.map((slide, index) => (
-                <div key={index} className="border rounded p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <Badge variant="outline">Slide {index + 1}</Badge>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => moveSlide(index, 'up')}
-                        disabled={index === 0}
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => moveSlide(index, 'down')}
-                        disabled={index === data.slides.length - 1}
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeSlide(index)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+        <CardContent className="space-y-6">
+          {/* Interactive Slide Builder */}
+          <Card className="border-purple-200 bg-purple-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-purple-800">
+                <Presentation className="h-5 w-5" />
+                Interactive Slide Builder
+              </CardTitle>
+              <CardDescription className="text-purple-700">
+                Build your slide presentation one slide at a time. Add as many slides as you need.
+              </CardDescription>
+              
+              {/* Topic Context for AI */}
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Target className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-800">Slide Topic Context</span>
+                </div>
+                <div className="text-sm space-y-1">
+                  <div className="text-blue-700">
+                    <strong>Module:</strong> {moduleTitle || 'Professional Development Module'}
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Input
-                      value={slide.title}
-                      onChange={(e) => updateSlide(index, 'title', e.target.value)}
-                      placeholder="Slide title"
-                    />
-                    <Textarea
-                      value={slide.content}
-                      onChange={(e) => updateSlide(index, 'content', e.target.value)}
-                      placeholder="Slide content"
-                      rows={3}
-                    />
-                    {slide.imageUrl && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Image className="h-4 w-4" />
-                        Image included
-                      </div>
-                    )}
-                    {slide.notes && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <FileText className="h-4 w-4" />
-                        Speaker notes included
-                      </div>
-                    )}
+                  <div className="text-blue-700">
+                    <strong>Learning Objective:</strong> {moduleDescription || 'Building effective teaching strategies'}
+                  </div>
+                  <div className="text-blue-700">
+                    <strong>Section:</strong> {sectionTitle}
+                  </div>
+                  <div className="text-blue-600 text-xs mt-2">
+                    AI will generate slides specifically about this topic and section
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Progress */}
+              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-purple-200">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-700 font-semibold">
+                    {builtSlides.length}
+                  </div>
+                  <span className="text-sm font-medium">Slides Built</span>
+                </div>
+                {builtSlides.length > 0 && (
+                  <Button
+                    size="sm"
+                    onClick={finishAndSave}
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
+                    Slides Finished - Save & Move On
+                  </Button>
+                )}
+              </div>
 
-      {/* Action Buttons */}
-      <div className="flex gap-2 justify-end">
-        <Button variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button onClick={handleSave}>
-          <Save className="h-4 w-4 mr-2" />
-          Save Presentation
-        </Button>
-      </div>
+              {/* Current Slide Builder */}
+              <div className="space-y-4 p-4 bg-white rounded-lg border border-purple-200">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold">Slide {builtSlides.length + 1}</h4>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={generateSingleSlide}
+                      disabled={isGenerating}
+                      className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          AI Generate
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Title Input */}
+                <div>
+                  <Label className="text-sm font-medium">Slide Title</Label>
+                  <Input
+                    value={currentSlide.title}
+                    onChange={(e) => setCurrentSlide(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="Enter slide title..."
+                    className="mt-1"
+                  />
+                </div>
+
+                {/* Content Input */}
+                <div>
+                  <Label className="text-sm font-medium">Slide Content</Label>
+                  <Textarea
+                    value={currentSlide.content}
+                    onChange={(e) => setCurrentSlide(prev => ({ ...prev, content: e.target.value }))}
+                    placeholder="Enter slide content..."
+                    className="mt-1"
+                    rows={5}
+                  />
+                </div>
+
+                {/* Image URL */}
+                <div>
+                  <Label className="text-sm font-medium">Image URL (Optional)</Label>
+                  <Input
+                    value={currentSlide.imageUrl}
+                    onChange={(e) => setCurrentSlide(prev => ({ ...prev, imageUrl: e.target.value }))}
+                    placeholder="Enter image URL..."
+                    className="mt-1"
+                  />
+                </div>
+
+                {/* Add Slide Button */}
+                <Button
+                  onClick={addSlideToBuilder}
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  disabled={!currentSlide.title.trim() || !currentSlide.content.trim()}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Slide to Presentation
+                </Button>
+              </div>
+
+              {/* Built Slides List */}
+              {builtSlides.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold">Slides ({builtSlides.length})</h4>
+                  {builtSlides.map((slide, index) => (
+                    <div key={index} className="p-3 bg-white rounded-lg border border-purple-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">Slide {index + 1}: {slide.title}</div>
+                          <div className="text-xs text-gray-600 mt-1">
+                            {slide.content.substring(0, 100)}...
+                          </div>
+                          {slide.imageUrl && (
+                            <div className="text-xs text-blue-600 mt-1">
+                              <strong>Image:</strong> {slide.imageUrl}
+                            </div>
+                          )}
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => removeSlideFromBuilder(index)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Exit Builder */}
+              <div className="flex justify-between pt-4 border-t border-purple-200">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setCurrentSlide({ title: '', content: '', imageUrl: '' });
+                    setBuiltSlides([]);
+                    onCancel();
+                  }}
+                >
+                  Cancel Builder
+                </Button>
+                
+                {builtSlides.length > 0 && (
+                  <Button
+                    onClick={finishAndSave}
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
+                    Finish Presentation & Continue
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </CardContent>
+      </Card>
     </div>
   );
 }
