@@ -1,52 +1,32 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
 import { 
   Plus, 
-  Trash2, 
-  Wand2, 
+  X, 
+  Sparkles, 
   Loader2, 
-  Save,
-  Brain,
-  Lightbulb,
-  Hash,
-  Type
+  ArrowRight,
+  Target,
+  Clock,
+  Brain
 } from 'lucide-react';
-
-interface MnemonicDevice {
-  type: 'acronym' | 'acrostic' | 'rhyme' | 'chunking' | 'story' | 'visual' | 'keyword';
-  title: string;
-  content: string;
-  explanation: string;
-  memorablePhrase: string;
-  targetConcepts: string[];
-  practiceExercise?: string;
-}
-
-interface MnemonicData {
-  title: string;
-  instructions: string;
-  learningObjective: string;
-  devices: MnemonicDevice[];
-  includeExercises: boolean;
-  allowCustomCreation: boolean;
-  category: 'procedures' | 'concepts' | 'sequences' | 'lists' | 'facts' | 'mixed';
-}
 
 interface MnemonicBuilderProps {
   moduleTitle: string;
   moduleDescription: string;
   sectionTitle: string;
-  onSave: (data: MnemonicData) => void;
+  onSave: (data: any) => void;
   onCancel: () => void;
-  initialData?: MnemonicData;
+  initialData?: any;
+  category?: string;
+  difficulty?: string;
+  estimatedTime?: string;
 }
 
 export default function MnemonicBuilder({
@@ -55,487 +35,328 @@ export default function MnemonicBuilder({
   sectionTitle,
   onSave,
   onCancel,
-  initialData
+  initialData,
+  category = 'classroom-management',
+  difficulty = 'intermediate',
+  estimatedTime = '15 min'
 }: MnemonicBuilderProps) {
   const { toast } = useToast();
+  const [builtMnemonics, setBuiltMnemonics] = useState<Array<{ concept: string; mnemonic: string; explanation: string; tip: string }>>([]);
+  const [currentMnemonic, setCurrentMnemonic] = useState({ concept: '', mnemonic: '', explanation: '', tip: '' });
   const [isGenerating, setIsGenerating] = useState(false);
-  
-  const [data, setData] = useState<MnemonicData>(initialData || {
-    title: `${sectionTitle} - Memory Techniques`,
-    instructions: 'Learn and practice these memory techniques to better retain important information.',
-    learningObjective: '',
-    devices: [],
-    includeExercises: true,
-    allowCustomCreation: false,
-    category: 'mixed'
-  });
 
-  const [currentDevice, setCurrentDevice] = useState<MnemonicDevice>({
-    type: 'acronym',
-    title: '',
-    content: '',
-    explanation: '',
-    memorablePhrase: '',
-    targetConcepts: [''],
-    practiceExercise: ''
-  });
-
-  const generateAIMnemonics = async () => {
-    if (!moduleTitle || !moduleDescription) {
-      toast({
-        title: "Missing Information",
-        description: "Module title and description are required for AI generation.",
-        variant: "destructive",
-      });
-      return;
+  useEffect(() => {
+    if (initialData?.mnemonics) {
+      setBuiltMnemonics(initialData.mnemonics);
     }
+  }, [initialData]);
 
+  const generateSingleMnemonic = async () => {
     setIsGenerating(true);
     try {
-      const response = await apiRequest('/api/ai/generate-mnemonics', {
+      const response = await fetch('/api/ai/generate-mnemonic', {
         method: 'POST',
-        data: {
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           moduleTitle,
           moduleDescription,
           sectionTitle,
-          category: data.category,
-          deviceTypes: ['acronym', 'acrostic', 'rhyme', 'story'],
-          includeExercises: data.includeExercises,
-          targetAudience: 'early-childhood-educators',
-          count: 6
-        }
+          count: 1,
+          existingMnemonics: builtMnemonics
+        })
       });
 
-      if (response.devices && response.devices.length > 0) {
-        setData(prev => ({
-          ...prev,
-          devices: [...prev.devices, ...response.devices]
-        }));
-        
-        toast({
-          title: "Memory Devices Generated",
-          description: `Added ${response.devices.length} mnemonic devices.`,
-        });
-      }
-
-      if (response.learningObjective) {
-        setData(prev => ({ ...prev, learningObjective: response.learningObjective }));
+      if (response.ok) {
+        const data = await response.json();
+        if (data.mnemonics && data.mnemonics.length > 0) {
+          setCurrentMnemonic(data.mnemonics[0]);
+          toast({
+            title: "AI Content Generated",
+            description: "Memory device has been generated successfully.",
+          });
+        }
       }
     } catch (error) {
-      console.error('Error generating mnemonics:', error);
       toast({
         title: "Generation Failed",
-        description: "Unable to generate mnemonic devices. Please create manually.",
-        variant: "destructive",
+        description: "Failed to generate mnemonic content.",
+        variant: "destructive"
       });
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const addConcept = () => {
-    setCurrentDevice(prev => ({
-      ...prev,
-      targetConcepts: [...prev.targetConcepts, '']
-    }));
-  };
-
-  const updateConcept = (index: number, value: string) => {
-    setCurrentDevice(prev => ({
-      ...prev,
-      targetConcepts: prev.targetConcepts.map((concept, i) => 
-        i === index ? value : concept
-      )
-    }));
-  };
-
-  const removeConcept = (index: number) => {
-    setCurrentDevice(prev => ({
-      ...prev,
-      targetConcepts: prev.targetConcepts.filter((_, i) => i !== index)
-    }));
-  };
-
-  const addDevice = () => {
-    if (!currentDevice.title.trim() || !currentDevice.content.trim()) {
+  const addMnemonicToBuilder = () => {
+    if (!currentMnemonic.concept.trim() || !currentMnemonic.mnemonic.trim()) {
       toast({
-        title: "Incomplete Device",
-        description: "Please add both title and content for the mnemonic device.",
-        variant: "destructive",
+        title: "Validation Error",
+        description: "Please fill in concept and mnemonic fields.",
+        variant: "destructive"
       });
       return;
     }
 
-    if (!currentDevice.memorablePhrase.trim()) {
-      toast({
-        title: "Missing Memorable Phrase",
-        description: "Please provide the memorable phrase or device.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const validConcepts = currentDevice.targetConcepts.filter(c => c.trim());
-    if (validConcepts.length === 0) {
-      toast({
-        title: "No Target Concepts",
-        description: "Please add at least one concept to remember.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setData(prev => ({
-      ...prev,
-      devices: [...prev.devices, { ...currentDevice, targetConcepts: validConcepts }]
-    }));
-
-    setCurrentDevice({
-      type: 'acronym',
-      title: '',
-      content: '',
-      explanation: '',
-      memorablePhrase: '',
-      targetConcepts: [''],
-      practiceExercise: ''
-    });
-
+    setBuiltMnemonics([...builtMnemonics, { ...currentMnemonic }]);
+    setCurrentMnemonic({ concept: '', mnemonic: '', explanation: '', tip: '' });
+    
     toast({
-      title: "Mnemonic Device Added",
-      description: `Collection now has ${data.devices.length + 1} memory techniques.`,
+      title: "Mnemonic Added",
+      description: "Memory device has been added to the builder.",
     });
   };
 
-  const removeDevice = (index: number) => {
-    setData(prev => ({
-      ...prev,
-      devices: prev.devices.filter((_, i) => i !== index)
-    }));
+  const removeMnemonicFromBuilder = (index: number) => {
+    setBuiltMnemonics(builtMnemonics.filter((_, i) => i !== index));
   };
 
-  const getDeviceIcon = (type: string) => {
-    const icons = {
-      acronym: Hash,
-      acrostic: Type,
-      rhyme: Lightbulb,
-      chunking: Brain,
-      story: Brain,
-      visual: Brain,
-      keyword: Brain
-    };
-    const IconComponent = icons[type as keyof typeof icons] || Brain;
-    return <IconComponent className="h-4 w-4" />;
-  };
-
-  const getDeviceDescription = (type: string) => {
-    const descriptions = {
-      acronym: 'Create memorable acronyms',
-      acrostic: 'First letter sentences',
-      rhyme: 'Rhyming patterns',
-      chunking: 'Break into smaller parts',
-      story: 'Narrative connections',
-      visual: 'Visual associations',
-      keyword: 'Keyword associations'
-    };
-    return descriptions[type as keyof typeof descriptions] || 'Memory technique';
-  };
-
-  const handleSave = () => {
-    if (data.devices.length === 0) {
+  const finishAndSave = () => {
+    if (builtMnemonics.length === 0) {
       toast({
-        title: "No Memory Devices",
-        description: "Please add at least one mnemonic device.",
-        variant: "destructive",
+        title: "Validation Error",
+        description: "Please add at least one memory device before saving.",
+        variant: "destructive"
       });
       return;
     }
 
-    onSave(data);
+    onSave({ mnemonics: builtMnemonics });
   };
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5" />
-            Mnemonic Device Builder
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="title">Collection Title</Label>
-              <Input
-                id="title"
-                value={data.title}
-                onChange={(e) => setData(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Enter title for memory techniques"
-              />
-            </div>
-            <div>
-              <Label htmlFor="category">Content Category</Label>
-              <Select
-                value={data.category}
-                onValueChange={(value) => setData(prev => ({ ...prev, category: value as any }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="procedures">Procedures & Steps</SelectItem>
-                  <SelectItem value="concepts">Key Concepts</SelectItem>
-                  <SelectItem value="sequences">Sequences & Orders</SelectItem>
-                  <SelectItem value="lists">Lists & Categories</SelectItem>
-                  <SelectItem value="facts">Facts & Information</SelectItem>
-                  <SelectItem value="mixed">Mixed Content</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="instructions">Instructions</Label>
-            <Textarea
-              id="instructions"
-              value={data.instructions}
-              onChange={(e) => setData(prev => ({ ...prev, instructions: e.target.value }))}
-              placeholder="Explain how learners should use these memory techniques"
-              rows={2}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="learningObjective">Learning Objective</Label>
-            <Textarea
-              id="learningObjective"
-              value={data.learningObjective}
-              onChange={(e) => setData(prev => ({ ...prev, learningObjective: e.target.value }))}
-              placeholder="What should learners be able to remember after using these techniques?"
-              rows={2}
-            />
-          </div>
-
-          <div className="flex gap-4">
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="includeExercises"
-                checked={data.includeExercises}
-                onChange={(e) => setData(prev => ({ ...prev, includeExercises: e.target.checked }))}
-              />
-              <Label htmlFor="includeExercises">Include practice exercises</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="allowCustomCreation"
-                checked={data.allowCustomCreation}
-                onChange={(e) => setData(prev => ({ ...prev, allowCustomCreation: e.target.checked }))}
-              />
-              <Label htmlFor="allowCustomCreation">Allow learner customization</Label>
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <Button
-              onClick={generateAIMnemonics}
-              disabled={isGenerating}
-              variant="outline"
-            >
-              {isGenerating ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Wand2 className="h-4 w-4 mr-2" />
-              )}
-              Generate with AI
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Manual Device Builder */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            Create Mnemonic Device
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="deviceTitle">Device Title</Label>
-              <Input
-                id="deviceTitle"
-                value={currentDevice.title}
-                onChange={(e) => setCurrentDevice(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Enter device title"
-              />
-            </div>
-            <div>
-              <Label htmlFor="deviceType">Memory Technique Type</Label>
-              <Select
-                value={currentDevice.type}
-                onValueChange={(value) => setCurrentDevice(prev => ({ ...prev, type: value as any }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select technique type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="acronym">Acronym (SMART goals)</SelectItem>
-                  <SelectItem value="acrostic">Acrostic (Every Good Boy...)</SelectItem>
-                  <SelectItem value="rhyme">Rhyme/Song</SelectItem>
-                  <SelectItem value="chunking">Chunking</SelectItem>
-                  <SelectItem value="story">Story Method</SelectItem>
-                  <SelectItem value="visual">Visual Association</SelectItem>
-                  <SelectItem value="keyword">Keyword Method</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="content">Content to Remember</Label>
-            <Textarea
-              id="content"
-              value={currentDevice.content}
-              onChange={(e) => setCurrentDevice(prev => ({ ...prev, content: e.target.value }))}
-              placeholder="Describe what needs to be remembered"
-              rows={3}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="memorablePhrase">Memorable Phrase/Device</Label>
-            <Textarea
-              id="memorablePhrase"
-              value={currentDevice.memorablePhrase}
-              onChange={(e) => setCurrentDevice(prev => ({ ...prev, memorablePhrase: e.target.value }))}
-              placeholder="Enter the actual mnemonic (acronym, phrase, rhyme, etc.)"
-              rows={2}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="explanation">How It Works</Label>
-            <Textarea
-              id="explanation"
-              value={currentDevice.explanation}
-              onChange={(e) => setCurrentDevice(prev => ({ ...prev, explanation: e.target.value }))}
-              placeholder="Explain how this mnemonic helps remember the content"
-              rows={3}
-            />
-          </div>
-
-          <div>
-            <div className="flex justify-between items-center">
-              <Label>Target Concepts</Label>
-              <Button variant="outline" size="sm" onClick={addConcept}>
-                <Plus className="h-4 w-4 mr-1" />
-                Add Concept
-              </Button>
-            </div>
-            {currentDevice.targetConcepts.map((concept, index) => (
-              <div key={index} className="flex gap-2 mt-2">
-                <Input
-                  value={concept}
-                  onChange={(e) => updateConcept(index, e.target.value)}
-                  placeholder={`Concept ${index + 1}`}
-                />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeConcept(index)}
-                  disabled={currentDevice.targetConcepts.length === 1}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+      {/* Module Context Header */}
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-3">
+            <Target className="h-6 w-6 text-blue-600" />
+            <div className="flex-1">
+              <CardTitle className="text-lg text-blue-900">
+                {moduleTitle || 'Professional Development Module'}
+              </CardTitle>
+              <CardDescription className="text-blue-700 mt-1">
+                <strong>Topic:</strong> {moduleDescription || 'Building effective teaching strategies'}
+              </CardDescription>
+              <div className="flex items-center gap-4 mt-2 text-sm">
+                <Badge variant="outline" className="border-blue-300 text-blue-700">
+                  {category}
+                </Badge>
+                <Badge variant="outline" className="border-purple-300 text-purple-700">
+                  {difficulty} level
+                </Badge>
+                <span className="text-blue-600">
+                  <Clock className="h-4 w-4 inline mr-1" />
+                  {estimatedTime}
+                </span>
               </div>
-            ))}
-          </div>
-
-          {data.includeExercises && (
-            <div>
-              <Label htmlFor="practiceExercise">Practice Exercise (Optional)</Label>
-              <Textarea
-                id="practiceExercise"
-                value={currentDevice.practiceExercise}
-                onChange={(e) => setCurrentDevice(prev => ({ ...prev, practiceExercise: e.target.value }))}
-                placeholder="Create a practice exercise to test this mnemonic"
-                rows={3}
-              />
             </div>
-          )}
-
-          <Button onClick={addDevice} className="w-full">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Mnemonic Device
-          </Button>
-        </CardContent>
+          </div>
+        </CardHeader>
       </Card>
 
-      {/* Current Devices List */}
-      {data.devices.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Memory Techniques ({data.devices.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {data.devices.map((device, index) => (
-                <div key={index} className="border rounded p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex items-center gap-2">
-                      {getDeviceIcon(device.type)}
-                      <Badge variant="outline">{device.type}</Badge>
-                      <h4 className="font-medium">{device.title}</h4>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeDevice(index)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+      <Card>
+        <CardHeader>
+          <CardTitle>Build Section: {sectionTitle}</CardTitle>
+          <CardDescription>
+            AI will use the module topic above to generate relevant content for this section
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Interactive Mnemonic Builder */}
+          <Card className="border-indigo-200 bg-indigo-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-indigo-800">
+                <Brain className="h-5 w-5" />
+                Interactive Memory Device Builder
+              </CardTitle>
+              <CardDescription className="text-indigo-700">
+                Build your memory aids one device at a time. Add as many mnemonics as you need.
+              </CardDescription>
+              
+              {/* Topic Context for AI */}
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Target className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-800">Mnemonic Topic Context</span>
+                </div>
+                <div className="text-sm space-y-1">
+                  <div className="text-blue-700">
+                    <strong>Module:</strong> {moduleTitle || 'Professional Development Module'}
                   </div>
-                  
-                  <div className="space-y-2 text-sm">
-                    <div>
-                      <strong>Mnemonic:</strong> 
-                      <span className="ml-2 font-mono bg-gray-100 px-2 py-1 rounded">
-                        {device.memorablePhrase}
-                      </span>
-                    </div>
-                    <div>
-                      <strong>Content:</strong> {device.content.substring(0, 100)}...
-                    </div>
-                    <div>
-                      <strong>Concepts:</strong> {device.targetConcepts.join(', ')}
-                    </div>
-                    {device.practiceExercise && (
-                      <div>
-                        <strong>Exercise:</strong> {device.practiceExercise.substring(0, 80)}...
-                      </div>
-                    )}
+                  <div className="text-blue-700">
+                    <strong>Learning Objective:</strong> {moduleDescription || 'Building effective teaching strategies'}
+                  </div>
+                  <div className="text-blue-700">
+                    <strong>Section:</strong> {sectionTitle}
+                  </div>
+                  <div className="text-blue-600 text-xs mt-2">
+                    AI will generate memory devices specifically about this topic and section
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Progress */}
+              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-indigo-200">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-semibold">
+                    {builtMnemonics.length}
+                  </div>
+                  <span className="text-sm font-medium">Memory Devices Built</span>
+                </div>
+                {builtMnemonics.length > 0 && (
+                  <Button
+                    size="sm"
+                    onClick={finishAndSave}
+                    className="bg-indigo-600 hover:bg-indigo-700"
+                  >
+                    Devices Finished - Save & Move On
+                  </Button>
+                )}
+              </div>
 
-      {/* Action Buttons */}
-      <div className="flex gap-2 justify-end">
-        <Button variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button onClick={handleSave}>
-          <Save className="h-4 w-4 mr-2" />
-          Save Memory Techniques
-        </Button>
-      </div>
+              {/* Current Mnemonic Builder */}
+              <div className="space-y-4 p-4 bg-white rounded-lg border border-indigo-200">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold">Memory Device {builtMnemonics.length + 1}</h4>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={generateSingleMnemonic}
+                      disabled={isGenerating}
+                      className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          AI Generate
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Concept Input */}
+                <div>
+                  <Label className="text-sm font-medium">Concept to Remember</Label>
+                  <Input
+                    value={currentMnemonic.concept}
+                    onChange={(e) => setCurrentMnemonic(prev => ({ ...prev, concept: e.target.value }))}
+                    placeholder="Enter the concept or information to memorize..."
+                    className="mt-1"
+                  />
+                </div>
+
+                {/* Mnemonic Input */}
+                <div>
+                  <Label className="text-sm font-medium">Memory Device</Label>
+                  <Input
+                    value={currentMnemonic.mnemonic}
+                    onChange={(e) => setCurrentMnemonic(prev => ({ ...prev, mnemonic: e.target.value }))}
+                    placeholder="Enter the acronym, phrase, or memory device..."
+                    className="mt-1"
+                  />
+                </div>
+
+                {/* Explanation Input */}
+                <div>
+                  <Label className="text-sm font-medium">Explanation</Label>
+                  <Textarea
+                    value={currentMnemonic.explanation}
+                    onChange={(e) => setCurrentMnemonic(prev => ({ ...prev, explanation: e.target.value }))}
+                    placeholder="Explain how the memory device works..."
+                    className="mt-1"
+                    rows={3}
+                  />
+                </div>
+
+                {/* Memory Tip Input */}
+                <div>
+                  <Label className="text-sm font-medium">Memory Tip (Optional)</Label>
+                  <Input
+                    value={currentMnemonic.tip}
+                    onChange={(e) => setCurrentMnemonic(prev => ({ ...prev, tip: e.target.value }))}
+                    placeholder="Additional tip for remembering..."
+                    className="mt-1"
+                  />
+                </div>
+
+                {/* Add Mnemonic Button */}
+                <Button
+                  onClick={addMnemonicToBuilder}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700"
+                  disabled={!currentMnemonic.concept.trim() || !currentMnemonic.mnemonic.trim()}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Memory Device to Collection
+                </Button>
+              </div>
+
+              {/* Built Mnemonics List */}
+              {builtMnemonics.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold">Memory Devices ({builtMnemonics.length})</h4>
+                  {builtMnemonics.map((mnemonic, index) => (
+                    <div key={index} className="p-3 bg-white rounded-lg border border-indigo-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">{mnemonic.concept}</div>
+                          <div className="text-xs text-indigo-600 mt-1">
+                            <strong>Device:</strong> {mnemonic.mnemonic}
+                          </div>
+                          {mnemonic.explanation && (
+                            <div className="text-xs text-gray-600 mt-1">
+                              {mnemonic.explanation.substring(0, 100)}...
+                            </div>
+                          )}
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => removeMnemonicFromBuilder(index)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Exit Builder */}
+              <div className="flex justify-between pt-4 border-t border-indigo-200">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setCurrentMnemonic({ concept: '', mnemonic: '', explanation: '', tip: '' });
+                    setBuiltMnemonics([]);
+                    onCancel();
+                  }}
+                >
+                  Cancel Builder
+                </Button>
+                
+                {builtMnemonics.length > 0 && (
+                  <Button
+                    onClick={finishAndSave}
+                    className="bg-indigo-600 hover:bg-indigo-700"
+                  >
+                    Finish Collection & Continue
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -1,57 +1,32 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
 import { 
   Plus, 
-  Trash2, 
-  Wand2, 
+  X, 
+  Sparkles, 
   Loader2, 
-  Save,
-  Users,
-  MessageSquare,
-  FileText
+  ArrowRight,
+  Target,
+  Clock,
+  TreePine
 } from 'lucide-react';
-
-interface ScenarioOption {
-  text: string;
-  feedback: string;
-  isCorrect: boolean;
-  consequence?: string;
-}
-
-interface Scenario {
-  title: string;
-  context: string;
-  situation: string;
-  challenge: string;
-  options: ScenarioOption[];
-  learningObjective: string;
-  category: 'classroom-management' | 'communication' | 'safety' | 'curriculum' | 'assessment' | 'ethics' | 'general';
-}
-
-interface ScenarioData {
-  title: string;
-  instructions: string;
-  scenarios: Scenario[];
-  allowMultipleAttempts: boolean;
-  showImmediateFeedback: boolean;
-  branchingEnabled: boolean;
-}
 
 interface ScenarioBuilderProps {
   moduleTitle: string;
   moduleDescription: string;
   sectionTitle: string;
-  onSave: (data: ScenarioData) => void;
+  onSave: (data: any) => void;
   onCancel: () => void;
-  initialData?: ScenarioData;
+  initialData?: any;
+  category?: string;
+  difficulty?: string;
+  estimatedTime?: string;
 }
 
 export default function ScenarioBuilder({
@@ -60,100 +35,66 @@ export default function ScenarioBuilder({
   sectionTitle,
   onSave,
   onCancel,
-  initialData
+  initialData,
+  category = 'classroom-management',
+  difficulty = 'intermediate',
+  estimatedTime = '15 min'
 }: ScenarioBuilderProps) {
   const { toast } = useToast();
+  const [builtScenarios, setBuiltScenarios] = useState<Array<{ title: string; context: string; options: Array<{ text: string; outcome: string }> }>>([]);
+  const [currentScenario, setCurrentScenario] = useState({ title: '', context: '', options: [{ text: '', outcome: '' }, { text: '', outcome: '' }] });
   const [isGenerating, setIsGenerating] = useState(false);
-  
-  const [data, setData] = useState<ScenarioData>(initialData || {
-    title: `${sectionTitle} - Scenario-Based Learning`,
-    instructions: 'Read each scenario carefully and choose the best response. Consider the consequences of your actions.',
-    scenarios: [],
-    allowMultipleAttempts: true,
-    showImmediateFeedback: true,
-    branchingEnabled: false
-  });
 
-  const [currentScenario, setCurrentScenario] = useState<Scenario>({
-    title: '',
-    context: '',
-    situation: '',
-    challenge: '',
-    options: [
-      { text: '', feedback: '', isCorrect: false },
-      { text: '', feedback: '', isCorrect: false },
-      { text: '', feedback: '', isCorrect: false }
-    ],
-    learningObjective: '',
-    category: 'general'
-  });
-
-  const generateAIScenarios = async () => {
-    if (!moduleTitle || !moduleDescription) {
-      toast({
-        title: "Missing Information",
-        description: "Module title and description are required for AI generation.",
-        variant: "destructive",
-      });
-      return;
+  useEffect(() => {
+    if (initialData?.scenarios) {
+      setBuiltScenarios(initialData.scenarios);
     }
+  }, [initialData]);
 
+  const generateSingleScenario = async () => {
     setIsGenerating(true);
     try {
-      const response = await apiRequest('/api/ai/generate-scenarios', {
+      const response = await fetch('/api/ai/generate-scenario', {
         method: 'POST',
-        data: {
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           moduleTitle,
           moduleDescription,
           sectionTitle,
-          scenarioCount: 4,
-          includeContext: true,
-          branchingEnabled: data.branchingEnabled,
-          targetAudience: 'early-childhood-educators',
-          complexity: 'intermediate'
-        }
+          count: 1,
+          existingScenarios: builtScenarios
+        })
       });
 
-      if (response.scenarios && response.scenarios.length > 0) {
-        setData(prev => ({
-          ...prev,
-          scenarios: [...prev.scenarios, ...response.scenarios]
-        }));
-        
-        toast({
-          title: "Scenarios Generated",
-          description: `Added ${response.scenarios.length} new learning scenarios.`,
-        });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.scenarios && data.scenarios.length > 0) {
+          setCurrentScenario(data.scenarios[0]);
+          toast({
+            title: "AI Content Generated",
+            description: "Scenario has been generated successfully.",
+          });
+        }
       }
     } catch (error) {
-      console.error('Error generating scenarios:', error);
       toast({
         title: "Generation Failed",
-        description: "Unable to generate scenarios. Please create manually.",
-        variant: "destructive",
+        description: "Failed to generate scenario content.",
+        variant: "destructive"
       });
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const addOption = () => {
+  const addOptionToScenario = () => {
     setCurrentScenario(prev => ({
       ...prev,
-      options: [...prev.options, { text: '', feedback: '', isCorrect: false }]
+      options: [...prev.options, { text: '', outcome: '' }]
     }));
   };
 
-  const updateOption = (index: number, field: keyof ScenarioOption, value: string | boolean) => {
-    setCurrentScenario(prev => ({
-      ...prev,
-      options: prev.options.map((option, i) => 
-        i === index ? { ...option, [field]: value } : option
-      )
-    }));
-  };
-
-  const removeOption = (index: number) => {
+  const removeOptionFromScenario = (index: number) => {
     if (currentScenario.options.length > 2) {
       setCurrentScenario(prev => ({
         ...prev,
@@ -162,331 +103,316 @@ export default function ScenarioBuilder({
     }
   };
 
-  const addScenario = () => {
-    if (!currentScenario.title.trim() || !currentScenario.situation.trim()) {
+  const updateOption = (index: number, field: 'text' | 'outcome', value: string) => {
+    setCurrentScenario(prev => ({
+      ...prev,
+      options: prev.options.map((option, i) => 
+        i === index ? { ...option, [field]: value } : option
+      )
+    }));
+  };
+
+  const addScenarioToBuilder = () => {
+    if (!currentScenario.title.trim() || !currentScenario.context.trim()) {
       toast({
-        title: "Incomplete Scenario",
-        description: "Please add at least a title and situation description.",
-        variant: "destructive",
+        title: "Validation Error",
+        description: "Please fill in title and context fields.",
+        variant: "destructive"
       });
       return;
     }
 
-    const validOptions = currentScenario.options.filter(opt => opt.text.trim());
+    const validOptions = currentScenario.options.filter(option => option.text.trim() && option.outcome.trim());
     if (validOptions.length < 2) {
       toast({
-        title: "Need More Options",
-        description: "Please add at least 2 response options.",
-        variant: "destructive",
+        title: "Validation Error",
+        description: "Please provide at least 2 complete options.",
+        variant: "destructive"
       });
       return;
     }
 
-    const hasCorrectAnswer = validOptions.some(opt => opt.isCorrect);
-    if (!hasCorrectAnswer) {
-      toast({
-        title: "No Correct Answer",
-        description: "Please mark at least one option as correct.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setData(prev => ({
-      ...prev,
-      scenarios: [...prev.scenarios, { ...currentScenario, options: validOptions }]
-    }));
-
-    setCurrentScenario({
-      title: '',
-      context: '',
-      situation: '',
-      challenge: '',
-      options: [
-        { text: '', feedback: '', isCorrect: false },
-        { text: '', feedback: '', isCorrect: false },
-        { text: '', feedback: '', isCorrect: false }
-      ],
-      learningObjective: '',
-      category: 'general'
-    });
-
+    setBuiltScenarios([...builtScenarios, { ...currentScenario, options: validOptions }]);
+    setCurrentScenario({ title: '', context: '', options: [{ text: '', outcome: '' }, { text: '', outcome: '' }] });
+    
     toast({
       title: "Scenario Added",
-      description: `Collection now has ${data.scenarios.length + 1} scenarios.`,
+      description: "Scenario has been added to the builder.",
     });
   };
 
-  const removeScenario = (index: number) => {
-    setData(prev => ({
-      ...prev,
-      scenarios: prev.scenarios.filter((_, i) => i !== index)
-    }));
+  const removeScenarioFromBuilder = (index: number) => {
+    setBuiltScenarios(builtScenarios.filter((_, i) => i !== index));
   };
 
-  const handleSave = () => {
-    if (data.scenarios.length === 0) {
+  const finishAndSave = () => {
+    if (builtScenarios.length === 0) {
       toast({
-        title: "No Scenarios",
-        description: "Please add at least one scenario.",
-        variant: "destructive",
+        title: "Validation Error",
+        description: "Please add at least one scenario before saving.",
+        variant: "destructive"
       });
       return;
     }
 
-    onSave(data);
+    onSave({ scenarios: builtScenarios });
   };
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Scenario-Based Learning Builder
-          </CardTitle>
+      {/* Module Context Header */}
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-3">
+            <Target className="h-6 w-6 text-blue-600" />
+            <div className="flex-1">
+              <CardTitle className="text-lg text-blue-900">
+                {moduleTitle || 'Professional Development Module'}
+              </CardTitle>
+              <CardDescription className="text-blue-700 mt-1">
+                <strong>Topic:</strong> {moduleDescription || 'Building effective teaching strategies'}
+              </CardDescription>
+              <div className="flex items-center gap-4 mt-2 text-sm">
+                <Badge variant="outline" className="border-blue-300 text-blue-700">
+                  {category}
+                </Badge>
+                <Badge variant="outline" className="border-purple-300 text-purple-700">
+                  {difficulty} level
+                </Badge>
+                <span className="text-blue-600">
+                  <Clock className="h-4 w-4 inline mr-1" />
+                  {estimatedTime}
+                </span>
+              </div>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="title">Collection Title</Label>
-              <Input
-                id="title"
-                value={data.title}
-                onChange={(e) => setData(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Enter title for scenario collection"
-              />
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="allowMultipleAttempts"
-                  checked={data.allowMultipleAttempts}
-                  onChange={(e) => setData(prev => ({ ...prev, allowMultipleAttempts: e.target.checked }))}
-                />
-                <Label htmlFor="allowMultipleAttempts">Multiple attempts</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="showImmediateFeedback"
-                  checked={data.showImmediateFeedback}
-                  onChange={(e) => setData(prev => ({ ...prev, showImmediateFeedback: e.target.checked }))}
-                />
-                <Label htmlFor="showImmediateFeedback">Immediate feedback</Label>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="instructions">Instructions</Label>
-            <Textarea
-              id="instructions"
-              value={data.instructions}
-              onChange={(e) => setData(prev => ({ ...prev, instructions: e.target.value }))}
-              placeholder="Explain how learners should approach these scenarios"
-              rows={2}
-            />
-          </div>
-
-          <div className="flex gap-2">
-            <Button
-              onClick={generateAIScenarios}
-              disabled={isGenerating}
-              variant="outline"
-            >
-              {isGenerating ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Wand2 className="h-4 w-4 mr-2" />
-              )}
-              Generate with AI
-            </Button>
-          </div>
-        </CardContent>
       </Card>
 
-      {/* Manual Scenario Builder */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            Create New Scenario
-          </CardTitle>
+          <CardTitle>Build Section: {sectionTitle}</CardTitle>
+          <CardDescription>
+            AI will use the module topic above to generate relevant content for this section
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="scenarioTitle">Scenario Title</Label>
-              <Input
-                id="scenarioTitle"
-                value={currentScenario.title}
-                onChange={(e) => setCurrentScenario(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Enter scenario title"
-              />
-            </div>
-            <div>
-              <Label htmlFor="category">Category</Label>
-              <Select
-                value={currentScenario.category}
-                onValueChange={(value) => setCurrentScenario(prev => ({ ...prev, category: value as any }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="classroom-management">Classroom Management</SelectItem>
-                  <SelectItem value="communication">Communication</SelectItem>
-                  <SelectItem value="safety">Safety</SelectItem>
-                  <SelectItem value="curriculum">Curriculum</SelectItem>
-                  <SelectItem value="assessment">Assessment</SelectItem>
-                  <SelectItem value="ethics">Ethics</SelectItem>
-                  <SelectItem value="general">General</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="context">Context (Optional)</Label>
-            <Textarea
-              id="context"
-              value={currentScenario.context}
-              onChange={(e) => setCurrentScenario(prev => ({ ...prev, context: e.target.value }))}
-              placeholder="Provide background information or setting"
-              rows={2}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="situation">Situation Description</Label>
-            <Textarea
-              id="situation"
-              value={currentScenario.situation}
-              onChange={(e) => setCurrentScenario(prev => ({ ...prev, situation: e.target.value }))}
-              placeholder="Describe what is happening in this scenario"
-              rows={3}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="challenge">Challenge/Decision Point</Label>
-            <Textarea
-              id="challenge"
-              value={currentScenario.challenge}
-              onChange={(e) => setCurrentScenario(prev => ({ ...prev, challenge: e.target.value }))}
-              placeholder="What decision does the learner need to make?"
-              rows={2}
-            />
-          </div>
-
-          <div>
-            <div className="flex justify-between items-center">
-              <Label>Response Options</Label>
-              <Button variant="outline" size="sm" onClick={addOption}>
-                <Plus className="h-4 w-4 mr-1" />
-                Add Option
-              </Button>
-            </div>
-            {currentScenario.options.map((option, index) => (
-              <div key={index} className="border rounded p-4 space-y-3">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      checked={option.isCorrect}
-                      onChange={(e) => updateOption(index, 'isCorrect', e.target.checked)}
-                    />
-                    <Label className="text-sm">Correct response</Label>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeOption(index)}
-                    disabled={currentScenario.options.length <= 2}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+        <CardContent className="space-y-6">
+          {/* Interactive Scenario Builder */}
+          <Card className="border-yellow-200 bg-yellow-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-yellow-800">
+                <TreePine className="h-5 w-5" />
+                Interactive Scenario Builder
+              </CardTitle>
+              <CardDescription className="text-yellow-700">
+                Build your decision scenarios one at a time. Add as many scenarios as you need.
+              </CardDescription>
+              
+              {/* Topic Context for AI */}
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Target className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-800">Scenario Topic Context</span>
                 </div>
-                <Textarea
-                  value={option.text}
-                  onChange={(e) => updateOption(index, 'text', e.target.value)}
-                  placeholder={`Response option ${index + 1}`}
-                  rows={2}
-                />
-                <Textarea
-                  value={option.feedback}
-                  onChange={(e) => updateOption(index, 'feedback', e.target.value)}
-                  placeholder="Feedback for this choice"
-                  rows={2}
-                />
+                <div className="text-sm space-y-1">
+                  <div className="text-blue-700">
+                    <strong>Module:</strong> {moduleTitle || 'Professional Development Module'}
+                  </div>
+                  <div className="text-blue-700">
+                    <strong>Learning Objective:</strong> {moduleDescription || 'Building effective teaching strategies'}
+                  </div>
+                  <div className="text-blue-700">
+                    <strong>Section:</strong> {sectionTitle}
+                  </div>
+                  <div className="text-blue-600 text-xs mt-2">
+                    AI will generate decision scenarios specifically about this topic and section
+                  </div>
+                </div>
               </div>
-            ))}
-          </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Progress */}
+              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-yellow-200">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-700 font-semibold">
+                    {builtScenarios.length}
+                  </div>
+                  <span className="text-sm font-medium">Scenarios Built</span>
+                </div>
+                {builtScenarios.length > 0 && (
+                  <Button
+                    size="sm"
+                    onClick={finishAndSave}
+                    className="bg-yellow-600 hover:bg-yellow-700"
+                  >
+                    Scenarios Finished - Save & Move On
+                  </Button>
+                )}
+              </div>
 
-          <div>
-            <Label htmlFor="learningObjective">Learning Objective</Label>
-            <Textarea
-              id="learningObjective"
-              value={currentScenario.learningObjective}
-              onChange={(e) => setCurrentScenario(prev => ({ ...prev, learningObjective: e.target.value }))}
-              placeholder="What should learners gain from this scenario?"
-              rows={2}
-            />
-          </div>
-
-          <Button onClick={addScenario} className="w-full">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Scenario
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Current Scenarios List */}
-      {data.scenarios.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Created Scenarios ({data.scenarios.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {data.scenarios.map((scenario, index) => (
-                <div key={index} className="border rounded p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <Badge variant="outline">{scenario.category}</Badge>
-                      <h4 className="font-medium mt-1">{scenario.title}</h4>
-                    </div>
+              {/* Current Scenario Builder */}
+              <div className="space-y-4 p-4 bg-white rounded-lg border border-yellow-200">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold">Scenario {builtScenarios.length + 1}</h4>
+                  <div className="flex gap-2">
                     <Button
-                      variant="ghost"
                       size="sm"
-                      onClick={() => removeScenario(index)}
+                      variant="outline"
+                      onClick={generateSingleScenario}
+                      disabled={isGenerating}
+                      className="border-purple-300 text-purple-700 hover:bg-purple-50"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          AI Generate
+                        </>
+                      )}
                     </Button>
                   </div>
-                  <p className="text-sm text-gray-600 mb-2">{scenario.situation.substring(0, 150)}...</p>
-                  <div className="text-sm">
-                    <strong>Options:</strong> {scenario.options.length} ({scenario.options.filter(o => o.isCorrect).length} correct)
-                  </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
-      {/* Action Buttons */}
-      <div className="flex gap-2 justify-end">
-        <Button variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button onClick={handleSave}>
-          <Save className="h-4 w-4 mr-2" />
-          Save Scenario Collection
-        </Button>
-      </div>
+                {/* Title Input */}
+                <div>
+                  <Label className="text-sm font-medium">Scenario Title</Label>
+                  <Input
+                    value={currentScenario.title}
+                    onChange={(e) => setCurrentScenario(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="Enter scenario title..."
+                    className="mt-1"
+                  />
+                </div>
+
+                {/* Context Input */}
+                <div>
+                  <Label className="text-sm font-medium">Scenario Context</Label>
+                  <Textarea
+                    value={currentScenario.context}
+                    onChange={(e) => setCurrentScenario(prev => ({ ...prev, context: e.target.value }))}
+                    placeholder="Describe the scenario situation..."
+                    className="mt-1"
+                    rows={3}
+                  />
+                </div>
+
+                {/* Options */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="text-sm font-medium">Decision Options</Label>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={addOptionToScenario}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Option
+                    </Button>
+                  </div>
+                  
+                  {currentScenario.options.map((option, index) => (
+                    <div key={index} className="border rounded p-3 mb-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-sm">Option {index + 1}</span>
+                        {currentScenario.options.length > 2 && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => removeOptionFromScenario(index)}
+                            className="text-red-600 hover:bg-red-50"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Input
+                          value={option.text}
+                          onChange={(e) => updateOption(index, 'text', e.target.value)}
+                          placeholder="Decision option text..."
+                        />
+                        <Input
+                          value={option.outcome}
+                          onChange={(e) => updateOption(index, 'outcome', e.target.value)}
+                          placeholder="What happens with this choice..."
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Add Scenario Button */}
+                <Button
+                  onClick={addScenarioToBuilder}
+                  className="w-full bg-yellow-600 hover:bg-yellow-700"
+                  disabled={!currentScenario.title.trim() || !currentScenario.context.trim()}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Scenario to Activity
+                </Button>
+              </div>
+
+              {/* Built Scenarios List */}
+              {builtScenarios.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold">Decision Scenarios ({builtScenarios.length})</h4>
+                  {builtScenarios.map((scenario, index) => (
+                    <div key={index} className="p-3 bg-white rounded-lg border border-yellow-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">{scenario.title}</div>
+                          <div className="text-xs text-gray-600 mt-1">
+                            {scenario.context}
+                          </div>
+                          <div className="text-xs text-blue-600 mt-1">
+                            <strong>Options:</strong> {scenario.options.length}
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => removeScenarioFromBuilder(index)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Exit Builder */}
+              <div className="flex justify-between pt-4 border-t border-yellow-200">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setCurrentScenario({ title: '', context: '', options: [{ text: '', outcome: '' }, { text: '', outcome: '' }] });
+                    setBuiltScenarios([]);
+                    onCancel();
+                  }}
+                >
+                  Cancel Builder
+                </Button>
+                
+                {builtScenarios.length > 0 && (
+                  <Button
+                    onClick={finishAndSave}
+                    className="bg-yellow-600 hover:bg-yellow-700"
+                  >
+                    Finish Activity & Continue
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </CardContent>
+      </Card>
     </div>
   );
 }

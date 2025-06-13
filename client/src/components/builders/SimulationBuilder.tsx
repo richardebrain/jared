@@ -1,62 +1,32 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
 import { 
   Plus, 
-  Trash2, 
-  Wand2, 
+  X, 
+  Sparkles, 
   Loader2, 
-  Save,
-  Play,
   ArrowRight,
-  Clock,
   Target,
-  Gamepad2
+  Clock,
+  Play
 } from 'lucide-react';
-
-interface SimulationStep {
-  id: string;
-  title: string;
-  description: string;
-  userAction: string;
-  expectedOutcome: string;
-  feedback: {
-    correct: string;
-    incorrect: string;
-    hint?: string;
-  };
-  consequences: string[];
-  nextSteps: string[];
-}
-
-interface SimulationData {
-  title: string;
-  instructions: string;
-  scenario: string;
-  learningObjectives: string[];
-  steps: SimulationStep[];
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
-  estimatedTime: number;
-  allowReplay: boolean;
-  showProgressIndicator: boolean;
-  branchingPaths: boolean;
-  realTimeDecisions: boolean;
-}
 
 interface SimulationBuilderProps {
   moduleTitle: string;
   moduleDescription: string;
   sectionTitle: string;
-  onSave: (data: SimulationData) => void;
+  onSave: (data: any) => void;
   onCancel: () => void;
-  initialData?: SimulationData;
+  initialData?: any;
+  category?: string;
+  difficulty?: string;
+  estimatedTime?: string;
 }
 
 export default function SimulationBuilder({
@@ -65,625 +35,339 @@ export default function SimulationBuilder({
   sectionTitle,
   onSave,
   onCancel,
-  initialData
+  initialData,
+  category = 'classroom-management',
+  difficulty = 'intermediate',
+  estimatedTime = '15 min'
 }: SimulationBuilderProps) {
   const { toast } = useToast();
+  const [builtSteps, setBuiltSteps] = useState<Array<{ title: string; description: string; action: string; outcome: string; feedback: string }>>([]);
+  const [currentStep, setCurrentStep] = useState({ title: '', description: '', action: '', outcome: '', feedback: '' });
   const [isGenerating, setIsGenerating] = useState(false);
-  
-  const [data, setData] = useState<SimulationData>(initialData || {
-    title: `${sectionTitle} - Interactive Simulation`,
-    instructions: 'Navigate through this realistic scenario and make decisions that reflect best practices in early childhood education.',
-    scenario: '',
-    learningObjectives: [''],
-    steps: [],
-    difficulty: 'intermediate',
-    estimatedTime: 15,
-    allowReplay: true,
-    showProgressIndicator: true,
-    branchingPaths: false,
-    realTimeDecisions: false
-  });
 
-  const [currentStep, setCurrentStep] = useState<SimulationStep>({
-    id: '',
-    title: '',
-    description: '',
-    userAction: '',
-    expectedOutcome: '',
-    feedback: {
-      correct: '',
-      incorrect: '',
-      hint: ''
-    },
-    consequences: [''],
-    nextSteps: ['']
-  });
-
-  const generateAISimulation = async () => {
-    if (!moduleTitle || !moduleDescription) {
-      toast({
-        title: "Missing Information",
-        description: "Module title and description are required for AI generation.",
-        variant: "destructive",
-      });
-      return;
+  useEffect(() => {
+    if (initialData?.steps) {
+      setBuiltSteps(initialData.steps);
     }
+  }, [initialData]);
 
+  const generateSingleStep = async () => {
     setIsGenerating(true);
     try {
-      const response = await apiRequest('/api/ai/generate-simulation', {
+      const response = await fetch('/api/ai/generate-simulation', {
         method: 'POST',
-        data: {
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           moduleTitle,
           moduleDescription,
           sectionTitle,
-          difficulty: data.difficulty,
-          stepCount: 8,
-          includeBranching: data.branchingPaths,
-          realTimeDecisions: data.realTimeDecisions,
-          targetAudience: 'early-childhood-educators',
-          simulationType: 'scenario-based'
-        }
+          count: 1,
+          existingSteps: builtSteps
+        })
       });
 
-      if (response.scenario) {
-        setData(prev => ({ ...prev, scenario: response.scenario }));
-      }
-
-      if (response.learningObjectives && response.learningObjectives.length > 0) {
-        setData(prev => ({ ...prev, learningObjectives: response.learningObjectives }));
-      }
-
-      if (response.steps && response.steps.length > 0) {
-        setData(prev => ({
-          ...prev,
-          steps: [...prev.steps, ...response.steps]
-        }));
-        
-        toast({
-          title: "Simulation Generated",
-          description: `Created interactive simulation with ${response.steps.length} decision points.`,
-        });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.steps && data.steps.length > 0) {
+          setCurrentStep(data.steps[0]);
+          toast({
+            title: "AI Content Generated",
+            description: "Simulation step has been generated successfully.",
+          });
+        }
       }
     } catch (error) {
-      console.error('Error generating simulation:', error);
       toast({
         title: "Generation Failed",
-        description: "Unable to generate simulation. Please create manually.",
-        variant: "destructive",
+        description: "Failed to generate simulation content.",
+        variant: "destructive"
       });
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const addObjective = () => {
-    setData(prev => ({
-      ...prev,
-      learningObjectives: [...prev.learningObjectives, '']
-    }));
-  };
-
-  const updateObjective = (index: number, value: string) => {
-    setData(prev => ({
-      ...prev,
-      learningObjectives: prev.learningObjectives.map((obj, i) => 
-        i === index ? value : obj
-      )
-    }));
-  };
-
-  const removeObjective = (index: number) => {
-    setData(prev => ({
-      ...prev,
-      learningObjectives: prev.learningObjectives.filter((_, i) => i !== index)
-    }));
-  };
-
-  const addConsequence = () => {
-    setCurrentStep(prev => ({
-      ...prev,
-      consequences: [...prev.consequences, '']
-    }));
-  };
-
-  const updateConsequence = (index: number, value: string) => {
-    setCurrentStep(prev => ({
-      ...prev,
-      consequences: prev.consequences.map((cons, i) => 
-        i === index ? value : cons
-      )
-    }));
-  };
-
-  const removeConsequence = (index: number) => {
-    setCurrentStep(prev => ({
-      ...prev,
-      consequences: prev.consequences.filter((_, i) => i !== index)
-    }));
-  };
-
-  const addNextStep = () => {
-    setCurrentStep(prev => ({
-      ...prev,
-      nextSteps: [...prev.nextSteps, '']
-    }));
-  };
-
-  const updateNextStep = (index: number, value: string) => {
-    setCurrentStep(prev => ({
-      ...prev,
-      nextSteps: prev.nextSteps.map((step, i) => 
-        i === index ? value : step
-      )
-    }));
-  };
-
-  const removeNextStep = (index: number) => {
-    setCurrentStep(prev => ({
-      ...prev,
-      nextSteps: prev.nextSteps.filter((_, i) => i !== index)
-    }));
-  };
-
-  const addStep = () => {
-    if (!currentStep.title.trim() || !currentStep.description.trim()) {
+  const addStepToBuilder = () => {
+    if (!currentStep.title.trim() || !currentStep.description.trim() || !currentStep.action.trim()) {
       toast({
-        title: "Incomplete Step",
-        description: "Please add both title and description for the simulation step.",
-        variant: "destructive",
+        title: "Validation Error",
+        description: "Please fill in title, description, and action fields.",
+        variant: "destructive"
       });
       return;
     }
 
-    if (!currentStep.userAction.trim() || !currentStep.expectedOutcome.trim()) {
-      toast({
-        title: "Missing Action Details",
-        description: "Please specify the user action and expected outcome.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const newStep = {
-      ...currentStep,
-      id: `step-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      consequences: currentStep.consequences.filter(c => c.trim()),
-      nextSteps: currentStep.nextSteps.filter(s => s.trim())
-    };
-
-    setData(prev => ({
-      ...prev,
-      steps: [...prev.steps, newStep]
-    }));
-
-    setCurrentStep({
-      id: '',
-      title: '',
-      description: '',
-      userAction: '',
-      expectedOutcome: '',
-      feedback: {
-        correct: '',
-        incorrect: '',
-        hint: ''
-      },
-      consequences: [''],
-      nextSteps: ['']
-    });
-
+    setBuiltSteps([...builtSteps, { ...currentStep }]);
+    setCurrentStep({ title: '', description: '', action: '', outcome: '', feedback: '' });
+    
     toast({
       title: "Step Added",
-      description: `Simulation now has ${data.steps.length + 1} decision points.`,
+      description: "Simulation step has been added to the builder.",
     });
   };
 
-  const removeStep = (index: number) => {
-    setData(prev => ({
-      ...prev,
-      steps: prev.steps.filter((_, i) => i !== index)
-    }));
+  const removeStepFromBuilder = (index: number) => {
+    setBuiltSteps(builtSteps.filter((_, i) => i !== index));
   };
 
-  const moveStep = (index: number, direction: 'up' | 'down') => {
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= data.steps.length) return;
-
-    setData(prev => {
-      const newSteps = [...prev.steps];
-      [newSteps[index], newSteps[newIndex]] = [newSteps[newIndex], newSteps[index]];
-      return { ...prev, steps: newSteps };
-    });
-  };
-
-  const handleSave = () => {
-    if (data.steps.length < 3) {
+  const finishAndSave = () => {
+    if (builtSteps.length === 0) {
       toast({
-        title: "Need More Steps",
-        description: "Please add at least 3 decision points for an effective simulation.",
-        variant: "destructive",
+        title: "Validation Error",
+        description: "Please add at least one simulation step before saving.",
+        variant: "destructive"
       });
       return;
     }
 
-    if (!data.scenario.trim()) {
-      toast({
-        title: "Missing Scenario",
-        description: "Please provide a scenario description for the simulation.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    onSave(data);
+    onSave({ steps: builtSteps });
   };
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Gamepad2 className="h-5 w-5" />
-            Interactive Simulation Builder
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="title">Simulation Title</Label>
-              <Input
-                id="title"
-                value={data.title}
-                onChange={(e) => setData(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Enter simulation title"
-              />
-            </div>
-            <div>
-              <Label htmlFor="difficulty">Difficulty Level</Label>
-              <Select
-                value={data.difficulty}
-                onValueChange={(value) => setData(prev => ({ ...prev, difficulty: value as any }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select difficulty" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="beginner">Beginner</SelectItem>
-                  <SelectItem value="intermediate">Intermediate</SelectItem>
-                  <SelectItem value="advanced">Advanced</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="instructions">Instructions</Label>
-            <Textarea
-              id="instructions"
-              value={data.instructions}
-              onChange={(e) => setData(prev => ({ ...prev, instructions: e.target.value }))}
-              placeholder="Explain how learners should approach this simulation"
-              rows={2}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="scenario">Scenario Context</Label>
-            <Textarea
-              id="scenario"
-              value={data.scenario}
-              onChange={(e) => setData(prev => ({ ...prev, scenario: e.target.value }))}
-              placeholder="Describe the overall scenario and setting for this simulation"
-              rows={4}
-            />
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="estimatedTime">Estimated Time (minutes)</Label>
-              <Input
-                id="estimatedTime"
-                type="number"
-                value={data.estimatedTime}
-                onChange={(e) => setData(prev => ({ ...prev, estimatedTime: parseInt(e.target.value) || 15 }))}
-                placeholder="15"
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="allowReplay"
-                checked={data.allowReplay}
-                onChange={(e) => setData(prev => ({ ...prev, allowReplay: e.target.checked }))}
-              />
-              <Label htmlFor="allowReplay">Allow replay</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="branchingPaths"
-                checked={data.branchingPaths}
-                onChange={(e) => setData(prev => ({ ...prev, branchingPaths: e.target.checked }))}
-              />
-              <Label htmlFor="branchingPaths">Branching paths</Label>
-            </div>
-          </div>
-
-          <div>
-            <div className="flex justify-between items-center">
-              <Label>Learning Objectives</Label>
-              <Button variant="outline" size="sm" onClick={addObjective}>
-                <Plus className="h-4 w-4 mr-1" />
-                Add Objective
-              </Button>
-            </div>
-            {data.learningObjectives.map((objective, index) => (
-              <div key={index} className="flex gap-2 mt-2">
-                <Input
-                  value={objective}
-                  onChange={(e) => updateObjective(index, e.target.value)}
-                  placeholder={`Learning objective ${index + 1}`}
-                />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeObjective(index)}
-                  disabled={data.learningObjectives.length === 1}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+      {/* Module Context Header */}
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-3">
+            <Target className="h-6 w-6 text-blue-600" />
+            <div className="flex-1">
+              <CardTitle className="text-lg text-blue-900">
+                {moduleTitle || 'Professional Development Module'}
+              </CardTitle>
+              <CardDescription className="text-blue-700 mt-1">
+                <strong>Topic:</strong> {moduleDescription || 'Building effective teaching strategies'}
+              </CardDescription>
+              <div className="flex items-center gap-4 mt-2 text-sm">
+                <Badge variant="outline" className="border-blue-300 text-blue-700">
+                  {category}
+                </Badge>
+                <Badge variant="outline" className="border-purple-300 text-purple-700">
+                  {difficulty} level
+                </Badge>
+                <span className="text-blue-600">
+                  <Clock className="h-4 w-4 inline mr-1" />
+                  {estimatedTime}
+                </span>
               </div>
-            ))}
+            </div>
           </div>
-
-          <div className="flex gap-2">
-            <Button
-              onClick={generateAISimulation}
-              disabled={isGenerating}
-              variant="outline"
-            >
-              {isGenerating ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Wand2 className="h-4 w-4 mr-2" />
-              )}
-              Generate with AI
-            </Button>
-          </div>
-        </CardContent>
+        </CardHeader>
       </Card>
 
-      {/* Manual Step Builder */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            Add Simulation Step
-          </CardTitle>
+          <CardTitle>Build Section: {sectionTitle}</CardTitle>
+          <CardDescription>
+            AI will use the module topic above to generate relevant content for this section
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="stepTitle">Step Title</Label>
-              <Input
-                id="stepTitle"
-                value={currentStep.title}
-                onChange={(e) => setCurrentStep(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Enter step title"
-              />
-            </div>
-            <div>
-              <Label htmlFor="userAction">Required User Action</Label>
-              <Input
-                id="userAction"
-                value={currentStep.userAction}
-                onChange={(e) => setCurrentStep(prev => ({ ...prev, userAction: e.target.value }))}
-                placeholder="What should the user do?"
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="stepDescription">Step Description</Label>
-            <Textarea
-              id="stepDescription"
-              value={currentStep.description}
-              onChange={(e) => setCurrentStep(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Describe what happens in this step of the simulation"
-              rows={3}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="expectedOutcome">Expected Outcome</Label>
-            <Textarea
-              id="expectedOutcome"
-              value={currentStep.expectedOutcome}
-              onChange={(e) => setCurrentStep(prev => ({ ...prev, expectedOutcome: e.target.value }))}
-              placeholder="What should happen if the user makes the correct decision?"
-              rows={2}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="correctFeedback">Correct Feedback</Label>
-              <Textarea
-                id="correctFeedback"
-                value={currentStep.feedback.correct}
-                onChange={(e) => setCurrentStep(prev => ({ 
-                  ...prev, 
-                  feedback: { ...prev.feedback, correct: e.target.value }
-                }))}
-                placeholder="Feedback for correct actions"
-                rows={2}
-              />
-            </div>
-            <div>
-              <Label htmlFor="incorrectFeedback">Incorrect Feedback</Label>
-              <Textarea
-                id="incorrectFeedback"
-                value={currentStep.feedback.incorrect}
-                onChange={(e) => setCurrentStep(prev => ({ 
-                  ...prev, 
-                  feedback: { ...prev.feedback, incorrect: e.target.value }
-                }))}
-                placeholder="Feedback for incorrect actions"
-                rows={2}
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="hint">Hint (Optional)</Label>
-            <Input
-              id="hint"
-              value={currentStep.feedback.hint || ''}
-              onChange={(e) => setCurrentStep(prev => ({ 
-                ...prev, 
-                feedback: { ...prev.feedback, hint: e.target.value }
-              }))}
-              placeholder="Provide a helpful hint"
-            />
-          </div>
-
-          <div>
-            <div className="flex justify-between items-center">
-              <Label>Consequences</Label>
-              <Button variant="outline" size="sm" onClick={addConsequence}>
-                <Plus className="h-4 w-4 mr-1" />
-                Add Consequence
-              </Button>
-            </div>
-            {currentStep.consequences.map((consequence, index) => (
-              <div key={index} className="flex gap-2 mt-2">
-                <Input
-                  value={consequence}
-                  onChange={(e) => updateConsequence(index, e.target.value)}
-                  placeholder={`Consequence ${index + 1}`}
-                />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeConsequence(index)}
-                  disabled={currentStep.consequences.length === 1}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+        <CardContent className="space-y-6">
+          {/* Interactive Simulation Builder */}
+          <Card className="border-orange-200 bg-orange-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-orange-800">
+                <Play className="h-5 w-5" />
+                Interactive Simulation Builder
+              </CardTitle>
+              <CardDescription className="text-orange-700">
+                Build your interactive simulation one step at a time. Add as many steps as you need.
+              </CardDescription>
+              
+              {/* Topic Context for AI */}
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Target className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-800">Simulation Topic Context</span>
+                </div>
+                <div className="text-sm space-y-1">
+                  <div className="text-blue-700">
+                    <strong>Module:</strong> {moduleTitle || 'Professional Development Module'}
+                  </div>
+                  <div className="text-blue-700">
+                    <strong>Learning Objective:</strong> {moduleDescription || 'Building effective teaching strategies'}
+                  </div>
+                  <div className="text-blue-700">
+                    <strong>Section:</strong> {sectionTitle}
+                  </div>
+                  <div className="text-blue-600 text-xs mt-2">
+                    AI will generate simulation steps specifically about this topic and section
+                  </div>
+                </div>
               </div>
-            ))}
-          </div>
-
-          {data.branchingPaths && (
-            <div>
-              <div className="flex justify-between items-center">
-                <Label>Next Steps (Branching)</Label>
-                <Button variant="outline" size="sm" onClick={addNextStep}>
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Next Step
-                </Button>
-              </div>
-              {currentStep.nextSteps.map((nextStep, index) => (
-                <div key={index} className="flex gap-2 mt-2">
-                  <Input
-                    value={nextStep}
-                    onChange={(e) => updateNextStep(index, e.target.value)}
-                    placeholder={`Next step option ${index + 1}`}
-                  />
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Progress */}
+              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-orange-200">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-700 font-semibold">
+                    {builtSteps.length}
+                  </div>
+                  <span className="text-sm font-medium">Steps Built</span>
+                </div>
+                {builtSteps.length > 0 && (
                   <Button
-                    variant="ghost"
                     size="sm"
-                    onClick={() => removeNextStep(index)}
-                    disabled={currentStep.nextSteps.length === 1}
+                    onClick={finishAndSave}
+                    className="bg-orange-600 hover:bg-orange-700"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    Steps Finished - Save & Move On
                   </Button>
-                </div>
-              ))}
-            </div>
-          )}
+                )}
+              </div>
 
-          <Button onClick={addStep} className="w-full">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Simulation Step
-          </Button>
+              {/* Current Step Builder */}
+              <div className="space-y-4 p-4 bg-white rounded-lg border border-orange-200">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold">Step {builtSteps.length + 1}</h4>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={generateSingleStep}
+                      disabled={isGenerating}
+                      className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          AI Generate
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Title Input */}
+                <div>
+                  <Label className="text-sm font-medium">Step Title</Label>
+                  <Input
+                    value={currentStep.title}
+                    onChange={(e) => setCurrentStep(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="Enter step title..."
+                    className="mt-1"
+                  />
+                </div>
+
+                {/* Description Input */}
+                <div>
+                  <Label className="text-sm font-medium">Step Description</Label>
+                  <Textarea
+                    value={currentStep.description}
+                    onChange={(e) => setCurrentStep(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Describe what happens in this step..."
+                    className="mt-1"
+                    rows={3}
+                  />
+                </div>
+
+                {/* Action Input */}
+                <div>
+                  <Label className="text-sm font-medium">User Action</Label>
+                  <Input
+                    value={currentStep.action}
+                    onChange={(e) => setCurrentStep(prev => ({ ...prev, action: e.target.value }))}
+                    placeholder="What action should the user take..."
+                    className="mt-1"
+                  />
+                </div>
+
+                {/* Outcome Input */}
+                <div>
+                  <Label className="text-sm font-medium">Expected Outcome</Label>
+                  <Textarea
+                    value={currentStep.outcome}
+                    onChange={(e) => setCurrentStep(prev => ({ ...prev, outcome: e.target.value }))}
+                    placeholder="What should happen as a result..."
+                    className="mt-1"
+                    rows={2}
+                  />
+                </div>
+
+                {/* Feedback Input */}
+                <div>
+                  <Label className="text-sm font-medium">Feedback</Label>
+                  <Textarea
+                    value={currentStep.feedback}
+                    onChange={(e) => setCurrentStep(prev => ({ ...prev, feedback: e.target.value }))}
+                    placeholder="Feedback or explanation for this step..."
+                    className="mt-1"
+                    rows={2}
+                  />
+                </div>
+
+                {/* Add Step Button */}
+                <Button
+                  onClick={addStepToBuilder}
+                  className="w-full bg-orange-600 hover:bg-orange-700"
+                  disabled={!currentStep.title.trim() || !currentStep.description.trim() || !currentStep.action.trim()}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Step to Simulation
+                </Button>
+              </div>
+
+              {/* Built Steps List */}
+              {builtSteps.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold">Simulation Steps ({builtSteps.length})</h4>
+                  {builtSteps.map((step, index) => (
+                    <div key={index} className="p-3 bg-white rounded-lg border border-orange-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">Step {index + 1}: {step.title}</div>
+                          <div className="text-xs text-gray-600 mt-1">
+                            {step.description.substring(0, 100)}...
+                          </div>
+                          <div className="text-xs text-orange-600 mt-1">
+                            <strong>Action:</strong> {step.action}
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => removeStepFromBuilder(index)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Exit Builder */}
+              <div className="flex justify-between pt-4 border-t border-orange-200">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setCurrentStep({ title: '', description: '', action: '', outcome: '', feedback: '' });
+                    setBuiltSteps([]);
+                    onCancel();
+                  }}
+                >
+                  Cancel Builder
+                </Button>
+                
+                {builtSteps.length > 0 && (
+                  <Button
+                    onClick={finishAndSave}
+                    className="bg-orange-600 hover:bg-orange-700"
+                  >
+                    Finish Simulation & Continue
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </CardContent>
       </Card>
-
-      {/* Current Steps List */}
-      {data.steps.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5" />
-              Simulation Steps ({data.steps.length}) - Est. {data.estimatedTime} min
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {data.steps.map((step, index) => (
-                <div key={step.id} className="border rounded p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">Step {index + 1}</Badge>
-                      <h4 className="font-medium">{step.title}</h4>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => moveStep(index, 'up')}
-                        disabled={index === 0}
-                      >
-                        ↑
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => moveStep(index, 'down')}
-                        disabled={index === data.steps.length - 1}
-                      >
-                        ↓
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeStep(index)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="text-sm space-y-2">
-                    <div><strong>Action:</strong> {step.userAction}</div>
-                    <div><strong>Description:</strong> {step.description.substring(0, 100)}...</div>
-                    <div><strong>Expected:</strong> {step.expectedOutcome.substring(0, 100)}...</div>
-                    {step.consequences.length > 0 && (
-                      <div><strong>Consequences:</strong> {step.consequences.length} defined</div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-center mt-3 text-gray-400">
-                    <ArrowRight className="h-4 w-4" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Action Buttons */}
-      <div className="flex gap-2 justify-end">
-        <Button variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button onClick={handleSave}>
-          <Save className="h-4 w-4 mr-2" />
-          Save Interactive Simulation
-        </Button>
-      </div>
     </div>
   );
 }
