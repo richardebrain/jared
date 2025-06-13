@@ -8,6 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, ArrowRight, CheckCircle2, Wand2, Loader2, Zap, BookOpen, Brain, Wrench, Users, Edit, Type, FileText, Save, Plus, RefreshCw } from 'lucide-react';
+import QuizSectionBuilder from '@/components/SectionBuilders/QuizSectionBuilder';
+import MatchingSectionBuilder from '@/components/SectionBuilders/MatchingSectionBuilder';
+import TextSectionBuilder from '@/components/SectionBuilders/TextSectionBuilder';
 
 // Proven Templates - The foundation for AI-driven content creation
 const PROVEN_TEMPLATES = [
@@ -215,6 +218,60 @@ export default function NewModuleAI() {
       case 'triage': return '🎯';
       case 'scenario-match': return '🎪';
       default: return '📋';
+    }
+  };
+
+  const renderSectionBuilder = (section: any, index: number) => {
+    const content = sectionContents[index];
+    const isEditing = editingSections[index];
+    
+    const handleContentChange = (updatedContent: any) => {
+      setSectionContents(prev => {
+        const updated = [...prev];
+        updated[index] = updatedContent;
+        return updated;
+      });
+    };
+
+    const handleEditToggle = () => {
+      toggleSectionEdit(index);
+    };
+
+    // Route to appropriate builder based on section type
+    switch (section.type) {
+      case 'quiz':
+        return (
+          <QuizSectionBuilder
+            content={content}
+            onContentChange={handleContentChange}
+            isEditing={isEditing}
+            onEditToggle={handleEditToggle}
+          />
+        );
+      
+      case 'matching':
+        return (
+          <MatchingSectionBuilder
+            content={content}
+            onContentChange={handleContentChange}
+            isEditing={isEditing}
+            onEditToggle={handleEditToggle}
+          />
+        );
+      
+      case 'text':
+      case 'example':
+      case 'scenario':
+      case 'story':
+      default:
+        return (
+          <TextSectionBuilder
+            content={content}
+            onContentChange={handleContentChange}
+            isEditing={isEditing}
+            onEditToggle={handleEditToggle}
+          />
+        );
     }
   };
 
@@ -489,98 +546,10 @@ export default function NewModuleAI() {
                   </div>
                 </CardHeader>
                 
-                {/* Section Content or Editor */}
+                {/* Section Content with Specialized Builders */}
                 {(sectionContents[index] || editingSections[index]) && (
                   <CardContent className="border-t bg-gray-50">
-                    {editingSections[index] ? (
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                          <FileText className="h-4 w-4" />
-                          {section.type === 'text' ? 'Write your educational content below:' : 
-                           section.type === 'example' ? 'Provide practical examples:' :
-                           section.type === 'scenario' ? 'Describe a realistic scenario:' :
-                           section.type === 'quiz' ? 'Create quiz questions:' :
-                           'Add your content below:'}
-                        </div>
-                        <textarea
-                          className="w-full h-40 p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder={
-                            section.type === 'text' ? `Write informative content about ${moduleConfig.topic}...` :
-                            section.type === 'example' ? `Example 1: In a preschool classroom dealing with ${moduleConfig.topic}...` :
-                            section.type === 'scenario' ? `Scenario: A teacher encounters ${moduleConfig.topic} when...` :
-                            section.type === 'quiz' ? `Question 1: Which approach works best for ${moduleConfig.topic}?` :
-                            `Add ${section.type} content about ${moduleConfig.topic}...`
-                          }
-                          value={manualContent[index] || ''}
-                          onChange={(e) => updateManualContent(index, e.target.value)}
-                        />
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={() => toggleSectionEdit(index)}
-                            size="sm"
-                          >
-                            <Save className="h-4 w-4 mr-1" />
-                            Save Content
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => generateSectionContent(index)}
-                            disabled={generatingSection === index}
-                          >
-                            {generatingSection === index ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                                Generating...
-                              </>
-                            ) : (
-                              <>
-                                <Wand2 className="h-4 w-4 mr-1" />
-                                Use AI Instead
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        <div className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                          <BookOpen className="h-4 w-4" />
-                          Content Preview:
-                        </div>
-                        <div className="bg-white p-4 rounded-lg border text-sm text-gray-700 leading-relaxed">
-                          {sectionContents[index]?.blocks?.[0]?.content?.substring(0, 500) + 
-                           (sectionContents[index]?.blocks?.[0]?.content?.length > 500 ? '...' : '') ||
-                           sectionContents[index]?.blocks?.[0]?.preview ||
-                           'Content ready for review'}
-                        </div>
-                        {sectionContents[index]?.blocks && sectionContents[index].blocks.length > 1 && (
-                          <div className="text-xs text-gray-500 flex items-center gap-1">
-                            <Plus className="h-3 w-3" />
-                            {sectionContents[index].blocks.length - 1} additional content blocks included
-                          </div>
-                        )}
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => generateSectionContent(index)}
-                            disabled={generatingSection === index}
-                          >
-                            <RefreshCw className="h-4 w-4 mr-1" />
-                            Regenerate
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => toggleSectionEdit(index)}
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit Manually
-                          </Button>
-                        </div>
-                      </div>
-                    )}
+                    {renderSectionBuilder(section, index)}
                   </CardContent>
                 )}
               </Card>
