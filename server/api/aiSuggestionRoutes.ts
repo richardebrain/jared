@@ -1196,6 +1196,192 @@ Focus specifically on "${topic}" - make each content block directly address this
 });
 
 /**
+ * Generate content for specific module sections based on proven templates
+ */
+router.post('/generate-section', async (req, res) => {
+  try {
+    const { topic, sectionType, sectionTitle, targetAudience, difficulty, templateContext } = req.body;
+    
+    if (!topic || !sectionType || !sectionTitle) {
+      return res.status(400).json({ message: 'Topic, section type, and section title are required' });
+    }
+    
+    console.log("Generating section content:", { topic, sectionType, sectionTitle, templateContext });
+    
+    // Build section-specific prompts based on type
+    let sectionPrompt = "";
+    
+    switch (sectionType) {
+      case 'text':
+        sectionPrompt = `Create educational content for "${sectionTitle}" about ${topic} for ${targetAudience} at ${difficulty} level. This is part of a ${templateContext}.
+        
+        Generate informative, engaging text content that covers:
+        - Key concepts and definitions
+        - Practical explanations
+        - Real-world applications
+        
+        Format as clear, structured content with headings and bullet points where appropriate.`;
+        break;
+        
+      case 'example':
+        sectionPrompt = `Create practical examples for "${sectionTitle}" about ${topic} for ${targetAudience} at ${difficulty} level. This is part of a ${templateContext}.
+        
+        Generate 3-5 concrete, real-world examples that demonstrate:
+        - How ${topic} applies in early childhood settings
+        - Specific scenarios teachers encounter
+        - Step-by-step implementation
+        
+        Make examples relatable and actionable.`;
+        break;
+        
+      case 'scenario':
+        sectionPrompt = `Create an interactive scenario for "${sectionTitle}" about ${topic} for ${targetAudience} at ${difficulty} level. This is part of a ${templateContext}.
+        
+        Generate a realistic classroom scenario that:
+        - Presents a situation involving ${topic}
+        - Includes multiple response options
+        - Shows consequences of different approaches
+        - Provides learning outcomes
+        
+        Format as a narrative with decision points.`;
+        break;
+        
+      case 'quiz':
+        sectionPrompt = `Create quiz questions for "${sectionTitle}" about ${topic} for ${targetAudience} at ${difficulty} level. This is part of a ${templateContext}.
+        
+        Generate 3-5 multiple choice questions that:
+        - Test understanding of ${topic} concepts
+        - Include realistic scenarios
+        - Have clear correct answers with explanations
+        - Are appropriate for ${difficulty} level
+        
+        Include both the questions and answer explanations.`;
+        break;
+        
+      case 'matching':
+        sectionPrompt = `Create a matching activity for "${sectionTitle}" about ${topic} for ${targetAudience} at ${difficulty} level. This is part of a ${templateContext}.
+        
+        Generate pairs of items to match that cover:
+        - Key terms and definitions related to ${topic}
+        - Concepts and examples
+        - Problems and solutions
+        
+        Provide 6-8 matching pairs with clear connections.`;
+        break;
+        
+      case 'story':
+        sectionPrompt = `Create a case study story for "${sectionTitle}" about ${topic} for ${targetAudience} at ${difficulty} level. This is part of a ${templateContext}.
+        
+        Generate a detailed case study that:
+        - Tells a realistic story involving ${topic}
+        - Shows progression over time
+        - Highlights key learning points
+        - Includes reflection questions
+        
+        Make it engaging and educational.`;
+        break;
+        
+      case 'mnemonic':
+        sectionPrompt = `Create memory techniques for "${sectionTitle}" about ${topic} for ${targetAudience} at ${difficulty} level. This is part of a ${templateContext}.
+        
+        Generate memorable learning aids including:
+        - Acronyms for key concepts
+        - Rhymes or phrases
+        - Visual memory techniques
+        - Step-by-step mnemonics
+        
+        Focus on helping teachers remember important ${topic} information.`;
+        break;
+        
+      case 'simulation':
+        sectionPrompt = `Create a practice simulation for "${sectionTitle}" about ${topic} for ${targetAudience} at ${difficulty} level. This is part of a ${templateContext}.
+        
+        Generate a hands-on practice activity that:
+        - Simulates real ${topic} situations
+        - Provides guided practice steps
+        - Includes feedback mechanisms
+        - Builds practical skills
+        
+        Make it interactive and skill-building focused.`;
+        break;
+        
+      case 'triage':
+        sectionPrompt = `Create a decision-making guide for "${sectionTitle}" about ${topic} for ${targetAudience} at ${difficulty} level. This is part of a ${templateContext}.
+        
+        Generate a triage system that helps teachers:
+        - Quickly assess ${topic} situations
+        - Prioritize responses
+        - Choose appropriate interventions
+        - Know when to escalate
+        
+        Include decision trees and action steps.`;
+        break;
+        
+      case 'scenario-match':
+        sectionPrompt = `Create scenario matching for "${sectionTitle}" about ${topic} for ${targetAudience} at ${difficulty} level. This is part of a ${templateContext}.
+        
+        Generate scenarios and appropriate responses about ${topic}:
+        - Present challenging situations
+        - Provide multiple response options
+        - Show best practice matches
+        - Explain reasoning behind choices
+        
+        Focus on practical application skills.`;
+        break;
+        
+      default:
+        sectionPrompt = `Create content for "${sectionTitle}" about ${topic} for ${targetAudience} at ${difficulty} level. This is part of a ${templateContext}.
+        
+        Generate relevant, engaging content that supports learning about ${topic}.`;
+    }
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system", 
+          content: "You are an expert early childhood education content creator. Create high-quality, practical content that teachers can immediately use. Always return valid JSON format with a 'blocks' array containing the generated content."
+        },
+        {
+          role: "user",
+          content: sectionPrompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.7,
+    });
+
+    const result = JSON.parse(response.choices[0]?.message?.content || '{"blocks": []}');
+    
+    if (!result.blocks || result.blocks.length === 0) {
+      // Create appropriate fallback based on section type
+      result.blocks = [{
+        type: sectionType,
+        title: sectionTitle,
+        content: `Generated content for ${sectionTitle} about ${topic}. This ${sectionType} section provides practical information for ${targetAudience}.`,
+        preview: `${sectionTitle} content about ${topic}`
+      }];
+    }
+
+    console.log(`Generated content for ${sectionType} section: ${sectionTitle}`);
+    
+    return res.json({
+      blocks: result.blocks,
+      sectionType,
+      sectionTitle
+    });
+
+  } catch (error) {
+    console.error("Error generating section content:", error);
+    
+    return res.status(500).json({ 
+      message: 'Failed to generate section content',
+      error: error.message
+    });
+  }
+});
+
+/**
  * Generate flashcards/key terms for educational content
  */
 router.post('/generate-flashcards', async (req, res) => {
