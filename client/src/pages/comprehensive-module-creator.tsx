@@ -72,6 +72,16 @@ import StepByStepModuleBuilder from '@/components/StepByStepModuleBuilder';
 import PowerPointImporter from '@/components/PowerPointImporter';
 import ModulePublishingDialog from '@/components/ModulePublishingDialog';
 
+// Import new builder components
+import ScenarioMatchBuilder from '@/components/builders/ScenarioMatchBuilder';
+import SlideBuilder from '@/components/builders/SlideBuilder';
+import ExampleBuilder from '@/components/builders/ExampleBuilder';
+import MatchingBuilder from '@/components/builders/MatchingBuilder';
+import ScenarioBuilder from '@/components/builders/ScenarioBuilder';
+import TriageBuilder from '@/components/builders/TriageBuilder';
+import MnemonicBuilder from '@/components/builders/MnemonicBuilder';
+import SimulationBuilder from '@/components/builders/SimulationBuilder';
+
 interface ModuleSection {
   title: string;
   content: string;
@@ -103,6 +113,14 @@ interface ModuleSection {
     content: string;
     imageUrl?: string;
   }>;
+  // Extended properties for refactored types
+  builderData?: any; // Stores structured data from specialized builders
+  interactiveConfig?: {
+    allowMultipleAttempts?: boolean;
+    showFeedback?: boolean;
+    timeLimit?: number;
+    difficulty?: string;
+  };
 }
 
 interface Module {
@@ -775,6 +793,11 @@ export default function ComprehensiveModuleCreator() {
   const [isSearchingYoutube, setIsSearchingYoutube] = useState(false);
   const [customVideoUrl, setCustomVideoUrl] = useState('');
   const [selectedVideoForSection, setSelectedVideoForSection] = useState<number | null>(null);
+
+  // New builder states for refactored module types
+  const [activeBuilder, setActiveBuilder] = useState<string | null>(null);
+  const [builderData, setBuilderData] = useState<any>(null);
+  const [currentBuilderSection, setCurrentBuilderSection] = useState<number | null>(null);
 
 
 
