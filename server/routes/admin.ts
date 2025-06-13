@@ -2,7 +2,7 @@ import { Router, type Request, type Response, NextFunction } from 'express';
 import { QuestionManagementService, QuestionFiltersSchema, CreateQuestionSchema, UpdateQuestionSchema } from '../services/admin/QuestionManagementService';
 import { z } from 'zod';
 import { db } from '../db';
-import { teacherMessages, users, insertTeacherMessageSchema, assessments, assessmentResults, assessmentDomains, assessmentQuestions, questionAvailability, QuestionAvailability, InsertQuestionAvailability, learningPaths } from '@shared/schema';
+import { teacherMessages, users, insertTeacherMessageSchema, assessments, assessmentResults, assessmentDomains, assessmentQuestions, questionAvailability, QuestionAvailability, InsertQuestionAvailability, learningPaths, schools } from '@shared/schema';
 import { eq, desc, and, or, like, gte, lte, asc, sql, count } from 'drizzle-orm';
 import { QuestionPoolAnalysisService } from '../services/admin/QuestionPoolAnalysisService';
 import { openAIService } from '../services/OpenAIService';
@@ -1080,6 +1080,167 @@ router.get("/assessment-results", async (req, res) => {
     res.status(500).json({ 
       success: false, 
       error: "Failed to fetch assessment results" 
+    });
+  }
+});
+
+/**
+ * GET /api/admin/teachers/:teacherId/assessment-results
+ * Get detailed assessment results for a specific teacher
+ * Role-based access: Directors see their school's teachers, Owners see all
+ */
+router.get('/teachers/:teacherId/assessment-results', async (req: Request, res: Response) => {
+  try {
+    const teacherId = parseInt(req.params.teacherId);
+    const currentUserId = req.session.userId;
+
+    if (!currentUserId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    if (isNaN(teacherId)) {
+      return res.status(400).json({ message: 'Invalid teacher ID' });
+    }
+
+    // Get current user to check permissions
+    const currentUser = await db.select()
+      .from(users)
+      .where(eq(users.id, currentUserId))
+      .limit(1);
+
+    if (!currentUser || currentUser.length === 0) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    const user = currentUser[0];
+
+    // Get the target teacher
+    const targetTeacher = await db.select({
+      id: users.id,
+      username: users.username,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      email: users.email,
+      schoolId: users.schoolId,
+      profilePicture: users.profilePicture,
+    })
+    .from(users)
+    .where(eq(users.id, teacherId))
+    .limit(1);
+
+    if (!targetTeacher || targetTeacher.length === 0) {
+      return res.status(404).json({ message: 'Teacher not found' });
+    }
+
+    const teacher = targetTeacher[0];
+
+    // Role-based access control
+    // - Owners can see all teachers
+    // - Directors can only see teachers from their school
+    if (!user.isOwner && (!user.isSchoolAdmin || user.schoolId !== teacher.schoolId)) {
+      return res.status(403).json({ 
+        message: 'Access denied. You can only view assessment results for teachers in your school.' 
+      });
+    }
+
+    // Get the most recent completed assessment for this teacher
+    const teacherAssessment = await db.select()
+      .from(assessments)
+      .where(and(
+        eq(assessments.userId, teacherId),
+        eq(assessments.type, 'initial'),
+        eq(assessments.completed, true)
+      ))
+      .orderBy(desc(assessments.completedAt))
+      .limit(1);
+
+    if (!teacherAssessment || teacherAssessment.length === 0) {
+      return res.status(404).json({
+        message: "No completed assessment found",
+        details: "This teacher hasn't completed an assessment yet."
+      });
+    }
+
+    const assessment = teacherAssessment[0];
+
+    // Get detailed assessment results
+    const storedResults = await db.select()
+      .from(assessmentResults)
+      .where(eq(assessmentResults.assessmentId, assessment.id))
+      .limit(1);
+
+    if (!storedResults || storedResults.length === 0) {
+      return res.status(404).json({
+        message: "Assessment results not found",
+        details: "Assessment results are not available or still being processed."
+      });
+    }
+
+    const results = storedResults[0];
+
+    // Get learning path if available
+    const learningPath = await db.select()
+      .from(learningPaths)
+      .where(eq(learningPaths.assessmentId, assessment.id))
+      .limit(1);
+
+    // Get school information for context
+    let schoolName = 'Unknown School';
+    if (teacher.schoolId) {
+      const school = await db.select({ name: schools.name })
+        .from(schools)
+        .where(eq(schools.id, teacher.schoolId))
+        .limit(1);
+      
+      if (school && school.length > 0) {
+        schoolName = school[0].name;
+      }
+    }
+
+    // Return comprehensive results for display
+    res.status(200).json({
+      success: true,
+      teacher: {
+        id: teacher.id,
+        firstName: teacher.firstName,
+        lastName: teacher.lastName,
+        username: teacher.username,
+        email: teacher.email,
+        profilePicture: teacher.profilePicture,
+        schoolName,
+      },
+      assessment: {
+        id: assessment.id,
+        completedAt: assessment.completedAt,
+        type: assessment.type
+      },
+      results: {
+        overallScore: results.overallScore,
+        totalQuestions: results.totalQuestions,
+        totalCorrect: results.totalCorrect,
+        accuracyRate: results.accuracyRate,
+        totalTimeSeconds: results.totalTimeSeconds,
+        strengthAreas: results.strengthAreas,
+        growthAreas: results.growthAreas,
+        domainBreakdown: results.domainBreakdown,
+        personalizedSummary: results.personalizedSummary,
+        immediateNextSteps: results.immediateNextSteps,
+        primaryMiniLessons: results.primaryMiniLessons,
+        estimatedImprovementTime: results.estimatedImprovementTime
+      },
+      learningPath: learningPath.length > 0 ? {
+        domainGroups: learningPath[0].domainGroups,
+        totalFailedQuestions: learningPath[0].totalFailedQuestions,
+        totalDomains: learningPath[0].totalDomains,
+        estimatedCompletionTime: learningPath[0].estimatedCompletionTime
+      } : null
+    });
+
+  } catch (error) {
+    console.error('Error retrieving teacher assessment results:', error);
+    res.status(500).json({
+      message: "Failed to retrieve assessment results",
+      details: "An error occurred while loading the results. Please try again."
     });
   }
 });

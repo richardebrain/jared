@@ -66,7 +66,7 @@ export function TeacherAssessmentSummary({ assessmentResults }: TeacherAssessmen
           {assessmentResults.completedAt && formatDate(assessmentResults.completedAt)}
         </div>
         <div className="font-medium text-xs">
-          {assessmentResults.accuracyRate ? `${Math.round(assessmentResults.accuracyRate)}%` : 'N/A'}
+          {assessmentResults.accuracyRate ? `${assessmentResults.accuracyRate}%` : 'N/A'}
         </div>
         <div className="font-medium text-xs">
           {assessmentResults.totalTimeMinutes ? `${assessmentResults.totalTimeMinutes}min` : 'N/A'}

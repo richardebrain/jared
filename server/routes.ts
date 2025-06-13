@@ -43,6 +43,7 @@ import personalizedModuleRoutes from "./api/personalizedModuleRoutes";
 import assessmentQuestionRoutes from "./routes/assessment-questions";
 import aiSuggestionRoutes from "./api/aiSuggestionRoutes";
 import newAiSuggestionRoutes from "./api/newAiSuggestionRoutes";
+import powerpointRoutes from "./api/powerpointRoutes";
 import moduleRatingsRoutes from "./api/moduleRatingsRoutes";
 import communityModulesRoutes from "./api/communityModulesRoutes";
 import selfAssessmentRoutes from "./api/selfAssessmentRoutes";
@@ -873,6 +874,9 @@ Continue for all 5 questions...
 
   // Register teacher invitation routes
   app.use("/api/teacher-invitations", teacherInvitationRoutes);
+
+  // Register PowerPoint parsing routes
+  app.use("/api/powerpoint", powerpointRoutes);
 
   // Module management will be handled separately
 
