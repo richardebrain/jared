@@ -25,10 +25,9 @@ interface QuizSectionBuilderProps {
 
 export default function QuizSectionBuilder({ content, onContentChange, isEditing, onEditToggle }: QuizSectionBuilderProps) {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-
   useEffect(() => {
     // Handle different content formats from AI generation
-    let aiContent = '';
+    let aiContent: any = '';
     if (content?.blocks?.[0]?.content) {
       aiContent = content.blocks[0].content;
     } else if (content?.content) {
@@ -39,8 +38,24 @@ export default function QuizSectionBuilder({ content, onContentChange, isEditing
     
     if (aiContent) {
       try {
-        const parsedQuestions = parseAIContentToQuestions(aiContent);
-        setQuestions(parsedQuestions.length > 0 ? parsedQuestions : [createEmptyQuestion()]);
+        // Check if content is already structured as quiz questions array
+        if (Array.isArray(aiContent)) {
+          const structuredQuestions = aiContent.map((q: any, index: number) => ({
+            id: `question-${index + 1}`,
+            question: q.question || '',
+            options: q.options || ['Option A', 'Option B', 'Option C', 'Option D'],
+            correctAnswer: q.options ? q.options.findIndex((opt: string) => 
+              opt === q.correct_answer || opt.includes(q.correct_answer?.replace(/^[A-D]\)\s*/, ''))
+            ) : 0,
+            explanation: q.explanation || ''
+          }));
+          setQuestions(structuredQuestions.length > 0 ? structuredQuestions : [createEmptyQuestion()]);
+        } else if (typeof aiContent === 'string') {
+          const parsedQuestions = parseAIContentToQuestions(aiContent);
+          setQuestions(parsedQuestions.length > 0 ? parsedQuestions : [createEmptyQuestion()]);
+        } else {
+          setQuestions([createEmptyQuestion()]);
+        }
       } catch (error) {
         console.error('Error parsing quiz content:', error);
         setQuestions([createEmptyQuestion()]);

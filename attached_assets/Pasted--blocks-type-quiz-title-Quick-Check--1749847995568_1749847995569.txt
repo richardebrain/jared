@@ -1,0 +1,57 @@
+{
+    "blocks": [
+        {
+            "type": "quiz",
+            "title": "Quick Check",
+            "content": [
+                {
+                    "question": "Which of the following strategies best demonstrates positive reinforcement in a preschool setting?",
+                    "options": [
+                        "A) Ignoring a child's positive behavior",
+                        "B) Giving a child a sticker for sharing toys",
+                        "C) Scolding a child for not sitting still",
+                        "D) Taking away playtime as a consequence for not listening"
+                    ],
+                    "correct_answer": "B) Giving a child a sticker for sharing toys",
+                    "explanation": "Positive reinforcement involves providing a reward to encourage and increase the likelihood of a desired behavior being repeated. In this scenario, giving a sticker for sharing is a positive reinforcement."
+                },
+                {
+                    "question": "A child in your class is having difficulty following the classroom routine. What is a positive behavior support strategy you could use?",
+                    "options": [
+                        "A) Reprimand the child in front of the class",
+                        "B) Create a visual schedule with the child",
+                        "C) Ignore the behavior and hope it improves",
+                        "D) Reduce the child's playtime as a consequence"
+                    ],
+                    "correct_answer": "B) Create a visual schedule with the child",
+                    "explanation": "Creating a visual schedule can help the child understand and follow the routine more effectively, providing them with a positive structure and support."
+                },
+                {
+                    "question": "A child in your class frequently interrupts during story time. What positive behavior intervention could you implement?",
+                    "options": [
+                        "A) Assigning the child to a time-out corner",
+                        "B) Encouraging them to hold a special 'talking stick' when it's their turn",
+                        "C) Ignoring the interruptions completely",
+                        "D) Decreasing their participation in class activities"
+                    ],
+                    "correct_answer": "B) Encouraging them to hold a special 'talking stick' when it's their turn",
+                    "explanation": "Using a 'talking stick' gives the child a visual marker for when it is their turn to speak, promoting self-regulation and respect for others during group activities."
+                },
+                {
+                    "question": "What is an effective way to teach children problem-solving skills positively?",
+                    "options": [
+                        "A) Solving the problem for them to avoid frustration",
+                        "B) Encouraging them to express their feelings and think of solutions together",
+                        "C) Telling them their feelings are not important",
+                        "D) Removing them from the situation whenever a problem arises"
+                    ],
+                    "correct_answer": "B) Encouraging them to express their feelings and think of solutions together",
+                    "explanation": "By encouraging children to express their feelings and work on solutions together, you are teaching them valuable problem-solving skills and helping them learn to manage conflicts positively."
+                }
+            ],
+            "preview": "Explore questions on positive behavior strategies for preschool classrooms."
+        }
+    ],
+    "sectionType": "quiz",
+    "sectionTitle": "Quick Check"
+}
