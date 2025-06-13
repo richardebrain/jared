@@ -56,8 +56,8 @@ export default function MatchingSectionBuilder({ content, onContentChange, isEdi
       // Look for various matching patterns
       const dashMatch = line.match(/^(.+?)\s*[-–—]\s*(.+)$/);
       const colonMatch = line.match(/^(.+?)\s*:\s*(.+)$/);
-      const arrowMatch = line.match(/^(.+?)\s*[→->]\s*(.+)$/);
-      const numberedMatch = line.match(/^\d+\.\s*(.+?)\s*[-–—:→->]\s*(.+)$/);
+      const arrowMatch = line.match(/^(.+?)\s*[→\->]\s*(.+)$/);
+      const numberedMatch = line.match(/^\d+\.\s*(.+?)\s*[-–—:→\->]\s*(.+)$/);
       
       let leftItem = '';
       let rightItem = '';
