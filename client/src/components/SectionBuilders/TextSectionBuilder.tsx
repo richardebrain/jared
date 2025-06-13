@@ -14,7 +14,7 @@ interface TextSectionBuilderProps {
   onRegenerateAI?: () => void;
 }
 
-export default function TextSectionBuilder({ content, onContentChange, isEditing, onEditToggle }: TextSectionBuilderProps) {
+export default function TextSectionBuilder({ content, onContentChange, isEditing, onEditToggle, onRegenerateAI }: TextSectionBuilderProps) {
   const [textContent, setTextContent] = useState('');
 
   useEffect(() => {
@@ -62,10 +62,18 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
             <span className="text-sm text-gray-600">{getWordCount()} words</span>
             <span className="text-sm text-gray-600">• ~{getReadingTime()} min read</span>
           </div>
-          <Button variant="outline" size="sm" onClick={onEditToggle}>
-            <Edit3 className="h-4 w-4 mr-1" />
-            Edit Content
-          </Button>
+          <div className="flex gap-2">
+            {onRegenerateAI && (
+              <Button variant="outline" size="sm" onClick={onRegenerateAI}>
+                <RefreshCw className="h-4 w-4 mr-1" />
+                Regenerate
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={onEditToggle}>
+              <Edit3 className="h-4 w-4 mr-1" />
+              Edit Content
+            </Button>
+          </div>
         </div>
         
         <Card className="border-l-4 border-l-green-500">

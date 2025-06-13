@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, Edit3, Save, Move, ArrowRight } from 'lucide-react';
+import { Plus, Trash2, Edit3, Save, Move, ArrowRight, RefreshCw } from 'lucide-react';
 
 interface MatchingPair {
   id: string;
@@ -17,9 +17,10 @@ interface MatchingSectionBuilderProps {
   onContentChange: (content: any) => void;
   isEditing: boolean;
   onEditToggle: () => void;
+  onRegenerateAI?: () => void;
 }
 
-export default function MatchingSectionBuilder({ content, onContentChange, isEditing, onEditToggle }: MatchingSectionBuilderProps) {
+export default function MatchingSectionBuilder({ content, onContentChange, isEditing, onEditToggle, onRegenerateAI }: MatchingSectionBuilderProps) {
   const [pairs, setPairs] = useState<MatchingPair[]>([]);
   const [instructions, setInstructions] = useState('Match each item on the left with its corresponding item on the right.');
 
@@ -147,10 +148,18 @@ export default function MatchingSectionBuilder({ content, onContentChange, isEdi
             <Badge variant="secondary">Matching Activity</Badge>
             <span className="text-sm text-gray-600">{pairs.length} pairs</span>
           </div>
-          <Button variant="outline" size="sm" onClick={onEditToggle}>
-            <Edit3 className="h-4 w-4 mr-1" />
-            Edit Activity
-          </Button>
+          <div className="flex gap-2">
+            {onRegenerateAI && (
+              <Button variant="outline" size="sm" onClick={onRegenerateAI}>
+                <RefreshCw className="h-4 w-4 mr-1" />
+                Regenerate
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={onEditToggle}>
+              <Edit3 className="h-4 w-4 mr-1" />
+              Edit Activity
+            </Button>
+          </div>
         </div>
         
         <Card className="border-l-4 border-l-purple-500">
