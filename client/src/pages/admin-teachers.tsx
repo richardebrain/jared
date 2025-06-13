@@ -354,6 +354,22 @@ export default function AdminTeachersPage() {
                     </Button>
                   </Link>
                 </div>
+                
+                {/* View Assessment Results Button */}
+                {teacher.assessmentResults?.completed && (
+                  <div className="pt-2">
+                    <Link href={`/admin/teachers/${teacher.id}/assessment-results`}>
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        className="w-full"
+                      >
+                        <Award className="h-3 w-3 mr-2" />
+                        View Assessment Results
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

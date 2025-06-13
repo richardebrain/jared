@@ -75,6 +75,7 @@ import ModuleCreationWorkflow from "@/components/ModuleCreationWorkflow";
 import EmailServiceDemo from "@/pages/EmailServiceDemo";
 import DirectorToolkit from "@/pages/director-toolkit";
 import AdminTeachersPage from "@/pages/admin-teachers";
+import AdminTeacherAssessmentResultsPage from "@/pages/admin-teacher-assessment-results";
 import AdminAssignModulesPage from "@/pages/admin-assign-modules";
 import AdminMessagingPage from "@/pages/admin-messaging";
 import AdminBearBucksPage from "@/pages/admin-bear-bucks";
@@ -698,6 +699,12 @@ function Router(props: {
       <Route path="/admin/teachers">
         <ProtectedRoute adminOnly={true}>
           <AdminTeachersPage />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/admin/teachers/:teacherId/assessment-results">
+        <ProtectedRoute adminOnly={true}>
+          <AdminTeacherAssessmentResultsPage />
         </ProtectedRoute>
       </Route>
 
