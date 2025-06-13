@@ -5702,11 +5702,12 @@ Create a natural conversation between two podcast hosts discussing this specific
                             draggable
                             onDragStart={(e) => {
                               // Ensure content is properly formatted as a string
-                              console.log(e,'dragged content')
                               let contentString = block.content;
                               if (typeof block.content === 'object' && block.content !== null) {
-                                // Convert object to formatted string
-                                if (block.content.content) {
+                                // Handle mnemonic-specific formatting
+                                if (block.type === 'Mnemonic Device' && block.content.concept) {
+                                  contentString = `# ${block.content.concept}\n\n**Memory Device:** ${block.content.mnemonic}\n\n**How to Use:** ${block.content.explanation}\n\n**Implementation Tip:** ${block.content.tip}`;
+                                } else if (block.content.content) {
                                   contentString = block.content.content;
                                 } else if (block.content.text) {
                                   contentString = block.content.text;

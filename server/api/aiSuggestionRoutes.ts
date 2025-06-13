@@ -1303,6 +1303,234 @@ Example topics to consider:
   }
 });
 
-// All content generation now handled by OpenAI in the main route above
+/**
+ * Generate scenarios for scenario builder
+ */
+router.post('/generate-scenario', async (req, res) => {
+  try {
+    const { moduleTitle, moduleDescription, sectionTitle, count = 1, existingScenarios = [] } = req.body;
+    
+    const openai = new (await import("openai")).default({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
+    const prompt = `Create ${count} realistic classroom scenario(s) for early childhood education module "${moduleTitle}".
+
+Context: ${moduleDescription || sectionTitle}
+
+Generate decision-based scenarios where teachers must choose between different response options. Each scenario should include:
+- A clear classroom situation related to "${moduleTitle}"
+- 3-4 possible response options
+- Expected outcomes for each option
+
+Avoid these existing scenarios: ${existingScenarios.map(s => s.title).join(', ')}
+
+FORMAT: Return a JSON object with "scenarios" array. Each scenario should have:
+- "title": Brief scenario title
+- "context": Detailed classroom situation description
+- "options": Array of objects with "text" (response option) and "outcome" (what happens)
+
+Focus on realistic situations teachers encounter with "${moduleTitle}".`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert early childhood education scenario designer. Always return valid JSON format."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.7,
+    });
+
+    const result = JSON.parse(response.choices[0]?.message?.content || '{"scenarios": []}');
+    
+    if (!result.scenarios || result.scenarios.length === 0) {
+      // Fallback scenario
+      result.scenarios = [{
+        title: `${moduleTitle} Decision Point`,
+        context: `A challenging situation arises in your classroom related to ${moduleTitle}. You need to make a quick decision about how to respond.`,
+        options: [
+          { text: "Address the situation immediately", outcome: "Quick intervention may solve the immediate issue" },
+          { text: "Observe and gather more information", outcome: "Better understanding of the situation before acting" },
+          { text: "Involve other children in problem-solving", outcome: "Promotes collaborative learning and social skills" }
+        ]
+      }];
+    }
+
+    res.json(result);
+
+  } catch (error) {
+    console.error("Error generating scenarios:", error);
+    res.status(500).json({ 
+      error: 'Failed to generate scenarios',
+      scenarios: [{
+        title: `${req.body.moduleTitle} Scenario`,
+        context: "A classroom situation requires your professional judgment and response.",
+        options: [
+          { text: "Immediate intervention", outcome: "Direct approach to address the situation" },
+          { text: "Reflective observation", outcome: "Thoughtful assessment before taking action" }
+        ]
+      }]
+    });
+  }
+});
+
+/**
+ * Generate simulation steps for simulation builder
+ */
+router.post('/generate-simulation', async (req, res) => {
+  try {
+    const { moduleTitle, moduleDescription, sectionTitle, count = 1, existingSteps = [] } = req.body;
+    
+    const openai = new (await import("openai")).default({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
+    const prompt = `Create ${count} simulation step(s) for early childhood education role-play about "${moduleTitle}".
+
+Context: ${moduleDescription || sectionTitle}
+
+Generate interactive simulation steps where teachers practice specific skills. Each step should include:
+- A specific situation to simulate
+- Clear action the teacher should take
+- Expected outcome and feedback
+
+Avoid these existing steps: ${existingSteps.map(s => s.title).join(', ')}
+
+FORMAT: Return a JSON object with "steps" array. Each step should have:
+- "title": Brief step title
+- "description": Detailed situation description
+- "action": Specific action for teacher to practice
+- "outcome": Expected result of the action
+- "feedback": Constructive feedback on the approach
+
+Focus on hands-on practice scenarios for "${moduleTitle}".`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert early childhood education simulation designer. Always return valid JSON format."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.7,
+    });
+
+    const result = JSON.parse(response.choices[0]?.message?.content || '{"steps": []}');
+    
+    if (!result.steps || result.steps.length === 0) {
+      // Fallback simulation step
+      result.steps = [{
+        title: `${moduleTitle} Practice`,
+        description: `Practice implementing ${moduleTitle} strategies in a controlled simulation environment.`,
+        action: `Demonstrate key techniques related to ${moduleTitle}`,
+        outcome: `Improved confidence and skill in handling ${moduleTitle} situations`,
+        feedback: `Review your approach and consider alternative strategies for future implementation`
+      }];
+    }
+
+    res.json(result);
+
+  } catch (error) {
+    console.error("Error generating simulation steps:", error);
+    res.status(500).json({ 
+      error: 'Failed to generate simulation steps',
+      steps: [{
+        title: `${req.body.moduleTitle} Simulation`,
+        description: "Practice key skills in a safe simulation environment.",
+        action: "Apply learned techniques to the given scenario",
+        outcome: "Increased confidence in real-world application",
+        feedback: "Reflect on the experience and identify areas for improvement"
+      }]
+    });
+  }
+});
+
+/**
+ * Generate mnemonics for mnemonic builder
+ */
+router.post('/generate-mnemonic', async (req, res) => {
+  try {
+    const { moduleTitle, moduleDescription, sectionTitle, count = 1, existingMnemonics = [] } = req.body;
+    
+    const openai = new (await import("openai")).default({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
+    const prompt = `Create ${count} memory device(s) for early childhood education module "${moduleTitle}".
+
+Context: ${moduleDescription || sectionTitle}
+
+Generate educational mnemonics and memory devices that help teachers remember important concepts. Each mnemonic should include:
+- A specific concept related to "${moduleTitle}"
+- A memorable mnemonic device or acronym
+- Clear explanation of how to use it
+- Practical tip for implementation
+
+Avoid these existing mnemonics: ${existingMnemonics.map(m => m.concept).join(', ')}
+
+FORMAT: Return a JSON object with "mnemonics" array. Each mnemonic should have:
+- "concept": Key concept to remember
+- "mnemonic": Memory device or acronym
+- "explanation": How the mnemonic works
+- "tip": Practical implementation tip
+
+Focus on memorable devices for "${moduleTitle}" concepts.`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert early childhood education memory device designer. Always return valid JSON format."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.7,
+    });
+
+    const result = JSON.parse(response.choices[0]?.message?.content || '{"mnemonics": []}');
+    
+    if (!result.mnemonics || result.mnemonics.length === 0) {
+      // Fallback mnemonic
+      result.mnemonics = [{
+        concept: `${moduleTitle} Key Points`,
+        mnemonic: "CARE: Consistent, Appropriate, Respectful, Engaging",
+        explanation: "Use CARE to remember the four pillars of effective early childhood education practices",
+        tip: "Write CARE on a sticky note and place it where you can see it during planning"
+      }];
+    }
+
+    res.json(result);
+
+  } catch (error) {
+    console.error("Error generating mnemonics:", error);
+    res.status(500).json({ 
+      error: 'Failed to generate mnemonics',
+      mnemonics: [{
+        concept: `${req.body.moduleTitle} Reminder`,
+        mnemonic: "TEACH: Think, Engage, Act, Connect, Help",
+        explanation: "A simple acronym to remember effective teaching practices",
+        tip: "Use this acronym when planning lessons or responding to challenging situations"
+      }]
+    });
+  }
+});
 
 export default router;
