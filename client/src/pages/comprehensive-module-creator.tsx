@@ -2204,7 +2204,7 @@ export default function ComprehensiveModuleCreator() {
           });
 
           if (promptItems.length > 0) {
-            setActivityData({
+            setCurrentActivity({
               title: section.title || "Interactive Activity",
               activityType: "drag-and-match",
               instructions: "Match the items by dragging them to their correct pairs.",
@@ -2235,19 +2235,22 @@ export default function ComprehensiveModuleCreator() {
         try {
           const content = firstBlock.content;
           
-          setCaseStudyData({
+          setCurrrentCaseStudy({
             title: section.title || "Case Study",
             scenario: content,
-            stakeholders: ["Teacher", "Parent", "Child", "Administrator"],
-            challenges: ["Communication", "Behavior Management", "Learning Objectives"],
-            questions: [
-              "What would you do in this situation?",
-              "How would you communicate with the stakeholders?",
-              "What strategies would you implement?"
+            character: "Early Childhood Educator",
+            setting: "Preschool Classroom",
+            challenge: "Communication and Behavior Management",
+            keyPoints: [
+              "Effective communication strategies",
+              "Positive behavior support",
+              "Professional collaboration"
             ],
-            learningObjectives: ["Apply practical strategies", "Develop problem-solving skills"],
-            timeEstimate: "15 minutes",
-            difficultyLevel: "intermediate"
+            reflectionQuestions: [
+              "What would you do in this situation?",
+              "How would you communicate with the stakeholders?"
+            ],
+            learningOutcomes: "Apply practical strategies and develop problem-solving skills"
           });
           
           // Auto-open the builder
@@ -2278,13 +2281,13 @@ export default function ComprehensiveModuleCreator() {
             prompts.push("What key insights will you apply in your classroom?");
           }
 
-          setReflectionData({
+          setCurrentReflection({
             title: section.title || "Reflection Activity",
-            type: "personal",
-            prompts,
-            timeEstimate: "10 minutes",
-            followUpActions: ["Share with peers", "Create action plan"],
-            isPrivate: true
+            prompt: prompts.length > 0 ? prompts[0] : "How does this content relate to your teaching practice?",
+            guidingQuestions: prompts.slice(1, 4).concat(["", "", ""]).slice(0, 3),
+            responseType: "journal",
+            timeEstimate: 10,
+            category: "self-assessment"
           });
           
           // Auto-open the builder
@@ -5574,14 +5577,13 @@ Create a natural conversation between two podcast hosts discussing this specific
                         const isActivitySection =
                           sectionTitle.includes("guided activity") ||
                           sectionTitle.includes("step-by-step") ||
-                          (sectionTitle.includes("activity") &&
-                            !sectionTitle.includes("flash"));
-                        const isInteractiveSection =
                           sectionTitle.includes("interactive") ||
                           sectionTitle.includes("matching") ||
                           sectionTitle.includes("drag-and-drop") ||
                           sectionTitle.includes("categorization") ||
-                          sectionType === "matching";
+                          sectionType === "matching" ||
+                          (sectionTitle.includes("activity") &&
+                            !sectionTitle.includes("flash"));
                         const isCaseStudySection =
                           sectionTitle.includes("case study") ||
                           sectionTitle.includes("scenario") ||
@@ -6018,84 +6020,25 @@ Create a natural conversation between two podcast hosts discussing this specific
                           );
                         }
 
-                        // Contextual Activity Builders - Show specific builder based on section type
+                        // Unified Activity Builder - Show appropriate tools based on section type
                         if (isActivitySection) {
+                          const isInteractiveType = 
+                            sectionTitle.includes("interactive") ||
+                            sectionTitle.includes("matching") ||
+                            sectionTitle.includes("drag-and-drop") ||
+                            sectionTitle.includes("categorization") ||
+                            sectionType === "matching";
+
                           return (
                             <>
                               <div className="flex items-center justify-between">
                                 <h3 className="font-semibold flex items-center gap-2">
-                                  <FileEdit className="h-5 w-5 text-blue-600" />
-                                  Guided Activity Tools
-                                </h3>
-                                <div className="flex gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={generateAIContentForSection}
-                                    disabled={
-                                      isGeneratingAIContent || isRegenerating
-                                    }
-                                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                                  >
-                                    {isGeneratingAIContent || isRegenerating ? (
-                                      <>
-                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                        Generating...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Sparkles className="h-4 w-4 mr-2" />
-                                        Generate Activity Steps
-                                      </>
-                                    )}
-                                  </Button>
-                                </div>
-                              </div>
-
-                              {aiGeneratedBlocks.length > 0 && (
-                                <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg space-y-2">
-                                  <div className="text-sm font-medium text-purple-800 mb-2">
-                                    Content Generated! ({aiGeneratedBlocks.length} steps)
-                                  </div>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => setShowRegenerateDialog(true)}
-                                    className="text-purple-700 border-purple-300 hover:bg-purple-50 w-full font-medium"
-                                  >
-                                    <RefreshCw className="h-4 w-4 mr-2" />
-                                    Regenerate with Guidance
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => {
-                                      setAiGeneratedBlocks([]);
-                                      setAiTopicInput("");
-                                    }}
-                                    className="text-gray-500 hover:text-gray-700 w-full"
-                                  >
-                                    Clear Generated Content
-                                  </Button>
-                                </div>
-                              )}
-
-                              <div className="text-center py-6 text-gray-500">
-                                <FileEdit className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                                <p className="text-sm font-medium">Guided Activity Section</p>
-                                <p className="text-xs mt-1">Generate step-by-step classroom activities</p>
-                              </div>
-                            </>
-                          );
-                        }
-
-                        if (isInteractiveSection) {
-                          return (
-                            <>
-                              <div className="flex items-center justify-between">
-                                <h3 className="font-semibold flex items-center gap-2">
-                                  <Gamepad className="h-5 w-5 text-blue-600" />
-                                  Interactive Activity Tools
+                                  {isInteractiveType ? (
+                                    <Gamepad className="h-5 w-5 text-blue-600" />
+                                  ) : (
+                                    <FileEdit className="h-5 w-5 text-blue-600" />
+                                  )}
+                                  {isInteractiveType ? "Interactive Activity Tools" : "Guided Activity Tools"}
                                 </h3>
                                 <div className="flex gap-2">
                                   <Button
@@ -6113,35 +6056,50 @@ Create a natural conversation between two podcast hosts discussing this specific
                                     ) : (
                                       <>
                                         <Sparkles className="h-4 w-4 mr-2" />
-                                        Generate Interactive Content
+                                        {isInteractiveType ? "Generate Interactive Content" : "Generate Activity Steps"}
                                       </>
                                     )}
                                   </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => setIsActivityBuilder(true)}
-                                    className="border-blue-300 text-blue-700 hover:bg-blue-50"
-                                  >
-                                    <Gamepad className="h-4 w-4 mr-2" />
-                                    Open Builder
-                                  </Button>
+                                  {isInteractiveType && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => setIsActivityBuilder(true)}
+                                      className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                                    >
+                                      <Gamepad className="h-4 w-4 mr-2" />
+                                      Interactive Builder
+                                    </Button>
+                                  )}
                                 </div>
                               </div>
 
                               {aiGeneratedBlocks.length > 0 && (
-                                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-2">
-                                  <div className="text-sm font-medium text-blue-800 mb-2">
-                                    Interactive Content Generated! ({aiGeneratedBlocks.length} activities)
+                                <div className={`mt-4 p-3 rounded-lg space-y-2 ${
+                                  isInteractiveType 
+                                    ? "bg-blue-50 border border-blue-200" 
+                                    : "bg-purple-50 border border-purple-200"
+                                }`}>
+                                  <div className={`text-sm font-medium mb-2 ${
+                                    isInteractiveType ? "text-blue-800" : "text-purple-800"
+                                  }`}>
+                                    {isInteractiveType 
+                                      ? `Interactive Content Generated! (${aiGeneratedBlocks.length} activities)`
+                                      : `Content Generated! (${aiGeneratedBlocks.length} steps)`
+                                    }
                                   </div>
                                   <Button
                                     size="sm"
                                     variant="outline"
                                     onClick={() => setShowRegenerateDialog(true)}
-                                    className="text-blue-700 border-blue-300 hover:bg-blue-50 w-full font-medium"
+                                    className={`w-full font-medium ${
+                                      isInteractiveType
+                                        ? "text-blue-700 border-blue-300 hover:bg-blue-50"
+                                        : "text-purple-700 border-purple-300 hover:bg-purple-50"
+                                    }`}
                                   >
                                     <RefreshCw className="h-4 w-4 mr-2" />
-                                    Regenerate Activities
+                                    {isInteractiveType ? "Regenerate Activities" : "Regenerate with Guidance"}
                                   </Button>
                                   <Button
                                     size="sm"
@@ -6158,9 +6116,20 @@ Create a natural conversation between two podcast hosts discussing this specific
                               )}
 
                               <div className="text-center py-6 text-gray-500">
-                                <Gamepad className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                                <p className="text-sm font-medium">Interactive Activity Section</p>
-                                <p className="text-xs mt-1">Create drag-and-drop, matching, and categorization activities</p>
+                                {isInteractiveType ? (
+                                  <Gamepad className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                                ) : (
+                                  <FileEdit className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                                )}
+                                <p className="text-sm font-medium">
+                                  {isInteractiveType ? "Interactive Activity Section" : "Guided Activity Section"}
+                                </p>
+                                <p className="text-xs mt-1">
+                                  {isInteractiveType 
+                                    ? "Create drag-and-drop, matching, and categorization activities"
+                                    : "Generate step-by-step classroom activities"
+                                  }
+                                </p>
                               </div>
                             </>
                           );
