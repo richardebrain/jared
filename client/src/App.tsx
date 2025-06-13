@@ -65,6 +65,10 @@ import AvatarCustomizationPage from "@/pages/avatar-customization";
 import DirectorMessages from "@/pages/director-messages";
 import ComprehensiveModuleCreator from "@/pages/comprehensive-module-creator";
 import NewComprehensiveModuleCreator from "@/pages/new-comprehensive-module-creator";
+import NewModuleCreator from "@/pages/new-module-creator";
+import NewModuleAI from "@/pages/new-module-ai";
+import NewModuleManual from "@/pages/new-module-manual";
+import NewModuleImport from "@/pages/new-module-import";
 import EnhancedModuleBuilder from "@/pages/enhanced-module-builder";
 import ModuleWizard from "@/pages/module-wizard";
 import ModuleCreationWorkflow from "@/components/ModuleCreationWorkflow";
@@ -772,6 +776,54 @@ function Router(props: {
           </div>
         ) : (
           <NewComprehensiveModuleCreator />
+        )}
+      </Route>
+
+      <Route path="/new-module">
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <NewModuleCreator />
+        )}
+      </Route>
+
+      <Route path="/new-module/ai">
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <NewModuleAI />
+        )}
+      </Route>
+
+      <Route path="/new-module/manual">
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <NewModuleManual />
+        )}
+      </Route>
+
+      <Route path="/new-module/import">
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <NewModuleImport />
         )}
       </Route>
 
