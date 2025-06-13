@@ -732,7 +732,7 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
                   <button
                     key={itemIndex}
                     onClick={() => handleLeftSelect(item)}
-                    disabled={state.matches[item]}
+                    disabled={Boolean(state.matches[item])}
                     className={`w-full text-left p-3 rounded-lg border transition-colors ${
                       state.matches[item]
                         ? 'bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed'
