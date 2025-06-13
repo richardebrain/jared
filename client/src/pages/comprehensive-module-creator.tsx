@@ -1072,6 +1072,35 @@ export default function ComprehensiveModuleCreator() {
     imageSupport: boolean;
   }>>([]);
   const [isGeneratingActivity, setIsGeneratingActivity] = useState(false);
+  const [activityDifficulty, setActivityDifficulty] = useState('medium');
+
+  // Case Study Builder State
+  const [isCaseStudyBuilder, setIsCaseStudyBuilder] = useState(false);
+  const [currentCaseStudy, setCurrrentCaseStudy] = useState({
+    title: '',
+    scenario: '',
+    character: '',
+    setting: '',
+    challenge: '',
+    keyPoints: ['', '', ''],
+    reflectionQuestions: ['', ''],
+    learningOutcomes: ''
+  });
+  const [builtCaseStudies, setBuiltCaseStudies] = useState<Array<any>>([]);
+  const [isGeneratingCaseStudy, setIsGeneratingCaseStudy] = useState(false);
+
+  // Reflection Builder State
+  const [isReflectionBuilder, setIsReflectionBuilder] = useState(false);
+  const [currentReflection, setCurrentReflection] = useState({
+    title: '',
+    prompt: '',
+    guidingQuestions: ['', '', ''],
+    responseType: 'journal',
+    timeEstimate: 5,
+    category: 'self-assessment'
+  });
+  const [builtReflections, setBuiltReflections] = useState<Array<any>>([]);
+  const [isGeneratingReflection, setIsGeneratingReflection] = useState(false);
 
   // Interactive Quiz Builder Functions
   const startQuizBuilder = () => {
@@ -1179,6 +1208,253 @@ export default function ComprehensiveModuleCreator() {
 
   const removeQuestionFromQuiz = (index: number) => {
     setBuiltQuizQuestions(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Generate AI Activity
+  const generateSingleActivity = async () => {
+    const currentSection = newModule.sections[currentSectionIndex];
+    if (!currentSection) return;
+
+    setIsGeneratingActivity(true);
+    
+    try {
+      const response = await apiRequest('POST', '/api/ai/generate-interactive-activity', {
+        moduleTitle: initialModuleData.title || newModule.title,
+        moduleDescription: initialModuleData.learningObjective || newModule.description,
+        sectionTitle: currentSection.title,
+        category: newModule.category,
+        difficulty: activityDifficulty,
+        activityType: currentActivity.activityType,
+        learningObjective: initialModuleData.learningObjective
+      });
+
+      if (response.activity) {
+        setCurrentActivity({
+          ...currentActivity,
+          title: response.activity.title || currentActivity.title,
+          instructions: response.activity.instructions || currentActivity.instructions,
+          promptItems: response.activity.promptItems || currentActivity.promptItems,
+          answerKey: response.activity.answerKey || currentActivity.answerKey
+        });
+      }
+    } catch (error) {
+      console.error('Error generating activity:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Unable to generate activity. Please create manually.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingActivity(false);
+    }
+  };
+
+  const finishActivityAndSave = () => {
+    if (builtActivities.length === 0) {
+      toast({
+        title: "No Activities",
+        description: "Please add at least one activity.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const updatedSections = [...newModule.sections];
+    updatedSections[currentSectionIndex] = {
+      ...updatedSections[currentSectionIndex],
+      type: 'matching',
+      activities: builtActivities.map(activity => ({
+        type: 'practice' as const,
+        title: activity.title,
+        duration: 3,
+        content: activity.instructions,
+        videoUrl: '',
+        audioUrl: '',
+        interactionType: activity.activityType
+      })),
+      content: `Interactive Activity: ${updatedSections[currentSectionIndex].title}`
+    };
+    setNewModule(prev => ({ ...prev, sections: updatedSections }));
+    
+    setIsActivityBuilder(false);
+    setBuiltActivities([]);
+    
+    toast({
+      title: "Activity Created Successfully",
+      description: `Created interactive activity with ${builtActivities.length} components`,
+    });
+    
+    nextSection();
+  };
+
+  // Case Study Builder Functions
+  const startCaseStudyBuilder = () => {
+    setIsCaseStudyBuilder(true);
+    setCurrrentCaseStudy({
+      title: '',
+      scenario: '',
+      character: '',
+      setting: '',
+      challenge: '',
+      keyPoints: ['', '', ''],
+      reflectionQuestions: ['', ''],
+      learningOutcomes: ''
+    });
+    setBuiltCaseStudies([]);
+  };
+
+  const generateCaseStudy = async () => {
+    const currentSection = newModule.sections[currentSectionIndex];
+    if (!currentSection) return;
+
+    setIsGeneratingCaseStudy(true);
+    
+    try {
+      const response = await apiRequest('POST', '/api/ai/generate-case-study', {
+        moduleTitle: initialModuleData.title || newModule.title,
+        moduleDescription: initialModuleData.learningObjective || newModule.description,
+        sectionTitle: currentSection.title,
+        category: newModule.category,
+        learningObjective: initialModuleData.learningObjective
+      });
+
+      if (response.caseStudy) {
+        setCurrrentCaseStudy({
+          ...currentCaseStudy,
+          ...response.caseStudy
+        });
+      }
+    } catch (error) {
+      console.error('Error generating case study:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Unable to generate case study. Please create manually.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingCaseStudy(false);
+    }
+  };
+
+  const finishCaseStudyAndSave = () => {
+    if (!currentCaseStudy.title.trim() || !currentCaseStudy.scenario.trim()) {
+      toast({
+        title: "Incomplete Case Study",
+        description: "Please provide at least a title and scenario.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const updatedSections = [...newModule.sections];
+    updatedSections[currentSectionIndex] = {
+      ...updatedSections[currentSectionIndex],
+      type: 'story',
+      content: `${currentCaseStudy.scenario}\n\nKey Learning Points:\n${currentCaseStudy.keyPoints.filter(p => p.trim()).map(p => `• ${p}`).join('\n')}\n\nReflection Questions:\n${currentCaseStudy.reflectionQuestions.filter(q => q.trim()).map(q => `• ${q}`).join('\n')}`,
+      activities: [{
+        type: 'reflect' as const,
+        title: currentCaseStudy.title,
+        duration: 5,
+        content: currentCaseStudy.scenario,
+        videoUrl: '',
+        audioUrl: '',
+        interactionType: 'form'
+      }]
+    };
+    setNewModule(prev => ({ ...prev, sections: updatedSections }));
+    
+    setIsCaseStudyBuilder(false);
+    
+    toast({
+      title: "Case Study Created Successfully",
+      description: `Created case study: ${currentCaseStudy.title}`,
+    });
+    
+    nextSection();
+  };
+
+  // Reflection Builder Functions  
+  const startReflectionBuilder = () => {
+    setIsReflectionBuilder(true);
+    setCurrentReflection({
+      title: '',
+      prompt: '',
+      guidingQuestions: ['', '', ''],
+      responseType: 'journal',
+      timeEstimate: 5,
+      category: 'self-assessment'
+    });
+    setBuiltReflections([]);
+  };
+
+  const generateReflection = async () => {
+    const currentSection = newModule.sections[currentSectionIndex];
+    if (!currentSection) return;
+
+    setIsGeneratingReflection(true);
+    
+    try {
+      const response = await apiRequest('POST', '/api/ai/generate-reflection-prompt', {
+        moduleTitle: initialModuleData.title || newModule.title,
+        moduleDescription: initialModuleData.learningObjective || newModule.description,
+        sectionTitle: currentSection.title,
+        category: newModule.category,
+        learningObjective: initialModuleData.learningObjective
+      });
+
+      if (response.reflection) {
+        setCurrentReflection({
+          ...currentReflection,
+          ...response.reflection
+        });
+      }
+    } catch (error) {
+      console.error('Error generating reflection:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Unable to generate reflection prompt. Please create manually.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingReflection(false);
+    }
+  };
+
+  const finishReflectionAndSave = () => {
+    if (!currentReflection.title.trim() || !currentReflection.prompt.trim()) {
+      toast({
+        title: "Incomplete Reflection",
+        description: "Please provide at least a title and prompt.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const updatedSections = [...newModule.sections];
+    updatedSections[currentSectionIndex] = {
+      ...updatedSections[currentSectionIndex],
+      type: 'text',
+      content: `${currentReflection.prompt}\n\nGuiding Questions:\n${currentReflection.guidingQuestions.filter(q => q.trim()).map(q => `• ${q}`).join('\n')}`,
+      activities: [{
+        type: currentReflection.responseType === 'journal' ? 'journal' : 'reflect' as const,
+        title: currentReflection.title,
+        duration: currentReflection.timeEstimate,
+        content: currentReflection.prompt,
+        videoUrl: '',
+        audioUrl: '',
+        interactionType: 'form'
+      }]
+    };
+    setNewModule(prev => ({ ...prev, sections: updatedSections }));
+    
+    setIsReflectionBuilder(false);
+    
+    toast({
+      title: "Reflection Created Successfully",
+      description: `Created reflection: ${currentReflection.title}`,
+    });
+    
+    nextSection();
   };
 
   // Interactive Activity Builder Functions
@@ -1344,48 +1620,10 @@ export default function ComprehensiveModuleCreator() {
     }));
   };
 
-  const generateSingleActivity = async () => {
-    const currentSection = newModule.sections[currentSectionIndex];
-    if (!currentSection) return;
-    
-    setIsGeneratingActivity(true);
-    
-    try {
-      const response = await apiRequest('/api/ai/generate-single-activity', {
-        method: 'POST',
-        data: {
-          moduleTitle: initialModuleData.title || newModule.title,
-          moduleDescription: initialModuleData.learningObjective || newModule.description,
-          sectionTitle: currentSection.title,
-          category: newModule.category,
-          activityType: currentActivity.activityType,
-          existingActivities: builtActivities.map(a => a.title),
-          learningObjective: initialModuleData.learningObjective
-        }
-      });
 
-      if (response.activity) {
-        setCurrentActivity({
-          title: response.activity.title || '',
-          activityType: response.activity.activityType || currentActivity.activityType,
-          instructions: response.activity.instructions || '',
-          promptItems: response.activity.promptItems || ['', '', '', ''],
-          answerKey: response.activity.answerKey || ['', '', '', ''],
-          preview: response.activity.preview || '',
-          uiHints: response.activity.uiHints || currentActivity.uiHints,
-          imageSupport: response.activity.imageSupport || false
-        });
-      }
-    } catch (error) {
-      console.error('Error generating activity:', error);
-      toast({
-        title: "Generation Failed",
-        description: "Unable to generate activity. Please create manually.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingActivity(false);
-    }
+  // Remove activity from built list
+  const removeActivityFromList = (index: number) => {
+    setBuiltActivities(prev => prev.filter((_, i) => i !== index));
   };
 
 
