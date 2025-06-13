@@ -77,7 +77,7 @@ export function TeacherAssessmentSummary({ assessmentResults }: TeacherAssessmen
       {assessmentResults.topGrowthAreas && assessmentResults.topGrowthAreas.length > 0 && (
         <div>
           <div className="text-xs text-muted-foreground mb-1">Growth Areas:</div>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1 items-center">
             {assessmentResults.topGrowthAreas.slice(0, 3).map((area, index) => (
               <Badge 
                 key={index} 
@@ -87,6 +87,11 @@ export function TeacherAssessmentSummary({ assessmentResults }: TeacherAssessmen
                 {area}
               </Badge>
             ))}
+            {assessmentResults.topGrowthAreas.length > 3 && (
+              <span className="text-xs text-muted-foreground">
+                +{assessmentResults.topGrowthAreas.length - 3} more
+              </span>
+            )}
           </div>
         </div>
       )}
