@@ -72,6 +72,8 @@ import StepByStepModuleBuilder from '@/components/StepByStepModuleBuilder';
 import PowerPointImporter from '@/components/PowerPointImporter';
 import ModulePublishingDialog from '@/components/ModulePublishingDialog';
 import InteractiveActivityBuilder from '@/components/InteractiveActivityBuilder';
+import CaseStudyBuilder from '@/components/CaseStudyBuilder';
+import ReflectionBuilder from '@/components/ReflectionBuilder';
 
 interface ModuleSection {
   title: string;
@@ -7248,6 +7250,114 @@ Create a natural conversation between two podcast hosts discussing this specific
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Interactive Activity Builder */}
+      <InteractiveActivityBuilder
+        isOpen={isActivityBuilder}
+        onClose={() => setIsActivityBuilder(false)}
+        onSave={(activities) => {
+          const activityContent = {
+            activities: activities,
+            totalActivities: activities.length,
+            sectionType: 'interactive-activities'
+          };
+
+          const updatedSections = [...newModule.sections];
+          updatedSections[currentSectionIndex] = {
+            ...updatedSections[currentSectionIndex],
+            type: 'matching',
+            content: JSON.stringify(activityContent),
+            activities: [{
+              type: 'practice' as const,
+              title: `Interactive Activities: ${updatedSections[currentSectionIndex].title}`,
+              duration: 5,
+              content: JSON.stringify(activityContent),
+              interactionType: 'activity' as const
+            }]
+          };
+          
+          setNewModule(prev => ({ ...prev, sections: updatedSections }));
+          toast({
+            title: "Activities Created Successfully",
+            description: `Created interactive section with ${activities.length} activities`,
+          });
+        }}
+        moduleTitle={initialModuleData.title || newModule.title}
+        sectionTitle={newModule.sections[currentSectionIndex]?.title}
+        learningObjective={initialModuleData.learningObjective}
+      />
+
+      {/* Case Study Builder */}
+      <CaseStudyBuilder
+        isOpen={isCaseStudyBuilder}
+        onClose={() => setIsCaseStudyBuilder(false)}
+        onSave={(caseStudies) => {
+          const caseStudyContent = {
+            caseStudies: caseStudies,
+            totalCaseStudies: caseStudies.length,
+            sectionType: 'case-studies'
+          };
+
+          const updatedSections = [...newModule.sections];
+          updatedSections[currentSectionIndex] = {
+            ...updatedSections[currentSectionIndex],
+            type: 'story',
+            content: JSON.stringify(caseStudyContent),
+            activities: [{
+              type: 'reflect' as const,
+              title: `Case Studies: ${updatedSections[currentSectionIndex].title}`,
+              duration: 15,
+              content: JSON.stringify(caseStudyContent),
+              interactionType: 'form' as const
+            }]
+          };
+          
+          setNewModule(prev => ({ ...prev, sections: updatedSections }));
+          toast({
+            title: "Case Studies Created Successfully",
+            description: `Created case study section with ${caseStudies.length} scenarios`,
+          });
+        }}
+        moduleTitle={initialModuleData.title || newModule.title}
+        sectionTitle={newModule.sections[currentSectionIndex]?.title}
+        learningObjective={initialModuleData.learningObjective}
+      />
+
+      {/* Reflection Builder */}
+      <ReflectionBuilder
+        isOpen={isReflectionBuilder}
+        onClose={() => setIsReflectionBuilder(false)}
+        onSave={(reflections) => {
+          const reflectionContent = {
+            reflections: reflections,
+            totalReflections: reflections.length,
+            sectionType: 'reflections'
+          };
+
+          const updatedSections = [...newModule.sections];
+          updatedSections[currentSectionIndex] = {
+            ...updatedSections[currentSectionIndex],
+            type: 'text',
+            content: JSON.stringify(reflectionContent),
+            activities: [{
+              type: 'reflect' as const,
+              title: `Reflections: ${updatedSections[currentSectionIndex].title}`,
+              duration: 10,
+              content: JSON.stringify(reflectionContent),
+              interactionType: 'journal' as const
+            }]
+          };
+          
+          setNewModule(prev => ({ ...prev, sections: updatedSections }));
+          toast({
+            title: "Reflections Created Successfully",
+            description: `Created reflection section with ${reflections.length} activities`,
+          });
+        }}
+        moduleTitle={initialModuleData.title || newModule.title}
+        sectionTitle={newModule.sections[currentSectionIndex]?.title}
+        learningObjective={initialModuleData.learningObjective}
+      />
 
       {/* Module Publishing Dialog */}
       <ModulePublishingDialog
