@@ -81,6 +81,7 @@ import ScenarioBuilder from '@/components/builders/ScenarioBuilder';
 import TriageBuilder from '@/components/builders/TriageBuilder';
 import MnemonicBuilder from '@/components/builders/MnemonicBuilder';
 import SimulationBuilder from '@/components/builders/SimulationBuilder';
+import ActivityBuilder from '@/components/builders/ActivityBuilder';
 
 interface ModuleSection {
   title: string;
@@ -5023,57 +5024,19 @@ Create a natural conversation between two podcast hosts discussing this specific
                                 <Button 
                                   size="sm"
                                   variant="outline" 
-                                  onClick={generateAIContentForSection}
-                                  disabled={isGeneratingAIContent || isRegenerating}
-                                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                                  onClick={() => openBuilder('activity', currentSectionIndex)}
+                                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
                                 >
-                                  {isGeneratingAIContent || isRegenerating ? (
-                                    <>
-                                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                      Generating...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Sparkles className="h-4 w-4 mr-2" />
-                                      Generate Activity Steps
-                                    </>
-                                  )}
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Build Activities
                                 </Button>
                               </div>
                             </div>
                             
-                            {aiGeneratedBlocks.length > 0 && (
-                              <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg space-y-2">
-                                <div className="text-sm font-medium text-purple-800 mb-2">
-                                  Content Generated! ({aiGeneratedBlocks.length} blocks)
-                                </div>
-                                <Button 
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => setShowRegenerateDialog(true)}
-                                  className="text-purple-700 border-purple-300 hover:bg-purple-50 w-full font-medium"
-                                >
-                                  <RefreshCw className="h-4 w-4 mr-2" />
-                                  Regenerate with Guidance
-                                </Button>
-                                <Button 
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => {
-                                    setAiGeneratedBlocks([]);
-                                    setAiTopicInput('');
-                                  }}
-                                  className="text-gray-500 hover:text-gray-700 w-full"
-                                >
-                                  Clear Generated Content
-                                </Button>
-                              </div>
-                            )}
-                            
                             <div className="text-center py-6 text-gray-500">
                               <FileEdit className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                              <p className="text-sm font-medium">Guided Activity Section</p>
-                              <p className="text-xs mt-1">Generate step-by-step classroom activities and exercises</p>
+                              <p className="text-sm font-medium">Interactive Activity Builder</p>
+                              <p className="text-xs mt-1">Create step-by-step interactive activities with AI and manual input</p>
                             </div>
                           </>
                         );

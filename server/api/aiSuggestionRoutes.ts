@@ -736,6 +736,16 @@ router.post('/generate-content-blocks', async (req, res) => {
                                sectionTitle?.toLowerCase().includes('implementation') ||
                                sectionTitle?.toLowerCase().includes('review');
 
+    // Specialized builder section detection
+    const isScenarioMatchSection = sectionType === 'scenario-match';
+    const isSlideSection = sectionType === 'slide';
+    const isExampleSection = sectionType === 'example';
+    const isMatchingSection = sectionType === 'matching';
+    const isTriageSection = sectionType === 'triage';
+    const isMnemonicSection = sectionType === 'mnemonic';
+    const isSimulationSection = sectionType === 'simulation';
+    const isScenarioBuilderSection = sectionType === 'scenario';
+
     console.log('Section detection:', {
       isActivitySection,
       isCaseStudySection, 
@@ -888,6 +898,189 @@ FORMAT: Return a JSON object with "blocks" array. Each block should have:
 - "type": Must be exactly "Checklist" or "Worksheet" or "Audit Form"
 - "preview": Brief tool description (e.g., "Environment Preparation Checklist")
 - "content": Must start with "CHECKLIST:" or "WORKSHEET:" or "AUDIT FORM:" followed by formatted lists only`;
+
+    } else if (isScenarioMatchSection) {
+      prompt = `
+You are an expert early childhood education instructor creating scenario-response matching activities for "${topic}".${guidanceText}
+
+Create 4-6 scenario-response matching pairs where teachers connect realistic classroom situations with appropriate responses.
+
+Each pair should include:
+- A specific classroom scenario involving "${topic}"
+- The best professional response to that scenario
+- Alternative responses that could work
+- Why the recommended response is most effective
+
+EXAMPLE FORMAT:
+Scenario: "During circle time, a 4-year-old repeatedly interrupts the story and stands up to get toys from the shelf."
+Response: "Gently redirect by offering a fidget toy and acknowledging their energy: 'I see you have lots of energy. Here's something quiet for your hands while we listen.'"
+
+Make scenarios realistic and responses evidence-based for "${topic}".
+
+FORMAT: Return a JSON object with "blocks" array. Each block should have:
+- "type": "Scenario Match Pair"
+- "preview": Brief description of the scenario situation
+- "content": JSON with scenario, correctResponse, alternatives, and rationale`;
+
+    } else if (isSlideSection) {
+      prompt = `
+You are an expert early childhood education instructor creating interactive slide presentations for "${topic}".${guidanceText}
+
+Create 5-8 slide content blocks with engaging visuals and interactive elements.
+
+Each slide should include:
+- Clear, concise title
+- Key teaching point about "${topic}"
+- Visual description or image suggestion
+- Interactive element (poll, reflection question, or activity prompt)
+- Practical takeaway for immediate classroom use
+
+SLIDE TYPES TO INCLUDE:
+- Title slide with hook question
+- Problem/challenge slides
+- Solution/strategy slides
+- Real example slides
+- Practice application slides
+- Summary/action slide
+
+FORMAT: Return a JSON object with "blocks" array. Each block should have:
+- "type": "Interactive Slide"
+- "preview": Brief slide summary
+- "content": JSON with title, mainContent, visualDescription, interactive element, and takeaway`;
+
+    } else if (isExampleSection) {
+      prompt = `
+You are an expert early childhood education instructor creating real-world examples for "${topic}".${guidanceText}
+
+Create 4-6 concrete examples showing both effective and ineffective practices related to "${topic}".
+
+Each example should include:
+- Specific classroom situation involving "${topic}"
+- "Good Practice" example with detailed implementation
+- "Poor Practice" example showing what not to do
+- Explanation of why the good practice works
+- Key takeaway for teachers
+
+Focus on practical, observable behaviors and specific strategies teachers can implement immediately.
+
+FORMAT: Return a JSON object with "blocks" array. Each block should have:
+- "type": "Practice Example"
+- "preview": Brief situation description
+- "content": JSON with situation, goodPractice, poorPractice, explanation, and keyTakeaway`;
+
+    } else if (isMatchingSection) {
+      prompt = `
+You are an expert early childhood education instructor creating matching exercises for "${topic}".${guidanceText}
+
+Create 6-10 term-definition or concept-application matching pairs related to "${topic}".
+
+Each pair should include:
+- A key term, concept, or strategy related to "${topic}"
+- Its definition, explanation, or application example
+- Must be specifically relevant to early childhood education
+
+TYPES OF MATCHES:
+- Technical terms with definitions
+- Strategies with implementation examples
+- Problems with solutions
+- Behaviors with appropriate responses
+
+FORMAT: Return a JSON object with "blocks" array. Each block should have:
+- "type": "Matching Pair"
+- "preview": Brief description of the matching concept
+- "content": JSON with term, match, category, and explanation`;
+
+    } else if (isTriageSection) {
+      prompt = `
+You are an expert early childhood education instructor creating decision triage exercises for "${topic}".${guidanceText}
+
+Create 8-12 classroom situations that require prioritization and quick decision-making related to "${topic}".
+
+Each item should include:
+- Specific classroom situation involving "${topic}"
+- Priority level (Urgent, High, Medium, Low)
+- Rationale for the priority assignment
+- Immediate action required
+
+PRIORITY CATEGORIES:
+- URGENT: Immediate safety or crisis situations
+- HIGH: Important for child development/learning
+- MEDIUM: Beneficial but can wait
+- LOW: Nice to have but not essential
+
+FORMAT: Return a JSON object with "blocks" array. Each block should have:
+- "type": "Triage Item"
+- "preview": Brief situation description
+- "content": JSON with situation, priority, rationale, and immediateAction`;
+
+    } else if (isMnemonicSection) {
+      prompt = `
+You are an expert early childhood education instructor creating memory aids and mnemonics for "${topic}".${guidanceText}
+
+Create 4-6 memory devices to help teachers remember key concepts, procedures, or strategies related to "${topic}".
+
+Each memory aid should include:
+- The concept or information to remember
+- A creative mnemonic device (acronym, rhyme, visual, or story)
+- Explanation of how the mnemonic works
+- Practice application example
+
+MNEMONIC TYPES:
+- Acronyms (first letters spell a word)
+- Rhymes or songs
+- Visual associations
+- Story-based memory devices
+- Number patterns or sequences
+
+FORMAT: Return a JSON object with "blocks" array. Each block should have:
+- "type": "Memory Device"
+- "preview": Brief description of what to remember
+- "content": JSON with concept, mnemonic, explanation, and practiceExample`;
+
+    } else if (isSimulationSection) {
+      prompt = `
+You are an expert early childhood education instructor creating role-play simulations for "${topic}".${guidanceText}
+
+Create 3-4 immersive role-playing scenarios where teachers practice handling situations related to "${topic}".
+
+Each simulation should include:
+- Detailed scenario setup with context
+- Character roles (teacher, child, parent, colleague)
+- Decision points with multiple options
+- Consequences for each decision
+- Debrief questions for reflection
+
+SIMULATION ELEMENTS:
+- Realistic classroom or school situations
+- Multiple stakeholders with different perspectives
+- Branching decision paths
+- Learning outcomes for each choice
+- Reflection and improvement opportunities
+
+FORMAT: Return a JSON object with "blocks" array. Each block should have:
+- "type": "Role-Play Simulation"
+- "preview": Brief scenario description
+- "content": JSON with scenario, roles, decisionPoints, consequences, and debriefQuestions`;
+
+    } else if (isScenarioBuilderSection) {
+      prompt = `
+You are an expert early childhood education instructor creating practice scenarios for "${topic}".${guidanceText}
+
+Create 4-6 realistic classroom scenarios where teachers practice applying knowledge about "${topic}".
+
+Each scenario should include:
+- Detailed classroom situation involving "${topic}"
+- Multiple response options (A, B, C, D)
+- Best practice response with explanation
+- Alternative approaches and their outcomes
+- Learning objective addressed
+
+Focus on real situations teachers encounter and evidence-based responses.
+
+FORMAT: Return a JSON object with "blocks" array. Each block should have:
+- "type": "Practice Scenario"
+- "preview": Brief scenario setup
+- "content": JSON with scenario, options, bestResponse, alternatives, and learningObjective`;
 
     } else if (isReflectionSection) {
       prompt = `
