@@ -64,6 +64,7 @@ import InviteTeachersPage from "@/pages/invite-teachers";
 import AvatarCustomizationPage from "@/pages/avatar-customization";
 import DirectorMessages from "@/pages/director-messages";
 import ComprehensiveModuleCreator from "@/pages/comprehensive-module-creator";
+import NewComprehensiveModuleCreator from "@/pages/new-comprehensive-module-creator";
 import EnhancedModuleBuilder from "@/pages/enhanced-module-builder";
 import ModuleWizard from "@/pages/module-wizard";
 import ModuleCreationWorkflow from "@/components/ModuleCreationWorkflow";
@@ -759,6 +760,18 @@ function Router(props: {
           </div>
         ) : (
           <ComprehensiveModuleCreator />
+        )}
+      </Route>
+
+      <Route path="/new-comprehensive-module-creator">
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <NewComprehensiveModuleCreator />
         )}
       </Route>
 
