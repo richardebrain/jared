@@ -61,6 +61,9 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
   // State for categorization activities
   const [categorizationStates, setCategorizationStates] = useState<{ [key: number]: { itemCategories: { [key: string]: string } } }>({});
   
+  // State for drag and drop activities
+  const [dragDropStates, setDragDropStates] = useState<{ [key: number]: { matches: { [key: string]: string }; draggedItem: string | null } }>({});
+  
   const { toast } = useToast();
 
   // Parse activity content from section
@@ -207,27 +210,39 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
   }, [section.content, section.builderData]);
 
   const handleDragAndMatchActivity = (activity: ParsedActivity, activityIndex: number) => {
-    const [dragItems, setDragItems] = useState<string[]>(activity.promptItems.slice(0, Math.floor(activity.promptItems.length / 2)));
-    const [dropItems, setDropItems] = useState<string[]>(activity.promptItems.slice(Math.floor(activity.promptItems.length / 2)));
-    const [matches, setMatches] = useState<{ [key: string]: string }>({});
-    const [draggedItem, setDraggedItem] = useState<string | null>(null);
+    const dragItems = activity.promptItems.slice(0, Math.floor(activity.promptItems.length / 2));
+    const dropItems = activity.promptItems.slice(Math.floor(activity.promptItems.length / 2));
+    const state = dragDropStates[activityIndex] || { matches: {}, draggedItem: null };
 
     const handleDragStart = (item: string) => {
-      setDraggedItem(item);
+      setDragDropStates(prev => ({
+        ...prev,
+        [activityIndex]: { ...state, draggedItem: item }
+      }));
     };
 
-    const handleDrop = (dropItem: string) => {
-      if (draggedItem) {
-        setMatches(prev => ({ ...prev, [draggedItem]: dropItem }));
-        setDraggedItem(null);
+    const handleDrop = (e: React.DragEvent, dropItem: string) => {
+      e.preventDefault();
+      if (state.draggedItem) {
+        setDragDropStates(prev => ({
+          ...prev,
+          [activityIndex]: { 
+            matches: { ...state.matches, [state.draggedItem!]: dropItem },
+            draggedItem: null
+          }
+        }));
       }
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+      e.preventDefault();
     };
 
     const handleSubmit = () => {
       let correctCount = 0;
       const totalMatches = Object.keys(activity.answerKey).length;
       
-      Object.entries(matches).forEach(([drag, drop]) => {
+      Object.entries(state.matches).forEach(([drag, drop]) => {
         if (activity.answerKey[drag] === drop || activity.answerKey[drop] === drag) {
           correctCount++;
         }
@@ -264,16 +279,16 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
                   draggable
                   onDragStart={() => handleDragStart(item)}
                   className={`p-3 bg-blue-50 border border-blue-200 rounded-lg cursor-move hover:bg-blue-100 transition-colors ${
-                    matches[item] ? 'opacity-50' : ''
+                    state.matches[item] ? 'opacity-50' : ''
                   }`}
                 >
                   <div className="flex items-center">
                     <GripVertical className="h-4 w-4 text-blue-400 mr-2" />
                     {item}
                   </div>
-                  {matches[item] && (
+                  {state.matches[item] && (
                     <div className="text-xs text-blue-600 mt-1">
-                      Matched with: {matches[item]}
+                      Matched with: {state.matches[item]}
                     </div>
                   )}
                 </div>
@@ -293,7 +308,7 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
                   className="p-3 bg-green-50 border-2 border-dashed border-green-200 rounded-lg min-h-[60px] flex items-center hover:border-green-300 transition-colors"
                 >
                   {item}
-                  {Object.entries(matches).find(([_, drop]) => drop === item) && (
+                  {Object.entries(state.matches).find(([_, drop]) => drop === item) && (
                     <Badge variant="secondary" className="ml-2">
                       Matched
                     </Badge>
@@ -307,7 +322,7 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
         {!showResults[activityIndex] && (
           <Button 
             onClick={handleSubmit} 
-            disabled={Object.keys(matches).length === 0}
+            disabled={Object.keys(state.matches).length === 0}
             className="w-full"
           >
             Submit Matches
