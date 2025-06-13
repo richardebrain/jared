@@ -76,11 +76,26 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
           </CardHeader>
           <CardContent>
             <div className="prose prose-sm max-w-none">
-              {textContent.split('\n').map((paragraph, index) => (
-                <p key={index} className="mb-3 text-gray-700 leading-relaxed">
-                  {paragraph}
-                </p>
-              ))}
+              {textContent.split('\n').map((paragraph, index) => {
+                if (!paragraph.trim()) return <br key={index} />;
+                
+                // Render markdown formatting
+                const formattedParagraph = paragraph
+                  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                  .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                  .replace(/^#{3}\s(.+)/g, '<h3 class="text-lg font-semibold mt-4 mb-2">$1</h3>')
+                  .replace(/^#{2}\s(.+)/g, '<h2 class="text-xl font-semibold mt-4 mb-2">$1</h2>')
+                  .replace(/^#{1}\s(.+)/g, '<h1 class="text-2xl font-bold mt-4 mb-2">$1</h1>')
+                  .replace(/^-\s(.+)/g, '<li class="ml-4">$1</li>');
+                
+                return (
+                  <div 
+                    key={index} 
+                    className="mb-3 text-gray-700 leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: formattedParagraph }}
+                  />
+                );
+              })}
             </div>
           </CardContent>
         </Card>

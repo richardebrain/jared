@@ -53,53 +53,101 @@ export default function QuizSectionBuilder({ content, onContentChange, isEditing
   const parseAIContentToQuestions = (aiContent: string): QuizQuestion[] => {
     const questions: QuizQuestion[] = [];
     
-    // Split content by question patterns
-    const questionBlocks = aiContent.split(/(?:\d+\.|Question \d+:)/i).filter(block => block.trim());
-    
-    questionBlocks.forEach((block, index) => {
-      const lines = block.trim().split('\n').filter(line => line.trim());
-      if (lines.length === 0) return;
+    try {
+      // First try to parse as JSON if it looks like structured data
+      if (aiContent.includes('{') && aiContent.includes('}')) {
+        const jsonMatch = aiContent.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          if (parsed.questions && Array.isArray(parsed.questions)) {
+            return parsed.questions.map((q: any, index: number) => ({
+              id: `question-${index + 1}`,
+              question: q.question || q.text || '',
+              options: q.options || q.answers || ['Option A', 'Option B', 'Option C', 'Option D'],
+              correctAnswer: q.correctAnswer || q.correct || 0,
+              explanation: q.explanation || q.rationale || ''
+            }));
+          }
+        }
+      }
       
-      const questionText = lines[0].trim();
-      const options: string[] = [];
-      let correctAnswer = 0;
-      let explanation = '';
+      // Fallback to text parsing
+      const lines = aiContent.split('\n').filter(line => line.trim());
+      let currentQuestion: Partial<QuizQuestion> = {};
+      let currentOptions: string[] = [];
+      let questionCount = 0;
       
-      // Extract options (A), B), a), b), 1), 2), etc.)
-      lines.forEach((line, lineIndex) => {
-        const optionMatch = line.match(/^[A-Da-d1-4][.)]\s*(.+)/);
-        if (optionMatch) {
-          options.push(optionMatch[1].trim());
+      lines.forEach((line, index) => {
+        const trimmedLine = line.trim();
+        
+        // Question patterns: "1.", "Question 1:", "Q1:", etc.
+        const questionMatch = trimmedLine.match(/^(?:Question\s*)?(\d+)[.:]?\s*(.+)/i);
+        if (questionMatch && !trimmedLine.match(/^[A-Da-d1-4][.)]/)) {
+          // Save previous question if exists
+          if (currentQuestion.question) {
+            questions.push({
+              id: `question-${questionCount}`,
+              question: currentQuestion.question,
+              options: currentOptions.length > 0 ? currentOptions : ['Option A', 'Option B', 'Option C', 'Option D'],
+              correctAnswer: currentQuestion.correctAnswer || 0,
+              explanation: currentQuestion.explanation || ''
+            });
+          }
+          
+          // Start new question
+          questionCount++;
+          currentQuestion = {
+            question: questionMatch[2].trim(),
+            correctAnswer: 0,
+            explanation: ''
+          };
+          currentOptions = [];
+          return;
         }
         
-        // Look for correct answer indicators
-        if (line.toLowerCase().includes('correct') || line.toLowerCase().includes('answer')) {
-          const answerMatch = line.match(/[A-Da-d1-4]/);
+        // Option patterns: "A)", "a.", "1)", etc.
+        const optionMatch = trimmedLine.match(/^([A-Da-d1-4])[.)]\s*(.+)/);
+        if (optionMatch) {
+          const optionText = optionMatch[2].trim();
+          currentOptions.push(optionText);
+          
+          // Check if this is marked as correct
+          if (optionText.includes('*') || trimmedLine.includes('**') || 
+              trimmedLine.toLowerCase().includes('correct')) {
+            currentQuestion.correctAnswer = currentOptions.length - 1;
+          }
+          return;
+        }
+        
+        // Answer/explanation patterns
+        if (trimmedLine.toLowerCase().includes('answer:') || 
+            trimmedLine.toLowerCase().includes('correct:')) {
+          const answerMatch = trimmedLine.match(/[A-Da-d1-4]/);
           if (answerMatch) {
             const letter = answerMatch[0].toUpperCase();
-            correctAnswer = letter.charCodeAt(0) - 65; // A=0, B=1, C=2, D=3
+            currentQuestion.correctAnswer = letter.charCodeAt(0) - 65;
           }
         }
         
-        // Look for explanations
-        if (line.toLowerCase().includes('explanation') || line.toLowerCase().includes('because')) {
-          explanation = line.replace(/explanation:?/i, '').trim();
+        if (trimmedLine.toLowerCase().includes('explanation:')) {
+          currentQuestion.explanation = trimmedLine.replace(/explanation:?/i, '').trim();
         }
       });
       
-      // If no options found, create default ones
-      if (options.length === 0) {
-        options.push('Option A', 'Option B', 'Option C', 'Option D');
+      // Add the last question
+      if (currentQuestion.question) {
+        questions.push({
+          id: `question-${questionCount}`,
+          question: currentQuestion.question,
+          options: currentOptions.length > 0 ? currentOptions : ['Option A', 'Option B', 'Option C', 'Option D'],
+          correctAnswer: currentQuestion.correctAnswer || 0,
+          explanation: currentQuestion.explanation || ''
+        });
       }
       
-      questions.push({
-        id: `question-${index + 1}`,
-        question: questionText || `Question ${index + 1}`,
-        options: options.slice(0, 4), // Limit to 4 options
-        correctAnswer: Math.min(correctAnswer, options.length - 1),
-        explanation
-      });
-    });
+    } catch (error) {
+      console.error('Error parsing quiz content:', error);
+    }
     
     return questions.length > 0 ? questions : [createEmptyQuestion()];
   };
