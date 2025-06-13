@@ -799,6 +799,42 @@ export default function ComprehensiveModuleCreator() {
   const [builderData, setBuilderData] = useState<any>(null);
   const [currentBuilderSection, setCurrentBuilderSection] = useState<number | null>(null);
 
+  // Builder handler functions
+  const openBuilder = (builderType: string, sectionIndex: number) => {
+    setActiveBuilder(builderType);
+    setCurrentBuilderSection(sectionIndex);
+    const existingData = newModule.sections[sectionIndex]?.builderData;
+    setBuilderData(existingData || null);
+  };
+
+  const closeBuilder = () => {
+    setActiveBuilder(null);
+    setBuilderData(null);
+    setCurrentBuilderSection(null);
+  };
+
+  const saveBuilderData = (data: any) => {
+    if (currentBuilderSection !== null) {
+      const updatedSections = [...newModule.sections];
+      updatedSections[currentBuilderSection] = {
+        ...updatedSections[currentBuilderSection],
+        builderData: data,
+        content: `Interactive ${activeBuilder} activity created with AI and manual input capabilities.`
+      };
+      
+      setNewModule(prev => ({
+        ...prev,
+        sections: updatedSections
+      }));
+      
+      toast({
+        title: "Activity Saved",
+        description: `${activeBuilder} activity has been saved to the module section.`,
+      });
+    }
+    closeBuilder();
+  };
+
 
 
 
@@ -6063,43 +6099,29 @@ Create a natural conversation between two podcast hosts discussing this specific
                   {/* Matching Exercise Template */}
                   {section.type === 'matching' && (
                     <div className="space-y-4">
-                      <div>
-                        <Label>Matching Instructions</Label>
-                        <Textarea
-                          value={section.content}
-                          onChange={(e) => updateSection(index, 'content', e.target.value)}
-                          placeholder="Explain what learners should match (terms to definitions, problems to solutions, etc.)..."
-                          rows={3}
-                        />
-                      </div>
                       <div className="p-4 bg-blue-50 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center">
-                            <Brain className="h-4 w-4 text-blue-600 mr-2" />
-                            <span className="text-sm font-medium text-blue-800">AI Matching Builder</span>
+                            <Link2 className="h-4 w-4 text-blue-600 mr-2" />
+                            <span className="text-sm font-medium text-blue-800">Interactive Matching Builder</span>
                           </div>
                           <Button
                             size="sm"
-                            onClick={() => generateMatchingContent(index)}
-                            disabled={generatingContent === index}
+                            onClick={() => openBuilder('matching', index)}
                             className="bg-blue-600 hover:bg-blue-700"
                           >
-                            {generatingContent === index ? (
-                              <>
-                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
-                                Generating...
-                              </>
-                            ) : (
-                              <>
-                                <Link2 className="h-3 w-3 mr-1" />
-                                Generate Matching
-                              </>
-                            )}
+                            <Wrench className="h-3 w-3 mr-1" />
+                            Open Builder
                           </Button>
                         </div>
                         <p className="text-sm text-blue-700">
-                          AI will create matching pairs connecting concepts, terms, and definitions for {newModule.title || 'your topic'}.
+                          Create interactive matching activities with AI generation and manual editing capabilities.
                         </p>
+                        {section.builderData && (
+                          <div className="mt-2 text-xs text-blue-600">
+                            Activity configured with {section.builderData.pairs?.length || 0} matching pairs
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -6107,43 +6129,29 @@ Create a natural conversation between two podcast hosts discussing this specific
                   {/* Scenario Decision Template */}
                   {section.type === 'scenario' && (
                     <div className="space-y-4">
-                      <div>
-                        <Label>Scenario Description</Label>
-                        <Textarea
-                          value={section.content}
-                          onChange={(e) => updateSection(index, 'content', e.target.value)}
-                          placeholder="Describe a realistic scenario where learners must make decisions..."
-                          rows={4}
-                        />
-                      </div>
                       <div className="p-4 bg-green-50 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center">
-                            <Brain className="h-4 w-4 text-green-600 mr-2" />
-                            <span className="text-sm font-medium text-green-800">AI Scenario Builder</span>
+                            <Users className="h-4 w-4 text-green-600 mr-2" />
+                            <span className="text-sm font-medium text-green-800">Scenario-Based Learning Builder</span>
                           </div>
                           <Button
                             size="sm"
-                            onClick={() => generateScenarioContent(index)}
-                            disabled={generatingContent === index}
+                            onClick={() => openBuilder('scenario', index)}
                             className="bg-green-600 hover:bg-green-700"
                           >
-                            {generatingContent === index ? (
-                              <>
-                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
-                                Generating...
-                              </>
-                            ) : (
-                              <>
-                                <Sparkles className="h-3 w-3 mr-1" />
-                                Generate Scenario
-                              </>
-                            )}
+                            <Wrench className="h-3 w-3 mr-1" />
+                            Open Builder
                           </Button>
                         </div>
                         <p className="text-sm text-green-700">
-                          AI will create realistic decision-making scenarios with multiple options and feedback for {newModule.title || 'your topic'}.
+                          Create realistic decision-making scenarios with multiple options, feedback, and branching paths.
                         </p>
+                        {section.builderData && (
+                          <div className="mt-2 text-xs text-green-600">
+                            Activity configured with {section.builderData.scenarios?.length || 0} scenarios
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -6151,43 +6159,29 @@ Create a natural conversation between two podcast hosts discussing this specific
                   {/* Priority Sorting Template */}
                   {section.type === 'triage' && (
                     <div className="space-y-4">
-                      <div>
-                        <Label>Triage Instructions</Label>
-                        <Textarea
-                          value={section.content}
-                          onChange={(e) => updateSection(index, 'content', e.target.value)}
-                          placeholder="Describe how to prioritize items (urgent/important, high/medium/low, etc.)..."
-                          rows={3}
-                        />
-                      </div>
                       <div className="p-4 bg-red-50 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center">
-                            <Brain className="h-4 w-4 text-red-600 mr-2" />
-                            <span className="text-sm font-medium text-red-800">AI Priority Builder</span>
+                            <AlertTriangle className="h-4 w-4 text-red-600 mr-2" />
+                            <span className="text-sm font-medium text-red-800">Triage & Priority Assessment Builder</span>
                           </div>
                           <Button
                             size="sm"
-                            onClick={() => generatePriorityContent(index)}
-                            disabled={generatingContent === index}
+                            onClick={() => openBuilder('triage', index)}
                             className="bg-red-600 hover:bg-red-700"
                           >
-                            {generatingContent === index ? (
-                              <>
-                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
-                                Generating...
-                              </>
-                            ) : (
-                              <>
-                                <Target className="h-3 w-3 mr-1" />
-                                Generate Priority Exercise
-                              </>
-                            )}
+                            <Wrench className="h-3 w-3 mr-1" />
+                            Open Builder
                           </Button>
                         </div>
                         <p className="text-sm text-red-700">
-                          AI will create prioritization scenarios to help learners practice sorting items by urgency and importance for {newModule.title || 'your topic'}.
+                          Create prioritization scenarios with urgent, high, medium, and low priority items.
                         </p>
+                        {section.builderData && (
+                          <div className="mt-2 text-xs text-red-600">
+                            Activity configured with {section.builderData.items?.length || 0} triage items
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -7103,6 +7097,95 @@ Create a natural conversation between two podcast hosts discussing this specific
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Specialized Builder Components */}
+      {activeBuilder === 'scenario-match' && currentBuilderSection !== null && (
+        <ScenarioMatchBuilder
+          moduleTitle={newModule.title}
+          moduleDescription={newModule.description}
+          sectionTitle={newModule.sections[currentBuilderSection]?.title || ''}
+          onSave={saveBuilderData}
+          onCancel={closeBuilder}
+          initialData={builderData}
+        />
+      )}
+
+      {activeBuilder === 'slide' && currentBuilderSection !== null && (
+        <SlideBuilder
+          moduleTitle={newModule.title}
+          moduleDescription={newModule.description}
+          sectionTitle={newModule.sections[currentBuilderSection]?.title || ''}
+          onSave={saveBuilderData}
+          onCancel={closeBuilder}
+          initialData={builderData}
+        />
+      )}
+
+      {activeBuilder === 'example' && currentBuilderSection !== null && (
+        <ExampleBuilder
+          moduleTitle={newModule.title}
+          moduleDescription={newModule.description}
+          sectionTitle={newModule.sections[currentBuilderSection]?.title || ''}
+          onSave={saveBuilderData}
+          onCancel={closeBuilder}
+          initialData={builderData}
+        />
+      )}
+
+      {activeBuilder === 'matching' && currentBuilderSection !== null && (
+        <MatchingBuilder
+          moduleTitle={newModule.title}
+          moduleDescription={newModule.description}
+          sectionTitle={newModule.sections[currentBuilderSection]?.title || ''}
+          onSave={saveBuilderData}
+          onCancel={closeBuilder}
+          initialData={builderData}
+        />
+      )}
+
+      {activeBuilder === 'scenario' && currentBuilderSection !== null && (
+        <ScenarioBuilder
+          moduleTitle={newModule.title}
+          moduleDescription={newModule.description}
+          sectionTitle={newModule.sections[currentBuilderSection]?.title || ''}
+          onSave={saveBuilderData}
+          onCancel={closeBuilder}
+          initialData={builderData}
+        />
+      )}
+
+      {activeBuilder === 'triage' && currentBuilderSection !== null && (
+        <TriageBuilder
+          moduleTitle={newModule.title}
+          moduleDescription={newModule.description}
+          sectionTitle={newModule.sections[currentBuilderSection]?.title || ''}
+          onSave={saveBuilderData}
+          onCancel={closeBuilder}
+          initialData={builderData}
+        />
+      )}
+
+      {activeBuilder === 'mnemonic' && currentBuilderSection !== null && (
+        <MnemonicBuilder
+          moduleTitle={newModule.title}
+          moduleDescription={newModule.description}
+          sectionTitle={newModule.sections[currentBuilderSection]?.title || ''}
+          onSave={saveBuilderData}
+          onCancel={closeBuilder}
+          initialData={builderData}
+        />
+      )}
+
+      {activeBuilder === 'simulation' && currentBuilderSection !== null && (
+        <SimulationBuilder
+          moduleTitle={newModule.title}
+          moduleDescription={newModule.description}
+          sectionTitle={newModule.sections[currentBuilderSection]?.title || ''}
+          onSave={saveBuilderData}
+          onCancel={closeBuilder}
+          initialData={builderData}
+        />
+      )}
     </div>
   );
 }
