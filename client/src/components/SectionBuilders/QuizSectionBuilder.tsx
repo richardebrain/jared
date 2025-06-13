@@ -71,17 +71,35 @@ export default function QuizSectionBuilder({ content, onContentChange, isEditing
     try {
       // First try to parse as JSON if it looks like structured data
       if (aiContent.includes('{') && aiContent.includes('}')) {
-        const jsonMatch = aiContent.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const parsed = JSON.parse(jsonMatch[0]);
-          if (parsed.questions && Array.isArray(parsed.questions)) {
-            return parsed.questions.map((q: any, index: number) => ({
-              id: `question-${index + 1}`,
-              question: q.question || q.text || '',
-              options: q.options || q.answers || ['Option A', 'Option B', 'Option C', 'Option D'],
-              correctAnswer: q.correctAnswer || q.correct || 0,
-              explanation: q.explanation || q.rationale || ''
-            }));
+        // Find the first complete JSON object
+        let jsonStart = aiContent.indexOf('{');
+        let braceCount = 0;
+        let jsonEnd = -1;
+        
+        for (let i = jsonStart; i < aiContent.length; i++) {
+          if (aiContent[i] === '{') braceCount++;
+          if (aiContent[i] === '}') braceCount--;
+          if (braceCount === 0) {
+            jsonEnd = i;
+            break;
+          }
+        }
+        
+        if (jsonEnd > jsonStart) {
+          const jsonStr = aiContent.substring(jsonStart, jsonEnd + 1);
+          try {
+            const parsed = JSON.parse(jsonStr);
+            if (parsed.questions && Array.isArray(parsed.questions)) {
+              return parsed.questions.map((q: any, index: number) => ({
+                id: `question-${index + 1}`,
+                question: q.question || q.text || '',
+                options: q.options || q.answers || ['Option A', 'Option B', 'Option C', 'Option D'],
+                correctAnswer: q.correctAnswer || q.correct || 0,
+                explanation: q.explanation || q.rationale || ''
+              }));
+            }
+          } catch (jsonError) {
+            console.warn('JSON parsing failed, falling back to text parsing');
           }
         }
       }
