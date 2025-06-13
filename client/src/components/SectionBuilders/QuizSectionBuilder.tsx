@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, CheckCircle, Edit3, Save } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, Edit3, Save, RefreshCw } from 'lucide-react';
 
 interface QuizQuestion {
   id: string;
@@ -21,9 +21,10 @@ interface QuizSectionBuilderProps {
   onContentChange: (content: any) => void;
   isEditing: boolean;
   onEditToggle: () => void;
+  onRegenerateAI?: () => void;
 }
 
-export default function QuizSectionBuilder({ content, onContentChange, isEditing, onEditToggle }: QuizSectionBuilderProps) {
+export default function QuizSectionBuilder({ content, onContentChange, isEditing, onEditToggle, onRegenerateAI }: QuizSectionBuilderProps) {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   useEffect(() => {
     // Handle different content formats from AI generation
@@ -216,13 +217,15 @@ export default function QuizSectionBuilder({ content, onContentChange, isEditing
   };
 
   const saveChanges = () => {
+    console.log(JSON.stringify(questions),'ssjjd')
+    const goodQuestions = questions.filter(q => q.question.trim() && q.options.every(opt => opt.trim()))
     const updatedContent = {
       blocks: [{
         type: 'quiz',
         title: 'Quiz Section',
-        content: JSON.stringify(questions),
-        preview: `${questions.length} quiz questions ready`,
-        questions: questions
+        content: JSON.stringify(goodQuestions),
+        preview: `${goodQuestions.length} quiz questions ready`,
+        questions: goodQuestions
       }]
     };
     onContentChange(updatedContent);
@@ -237,10 +240,18 @@ export default function QuizSectionBuilder({ content, onContentChange, isEditing
             <Badge variant="secondary">Quiz</Badge>
             <span className="text-sm text-gray-600">{questions.length} questions</span>
           </div>
-          <Button variant="outline" size="sm" onClick={onEditToggle}>
-            <Edit3 className="h-4 w-4 mr-1" />
-            Edit Quiz
-          </Button>
+          <div className="flex gap-2">
+            {onRegenerateAI && (
+              <Button variant="outline" size="sm" onClick={onRegenerateAI}>
+                <RefreshCw className="h-4 w-4 mr-1" />
+                Regenerate
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={onEditToggle}>
+              <Edit3 className="h-4 w-4 mr-1" />
+              Edit Quiz
+            </Button>
+          </div>
         </div>
         
         <div className="space-y-3">

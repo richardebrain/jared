@@ -4,13 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Edit3, Save, BookOpen, FileText } from 'lucide-react';
+import { Edit3, Save, BookOpen, FileText, RefreshCw } from 'lucide-react';
 
 interface TextSectionBuilderProps {
   content: any;
   onContentChange: (content: any) => void;
   isEditing: boolean;
   onEditToggle: () => void;
+  onRegenerateAI?: () => void;
 }
 
 export default function TextSectionBuilder({ content, onContentChange, isEditing, onEditToggle }: TextSectionBuilderProps) {
