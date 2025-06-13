@@ -104,7 +104,7 @@ interface ModuleSection {
     | "scenario-match"
     | "podcast"
     | "slide"
-    | "video"
+    | " n"
     | "story"
     | "example"
     | "matching"
