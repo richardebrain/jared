@@ -87,16 +87,34 @@ export default function ActivityBuilder({
       const data = await response.json();
       
       if (data.blocks && data.blocks.length > 0) {
-        const newActivities = data.blocks.map((block: any, index: number) => ({
-          id: `activity-${Date.now()}-${index}`,
-          title: block.preview || `Activity ${index + 1}`,
-          activityType: 'Drag-and-Match' as const,
-          instructions: block.content || '',
-          promptItems: ['Item 1', 'Item 2', 'Item 3'],
-          answerKey: ['Answer 1', 'Answer 2', 'Answer 3'],
-          uiHints: 'Use interactive cards with drag-and-drop functionality',
-          estimatedTime: 5
-        }));
+        const newActivities = data.blocks.map((block: any, index: number) => {
+          // Parse content if it's an object or string
+          let parsedContent = '';
+          let activityType = 'Drag-and-Match';
+          let promptItems = ['Item 1', 'Item 2', 'Item 3'];
+          let uiHints = 'Use interactive cards with drag-and-drop functionality';
+          
+          if (typeof block.content === 'string') {
+            parsedContent = block.content;
+          } else if (typeof block.content === 'object') {
+            // Extract structured data from content object
+            parsedContent = block.content.instructions || block.content.description || JSON.stringify(block.content, null, 2);
+            activityType = block.content.activityType || 'Drag-and-Match';
+            promptItems = block.content.promptItems || block.content.items || ['Item 1', 'Item 2', 'Item 3'];
+            uiHints = block.content.uiHints || 'Use interactive cards with drag-and-drop functionality';
+          }
+          
+          return {
+            id: `activity-${Date.now()}-${index}`,
+            title: block.preview || block.title || `Activity ${index + 1}`,
+            activityType: activityType as any,
+            instructions: parsedContent,
+            promptItems: Array.isArray(promptItems) ? promptItems : ['Item 1', 'Item 2', 'Item 3'],
+            answerKey: block.content?.answerKey || ['Answer 1', 'Answer 2', 'Answer 3'],
+            uiHints: uiHints,
+            estimatedTime: block.content?.estimatedTime || 5
+          };
+        });
         
         setActivities(prev => [...prev, ...newActivities]);
         

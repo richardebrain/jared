@@ -834,30 +834,39 @@ FORMAT: Return a JSON object with "blocks" array. Each block should have:
       prompt = `
 You are an expert early childhood education instructor creating hands-on activities for "${topic}".${guidanceText}
 
-These are interactive learning activities that help teachers test and apply their understanding through engaging interactions.
+Create 3-4 interactive learning activities that help teachers practice and apply knowledge about "${topic}".
 
-Create 3-4 interactive activity blocks for "${topic}" using formats such as:
-- Drag-and-Match activities (matching concepts to examples)
-- Scenario Challenge (selecting best responses to classroom situations)
-- Categorization games (sorting items into correct groups)
-- Fill-in-the-blanks exercises
-- Yes/No decision activities
-
-For each activity, provide:
-1. Clear, engaging title
-2. Activity type (one of the formats above)
-3. Step-by-step instructions for teachers
-4. Interactive elements (items to match, scenarios to sort, etc.)
-5. Answer key or correct responses
-6. Estimated completion time
-7. Learning objective
-
-Make activities specific to "${topic}" and directly applicable to early childhood education practice.
+Each activity must be returned as a JSON object with this exact structure:
 
 FORMAT: Return a JSON object with "blocks" array. Each block should have:
 - "type": "Interactive Activity"
-- "preview": Brief description of what teachers will do
-- "content": Complete activity with instructions and interactive elements`;
+- "preview": Brief one-sentence description of the activity
+- "content": {
+    "title": "Clear, engaging activity title",
+    "activityType": "Drag-and-Match" or "Scenario Challenge" or "Categorization" or "Fill-in-Blanks" or "Yes-No Questions",
+    "instructions": "Step-by-step instructions for teachers (2-3 sentences)",
+    "promptItems": ["Item 1 related to ${topic}", "Item 2 related to ${topic}", "Item 3 related to ${topic}", "Item 4 related to ${topic}"],
+    "answerKey": ["Correct answer 1", "Correct answer 2", "Correct answer 3", "Correct answer 4"],
+    "uiHints": "Specific UI suggestion (e.g., 'Use drag-and-drop cards with classroom scenario images')",
+    "estimatedTime": 5 or 10 (number in minutes)
+  }
+
+EXAMPLE for "Classroom Management":
+{
+  "type": "Interactive Activity",
+  "preview": "Match behavior management techniques to specific classroom situations",
+  "content": {
+    "title": "Behavior Technique Matching",
+    "activityType": "Drag-and-Match",
+    "instructions": "Drag each behavior management technique to the appropriate classroom situation where it would be most effective.",
+    "promptItems": ["Child refuses to share toys", "Student interrupts during story time", "Two children arguing over blocks", "Child having emotional meltdown"],
+    "answerKey": ["Offer alternative toys and model sharing", "Use gentle redirection and visual cues", "Facilitate problem-solving discussion", "Provide calm-down space and emotional support"],
+    "uiHints": "Use colorful cards with situation images and technique descriptions",
+    "estimatedTime": 5
+  }
+}
+
+Create similar structured activities specifically for "${topic}" in early childhood education.`;
     
     } else if (isHandsOnPracticeSection) {
       prompt = `
