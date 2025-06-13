@@ -229,17 +229,7 @@ export default function AdminTeacherAssessmentResultsPage() {
       </div>
 
       {/* Assessment overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Award className="h-5 w-5 text-blue-600" />
-              <span className="text-sm font-medium">Overall Score</span>
-            </div>
-            <div className="text-2xl font-bold text-blue-800">{results.overallScore}%</div>
-          </CardContent>
-        </Card>
-        
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
