@@ -569,7 +569,6 @@ router.post('/send-message', async (req: Request, res: Response) => {
         messageType: messageType || 'announcement',
         title: subject,
         content: content,
-        important: isImportant,
         isRead: false
       });
     });
@@ -926,7 +925,7 @@ router.get("/assessment-results", async (req, res) => {
     const sortOrder = req.query.sortOrder as string || 'desc';
 
     // Build the base query with joins
-    let query = db
+    const query = db
       .select({
         id: assessmentResults.id,
         overallScore: assessmentResults.overallScore,
@@ -985,8 +984,9 @@ router.get("/assessment-results", async (req, res) => {
       conditions.push(lte(assessmentResults.accuracyRate, accuracyMax));
     }
 
+    let finalQuery = query;
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      finalQuery = query.where(and(...conditions));
     }
 
     // Apply sorting
@@ -999,25 +999,26 @@ router.get("/assessment-results", async (req, res) => {
     }[sortBy] || assessmentResults.calculatedAt;
 
     if (sortOrder === 'desc') {
-      query = query.orderBy(desc(sortColumn));
+      finalQuery = finalQuery.orderBy(desc(sortColumn));
     } else {
-      query = query.orderBy(asc(sortColumn));
+      finalQuery = finalQuery.orderBy(asc(sortColumn));
     }
 
     // Get total count for pagination
-    let countQuery = db
+    const countQuery = db
       .select({ count: count() })
       .from(assessmentResults)
       .innerJoin(assessments, eq(assessmentResults.assessmentId, assessments.id))
       .innerJoin(users, eq(assessments.userId, users.id));
 
+    let finalCountQuery = countQuery;
     if (conditions.length > 0) {
-      countQuery = countQuery.where(and(...conditions));
+      finalCountQuery = countQuery.where(and(...conditions));
     }
 
     const [results, totalCountResult] = await Promise.all([
-      query.limit(limit).offset(offset),
-      countQuery
+      finalQuery.limit(limit).offset(offset),
+      finalCountQuery
     ]);
 
     const totalCount = totalCountResult[0]?.count || 0;
