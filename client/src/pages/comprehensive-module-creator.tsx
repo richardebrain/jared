@@ -71,6 +71,7 @@ import {
 import StepByStepModuleBuilder from '@/components/StepByStepModuleBuilder';
 import PowerPointImporter from '@/components/PowerPointImporter';
 import ModulePublishingDialog from '@/components/ModulePublishingDialog';
+import InteractiveActivityBuilder from '@/components/InteractiveActivityBuilder';
 
 interface ModuleSection {
   title: string;
@@ -1586,20 +1587,50 @@ export default function ComprehensiveModuleCreator() {
       ...prev,
       [field]: prev[field].map((item: string, i: number) => i === index ? value : item)
     }));
-    }));
   };
 
-  const updateActivityItem = (index: number, field: 'promptItems' | 'answerKey', value: string) => {
+  const addActivityToList = () => {
+    if (!currentActivity.title.trim() || 
+        currentActivity.promptItems.filter((item: string) => item.trim()).length < 2 ||
+        currentActivity.answerKey.filter((answer: string) => answer.trim()).length < 2) {
+      toast({
+        title: "Incomplete Activity",
+        description: "Please add a title and at least 2 items with answers.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setBuiltActivities(prev => [...prev, { ...currentActivity }]);
+    setCurrentActivity({
+      title: '',
+      activityType: currentActivity.activityType,
+      instructions: '',
+      promptItems: ['', ''],
+      answerKey: ['', ''],
+      preview: '',
+      uiHints: {
+        leftColumnTitle: 'Items to Match',
+        rightColumnTitle: 'Categories',
+        dragInstruction: 'Drag items to their matching categories'
+      },
+      imageSupport: false
+    });
+
+    toast({
+      title: "Activity Added",
+      description: `Activity list now has ${builtActivities.length + 1} activities`,
+    });
+  };
+
+
+
+  const removeActivityItem = (index: number) => {
     setCurrentActivity(prev => ({
       ...prev,
-      [field]: prev[field].map((item, i) => i === index ? value : item)
+      promptItems: prev.promptItems.filter((_, i) => i !== index),
+      answerKey: prev.answerKey.filter((_, i) => i !== index)
     }));
-  };
-
-
-  // Remove activity from built list
-  const removeActivityFromList = (index: number) => {
-    setBuiltActivities(prev => prev.filter((_, i) => i !== index));
   };
 
 
@@ -5176,11 +5207,29 @@ Create a natural conversation between two podcast hosts discussing this specific
                               <Button 
                                 size="sm"
                                 variant="outline" 
-                                onClick={startActivityBuilder}
+                                onClick={() => setIsActivityBuilder(true)}
                                 className="border-blue-300 text-blue-700 hover:bg-blue-50"
                               >
                                 <Gamepad className="h-4 w-4 mr-2" />
                                 Add Activity
+                              </Button>
+                              <Button 
+                                size="sm"
+                                variant="outline" 
+                                onClick={() => setIsCaseStudyBuilder(true)}
+                                className="border-orange-300 text-orange-700 hover:bg-orange-50"
+                              >
+                                <BookOpen className="h-4 w-4 mr-2" />
+                                Add Case Study
+                              </Button>
+                              <Button 
+                                size="sm"
+                                variant="outline" 
+                                onClick={() => setIsReflectionBuilder(true)}
+                                className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                              >
+                                <Brain className="h-4 w-4 mr-2" />
+                                Add Reflection
                               </Button>
                             </div>
                           </div>
