@@ -88,31 +88,65 @@ export default function ActivityBuilder({
       
       if (data.blocks && data.blocks.length > 0) {
         const newActivities = data.blocks.map((block: any, index: number) => {
-          // Parse content if it's an object or string
-          let parsedContent = '';
-          let activityType = 'Drag-and-Match';
-          let promptItems = ['Item 1', 'Item 2', 'Item 3'];
-          let uiHints = 'Use interactive cards with drag-and-drop functionality';
-          
-          if (typeof block.content === 'string') {
-            parsedContent = block.content;
-          } else if (typeof block.content === 'object') {
-            // Extract structured data from content object
-            parsedContent = block.content.instructions || block.content.description || JSON.stringify(block.content, null, 2);
-            activityType = block.content.activityType || 'Drag-and-Match';
-            promptItems = block.content.promptItems || block.content.items || ['Item 1', 'Item 2', 'Item 3'];
-            uiHints = block.content.uiHints || 'Use interactive cards with drag-and-drop functionality';
+          let activityData = {
+            title: 'New Activity',
+            activityType: 'Drag-and-Match',
+            instructions: '',
+            promptItems: ['New item 1', 'New item 2', 'New item 3'],
+            answerKey: ['Answer 1', 'Answer 2', 'Answer 3'],
+            uiHints: 'Use interactive cards with drag-and-drop functionality',
+            estimatedTime: 5
+          };
+
+          // Extract title from preview or block title
+          if (block.preview) {
+            activityData.title = block.preview;
+          } else if (block.title) {
+            activityData.title = block.title;
           }
-          
+
+          // Parse content - handle both string and object formats
+          if (typeof block.content === 'object' && block.content !== null) {
+            // Use structured content object
+            activityData.title = block.content.title || activityData.title;
+            activityData.activityType = block.content.activityType || activityData.activityType;
+            activityData.instructions = block.content.instructions || block.content.description || '';
+            activityData.promptItems = Array.isArray(block.content.promptItems) 
+              ? block.content.promptItems 
+              : Array.isArray(block.content.items) 
+                ? block.content.items 
+                : activityData.promptItems;
+            activityData.answerKey = Array.isArray(block.content.answerKey) 
+              ? block.content.answerKey 
+              : activityData.answerKey;
+            activityData.uiHints = block.content.uiHints || activityData.uiHints;
+            activityData.estimatedTime = block.content.estimatedTime || activityData.estimatedTime;
+          } else if (typeof block.content === 'string') {
+            // Parse text content to extract activity details
+            activityData.instructions = block.content;
+            
+            // Try to extract items from content text
+            const lines = block.content.split('\n').filter(line => line.trim());
+            const itemLines = lines.filter(line => 
+              line.includes('•') || line.includes('-') || line.includes('1.') || line.includes('2.')
+            );
+            
+            if (itemLines.length > 0) {
+              activityData.promptItems = itemLines.map(line => 
+                line.replace(/^[\s\-\•\d\.\)]+/, '').trim()
+              ).filter(item => item.length > 0);
+            }
+          }
+
           return {
             id: `activity-${Date.now()}-${index}`,
-            title: block.preview || block.title || `Activity ${index + 1}`,
-            activityType: activityType as any,
-            instructions: parsedContent,
-            promptItems: Array.isArray(promptItems) ? promptItems : ['Item 1', 'Item 2', 'Item 3'],
-            answerKey: block.content?.answerKey || ['Answer 1', 'Answer 2', 'Answer 3'],
-            uiHints: uiHints,
-            estimatedTime: block.content?.estimatedTime || 5
+            title: activityData.title,
+            activityType: activityData.activityType as any,
+            instructions: activityData.instructions,
+            promptItems: activityData.promptItems,
+            answerKey: activityData.answerKey,
+            uiHints: activityData.uiHints,
+            estimatedTime: activityData.estimatedTime
           };
         });
         
@@ -176,6 +210,173 @@ export default function ActivityBuilder({
 
   const removeActivity = (id: string) => {
     setActivities(prev => prev.filter(activity => activity.id !== id));
+  };
+
+  const getActivityItemsLabel = (activityType: string) => {
+    switch (activityType) {
+      case 'Drag-and-Match': return 'Items to Match';
+      case 'Scenario Challenge': return 'Scenario Options';
+      case 'Categorization': return 'Items to Categorize';
+      case 'Fill-in-Blanks': return 'Fill-in Items';
+      case 'Yes-No Questions': return 'Question Items';
+      case 'Reflection': return 'Reflection Prompts';
+      case 'Practice': return 'Practice Items';
+      default: return 'Activity Items';
+    }
+  };
+
+  const renderActivityContent = (activity: any) => {
+    const baseItemClass = "flex items-center gap-2 p-3 border rounded-lg bg-gray-50";
+    
+    switch (activity.activityType) {
+      case 'Drag-and-Match':
+        return (
+          <div className="space-y-3">
+            <div className="text-sm text-blue-600 font-medium flex items-center gap-2">
+              🔄 Drag-and-Match Setup
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs text-gray-600">Items to Match</Label>
+                <div className="space-y-2">
+                  {activity.promptItems.map((item: string, itemIndex: number) => (
+                    <div key={itemIndex} className={baseItemClass}>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <Input
+                        value={item}
+                        onChange={(e) => updatePromptItem(activity.id, itemIndex, e.target.value)}
+                        placeholder={`Match item ${itemIndex + 1}...`}
+                        className="flex-1 border-none bg-transparent p-0"
+                      />
+                      {activity.promptItems.length > 1 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removePromptItem(activity.id, itemIndex)}
+                          className="text-red-600 hover:text-red-700 h-6 w-6 p-0"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs text-gray-600">Correct Matches</Label>
+                <div className="space-y-2">
+                  {activity.answerKey.map((answer: string, answerIndex: number) => (
+                    <div key={answerIndex} className={`${baseItemClass} bg-green-50`}>
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <Input
+                        value={answer}
+                        onChange={(e) => {
+                          const newAnswers = [...activity.answerKey];
+                          newAnswers[answerIndex] = e.target.value;
+                          updateActivity(activity.id, { answerKey: newAnswers });
+                        }}
+                        placeholder={`Answer ${answerIndex + 1}...`}
+                        className="flex-1 border-none bg-transparent p-0"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'Scenario Challenge':
+        return (
+          <div className="space-y-3">
+            <div className="text-sm text-purple-600 font-medium flex items-center gap-2">
+              🎭 Scenario Challenge Setup
+            </div>
+            <div className="space-y-2">
+              {activity.promptItems.map((item: string, itemIndex: number) => (
+                <div key={itemIndex} className={`${baseItemClass} bg-purple-50`}>
+                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  <Input
+                    value={item}
+                    onChange={(e) => updatePromptItem(activity.id, itemIndex, e.target.value)}
+                    placeholder={`Scenario option ${itemIndex + 1}...`}
+                    className="flex-1 border-none bg-transparent p-0"
+                  />
+                  {activity.promptItems.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removePromptItem(activity.id, itemIndex)}
+                      className="text-red-600 hover:text-red-700 h-6 w-6 p-0"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'Categorization':
+        return (
+          <div className="space-y-3">
+            <div className="text-sm text-orange-600 font-medium flex items-center gap-2">
+              📂 Categorization Setup
+            </div>
+            <div className="space-y-2">
+              {activity.promptItems.map((item: string, itemIndex: number) => (
+                <div key={itemIndex} className={`${baseItemClass} bg-orange-50`}>
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <Input
+                    value={item}
+                    onChange={(e) => updatePromptItem(activity.id, itemIndex, e.target.value)}
+                    placeholder={`Item to categorize ${itemIndex + 1}...`}
+                    className="flex-1 border-none bg-transparent p-0"
+                  />
+                  {activity.promptItems.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removePromptItem(activity.id, itemIndex)}
+                      className="text-red-600 hover:text-red-700 h-6 w-6 p-0"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      default:
+        return (
+          <div className="space-y-2">
+            {activity.promptItems.map((item: string, itemIndex: number) => (
+              <div key={itemIndex} className={baseItemClass}>
+                <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
+                <Input
+                  value={item}
+                  onChange={(e) => updatePromptItem(activity.id, itemIndex, e.target.value)}
+                  placeholder={`Item ${itemIndex + 1}...`}
+                  className="flex-1 border-none bg-transparent p-0"
+                />
+                {activity.promptItems.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removePromptItem(activity.id, itemIndex)}
+                    className="text-red-600 hover:text-red-700 h-6 w-6 p-0"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+        );
+    }
   };
 
   const updateActivity = (id: string, updates: Partial<ActivityStep>) => {
@@ -347,9 +548,12 @@ export default function ActivityBuilder({
                       />
                     </div>
 
+                    {/* Activity Items - Type-specific rendering */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <Label className="text-sm font-medium">Activity Items</Label>
+                        <Label className="text-sm font-medium">
+                          {getActivityItemsLabel(activity.activityType)}
+                        </Label>
                         <Button
                           variant="outline"
                           size="sm"
@@ -359,28 +563,9 @@ export default function ActivityBuilder({
                           Add Item
                         </Button>
                       </div>
-                      <div className="space-y-2">
-                        {activity.promptItems.map((item, itemIndex) => (
-                          <div key={itemIndex} className="flex items-center gap-2">
-                            <Input
-                              value={item}
-                              onChange={(e) => updatePromptItem(activity.id, itemIndex, e.target.value)}
-                              placeholder={`Item ${itemIndex + 1}...`}
-                              className="flex-1"
-                            />
-                            {activity.promptItems.length > 1 && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removePromptItem(activity.id, itemIndex)}
-                                className="text-red-600 hover:text-red-700"
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                      
+                      {/* Type-specific activity content */}
+                      {renderActivityContent(activity)}
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">

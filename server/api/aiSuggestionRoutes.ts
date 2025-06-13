@@ -713,7 +713,8 @@ router.post('/generate-content-blocks', async (req, res) => {
     const isActivitySection = sectionTitle?.toLowerCase().includes('activity') || 
                              sectionTitle?.toLowerCase().includes('step-by-step') ||
                              sectionTitle?.toLowerCase().includes('guided') ||
-                             sectionType === 'example';
+                             (sectionTitle?.toLowerCase().includes('interactive') && sectionTitle?.toLowerCase().includes('practice')) ||
+                             sectionType === 'activity';
 
     const isCaseStudySection = sectionTitle?.toLowerCase().includes('case study') || 
                               sectionTitle?.toLowerCase().includes('story') ||
@@ -728,7 +729,7 @@ router.post('/generate-content-blocks', async (req, res) => {
     const isHandsOnPracticeSection = sectionTitle?.toLowerCase().includes('hands-on practice') || 
                                     sectionTitle?.toLowerCase().includes('hands-on') ||
                                     sectionTitle?.toLowerCase().includes('ai-guided scenario') ||
-                                    (sectionTitle?.toLowerCase().includes('practice') && !sectionTitle?.toLowerCase().includes('case study')) ||
+                                    (sectionTitle?.toLowerCase().includes('practice') && !sectionTitle?.toLowerCase().includes('case study') && !sectionTitle?.toLowerCase().includes('interactive')) ||
                                     sectionType === 'simulation';
 
     const isReflectionSection = sectionTitle?.toLowerCase().includes('reflection') || 
