@@ -832,30 +832,32 @@ FORMAT: Return a JSON object with "blocks" array. Each block should have:
     
     } else if (isActivitySection) {
       prompt = `
-You are an expert early childhood education instructor creating hands-on activities for "${topic}".
+You are an expert early childhood education instructor creating hands-on activities for "${topic}".${guidanceText}
 
-These are not lessons for children — they are **adult-learning games** that help teachers **test and apply their understanding** through visually engaging interactions.
+These are interactive learning activities that help teachers test and apply their understanding through engaging interactions.
 
-Create 3–4 game-like activity blocks using formats such as:
-- ✅ **Drag-and-Match** (e.g., match strategy to situation)
-- 🧠 **Scenario Challenge** (select best response to a classroom dilemma)
-- 📦 **Categorization/Sorting Game** (e.g., sort examples into correct categories)
+Create 3-4 interactive activity blocks for "${topic}" using formats such as:
+- Drag-and-Match activities (matching concepts to examples)
+- Scenario Challenge (selecting best responses to classroom situations)
+- Categorization games (sorting items into correct groups)
+- Fill-in-the-blanks exercises
+- Yes/No decision activities
 
-🔧 For each game block, include:
-1. **activityType** – e.g., "Drag-and-Match", "Scenario Challenge"
-2. **title** – Short, engaging name for the activity
-3. **preview** – 1–2 sentence summary of what the teacher will do
-4. **instructions** – Clear steps for how the interaction works
-5. **promptItems** – List of scenarios, terms, options, or categories
-6. **answerKey** – Mapping of correct answers for feedback
-7. **uiHints** – Optional UI hints (e.g., "Use draggable cards with icons", "Use image of a calm-down corner as drop zone")
-8. **imageSupport** – Optional image URLs or descriptions (e.g., icons, scene illustrations, visual aids) and must be real image urls.
+For each activity, provide:
+1. Clear, engaging title
+2. Activity type (one of the formats above)
+3. Step-by-step instructions for teachers
+4. Interactive elements (items to match, scenarios to sort, etc.)
+5. Answer key or correct responses
+6. Estimated completion time
+7. Learning objective
 
+Make activities specific to "${topic}" and directly applicable to early childhood education practice.
 
 FORMAT: Return a JSON object with "blocks" array. Each block should have:
-- "type": "Guided Activity"
-- "preview": Brief activity description
-- "content": Complete activity instructions ready to use`;
+- "type": "Interactive Activity"
+- "preview": Brief description of what teachers will do
+- "content": Complete activity with instructions and interactive elements`;
     
     } else if (isHandsOnPracticeSection) {
       prompt = `

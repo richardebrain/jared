@@ -11,9 +11,6 @@ import {
   X, 
   Loader2, 
   FileEdit,
-  DragDropContext,
-  Draggable,
-  Droppable,
   GripVertical,
   Trash2,
   RefreshCw

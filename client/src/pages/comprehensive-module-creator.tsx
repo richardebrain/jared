@@ -4685,6 +4685,40 @@ Create a natural conversation between two podcast hosts discussing this specific
                   />
                 )}
 
+            {activeBuilder === 'activity' && (
+                  <ActivityBuilder
+                    moduleTitle={newModule.title}
+                    moduleDescription={newModule.description}
+                    sectionTitle={newModule.sections[currentSectionIndex]?.title || ''}
+                    onSave={(data) => {
+                      const updatedSections = [...newModule.sections];
+                      updatedSections[currentSectionIndex] = {
+                        ...updatedSections[currentSectionIndex],
+                        builderData: data,
+                        content: `Interactive learning activities with ${data.totalActivities || 0} activities created using AI and manual input.`
+                      };
+                      
+                      setNewModule(prev => ({
+                        ...prev,
+                        sections: updatedSections
+                      }));
+                      
+                      setActiveBuilder(null);
+                      setBuilderData(null);
+                      
+                      toast({
+                        title: "Activities Saved",
+                        description: "Your interactive activities have been saved to this section.",
+                      });
+                    }}
+                    onCancel={() => {
+                      setActiveBuilder(null);
+                      setBuilderData(null);
+                    }}
+                    initialData={builderData}
+                  />
+                )}
+
                 {/* Drag and Drop Content Area */}
                 {!isQuizBuilder && !isActivityBuilder && !activeBuilder && (
                   <div className="grid grid-cols-2 gap-6">
@@ -7591,6 +7625,17 @@ Create a natural conversation between two podcast hosts discussing this specific
 
       {activeBuilder === 'simulation' && currentBuilderSection !== null && (
         <SimulationBuilder
+          moduleTitle={newModule.title}
+          moduleDescription={newModule.description}
+          sectionTitle={newModule.sections[currentBuilderSection]?.title || ''}
+          onSave={saveBuilderData}
+          onCancel={closeBuilder}
+          initialData={builderData}
+        />
+      )}
+
+      {activeBuilder === 'activity' && currentBuilderSection !== null && (
+        <ActivityBuilder
           moduleTitle={newModule.title}
           moduleDescription={newModule.description}
           sectionTitle={newModule.sections[currentBuilderSection]?.title || ''}
