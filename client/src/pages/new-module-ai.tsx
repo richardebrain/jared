@@ -237,6 +237,10 @@ export default function NewModuleAI() {
       toggleSectionEdit(index);
     };
 
+    const handleRegenerateAI = () => {
+      generateSectionContent(index);
+    };
+
     // Route to appropriate builder based on section type
     switch (section.type) {
       case 'quiz':
@@ -246,6 +250,7 @@ export default function NewModuleAI() {
             onContentChange={handleContentChange}
             isEditing={isEditing}
             onEditToggle={handleEditToggle}
+            onRegenerateAI={handleRegenerateAI}
           />
         );
       
@@ -256,6 +261,7 @@ export default function NewModuleAI() {
             onContentChange={handleContentChange}
             isEditing={isEditing}
             onEditToggle={handleEditToggle}
+            onRegenerateAI={handleRegenerateAI}
           />
         );
       
@@ -270,6 +276,7 @@ export default function NewModuleAI() {
             onContentChange={handleContentChange}
             isEditing={isEditing}
             onEditToggle={handleEditToggle}
+            onRegenerateAI={handleRegenerateAI}
           />
         );
     }
