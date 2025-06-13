@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { Input } from "@/components/ui/input";
+import { Input } from '@/components/ui/input';
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -11,11 +11,17 @@ import {
   X, 
   Sparkles, 
   Loader2, 
-  ArrowRight,
-  Target,
-  Clock,
-  Brain
+  Brain,
+  BookMarked
 } from 'lucide-react';
+
+interface MnemonicItem {
+  term: string;
+  definition: string;
+  mnemonic: string;
+  explanation: string;
+  memoryTip: string;
+}
 
 interface MnemonicBuilderProps {
   moduleTitle: string;
@@ -41,45 +47,75 @@ export default function MnemonicBuilder({
   estimatedTime = '15 min'
 }: MnemonicBuilderProps) {
   const { toast } = useToast();
-  const [builtMnemonics, setBuiltMnemonics] = useState<Array<{ concept: string; mnemonic: string; explanation: string; tip: string }>>([]);
-  const [currentMnemonic, setCurrentMnemonic] = useState({ concept: '', mnemonic: '', explanation: '', tip: '' });
+  const [mnemonicSets, setMnemonicSets] = useState<Array<{
+    title: string;
+    description: string;
+    items: MnemonicItem[];
+  }>>([]);
+  const [currentSet, setCurrentSet] = useState({
+    title: '',
+    description: '',
+    items: [] as MnemonicItem[]
+  });
+  const [currentItem, setCurrentItem] = useState<MnemonicItem>({
+    term: '',
+    definition: '',
+    mnemonic: '',
+    explanation: '',
+    memoryTip: ''
+  });
   const [isGenerating, setIsGenerating] = useState(false);
+  const [editingSetIndex, setEditingSetIndex] = useState<number | null>(null);
+  const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    if (initialData?.mnemonics) {
-      setBuiltMnemonics(initialData.mnemonics);
+    if (initialData?.sets) {
+      setMnemonicSets(initialData.sets);
     }
   }, [initialData]);
 
-  const generateSingleMnemonic = async () => {
+  const generateMnemonics = async () => {
+    if (!moduleTitle) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide a module title to generate mnemonics.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsGenerating(true);
     try {
-      const response = await fetch('/api/ai/generate-mnemonic', {
+      const response = await fetch('/api/ai-suggestions/generate-mnemonics', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          moduleTitle,
-          moduleDescription,
-          sectionTitle,
-          count: 1,
-          existingMnemonics: builtMnemonics
+          topic: moduleTitle,
+          description: moduleDescription,
+          category,
+          difficulty,
+          estimatedTime
         })
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.mnemonics && data.mnemonics.length > 0) {
-          setCurrentMnemonic(data.mnemonics[0]);
-          toast({
-            title: "AI Content Generated",
-            description: "Memory device has been generated successfully.",
-          });
-        }
-      }
+      if (!response.ok) throw new Error('Failed to generate content');
+      
+      const data = await response.json();
+      
+      setCurrentSet({
+        title: data.title || `${moduleTitle} - Key Terms`,
+        description: data.description || 'Important terminology and concepts',
+        items: data.items || []
+      });
+
+      toast({
+        title: "Mnemonics Generated!",
+        description: "AI has created memory aids for key terms."
+      });
     } catch (error) {
       toast({
-        title: "Generation Failed",
-        description: "Failed to generate mnemonic content.",
+        title: "Generation Error",
+        description: "Failed to generate mnemonic content. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -87,276 +123,346 @@ export default function MnemonicBuilder({
     }
   };
 
-  const addMnemonicToBuilder = () => {
-    if (!currentMnemonic.concept.trim() || !currentMnemonic.mnemonic.trim()) {
+  const addItem = () => {
+    if (currentItem.term && currentItem.definition) {
+      if (editingItemIndex !== null) {
+        setCurrentSet(prev => ({
+          ...prev,
+          items: prev.items.map((item, index) => 
+            index === editingItemIndex ? currentItem : item
+          )
+        }));
+        setEditingItemIndex(null);
+      } else {
+        setCurrentSet(prev => ({
+          ...prev,
+          items: [...prev.items, currentItem]
+        }));
+      }
+      
+      setCurrentItem({
+        term: '',
+        definition: '',
+        mnemonic: '',
+        explanation: '',
+        memoryTip: ''
+      });
+      
       toast({
-        title: "Validation Error",
-        description: "Please fill in concept and mnemonic fields.",
+        title: "Term Added",
+        description: "Mnemonic item has been added successfully."
+      });
+    } else {
+      toast({
+        title: "Incomplete Item",
+        description: "Please provide at least a term and definition.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const editItem = (index: number) => {
+    setCurrentItem(currentSet.items[index]);
+    setEditingItemIndex(index);
+  };
+
+  const removeItem = (index: number) => {
+    setCurrentSet(prev => ({
+      ...prev,
+      items: prev.items.filter((_, i) => i !== index)
+    }));
+  };
+
+  const addSet = () => {
+    if (currentSet.title && currentSet.items.length > 0) {
+      if (editingSetIndex !== null) {
+        setMnemonicSets(prev => 
+          prev.map((set, index) => 
+            index === editingSetIndex ? currentSet : set
+          )
+        );
+        setEditingSetIndex(null);
+      } else {
+        setMnemonicSets(prev => [...prev, currentSet]);
+      }
+      
+      setCurrentSet({
+        title: '',
+        description: '',
+        items: []
+      });
+      
+      toast({
+        title: "Set Added",
+        description: "Mnemonic set has been added successfully."
+      });
+    } else {
+      toast({
+        title: "Incomplete Set",
+        description: "Please provide a title and at least one term.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const editSet = (index: number) => {
+    setCurrentSet(mnemonicSets[index]);
+    setEditingSetIndex(index);
+  };
+
+  const removeSet = (index: number) => {
+    setMnemonicSets(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSave = () => {
+    if (mnemonicSets.length === 0) {
+      toast({
+        title: "No Sets",
+        description: "Please create at least one mnemonic set before saving.",
         variant: "destructive"
       });
       return;
     }
 
-    setBuiltMnemonics([...builtMnemonics, { ...currentMnemonic }]);
-    setCurrentMnemonic({ concept: '', mnemonic: '', explanation: '', tip: '' });
-    
-    toast({
-      title: "Mnemonic Added",
-      description: "Memory device has been added to the builder.",
-    });
-  };
+    const builderData = {
+      type: 'mnemonic',
+      sets: mnemonicSets,
+      metadata: {
+        totalSets: mnemonicSets.length,
+        totalTerms: mnemonicSets.reduce((sum, set) => sum + set.items.length, 0),
+        topic: moduleTitle
+      }
+    };
 
-  const removeMnemonicFromBuilder = (index: number) => {
-    setBuiltMnemonics(builtMnemonics.filter((_, i) => i !== index));
-  };
-
-  const finishAndSave = () => {
-    if (builtMnemonics.length === 0) {
-      toast({
-        title: "Validation Error",
-        description: "Please add at least one memory device before saving.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    onSave({ mnemonics: builtMnemonics });
+    onSave(builderData);
   };
 
   return (
     <div className="space-y-6">
-      {/* Module Context Header */}
-      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-3">
-            <Target className="h-6 w-6 text-blue-600" />
-            <div className="flex-1">
-              <CardTitle className="text-lg text-blue-900">
-                {moduleTitle || 'Professional Development Module'}
-              </CardTitle>
-              <CardDescription className="text-blue-700 mt-1">
-                <strong>Topic:</strong> {moduleDescription || 'Building effective teaching strategies'}
-              </CardDescription>
-              <div className="flex items-center gap-4 mt-2 text-sm">
-                <Badge variant="outline" className="border-blue-300 text-blue-700">
-                  {category}
-                </Badge>
-                <Badge variant="outline" className="border-purple-300 text-purple-700">
-                  {difficulty} level
-                </Badge>
-                <span className="text-blue-600">
-                  <Clock className="h-4 w-4 inline mr-1" />
-                  {estimatedTime}
-                </span>
-              </div>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
-
       <Card>
         <CardHeader>
-          <CardTitle>Build Section: {sectionTitle}</CardTitle>
-          <CardDescription>
-            AI will use the module topic above to generate relevant content for this section
-          </CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5 text-purple-600" />
+            Mnemonic & Key Terms Builder
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Interactive Mnemonic Builder */}
-          <Card className="border-indigo-200 bg-indigo-50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-indigo-800">
-                <Brain className="h-5 w-5" />
-                Interactive Memory Device Builder
-              </CardTitle>
-              <CardDescription className="text-indigo-700">
-                Build your memory aids one device at a time. Add as many mnemonics as you need.
-              </CardDescription>
+          {/* Current Set Builder */}
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="set-title">Set Title</Label>
+                <Input
+                  id="set-title"
+                  value={currentSet.title}
+                  onChange={(e) => setCurrentSet(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="Enter set title..."
+                />
+              </div>
+              <div>
+                <Label htmlFor="set-description">Description</Label>
+                <Input
+                  id="set-description"
+                  value={currentSet.description}
+                  onChange={(e) => setCurrentSet(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Brief description of this set..."
+                />
+              </div>
+            </div>
+
+            {/* Current Item Builder */}
+            <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
+              <h4 className="font-medium">Add Term</h4>
               
-              {/* Topic Context for AI */}
-              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <Target className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm font-medium text-blue-800">Mnemonic Topic Context</span>
-                </div>
-                <div className="text-sm space-y-1">
-                  <div className="text-blue-700">
-                    <strong>Module:</strong> {moduleTitle || 'Professional Development Module'}
-                  </div>
-                  <div className="text-blue-700">
-                    <strong>Learning Objective:</strong> {moduleDescription || 'Building effective teaching strategies'}
-                  </div>
-                  <div className="text-blue-700">
-                    <strong>Section:</strong> {sectionTitle}
-                  </div>
-                  <div className="text-blue-600 text-xs mt-2">
-                    AI will generate memory devices specifically about this topic and section
-                  </div>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Progress */}
-              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-indigo-200">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-semibold">
-                    {builtMnemonics.length}
-                  </div>
-                  <span className="text-sm font-medium">Memory Devices Built</span>
-                </div>
-                {builtMnemonics.length > 0 && (
-                  <Button
-                    size="sm"
-                    onClick={finishAndSave}
-                    className="bg-indigo-600 hover:bg-indigo-700"
-                  >
-                    Devices Finished - Save & Move On
-                  </Button>
-                )}
-              </div>
-
-              {/* Current Mnemonic Builder */}
-              <div className="space-y-4 p-4 bg-white rounded-lg border border-indigo-200">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-semibold">Memory Device {builtMnemonics.length + 1}</h4>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={generateSingleMnemonic}
-                      disabled={isGenerating}
-                      className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                    >
-                      {isGenerating ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="h-4 w-4 mr-2" />
-                          AI Generate
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Concept Input */}
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium">Concept to Remember</Label>
+                  <Label htmlFor="term">Term</Label>
                   <Input
-                    value={currentMnemonic.concept}
-                    onChange={(e) => setCurrentMnemonic(prev => ({ ...prev, concept: e.target.value }))}
-                    placeholder="Enter the concept or information to memorize..."
-                    className="mt-1"
+                    id="term"
+                    value={currentItem.term}
+                    onChange={(e) => setCurrentItem(prev => ({ ...prev, term: e.target.value }))}
+                    placeholder="Enter key term..."
                   />
                 </div>
-
-                {/* Mnemonic Input */}
                 <div>
-                  <Label className="text-sm font-medium">Memory Device</Label>
-                  <Input
-                    value={currentMnemonic.mnemonic}
-                    onChange={(e) => setCurrentMnemonic(prev => ({ ...prev, mnemonic: e.target.value }))}
-                    placeholder="Enter the acronym, phrase, or memory device..."
-                    className="mt-1"
-                  />
-                </div>
-
-                {/* Explanation Input */}
-                <div>
-                  <Label className="text-sm font-medium">Explanation</Label>
+                  <Label htmlFor="definition">Definition</Label>
                   <Textarea
-                    value={currentMnemonic.explanation}
-                    onChange={(e) => setCurrentMnemonic(prev => ({ ...prev, explanation: e.target.value }))}
-                    placeholder="Explain how the memory device works..."
-                    className="mt-1"
-                    rows={3}
+                    id="definition"
+                    value={currentItem.definition}
+                    onChange={(e) => setCurrentItem(prev => ({ ...prev, definition: e.target.value }))}
+                    placeholder="Define the term..."
+                    rows={2}
                   />
                 </div>
-
-                {/* Memory Tip Input */}
-                <div>
-                  <Label className="text-sm font-medium">Memory Tip (Optional)</Label>
-                  <Input
-                    value={currentMnemonic.tip}
-                    onChange={(e) => setCurrentMnemonic(prev => ({ ...prev, tip: e.target.value }))}
-                    placeholder="Additional tip for remembering..."
-                    className="mt-1"
-                  />
-                </div>
-
-                {/* Add Mnemonic Button */}
-                <Button
-                  onClick={addMnemonicToBuilder}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700"
-                  disabled={!currentMnemonic.concept.trim() || !currentMnemonic.mnemonic.trim()}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Memory Device to Collection
-                </Button>
               </div>
 
-              {/* Built Mnemonics List */}
-              {builtMnemonics.length > 0 && (
-                <div className="space-y-3">
-                  <h4 className="font-semibold">Memory Devices ({builtMnemonics.length})</h4>
-                  {builtMnemonics.map((mnemonic, index) => (
-                    <div key={index} className="p-3 bg-white rounded-lg border border-indigo-200">
+              <div>
+                <Label htmlFor="mnemonic">Mnemonic Device</Label>
+                <Input
+                  id="mnemonic"
+                  value={currentItem.mnemonic}
+                  onChange={(e) => setCurrentItem(prev => ({ ...prev, mnemonic: e.target.value }))}
+                  placeholder="Memory aid or acronym..."
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="explanation">Explanation</Label>
+                <Textarea
+                  id="explanation"
+                  value={currentItem.explanation}
+                  onChange={(e) => setCurrentItem(prev => ({ ...prev, explanation: e.target.value }))}
+                  placeholder="How the mnemonic helps remember the term..."
+                  rows={2}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="memory-tip">Memory Tip</Label>
+                <Input
+                  id="memory-tip"
+                  value={currentItem.memoryTip}
+                  onChange={(e) => setCurrentItem(prev => ({ ...prev, memoryTip: e.target.value }))}
+                  placeholder="Additional memory strategy..."
+                />
+              </div>
+
+              <Button onClick={addItem} className="w-full">
+                <Plus className="h-4 w-4 mr-2" />
+                {editingItemIndex !== null ? 'Update Term' : 'Add Term'}
+              </Button>
+            </div>
+
+            {/* Current Items Display */}
+            {currentSet.items.length > 0 && (
+              <div className="space-y-2">
+                <Label>Current Terms ({currentSet.items.length})</Label>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {currentSet.items.map((item, index) => (
+                    <div key={index} className="p-3 bg-white border rounded-lg">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <div className="font-medium text-sm">{mnemonic.concept}</div>
-                          <div className="text-xs text-indigo-600 mt-1">
-                            <strong>Device:</strong> {mnemonic.mnemonic}
-                          </div>
-                          {mnemonic.explanation && (
-                            <div className="text-xs text-gray-600 mt-1">
-                              {mnemonic.explanation.substring(0, 100)}...
-                            </div>
+                          <div className="font-semibold text-sm">{item.term}</div>
+                          <div className="text-xs text-gray-600 mt-1">{item.definition}</div>
+                          {item.mnemonic && (
+                            <Badge variant="outline" className="mt-1 text-xs">
+                              {item.mnemonic}
+                            </Badge>
                           )}
                         </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => removeMnemonicFromBuilder(index)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => editItem(index)}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeItem(index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
-              )}
-
-              {/* Exit Builder */}
-              <div className="flex justify-between pt-4 border-t border-indigo-200">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setCurrentMnemonic({ concept: '', mnemonic: '', explanation: '', tip: '' });
-                    setBuiltMnemonics([]);
-                    onCancel();
-                  }}
-                >
-                  Cancel Builder
-                </Button>
-                
-                {builtMnemonics.length > 0 && (
-                  <Button
-                    onClick={finishAndSave}
-                    className="bg-indigo-600 hover:bg-indigo-700"
-                  >
-                    Finish Collection & Continue
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                )}
               </div>
-            </CardContent>
-          </Card>
+            )}
+
+            <div className="flex gap-2">
+              <Button 
+                onClick={generateMnemonics} 
+                disabled={isGenerating}
+                variant="outline"
+                className="flex-1"
+              >
+                {isGenerating ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4 mr-2" />
+                )}
+                Generate with AI
+              </Button>
+              
+              <Button onClick={addSet} className="flex-1">
+                {editingSetIndex !== null ? 'Update Set' : 'Add Set'}
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
+
+      {/* Created Sets */}
+      {mnemonicSets.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BookMarked className="h-5 w-5" />
+              Created Sets ({mnemonicSets.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {mnemonicSets.map((set, index) => (
+                <div key={index} className="p-4 border rounded-lg">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <h4 className="font-semibold">{set.title}</h4>
+                      <p className="text-sm text-gray-600 mt-1">{set.description}</p>
+                      <Badge variant="secondary" className="mt-2">
+                        {set.items.length} terms
+                      </Badge>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => editSet(index)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => removeSet(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {set.items.slice(0, 4).map((item, itemIndex) => (
+                      <div key={itemIndex} className="text-xs p-2 bg-gray-50 rounded">
+                        <span className="font-medium">{item.term}:</span> {item.definition.substring(0, 50)}...
+                      </div>
+                    ))}
+                    {set.items.length > 4 && (
+                      <div className="text-xs p-2 bg-gray-100 rounded text-center">
+                        +{set.items.length - 4} more terms
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Actions */}
+      <div className="flex gap-4">
+        <Button variant="outline" onClick={onCancel} className="flex-1">
+          Cancel
+        </Button>
+        <Button onClick={handleSave} className="flex-1">
+          Save Mnemonic Sets
+        </Button>
+      </div>
     </div>
   );
 }
