@@ -4411,8 +4411,281 @@ Create a natural conversation between two podcast hosts discussing this specific
                   </Card>
                 )}
 
+                {/* Specialized Builder Integration */}
+                {activeBuilder === 'scenario-match' && (
+                  <ScenarioMatchBuilder
+                    moduleTitle={newModule.title}
+                    moduleDescription={newModule.description}
+                    sectionTitle={newModule.sections[currentSectionIndex]?.title || ''}
+                    onSave={(data) => {
+                      const updatedSections = [...newModule.sections];
+                      updatedSections[currentSectionIndex] = {
+                        ...updatedSections[currentSectionIndex],
+                        builderData: data,
+                        content: `Interactive scenario matching activity created with AI and manual input capabilities.`
+                      };
+                      
+                      setNewModule(prev => ({
+                        ...prev,
+                        sections: updatedSections
+                      }));
+                      
+                      setActiveBuilder(null);
+                      setBuilderData(null);
+                      
+                      toast({
+                        title: "Scenario Match Activity Saved",
+                        description: "Your scenario matching activity has been saved to this section.",
+                      });
+                    }}
+                    onCancel={() => {
+                      setActiveBuilder(null);
+                      setBuilderData(null);
+                    }}
+                    initialData={builderData}
+                  />
+                )}
+
+                {activeBuilder === 'slide' && (
+                  <SlideBuilder
+                    moduleTitle={newModule.title}
+                    moduleDescription={newModule.description}
+                    sectionTitle={newModule.sections[currentSectionIndex]?.title || ''}
+                    onSave={(data) => {
+                      const updatedSections = [...newModule.sections];
+                      updatedSections[currentSectionIndex] = {
+                        ...updatedSections[currentSectionIndex],
+                        builderData: data,
+                        content: `Interactive slide presentation created with AI and manual input capabilities.`
+                      };
+                      
+                      setNewModule(prev => ({
+                        ...prev,
+                        sections: updatedSections
+                      }));
+                      
+                      setActiveBuilder(null);
+                      setBuilderData(null);
+                      
+                      toast({
+                        title: "Slide Presentation Saved",
+                        description: "Your slide presentation has been saved to this section.",
+                      });
+                    }}
+                    onCancel={() => {
+                      setActiveBuilder(null);
+                      setBuilderData(null);
+                    }}
+                    initialData={builderData}
+                  />
+                )}
+
+                {activeBuilder === 'example' && (
+                  <ExampleBuilder
+                    moduleTitle={newModule.title}
+                    moduleDescription={newModule.description}
+                    sectionTitle={newModule.sections[currentSectionIndex]?.title || ''}
+                    onSave={(data) => {
+                      const updatedSections = [...newModule.sections];
+                      updatedSections[currentSectionIndex] = {
+                        ...updatedSections[currentSectionIndex],
+                        builderData: data,
+                        content: `Interactive examples and case studies created with AI and manual input capabilities.`
+                      };
+                      
+                      setNewModule(prev => ({
+                        ...prev,
+                        sections: updatedSections
+                      }));
+                      
+                      setActiveBuilder(null);
+                      setBuilderData(null);
+                      
+                      toast({
+                        title: "Examples Activity Saved",
+                        description: "Your examples and case studies have been saved to this section.",
+                      });
+                    }}
+                    onCancel={() => {
+                      setActiveBuilder(null);
+                      setBuilderData(null);
+                    }}
+                    initialData={builderData}
+                  />
+                )}
+
+                {activeBuilder === 'matching' && (
+                  <MatchingBuilder
+                    moduleTitle={newModule.title}
+                    moduleDescription={newModule.description}
+                    sectionTitle={newModule.sections[currentSectionIndex]?.title || ''}
+                    onSave={(data) => {
+                      const updatedSections = [...newModule.sections];
+                      updatedSections[currentSectionIndex] = {
+                        ...updatedSections[currentSectionIndex],
+                        builderData: data,
+                        content: `Interactive matching exercise created with AI and manual input capabilities.`
+                      };
+                      
+                      setNewModule(prev => ({
+                        ...prev,
+                        sections: updatedSections
+                      }));
+                      
+                      setActiveBuilder(null);
+                      setBuilderData(null);
+                      
+                      toast({
+                        title: "Matching Exercise Saved",
+                        description: "Your matching exercise has been saved to this section.",
+                      });
+                    }}
+                    onCancel={() => {
+                      setActiveBuilder(null);
+                      setBuilderData(null);
+                    }}
+                    initialData={builderData}
+                  />
+                )}
+
+                {activeBuilder === 'scenario' && (
+                  <ScenarioBuilder
+                    moduleTitle={newModule.title}
+                    moduleDescription={newModule.description}
+                    sectionTitle={newModule.sections[currentSectionIndex]?.title || ''}
+                    onSave={(data) => {
+                      const updatedSections = [...newModule.sections];
+                      updatedSections[currentSectionIndex] = {
+                        ...updatedSections[currentSectionIndex],
+                        builderData: data,
+                        content: `Interactive scenario-based learning created with AI and manual input capabilities.`
+                      };
+                      
+                      setNewModule(prev => ({
+                        ...prev,
+                        sections: updatedSections
+                      }));
+                      
+                      setActiveBuilder(null);
+                      setBuilderData(null);
+                      
+                      toast({
+                        title: "Scenario Activity Saved",
+                        description: "Your scenario-based activity has been saved to this section.",
+                      });
+                    }}
+                    onCancel={() => {
+                      setActiveBuilder(null);
+                      setBuilderData(null);
+                    }}
+                    initialData={builderData}
+                  />
+                )}
+
+                {activeBuilder === 'triage' && (
+                  <TriageBuilder
+                    moduleTitle={newModule.title}
+                    moduleDescription={newModule.description}
+                    sectionTitle={newModule.sections[currentSectionIndex]?.title || ''}
+                    onSave={(data) => {
+                      const updatedSections = [...newModule.sections];
+                      updatedSections[currentSectionIndex] = {
+                        ...updatedSections[currentSectionIndex],
+                        builderData: data,
+                        content: `Interactive triage and priority assessment created with AI and manual input capabilities.`
+                      };
+                      
+                      setNewModule(prev => ({
+                        ...prev,
+                        sections: updatedSections
+                      }));
+                      
+                      setActiveBuilder(null);
+                      setBuilderData(null);
+                      
+                      toast({
+                        title: "Triage Assessment Saved",
+                        description: "Your triage assessment has been saved to this section.",
+                      });
+                    }}
+                    onCancel={() => {
+                      setActiveBuilder(null);
+                      setBuilderData(null);
+                    }}
+                    initialData={builderData}
+                  />
+                )}
+
+                {activeBuilder === 'mnemonic' && (
+                  <MnemonicBuilder
+                    moduleTitle={newModule.title}
+                    moduleDescription={newModule.description}
+                    sectionTitle={newModule.sections[currentSectionIndex]?.title || ''}
+                    onSave={(data) => {
+                      const updatedSections = [...newModule.sections];
+                      updatedSections[currentSectionIndex] = {
+                        ...updatedSections[currentSectionIndex],
+                        builderData: data,
+                        content: `Interactive memory techniques and mnemonics created with AI and manual input capabilities.`
+                      };
+                      
+                      setNewModule(prev => ({
+                        ...prev,
+                        sections: updatedSections
+                      }));
+                      
+                      setActiveBuilder(null);
+                      setBuilderData(null);
+                      
+                      toast({
+                        title: "Memory Techniques Saved",
+                        description: "Your memory techniques have been saved to this section.",
+                      });
+                    }}
+                    onCancel={() => {
+                      setActiveBuilder(null);
+                      setBuilderData(null);
+                    }}
+                    initialData={builderData}
+                  />
+                )}
+
+                {activeBuilder === 'simulation' && (
+                  <SimulationBuilder
+                    moduleTitle={newModule.title}
+                    moduleDescription={newModule.description}
+                    sectionTitle={newModule.sections[currentSectionIndex]?.title || ''}
+                    onSave={(data) => {
+                      const updatedSections = [...newModule.sections];
+                      updatedSections[currentSectionIndex] = {
+                        ...updatedSections[currentSectionIndex],
+                        builderData: data,
+                        content: `Interactive role-play simulation created with AI and manual input capabilities.`
+                      };
+                      
+                      setNewModule(prev => ({
+                        ...prev,
+                        sections: updatedSections
+                      }));
+                      
+                      setActiveBuilder(null);
+                      setBuilderData(null);
+                      
+                      toast({
+                        title: "Simulation Saved",
+                        description: "Your role-play simulation has been saved to this section.",
+                      });
+                    }}
+                    onCancel={() => {
+                      setActiveBuilder(null);
+                      setBuilderData(null);
+                    }}
+                    initialData={builderData}
+                  />
+                )}
+
                 {/* Drag and Drop Content Area */}
-                {!isQuizBuilder && !isActivityBuilder && (
+                {!isQuizBuilder && !isActivityBuilder && !activeBuilder && (
                   <div className="grid grid-cols-2 gap-6">
                   {/* Dynamic AI Tools Based on Section Type */}
                   <div className="space-y-4">
